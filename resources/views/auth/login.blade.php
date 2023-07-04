@@ -1,50 +1,69 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-4">
+    <div class="hold-transition login-page">
+        <div class="login-box">
+            <!-- /.login-logo -->
             <div class="card shadow">
+                <div class="card-header text-center">
+                    <span class="h1"><b>Koperasi</b>LAB</span>
+                </div>
                 <div class="card-body">
-                    <h2 class="text-center mb-3">Login</h2>
-                    <hr />
-                    <form method="POST" class="p-2" action="{{ route('login') }}">
+                    <p class="login-box-msg">Sign in to start your session</p>
+
+                    <form action="{{ route('login') }}" method="post">
                         @csrf
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label">{{ __('Email Address') }}</label>
-                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autofocus>
-                            @error('email')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <label for="password" class="form-label">Password</label>
-                                <div class="float-right">
-                                    <a href="{{ route('password.request') }}" class="link-underline-light">
-                                        Forgot Your Password?
-                                    </a>
+                        <div class="input-group mb-3">
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" name="email"
+                                id="email" placeholder="Email" value="{{ old('email') }}" autofocus>
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
                                 </div>
                             </div>
-                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required>
-                            @error('password')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
-                        <div class="mt-3">
-                            <button type="submit" class="btn btn-primary w-100">{{ __('Login') }}</button>
+                        <div class="input-group mb-3">
+                            <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                name="password" id="password" placeholder="Password" value="{{ old('password') }}">
+                            <div class="input-group-append">
+                                <div class="input-group-text">
+                                    <i class="bi bi-lock-fill"></i>
+                                </div>
+                            </div>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
+                        <div class="row">
 
-                        <div class="text-center mt-3">
-                            Don't have an account? <a href="" class="link-underline-light">Click here</a>
+                            <!-- /.col -->
+                            <div class="col">
+                                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                            </div>
+                            <!-- /.col -->
                         </div>
                     </form>
+
+                    <div class="social-auth-links text-center mt-2 mb-3">
+                        <a href="{{ route('google.redirect') }}" class="btn btn-block btn-danger">
+                            <i class="bi bi-google"></i> Sign in using Google
+                        </a>
+                    </div>
+                    <!-- /.social-auth-links -->
+
+                    <!-- <p class="mb-1">
+                <a href="{{ route('password.request') }}">I forgot my password</a>
+              </p> -->
+                    <p class="mb-0">
+                        <a href="{{ route('register') }}" class="text-center">Register a new akun</a>
+                    </p>
                 </div>
+                <!-- /.card-body -->
             </div>
+            <!-- /.card -->
         </div>
     </div>
-</div>
 @endsection

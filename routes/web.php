@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\auth\GoogleController;
 use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +21,16 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('auth.login');
 });
+Auth::routes();
+
+Route::middleware(['auth', 'verified'])->group(function() {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
+
+    //Resource
+    Route::resource('users', UserController::class);
+    Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
+});
+
+Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
+
