@@ -3,34 +3,20 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
-use DataTables;
 
-class UserController extends Controller
+class RolesController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('pages.users.index');
+
+        return view('pages.roles.index');
     }
 
-    public function getData(){
-        $query = User::orderBy('id');
+    public function getData() {
 
-        return DataTables::of($query)
-                ->addIndexColumn()
-                ->addColumn('action', function($data){
-                    return '
-                        <button class="btn btn-warning btn-sm" >Edit</button>
-                    ';
-                })
-                ->addColumn('role', function($data){
-                    return $data->getRoleNames()[0];
-                })
-                ->rawColumns(['action'])
-                ->make(true);
     }
 
     /**

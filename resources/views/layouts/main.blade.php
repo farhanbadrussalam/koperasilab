@@ -17,7 +17,10 @@
     <!-- Theme adminLTE -->
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">
 
-    <link href="{{ asset('assets/DataTables/datatables.min.css') }}" rel="stylesheet"/>
+    {{-- <link href="{{ asset('assets/DataTables/datatables.min.css') }}" rel="stylesheet"/> --}}
+    {{-- <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.jqueryui.min.css') }}" rel="stylesheet"/> --}}
+    {{-- <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/jquery.dataTables.min.css') }}" rel="stylesheet"/> --}}
+    <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet"/>
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -42,7 +45,9 @@
 
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/js/adminlte.min.js') }}"></script>
-    <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
+    {{-- <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script> --}}
+    <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
 
     @stack('scripts')
 </body>

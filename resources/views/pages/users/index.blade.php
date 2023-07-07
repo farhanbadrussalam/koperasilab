@@ -9,25 +9,28 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                         <li class="breadcrumb-item active">Users management</li>
+                        <li class="breadcrumb-item active">Users</li>
                     </ol>
                 </div>
             </div>
         </div><!-- /.container-fluid -->
     </section>
-    <section class="content">
-        <div class="container-fluid">
+    <section class="content col-xl-8 col-md-12">
+        <div class="container">
             <div class="card card-default color-palette-box shadow">
-                <div class="card-header">
-                    <h3 class="card-title">
-                      List users
+                <div class="card-header d-flex ">
+                    <h3 class="card-title flex-grow-1">
+                      Users
                     </h3>
+                    <button class="btn btn-primary btn-sm">Add user</button>
                 </div>
                 <div class="card-body">
-                    <table class="table" id="user-table">
+                    <table class="table table-hover w-100" id="user-table">
                         <thead>
                             <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
+                            <th>Role</th>
                             <th>Action</th>
                         </thead>
                     </table>
@@ -48,6 +51,7 @@
                     { data: 'id', name: 'id' },
                     { data: 'name', name: 'name' },
                     { data: 'email', name: 'email' },
+                    { data: 'role', name: 'role' },
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 ]
             });

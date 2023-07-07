@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RolesController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -28,7 +29,10 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     //Resource
     Route::resource('users', UserController::class);
-    Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
+    Route::get('getDataUsers', [UserController::class, 'getData'])->name('users.getData');
+
+    Route::resource('roles', RolesController::class);
+    Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
