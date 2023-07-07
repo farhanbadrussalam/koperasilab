@@ -10,6 +10,14 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-item">
+                  <a href="#" class="nav-link">
+                    <i class="bi bi-person-badge-fill"></i>
+                    <p>
+                      Home
+                    </p>
+                  </a>
+                </li>
                 <li class="nav-header">USER MANAGEMENT</li>
                 <li class="nav-item">
                     <a href="{{ route('users.index') }}" class="nav-link">
