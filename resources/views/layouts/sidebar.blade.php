@@ -10,6 +10,31 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                <li class="nav-item">
+                    <a href="{{ route('home') }}" class="nav-link">
+                      <i class="bi bi-person-badge-fill"></i>
+                      <p>
+                        Home
+                      </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{{ route('userProfile.index') }}" class="nav-link">
+                    <i class="bi bi-person-fill"></i>
+                    <p>
+                      Profile
+                    </p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('userPerusahaan.index') }}" class="nav-link">
+                      <i class="bi bi-building-fill"></i>
+                      <p>
+                        Profile Perusahaan
+                      </p>
+                    </a>
+                </li>
+
                 <li class="nav-header">USER MANAGEMENT</li>
                 <li class="nav-item">
                     <a href="{{ route('users.index') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}">
@@ -19,6 +44,8 @@
                       </p>
                     </a>
                 </li>
+
+
                 <li class="nav-item">
                     <a href="{{ route('roles.index') }}" class="nav-link {{ Request::is('roles*') ? 'active' : '' }}">
                       <i class="nav-icon bi bi-people-fill"></i>
