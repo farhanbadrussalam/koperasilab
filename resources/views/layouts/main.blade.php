@@ -17,7 +17,9 @@
     <!-- Theme adminLTE -->
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">
 
+    {{-- Plugin --}}
     <link href="{{ asset('assets/DataTables/datatables.min.css') }}" rel="stylesheet"/>
+    <link href="{{ asset('assets/toast/toastr.min.css') }}" rel="stylesheet"/>
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -43,6 +45,7 @@
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
+    <script src="{{ asset('assets/toast/toastr.min.js') }}"></script>
 
     @stack('scripts')
 </body>

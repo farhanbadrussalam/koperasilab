@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\profile;
+use App\Models\user;
 use Illuminate\Http\Request;
+use Auth;
 
 class ProfileController extends Controller
 {
@@ -50,9 +52,34 @@ class ProfileController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, profile $profile)
+    public function update(Request $request, $id)
     {
-        //
+        $validated = $request->validate([
+            'name' => ['required', 'string'],
+            'nik' => ['required'],
+            'email' => ['required', 'email'],
+            'telepon' => ['required','numeric'],
+            'jenis_kelamin' => ['required']
+        ]);
+
+        $profile = profile::findOrFail($id);
+        $user = user::findOrFail($profile->user_id);
+
+        $dataProfil = array(
+            'nik' => $request->nik,
+            'alamat' => $request->alamat,
+            'no_hp' => $request->telepon,
+            'jenis_kelamin' => $request->jenis_kelamin,
+        );
+        $dataUser = array(
+            'name' => $request->name,
+            'email' => $request->email
+        );
+
+        $profile->update($dataProfil);
+        $user->update($dataUser);
+
+        return redirect()->route('userProfile.index')->with('success', 'Berhasil di update');
     }
 
     /**
