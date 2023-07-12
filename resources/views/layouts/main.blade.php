@@ -17,6 +17,9 @@
     <!-- Theme adminLTE -->
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">
 
+    {{-- Plugin --}}
+    <link href="{{ asset('assets/DataTables/datatables.min.css') }}" rel="stylesheet"/>
+    <link href="{{ asset('assets/toast/toastr.min.css') }}" rel="stylesheet"/>
     {{-- <link href="{{ asset('assets/DataTables/datatables.min.css') }}" rel="stylesheet"/> --}}
     {{-- <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.jqueryui.min.css') }}" rel="stylesheet"/> --}}
     {{-- <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/jquery.dataTables.min.css') }}" rel="stylesheet"/> --}}
@@ -45,6 +48,8 @@
 
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/js/adminlte.min.js') }}"></script>
+    <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
+    <script src="{{ asset('assets/toast/toastr.min.js') }}"></script>
     {{-- <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script> --}}
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>

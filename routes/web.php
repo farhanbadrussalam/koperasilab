@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\userPerusahaanController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\LayananJasaController;
 use Illuminate\Support\Facades\Auth;
@@ -30,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     //Resource
     Route::resource('users', UserController::class);
+    Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
+
+    Route::resource('userProfile', ProfileController::class);
+    Route::resource('userPerusahaan', userPerusahaanController::class);
     Route::get('getDataUsers', [UserController::class, 'getData'])->name('users.getData');
 
     Route::resource('roles', RolesController::class);
