@@ -41,18 +41,17 @@
 @push('scripts')
     <script>
         $(function () {
-            // $('#user-table').DataTable({
-            //     processing: true,
-            //     serverSide: true,
-            //     ajax: "{{ route('users.getData') }}",
-            //     columns: [
-            //         { data: 'id', name: 'id' },
-            //         { data: 'name', name: 'name' },
-            //         { data: 'email', name: 'email' },
-            //         { data: 'role', name: 'role' },
-            //         { data: 'action', name: 'action', orderable: false, searchable: false },
-            //     ]
-            // });
+            $('#user-table').DataTable({
+                processing: true,
+                serverSide: true,
+                ajax: "{{ route('layananJasa.getData') }}",
+                columns: [
+                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false },
+                    { data: 'jenis_layanan', name: 'jenis_layanan' },
+                    { data: 'tarif', name: 'tarif' },
+                    { data: 'action', name: 'action', orderable: false, searchable: false },
+                ]
+            });
         });
     </script>
 @endpush

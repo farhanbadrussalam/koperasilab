@@ -18,11 +18,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">
 
     {{-- Plugin --}}
-    <link href="{{ asset('assets/DataTables/datatables.min.css') }}" rel="stylesheet"/>
     <link href="{{ asset('assets/toast/toastr.min.css') }}" rel="stylesheet"/>
-    {{-- <link href="{{ asset('assets/DataTables/datatables.min.css') }}" rel="stylesheet"/> --}}
-    {{-- <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.jqueryui.min.css') }}" rel="stylesheet"/> --}}
-    {{-- <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/jquery.dataTables.min.css') }}" rel="stylesheet"/> --}}
     <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet"/>
 
     <!-- Scripts -->
@@ -47,6 +43,8 @@
     </div>
 
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
+    <script src="{{ asset('assets/js/global.js') }}"></script>
     <script src="{{ asset('assets/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('assets/toast/toastr.min.js') }}"></script>

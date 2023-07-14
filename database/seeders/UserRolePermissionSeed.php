@@ -38,13 +38,13 @@ class UserRolePermissionSeed extends Seeder
             'email' => 'superadmin@gmail.com',
             'password' => Hash::make('password')
         ])->assignRole($superadmin);
-        
+
         User::factory()->create([
             'name' => 'Manager',
             'email' => 'manager@gmail.com',
             'password' => Hash::make('password')
         ])->assignRole($gmanager);
-        
+
         User::factory()->create([
             'name' => 'Keuangan',
             'email' => 'keuangan@gmail.com',
@@ -54,36 +54,42 @@ class UserRolePermissionSeed extends Seeder
         User::factory()->create([
             'name' => 'Manager UKUK',
             'email' => 'managerukuk@gmail.com',
+            'satuankerja_id' => 1,
             'password' => Hash::make('password')
         ])->assignRole($manager);
 
         User::factory()->create([
             'name' => 'Manager UKAURAK',
             'email' => 'managerukaurak@gmail.com',
+            'satuankerja_id' => 2,
             'password' => Hash::make('password')
         ])->assignRole($manager);
-                
+
         User::factory()->create([
             'name' => 'Manager UPD',
             'email' => 'managerupd@gmail.com',
+            'satuankerja_id' => 3,
             'password' => Hash::make('password')
         ])->assignRole($manager);
 
         User::factory()->create([
             'name' => 'Staff UKUK',
             'email' => 'staffukuk@gmail.com',
+            'satuankerja_id' => 1,
             'password' => Hash::make('password')
         ])->assignRole($staff);
 
         User::factory()->create([
             'name' => 'Staff UKAURAK',
             'email' => 'staffukaurak@gmail.com',
+            'satuankerja_id' => 2,
             'password' => Hash::make('password')
         ])->assignRole($staff);
 
         User::factory()->create([
             'name' => 'Staff UPD',
             'email' => 'staffupd@gmail.com',
+            'satuankerja_id' => 3,
             'password' => Hash::make('password')
         ])->assignRole($staff);
 

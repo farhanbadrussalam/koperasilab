@@ -11,7 +11,7 @@
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
                 <li class="nav-item">
-                    <a href="{{ route('home') }}" class="nav-link">
+                    <a href="{{ route('home') }}" class="nav-link {{ Request::is('home*') ? 'active' : '' }}">
                       <i class="bi bi-person-badge-fill"></i>
                       <p>
                         Home
@@ -19,7 +19,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                  <a href="{{ route('userProfile.index') }}" class="nav-link">
+                  <a href="{{ route('userProfile.index') }}" class="nav-link {{ Request::is('userProfile*') ? 'active' : '' }}">
                     <i class="bi bi-person-fill"></i>
                     <p>
                       Profile
@@ -27,7 +27,7 @@
                   </a>
                 </li>
                 <li class="nav-item">
-                    <a href="{{ route('userPerusahaan.index') }}" class="nav-link">
+                    <a href="{{ route('userPerusahaan.index') }}" class="nav-link {{ Request::is('userPerusahaan*') ? 'active' : '' }}">
                       <i class="bi bi-building-fill"></i>
                       <p>
                         Profile Perusahaan

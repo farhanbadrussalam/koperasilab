@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');
 
     Route::resource('layananJasa', LayananJasaController::class);
+    Route::get('getDataLayananJasa', [LayananJasaController::class, 'getData'])->name('layananJasa.getData');
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');

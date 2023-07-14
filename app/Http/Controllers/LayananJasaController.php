@@ -5,7 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Layanan_jasa;
 use App\Models\Satuan_kerja;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Http;
+
+use Illuminate\Support\Facades\Session;
 use Auth;
+use DataTables;
 
 class LayananJasaController extends Controller
 {
@@ -19,10 +24,26 @@ class LayananJasaController extends Controller
 
     public function getData() {
         $layanan = Layanan_jasa::where('created_by', Auth::user()->id)
-                    ->where('status', 1)                
-                    ->get();
+                    ->where('status', 1);
 
-        debug($layanan);
+        return DataTables::of($layanan)
+                ->addIndexColumn()
+                ->editColumn('jenis_layanan', function($data) {
+                    return "
+                        <div class=''>$data->jenis_layanan</div>
+                        <small class='text-body-secondary'>".$data->detail."</small>
+                    ";
+                })
+                ->editColumn('tarif', function($data){
+                    return formatCurrency($data->tarif);
+                })
+                ->addColumn('action', function($data){
+                    return '
+                        <a class="btn btn-warning btn-sm" href="'.route("layananJasa.edit", $data->id).'">Edit</a>
+                    ';
+                })
+                ->rawColumns(['action', 'jenis_layanan'])
+                ->make(true);
     }
 
     /**
@@ -39,7 +60,27 @@ class LayananJasaController extends Controller
      */
     public function store(Request $request)
     {
-        dd($request);
+        $validator = $request->validate([
+            'satuankerja' => ['required'],
+            'pj' => ['required'],
+            'jenisLayanan' => ['required'],
+            'detail' => ['required'],
+            'tarif' => ['required']
+        ]);
+
+        $dataLayanan = array(
+            'satuankerja_id' => $request->satuankerja,
+            'user_id' => $request->pj,
+            'jenis_layanan' => $request->jenisLayanan,
+            'detail' => $request->detail,
+            'tarif' => $request->tarif,
+            'status' => 1,
+            'created_by' => Auth::user()->id
+        );
+
+        Layanan_jasa::create($dataLayanan);
+
+        return redirect()->route('layananJasa.index')->with('success', 'Berhasil di tambah');
     }
 
     /**
@@ -55,7 +96,23 @@ class LayananJasaController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data['satuankerja'] = Satuan_kerja::all();
+        $data['layananjasa'] = Layanan_jasa::findOrFail($id);
+
+        $params = array(
+            'satuankerja' => $data['layananjasa']->satuankerja_id,
+            'role' => 'staff'
+        );
+
+        $_token = generateToken();
+
+        $response = Http::get(url('/api/getPegawai'), $params);
+
+        $jsonData =$response->json();
+
+        // $getPegawai = $this->_resourceAPI('GET', '/getPegawai', $params);
+
+        dd($jsonData);
     }
 
     /**
@@ -72,5 +129,37 @@ class LayananJasaController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    private function _resourceAPI($method, $url, $params = [])
+    {
+        $_token = generateToken();
+
+        // $httpClient = new Client([
+        //     'timeout' => 20
+        // ]);
+        $dataRes = '';
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer ' . $_token, // Ganti dengan token yang valid
+        ])->get(url('/api/getPegawai'), $params);
+
+        // $response = $httpClient->request($method, url('/api/getPegawai'), [
+        //     'headers' => [
+        //         'Authorization' => 'Bearer ' . $_token,
+        //     ],
+        //     'form_params' => $params
+        // ]);
+
+        dd($response->successful());
+        $dataRes = json_decode($response->getBody()->getContents(), true);
+        $dataRes['status_code'] = $response->getStatusCode();
+        // try {
+        // } catch (\Throwable $th) {
+        //     //throw $th;
+        // }
+
+
+        return $dataRes;
     }
 }

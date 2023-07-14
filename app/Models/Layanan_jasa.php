@@ -16,8 +16,10 @@ class Layanan_jasa extends Model
         'user_id',
         'jenis_layanan',
         'status',
+        'detail',
         'tarif',
         'name',
+        'created_by'
     ];
 
     public function user()
@@ -27,6 +29,6 @@ class Layanan_jasa extends Model
 
     public function satuanKerja()
     {
-        return $this->belongsTo(Satuan_kerja::class);
+        return $this->belongsTo(Satuan_kerja::class, 'satuankerja_id', 'id');
     }
 }

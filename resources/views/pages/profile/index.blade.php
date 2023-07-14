@@ -26,7 +26,11 @@
                                     <div class="text-center">
                                         <div class="box-profile my-2">
                                             <img class="profile-user-img img-fluid img-circle"
-                                                src="{{ asset('storage/images/avatar/' . Auth::user()->profile->avatar) }}"
+                                                src="@if (isset(Auth::user()->profile->avatar))
+                                                {{ asset('storage/images/avatar/' . Auth::user()->profile->avatar) }}
+                                                @else
+                                                {{ asset('assets/img/default-avatar.jpg') }}
+                                                @endif"
                                                 alt="User profile picture" style="width: 15em;">
                                         </div>
                                         <h4>{{ Auth::user()->getRoleNames()[0] }}</h4>
