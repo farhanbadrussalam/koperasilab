@@ -40,6 +40,12 @@
 @endsection
 @push('scripts')
     <script>
+        @if (session('success'))
+            toastr.success('{{ session('success') }}');
+        @elseif (session('error'))
+            toastr.error('{{ session('error') }}');
+        @endif
+
         $(function () {
             $('#user-table').DataTable({
                 processing: true,
@@ -53,5 +59,10 @@
                 ]
             });
         });
+
+        function btnDelete(id) {
+            console.log(id);
+            
+        }
     </script>
 @endpush

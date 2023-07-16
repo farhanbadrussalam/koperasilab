@@ -7,6 +7,7 @@ use App\Models\Layanan_jasa;
 use App\Models\Satuan_kerja;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Http;
+use Psr\Http\Message\ResponseInterface;
 
 use Illuminate\Support\Facades\Session;
 use Auth;
@@ -40,6 +41,7 @@ class LayananJasaController extends Controller
                 ->addColumn('action', function($data){
                     return '
                         <a class="btn btn-warning btn-sm" href="'.route("layananJasa.edit", $data->id).'">Edit</a>
+                        <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
                     ';
                 })
                 ->rawColumns(['action', 'jenis_layanan'])
@@ -98,21 +100,9 @@ class LayananJasaController extends Controller
     {
         $data['satuankerja'] = Satuan_kerja::all();
         $data['layananjasa'] = Layanan_jasa::findOrFail($id);
+        $data['token'] = generateToken();
 
-        $params = array(
-            'satuankerja' => $data['layananjasa']->satuankerja_id,
-            'role' => 'staff'
-        );
-
-        $_token = generateToken();
-
-        $response = Http::get(url('/api/getPegawai'), $params);
-
-        $jsonData =$response->json();
-
-        // $getPegawai = $this->_resourceAPI('GET', '/getPegawai', $params);
-
-        dd($jsonData);
+        return view('pages.layananjasa.edit', $data);
     }
 
     /**
@@ -120,7 +110,23 @@ class LayananJasaController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validator = $request->validate([
+            'pj' => ['required'],
+            'jenisLayanan' => ['required'],
+            'detail' => ['required'],
+            'tarif' => ['required']
+        ]);
+
+        $layanan = Layanan_jasa::findOrFail($id);
+
+        $layanan->user_id = $request->pj;
+        $layanan->jenis_layanan = $request->jenisLayanan;
+        $layanan->detail = $request->detail;
+        $layanan->tarif = $request->tarif;
+
+        $layanan->update();
+
+        return redirect()->route('layananJasa.index')->with('success', 'Berhasil di update');
     }
 
     /**

@@ -24,7 +24,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/login', [AuthController::class, 'index']);
 
 
-Route::get('/getPegawai', [LayananjasaController::class, 'getPegawai']);
 Route::middleware('auth:sanctum')->group(function() {
+    Route::get('/getPegawai', [LayananjasaController::class, 'getPegawai']);
 
 });

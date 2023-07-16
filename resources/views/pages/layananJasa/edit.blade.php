@@ -24,8 +24,9 @@
                         </h2>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('layananJasa.store') }}" method="post">
+                        <form action="{{ route('layananJasa.update', $layananjasa->id) }}" method="post">
                             @csrf
+                            @method('PUT')
                             <div class="mb-3 row">
                                 <label for="selectSatuankerja" class="col-sm-3 form-label">Satuan Kerja</label>
                                 <div class="col-sm-9">
@@ -33,10 +34,10 @@
                                         class="form-control @error('satuankerja')
                                     is-invalid
                                 @enderror"
-                                        onchange="getPegawai(this)">
+                                        disabled>
                                         <option value="">-- Select --</option>
                                         @foreach ($satuankerja as $key => $satuan)
-                                            <option value="{{ $satuan->id }}">{{ $satuan->name }}</option>
+                                            <option value="{{ $satuan->id }}" @if($layananjasa->satuankerja_id == $satuan->id) selected @endif>{{ $satuan->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('satuankerja')
@@ -69,7 +70,7 @@
                                         class="form-control @error('jenisLayanan')
                                     is-invalid
                                 @enderror"
-                                        name="jenisLayanan" id="inputJenisLayanan">
+                                        name="jenisLayanan" id="inputJenisLayanan" value="{{ $layananjasa->jenis_layanan }}">
                                     @error('jenisLayanan')
                                         <div class="invalid-feedback">
                                             {{ $message }}
@@ -83,7 +84,7 @@
                                     <input type="text" name="detail" id="inputDetail"
                                         class="form-control @error('detail')
                                     is-invalid
-                                @enderror">
+                                @enderror" value="{{ $layananjasa->detail }}">
                                     @error('detail')
                                         <div class="invalid-feedback">
                                             {{ $message }}
@@ -100,7 +101,7 @@
                                             class="form-control rupiah @error('tarif')
                                     is-invalid
                                 @enderror"
-                                            aria-describedby="rupiah-text">
+                                            aria-describedby="rupiah-text" value="{{ $layananjasa->tarif }}">
                                     </div>
                                     @error('tarif')
                                         <div class="invalid-feedback">
@@ -121,6 +122,8 @@
 @endsection
 @push('scripts')
     <script>
+        let pj = '{{ $layananjasa ? $layananjasa->user_id : false }}';
+
         function getPegawai(obj) {
             if (obj.value) {
                 $.ajax({
@@ -128,6 +131,10 @@
                     url: "{{ url('/api/getPegawai') }}",
                     dataType: 'json',
                     processData: true,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`,
+                        'Content-Type': 'application/json'
+                    },
                     data: {
                         satuankerja: obj.value,
                         role: "staff"
@@ -136,7 +143,7 @@
                     if (result.data) {
                         let html = '<option>-- Select --</option>';
                         for (const pegawai of result.data) {
-                            html += `<option value="${pegawai.id}">${pegawai.name}</option>`;
+                            html += `<option value="${pegawai.id}" ${pj == pegawai.id ? 'selected' : ''}>${pegawai.name}</option>`;
                         }
 
                         $('#selectPJ').html(html);
@@ -148,5 +155,8 @@
                 $('#selectPJ').html('<option>-- Select --</option>');
             }
         }
+        $(function () {
+            getPegawai(document.getElementById('selectSatuankerja'));
+        })
     </script>
 @endpush
