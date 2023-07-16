@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Layanan_jasa;
 use Auth;
 
 class LayananjasaController extends Controller
@@ -30,5 +31,21 @@ class LayananjasaController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
+    }
+
+    public function delete(Request $request){
+        $credential = $request->validate([
+            'id' => ['required']
+        ]);
+
+        if($credential){
+            $delete = Layanan_jasa::findOrFail($request->id);
+            $delete->status = '99';
+            $delete->update();
+
+            return response()->json(['message' => 'Berhasil di hapus'], 200);
+        }else{
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
     }
 }

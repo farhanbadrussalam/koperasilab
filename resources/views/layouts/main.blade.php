@@ -20,6 +20,7 @@
     {{-- Plugin --}}
     <link href="{{ asset('assets/toast/toastr.min.css') }}" rel="stylesheet"/>
     <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet"/>
+    <link href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet"/>
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -48,7 +49,7 @@
     <script src="{{ asset('assets/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('assets/toast/toastr.min.js') }}"></script>
-    {{-- <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script> --}}
+    <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
 

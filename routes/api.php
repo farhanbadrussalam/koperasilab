@@ -26,5 +26,6 @@ Route::post('/login', [AuthController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function() {
     Route::get('/getPegawai', [LayananjasaController::class, 'getPegawai']);
+    Route::delete('/deletePegawai', [LayananjasaController::class, 'delete']);
 
 });

@@ -20,7 +20,8 @@ class LayananJasaController extends Controller
      */
     public function index()
     {
-        return view('pages.layananJasa.index');
+        $data['token'] = generateToken();
+        return view('pages.layananJasa.index', $data);
     }
 
     public function getData() {
@@ -53,7 +54,9 @@ class LayananJasaController extends Controller
      */
     public function create()
     {
+        $_token = generateToken();
         $data['satuankerja'] = Satuan_kerja::all();
+        $data['token'] = $_token;
         return view('pages.layananJasa.create', $data);
     }
 

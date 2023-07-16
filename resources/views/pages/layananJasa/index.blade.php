@@ -24,7 +24,7 @@
                     <a href="{{ route('layananJasa.create') }}" class="btn btn-primary btn-sm">Add Layanan</a>
                 </div>
                 <div class="card-body">
-                    <table class="table table-hover w-100" id="user-table">
+                    <table class="table table-hover w-100" id="layanan-table">
                         <thead>
                             <th>No</th>
                             <th>Jenis Layanan</th>
@@ -46,8 +46,9 @@
             toastr.error('{{ session('error') }}');
         @endif
 
+        let datatable_layanan = false;
         $(function () {
-            $('#user-table').DataTable({
+            datatable_layanan = $('#layanan-table').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('layananJasa.getData') }}",
@@ -61,8 +62,33 @@
         });
 
         function btnDelete(id) {
-            console.log(id);
-            
+            deleteGlobal(() => {
+                $.ajax({
+                    url: "{{ url('/api/deletePegawai') }}?id="+id,
+                    method: 'DELETE',
+                    dataType: 'json',
+                    processData: true,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`,
+                        'Content-Type': 'application/json'
+                    }
+                }).done((result) => {
+                    if(result.message){
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: result.message
+                        });
+                        datatable_layanan?.ajax.reload();
+                    }
+                }).fail(function(message) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message.responseJSON.message
+                    });
+                });
+            });
         }
     </script>
 @endpush

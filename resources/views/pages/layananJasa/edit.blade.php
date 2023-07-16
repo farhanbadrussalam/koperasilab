@@ -149,7 +149,11 @@
                         $('#selectPJ').html(html);
                     }
                 }).fail(function(message) {
-                    console.error(message.responseJSON.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message.responseJSON.message
+                    });
                 });
             } else {
                 $('#selectPJ').html('<option>-- Select --</option>');

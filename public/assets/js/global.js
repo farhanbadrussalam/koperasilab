@@ -20,3 +20,23 @@ $('.rupiah').inputmask('numeric', {
     rightAlign: false,
     removeMaskOnSubmit: true
 });
+
+function deleteGlobal(callback = ()=>{}) {
+    Swal.fire({
+        title: 'Are you sure?',
+        icon: false,
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, cancel!',
+        customClass: {
+            confirmButton: 'btn btn-success mx-1',
+            cancelButton: 'btn btn-danger mx-1'
+        },
+        buttonsStyling: false,
+        reverseButtons: true
+    }).then((result) => {
+        if(result.isConfirmed){
+            callback();
+        }
+    })
+}

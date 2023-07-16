@@ -128,6 +128,10 @@
                     url: "{{ url('/api/getPegawai') }}",
                     dataType: 'json',
                     processData: true,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`,
+                        'Content-Type': 'application/json'
+                    },
                     data: {
                         satuankerja: obj.value,
                         role: "staff"
@@ -142,6 +146,11 @@
                         $('#selectPJ').html(html);
                     }
                 }).fail(function(message) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message.responseJSON.message
+                    });
                     console.error(message.responseJSON.message);
                 });
             } else {
