@@ -15,10 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('satuankerja_id');
             $table->foreignId('user_id');
-            $table->string('jenis_layanan')->nullable();
-            $table->string('detail')->nullable();
+            $table->string('nama_layanan')->nullable();
+            $table->json('jenis_layanan');
             $table->integer('status');
-            $table->integer('tarif')->nullable();
             $table->string('created_by')->nullable();
             $table->timestamps();
         });

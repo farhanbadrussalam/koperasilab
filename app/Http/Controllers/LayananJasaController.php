@@ -30,14 +30,13 @@ class LayananJasaController extends Controller
 
         return DataTables::of($layanan)
                 ->addIndexColumn()
-                ->editColumn('jenis_layanan', function($data) {
+                ->editColumn('nama_layanan', function($data) {
                     return "
-                        <div class=''>$data->jenis_layanan</div>
-                        <small class='text-body-secondary'>".$data->detail."</small>
+                        <div class=''>$data->nama_layanan</div>
+                        <div role='button'>
+                            <span class='badge text-bg-info' onclick='showJenis(this)' data-jenis='$data->jenis_layanan'>Jenis Layanan</span>
+                        </div>
                     ";
-                })
-                ->editColumn('tarif', function($data){
-                    return formatCurrency($data->tarif);
                 })
                 ->addColumn('action', function($data){
                     return '
@@ -45,7 +44,7 @@ class LayananJasaController extends Controller
                         <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
                     ';
                 })
-                ->rawColumns(['action', 'jenis_layanan'])
+                ->rawColumns(['action', 'nama_layanan'])
                 ->make(true);
     }
 
@@ -68,17 +67,22 @@ class LayananJasaController extends Controller
         $validator = $request->validate([
             'satuankerja' => ['required'],
             'pj' => ['required'],
-            'jenisLayanan' => ['required'],
-            'detail' => ['required'],
-            'tarif' => ['required']
+            'name_layanan' => ['required']
         ]);
 
+
+        $arrJenis = array();
+        foreach ($request->jenisLayanan as $key => $jenis) {
+            $arrJenis[$key] = array(
+                'jenis' => $jenis,
+                'tarif' => $request->tarif[$key]
+            );
+        }
         $dataLayanan = array(
             'satuankerja_id' => $request->satuankerja,
             'user_id' => $request->pj,
-            'jenis_layanan' => $request->jenisLayanan,
-            'detail' => $request->detail,
-            'tarif' => $request->tarif,
+            'nama_layanan' => $request->name_layanan,
+            'jenis_layanan' => json_encode($arrJenis),
             'status' => 1,
             'created_by' => Auth::user()->id
         );
@@ -103,8 +107,8 @@ class LayananJasaController extends Controller
     {
         $data['satuankerja'] = Satuan_kerja::all();
         $data['layananjasa'] = Layanan_jasa::findOrFail($id);
+        $data['jenisLayanan']= json_decode($data['layananjasa']->jenis_layanan);
         $data['token'] = generateToken();
-
         return view('pages.layananjasa.edit', $data);
     }
 
@@ -115,17 +119,22 @@ class LayananJasaController extends Controller
     {
         $validator = $request->validate([
             'pj' => ['required'],
-            'jenisLayanan' => ['required'],
-            'detail' => ['required'],
-            'tarif' => ['required']
+            'nama_layanan' => ['required']
         ]);
+
+        $arrJenis = array();
+        foreach ($request->jenisLayanan as $key => $jenis) {
+            $arrJenis[$key] = array(
+                'jenis' => $jenis,
+                'tarif' => $request->tarif[$key]
+            );
+        }
 
         $layanan = Layanan_jasa::findOrFail($id);
 
         $layanan->user_id = $request->pj;
-        $layanan->jenis_layanan = $request->jenisLayanan;
-        $layanan->detail = $request->detail;
-        $layanan->tarif = $request->tarif;
+        $layanan->nama_layanan = $request->nama_layanan;
+        $layanan->jenis_layanan = json_encode($arrJenis);
 
         $layanan->update();
 

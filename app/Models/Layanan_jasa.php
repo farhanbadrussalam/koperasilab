@@ -14,10 +14,9 @@ class Layanan_jasa extends Model
     protected $fillable = [
         'satuankerja_id',
         'user_id',
+        'nama_layanan',
         'jenis_layanan',
         'status',
-        'detail',
-        'tarif',
         'name',
         'created_by'
     ];

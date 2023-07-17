@@ -9,17 +9,19 @@ function formatRupiah(angka) {
     // Mengganti nilai input dengan format Rupiah
     return format;
 }
-
-$('.rupiah').inputmask('numeric', {
-    alias: 'currency',
-    prefix: '',
-    radixPoint: ',',
-    groupSeparator: '.',
-    digits: 0,
-    autoGroup: true,
-    rightAlign: false,
-    removeMaskOnSubmit: true
-});
+function maskReload(){
+    $('.rupiah').inputmask('numeric', {
+        alias: 'currency',
+        prefix: '',
+        radixPoint: ',',
+        groupSeparator: '.',
+        digits: 0,
+        autoGroup: true,
+        rightAlign: false,
+        removeMaskOnSubmit: true
+    });
+}
+maskReload();
 
 function deleteGlobal(callback = ()=>{}) {
     Swal.fire({

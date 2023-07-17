@@ -64,14 +64,14 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="inputJenisLayanan" class="col-sm-3 form-label">Jenis layanan</label>
+                                <label for="inputnamaLayanan" class="col-sm-3 form-label">Nama layanan</label>
                                 <div class="col-sm-9">
                                     <input type="text"
-                                        class="form-control @error('jenisLayanan')
+                                        class="form-control @error('nama_layanan')
                                     is-invalid
                                 @enderror"
-                                        name="jenisLayanan" id="inputJenisLayanan" value="{{ $layananjasa->jenis_layanan }}">
-                                    @error('jenisLayanan')
+                                        name="nama_layanan" id="inputnamaLayanan" value="{{ $layananjasa->nama_layanan }}">
+                                    @error('nama_layanan')
                                         <div class="invalid-feedback">
                                             {{ $message }}
                                         </div>
@@ -79,39 +79,28 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="inputDetail" class="col-sm-3 form-label">Detail</label>
-                                <div class="col-sm-9">
-                                    <input type="text" name="detail" id="inputDetail"
-                                        class="form-control @error('detail')
-                                    is-invalid
-                                @enderror" value="{{ $layananjasa->detail }}">
-                                    @error('detail')
-                                        <div class="invalid-feedback">
-                                            {{ $message }}
+                                <label class="col-sm-3 form-label">Jenis layanan <i class="bi bi-plus-square-fill text-success" title="Tambah" role="button" onclick="tambahFormJenis()"></i></label>
+                                <div class="col-md-9" id="formJenisLayanan">
+                                    <div class="mb-3 row">
+                                        <div class="col-7">
+                                            <input type="text"
+                                                class="form-control"
+                                                name="jenisLayanan[]" id="inputJenisLayanan" value="{{ $jenisLayanan[0]->jenis }}" required>
                                         </div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="mb-3 row">
-                                <label for="inputTarif" class="form-label col-sm-3">Tarif</label>
-                                <div class="col-sm-9">
-                                    <div class="input-group">
-                                        <span class="input-group-text" id="rupiah-text">Rp</span>
-                                        <input type="text" name="tarif" id="inputTarif"
-                                            class="form-control rupiah @error('tarif')
-                                    is-invalid
-                                @enderror"
-                                            aria-describedby="rupiah-text" value="{{ $layananjasa->tarif }}">
+                                        <div class="col-5">
+                                            <div class="input-group">
+                                                <span class="input-group-text" id="rupiah-text">Rp</span>
+                                                <input type="text" name="tarif[]" id="inputTarif"
+                                                    class="form-control rupiah"
+                                                    aria-describedby="rupiah-text" placeholder="Tarif" value="{{ $jenisLayanan[0]->tarif }}" required>
+                                            </div>
+                                        </div>
                                     </div>
-                                    @error('tarif')
-                                        <div class="invalid-feedback">
-                                            {{ $message }}
-                                        </div>
-                                    @enderror
                                 </div>
                             </div>
                             <div class="mb-3 d-flex justify-content-end">
-                                <button class="btn btn-primary">Simpan</button>
+                                <button class="btn btn-primary mx-2">Simpan</button>
+                                <button class="btn btn-danger" type="reset" onclick="window.location.reload();">Reset</button>
                             </div>
                         </form>
                     </div>
@@ -159,8 +148,51 @@
                 $('#selectPJ').html('<option>-- Select --</option>');
             }
         }
+
+        function tambahFormJenis(jenis = "", tarif = ""){
+
+            let html = `
+                <div class="mb-3 row">
+                    <div class="col-7">
+                        <div class="input-group">
+                            <button class="btn btn-danger" id="rupiah-text" type="button" onclick="removeFormJenis(this)"><i class="bi bi-trash3-fill"></i></button>
+                            <input type="text"
+                                class="form-control"
+                                name="jenisLayanan[]" value="${jenis ? jenis : ''}" required>
+                        </div>
+                    </div>
+                    <div class="col-5">
+                        <div class="input-group">
+                            <span class="input-group-text" id="rupiah-text">Rp</span>
+                            <input type="text" name="tarif[]"
+                                class="form-control rupiah"
+                                aria-describedby="rupiah-text" value="${tarif ? tarif : ''}" placeholder="Tarif" required>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            $('#formJenisLayanan').append(html);
+            maskReload();
+        }
+
+        function removeFormJenis(obj){
+            $(obj).parent().parent().parent().remove();
+        }
+
         $(function () {
             getPegawai(document.getElementById('selectSatuankerja'));
+
+            const jenisLayanan = @json($jenisLayanan);
+
+            for (const index in jenisLayanan) {
+                if (Object.hasOwnProperty.call(jenisLayanan, index)) {
+                    const data = jenisLayanan[index];
+                    if(index != 0){
+                        tambahFormJenis(data.jenis, data.tarif);
+                    }
+                }
+            }
         })
     </script>
 @endpush

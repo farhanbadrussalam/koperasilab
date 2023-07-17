@@ -14,7 +14,7 @@
             </div>
         </div><!-- /.container-fluid -->
     </section>
-    <section class="content col-xl-9 col-md-12">
+    <section class="content col-xl-5 col-md-12">
         <div class="container">
             <div class="card card-default color-palette-box shadow">
                 <div class="card-header d-flex ">
@@ -26,16 +26,34 @@
                 <div class="card-body">
                     <table class="table table-hover w-100" id="layanan-table">
                         <thead>
-                            <th>No</th>
-                            <th>Jenis Layanan</th>
-                            <th>Tarif</th>
-                            <th>Action</th>
+                            <th width="5%">No</th>
+                            <th>Nama Layanan</th>
+                            <th width="20%">Action</th>
                         </thead>
                     </table>
                 </div>
             </div>
         </div>
     </section>
+</div>
+
+<div class="modal fade" id="modalJenisLayanan" tabindex="-1" aria-labelledby="modalJenisLayanan" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body">
+            <div class="row fw-bolder">
+                <h4 class="col-6">Jenis Layanan</h4>
+                <h4 class="col-6">Tarif</h4>
+            </div>
+          <div id="isi-jenislayanan" class="px-2">
+
+          </div>
+          <div class="mt-2 text-center w-100">
+              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </div>
 @endsection
 @push('scripts')
@@ -54,8 +72,7 @@
                 ajax: "{{ route('layananJasa.getData') }}",
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false },
-                    { data: 'jenis_layanan', name: 'jenis_layanan' },
-                    { data: 'tarif', name: 'tarif' },
+                    { data: 'nama_layanan', name: 'nama_layanan' },
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 ]
             });
@@ -89,6 +106,22 @@
                     });
                 });
             });
+        }
+
+        function showJenis(obj) {
+            const arrJenis = $(obj).data('jenis');
+            let html = '';
+            for (const data of arrJenis) {
+                let tarif = formatRupiah(data.tarif)
+                html += `
+                    <div class="row mb-1">
+                        <span class="col-6">${data.jenis}</span>
+                        <span class="col-6">${tarif}</span>
+                    </div>
+                `;
+            }
+            $('#isi-jenislayanan').html(html);
+            $('#modalJenisLayanan').modal('show');
         }
     </script>
 @endpush
