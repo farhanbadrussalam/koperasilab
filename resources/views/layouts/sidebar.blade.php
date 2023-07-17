@@ -10,6 +10,7 @@
         <!-- Sidebar Menu -->
         <nav class="mt-2">
             <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+                @can('Home')
                 <li class="nav-item">
                     <a href="{{ route('home') }}" class="nav-link {{ Request::is('home*') ? 'active' : '' }}">
                       <i class="bi bi-person-badge-fill"></i>
@@ -18,6 +19,9 @@
                       </p>
                     </a>
                 </li>
+                @endcan
+
+                @can('Biodata.pribadi')
                 <li class="nav-item">
                   <a href="{{ route('userProfile.index') }}" class="nav-link {{ Request::is('userProfile*') ? 'active' : '' }}">
                     <i class="bi bi-person-fill"></i>
@@ -26,6 +30,9 @@
                     </p>
                   </a>
                 </li>
+                @endcan
+
+                @can('Biodata.perusahaan')
                 <li class="nav-item">
                     <a href="{{ route('userPerusahaan.index') }}" class="nav-link {{ Request::is('userPerusahaan*') ? 'active' : '' }}">
                       <i class="bi bi-building-fill"></i>
@@ -34,7 +41,10 @@
                       </p>
                     </a>
                 </li>
-                <li>
+                @endcan
+
+                @can('Management.layanan.jasa')
+                <li class="nav-item">
                     <a href="{{ route('layananJasa.index') }}" class="nav-link {{ Request::is('layananJasa*') ? 'active' : '' }}">
                       <i class="bi bi-briefcase-fill"></i>
                       <p>
@@ -42,6 +52,9 @@
                       </p>
                     </a>
                 </li>
+                @endcan
+
+                @can('User.management')
                 <li class="nav-header">USER MANAGEMENT</li>
                 <li class="nav-item">
                     <a href="{{ route('users.index') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}">
@@ -51,8 +64,6 @@
                       </p>
                     </a>
                 </li>
-
-
                 <li class="nav-item">
                     <a href="{{ route('roles.index') }}" class="nav-link {{ Request::is('roles*') ? 'active' : '' }}">
                       <i class="nav-icon bi bi-people-fill"></i>
@@ -61,6 +72,7 @@
                       </p>
                     </a>
                 </li>
+                @endcan
             </ul>
         </nav>
     </div>

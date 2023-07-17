@@ -28,21 +28,23 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::middleware(['auth', 'verified'])->group(function() {
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/home', [HomeController::class, 'index'])->name('home')->middleware(['permission:Home']);
 
-    //Resource
-    Route::resource('users', UserController::class);
-    Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
+    Route::middleware(['permission:User.management'])->group(function () {
+        Route::resource('users', UserController::class);
+        Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
 
-    Route::resource('userProfile', ProfileController::class);
-    Route::resource('userPerusahaan', userPerusahaanController::class);
-    Route::get('getDataUsers', [UserController::class, 'getData'])->name('users.getData');
+        Route::resource('roles', RolesController::class);
+        Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');
+    });
 
-    Route::resource('roles', RolesController::class);
-    Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');
+    Route::middleware(['permission:Management.layanan.jasa'])->group(function () {
+        Route::resource('layananJasa', LayananJasaController::class);
+        Route::get('getDataLayananJasa', [LayananJasaController::class, 'getData'])->name('layananJasa.getData');
+    });
 
-    Route::resource('layananJasa', LayananJasaController::class);
-    Route::get('getDataLayananJasa', [LayananJasaController::class, 'getData'])->name('layananJasa.getData');
+    Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
+    Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Bioada.perusahaan']);
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
