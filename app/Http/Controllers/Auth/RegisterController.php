@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
+use App\Models\Profile;
+use App\Models\Perusahaan;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class RegisterController extends Controller
 {
@@ -51,8 +54,12 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'name' => ['required', 'string', 'max:255'],
+            'nik' => ['required'],
+            'no_telepon' => ['required'],
+            'jenis_kelamin' => ['required'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
     }
 
@@ -64,10 +71,32 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ])->assignRole('Pelanggan');
+
+        if($user){
+            $image = $data['avatar'];
+
+            $filename = 'avatar_'.$user->id.'.'.$image->getClientOriginalExtension();
+
+            $path = $image->storeAs('public/images/avatar', $filename);
+
+            $profile = Profile::create([
+                'user_id' => $user->id,
+                'avatar' => $filename,
+                'nik' => $data['nik'],
+                'no_hp' => $data['no_telepon'],
+                'jenis_kelamin' => $data['jenis_kelamin']
+            ]);
+    
+            $perusahaan = Perusahaan::create([
+                'user_id' => $user->id
+            ]);
+        }
+
+        return $user;
     }
 }

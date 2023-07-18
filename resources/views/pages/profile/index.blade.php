@@ -31,7 +31,7 @@
                                                 @else
                                                 {{ asset('assets/img/default-avatar.jpg') }}
                                                 @endif"
-                                                alt="User profile picture" style="width: 15em;">
+                                                alt="User profile picture" onerror="this.src=`{{ asset('assets/img/default-avatar.jpg') }}`" style="width: 15em;">
                                         </div>
                                         <h4>{{ Auth::user()->getRoleNames()[0] }}</h4>
                                     </div>

@@ -48,7 +48,7 @@
                     <a href="{{ route('layananJasa.index') }}" class="nav-link {{ Request::is('layananJasa*') ? 'active' : '' }}">
                       <i class="bi bi-briefcase-fill"></i>
                       <p>
-                        Layanan Jasa
+                        Management Layanan Jasa
                       </p>
                     </a>
                 </li>

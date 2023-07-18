@@ -28,7 +28,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::middleware(['auth', 'verified'])->group(function() {
-    Route::get('/home', [HomeController::class, 'index'])->name('home')->middleware(['permission:Home']);
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     Route::middleware(['permission:User.management'])->group(function () {
         Route::resource('users', UserController::class);
@@ -44,7 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     });
 
     Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
-    Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Bioada.perusahaan']);
+    Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
