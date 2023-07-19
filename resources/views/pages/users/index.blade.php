@@ -8,7 +8,6 @@
                 <div class="col-sm-6">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                        <li class="breadcrumb-item active">Users management</li>
                         <li class="breadcrumb-item active">Users</li>
                     </ol>
                 </div>
@@ -22,7 +21,7 @@
                     <h3 class="card-title flex-grow-1">
                       Users
                     </h3>
-                    <button class="btn btn-primary btn-sm">Add user</button>
+                    <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm">Add user</a>
                 </div>
                 <div class="card-body">
                     <table class="table table-hover w-100" id="user-table">
