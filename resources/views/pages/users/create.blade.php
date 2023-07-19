@@ -24,7 +24,7 @@
                     </h2>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('users.store') }}" method="post">
+                    <form action="{{ route('users.store') }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <div class="form-group mb-3">
                             <div class="text-center">
@@ -39,54 +39,100 @@
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label for="inputFullname" class="form-label">Full name</label>
-                                <input type="text" class="form-control" id="inputFullname">
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="inputFullname" value="{{ old('name') }}">
+                                @error('name')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputNik" class="form-label">NIK</label>
-                                <input type="number" name="nik" id="inputNik" class="form-control">
+                                <input type="number" name="nik" id="inputNik" class="form-control @error('nik') is-invalid @enderror" value="{{ old('nik') }}">
+                                @error('nik')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputNoHp" class="form-label">Nomer Telepon</label>
-                                <input type="number" name="no_telepon" id="inputNoHp" class="form-control">
+                                <input type="number" name="no_telepon" id="inputNoHp" class="form-control @error('no_telepon') is-invalid @enderror" value="{{ old('no_telepon') }}">
+                                @error('no_telepon')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputJenisKelamin" class="form-label">Jenis Kelamin</label>
-                                <select name="jenis_kelamin" id="inputJenisKelamin" class="form-control">
+                                <select name="jenis_kelamin" id="inputJenisKelamin" class="form-control @error('jenis_kelamin') is-invalid @enderror" value="{{ old('jenis_kelamin') }}">
                                     <option value="">--- Select ---</option>
                                     <option value="laki-laki">Laki laki</option>
                                     <option value="perempuan">Perempuan</option>
                                 </select>
+                                @error('jenis_kelamin')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputRole" class="form-label">Role</label>
-                                <select name="role" id="inputRole" class="form-control">
+                                <select name="role" id="inputRole" class="form-control @error('role') is-invalid @enderror" value="{{ old('role') }}">
                                     <option value="">--- Select ---</option>
+                                    @foreach ($role as $value)
+                                        <option value="{{ $value->name }}">{{ $value->name }}</option>
+                                    @endforeach
                                 </select>
+                                @error('role')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputSatuanKerja" class="form-label">Satuan Kerja</label>
-                                <select name="satuanKerja" id="inputSatuanKerja" class="form-control">
+                                <select name="satuanKerja" id="inputSatuanKerja" class="form-control @error('satuanKerja') is-invalid @enderror" value="{{ old('satuanKerja') }}">
                                     <option value="">--- Select ---</option>
+                                    @foreach ($satuankerja as $value)
+                                        <option value="{{ $value->id }}">{{ $value->name }}</option>
+                                    @endforeach
                                 </select>
+                                @error('satuanKerja')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="col-md-12 mb-2">
                                 <label for="inputEmail" class="form-label">Email</label>
-                                <input type="email" name="email" id="inputEmail" class="form-control">
+                                <input type="email" name="email" id="inputEmail" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                                @error('email')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="col-md-12 mb-2">
                                 <label for="inputAlamat" class="form-label">Alamat</label>
-                                <textarea name="alamat" id="inputAlamat" cols="30" rows="3" class="form-control"></textarea>
+                                <textarea name="alamat" id="inputAlamat" cols="30" rows="3" class="form-control">{{ old('alamat') }}</textarea>
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputPassword" class="form-label">Password</label>
-                                <input type="password" name="password" id="inputPassword" class="form-control">
+                                <input type="password" name="password" id="inputPassword" class="form-control @error('password') is-invalid @enderror">
+                                @error('password')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="password-confirm" class="form-label">Retype password</label>
                                 <input type="password" name="password_confirmation" id="password-confirm" class="form-control">
                             </div>
                             <div class="col-md-12 mt-3 text-center">
-                                <button type="submit" class="btn btn-primary btn-sm">Simpan</button>
+                                <button type="submit" class="btn btn-primary">Simpan</button>
                             </div>
                         </div>
                     </form>
@@ -96,3 +142,24 @@
     </section>
 </div>
 @endsection
+@push('scripts')
+    <script>
+        function selectFileImage() {
+            let _uploadfile = document.getElementById('uploadavatar');
+            _uploadfile.click();
+        }
+        function previewAvatar(obj){
+            const file = obj.files[0];
+            if(obj.files && file){
+                const reader = new FileReader();
+                const preview = document.getElementById('avatar');
+
+                reader.onload = function(e){
+                    preview.src = e.target.result;
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+@endpush

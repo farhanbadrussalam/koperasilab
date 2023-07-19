@@ -25,8 +25,11 @@ class LayananJasaController extends Controller
     }
 
     public function getData() {
-        $layanan = Layanan_jasa::where('created_by', Auth::user()->id)
-                    ->where('status', 1);
+        $layanan = Layanan_jasa::where('status', 1);
+
+        if(!Auth::user()->hasRole('Super Admin')){
+            $layanan->where('created_by', Auth::user()->id);
+        }
 
         return DataTables::of($layanan)
                 ->addIndexColumn()

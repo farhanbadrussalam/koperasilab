@@ -4,6 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Satuan_kerja;
+use App\Models\profile;
+use App\Models\Perusahaan;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Hash;
 use DataTables;
 
 class UserController extends Controller
@@ -38,7 +43,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('pages.users.create');
+        $data['satuankerja'] = Satuan_kerja::all();
+        $data['role'] = Role::all();
+        return view('pages.users.create', $data);
     }
 
     /**
@@ -46,7 +53,53 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'nik' => ['required'],
+            'no_telepon' => ['required'],
+            'jenis_kelamin' => ['required'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'avatar' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'satuanKerja' => ['required'],
+            'role' => ['required']
+        ]);
+
+        $user = User::factory()->create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'satuankerja_id' => $request->satuanKerja
+        ])->assignRole($request->role);
+
+        if($user){
+            if($request->file('avatar')){
+                $image = $request->file('avatar');
+
+                $filename = 'avatar_'.$user->id.'.'.$image->getClientOriginalExtension();
+
+                $path = $image->storeAs('public/images/avatar', $filename);
+            }else{
+                $filename = '';
+            }
+
+            $profile = Profile::create([
+                'user_id' => $user->id,
+                'avatar' => $filename,
+                'nik' => $request->nik,
+                'no_hp' => $request->no_telepon,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'alamat' => $request->alamat
+            ]);
+
+            if($request->role == 'Pelanggan'){
+                $perusahaan = Perusahaan::create([
+                    'user_id' => $user->id
+                ]);
+            }
+        }
+
+        return redirect()->route('users.index')->with('success', 'Berhasil di tambah');
     }
 
     /**
