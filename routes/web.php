@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\userPerusahaanController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\LayananJasaController;
+use App\Http\Controllers\JadwalController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -42,6 +43,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('layananJasa', LayananJasaController::class);
         Route::get('getDataLayananJasa', [LayananJasaController::class, 'getData'])->name('layananJasa.getData');
     });
+
+    Route::resource('jadwal', JadwalController::class);
 
     Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
     Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);
