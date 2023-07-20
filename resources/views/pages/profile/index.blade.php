@@ -51,8 +51,8 @@
                                         <div class="mb-3 row">
                                             <label for="inputNik" class="col-sm-3 col-md-4 col-form-label">NIK</label>
                                             <div class="col-sm-9 col-md-8">
-                                                <input type="number" name="nik"
-                                                    class="form-control @error('nik') is-invalid @enderror" id="inputNik"
+                                                <input type="text" name="nik"
+                                                    class="form-control maskNIK @error('nik') is-invalid @enderror" id="inputNik"
                                                     value="{{ old('nik') ? old('nik') : Auth::user()->profile->nik }}" readonly>
                                                 @error('nik')
                                                     <div class="invalid-feedback">
@@ -78,8 +78,8 @@
                                             <label for="inputNomer" class="col-sm-3 col-md-4 col-form-label">No
                                                 Telepon</label>
                                             <div class="col-sm-9 col-md-8">
-                                                <input type="number" name="telepon"
-                                                    class="form-control @error('telepon') is-invalid @enderror" id="inputNomer"
+                                                <input type="text" name="telepon"
+                                                    class="form-control maskTelepon @error('telepon') is-invalid @enderror" id="inputNomer"
                                                     value="{{ old('telepon') ? old('telepon') : Auth::user()->profile->no_hp }}"
                                                     readonly>
                                                 @error('telepon')
