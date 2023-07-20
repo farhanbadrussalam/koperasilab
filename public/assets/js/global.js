@@ -20,6 +20,10 @@ function maskReload(){
         rightAlign: false,
         removeMaskOnSubmit: true
     });
+
+    $('.maskNPWP').inputmask('99.999.999.9-999.999', { "placeholder": "_" });
+    $('.maskNIK').inputmask('9999999999999999', { "placeholder": "_" });
+    $('.maskTelepon').inputmask('9999-9999-9999', { "placeholder": " " });
 }
 maskReload();
 

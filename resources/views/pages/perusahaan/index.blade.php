@@ -59,8 +59,8 @@
                                         <label for="inputNpwpPerusahaan" class="col-sm-3 col-md-4 col-form-label">NPWP
                                         </label>
                                         <div class="col-sm-9 col-md-8">
-                                            <input type="number" name="npwp"
-                                                class="form-control @error('npwp') is-invalid @enderror"
+                                            <input type="text" name="npwp"
+                                                class="form-control maskNPWP @error('npwp') is-invalid @enderror"
                                                 id="inputNpwpPerusahaan"
                                                 value="{{ old('npwp') ? old('npwp') : Auth::user()->perusahaan->npwp }}"
                                                 readonly>
