@@ -13,11 +13,15 @@ class jadwal extends Model
 
     protected $fillable = [
         'layananjasa_id',
+        'jenislayanan',
+        'tarif',
         'date_mulai',
         'date_selesai',
         'kuota',
         'dokumen',
-        'status'
+        'petugas_id',
+        'status',
+        'created_by'
     ];
 
     public function petugas(){
