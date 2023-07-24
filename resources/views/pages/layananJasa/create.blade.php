@@ -27,7 +27,7 @@
                         <form action="{{ route('layananJasa.store') }}" method="post">
                             @csrf
                             <div class="mb-3 row">
-                                <label for="selectSatuankerja" class="col-sm-3 form-label">Satuan Kerja</label>
+                                <label for="selectSatuankerja" class="col-sm-3 form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <div class="col-sm-9">
                                     <select name="satuankerja" id="selectSatuankerja"
                                         class="form-control @error('satuankerja')
@@ -47,7 +47,7 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="selectPJ" class="col-sm-3 form-label">Penanggung Jawab</label>
+                                <label for="selectPJ" class="col-sm-3 form-label">Penanggung Jawab <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <div class="col-sm-9">
                                     <select name="pj" id="selectPJ"
                                         class="form-control @error('pj')
@@ -63,7 +63,7 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="inputNamaLayanan" class="col-sm-3 form-label">Nama Layanan</label>
+                                <label for="inputNamaLayanan" class="col-sm-3 form-label">Nama Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <div class="col-sm-9">
                                     <input type="text" name="name_layanan" id="inputNamaLayanan"
                                         class="form-control @error('name_layanan')
