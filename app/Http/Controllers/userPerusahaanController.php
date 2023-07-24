@@ -56,16 +56,23 @@ class userPerusahaanController extends Controller
         $validated = $request->validate([
             'name' => 'required',
             'email' => ['required','email'],
-            'npwp' => ['required', 'numeric']
+            'npwp' => ['required', 'numeric'],
+            'dokumen' => ['required', 'mimes:pdf']
         ]);
 
         $perusahaan = perusahaan::findOrFail($id);
 
+        // upload dokumen kuasa
+        $dokumen = $request->file('dokumen');
+        $filename = 'surat_kuasa_'.$perusahaan->user_id.'.'.$dokumen->getClientOriginalExtension();
+        $path = $dokumen->storeAs('public/dokumen/surat_kuasa', $filename);
+
         $dataPerusahaan = array(
-            'name' => $request->name,
-            'npwp' => $request->npwp,
-            'email'=> $request->email,
-            'alamat'=> $request->alamat
+            'name'      => $request->name,
+            'npwp'      => $request->npwp,
+            'email'     => $request->email,
+            'alamat'    => $request->alamat,
+            'surat_kuasa' => $filename
         );
 
         $perusahaan->update($dataPerusahaan);

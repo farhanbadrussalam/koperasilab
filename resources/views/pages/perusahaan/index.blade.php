@@ -23,12 +23,12 @@
                                     <h2>Biodata perusahaan</h2>
                                 </div>
                                 <form action="{{ route('userPerusahaan.update', Auth::user()->perusahaan->id) }}"
-                                    class="mt-3" method="post">
+                                    class="mt-3" method="post" enctype="multipart/form-data">
                                     @csrf
                                     @method('PUT')
                                     <div class="mb-3 row">
                                         <label for="inputNamePerusahaan" class="col-sm-3 col-md-4 col-form-label">Nama
-                                            Perusahaan </label>
+                                            Perusahaan <span class="fw-bold fs-14 text-danger">*</span></label>
                                         <div class="col-sm-9 col-md-8">
                                             <input type="text" name="name"
                                                 class="form-control @error('name') is-invalid @enderror"
@@ -44,7 +44,7 @@
                                     </div>
                                     <div class="mb-3 row">
                                         <label for="inputEmailPerusahaan" class="col-sm-3 col-md-4 col-form-label">Email
-                                        </label>
+                                        <span class="fw-bold fs-14 text-danger">*</span></label>
                                         <div class="col-sm-9 col-md-8">
                                             <input type="email" name="email" class="form-control is-invalid"
                                                 id="inputEmailPerusahaan"
@@ -57,7 +57,7 @@
                                     </div>
                                     <div class="mb-3 row">
                                         <label for="inputNpwpPerusahaan" class="col-sm-3 col-md-4 col-form-label">NPWP
-                                        </label>
+                                        <span class="fw-bold fs-14 text-danger">*</span></label>
                                         <div class="col-sm-9 col-md-8">
                                             <input type="number" name="npwp"
                                                 class="form-control @error('npwp') is-invalid @enderror"
@@ -73,9 +73,23 @@
                                     </div>
                                     <div class="mb-3 row">
                                         <label for="inputSuratKuasaPerusahaan"
-                                            class="col-sm-3 col-md-4 col-form-label">Surat kuasa </label>
+                                            class="col-sm-3 col-md-4 col-form-label">Surat kuasa <span class="fw-bold fs-14 text-danger">*</span></label>
                                         <div class="col-sm-9 col-md-8">
-                                            <a href="#">dokument.xls</a>
+                                            <div id="previewDokumen">
+                                                @if(Auth::user()->perusahaan->surat_kuasa)
+                                                <a href="{{ asset('storage/dokumen/surat_kuasa/'.Auth::user()->perusahaan->surat_kuasa ) }}" target="_blank" id="previewDokumen">surat kuasa.pdf</a>
+                                                @else
+                                                <div class="text-danger">Belum upload</div>
+                                                @endif
+                                            </div>
+                                            <div id="uploadDokumen" class="d-none">
+                                                <input type="file" accept="application/pdf" name="dokumen" class="form-control @error('dokumen') is-invalid @enderror">
+                                                @error('dokumen')
+                                                    <div class="invalid-feedback">
+                                                        {{ $message }}
+                                                    </div>
+                                                @enderror
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="mb-3 row">
@@ -105,7 +119,7 @@
 @push('scripts')
     <script>
         @if ($errors->any())
-            editProfile($('#btnEditProfile'));
+            editPerusahaan($('#btnEditPerusahaan'));
         @endif
 
 
@@ -125,6 +139,9 @@
             email.removeAttr('readonly');
             npwp.removeAttr('readonly');
             alamat.removeAttr('readonly');
+
+            $('#uploadDokumen').removeClass('d-none');
+            $('#previewDokumen').addClass('d-none');
 
             name.focus();
 

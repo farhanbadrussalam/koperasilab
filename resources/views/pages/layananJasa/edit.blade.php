@@ -28,7 +28,7 @@
                             @csrf
                             @method('PUT')
                             <div class="mb-3 row">
-                                <label for="selectSatuankerja" class="col-sm-3 form-label">Satuan Kerja</label>
+                                <label for="selectSatuankerja" class="col-sm-3 form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <div class="col-sm-9">
                                     <select name="satuankerja" id="selectSatuankerja"
                                         class="form-control @error('satuankerja')
@@ -48,7 +48,7 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="selectPJ" class="col-sm-3 form-label">Penanggung Jawab</label>
+                                <label for="selectPJ" class="col-sm-3 form-label">Penanggung Jawab <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <div class="col-sm-9">
                                     <select name="pj" id="selectPJ"
                                         class="form-control @error('pj')
@@ -64,7 +64,7 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="inputnamaLayanan" class="col-sm-3 form-label">Nama layanan</label>
+                                <label for="inputnamaLayanan" class="col-sm-3 form-label">Nama layanan <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <div class="col-sm-9">
                                     <input type="text"
                                         class="form-control @error('nama_layanan')
