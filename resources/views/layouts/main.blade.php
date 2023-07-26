@@ -54,6 +54,20 @@
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
 
     @stack('scripts')
+
+    <script>
+        $(function () {
+            let user = @json(Auth::user());
+            let chanel = window.Echo.private(`jadwal.${user.id}`).listen('.notif', (result) => {
+                toastr.info(
+                    `
+                        <div>${result.data.type.toUpperCase()}</div>
+                        <div>${result.message}</div>
+                    `
+                );
+            })
+        })
+    </script>
 </body>
 
 </html>

@@ -13,15 +13,16 @@ use Illuminate\Queue\SerializesModels;
 class NotifikasiEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-    
-    public $data;
+
+    public $data,$message;
     /**
      * Create a new event instance.
      */
 
-    public function __construct(string $data)
+    public function __construct($data, $message)
     {
         $this->data = $data;
+        $this->message = $message;
     }
 
     /**
@@ -29,11 +30,11 @@ class NotifikasiEvent implements ShouldBroadcast
      *
      * @return array<int, \Illuminate\Broadcasting\Channel>
      */
-    public function broadcastOn(): array
+    public function broadcastOn()
     {
-        return ['notifikasi-lab'];
+        return new PrivateChannel('jadwal.'.$this->data['recipient']);
     }
-    
+
     public function broadcastAs() : string {
         return 'notif';
     }

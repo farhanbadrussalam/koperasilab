@@ -8,6 +8,10 @@ use App\Events\NotifikasiEvent;
 class NotifController extends Controller
 {
     public function notif() {
-        event(new NotifikasiEvent("hallo kawanku"));
+        $data = array(
+            'to_user' => 7,
+            'type' => 'jadwal'
+        );
+        return notifikasi($data, "Jadwal ditambahkan");
     }
 }

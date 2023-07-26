@@ -30,13 +30,8 @@
                 method: 'GET',
                 processData: true,
             }).done(result => {
+                console.log(result);
             });
-        })
-        $(function () {
-            let chanel = window.Echo.channel('notifikasi-lab').listen('.notif', (data) => {
-                console.log("berhasil listen");
-                console.log(data);
-            })
         })
     </script>
 @endpush
