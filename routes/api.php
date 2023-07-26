@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\LayananjasaController;
+use App\Http\Controllers\API\JadwalController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,4 +29,5 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/getPegawai', [LayananjasaController::class, 'getPegawai']);
     Route::delete('/deletePegawai', [LayananjasaController::class, 'delete']);
 
+    Route::delete('/deleteJadwal/{id}', [JadwalController::class, 'destroy']);
 });

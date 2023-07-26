@@ -58,7 +58,7 @@ class ProfileController extends Controller
             'name' => ['required', 'string'],
             'nik' => ['required'],
             'email' => ['required', 'email'],
-            'telepon' => ['required','numeric'],
+            'telepon' => ['required'],
             'jenis_kelamin' => ['required']
         ]);
 

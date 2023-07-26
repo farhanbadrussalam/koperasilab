@@ -56,7 +56,7 @@ class userPerusahaanController extends Controller
         $validated = $request->validate([
             'name' => 'required',
             'email' => ['required','email'],
-            'npwp' => ['required', 'numeric'],
+            'npwp' => ['required'],
             'dokumen' => ['required', 'mimes:pdf']
         ]);
 

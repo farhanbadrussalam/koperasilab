@@ -16,7 +16,7 @@
         <section class="content">
             <div class="container">
                 <div class="row">
-                    <div class="card col-xl-6 col-md-12">
+                    <div class="card col-xl-6 col-md-12 bg-white">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-12 text-center fw-bolder border-bottom">
@@ -79,7 +79,7 @@
                                                 Telepon</label>
                                             <div class="col-sm-9 col-md-8">
                                                 <input type="text" name="telepon"
-                                                    class="form-control maskTelepon @error('telepon') is-invalid @enderror" id="inputNomer"
+                                                    class="form-control @error('telepon') is-invalid @enderror" id="inputNomer"
                                                     value="{{ old('telepon') ? old('telepon') : Auth::user()->profile->no_hp }}"
                                                     readonly>
                                                 @error('telepon')
