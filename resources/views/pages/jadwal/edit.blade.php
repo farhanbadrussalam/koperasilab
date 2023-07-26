@@ -9,7 +9,7 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('jadwal.index') }}">Jadwal</a></li>
-                        <li class="breadcrumb-item active">Create</li>
+                        <li class="breadcrumb-item active">Edit</li>
                     </ol>
                 </div>
             </div>
@@ -20,22 +20,20 @@
             <div class="card card-default color-palette-box table-hover bg-white shadow">
                 <div class="card-header d-flex ">
                     <h2 class="card-title flex-grow-1">
-                        Create Jadwal
+                        Edit Jadwal
                     </h2>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('jadwal.store') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ route('jadwal.update', $jadwal->id) }}" method="post" enctype="multipart/form-data">
                         @csrf
+                        @method('PUT')
                         <div class="row">
                             <div class="col-md-12 mb-2">
                                 <label for="selectLayananjasa" class="col-md-3 form-label">Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <select name="layanan_jasa" id="selectLayananjasa" class="form-control @error('layanan_jasa')
                                     is-invalid
                                 @enderror" onchange="selectLayanan(this)">
-                                    <option value="">--- Select ---</option>
-                                    @foreach ($layanan as $value)
-                                        <option value="{{ $value->id }}">{{ $value->nama_layanan }}</option>
-                                    @endforeach
+                                    <option value="{{ $jadwal->layananjasa->id }}">{{ $jadwal->layananjasa->nama_layanan }}</option>
                                 </select>
                                 @error('layanan_jasa')
                                     <div class="invalid-feedback">
@@ -48,7 +46,7 @@
                                 <select name="jenis_layanan" id="selectJenisLayanan" class="form-control @error('jenis_layanan')
                                     is-invalid
                                 @enderror" onchange="selectJenis(this)">
-                                    <option value="">--- Select ---</option>
+                                    <option value="{{ $jadwal->jenislayanan }}">{{ $jadwal->jenislayanan }}</option>
                                 </select>
                                 @error('jenis_layanan')
                                     <div class="invalid-feedback">
@@ -62,12 +60,12 @@
                                     <span class="input-group-text" id="rupiah-text">Rp</span>
                                     <input type="text" name="tarif" id="inputTarif"
                                                     class="form-control rupiah"
-                                                    aria-describedby="rupiah-text" placeholder="Tarif" readonly>
+                                                    aria-describedby="rupiah-text" placeholder="Tarif" value="{{ $jadwal->tarif }}" readonly>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputDateMulai" class="form-label">Tanggal mulai <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <x-flatpickr name="tanggal_mulai" show-time time-format="H:i" :min-date="today()" />
+                                <x-flatpickr name="tanggal_mulai" show-time time-format="H:i"  value="{{ old('tanggal_mulai') ? old('tanggal_mulai') : $jadwal->date_mulai }}" />
                                 @error('tanggal_mulai')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -76,7 +74,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputDateSelesai" class="form-label">Tanggal selesai <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <x-flatpickr name="tanggal_selesai" show-time time-format="H:i" :min-date="today()" />
+                                <x-flatpickr name="tanggal_selesai" show-time time-format="H:i"  value="{{ old('tanggal_selesai') ? old('tanggal_selesai') : $jadwal->date_selesai }}" />
                                 @error('tanggal_selesai')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -87,7 +85,7 @@
                                 <label for="inputKuota" class="form-label">Kuota <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <input type="number" name="kuota" id="inputKuota" class="form-control @error('kuota')
                                     is-invalid
-                                @enderror">
+                                @enderror" value="{{ old('kuota') ? old('kuota') : $jadwal->kuota }}">
                                 @error('kuota')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -99,10 +97,7 @@
                                 <select name="petugas" id="selectPetugas" class="form-control @error('petugas')
                                     is-invalid
                                 @enderror">
-                                    <option value="">--- Select ---</option>
-                                    @foreach ($petugas as $value)
-                                        <option value="{{ $value->id }}">{{ $value->name }}</option>
-                                    @endforeach
+                                    <option value="{{ $petugas->id }}">{{ $petugas->name }}</option>
                                 </select>
                                 @error('petugas')
                                     <div class="invalid-feedback">
@@ -134,29 +129,6 @@
 @endsection
 @push('scripts')
     <script>
-        const layanan = @json($layanan);
-
-        function selectLayanan(obj) {
-            let idLayanan = obj.value;
-            let cariLayanan = layanan.find(d => d.id == idLayanan);
-
-            if(cariLayanan){
-                let jenis = JSON.parse(cariLayanan.jenis_layanan);
-                let html = `<option>--- Select ---</option>`;
-
-                for (const value of jenis) {
-                    html += `<option value="${value.jenis}|${value.tarif}">${value.jenis}</option>`;
-                }
-
-                $('#selectJenisLayanan').html(html);
-            }
-        }
-
-        function selectJenis(obj) {
-            let jenis = obj.value.split('|');
-            $('#inputTarif').val(jenis[1]);
-        }
-
         $('#inputDateMulai').datepicker({
             defaultDate: "+1w",
             changeMonth: true,
