@@ -21,7 +21,8 @@ class UserRolePermissionSeed extends Seeder
             ['name' => 'Biodata.perusahaan'],
             ['name' => 'Management.layanan.jasa'],
             ['name' => 'Home'],
-            ['name' => 'User.management']
+            ['name' => 'User.management'],
+            ['name' => 'Penjadwalan']
         ];
 
         foreach ($permissions as $permissionData) {

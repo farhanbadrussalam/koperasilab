@@ -53,7 +53,7 @@
                             class="nav-link {{ Request::is('layananJasa*') ? 'active' : '' }}">
                             <i class="bi bi-briefcase-fill"></i>
                             <p>
-                                Management Layanan Jasa
+                                Layanan Jasa
                             </p>
                         </a>
                     </li>

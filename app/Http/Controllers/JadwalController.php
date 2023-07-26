@@ -103,7 +103,12 @@ class JadwalController extends Controller
             'created_by' => Auth::user()->id
         );
 
-        jadwal::create($dataJadwal);
+        $saveJadwal = jadwal::create($dataJadwal);
+
+        $sendNotif = notifikasi(array(
+            'to_user' => $request->petugas,
+            'type' => 'jadwal'
+        ), "Anda ditugaskan untuk layanan ".$saveJadwal->layananjasa->nama_layanan." pada tanggal ".$request->tanggal_mulai);
 
         return redirect()->route('jadwal.index')->with('success', 'Berhasil di tambah');
     }

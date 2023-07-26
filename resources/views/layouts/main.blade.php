@@ -61,6 +61,8 @@
     <script>
         $(function () {
             let user = @json(Auth::user());
+
+            loadNotifikasi();
             let chanel = window.Echo.private(`jadwal.${user.id}`).listen('.notif', (result) => {
                 toastr.info(
                     `
@@ -68,8 +70,13 @@
                         <div>${result.message}</div>
                     `
                 );
+                loadNotifikasi();
             })
         })
+
+        function loadNotifikasi() {
+
+        }
     </script>
 </body>
 
