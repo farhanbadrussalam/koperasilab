@@ -18,7 +18,25 @@
         </div><!-- /.container-fluid -->
     </section>
     <section class="content">
-
+        <button class="btn btn-primary" id="sendNotif">send notif</button>
     </section>
 </div>
 @endsection
+@push('scripts')
+    <script>
+        $('#sendNotif').click(() => {
+            $.ajax({
+                url: '{{ route("notif.send") }}',
+                method: 'GET',
+                processData: true,
+            }).done(result => {
+            });
+        })
+        $(function () {
+            let chanel = window.Echo.channel('notifikasi-lab').listen('.notif', (data) => {
+                console.log("berhasil listen");
+                console.log(data);
+            })
+        })
+    </script>
+@endpush

@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\userPerusahaanController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\LayananJasaController;
+use App\Http\Controllers\NotifController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -45,6 +46,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
     Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);
+
+    Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
