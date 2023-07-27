@@ -14,7 +14,8 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        return view('pages.profile.index');
+        $data['token'] = generateToken();
+        return view('pages.profile.index', $data);
     }
 
     /**

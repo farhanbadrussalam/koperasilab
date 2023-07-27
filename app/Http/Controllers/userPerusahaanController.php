@@ -13,7 +13,8 @@ class userPerusahaanController extends Controller
      */
     public function index()
     {
-        return view('pages.perusahaan.index');
+        $data['token'] = generateToken();
+        return view('pages.perusahaan.index', $data);
     }
 
     /**

@@ -18,20 +18,9 @@
         </div><!-- /.container-fluid -->
     </section>
     <section class="content">
-        <button class="btn btn-primary" id="sendNotif">send notif</button>
+
     </section>
 </div>
 @endsection
 @push('scripts')
-    <script>
-        $('#sendNotif').click(() => {
-            $.ajax({
-                url: '{{ route("notif.send") }}',
-                method: 'GET',
-                processData: true,
-            }).done(result => {
-                console.log(result);
-            });
-        })
-    </script>
 @endpush

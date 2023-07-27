@@ -45,6 +45,7 @@ class UserController extends Controller
     {
         $data['satuankerja'] = Satuan_kerja::all();
         $data['role'] = Role::all();
+        $data['token'] = generateToken();
         return view('pages.users.create', $data);
     }
 

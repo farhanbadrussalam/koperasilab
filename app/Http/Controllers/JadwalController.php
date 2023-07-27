@@ -64,6 +64,7 @@ class JadwalController extends Controller
                                 ->where('status', 1)
                                 ->get();
         $data['petugas'] = User::where('satuankerja_id', $user->satuankerja_id)->role('staff')->get();
+        $data['token'] = generateToken();
         return view('pages.jadwal.create', $data);
     }
 
@@ -129,6 +130,7 @@ class JadwalController extends Controller
         // $data['layanan'] = $jadwal->layananjasa;
         $data['jadwal'] = $jadwal;
         $data['petugas'] = $jadwal->petugas;
+        $data['token'] = generateToken();
         return view('pages.jadwal.edit', $data);
     }
 

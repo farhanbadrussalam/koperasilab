@@ -75,7 +75,71 @@
         })
 
         function loadNotifikasi() {
+            $.ajax({
+                url: "{{ url('api/getNotifikasi') }}",
+                dataType: 'json',
+                method: 'GET',
+                processData: true,
+                headers: {
+                    'Authorization' : `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                },
+            }).done((result) => {
+                let html = '';
+                let countLonceng = 0;
+                for (const notif of result.data) {
+                    html += `
+                        <div class="card shadow text-muted mb-1 ${notif.status==1 && 'bg-info-subtle'}" data-id="${notif.id}" role="button" onclick="notifGoTo(this, '${notif.type}')">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-12">${notif.message}</div>
+                                    <div class="col-12 text-end">${dateFormat(notif.created_at)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    notif.status == 1 && countLonceng++;
+                }
+                if(countLonceng > 0){
+                    $('#count_lonceng').show();
+                    $('#count_lonceng').html(countLonceng);
+                }
+                if(result.data.length == 0){
+                    html = `<div class="text-center">No data notifications</div>`;
+                }
+                $('#body-notif').html(html);
+            })
+        }
 
+        function notifGoTo(obj, type){
+            let notifId = $(obj).data('id');
+            let url;
+            switch (type) {
+                case 'jadwal':
+                    url = "{{ route('jadwal.index') }}";
+                    break;
+
+                default:
+                    break;
+            }
+
+            $.ajax({
+                method: 'GET',
+                url : '{{ url("api/setNotifikasi") }}',
+                dataType: "json",
+                processData: true,
+                data: {
+                    id: notifId,
+                    status: 2
+                },
+                headers: {
+                    'Authorization' : `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                },
+            }).done(result => {
+                // console.log(result);
+                window.location.href = url;
+            })
         }
     </script>
 </body>

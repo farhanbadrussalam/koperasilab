@@ -46,3 +46,15 @@ function deleteGlobal(callback = ()=>{}) {
         }
     })
 }
+
+function dateFormat(tanggal){
+    let d = new Date(tanggal);
+
+    const options = {
+        year: 'numeric',
+        month : 'long',
+        day : 'numeric'
+    };
+
+    return `${d.getHours()}:${d.getMinutes()}, ${d.toLocaleString('id-ID', options)}`;
+}

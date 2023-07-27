@@ -23,10 +23,11 @@ class HomeController extends Controller
      */
     public function index()
     {
+        $data['token'] = generateToken();
         if(Auth::user()->hasRole('pelanggan')){
-            return redirect('userProfile');
+            return redirect('userProfile', $data);
         }else{
-            return view('home');
+            return view('home', $data);
         }
     }
 }
