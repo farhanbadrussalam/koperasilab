@@ -59,6 +59,12 @@
     @stack('scripts')
 
     <script>
+        @if (session('success'))
+            toastr.success('{{ session('success') }}');
+        @elseif (session('error'))
+            toastr.error('{{ session('error') }}');
+        @endif
+
         $(function () {
             let user = @json(Auth::user());
 

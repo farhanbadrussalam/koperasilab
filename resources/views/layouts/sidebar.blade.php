@@ -71,10 +71,10 @@
                 @can('User.management')
                     <li class="nav-header">USER MANAGEMENT</li>
                     <li class="nav-item">
-                        <a href="{{ route('users.index') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}">
+                        <a href="{{ route('permission.index') }}" class="nav-link {{ Request::is('permission*') ? 'active' : '' }}">
                             <i class="nav-icon bi bi-people-fill"></i>
                             <p>
-                                Users
+                                Permission
                             </p>
                         </a>
                     </li>
@@ -83,6 +83,14 @@
                             <i class="nav-icon bi bi-people-fill"></i>
                             <p>
                                 Roles
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('users.index') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}">
+                            <i class="nav-icon bi bi-people-fill"></i>
+                            <p>
+                                Users
                             </p>
                         </a>
                     </li>

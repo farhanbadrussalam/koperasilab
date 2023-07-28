@@ -141,13 +141,6 @@
             editProfile($('#btnEditProfile'));
         @endif
 
-
-        @if (session('success'))
-            toastr.success('{{ session('success') }}');
-        @elseif (session('error'))
-            toastr.error('{{ session('error') }}');
-        @endif
-
         function editProfile(obj) {
             const name = $('#inputName');
             const nik = $('#inputNik');

@@ -122,13 +122,6 @@
             editPerusahaan($('#btnEditPerusahaan'));
         @endif
 
-
-        @if (session('success'))
-            toastr.success('{{ session('success') }}');
-        @elseif (session('error'))
-            toastr.error('{{ session('error') }}');
-        @endif
-
         function editPerusahaan(obj) {
             const name = $('#inputNamePerusahaan');
             const email = $('#inputEmailPerusahaan');

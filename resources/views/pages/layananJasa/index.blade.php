@@ -58,12 +58,6 @@
 @endsection
 @push('scripts')
     <script>
-        @if (session('success'))
-            toastr.success('{{ session('success') }}');
-        @elseif (session('error'))
-            toastr.error('{{ session('error') }}');
-        @endif
-
         let datatable_layanan = false;
         $(function () {
             datatable_layanan = $('#layanan-table').DataTable({

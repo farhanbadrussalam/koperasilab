@@ -11,6 +11,7 @@ use App\Http\Controllers\RolesController;
 use App\Http\Controllers\LayananJasaController;
 use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\NotifController;
+use App\Http\Controllers\PermissionController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -35,6 +36,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::middleware(['permission:User.management'])->group(function () {
         Route::resource('users', UserController::class);
         Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
+
+        Route::resource('permission', PermissionController::class);
+        Route::get('getDataPermission', [PermissionController::class, 'getData'])->name('permission.getData');
 
         Route::resource('roles', RolesController::class);
         Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');

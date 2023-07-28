@@ -42,12 +42,6 @@
 @push('scripts')
     <script>
         $(function () {
-            @if (session('success'))
-                toastr.success('{{ session('success') }}');
-            @elseif (session('error'))
-                toastr.error('{{ session('error') }}');
-            @endif
-
             $('#user-table').DataTable({
                 processing: true,
                 serverSide: true,
