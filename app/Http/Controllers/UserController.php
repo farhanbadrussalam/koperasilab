@@ -18,7 +18,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        return view('pages.users.index');
+        $data['token'] = generateToken();
+        return view('pages.users.index', $data);
     }
 
     public function getData(){

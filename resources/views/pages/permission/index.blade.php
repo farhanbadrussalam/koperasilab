@@ -26,9 +26,9 @@
                 <div class="card-body">
                     <table class="table table-hover w-100" id="permission-table">
                         <thead>
-                            <th>No</th>
+                            <th width="5%">No</th>
                             <th>Name Permission</th>
-                            <th>Action</th>
+                            <th width="20%">Action</th>
                         </thead>
                     </table>
                 </div>
