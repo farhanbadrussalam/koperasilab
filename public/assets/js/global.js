@@ -47,7 +47,7 @@ function deleteGlobal(callback = ()=>{}) {
     })
 }
 
-function dateFormat(tanggal){
+function dateFormat(tanggal, time = false){
     let d = new Date(tanggal);
 
     const options = {
@@ -56,5 +56,8 @@ function dateFormat(tanggal){
         day : 'numeric'
     };
 
-    return `${d.getHours()}:${d.getMinutes()}, ${d.toLocaleString('id-ID', options)}`;
+    let hour = d.getHours() < 10 ? `0${d.getHours()}` : d.getHours();
+    let minute = d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes();
+
+    return `${hour}:${minute}, ${d.toLocaleString('id-ID', options)}`;
 }

@@ -24,7 +24,11 @@ class JadwalController extends Controller
         $jadwal = jadwal::with('petugas','layananjasa','user')->where('status', '!=', 99);
 
         if(!Auth::user()->hasRole('Super Admin')){
-            $jadwal->where('created_by', Auth::user()->id);
+            if(Auth::user()->hasPermissionTo('Penjadwalan.confirm')){
+                $jadwal->where('petugas_id', Auth::user()->id);
+            }else{
+                $jadwal->where('created_by', Auth::user()->id);
+            }
         }
 
         return DataTables::of($jadwal)
@@ -37,14 +41,22 @@ class JadwalController extends Controller
                     ";
                 })
                 ->addColumn('action', function($data){
-                    return '
-                        <a class="btn btn-warning btn-sm" href="'.route("jadwal.edit", $data->id).'">Edit</a>
-                        <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
-                    ';
+                    $btnAction = '';
+                    if(Auth::user()->hasAnyPermission(['Penjadwalan.edit', 'Penjadwalan.delete'])){
+                        $btnAction = '
+                            <a class="btn btn-warning btn-sm" href="'.route("jadwal.edit", $data->id).'">Edit</a>
+                            <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
+                        ';
+                    }else{
+                        $btnAction = '
+                            <button class="btn btn-success btn-sm" onclick="btnConfirm('.$data->id.')">Confirm</button>
+                        ';
+                    }
+                    return $btnAction;
                 })
                 ->editColumn('petugas_id', function($data){
                     $status = $this->getStatus($data->status);
-                    $petugas = $data->petugas ? $data->petugas->name : '';
+                    $petugas = ($data->petugas && !Auth::user()->hasPermissionTo('Penjadwalan.confirm')) ? $data->petugas->name : '';
                     return "
                         <div>".$petugas."</div>
                         <div>".$status."</div>

@@ -21,7 +21,9 @@
                     <h3 class="card-title flex-grow-1">
                       Jadwal layanan
                     </h3>
+                    @can('Penjadwalan.create')
                     <a href="{{ route('jadwal.create') }}" class="btn btn-primary btn-sm">Add jadwal</a>
+                    @endcan
                 </div>
                 <div class="card-body">
                     <table class="table table-hover w-100" id="jadwal-table">
@@ -31,7 +33,11 @@
                             <th>Mulai</th>
                             <th>Selesai</th>
                             <th>Kuota</th>
+                            @cannot('Penjadwalan.confirm')
                             <th>Petugas</th>
+                            @else
+                            <th>Status</th>
+                            @endcannot
                             <th width="10%">Action</th>
                         </thead>
                     </table>
@@ -40,6 +46,7 @@
         </div>
     </section>
 </div>
+@include('pages.jadwal.confirm')
 @endsection
 @push('scripts')
     <script>
@@ -55,7 +62,7 @@
                     { data: 'date_mulai', name: 'date_mulai' },
                     { data: 'date_selesai', name: 'date_selesai' },
                     { data: 'kuota', name: 'kuota' },
-                    { data: 'petugas_id', name: 'kuota' },
+                    { data: 'petugas_id', name: 'petugas_id' },
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 ]
             });
@@ -89,6 +96,29 @@
                     });
                 });
             });
+        }
+
+        function btnConfirm(id){
+            $('#confirmModal').modal('show');
+
+            $.ajax({
+                url: "{{ url('api/jadwal') }}/"+id,
+                method: 'GET',
+                dataType: 'json',
+                processData: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                let jadwal = result.data;
+                $('#txtNamaLayanan').html(jadwal.layananjasa.name);
+                $('#txtJenisLayanan').html(jadwal.jenislayanan);
+                $('#txtHarga').html(formatRupiah(jadwal.tarif));
+                $('#txtStart').html(dateFormat(jadwal.date_mulai));
+                $('#txtEnd').html(dateFormat(jadwal.date_selesai));
+                console.log(jadwal);
+            })
         }
     </script>
 @endpush

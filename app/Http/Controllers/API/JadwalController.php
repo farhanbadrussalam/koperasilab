@@ -29,7 +29,9 @@ class JadwalController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $dataJadwal = jadwal::with('layananjasa')->where('id', $id)->first();
+
+        return response()->json(['data' => $dataJadwal], 200);
     }
 
     /**

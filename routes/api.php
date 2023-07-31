@@ -33,5 +33,7 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/getNotifikasi', [NotifikasiController::class, 'getNotifikasi']);
     Route::get('/setNotifikasi', [NotifikasiController::class, 'setNotifikasi']);
 
+
+    Route::resource('jadwal', JadwalController::class);
     Route::delete('/deleteJadwal/{id}', [JadwalController::class, 'destroy']);
 });
