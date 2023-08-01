@@ -34,14 +34,15 @@
             </div>
             <div class="row">
                 <div  class="col-4 fw-bolder">Surat Penugasan</div>
-                <div class="col-8">: <span id="txtSuratTugas">Surat tugas.pdf</span></div>
+                <div class="col-8">: <a href="#" target="_blank" id="txtSuratTugas"></a></div>
             </div>
-            <div class="row text-center mt-3">
+            <div class="row text-center mt-3" id="divConfirmBtn">
+                <input type="hidden" id="idJadwal">
                 <div class="col-6">
-                    <button class="btn btn-danger">Tolak</button>
+                    <button class="btn btn-danger" onclick="btnConfirm(3)">Tolak</button>
                 </div>
                 <div class="col-6">
-                    <button class="btn btn-primary">Setuju</button>
+                    <button class="btn btn-primary" onclick="btnConfirm(2)">Setuju</button>
                 </div>
             </div>
         </div>

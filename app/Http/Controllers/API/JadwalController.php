@@ -29,7 +29,7 @@ class JadwalController extends Controller
      */
     public function show(string $id)
     {
-        $dataJadwal = jadwal::with('layananjasa')->where('id', $id)->first();
+        $dataJadwal = jadwal::with('layananjasa','media')->where('id', $id)->first();
 
         return response()->json(['data' => $dataJadwal], 200);
     }
@@ -56,5 +56,12 @@ class JadwalController extends Controller
         // }else{
         //     return response()->json(['message' => 'Invalid credentials'], 401);
         // }
+    }
+
+    public function confirm(Request $request){
+        $validator = $request->validate([
+            'idJadwal' => ['required'],
+            'answer' => ['required']
+        ]);
     }
 }

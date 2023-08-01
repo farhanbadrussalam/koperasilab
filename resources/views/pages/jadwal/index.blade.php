@@ -98,9 +98,7 @@
             });
         }
 
-        function btnConfirm(id){
-            $('#confirmModal').modal('show');
-
+        function modalConfirm(id){
             $.ajax({
                 url: "{{ url('api/jadwal') }}/"+id,
                 method: 'GET',
@@ -117,7 +115,51 @@
                 $('#txtHarga').html(formatRupiah(jadwal.tarif));
                 $('#txtStart').html(dateFormat(jadwal.date_mulai));
                 $('#txtEnd').html(dateFormat(jadwal.date_selesai));
-                console.log(jadwal);
+                let status = statusFormat('jadwal', jadwal.status);
+                $('#txtStatus').html(status);
+                $('#txtSuratTugas').attr('href', `{{ asset('storage/dokumen/jadwal') }}/${jadwal.media.file_hash}`);
+                $('#txtSuratTugas').html(jadwal.media.file_ori);
+                $('#idJadwal').val(jadwal.id);
+                if(jadwal.status == 1){
+                    $('#divConfirmBtn').show();
+                }else{
+                    $('#divConfirmBtn').hide();
+                }
+                $('#confirmModal').modal('show');
+            })
+        }
+
+        function btnConfirm(answer){
+            let formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('idJadwal', $('#idJadwal').val());
+            formData.append('answer', answer);
+            $.ajax({
+                url: "{{ route('jadwal.updatePetugas') }}",
+                method: "POST",
+                dataType: 'json',
+                processData: false,
+                contentType: false,
+                data: formData
+            }).done(result => {
+                if(result.status == 2){
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message
+                    });
+                    datatable_jadwal?.ajax.reload();
+                }else{
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'error',
+                        text: result.message
+                    });
+                    datatable_jadwal?.ajax.reload();
+                }
+                $('#confirmModal').modal('hide');
+            }).fail(err => {
+                console.log(err);
             })
         }
     </script>

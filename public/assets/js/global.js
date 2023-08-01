@@ -61,3 +61,28 @@ function dateFormat(tanggal, time = false){
 
     return `${hour}:${minute}, ${d.toLocaleString('id-ID', options)}`;
 }
+
+function statusFormat(feature, status) {
+    let htmlStatus = '';
+    if(feature == 'jadwal'){
+        switch (status) {
+            case 0:
+                htmlStatus = `<span class="badge text-bg-secondary">Belum ditugaskan</span>`;
+                break;
+            case 1:
+                htmlStatus = `<span class="badge text-bg-info">Diajukan</span>`;
+                break;
+            case 2:
+                htmlStatus = `<span class="badge text-bg-success">Bersedia</span>`;
+                break;
+            case 3:
+                htmlStatus = `<span class="badge text-bg-danger">Tidak bersedia</span>`;
+                break;
+            default:
+                htmlStatus = `<span class="badge text-bg-danger">dibatalkan</span>`;
+                break;
+        }
+    }
+
+    return htmlStatus;
+}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\jadwal;
 use App\Models\Layanan_jasa;
 use App\Models\User;
+use App\Models\tbl_media;
 use Illuminate\Http\Request;
 use Auth;
 use DataTables;
@@ -48,9 +49,15 @@ class JadwalController extends Controller
                             <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
                         ';
                     }else{
-                        $btnAction = '
-                            <button class="btn btn-success btn-sm" onclick="btnConfirm('.$data->id.')">Confirm</button>
-                        ';
+                        if($data->status == 1){
+                            $btnAction = '
+                                <button class="btn btn-success btn-sm" onclick="modalConfirm('.$data->id.')">Confirm</button>
+                            ';
+                        }else{
+                            $btnAction = '
+                                <button class="btn btn-info btn-sm" onclick="modalConfirm('.$data->id.')">View</button>
+                            ';
+                        }
                     }
                     return $btnAction;
                 })
@@ -97,10 +104,19 @@ class JadwalController extends Controller
 
         // upload dokumen
         $dokumen = $request->file('dokumen');
-        $filename = '';
+        $media = '';
         if($dokumen){
-            $filename = 'dokumen_jadwal_'.$dokumen->getClientOriginalName().'.'.$dokumen->getClientOriginalExtension();
+            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
+            $filename = 'dokumen_jadwal_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
             $path = $dokumen->storeAs('public/dokumen/jadwal', $filename);
+
+            $media = tbl_media::create([
+                'file_hash' => $filename,
+                'file_ori' => $dokumen->getClientOriginalName(),
+                'file_size' => $dokumen->getSize(),
+                'file_type' => $dokumen->getClientMimeType(),
+                'status' => 1
+            ]);
         }
 
         $dataJadwal = array(
@@ -112,7 +128,7 @@ class JadwalController extends Controller
             'kuota' => $request->kuota,
             'status' => 1,
             'petugas_id' => $request->petugas,
-            'dokumen' => $filename,
+            'dokumen' => $media->id,
             'created_by' => Auth::user()->id
         );
 
@@ -197,5 +213,21 @@ class JadwalController extends Controller
         };
 
         return $hasil;
+    }
+
+    public function confirm(Request $request){
+        $validator = $request->validate([
+            'idJadwal' => ['required'],
+            'answer' => ['required']
+        ]);
+
+        $jadwal = jadwal::findOrFail($request->idJadwal);
+        $jadwal->status = $request->answer;
+
+        $jadwal->update();
+
+        $msg = $request->answer == 2 ? 'Anda bersedia' : 'Anda tidak bersedia';
+
+        return response()->json(['message' => $msg, 'status' => $request->answer], 200);
     }
 }

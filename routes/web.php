@@ -51,6 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::resource('jadwal', JadwalController::class);
     Route::get('getDataJadwal', [JadwalController::class, 'getData'])->name('jadwal.getData');
+    Route::post('updatePenugasan', [JadwalController::class, 'confirm'])->name('jadwal.updatePetugas');
 
     Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
     Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);
