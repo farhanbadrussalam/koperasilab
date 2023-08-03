@@ -28,7 +28,4 @@
         </main>
     </div>
 </body>
-
-<script src="{{ asset('assets/js/adminlte.min.js') }}"></script>
-
 </html>
