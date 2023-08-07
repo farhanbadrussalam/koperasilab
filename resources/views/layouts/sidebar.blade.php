@@ -47,7 +47,7 @@
                     </li>
                 @endcan
 
-                @can('Management.layanan.jasa')
+                @can('Layananjasa')
                     <li class="nav-item">
                         <a href="{{ route('layananJasa.index') }}"
                             class="nav-link {{ Request::is('layananJasa*') ? 'active' : '' }}">
@@ -59,6 +59,7 @@
                     </li>
                 @endcan
 
+                @can('Penjadwalan')
                 <li class="nav-item">
                     <a href="{{ route('jadwal.index') }}"
                         class="nav-link {{ Request::is('jadwal*') ? 'active' : '' }}">
@@ -68,6 +69,20 @@
                         </p>
                     </a>
                 </li>
+                @endcan
+
+                @can('Permohonan')
+                <li class="nav-item">
+                    <a href="{{ route('permohonan.index') }}"
+                        class="nav-link {{ Request::is('permohonan*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <p>
+                            Permohonan Layanan
+                        </p>
+                    </a>
+                </li>
+                @endcan
+
                 @can('User.management')
                     <li class="nav-header">USER MANAGEMENT</li>
                     <li class="nav-item">

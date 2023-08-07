@@ -120,11 +120,14 @@
         function notifGoTo(obj, type){
             let notifId = $(obj).data('id');
             let url;
+            type = type.toLowerCase();
             switch (type) {
                 case 'jadwal':
                     url = "{{ route('jadwal.index') }}";
                     break;
-
+                case 'permohonan':
+                    url = "{{ route('permohonan.index') }}";
+                    break;
                 default:
                     break;
             }

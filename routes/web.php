@@ -12,6 +12,7 @@ use App\Http\Controllers\LayananJasaController;
 use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\NotifController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\PermohonanController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -44,14 +45,21 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');
     });
 
-    Route::middleware(['permission:Management.layanan.jasa'])->group(function () {
+    Route::middleware(['permission:Layananjasa'])->group(function () {
         Route::resource('layananJasa', LayananJasaController::class);
         Route::get('getDataLayananJasa', [LayananJasaController::class, 'getData'])->name('layananJasa.getData');
     });
 
-    Route::resource('jadwal', JadwalController::class);
-    Route::get('getDataJadwal', [JadwalController::class, 'getData'])->name('jadwal.getData');
-    Route::post('updatePenugasan', [JadwalController::class, 'confirm'])->name('jadwal.updatePetugas');
+    Route::middleware(['permission:Permohonan'])->group(function () {
+        Route::resource('permohonan', PermohonanController::class);
+        Route::get('getDataPermohonan', [PermohonanController::class, 'getData'])->name('permohonan.getData');
+    });
+
+    Route::middleware(['permission:Penjadwalan'])->group(function () {
+        Route::resource('jadwal', JadwalController::class);
+        Route::get('getDataJadwal', [JadwalController::class, 'getData'])->name('jadwal.getData');
+        Route::post('updatePenugasan', [JadwalController::class, 'confirm'])->name('jadwal.updatePetugas');
+    });
 
     Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
     Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);

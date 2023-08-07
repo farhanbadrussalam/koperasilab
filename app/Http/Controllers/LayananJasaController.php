@@ -42,10 +42,13 @@ class LayananJasaController extends Controller
                     ";
                 })
                 ->addColumn('action', function($data){
-                    return '
-                        <a class="btn btn-warning btn-sm" href="'.route("layananJasa.edit", $data->id).'">Edit</a>
-                        <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
-                    ';
+                    $user = Auth::user();
+                    $btnAction = '<div class="text-center">';
+                    $user->hasPermissionTo('Layananjasa.edit') && $btnAction .= '<a class="btn btn-warning btn-sm m-1" href="'.route("layananJasa.edit", $data->id).'"><i class="bi bi-pencil-square"></i></a>';
+                    $user->hasPermissionTo('Layananjasa.delete') && $btnAction .= '<button class="btn btn-danger btn-sm m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>';
+                    $btnAction .= '</div>';
+
+                    return $btnAction;
                 })
                 ->rawColumns(['action', 'nama_layanan'])
                 ->make(true);

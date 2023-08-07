@@ -21,7 +21,9 @@
                     <h3 class="card-title flex-grow-1">
                       Layanan jasa
                     </h3>
+                    @can('Layananjasa.create')
                     <a href="{{ route('layananJasa.create') }}" class="btn btn-primary btn-sm">Add Layanan</a>
+                    @endcan
                 </div>
                 <div class="card-body">
                     <table class="table table-hover w-100" id="layanan-table">

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\perusahaan;
+use App\Models\tbl_media;
 use Illuminate\Http\Request;
 use Auth;
 
@@ -65,15 +66,24 @@ class userPerusahaanController extends Controller
 
         // upload dokumen kuasa
         $dokumen = $request->file('dokumen');
-        $filename = 'surat_kuasa_'.$perusahaan->user_id.'.'.$dokumen->getClientOriginalExtension();
+        $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
+        $filename = 'surat_kuasa_'.$perusahaan->user_id.'_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
         $path = $dokumen->storeAs('public/dokumen/surat_kuasa', $filename);
+
+        $media = tbl_media::create([
+            'file_hash' => $filename,
+            'file_ori' => $dokumen->getClientOriginalName(),
+            'file_size' => $dokumen->getSize(),
+            'file_type' => $dokumen->getClientMimeType(),
+            'status' => 1
+        ]);
 
         $dataPerusahaan = array(
             'name'      => $request->name,
-            'npwp'      => $request->npwp,
+            'npwp'      => unmask($request->npwp),
             'email'     => $request->email,
             'alamat'    => $request->alamat,
-            'surat_kuasa' => $filename
+            'surat_kuasa' => $media->id
         );
 
         $perusahaan->update($dataPerusahaan);

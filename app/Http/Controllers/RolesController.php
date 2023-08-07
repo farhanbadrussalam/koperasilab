@@ -26,8 +26,10 @@ class RolesController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <button class="btn btn-warning btn-sm" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
+                        <div class="text-center">
+                            <button class="btn btn-warning btn-sm m-1" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>
+                            <button class="btn btn-danger btn-sm m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>
+                        </div>
                     ';
                 })
                 ->rawColumns(['action'])

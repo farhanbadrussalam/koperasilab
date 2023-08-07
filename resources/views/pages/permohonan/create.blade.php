@@ -7,8 +7,7 @@
             <div class="row mb-2">
                 <div class="col-sm-6">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('jadwal.index') }}">Jadwal</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('permohonan.index') }}">Pemohonan</a></li>
                         <li class="breadcrumb-item active">Create</li>
                     </ol>
                 </div>
@@ -19,12 +18,12 @@
         <div class="container">
             <div class="card card-default color-palette-box shadow">
                 <div class="card-header d-flex ">
-                    <h2 class="card-title flex-grow-1">
-                        Create Jadwal
-                    </h2>
+                    <h3 class="card-title flex-grow-1">
+                      Create Permohonan layanan
+                    </h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('jadwal.store') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ route('permohonan.store') }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
                             <div class="col-md-12 mb-2">
@@ -65,65 +64,70 @@
                                                     aria-describedby="rupiah-text" placeholder="Tarif" readonly>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="inputDateMulai" class="form-label">Tanggal mulai <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <x-flatpickr name="tanggal_mulai" show-time time-format="H:i" :min-date="today()" />
-                                @error('tanggal_mulai')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="inputDateSelesai" class="form-label">Tanggal selesai <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <x-flatpickr name="tanggal_selesai" show-time time-format="H:i" :min-date="today()" />
-                                @error('tanggal_selesai')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="inputKuota" class="form-label">Kuota <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="number" name="kuota" id="inputKuota" class="form-control @error('kuota')
+                            <div class="col-md-9 mb-2">
+                                <label for="selectJadwal" class="form-label">Jadwal</label>
+                                <select name="jadwal" id="selectJadwal" class="form-control @error('jadwal')
                                     is-invalid
-                                @enderror">
-                                @error('kuota')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="selectPetugas" class="form-label">Petugas <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="petugas" id="selectPetugas" class="form-control @error('petugas')
-                                    is-invalid
-                                @enderror">
+                                @enderror" onchange="selectJadwalLayanan(this)">
                                     <option value="">--- Select ---</option>
-                                    @foreach ($petugas as $value)
-                                        <option value="{{ $value->id }}">{{ $value->name }}</option>
-                                    @endforeach
                                 </select>
-                                @error('petugas')
+                                @error('jadwal')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
                                 @enderror
                             </div>
-                            <div class="col-md-12 mb-2">
-                                <label for="uploadFile" class="form-label">Surat tugas</label>
-                                <input type="file" name="dokumen" accept=".pdf,.doc,.docx" id="uploadFile" class="form-control @error('dokumen')
+                            <div class="col-md-3 mb-2">
+                                <label for="inputKuota" class="form-label">Kuota</label>
+                                <input type="number" name="kuota" id="inputKuota" class="form-control" readonly>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="inputNoBapeten" class="form-label">Nomor BAPETEN</label>
+                                <input type="number" name="noBapeten" id="inputNoBapeten" class="form-control @error('noBapeten')
                                     is-invalid
-                                @enderror">
-                                @error('dokumen')
+                                @enderror" value="{{ old('noBapeten') }}">
+                                @error('noBapeten')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
                                 @enderror
                             </div>
-                            <div class="col-md-12 mb-2 text-center">
-                                <button type="submit" class="btn btn-primary">Simpan</button>
+                            <div class="col-md-6 mb-2">
+                                <label for="inputJenisLimbah" class="form-label">Jenis Limbah</label>
+                                <input type="text" name="jenisLimbah" id="inputJenisLimbah" class="form-control @error('jenisLimbah')
+                                    is-invalid
+                                @enderror" value="{{ old('jenisLimbah') }}">
+                                @error('jenisLimbah')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="inputRadioaktif" class="form-label">Sumber Radioaktif</label>
+                                <input type="text" name="radioAktif" id="inputRadioaktif" class="form-control @error('radioAktif')
+                                    is-invalid
+                                @enderror" value="{{ old('radioAktif') }}">
+                                @error('radioAktif')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="inputJumlah" class="form-label">Jumlah</label>
+                                <input type="number" name="jumlah" id="inputJumlah" class="form-control @error('jumlah')
+                                    is-invalid
+                                @enderror" value="{{ old('jumlah') }}">
+                                @error('jumlah')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="mt-3 d-flex justify-content-end">
+                            <button class="btn btn-primary">Buat permohonan</button>
                         </div>
                     </form>
                 </div>
@@ -154,13 +158,43 @@
 
         function selectJenis(obj) {
             let jenis = obj.value.split('|');
+            let idLayanan = $('#selectLayananjasa').val();
             $('#inputTarif').val(jenis[1]);
+
+            let formData = new FormData();
+            formData.append('idLayanan', idLayanan);
+            formData.append('jenisLayanan', jenis[0]);
+
+            $.ajax({
+                method: 'GET',
+                url : `{{ url('api/getJadwal') }}?idLayanan=${idLayanan}&jenisLayanan=${jenis[0]}`,
+                dataType: 'json',
+                processData: false,
+                contentType: false,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                let html = `<option>--- Select ---</option>`;
+                for (const jadwal of result.data) {
+                    html += `
+                        <option value="${jadwal.id}|${jadwal.kuota}">${jadwal.date_mulai} s/d ${jadwal.date_selesai}</option>
+                    `;
+                }
+                if(result.data.length == 0){
+                    html = `<option value="">--- Tidak ada jadwal ---</option>`;
+                }
+                $('#selectJadwal').html(html);
+            }).fail(e => {
+                console.log(e);
+            });
         }
 
-        $('#inputDateMulai').datepicker({
-            defaultDate: "+1w",
-            changeMonth: true,
-            numberOfMonths: 1
-        });
+        function selectJadwalLayanan(obj){
+            let jadwal = obj.value.split('|');
+
+            $('#inputKuota').val(jadwal[1]);
+        }
     </script>
 @endpush

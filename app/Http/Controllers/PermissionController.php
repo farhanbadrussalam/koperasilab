@@ -19,13 +19,13 @@ class PermissionController extends Controller
 
     public function getData()
     {
-        $permissions = Permission::all();
+        $permissions = Permission::orderBy('name', 'ASC')->get();
         return DataTables::of($permissions)
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <button class="btn btn-warning btn-sm" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
+                        <button class="btn btn-warning btn-sm m-1" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)">Edit</button>
+                        <button class="btn btn-danger btn-sm m-1" onclick="btnDelete('.$data->id.')">Delete</a>
                     ';
                 })
                 ->rawColumns(['action'])

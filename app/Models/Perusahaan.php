@@ -19,4 +19,8 @@ class Perusahaan extends Model
         'surat_kuasa',
         'alamat',
     ];
+
+    public function media(){
+        return $this->belongsTo(tbl_media::class, 'surat_kuasa', 'id');
+    }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('avatar');
             $table->bigInteger('nik')->nullable();
             $table->text('alamat')->nullable();
-            $table->bigInteger('no_hp')->nullable();
+            $table->string('no_hp')->nullable();
             $table->enum('jenis_kelamin',['laki-laki', 'perempuan'])->nullable();
             $table->timestamps();
         });

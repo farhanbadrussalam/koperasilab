@@ -77,7 +77,7 @@
                                         <div class="col-sm-9 col-md-8">
                                             <div id="previewDokumen">
                                                 @if(Auth::user()->perusahaan->surat_kuasa)
-                                                <a href="{{ asset('storage/dokumen/surat_kuasa/'.Auth::user()->perusahaan->surat_kuasa ) }}" target="_blank" id="previewDokumen">surat kuasa.pdf</a>
+                                                <a href="{{ asset('storage/dokumen/surat_kuasa/'.Auth::user()->perusahaan->media->file_hash ) }}" target="_blank" id="previewDokumen">{{ Auth::user()->perusahaan->media->file_ori }}</a>
                                                 @else
                                                 <div class="text-danger">Belum upload</div>
                                                 @endif

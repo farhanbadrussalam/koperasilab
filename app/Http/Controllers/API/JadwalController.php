@@ -34,6 +34,22 @@ class JadwalController extends Controller
         return response()->json(['data' => $dataJadwal], 200);
     }
 
+    public function getJadwal(Request $request)
+    {
+        $id_layanan = isset($request->idLayanan) ? $request->idLayanan : null;
+        $jenis_layanan = isset($request->jenisLayanan) ? $request->jenisLayanan : null;
+
+        $jadwal = jadwal::where('status', 2)->where('kuota', '!=', 0);
+        if($id_layanan){
+            $jadwal->where('layananjasa_id', $id_layanan);
+        }
+        if($jenis_layanan){
+            $jadwal->where('jenislayanan', $jenis_layanan);
+        }
+        $data = $jadwal->get();
+        return response()->json(['data' => $data], 200);
+    }
+
     /**
      * Update the specified resource in storage.
      */

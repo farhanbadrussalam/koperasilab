@@ -82,6 +82,21 @@ function statusFormat(feature, status) {
                 htmlStatus = `<span class="badge text-bg-danger">dibatalkan</span>`;
                 break;
         }
+    }else if(feature == 'permohonan'){
+        switch (status) {
+            case 1:
+                htmlStatus = `<span class="badge text-bg-secondary">Pengajuan</span>`;
+                break;
+            case 2:
+                htmlStatus = `<span class="badge text-bg-info">Terverifikasi</span>`;
+                break;
+            case 3:
+                htmlStatus = `<span class="badge text-bg-success">Selesai</span>`;
+                break;
+            case 9:
+                htmlStatus = `<span class="badge text-bg-danger">Di tolak</span>`;
+                break;
+        }
     }
 
     return htmlStatus;

@@ -42,23 +42,14 @@ class JadwalController extends Controller
                     ";
                 })
                 ->addColumn('action', function($data){
-                    $btnAction = '';
-                    if(Auth::user()->hasAnyPermission(['Penjadwalan.edit', 'Penjadwalan.delete'])){
-                        $btnAction = '
-                            <a class="btn btn-warning btn-sm" href="'.route("jadwal.edit", $data->id).'">Edit</a>
-                            <button class="btn btn-danger btn-sm" onclick="btnDelete('.$data->id.')">Delete</a>
-                        ';
-                    }else{
-                        if($data->status == 1){
-                            $btnAction = '
-                                <button class="btn btn-success btn-sm" onclick="modalConfirm('.$data->id.')">Confirm</button>
-                            ';
-                        }else{
-                            $btnAction = '
-                                <button class="btn btn-info btn-sm" onclick="modalConfirm('.$data->id.')">View</button>
-                            ';
-                        }
+                    $user = Auth::user();
+                    $btnAction = '<div class="text-center">';
+                    $user->hasPermissionTo('Penjadwalan.edit') && $btnAction .= '<a class="btn btn-warning btn-sm  m-1" href="'.route("jadwal.edit", $data->id).'"><i class="bi bi-pencil-square"></i></a>';
+                    $user->hasPermissionTo('Penjadwalan.delete') && $btnAction .= '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>';
+                    if($user->hasPermissionTo('Penjadwalan.confirm')){
+                        $data->status == 1 ? $btnAction .= '<button class="btn btn-success btn-sm m-1" onclick="modalConfirm('.$data->id.')">Confirm</button>' : $btnAction .= '<button class="btn btn-info btn-sm m-1" onclick="modalConfirm('.$data->id.')"><i class="bi bi-eye-fill"></i></button>';
                     }
+                    $btnAction .= '</div>';
                     return $btnAction;
                 })
                 ->editColumn('petugas_id', function($data){

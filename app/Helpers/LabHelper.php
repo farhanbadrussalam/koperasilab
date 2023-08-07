@@ -54,4 +54,57 @@ if (!function_exists('notifikasi')) {
     }
 }
 
+if(!function_exists('unmask')){
+    function unmask($data){
+        $regMask = ['.', ',','-'];
+        $unmaskedAmount = str_replace($regMask, '', $data);
+
+        return $unmaskedAmount;
+    }
+}
+
+if(!function_exists('statusFormat')){
+    function statusFormat($feature, $status) {
+        $htmlStatus = '';
+        $status = (int)$status;
+        if($feature == 'jadwal'){
+            switch ($status) {
+                case 0:
+                    $htmlStatus = 'span class="badge text-bg-secondary">Belum ditugaskan</span>';
+                    break;
+                case 1:
+                    $htmlStatus = '<span class="badge text-bg-info">Diajukan</span>';
+                    break;
+                case 2:
+                    $htmlStatus = '<span class="badge text-bg-success">Bersedia</span>';
+                    break;
+                case 3:
+                    $htmlStatus = '<span class="badge text-bg-danger">Tidak bersedia</span>';
+                    break;
+                default:
+                    $htmlStatus = '<span class="badge text-bg-danger">dibatalkan</span>';
+                    break;
+            }
+        }else if($feature == 'permohonan'){
+            switch ($status) {
+                case 1:
+                    $htmlStatus = '<span class="badge text-bg-secondary">Pengajuan</span>';
+                    break;
+                case 2:
+                    $htmlStatus = '<span class="badge text-bg-info">Terverifikasi</span>';
+                    break;
+                case 3:
+                    $htmlStatus = '<span class="badge text-bg-success">Selesai</span>';
+                    break;
+                case 9:
+                    $htmlStatus = '<span class="badge text-bg-danger">Di tolak</span>';
+                    break;
+            }
+        }
+
+        return $htmlStatus;
+    }
+
+}
+
 ?>
