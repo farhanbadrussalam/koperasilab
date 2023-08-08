@@ -112,9 +112,12 @@
                             </div>
                             <div class="col-md-12 mb-2">
                                 <label for="uploadFile" class="form-label">Surat tugas</label>
-                                <input type="file" name="dokumen" accept=".pdf,.doc,.docx" id="uploadFile" class="form-control @error('dokumen')
-                                    is-invalid
-                                @enderror">
+                                <div class="card mb-0" style="height: 150px;">
+                                    <input type="file" name="dokumen" id="uploadFile" class="form-control dropify @error('dokumen')
+                                        is-invalid
+                                    @enderror">
+                                </div>
+                                <span class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf, doc, docx. Recommend size under 5MB.</span>
                                 @error('dokumen')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -161,6 +164,11 @@
             defaultDate: "+1w",
             changeMonth: true,
             numberOfMonths: 1
+        });
+
+        setDropify('init', '#uploadFile', {
+            allowedFileExtensions: ['pdf', 'doc', 'docx'],
+            maxFileSize: '5M'
         });
     </script>
 @endpush

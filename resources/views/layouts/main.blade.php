@@ -22,6 +22,7 @@
     <link href="{{ asset('assets/toast/toastr.min.css') }}" rel="stylesheet"/>
     <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet"/>
     <link href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ asset('assets/dropify/css/dropify.css') }}">
     @include('flatpickr::components.style')
 
     <!-- Scripts -->
@@ -55,6 +56,7 @@
     <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('assets/dropify/js/dropify.min.js') }}"></script>
     @include('flatpickr::components.script')
     @stack('scripts')
 

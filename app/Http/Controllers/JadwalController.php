@@ -89,8 +89,7 @@ class JadwalController extends Controller
             'tanggal_mulai' => ['required'],
             'tanggal_selesai' => ['required'],
             'kuota' => ['required'],
-            'petugas' => ['required'],
-            'dokumen' => ['mimes:pdf,doc,docx']
+            'petugas' => ['required']
         ]);
 
         // upload dokumen

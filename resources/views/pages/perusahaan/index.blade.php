@@ -72,6 +72,12 @@
                                         </div>
                                     </div>
                                     <div class="mb-3 row">
+                                        <label for="inputAlamat" class="col-sm-3 col-md-4 col-form-label">Alamat</label>
+                                        <div class="col-sm-9 col-md-8">
+                                            <textarea name="alamat" id="inputAlamat" cols="30" rows="2" class="form-control" readonly>{{ Auth::user()->perusahaan->alamat }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 row">
                                         <label for="inputSuratKuasaPerusahaan"
                                             class="col-sm-3 col-md-4 col-form-label">Surat kuasa <span class="fw-bold fs-14 text-danger">*</span></label>
                                         <div class="col-sm-9 col-md-8">
@@ -83,19 +89,16 @@
                                                 @endif
                                             </div>
                                             <div id="uploadDokumen" class="d-none">
-                                                <input type="file" accept="application/pdf" name="dokumen" class="form-control @error('dokumen') is-invalid @enderror">
+                                                <div class="card">
+                                                    <input type="file" accept="application/pdf" id="dokumen_upload" name="dokumen" class="form-control dropify @error('dokumen') is-invalid @enderror">
+                                                </div>
+                                                <span class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf. Recommend size under 5MB.</span>
                                                 @error('dokumen')
                                                     <div class="invalid-feedback">
                                                         {{ $message }}
                                                     </div>
                                                 @enderror
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3 row">
-                                        <label for="inputAlamat" class="col-sm-3 col-md-4 col-form-label">Alamat</label>
-                                        <div class="col-sm-9 col-md-8">
-                                            <textarea name="alamat" id="inputAlamat" cols="30" rows="2" class="form-control" readonly>{{ Auth::user()->perusahaan->alamat }}</textarea>
                                         </div>
                                     </div>
                                     <div class="mb-3 d-flex justify-content-end">
@@ -141,5 +144,10 @@
             $(obj).addClass('d-none');
             $('#actionBtnPerusahaan').removeClass('d-none');
         }
+
+        setDropify('init', '#dokumen_upload', {
+            allowedFileExtensions: ['pdf'],
+            maxFileSize: '5M',
+        });
     </script>
 @endpush

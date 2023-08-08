@@ -59,32 +59,35 @@ class userPerusahaanController extends Controller
             'name' => 'required',
             'email' => ['required','email'],
             'npwp' => ['required'],
-            'dokumen' => ['required', 'mimes:pdf']
         ]);
 
         $perusahaan = perusahaan::findOrFail($id);
-
-        // upload dokumen kuasa
-        $dokumen = $request->file('dokumen');
-        $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
-        $filename = 'surat_kuasa_'.$perusahaan->user_id.'_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
-        $path = $dokumen->storeAs('public/dokumen/surat_kuasa', $filename);
-
-        $media = tbl_media::create([
-            'file_hash' => $filename,
-            'file_ori' => $dokumen->getClientOriginalName(),
-            'file_size' => $dokumen->getSize(),
-            'file_type' => $dokumen->getClientMimeType(),
-            'status' => 1
-        ]);
 
         $dataPerusahaan = array(
             'name'      => $request->name,
             'npwp'      => unmask($request->npwp),
             'email'     => $request->email,
-            'alamat'    => $request->alamat,
-            'surat_kuasa' => $media->id
+            'alamat'    => $request->alamat
         );
+
+        // upload dokumen kuasa
+        $dokumen = $request->file('dokumen');
+        if($dokumen){
+            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
+            $filename = 'surat_kuasa_'.$perusahaan->user_id.'_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
+            $path = $dokumen->storeAs('public/dokumen/surat_kuasa', $filename);
+    
+            $media = tbl_media::create([
+                'file_hash' => $filename,
+                'file_ori' => $dokumen->getClientOriginalName(),
+                'file_size' => $dokumen->getSize(),
+                'file_type' => $dokumen->getClientMimeType(),
+                'status' => 1
+            ]);
+
+            $dataPerusahaan['surat_kuasa'] = $media->id;
+        }
+
 
         $perusahaan->update($dataPerusahaan);
 
