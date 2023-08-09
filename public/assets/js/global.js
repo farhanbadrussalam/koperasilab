@@ -21,9 +21,9 @@ function maskReload(){
         removeMaskOnSubmit: true
     });
 
-    $('.maskNPWP').inputmask('99.999.999.9-999.999', { "placeholder": "_" });
-    $('.maskNIK').inputmask('9999999999999999', { "placeholder": "_" });
-    $('.maskTelepon').inputmask('9999-9999-9999', { "placeholder": " " });
+    $('.maskNPWP').inputmask('99.999.999.9-999.999', { "placeholder": "_", "removeMaskOnSubmit" : true });
+    $('.maskNIK').inputmask('9999999999999999', { "placeholder": "_", "removeMaskOnSubmit" : true });
+    $('.maskTelepon').inputmask('9999-9999-9999', { "placeholder": " ", "removeMaskOnSubmit" : true });
 }
 maskReload();
 

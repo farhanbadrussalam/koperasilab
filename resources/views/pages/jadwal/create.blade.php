@@ -113,7 +113,7 @@
                             <div class="col-md-12 mb-2">
                                 <label for="uploadFile" class="form-label">Surat tugas</label>
                                 <div class="card mb-0" style="height: 150px;">
-                                    <input type="file" name="dokumen" id="uploadFile" class="form-control dropify @error('dokumen')
+                                    <input type="file" name="dokumen" id="uploadFile" accept=".pdf,.doc,.docx" class="form-control dropify @error('dokumen')
                                         is-invalid
                                     @enderror">
                                 </div>

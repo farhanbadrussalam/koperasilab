@@ -128,7 +128,7 @@
                             <div class="col-md-12 mb-2">
                                 <label for="uploadDokumen" class="form-label">Dokumen pendukung</label>
                                 <div class="card mb-0">
-                                    <input type="file" name="dokumen" id="uploadDokumen" class="form-control dropify">
+                                    <input type="file" name="dokumen" id="uploadDokumen" accept=".pdf,.doc,.docx" class="form-control dropify">
                                 </div>
                                 <span class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx. Recommend size under 5MB.</span>
                             </div>

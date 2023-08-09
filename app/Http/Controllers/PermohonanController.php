@@ -172,7 +172,38 @@ class PermohonanController extends Controller
      */
     public function update(Request $request, Permohonan $permohonan)
     {
-        //
+        $validator = $request->validate([
+            'noBapeten' => 'required',
+            'jenisLimbah' => 'required',
+            'radioAktif' => 'required',
+            'jumlah' => 'required'
+        ]);
+        $permohonan->no_bapeten = $request->noBapeten;
+        $permohonan->jenis_limbah = $request->jenisLimbah;
+        $permohonan->sumber_radioaktif = $request->radioAktif;
+        $permohonan->jumlah = $request->jumlah;
+
+        // Update file pendukung
+        $dokumen = $request->file('dokumen');
+        if($dokumen){
+            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
+            $filename = 'permohonan_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
+            $path = $dokumen->storeAs('public/dokumen/permohonan', $filename);
+
+            $media = tbl_media::create([
+                'file_hash' => $filename,
+                'file_ori' => $dokumen->getClientOriginalName(),
+                'file_size' => $dokumen->getSize(),
+                'file_type' => $dokumen->getClientMimeType(),
+                'status' => 1
+            ]);
+
+            $permohonan->dokumen = $media->id;
+        }
+
+        $permohonan->update();
+
+        return redirect()->route('permohonan.index')->with('success', 'Berhasil di update');
     }
 
     /**

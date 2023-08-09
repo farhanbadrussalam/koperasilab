@@ -25,6 +25,7 @@
                 <div class="card-body">
                     <form action="{{ route('permohonan.update', $permohonan->id) }}" method="post" enctype="multipart/form-data">
                         @csrf
+                        @method('PUT')
                         <div class="row">
                             <div class="col-md-12 mb-2">
                                 <label for="inputLayananjasa" class="col-md-3 form-label">Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
@@ -104,13 +105,13 @@
                             <div class="col-md-12 mb-2">
                                 <label for="uploadDokumen" class="form-label">Dokumen pendukung</label>
                                 <div class="card mb-0">
-                                    <input type="file" name="dokumen" id="uploadDokumen" class="form-control dropify">
+                                    <input type="file" name="dokumen" id="uploadDokumen" accept=".pdf,.doc,.docx" class="form-control dropify">
                                 </div>
                                 <span class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx. Recommend size under 5MB.</span>
                             </div>
                         </div>
                         <div class="mt-3 d-flex justify-content-end">
-                            <button class="btn btn-primary">Buat permohonan</button>
+                            <button class="btn btn-primary">Edit permohonan</button>
                         </div>
                     </form>
                 </div>
@@ -121,66 +122,13 @@
 @endsection
 @push('scripts')
     <script>
+        let media = @json($permohonan->media);
+
         setDropify('init', '#uploadDokumen', {
             allowedFileExtensions: ['pdf','doc', 'docx'],
-            maxSizeFile: '5M'
+            maxSizeFile: '5M',
+            defaultFile: media ? "{{ asset('storage/dokumen/permohonan/'.$permohonan->media->file_hash) }}" : false,
+            fileNameOri: media ? media.file_ori : false
         });
-
-        // function selectLayanan(obj) {
-        //     let idLayanan = obj.value;
-        //     let cariLayanan = layanan.find(d => d.id == idLayanan);
-
-        //     if(cariLayanan){
-        //         let jenis = JSON.parse(cariLayanan.jenis_layanan);
-        //         let html = `<option>--- Select ---</option>`;
-
-        //         for (const value of jenis) {
-        //             html += `<option value="${value.jenis}|${value.tarif}">${value.jenis}</option>`;
-        //         }
-
-        //         $('#selectJenisLayanan').html(html);
-        //     }
-        // }
-
-        // function selectJenis(obj) {
-        //     let jenis = obj.value.split('|');
-        //     let idLayanan = $('#selectLayananjasa').val();
-        //     $('#inputTarif').val(jenis[1]);
-
-        //     let formData = new FormData();
-        //     formData.append('idLayanan', idLayanan);
-        //     formData.append('jenisLayanan', jenis[0]);
-
-        //     $.ajax({
-        //         method: 'GET',
-        //         url : `{{ url('api/getJadwal') }}?idLayanan=${idLayanan}&jenisLayanan=${jenis[0]}`,
-        //         dataType: 'json',
-        //         processData: false,
-        //         contentType: false,
-        //         headers: {
-        //             'Authorization': `Bearer {{ $token }}`,
-        //             'Content-Type': 'application/json'
-        //         }
-        //     }).done(result => {
-        //         let html = `<option>--- Select ---</option>`;
-        //         for (const jadwal of result.data) {
-        //             html += `
-        //                 <option value="${jadwal.id}|${jadwal.kuota}">${jadwal.date_mulai} s/d ${jadwal.date_selesai}</option>
-        //             `;
-        //         }
-        //         if(result.data.length == 0){
-        //             html = `<option value="">--- Tidak ada jadwal ---</option>`;
-        //         }
-        //         $('#selectJadwal').html(html);
-        //     }).fail(e => {
-        //         console.log(e);
-        //     });
-        // }
-
-        // function selectJadwalLayanan(obj){
-        //     let jadwal = obj.value.split('|');
-
-        //     $('#inputKuota').val(jadwal[1]);
-        // }
     </script>
 @endpush

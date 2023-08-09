@@ -37,4 +37,8 @@ class Permohonan extends Model
     public function user(){
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
+
+    public function media(){
+        return $this->belongsTo(tbl_media::class, 'dokumen', 'id');
+    }
 }

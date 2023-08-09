@@ -56,7 +56,7 @@
     <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('assets/dropify/js/dropify.min.js') }}"></script>
+    <script src="{{ asset('assets/dropify/js/dropify.js') }}"></script>
     @include('flatpickr::components.script')
     @stack('scripts')
 
