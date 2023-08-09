@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Permohonan;
 use App\Models\Layanan_jasa;
 use App\Models\jadwal;
+use App\Models\tbl_media;
 use Illuminate\Http\Request;
 use Auth;
 use DataTables;
@@ -49,7 +50,7 @@ class PermohonanController extends Controller
                 ->addColumn('action', function($data){
                     $user = Auth::user();
                     $btnAction = '<div class="text-center">';
-                    $user->hasPermissionTo('Permohonan.edit') && $btnAction .= '<a class="btn btn-warning btn-sm  m-1" href="#"><i class="bi bi-pencil-square"></i></a>';
+                    $user->hasPermissionTo('Permohonan.edit') && $btnAction .= '<a class="btn btn-warning btn-sm  m-1" href="'.route("permohonan.edit", $data->id).'"><i class="bi bi-pencil-square"></i></a>';
                     $user->hasPermissionTo('Permohonan.delete') && $btnAction .= '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>';
                     $btnAction .= '</div>';
                     return $btnAction;
@@ -104,6 +105,25 @@ class PermohonanController extends Controller
             $ambilAntrian = (int)$ambilAntrian->nomor_antrian + 1;
         }
 
+        // upload dokumen pendukung
+        $dokumen = $request->file('dokumen');
+        $dokumen_pendukung = "";
+        if($dokumen){
+            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
+            $filename = 'permohonan_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
+            $path = $dokumen->storeAs('public/dokumen/permohonan', $filename);
+
+            $media = tbl_media::create([
+                'file_hash' => $filename,
+                'file_ori' => $dokumen->getClientOriginalName(),
+                'file_size' => $dokumen->getSize(),
+                'file_type' => $dokumen->getClientMimeType(),
+                'status' => 1
+            ]);
+
+            $dokumen_pendukung = $media->id;
+        }
+
         $data = array(
             'layananjasa_id' => $request->layanan_jasa,
             'jadwal_id' => $jadwal_id,
@@ -113,7 +133,7 @@ class PermohonanController extends Controller
             'jenis_limbah' => $request->jenisLimbah,
             'sumber_radioaktif' => $request->radioAktif,
             'jumlah' => $request->jumlah,
-            'dokumen' => '',
+            'dokumen' => $dokumen_pendukung,
             'status' => 1,
             'nomor_antrian' => $ambilAntrian,
             'created_by' => Auth::user()->id
@@ -121,10 +141,10 @@ class PermohonanController extends Controller
 
         Permohonan::create($data);
 
-        // $sendNotif = notifikasi(array(
-        //     'to_user' => $dataJadwal->petugas_id,
-        //     'type' => 'Permohonan'
-        // ), Auth::user()->name." baru saja membuat permohonan untuk Pelayanan ".$dataJadwal->layananjasa->nama_layanan." pada tanggal $dataJadwal->date_mulai");
+        $sendNotif = notifikasi(array(
+            'to_user' => $dataJadwal->petugas_id,
+            'type' => 'Permohonan'
+        ), Auth::user()->name." baru saja membuat permohonan untuk Pelayanan ".$dataJadwal->layananjasa->nama_layanan." pada tanggal $dataJadwal->date_mulai");
 
         return redirect()->route('permohonan.index')->with('success', 'Permohonan berhasil di buat');
     }
@@ -142,7 +162,9 @@ class PermohonanController extends Controller
      */
     public function edit(Permohonan $permohonan)
     {
-        //
+        $data['token'] = generateToken();
+        $data['permohonan'] = $permohonan;
+        return view('pages.permohonan.edit', $data);
     }
 
     /**

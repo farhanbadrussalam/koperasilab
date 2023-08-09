@@ -58,8 +58,37 @@
             });
             datatable_permohonan.on('init.dt', function() {
                 maskReload();
-                // Lakukan tindakan lain setelah DataTables diinisialisasi
             });
         });
+
+        function btnDelete(id) {
+            deleteGlobal(() => {
+                $.ajax({
+                    url: "{{ url('/api/permohonan') }}/"+id,
+                    method: 'DELETE',
+                    dataType: 'json',
+                    processData: true,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`,
+                        'Content-Type': 'application/json'
+                    }
+                }).done((result) => {
+                    if(result.message){
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: result.message
+                        });
+                        datatable_permohonan?.ajax.reload();
+                    }
+                }).fail(function(message) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message.responseJSON.message
+                    });
+                });
+            });
+        }
     </script>
 @endpush
