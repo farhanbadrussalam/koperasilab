@@ -23,18 +23,25 @@ class PermohonanController extends Controller
 
     public function getData() {
         $informasi = Permohonan::where('status', '!=', 99);
+        $user = Auth::user();
 
-        if(!Auth::user()->hasRole('Super Admin')){
-            $informasi->where('created_by', Auth::user()->id);
+        if(!$user->hasRole('Super Admin')){
+            if($user->hasPermissionTo('Permohonan.confirm')){
+                $informasi->whereHas('jadwal', function($query) use ($user){
+                    $query->where('petugas_id', $user->id);
+                });
+            }else{
+                $informasi->where('created_by', $user->id);
+            }
         }
 
         return DataTables::of($informasi)
                 ->addIndexColumn()
                 ->addColumn('nama_layanan', function($data) {
                     return "
+                        <div class='fw-bolder'>".$data->user->name."</div>
                         <div>".$data->layananjasa->nama_layanan."</div>
                         <div>$data->jenis_layanan</div>
-                        <div>Rp. <span class='rupiah'>".$data->tarif."</span></div>
                     ";
                 })
                 ->addColumn('jadwal', function($data){
@@ -47,15 +54,21 @@ class PermohonanController extends Controller
                 ->editColumn('status', function($data){
                     return statusFormat("permohonan",$data->status);
                 })
+                ->editColumn('nomor_antrian', function($data){
+                    return "<span class='badge text-bg-light fs-3 border shadow-sm'>$data->nomor_antrian</span>";
+                })
                 ->addColumn('action', function($data){
                     $user = Auth::user();
                     $btnAction = '<div class="text-center">';
                     $user->hasPermissionTo('Permohonan.edit') && $btnAction .= '<a class="btn btn-warning btn-sm  m-1" href="'.route("permohonan.edit", $data->id).'"><i class="bi bi-pencil-square"></i></a>';
                     $user->hasPermissionTo('Permohonan.delete') && $btnAction .= '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>';
+                    if($user->hasPermissionTo('Permohonan.confirm')){
+                        $btnAction .= '<button class="btn btn-success btn-sm m-1" onclick="modalConfirm('.$data->id.')">Confirm</button>';
+                    }
                     $btnAction .= '</div>';
                     return $btnAction;
                 })
-                ->rawColumns(['action','nama_layanan', 'jadwal', 'status'])
+                ->rawColumns(['action','nama_layanan', 'jadwal', 'status', 'nomor_antrian'])
                 ->make(true);
     }
 

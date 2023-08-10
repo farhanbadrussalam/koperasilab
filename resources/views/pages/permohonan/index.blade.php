@@ -31,6 +31,7 @@
                             <th>Layanan</th>
                             <th>Jadwal</th>
                             <th>Progress</th>
+                            <th>Antrian</th>
                             <th width="10%">Action</th>
                         </thead>
                     </table>
@@ -39,9 +40,11 @@
         </div>
     </section>
 </div>
+@include('pages.permohonan.confirm')
 @endsection
 @push('scripts')
     <script>
+        let idPermohonan = false;
         let datatable_permohonan = false;
         $(function () {
             datatable_permohonan = $('#permohonan-table').DataTable({
@@ -53,6 +56,7 @@
                     { data: 'nama_layanan', name: 'nama_layanan' },
                     { data: 'jadwal', name: 'jadwal' },
                     { data: 'status', name: 'status' },
+                    { data: 'nomor_antrian', name: 'nomor_antrian' },
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 ]
             });
@@ -90,5 +94,85 @@
                 });
             });
         }
+
+        function modalConfirm(id){
+            $.ajax({
+                url: '{{ url("api/permohonan") }}/'+id,
+                method: 'GET',
+                dataType: 'json',
+                processing: true,
+                serverSide: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                $('#txtNamaLayanan').html(result.data.layananjasa.nama_layanan);
+                $('#txtJenisLayanan').html(result.data.jenis_layanan);
+                $('#txtHarga').html(result.data.tarif);
+                $('#txtStart').html(result.data.jadwal.date_mulai);
+                $('#txtEnd').html(result.data.jadwal.date_end);
+                $('#txtStatus').html(statusFormat('permohonan', result.data.status));
+                $('#txtNoBapeten').html(result.data.no_bapeten);
+                $('#txtAntrian').html(result.data.nomor_antrian);
+                $('#txtJeniLimbah').html(result.data.jenis_limbah);
+                $('#txtRadioaktif').html(result.data.sumber_radioaktif);
+                $('#txtJumlah').html(result.data.jumlah);
+
+                // ambil dokumen
+                let dokumen = `- <a href="{{ asset('storage/dokumen/permohonan') }}/${result.data.media.file_hash}" target="_blank">${result.data.media.file_ori}</a>`;
+                $('#tmpDokumenPendukung').html(dokumen);
+                maskReload();
+                idPermohonan = id;
+                $('#confirmModal').modal('show');
+            })
+        }
+
+        function btnConfirm(status){
+            $('#confirmModal').modal('hide');
+            if(status == 2){
+                $('#txtInfoConfirm').html('Setuju');
+            }else{
+                $('#txtInfoConfirm').html('Tolak');
+
+            }
+            $('#noteModal').modal('show');
+        }
+
+        function sendConfirm(key) {
+            if(key == 1){
+                let note = $('#inputNote').val();
+                let documenSurat = $('#uploadSurat')[0].files[0];
+
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('note', note);
+                formData.append('id', idPermohonan);
+                formData.append('file', documenSurat);
+
+
+                $.ajax({
+                    url: '{{ url("api/updatePermohonan") }}',
+                    method: "POST",
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`
+                    },
+                    data: formData
+                }).done(result => {
+                    console.log(result);
+                })
+            }else{
+                $('#noteModal').modal('hide');
+                $('#confirmModal').modal('show');
+            }
+        }
+
+        setDropify('init', '#uploadSurat', {
+            allowedFileExtentions:['pdf','doc','docx'],
+            maxFileSize: '5M'
+        });
     </script>
 @endpush

@@ -64,6 +64,7 @@ function dateFormat(tanggal, time = false){
 
 function statusFormat(feature, status) {
     let htmlStatus = '';
+    status = Number(status);
     if(feature == 'jadwal'){
         switch (status) {
             case 0:
@@ -129,7 +130,7 @@ function setDropify(type = 'init', idElement, options = {}) {
         dataDropify.resetFile();
         dataDropify.resetPreview();
         dataDropify.clearElement();
-  
+
         for (const key in options) {
           if (Object.hasOwnProperty.call(options, key)) {
             const value = options[key];
@@ -141,7 +142,7 @@ function setDropify(type = 'init', idElement, options = {}) {
             }
           }
         }
-  
+
         const afterClear = (event, element) => {
           $(element.element).attr('data-default-file', '');
           dropifyFile.off('dropify.afterClear', afterClear);
@@ -161,7 +162,7 @@ function setDropify(type = 'init', idElement, options = {}) {
     //     form_data.append('mime', JSON.stringify(options.validateMime));
     //     form_data.append('token', '<?= $this->security->get_csrf_hash() ?>');
     //     form_data.append('<?= $this -> security -> get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
-  
+
     //     $.ajax({
     //       url: '<?= base_url() ?>management/validateMime',
     //       method: 'POST',
@@ -198,10 +199,10 @@ function setDropify(type = 'init', idElement, options = {}) {
     // };
     // $(idElement).off('change', validateMime);
     // $(idElement).on('change', validateMime);
-  
+
     dropifyFile.off('dropify.beforeClear', removeDropify);
     dropifyFile.on('dropify.beforeClear', removeDropify);
-  
+
     const onError = (evt) => {
       $(idElement).attr('data-status-file', 'error');
     };

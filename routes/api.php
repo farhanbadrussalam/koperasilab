@@ -41,4 +41,5 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::delete('/deleteJadwal/{id}', [JadwalController::class, 'destroy']);
 
     Route::resource('permohonan', PermohonanController::class);
+    Route::post('/updatePermohonan', [PermohonanController::class, 'confirm']);
 });
