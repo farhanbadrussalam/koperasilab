@@ -59,11 +59,33 @@ class PermohonanController extends Controller
                 })
                 ->addColumn('action', function($data){
                     $user = Auth::user();
+
+                    $btnView = '<button class="btn btn-info btn-sm m-1" onclick="modalConfirm('.$data->id.')" title="View"><i class="bi bi-eye-fill"></i></button>';
+                    $btnDelete = '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')" title="Batalkan"><i class="bi bi-trash3-fill"></i></a>';
+                    $btnEdit = '<a class="btn btn-warning btn-sm  m-1" href="'.route("permohonan.edit", $data->id).'" title="Edit"><i class="bi bi-pencil-square"></i></a>';
+                    $btnNote = '<button class="btn btn-secondary btn-sm m-1" onclick="modalNote('.$data->id.')" title="note"><i class="bi bi-chat-square-dots-fill"></i></button>';
+                    $btnConfirm = '<button class="btn btn-success btn-sm m-1" onclick="modalConfirm('.$data->id.')">Confirm</button>';
+
                     $btnAction = '<div class="text-center">';
-                    $user->hasPermissionTo('Permohonan.edit') && $btnAction .= '<a class="btn btn-warning btn-sm  m-1" href="'.route("permohonan.edit", $data->id).'"><i class="bi bi-pencil-square"></i></a>';
-                    $user->hasPermissionTo('Permohonan.delete') && $btnAction .= '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>';
-                    if($user->hasPermissionTo('Permohonan.confirm')){
-                        $btnAction .= '<button class="btn btn-success btn-sm m-1" onclick="modalConfirm('.$data->id.')">Confirm</button>';
+                    if($data->status == 1){
+                        if($user->hasPermissionTo('Permohonan.confirm')){
+                            $btnAction .= $btnConfirm;
+                        }else{
+                            $btnAction .= $btnView;
+                        }
+                        $user->hasPermissionTo('Permohonan.delete') && $btnAction .= $btnDelete;
+                    }else if($data->status == 2) {
+                        if($user->hasPermissionTo('Permohonan.confirm')) {
+                            $btnAction .= $btnView;
+                        }else{
+                            $btnAction .= $btnNote;
+                            $btnAction .= $btnView;
+                        }
+                    }else if($data->status == 9){
+                        $btnAction .= $btnNote;
+                        $user->hasPermissionTo('Permohonan.confirm') && $btnAction .= $btnView;
+                        $user->hasPermissionTo('Permohonan.edit') && $btnAction .= $btnEdit;
+                        $user->hasPermissionTo('Permohonan.delete') && $btnAction .= $btnDelete;
                     }
                     $btnAction .= '</div>';
                     return $btnAction;
@@ -195,6 +217,9 @@ class PermohonanController extends Controller
         $permohonan->jenis_limbah = $request->jenisLimbah;
         $permohonan->sumber_radioaktif = $request->radioAktif;
         $permohonan->jumlah = $request->jumlah;
+        $permohonan->status = 1;
+        $permohonan->note = null;
+        $permohonan->surat_terbitan = null;
 
         // Update file pendukung
         $dokumen = $request->file('dokumen');

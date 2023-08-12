@@ -39,7 +39,7 @@
             <div class="row text-center mt-3" id="divConfirmBtn">
                 <input type="hidden" id="idJadwal">
                 <div class="col-6">
-                    <button class="btn btn-danger" onclick="btnConfirm(3)">Tolak</button>
+                    <button class="btn btn-danger" onclick="btnConfirm(9)">Tolak</button>
                 </div>
                 <div class="col-6">
                     <button class="btn btn-primary" onclick="btnConfirm(2)">Setuju</button>

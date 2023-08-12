@@ -76,7 +76,7 @@ function statusFormat(feature, status) {
             case 2:
                 htmlStatus = `<span class="badge text-bg-success">Bersedia</span>`;
                 break;
-            case 3:
+            case 9:
                 htmlStatus = `<span class="badge text-bg-danger">Tidak bersedia</span>`;
                 break;
             default:
@@ -155,50 +155,6 @@ function setDropify(type = 'init', idElement, options = {}) {
         dataDropify.init();
         break;
     }
-    // const validateMime = (evt) => {
-    //   if (options.validateMime) {
-    //     const form_data = new FormData();
-    //     form_data.append('files', dataDropify.file.object);
-    //     form_data.append('mime', JSON.stringify(options.validateMime));
-    //     form_data.append('token', '<?= $this->security->get_csrf_hash() ?>');
-    //     form_data.append('<?= $this -> security -> get_csrf_token_name() ?>', '<?= $this->security->get_csrf_hash() ?>');
-
-    //     $.ajax({
-    //       url: '<?= base_url() ?>management/validateMime',
-    //       method: 'POST',
-    //       data: form_data,
-    //       contentType: false,
-    //       cache: false,
-    //       processData: false,
-    //       success: function (data) {
-    //         if (data == 'notok') {
-    //           dataDropify.onFileReady(false);
-    //           dataDropify.resetFile();
-    //           dataDropify.resetPreview();
-    //           dataDropify.clearElement();
-    //           $.alert({
-    //             title: false,
-    //             content: 'The file does not meet the allowed type.',
-    //             draggable: false,
-    //             animation: 'zoom',
-    //             closeAnimation: 'zoom',
-    //             animateFromElement: false,
-    //             buttons: {
-    //               close: {
-    //                 text: 'close', // With spaces and symbols,
-    //                 action: function () {},
-    //               },
-    //             },
-    //           });
-    //         } else if (data == 'ok') {
-    //           $(idElement).attr('data-status-file', '');
-    //         }
-    //       },
-    //     });
-    //   }
-    // };
-    // $(idElement).off('change', validateMime);
-    // $(idElement).on('change', validateMime);
 
     dropifyFile.off('dropify.beforeClear', removeDropify);
     dropifyFile.on('dropify.beforeClear', removeDropify);

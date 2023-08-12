@@ -194,7 +194,7 @@ class JadwalController extends Controller
             case 2:
                 $hasil = '<span class="badge text-bg-success">Bersedia</span>';
                 break;
-            case 3:
+            case 4:
                 $hasil = '<span class="badge text-bg-danger">Tidak bersedia</span>';
                 break;
             default:

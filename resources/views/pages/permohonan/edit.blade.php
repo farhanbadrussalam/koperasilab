@@ -111,7 +111,7 @@
                             </div>
                         </div>
                         <div class="mt-3 d-flex justify-content-end">
-                            <button class="btn btn-primary">Edit permohonan</button>
+                            <button class="btn btn-primary">Kirim ulang permohonan</button>
                         </div>
                     </form>
                 </div>

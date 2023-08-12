@@ -107,6 +107,7 @@
                     'Content-Type': 'application/json'
                 }
             }).done(result => {
+                $('#txtNamaPelanggan').html(result.data.user.name);
                 $('#txtNamaLayanan').html(result.data.layananjasa.nama_layanan);
                 $('#txtJenisLayanan').html(result.data.jenis_layanan);
                 $('#txtHarga').html(result.data.tarif);
@@ -122,6 +123,11 @@
                 // ambil dokumen
                 let dokumen = `- <a href="{{ asset('storage/dokumen/permohonan') }}/${result.data.media.file_hash}" target="_blank">${result.data.media.file_ori}</a>`;
                 $('#tmpDokumenPendukung').html(dokumen);
+                if(result.data.status == 1 && result.data.jadwal.petugas_id == "{{ Auth::user()->id }}"){
+                    $('#divConfirmBtn').show();
+                }else{
+                    $('#divConfirmBtn').hide();
+                }
                 maskReload();
                 idPermohonan = id;
                 $('#confirmModal').modal('show');
@@ -130,13 +136,39 @@
 
         function btnConfirm(status){
             $('#confirmModal').modal('hide');
+            window.statusConfirm = status;
+
             if(status == 2){
+                $('#txtStatusSurat').html('rekomendasi');
                 $('#txtInfoConfirm').html('Setuju');
             }else{
+                $('#txtStatusSurat').html('jawaban');
                 $('#txtInfoConfirm').html('Tolak');
-
             }
             $('#noteModal').modal('show');
+        }
+
+        function modalNote(id) {
+            $.ajax({
+                url: '{{ url("api/permohonan") }}/'+id,
+                method: 'GET',
+                dataType: 'json',
+                processing: true,
+                serverSide: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                $('#txtNote').html(result.data.note);
+                $('#tmpSurat').html(`<a href="{{ asset('storage/dokumen/permohonan') }}/${result.data.surat_terbit.file_hash}" target="_blank">${result.data.surat_terbit.file_ori}</a>`);
+                if(result.data.status == 2){
+                    $('#txtStatusNote').html('rekomendasi');
+                }else if(result.data.status == 9){
+                    $('#txtStatusNote').html('jawaban');
+                }
+                $('#previewNoteModal').modal('show');
+            })
         }
 
         function sendConfirm(key) {
@@ -149,6 +181,7 @@
                 formData.append('note', note);
                 formData.append('id', idPermohonan);
                 formData.append('file', documenSurat);
+                formData.append('status', window.statusConfirm);
 
 
                 $.ajax({
@@ -162,7 +195,15 @@
                     },
                     data: formData
                 }).done(result => {
-                    console.log(result);
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message
+                    });
+                    datatable_permohonan?.ajax.reload();
+                    $('#noteModal').modal('hide');
+                }).fail(e => {
+                    console.error(e);
                 })
             }else{
                 $('#noteModal').modal('hide');
