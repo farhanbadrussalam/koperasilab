@@ -69,7 +69,7 @@ class ProfileController extends Controller
         $dataProfil = array(
             'nik' => $request->nik,
             'alamat' => $request->alamat,
-            'no_hp' => unmask($request->telepon),
+            'no_hp' => $request->telepon,
             'jenis_kelamin' => $request->jenis_kelamin,
         );
         $dataUser = array(

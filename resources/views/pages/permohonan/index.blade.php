@@ -31,6 +31,7 @@
                             <th>Layanan</th>
                             <th>Jadwal</th>
                             <th>Progress</th>
+                            <th>Antrian</th>
                             <th width="10%">Action</th>
                         </thead>
                     </table>
@@ -39,9 +40,11 @@
         </div>
     </section>
 </div>
+@include('pages.permohonan.confirm')
 @endsection
 @push('scripts')
     <script>
+        let idPermohonan = false;
         let datatable_permohonan = false;
         $(function () {
             datatable_permohonan = $('#permohonan-table').DataTable({
@@ -53,13 +56,164 @@
                     { data: 'nama_layanan', name: 'nama_layanan' },
                     { data: 'jadwal', name: 'jadwal' },
                     { data: 'status', name: 'status' },
+                    { data: 'nomor_antrian', name: 'nomor_antrian' },
                     { data: 'action', name: 'action', orderable: false, searchable: false },
                 ]
             });
             datatable_permohonan.on('init.dt', function() {
                 maskReload();
-                // Lakukan tindakan lain setelah DataTables diinisialisasi
             });
+        });
+
+        function btnDelete(id) {
+            deleteGlobal(() => {
+                $.ajax({
+                    url: "{{ url('/api/permohonan') }}/"+id,
+                    method: 'DELETE',
+                    dataType: 'json',
+                    processData: true,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`,
+                        'Content-Type': 'application/json'
+                    }
+                }).done((result) => {
+                    if(result.message){
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: result.message
+                        });
+                        datatable_permohonan?.ajax.reload();
+                    }
+                }).fail(function(message) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message.responseJSON.message
+                    });
+                });
+            });
+        }
+
+        function modalConfirm(id){
+            $.ajax({
+                url: '{{ url("api/permohonan") }}/'+id,
+                method: 'GET',
+                dataType: 'json',
+                processing: true,
+                serverSide: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                $('#txtNamaPelanggan').html(result.data.user.name);
+                $('#txtNamaLayanan').html(result.data.layananjasa.nama_layanan);
+                $('#txtJenisLayanan').html(result.data.jenis_layanan);
+                $('#txtHarga').html(result.data.tarif);
+                $('#txtStart').html(result.data.jadwal.date_mulai);
+                $('#txtEnd').html(result.data.jadwal.date_end);
+                $('#txtStatus').html(statusFormat('permohonan', result.data.status));
+                $('#txtNoBapeten').html(result.data.no_bapeten);
+                $('#txtAntrian').html(result.data.nomor_antrian);
+                $('#txtJeniLimbah').html(result.data.jenis_limbah);
+                $('#txtRadioaktif').html(result.data.sumber_radioaktif);
+                $('#txtJumlah').html(result.data.jumlah);
+
+                // ambil dokumen
+                let dokumen = `- <a href="{{ asset('storage/dokumen/permohonan') }}/${result.data.media.file_hash}" target="_blank">${result.data.media.file_ori}</a>`;
+                $('#tmpDokumenPendukung').html(dokumen);
+                if(result.data.status == 1 && result.data.jadwal.petugas_id == "{{ Auth::user()->id }}"){
+                    $('#divConfirmBtn').show();
+                }else{
+                    $('#divConfirmBtn').hide();
+                }
+                maskReload();
+                idPermohonan = id;
+                $('#confirmModal').modal('show');
+            })
+        }
+
+        function btnConfirm(status){
+            $('#confirmModal').modal('hide');
+            window.statusConfirm = status;
+
+            if(status == 2){
+                $('#txtStatusSurat').html('rekomendasi');
+                $('#txtInfoConfirm').html('Setuju');
+            }else{
+                $('#txtStatusSurat').html('jawaban');
+                $('#txtInfoConfirm').html('Tolak');
+            }
+            $('#noteModal').modal('show');
+        }
+
+        function modalNote(id) {
+            $.ajax({
+                url: '{{ url("api/permohonan") }}/'+id,
+                method: 'GET',
+                dataType: 'json',
+                processing: true,
+                serverSide: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                $('#txtNote').html(result.data.note);
+                $('#tmpSurat').html(`<a href="{{ asset('storage/dokumen/permohonan') }}/${result.data.surat_terbit.file_hash}" target="_blank">${result.data.surat_terbit.file_ori}</a>`);
+                if(result.data.status == 2){
+                    $('#txtStatusNote').html('rekomendasi');
+                }else if(result.data.status == 9){
+                    $('#txtStatusNote').html('jawaban');
+                }
+                $('#previewNoteModal').modal('show');
+            })
+        }
+
+        function sendConfirm(key) {
+            if(key == 1){
+                let note = $('#inputNote').val();
+                let documenSurat = $('#uploadSurat')[0].files[0];
+
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('note', note);
+                formData.append('id', idPermohonan);
+                formData.append('file', documenSurat);
+                formData.append('status', window.statusConfirm);
+
+
+                $.ajax({
+                    url: '{{ url("api/updatePermohonan") }}',
+                    method: "POST",
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`
+                    },
+                    data: formData
+                }).done(result => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message
+                    });
+                    datatable_permohonan?.ajax.reload();
+                    $('#noteModal').modal('hide');
+                }).fail(e => {
+                    console.error(e);
+                })
+            }else{
+                $('#noteModal').modal('hide');
+                $('#confirmModal').modal('show');
+            }
+        }
+
+        setDropify('init', '#uploadSurat', {
+            allowedFileExtentions:['pdf','doc','docx'],
+            maxFileSize: '5M'
         });
     </script>
 @endpush

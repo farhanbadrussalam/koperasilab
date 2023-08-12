@@ -4,6 +4,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\LayananjasaController;
 use App\Http\Controllers\API\JadwalController;
 use App\Http\Controllers\API\NotifikasiController;
+use App\Http\Controllers\API\PermohonanController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -38,4 +39,7 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/getJadwal', [JadwalController::class, 'getJadwal']);
     Route::post('/updatePenugasan', [JadwalController::class, 'confirm']);
     Route::delete('/deleteJadwal/{id}', [JadwalController::class, 'destroy']);
+
+    Route::resource('permohonan', PermohonanController::class);
+    Route::post('/updatePermohonan', [PermohonanController::class, 'confirm']);
 });

@@ -31,6 +31,7 @@ function Dropify(element, options) {
 
     var defaults = {
         defaultFile: '',
+        fileNameOri: false,
         maxFileSize: 0,
         minWidth: 0,
         maxWidth: 0,
@@ -169,11 +170,13 @@ Dropify.prototype.createElements = function()
     }
 
     var defaultFile = this.settings.defaultFile || '';
+    var fileNameOri = this.settings.fileNameOri || false;
 
     if (defaultFile.trim() !== '') {
         this.file.name = this.cleanFilename(defaultFile);
-        this.setPreview(this.isImage(), defaultFile);
+        this.setPreview(this.isImage(), defaultFile, fileNameOri);
     }
+
 };
 
 /**
@@ -283,10 +286,10 @@ Dropify.prototype.setFileDimensions = function(width, height)
  *
  * @param {String} src
  */
-Dropify.prototype.setPreview = function(previewable, src)
+Dropify.prototype.setPreview = function(previewable, src, nameOri = false)
 {
     this.wrapper.removeClass('has-error').addClass('has-preview');
-    this.filenameWrapper.children('.dropify-filename-inner').html(this.file.name);
+    this.filenameWrapper.children('.dropify-filename-inner').html(nameOri ? nameOri : this.file.name);
     var render = this.preview.children('.dropify-render');
 
     this.hideLoader();

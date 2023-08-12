@@ -65,7 +65,7 @@ class userPerusahaanController extends Controller
 
         $dataPerusahaan = array(
             'name'      => $request->name,
-            'npwp'      => unmask($request->npwp),
+            'npwp'      => $request->npwp,
             'email'     => $request->email,
             'alamat'    => $request->alamat
         );

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Permohonan;
 use App\Models\Layanan_jasa;
 use App\Models\jadwal;
+use App\Models\tbl_media;
 use Illuminate\Http\Request;
 use Auth;
 use DataTables;
@@ -22,18 +23,25 @@ class PermohonanController extends Controller
 
     public function getData() {
         $informasi = Permohonan::where('status', '!=', 99);
+        $user = Auth::user();
 
-        if(!Auth::user()->hasRole('Super Admin')){
-            $informasi->where('created_by', Auth::user()->id);
+        if(!$user->hasRole('Super Admin')){
+            if($user->hasPermissionTo('Permohonan.confirm')){
+                $informasi->whereHas('jadwal', function($query) use ($user){
+                    $query->where('petugas_id', $user->id);
+                });
+            }else{
+                $informasi->where('created_by', $user->id);
+            }
         }
 
         return DataTables::of($informasi)
                 ->addIndexColumn()
                 ->addColumn('nama_layanan', function($data) {
                     return "
+                        <div class='fw-bolder'>".$data->user->name."</div>
                         <div>".$data->layananjasa->nama_layanan."</div>
                         <div>$data->jenis_layanan</div>
-                        <div>Rp. <span class='rupiah'>".$data->tarif."</span></div>
                     ";
                 })
                 ->addColumn('jadwal', function($data){
@@ -46,15 +54,43 @@ class PermohonanController extends Controller
                 ->editColumn('status', function($data){
                     return statusFormat("permohonan",$data->status);
                 })
+                ->editColumn('nomor_antrian', function($data){
+                    return "<span class='badge text-bg-light fs-3 border shadow-sm'>$data->nomor_antrian</span>";
+                })
                 ->addColumn('action', function($data){
                     $user = Auth::user();
+
+                    $btnView = '<button class="btn btn-info btn-sm m-1" onclick="modalConfirm('.$data->id.')" title="View"><i class="bi bi-eye-fill"></i></button>';
+                    $btnDelete = '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')" title="Batalkan"><i class="bi bi-trash3-fill"></i></a>';
+                    $btnEdit = '<a class="btn btn-warning btn-sm  m-1" href="'.route("permohonan.edit", $data->id).'" title="Edit"><i class="bi bi-pencil-square"></i></a>';
+                    $btnNote = '<button class="btn btn-secondary btn-sm m-1" onclick="modalNote('.$data->id.')" title="note"><i class="bi bi-chat-square-dots-fill"></i></button>';
+                    $btnConfirm = '<button class="btn btn-success btn-sm m-1" onclick="modalConfirm('.$data->id.')">Confirm</button>';
+
                     $btnAction = '<div class="text-center">';
-                    $user->hasPermissionTo('Permohonan.edit') && $btnAction .= '<a class="btn btn-warning btn-sm  m-1" href="#"><i class="bi bi-pencil-square"></i></a>';
-                    $user->hasPermissionTo('Permohonan.delete') && $btnAction .= '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>';
+                    if($data->status == 1){
+                        if($user->hasPermissionTo('Permohonan.confirm')){
+                            $btnAction .= $btnConfirm;
+                        }else{
+                            $btnAction .= $btnView;
+                        }
+                        $user->hasPermissionTo('Permohonan.delete') && $btnAction .= $btnDelete;
+                    }else if($data->status == 2) {
+                        if($user->hasPermissionTo('Permohonan.confirm')) {
+                            $btnAction .= $btnView;
+                        }else{
+                            $btnAction .= $btnNote;
+                            $btnAction .= $btnView;
+                        }
+                    }else if($data->status == 9){
+                        $btnAction .= $btnNote;
+                        $user->hasPermissionTo('Permohonan.confirm') && $btnAction .= $btnView;
+                        $user->hasPermissionTo('Permohonan.edit') && $btnAction .= $btnEdit;
+                        $user->hasPermissionTo('Permohonan.delete') && $btnAction .= $btnDelete;
+                    }
                     $btnAction .= '</div>';
                     return $btnAction;
                 })
-                ->rawColumns(['action','nama_layanan', 'jadwal', 'status'])
+                ->rawColumns(['action','nama_layanan', 'jadwal', 'status', 'nomor_antrian'])
                 ->make(true);
     }
 
@@ -104,6 +140,25 @@ class PermohonanController extends Controller
             $ambilAntrian = (int)$ambilAntrian->nomor_antrian + 1;
         }
 
+        // upload dokumen pendukung
+        $dokumen = $request->file('dokumen');
+        $dokumen_pendukung = "";
+        if($dokumen){
+            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
+            $filename = 'permohonan_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
+            $path = $dokumen->storeAs('public/dokumen/permohonan', $filename);
+
+            $media = tbl_media::create([
+                'file_hash' => $filename,
+                'file_ori' => $dokumen->getClientOriginalName(),
+                'file_size' => $dokumen->getSize(),
+                'file_type' => $dokumen->getClientMimeType(),
+                'status' => 1
+            ]);
+
+            $dokumen_pendukung = $media->id;
+        }
+
         $data = array(
             'layananjasa_id' => $request->layanan_jasa,
             'jadwal_id' => $jadwal_id,
@@ -113,7 +168,7 @@ class PermohonanController extends Controller
             'jenis_limbah' => $request->jenisLimbah,
             'sumber_radioaktif' => $request->radioAktif,
             'jumlah' => $request->jumlah,
-            'dokumen' => '',
+            'dokumen' => $dokumen_pendukung,
             'status' => 1,
             'nomor_antrian' => $ambilAntrian,
             'created_by' => Auth::user()->id
@@ -121,10 +176,10 @@ class PermohonanController extends Controller
 
         Permohonan::create($data);
 
-        // $sendNotif = notifikasi(array(
-        //     'to_user' => $dataJadwal->petugas_id,
-        //     'type' => 'Permohonan'
-        // ), Auth::user()->name." baru saja membuat permohonan untuk Pelayanan ".$dataJadwal->layananjasa->nama_layanan." pada tanggal $dataJadwal->date_mulai");
+        $sendNotif = notifikasi(array(
+            'to_user' => $dataJadwal->petugas_id,
+            'type' => 'Permohonan'
+        ), Auth::user()->name." baru saja membuat permohonan untuk Pelayanan ".$dataJadwal->layananjasa->nama_layanan." pada tanggal $dataJadwal->date_mulai");
 
         return redirect()->route('permohonan.index')->with('success', 'Permohonan berhasil di buat');
     }
@@ -142,7 +197,9 @@ class PermohonanController extends Controller
      */
     public function edit(Permohonan $permohonan)
     {
-        //
+        $data['token'] = generateToken();
+        $data['permohonan'] = $permohonan;
+        return view('pages.permohonan.edit', $data);
     }
 
     /**
@@ -150,7 +207,41 @@ class PermohonanController extends Controller
      */
     public function update(Request $request, Permohonan $permohonan)
     {
-        //
+        $validator = $request->validate([
+            'noBapeten' => 'required',
+            'jenisLimbah' => 'required',
+            'radioAktif' => 'required',
+            'jumlah' => 'required'
+        ]);
+        $permohonan->no_bapeten = $request->noBapeten;
+        $permohonan->jenis_limbah = $request->jenisLimbah;
+        $permohonan->sumber_radioaktif = $request->radioAktif;
+        $permohonan->jumlah = $request->jumlah;
+        $permohonan->status = 1;
+        $permohonan->note = null;
+        $permohonan->surat_terbitan = null;
+
+        // Update file pendukung
+        $dokumen = $request->file('dokumen');
+        if($dokumen){
+            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
+            $filename = 'permohonan_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
+            $path = $dokumen->storeAs('public/dokumen/permohonan', $filename);
+
+            $media = tbl_media::create([
+                'file_hash' => $filename,
+                'file_ori' => $dokumen->getClientOriginalName(),
+                'file_size' => $dokumen->getSize(),
+                'file_type' => $dokumen->getClientMimeType(),
+                'status' => 1
+            ]);
+
+            $permohonan->dokumen = $media->id;
+        }
+
+        $permohonan->update();
+
+        return redirect()->route('permohonan.index')->with('success', 'Berhasil di update');
     }
 
     /**

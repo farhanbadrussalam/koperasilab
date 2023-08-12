@@ -60,7 +60,7 @@ class LayananJasaController extends Controller
     public function create()
     {
         $_token = generateToken();
-        $data['satuankerja'] = Satuan_kerja::all();
+        $data['satuankerja'] = Satuan_kerja::where('id', Auth::user()->satuankerja_id)->get();
         $data['token'] = $_token;
         return view('pages.layananJasa.create', $data);
     }
