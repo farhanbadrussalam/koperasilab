@@ -24,13 +24,14 @@
                     </h2>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('users.store') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ route('users.update', $d_user->id) }}" method="post" enctype="multipart/form-data">
                         @csrf
+                        @method('PUT')
                         <div class="form-group mb-3">
                             <div class="text-center">
                                 <div class="box-profile my-2">
                                     <a href="#" onclick="selectFileImage()">
-                                        <img src="{{ asset('assets/img/default-avatar.jpg') }}" id="avatar" alt="Avatar" class="profile-user-img img-fluid img-circle" style="width: 100px;height: 100px;">
+                                        <img src="{{ $d_user->profile ? asset('storage/images/avatar/'. $d_user->profile->avatar) : asset('assets/img/default-avatar.jpg') }}" onerror="this.src='{{ asset('assets/img/default-avatar.jpg') }}';" id="avatar" alt="Avatar" class="profile-user-img img-fluid img-circle" style="width: 100px;height: 100px;">
                                     </a>
                                     <input type="file" name="avatar" accept="image/png, image/gif, image/jpeg" id="uploadavatar" onchange="previewAvatar(this)" hidden>
                                 </div>
@@ -39,7 +40,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label for="inputFullname" class="form-label">Full name</label>
-                                <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="inputFullname" value="{{ old('name') }}">
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="inputFullname" value="{{ old('name') ? old('name') : $d_user->name }}">
                                 @error('name')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -48,7 +49,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputNik" class="form-label">NIK <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="text" name="nik" id="inputNik" class="form-control maskNIK @error('nik') is-invalid @enderror" value="{{ old('nik') }}">
+                                <input type="text" name="nik" id="inputNik" class="form-control maskNIK @error('nik') is-invalid @enderror" value="{{ old('nik') ? old('nik') : ($d_user->profile ? $d_user->profile->nik : '') }}">
                                 @error('nik')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -57,7 +58,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputNoHp" class="form-label">Nomer Telepon <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="text" name="no_telepon" id="inputNoHp" class="form-control maskTelepon @error('no_telepon') is-invalid @enderror" value="{{ old('no_telepon') }}">
+                                <input type="text" name="no_telepon" id="inputNoHp" class="form-control maskTelepon @error('no_telepon') is-invalid @enderror" value="{{ old('no_telepon') ? old('no_telepon') : ($d_user->profile ? $d_user->profile->no_hp : '') }}">
                                 @error('no_telepon')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -107,7 +108,7 @@
                             </div>
                             <div class="col-md-12 mb-2">
                                 <label for="inputEmail" class="form-label">Email <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="email" name="email" id="inputEmail" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
+                                <input type="email" name="email" id="inputEmail" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') ? old('email') : ($d_user->email) }}">
                                 @error('email')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -116,23 +117,10 @@
                             </div>
                             <div class="col-md-12 mb-2">
                                 <label for="inputAlamat" class="form-label">Alamat</label>
-                                <textarea name="alamat" id="inputAlamat" cols="30" rows="3" class="form-control">{{ old('alamat') }}</textarea>
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="inputPassword" class="form-label">Password <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="password" name="password" id="inputPassword" class="form-control @error('password') is-invalid @enderror">
-                                @error('password')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="password-confirm" class="form-label">Retype password <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="password" name="password_confirmation" id="password-confirm" class="form-control">
+                                <textarea name="alamat" id="inputAlamat" cols="30" rows="3" class="form-control">{{ old('alamat') ? old('alamat') : ($d_user->profile ? $d_user->profile->alamat : '') }}</textarea>
                             </div>
                             <div class="col-md-12 mt-3 text-center">
-                                <button type="submit" class="btn btn-primary">Simpan</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
                             </div>
                         </div>
                     </form>
@@ -144,6 +132,21 @@
 @endsection
 @push('scripts')
     <script>
+        // Initialisasi
+        const role = @json($d_user->getRoleNames()[0]);
+        const profile = @json($d_user->profile);
+        const d_user = @json($d_user);
+        $(function() {
+            $('#inputRole').val(role);
+            $('#inputJenisKelamin').val(profile.jenis_kelamin);
+            if(d_user.satuankerja_id){
+                $('#inputSatuanKerja').val(d_user.satuankerja_id);
+            }else{
+                $('#inputSatuanKerja').attr('disabled', true);
+            }
+        })
+
+        // Function
         function selectFileImage() {
             let _uploadfile = document.getElementById('uploadavatar');
             _uploadfile.click();

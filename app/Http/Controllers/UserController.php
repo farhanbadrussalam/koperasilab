@@ -9,6 +9,7 @@ use App\Models\profile;
 use App\Models\Perusahaan;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use DataTables;
 
 class UserController extends Controller
@@ -29,7 +30,7 @@ class UserController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <a href="#" class="btn btn-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i></a>
+                        <a href="'.route('users.edit', $data->id).'" class="btn btn-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i></a>
                     ';
                 })
                 ->addColumn('role', function($data){
@@ -78,7 +79,7 @@ class UserController extends Controller
             if($request->file('avatar')){
                 $image = $request->file('avatar');
 
-                $filename = 'avatar_'.$user->id.'.'.$image->getClientOriginalExtension();
+                $filename = 'avatar_'.md5($user->id).'.'.$image->getClientOriginalExtension();
 
                 $path = $image->storeAs('public/images/avatar', $filename);
             }else{
@@ -117,7 +118,11 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $data['satuankerja'] = Satuan_kerja::all();
+        $data['role'] = Role::all();
+        $data['d_user'] = User::findOrFail($id);
+        $data['token'] = generateToken();
+        return view('pages.users.edit', $data);
     }
 
     /**
@@ -125,7 +130,37 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $d_user = User::findOrFail($id);
+        $profile = profile::where('user_id', $id)->first();
+
+        $d_user->name = $request->name;
+        $d_user->removeRole($d_user->getRoleNames()[0]);
+        $d_user->assignRole($request->role);
+        $d_user->update();
+
+        $profile->nik = $request->nik;
+        $profile->no_hp = $request->no_telepon;
+        $profile->jenis_kelamin = $request->jenis_kelamin;
+        $profile->alamat = $request->alamat;
+
+        if($request->file('avatar')){
+            // Menghapus file sebelumnya
+            if(Storage::exists('public/images/avatar'.$profile->avatar)){
+                Storage::delete('public/images/avatar'.$profile->avatar);
+            }
+
+            $image = $request->file('avatar');
+
+            $filename = 'avatar_'.md5($id).'.'.$image->getClientOriginalExtension();
+
+            $path = $image->storeAs('public/images/avatar', $filename);
+
+            $profile->avatar = $filename;
+        }
+
+        $profile->update();
+
+        return redirect()->route('users.index')->with('success', 'Berhasil di update');
     }
 
     /**
