@@ -103,11 +103,13 @@
                                 @enderror
                             </div>
                             <div class="col-md-12 mb-2">
-                                <label for="uploadDokumen" class="form-label">Dokumen pendukung</label>
-                                <div class="card mb-0">
-                                    <input type="file" name="dokumen" id="uploadDokumen" accept=".pdf,.doc,.docx" class="form-control dropify">
+                                <label for="uploadDokumen" class="form-label">Dokumen pendukung  <i class="bi bi-plus-square-fill text-success" title="Tambah jenis" role="button" onclick="tambahDocument()"></i></label>
+                                <div class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx. Recommend size under 5MB.</div>
+                                <div class="d-flex flex-wrap" id="tmpDocument">
+                                    <div class="card m-1" style="width: 150px;height: 150px;">
+                                        <input type="file" name="dokumen[]" id="uploadDokumen0" accept=".pdf,.doc,.docx" class="form-control dropify">
+                                    </div>
                                 </div>
-                                <span class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx. Recommend size under 5MB.</span>
                             </div>
                         </div>
                         <div class="mt-3 d-flex justify-content-end">
@@ -123,12 +125,47 @@
 @push('scripts')
     <script>
         let media = @json($permohonan->media);
+        let countDoc = 0;
 
-        setDropify('init', '#uploadDokumen', {
-            allowedFileExtensions: ['pdf','doc', 'docx'],
-            maxSizeFile: '5M',
-            defaultFile: media ? "{{ asset('storage/dokumen/permohonan/'.$permohonan->media->file_hash) }}" : false,
-            fileNameOri: media ? media.file_ori : false
-        });
+        for (const i in media) {
+            if (Object.hasOwnProperty.call(media, i)) {
+                const value = media[i];
+
+                if(i != 0){
+                    tambahDocument(i);
+                }
+                setDropify('init', `#uploadDokumen${i}`, {
+                    allowedFileExtensions: ['pdf','doc', 'docx'],
+                    maxSizeFile: '5M',
+                    defaultFile: value ? "{{ asset('storage/dokumen/permohonan/') }}/"+value.file_hash : false,
+                    fileNameOri: value ? value.file_ori : false
+                });
+
+            }
+        }
+
+        function tambahDocument(i) {
+            if(!i){
+                i = countDoc + 1;
+            }
+            let html = `
+                <div class="card m-1" style="width: 150px;height: 180px;">
+                    <input type="file" name="dokumen[]" accept=".pdf,.doc,.docx" class="form-control dropify" id="uploadDokumen${i}">
+                    <button class="btn btn-danger btn-sm" role="button" onclick="removeDocument(this)">Remove</button>
+                </div>
+            `;
+
+            $('#tmpDocument').append(html);
+
+            setDropify('init', `#uploadDokumen${i}`, {
+                allowedFileExtensions: ['pdf','doc', 'docx'],
+                maxSizeFile: '5M'
+            });
+            countDoc = Number(i);
+        }
+
+        function removeDocument(obj){
+            $(obj).parent().remove();
+        }
     </script>
 @endpush

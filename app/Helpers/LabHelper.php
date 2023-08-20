@@ -70,34 +70,79 @@ if(!function_exists('statusFormat')){
         if($feature == 'jadwal'){
             switch ($status) {
                 case 0:
-                    $htmlStatus = 'span class="badge text-bg-secondary">Belum ditugaskan</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-secondary"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Belum ditugaskan</span>
+                    </div>
+                    ';
                     break;
                 case 1:
-                    $htmlStatus = '<span class="badge text-bg-info">Diajukan</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-info"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Diajukan</span>
+                    </div>
+                    ';
                     break;
                 case 2:
-                    $htmlStatus = '<span class="badge text-bg-success">Bersedia</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-success"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Bersedia</span>
+                    </div>
+                    ';
                     break;
                 case 3:
-                    $htmlStatus = '<span class="badge text-bg-danger">Tidak bersedia</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-danger"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Tidak bersedia</span>
+                    </div>
+                    ';
                     break;
                 default:
-                    $htmlStatus = '<span class="badge text-bg-danger">dibatalkan</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-danger"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Dibatalkan</span>
+                    </div>
+                    ';
                     break;
             }
         }else if($feature == 'permohonan'){
             switch ($status) {
                 case 1:
-                    $htmlStatus = '<span class="badge text-bg-secondary">Pengajuan</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-secondary"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
+                    </div>
+                    ';
                     break;
                 case 2:
-                    $htmlStatus = '<span class="badge text-bg-info">Terverifikasi</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-info"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Terverifikasi</span>
+                    </div>
+                    ';
                     break;
                 case 3:
-                    $htmlStatus = '<span class="badge text-bg-success">Selesai</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-success"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Selesai</span>
+                    </div>
+                    ';
                     break;
                 case 9:
-                    $htmlStatus = '<span class="badge text-bg-danger">Di tolak</span>';
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-danger"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Ditolak</span>
+                    </div>
+                    ';
                     break;
             }
         }
@@ -105,6 +150,32 @@ if(!function_exists('statusFormat')){
         return $htmlStatus;
     }
 
+}
+
+if (!function_exists('formatBytes')) {
+	function formatBytes($size, $precision = 2)
+	{
+		$base = log($size, 1024);
+		$suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
+
+		return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
+	}
+}
+
+if (!function_exists('iconDocument')){
+    function iconDocument($type) {
+        $icon = '';
+        switch ($type) {
+            case 'application/pdf':
+                $icon = 'pdf-icon.svg';
+                break;
+
+            default:
+                $icon = 'other-icon.svg';
+                break;
+        }
+        return $icon;
+    }
 }
 
 ?>

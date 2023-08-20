@@ -34,7 +34,7 @@
                 </div>
                 <div class="row">
                     <div class="col-4 fw-bolder">Status</div>
-                    <div class="col-8">: <span id="txtStatus">Diajukan</span></div>
+                    <div class="col-8  d-flex">:&nbsp;<span id="txtStatus">Diajukan</span></div>
                 </div>
                 <div class="row">
                     <div class="col-4 fw-bolder">BAPETEN</div>
@@ -96,8 +96,8 @@
                     </div>
                     {{-- Upload Surat --}}
                     <div class="mb-2">
-                        <label for="uploadSurat" class="form-label">Surat <span id="txtStatusSurat"></span> permohonan<span
-                                class="fw-bold fs-14 text-danger">*</span></label>
+                        <label for="uploadSurat" class="form-label">Surat <span id="txtStatusSurat"></span>
+                            permohonan<span class="fw-bold fs-14 text-danger">*</span></label>
                         <div class="card mb-0" style="height: 100px;">
                             <input type="file" name="uploadSurat" id="uploadSurat" class="form-control dropify">
                         </div>
@@ -119,19 +119,21 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Note</h4>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
             </div>
             <div class="modal-body">
                 <div class="row">
                     {{-- note --}}
                     <div class="mb-2">
-                        <textarea name="note" id="txtNote" cols="30" rows="3" class="form-control" placeholder="Masukan note" readonly></textarea>
+                        <textarea name="note" id="txtNote" cols="30" rows="3" class="form-control"
+                            placeholder="Masukan note" readonly></textarea>
                     </div>
                     {{-- Upload Surat --}}
                     <div class="mb-2">
-                        <label for="uploadSurat" class="form-label">Surat <span id="txtStatusNote"></span> permohonan</label>
+                        <label for="uploadSurat" class="form-label">Surat <span id="txtStatusNote"></span>
+                            permohonan</label>
                         <div id="tmpSurat"></div>
                     </div>
                 </div>

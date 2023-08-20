@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('jenis_limbah');
             $table->string('sumber_radioaktif');
             $table->integer('jumlah');
-            $table->string('dokumen');
+            $table->json('dokumen');
             $table->string('status');
             $table->string('nomor_antrian');
             $table->string('created_by');

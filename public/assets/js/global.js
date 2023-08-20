@@ -1,15 +1,15 @@
 function formatRupiah(angka) {
     // Mengubah angka menjadi format mata uang Rupiah
     var format = new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
     }).format(angka);
 
     // Mengganti nilai input dengan format Rupiah
     return format;
 }
-function maskReload(){
+function maskReload() {
     $('.rupiah').inputmask('numeric', {
         alias: 'currency',
         prefix: '',
@@ -21,13 +21,13 @@ function maskReload(){
         removeMaskOnSubmit: true
     });
 
-    $('.maskNPWP').inputmask('99.999.999.9-999.999', { "placeholder": "_", "removeMaskOnSubmit" : true });
-    $('.maskNIK').inputmask('9999999999999999', { "placeholder": "_", "removeMaskOnSubmit" : true });
-    $('.maskTelepon').inputmask('9999-9999-9999', { "placeholder": " ", "removeMaskOnSubmit" : true });
+    $('.maskNPWP').inputmask('99.999.999.9-999.999', { "placeholder": "_", "removeMaskOnSubmit": true });
+    $('.maskNIK').inputmask('9999999999999999', { "placeholder": "_", "removeMaskOnSubmit": true });
+    $('.maskTelepon').inputmask('9999-9999-9999', { "placeholder": " ", "removeMaskOnSubmit": true });
 }
 maskReload();
 
-function deleteGlobal(callback = ()=>{}) {
+function deleteGlobal(callback = () => { }) {
     Swal.fire({
         title: 'Are you sure?',
         icon: false,
@@ -41,19 +41,19 @@ function deleteGlobal(callback = ()=>{}) {
         buttonsStyling: false,
         reverseButtons: true
     }).then((result) => {
-        if(result.isConfirmed){
+        if (result.isConfirmed) {
             callback();
         }
     })
 }
 
-function dateFormat(tanggal, time = false){
+function dateFormat(tanggal, time = false) {
     let d = new Date(tanggal);
 
     const options = {
         year: 'numeric',
-        month : 'long',
-        day : 'numeric'
+        month: 'long',
+        day: 'numeric'
     };
 
     let hour = d.getHours() < 10 ? `0${d.getHours()}` : d.getHours();
@@ -65,42 +65,108 @@ function dateFormat(tanggal, time = false){
 function statusFormat(feature, status) {
     let htmlStatus = '';
     status = Number(status);
-    if(feature == 'jadwal'){
+    if (feature == 'jadwal') {
         switch (status) {
             case 0:
-                htmlStatus = `<span class="badge text-bg-secondary">Belum ditugaskan</span>`;
+                htmlStatus = `
+                <div class="d-flex align-items-center">
+                    <div><div class="me-1 dot bg-secondary"></div></div>
+                    <span class="subbody-medium text-submain text-truncate">Belum ditugaskan</span>
+                </div>
+                `;
                 break;
             case 1:
-                htmlStatus = `<span class="badge text-bg-info">Diajukan</span>`;
+                htmlStatus = `
+                <div class="d-flex align-items-center">
+                    <div><div class="me-1 dot bg-info"></div></div>
+                    <span class="subbody-medium text-submain text-truncate">Diajukan</span>
+                </div>
+                `;
                 break;
-            case 2:
-                htmlStatus = `<span class="badge text-bg-success">Bersedia</span>`;
-                break;
-            case 9:
-                htmlStatus = `<span class="badge text-bg-danger">Tidak bersedia</span>`;
-                break;
-            default:
-                htmlStatus = `<span class="badge text-bg-danger">dibatalkan</span>`;
-                break;
+                case 2:
+                    htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-success"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Bersedia</span>
+                    </div>
+                    `;
+                    break;
+                case 3:
+                    htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-danger"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Tidak bersedia</span>
+                    </div>
+                    `;
+                    break;
+                default:
+                    htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-danger"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Dibatalkan</span>
+                    </div>
+                    `;
+                    break;
         }
-    }else if(feature == 'permohonan'){
+    } else if (feature == 'permohonan') {
         switch (status) {
             case 1:
-                htmlStatus = `<span class="badge text-bg-secondary">Pengajuan</span>`;
+                htmlStatus = `
+                <div class="d-flex align-items-center">
+                    <div><div class="me-1 dot bg-secondary"></div></div>
+                    <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
+                </div>
+                `;
                 break;
             case 2:
-                htmlStatus = `<span class="badge text-bg-info">Terverifikasi</span>`;
+                htmlStatus = `
+                <div class="d-flex align-items-center">
+                    <div><div class="me-1 dot bg-info"></div></div>
+                    <span class="subbody-medium text-submain text-truncate">Terverifikasi</span>
+                </div>
+                `;
                 break;
             case 3:
-                htmlStatus = `<span class="badge text-bg-success">Selesai</span>`;
+                htmlStatus = `
+                <div class="d-flex align-items-center">
+                    <div><div class="me-1 dot bg-success"></div></div>
+                    <span class="subbody-medium text-submain text-truncate">Selesai</span>
+                </div>
+                `;
                 break;
             case 9:
-                htmlStatus = `<span class="badge text-bg-danger">Di tolak</span>`;
+                htmlStatus = `
+                <div class="d-flex align-items-center">
+                    <div><div class="me-1 dot bg-danger"></div></div>
+                    <span class="subbody-medium text-submain text-truncate">Ditolak</span>
+                </div>
+                `;
                 break;
         }
     }
 
     return htmlStatus;
+}
+
+function iconDocument(type) {
+    let icon = '';
+    switch (type) {
+        case 'application/pdf':
+            icon = 'pdf-icon.svg';
+            break;
+
+        default:
+            icon = 'other-icon.svg';
+            break;
+    }
+    return icon;
+}
+
+function formatBytes(size, precision = 2) {
+    const base = Math.log(size) / Math.log(1024);
+    const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+    return (Math.pow(1024, base - Math.floor(base))).toFixed(precision) + ' ' + suffixes[Math.floor(base)];
 }
 
 /**
@@ -114,53 +180,53 @@ function setDropify(type = 'init', idElement, options = {}) {
     const dataDropify = dropifyFile.data('dropify');
     $(idElement).attr('data-status-file', '');
     switch (type) {
-      case 'init':
-        dataDropify.resetPreview();
-        dataDropify.clearElement();
-        for (const key in options) {
-          if (Object.hasOwnProperty.call(options, key)) {
-            const value = options[key];
-            dataDropify.settings[key] = value;
-          }
-        }
-        dataDropify.destroy();
-        dataDropify.init();
-        break;
-      case 'reload':
-        dataDropify.resetFile();
-        dataDropify.resetPreview();
-        dataDropify.clearElement();
-
-        for (const key in options) {
-          if (Object.hasOwnProperty.call(options, key)) {
-            const value = options[key];
-            dataDropify.settings[key] = value;
-            if (key == 'defaultFile') {
-              dataDropify.destroy();
-              dataDropify.init();
-              $(idElement).attr('data-default-file', value);
+        case 'init':
+            dataDropify.resetPreview();
+            dataDropify.clearElement();
+            for (const key in options) {
+                if (Object.hasOwnProperty.call(options, key)) {
+                    const value = options[key];
+                    dataDropify.settings[key] = value;
+                }
             }
-          }
-        }
+            dataDropify.destroy();
+            dataDropify.init();
+            break;
+        case 'reload':
+            dataDropify.resetFile();
+            dataDropify.resetPreview();
+            dataDropify.clearElement();
 
-        const afterClear = (event, element) => {
-          $(element.element).attr('data-default-file', '');
-          dropifyFile.off('dropify.afterClear', afterClear);
-        };
-        dropifyFile.on('dropify.afterClear', afterClear);
-        break;
-      case 'reset':
-        dataDropify.settings['defaultFile'] = false;
-        dataDropify.destroy();
-        dataDropify.init();
-        break;
+            for (const key in options) {
+                if (Object.hasOwnProperty.call(options, key)) {
+                    const value = options[key];
+                    dataDropify.settings[key] = value;
+                    if (key == 'defaultFile') {
+                        dataDropify.destroy();
+                        dataDropify.init();
+                        $(idElement).attr('data-default-file', value);
+                    }
+                }
+            }
+
+            const afterClear = (event, element) => {
+                $(element.element).attr('data-default-file', '');
+                dropifyFile.off('dropify.afterClear', afterClear);
+            };
+            dropifyFile.on('dropify.afterClear', afterClear);
+            break;
+        case 'reset':
+            dataDropify.settings['defaultFile'] = false;
+            dataDropify.destroy();
+            dataDropify.init();
+            break;
     }
 
     dropifyFile.off('dropify.beforeClear', removeDropify);
     dropifyFile.on('dropify.beforeClear', removeDropify);
 
     const onError = (evt) => {
-      $(idElement).attr('data-status-file', 'error');
+        $(idElement).attr('data-status-file', 'error');
     };
     dropifyFile.off('dropify.errors', onError);
     dropifyFile.on('dropify.errors', onError);
@@ -171,8 +237,8 @@ function removeDropify(event, element) {
         element.resetFile();
         element.resetPreview();
         element.clearElement();
-      return false;
+        return false;
     } else {
-      return true;
+        return true;
     }
-  }
+}

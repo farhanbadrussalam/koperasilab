@@ -29,7 +29,7 @@ class UserController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <button class="btn btn-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i></button>
+                        <a href="#" class="btn btn-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i></a>
                     ';
                 })
                 ->addColumn('role', function($data){

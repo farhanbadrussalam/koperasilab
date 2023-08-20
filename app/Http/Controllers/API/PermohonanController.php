@@ -34,9 +34,15 @@ class PermohonanController extends Controller
                             'layananjasa:id,nama_layanan',
                             'jadwal:id,petugas_id,date_mulai,date_selesai',
                             'user:id,email,name',
-                            'suratTerbit:id,file_hash,file_ori,file_size,file_type',
-                            'media:id,file_hash,file_ori,file_size,file_type')
+                            'suratTerbit:id,file_hash,file_ori,file_size,file_type')
                         ->where('id', $id)->first();
+
+        // Mengambil data media
+        $dokumen = json_decode($dataPermohonan->dokumen);
+        $media = tbl_media::select('id','file_hash','file_ori','file_size','file_type')
+                            ->whereIn('id', $dokumen)
+                            ->get();
+        $dataPermohonan->media = $media;
 
         return response()->json(['data' => $dataPermohonan], 200);
     }

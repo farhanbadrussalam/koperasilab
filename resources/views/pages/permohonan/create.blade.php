@@ -126,11 +126,13 @@
                                 @enderror
                             </div>
                             <div class="col-md-12 mb-2">
-                                <label for="uploadDokumen" class="form-label">Dokumen pendukung</label>
-                                <div class="card mb-0">
-                                    <input type="file" name="dokumen" id="uploadDokumen" accept=".pdf,.doc,.docx" class="form-control dropify">
+                                <label for="uploadDokumen" class="form-label">Dokumen pendukung <i class="bi bi-plus-square-fill text-success" title="Tambah jenis" role="button" onclick="tambahDocument()"></i></label>
+                                <div class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx. Recommend size under 5MB.</div>
+                                <div class="d-flex flex-wrap" id="tmpDocument">
+                                    <div class="card m-1" style="width: 150px;height: 150px;">
+                                        <input type="file" name="dokumen[]" accept=".pdf,.doc,.docx" class="form-control dropify" id="uploadDokumen0">
+                                    </div>
                                 </div>
-                                <span class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx. Recommend size under 5MB.</span>
                             </div>
                         </div>
                         <div class="mt-3 d-flex justify-content-end">
@@ -147,9 +149,9 @@
     <script>
         const layanan = @json($layanan);
 
-        setDropify('init', '#uploadDokumen', {
+        setDropify('init', '#uploadDokumen0', {
             allowedFileExtensions: ['pdf','doc', 'docx'],
-            maxSizeFile: '5M'
+            maxSizeFile: '5M',
         });
 
         function selectLayanan(obj) {
@@ -207,6 +209,28 @@
             let jadwal = obj.value.split('|');
 
             $('#inputKuota').val(jadwal[1]);
+        }
+
+        let countDoc = 1;
+        function tambahDocument() {
+            let html = `
+                <div class="card m-1" style="width: 150px;height: 180px;">
+                    <input type="file" name="dokumen[]" accept=".pdf,.doc,.docx" class="form-control dropify" id="uploadDokumen${countDoc}">
+                    <button class="btn btn-danger btn-sm" onclick="removeDocument(this)">Remove</button>
+                </div>
+            `;
+
+            $('#tmpDocument').append(html);
+
+            setDropify('init', `#uploadDokumen${countDoc}`, {
+                allowedFileExtensions: ['pdf','doc', 'docx'],
+                maxSizeFile: '5M',
+            });
+            countDoc++;
+        }
+
+        function removeDocument(obj){
+            $(obj).parent().remove();
         }
     </script>
 @endpush

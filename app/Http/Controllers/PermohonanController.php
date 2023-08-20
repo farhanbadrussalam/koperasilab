@@ -141,22 +141,26 @@ class PermohonanController extends Controller
         }
 
         // upload dokumen pendukung
-        $dokumen = $request->file('dokumen');
+        $documents = $request->file('dokumen');
         $dokumen_pendukung = "";
-        if($dokumen){
-            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
-            $filename = 'permohonan_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
-            $path = $dokumen->storeAs('public/dokumen/permohonan', $filename);
+        if($documents){
+            $arrMedia = array();
+            foreach ($documents as $key => $document) {
+                $realname =  pathinfo($document->getClientOriginalName(), PATHINFO_FILENAME);
+                $filename = 'permohonan_'.md5($realname).'.'.$document->getClientOriginalExtension();
+                $path = $document->storeAs('public/dokumen/permohonan', $filename);
 
-            $media = tbl_media::create([
-                'file_hash' => $filename,
-                'file_ori' => $dokumen->getClientOriginalName(),
-                'file_size' => $dokumen->getSize(),
-                'file_type' => $dokumen->getClientMimeType(),
-                'status' => 1
-            ]);
+                $media = tbl_media::create([
+                    'file_hash' => $filename,
+                    'file_ori' => $document->getClientOriginalName(),
+                    'file_size' => $document->getSize(),
+                    'file_type' => $document->getClientMimeType(),
+                    'status' => 1
+                ]);
+                array_push($arrMedia, $media->id);
+            }
 
-            $dokumen_pendukung = $media->id;
+            $dokumen_pendukung = json_encode($arrMedia);
         }
 
         $data = array(
@@ -199,6 +203,11 @@ class PermohonanController extends Controller
     {
         $data['token'] = generateToken();
         $data['permohonan'] = $permohonan;
+        $dokumen = json_decode($data['permohonan']->dokumen);
+        $media = tbl_media::select('id','file_hash','file_ori','file_size','file_type')
+                            ->whereIn('id', $dokumen)
+                            ->get();
+        $data['permohonan']->media = $media;
         return view('pages.permohonan.edit', $data);
     }
 
@@ -222,23 +231,25 @@ class PermohonanController extends Controller
         $permohonan->surat_terbitan = null;
 
         // Update file pendukung
-        $dokumen = $request->file('dokumen');
-        if($dokumen){
-            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
-            $filename = 'permohonan_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
-            $path = $dokumen->storeAs('public/dokumen/permohonan', $filename);
+        $documents = $request->file('dokumen');
+        if($documents){
+            $arrMedia = array();
+            foreach ($documents as $key => $document) {
+                $realname =  pathinfo($document->getClientOriginalName(), PATHINFO_FILENAME);
+                $filename = 'permohonan_'.md5($realname).'.'.$document->getClientOriginalExtension();
+                $path = $document->storeAs('public/dokumen/permohonan', $filename);
 
-            $media = tbl_media::create([
-                'file_hash' => $filename,
-                'file_ori' => $dokumen->getClientOriginalName(),
-                'file_size' => $dokumen->getSize(),
-                'file_type' => $dokumen->getClientMimeType(),
-                'status' => 1
-            ]);
-
-            $permohonan->dokumen = $media->id;
+                $media = tbl_media::create([
+                    'file_hash' => $filename,
+                    'file_ori' => $document->getClientOriginalName(),
+                    'file_size' => $document->getSize(),
+                    'file_type' => $document->getClientMimeType(),
+                    'status' => 1
+                ]);
+                array_push($arrMedia, $media->id);
+            }
+            $permohonan->dokumen = array_merge(json_decode($permohonan->dokumen), $arrMedia);
         }
-
         $permohonan->update();
 
         return redirect()->route('permohonan.index')->with('success', 'Berhasil di update');

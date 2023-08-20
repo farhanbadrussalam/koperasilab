@@ -17,6 +17,8 @@
     <!-- Theme adminLTE -->
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">
 
+    <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
+
     {{-- Plugin --}}
     <link rel="stylesheet" href="{{ asset('assets/jquery/jquery-ui.min.css') }}">
     <link href="{{ asset('assets/toast/toastr.min.css') }}" rel="stylesheet"/>

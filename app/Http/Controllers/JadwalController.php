@@ -53,7 +53,7 @@ class JadwalController extends Controller
                     return $btnAction;
                 })
                 ->editColumn('petugas_id', function($data){
-                    $status = $this->getStatus($data->status);
+                    $status = statusFormat("jadwal", $data->status);
                     $petugas = ($data->petugas && !Auth::user()->hasPermissionTo('Penjadwalan.confirm')) ? $data->petugas->name : '';
                     return "
                         <div>".$petugas."</div>

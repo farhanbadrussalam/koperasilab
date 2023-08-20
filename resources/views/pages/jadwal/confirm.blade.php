@@ -30,7 +30,7 @@
             </div>
             <div class="row">
                 <div  class="col-4 fw-bolder">Status</div>
-                <div class="col-8">: <span id="txtStatus">Diajukan</span></div>
+                <div class="col-8 d-flex"><span>:</span>&nbsp;<span id="txtStatus">Diajukan</span></div>
             </div>
             <div class="row">
                 <div  class="col-4 fw-bolder">Surat Penugasan</div>

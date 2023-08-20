@@ -48,7 +48,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputNik" class="form-label">NIK <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="number" name="nik" id="inputNik" class="form-control @error('nik') is-invalid @enderror" value="{{ old('nik') }}">
+                                <input type="text" name="nik" id="inputNik" class="form-control maskNIK @error('nik') is-invalid @enderror" value="{{ old('nik') }}">
                                 @error('nik')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -57,7 +57,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputNoHp" class="form-label">Nomer Telepon <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="number" name="no_telepon" id="inputNoHp" class="form-control @error('no_telepon') is-invalid @enderror" value="{{ old('no_telepon') }}">
+                                <input type="text" name="no_telepon" id="inputNoHp" class="form-control maskTelepon @error('no_telepon') is-invalid @enderror" value="{{ old('no_telepon') }}">
                                 @error('no_telepon')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>

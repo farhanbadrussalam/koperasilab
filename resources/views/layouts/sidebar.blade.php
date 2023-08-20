@@ -87,7 +87,7 @@
                     <li class="nav-header">USER MANAGEMENT</li>
                     <li class="nav-item">
                         <a href="{{ route('permission.index') }}" class="nav-link {{ Request::is('permission*') ? 'active' : '' }}">
-                            <i class="nav-icon bi bi-people-fill"></i>
+                            <i class="bi bi-person-fill-slash fs-4"></i>
                             <p>
                                 Permission
                             </p>
@@ -95,7 +95,7 @@
                     </li>
                     <li class="nav-item">
                         <a href="{{ route('roles.index') }}" class="nav-link {{ Request::is('roles*') ? 'active' : '' }}">
-                            <i class="nav-icon bi bi-people-fill"></i>
+                            <i class="bi bi-person-fill-lock fs-4"></i>
                             <p>
                                 Roles
                             </p>

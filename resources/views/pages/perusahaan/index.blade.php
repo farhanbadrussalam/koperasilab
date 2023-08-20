@@ -83,7 +83,20 @@
                                         <div class="col-sm-9 col-md-8">
                                             <div id="previewDokumen">
                                                 @if(Auth::user()->perusahaan->surat_kuasa)
-                                                <a href="{{ asset('storage/dokumen/surat_kuasa/'.Auth::user()->perusahaan->media->file_hash ) }}" target="_blank" id="previewDokumen">{{ Auth::user()->perusahaan->media->file_ori }}</a>
+                                                <a
+                                                    class="d-flex align-items-center justify-content-between px-3 mx-1 shadow-sm cursoron border document"
+                                                    href="{{ asset('storage/dokumen/surat_kuasa/'.Auth::user()->perusahaan->media->file_hash ) }}"
+                                                    target="_blank">
+                                                        <div class="d-flex align-items-center">
+                                                            <img class="my-3" src="{{ asset('icons/'.iconDocument(Auth::user()->perusahaan->media->file_type)) }}" alt=""
+                                                                style="width: 24px; height: 24px;">
+                                                            <div class="d-flex flex-column ms-2">
+                                                                <span class="caption text-main">{{ Auth::user()->perusahaan->media->file_ori }}</span>
+                                                                <span class="text-submain caption" style="margin-top: -3px;">{{ formatBytes(Auth::user()->perusahaan->media->file_size) }}</span>
+                                                            </div>
+                                                        </div>
+                                                    <div class="d-flex align-items-center"></div>
+                                                </a>
                                                 @else
                                                 <div class="text-danger">Belum upload</div>
                                                 @endif
