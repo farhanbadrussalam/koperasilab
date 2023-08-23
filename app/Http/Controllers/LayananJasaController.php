@@ -42,10 +42,11 @@ class LayananJasaController extends Controller
                     ";
                 })
                 ->addColumn('action', function($data){
+                    $idDel = "'".encryptor($data->id)."'";
                     $user = Auth::user();
                     $btnAction = '<div class="text-center">';
-                    $user->hasPermissionTo('Layananjasa.edit') && $btnAction .= '<a class="btn btn-warning btn-sm m-1" href="'.route("layananJasa.edit", $data->id).'"><i class="bi bi-pencil-square"></i></a>';
-                    $user->hasPermissionTo('Layananjasa.delete') && $btnAction .= '<button class="btn btn-danger btn-sm m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>';
+                    $user->hasPermissionTo('Layananjasa.edit') && $btnAction .= '<a class="btn btn-warning btn-sm m-1" href="'.route("layananJasa.edit", encryptor($data->id)).'"><i class="bi bi-pencil-square"></i></a>';
+                    $user->hasPermissionTo('Layananjasa.delete') && $btnAction .= '<button class="btn btn-danger btn-sm m-1" onclick="btnDelete('.$idDel.')"><i class="bi bi-trash3-fill"></i></a>';
                     $btnAction .= '</div>';
 
                     return $btnAction;
@@ -112,7 +113,7 @@ class LayananJasaController extends Controller
     public function edit(string $id)
     {
         $data['satuankerja'] = Satuan_kerja::all();
-        $data['layananjasa'] = Layanan_jasa::findOrFail($id);
+        $data['layananjasa'] = Layanan_jasa::findOrFail(decryptor($id));
         $data['jenisLayanan']= json_decode($data['layananjasa']->jenis_layanan);
         $data['token'] = generateToken();
         return view('pages.layananjasa.edit', $data);
@@ -123,6 +124,7 @@ class LayananJasaController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $idHash = decryptor($id);
         $validator = $request->validate([
             'pj' => ['required'],
             'nama_layanan' => ['required']
@@ -136,7 +138,7 @@ class LayananJasaController extends Controller
             );
         }
 
-        $layanan = Layanan_jasa::findOrFail($id);
+        $layanan = Layanan_jasa::findOrFail($idHash);
 
         $layanan->user_id = $request->pj;
         $layanan->nama_layanan = $request->nama_layanan;

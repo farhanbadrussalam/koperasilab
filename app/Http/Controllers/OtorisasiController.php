@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 use DataTables;
 
-class PermissionController extends Controller
+class OtorisasiController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,18 +14,18 @@ class PermissionController extends Controller
     public function index()
     {
         $data['token'] = generateToken();
-        return view('pages.permission.index', $data);
+        return view('pages.otorisasi.index', $data);
     }
 
     public function getData()
     {
-        $permissions = Permission::orderBy('name', 'ASC')->where('guard_name', 'web')->get();
-        return DataTables::of($permissions)
+        $otorisasi = Permission::orderBy('name', 'ASC')->where('guard_name', 'otorisasi')->get();
+        return DataTables::of($otorisasi)
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <button class="btn btn-warning btn-sm m-1" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)">Edit</button>
-                        <button class="btn btn-danger btn-sm m-1" onclick="btnDelete('.$data->id.')">Delete</a>
+                        <button class="btn btn-warning btn-sm m-1" data-id="'.encryptor($data->id).'" data-value="'.$data->name.'" onclick="btnEdit(this)">Edit</button>
+                        <button class="btn btn-danger btn-sm m-1" data-id="'.encryptor($data->id).'" onclick="btnDelete(this)">Delete</a>
                     ';
                 })
                 ->rawColumns(['action'])
@@ -49,9 +49,9 @@ class PermissionController extends Controller
             'name' => 'required'
         ]);
 
-        Permission::create(['name' => $request->name]);
+        Permission::create(['name' => $request->name, 'guard_name' => 'otorisasi']);
 
-        return redirect()->route('permission.index')->with('success', 'Berhasil di tambah');
+        return redirect()->route('otorisasi.index')->with('success', 'Berhasil di tambah');
     }
 
     /**
@@ -75,15 +75,17 @@ class PermissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $name = $request->name;
-        $id = $request->id_permission;
+        $validator = $request->validate([
+            'name' => 'required'
+        ]);
 
-        $data = Permission::findOrFail($id);
+        $idOtorisasi = decryptor($id);
+        $data = Permission::findOrFail($idOtorisasi);
 
         $data->name = $request->name;
         $data->update();
 
-        return response()->json(['message' => 'Permission berhasil diupdate'], 200);
+        return response()->json(['message' => 'Otorisasi berhasil diupdate'], 200);
     }
 
     /**
@@ -91,9 +93,11 @@ class PermissionController extends Controller
      */
     public function destroy(string $id)
     {
-        $data = Permission::findOrFail($id);
-        $data->delete();
+        $id_otorisasi = decryptor($id);
 
-        return response()->json(['message' => 'Permission berhasil dihapus'], 200);
+        $dataOtorisasi = Permission::findOrFail($id_otorisasi);
+        $dataOtorisasi->delete();
+
+        return response()->json(['message' => 'Otorisasi berhasil dihapus'], 200);
     }
 }

@@ -30,7 +30,7 @@ class UserController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <a href="'.route('users.edit', $data->id).'" class="btn btn-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i></a>
+                        <a href="'.route('users.edit', encryptor($data->id)).'" class="btn btn-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i></a>
                     ';
                 })
                 ->addColumn('role', function($data){
@@ -120,7 +120,7 @@ class UserController extends Controller
     {
         $data['satuankerja'] = Satuan_kerja::all();
         $data['role'] = Role::all();
-        $data['d_user'] = User::findOrFail($id);
+        $data['d_user'] = User::findOrFail(decryptor($id));
         $data['token'] = generateToken();
         return view('pages.users.edit', $data);
     }
@@ -130,8 +130,9 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $d_user = User::findOrFail($id);
-        $profile = profile::where('user_id', $id)->first();
+        $idHash = decryptor($id);
+        $d_user = User::findOrFail($idHash);
+        $profile = profile::where('user_id', $idHash)->first();
 
         $d_user->name = $request->name;
         $d_user->removeRole($d_user->getRoleNames()[0]);

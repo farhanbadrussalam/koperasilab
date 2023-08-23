@@ -39,7 +39,8 @@ class LayananjasaController extends Controller
         ]);
 
         if($credential){
-            $delete = Layanan_jasa::findOrFail($request->id);
+            $idHash = decryptor($request->id);
+            $delete = Layanan_jasa::findOrFail($idHash);
             $delete->status = '99';
             $delete->update();
 

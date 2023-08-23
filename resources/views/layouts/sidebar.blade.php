@@ -110,6 +110,30 @@
                         </a>
                     </li>
                 @endcan
+
+                @if(auth()->user()->can('Management.Lab') || auth()->user()->can('Management.Otorisasi'))
+                <li class="nav-header">SERVICE USER MANAGEMENT</li>
+                @can('Management.Lab')
+                <li class="nav-item">
+                    <a href="{{ route('lab.index') }}" class="nav-link {{ Request::is('lab*') ? 'active' : '' }}">
+                        <i class="bi bi-person-workspace fs-4"></i>
+                        <p>
+                            Lab
+                        </p>
+                    </a>
+                </li>
+                @endcan
+                @can('Management.Otorisasi')
+                <li class="nav-item">
+                    <a href="{{ route('otorisasi.index') }}" class="nav-link {{ Request::is('otorisasi*') ? 'active' : '' }}">
+                        <i class="bi bi-person-gear fs-4"></i>
+                        <p>
+                            Otorisasi
+                        </p>
+                    </a>
+                </li>
+                @endcan
+                @endif
             </ul>
         </nav>
     </div>

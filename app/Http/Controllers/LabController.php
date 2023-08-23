@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\tbl_lab;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Permission;
 use DataTables;
 
-class PermissionController extends Controller
+class LabController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,18 +14,18 @@ class PermissionController extends Controller
     public function index()
     {
         $data['token'] = generateToken();
-        return view('pages.permission.index', $data);
+        return view('pages.lab.index', $data);
     }
 
     public function getData()
     {
-        $permissions = Permission::orderBy('name', 'ASC')->where('guard_name', 'web')->get();
+        $permissions = tbl_lab::orderBy('name_lab', 'ASC')->get();
         return DataTables::of($permissions)
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <button class="btn btn-warning btn-sm m-1" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)">Edit</button>
-                        <button class="btn btn-danger btn-sm m-1" onclick="btnDelete('.$data->id.')">Delete</a>
+                        <button class="btn btn-warning btn-sm m-1" data-id="'.encryptor($data->id).'" data-value="'.$data->name_lab.'" onclick="btnEdit(this)">Edit</button>
+                        <button class="btn btn-danger btn-sm m-1" data-id="'.encryptor($data->id).'" onclick="btnDelete(this)">Delete</a>
                     ';
                 })
                 ->rawColumns(['action'])
@@ -49,9 +49,9 @@ class PermissionController extends Controller
             'name' => 'required'
         ]);
 
-        Permission::create(['name' => $request->name]);
+        tbl_lab::create(['name_lab' => $request->name]);
 
-        return redirect()->route('permission.index')->with('success', 'Berhasil di tambah');
+        return redirect()->route('lab.index')->with('success', 'Berhasil di tambah');
     }
 
     /**
@@ -75,15 +75,18 @@ class PermissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $name = $request->name;
-        $id = $request->id_permission;
+        $validator = $request->validate([
+            'name' => 'required'
+        ]);
 
-        $data = Permission::findOrFail($id);
+        $id_lab = decryptor($id);
+        $dataLab = tbl_lab::findOrFail($id_lab);
 
-        $data->name = $request->name;
-        $data->update();
+        $dataLab->name_lab = $request->name;
 
-        return response()->json(['message' => 'Permission berhasil diupdate'], 200);
+        $dataLab->update();
+
+        return response()->json(['message' => 'Lab berhasil diupdate'], 200);
     }
 
     /**
@@ -91,9 +94,11 @@ class PermissionController extends Controller
      */
     public function destroy(string $id)
     {
-        $data = Permission::findOrFail($id);
-        $data->delete();
+        $id_lab = decryptor($id);
 
-        return response()->json(['message' => 'Permission berhasil dihapus'], 200);
+        $dataLab = tbl_lab::findOrFail($id_lab);
+        $dataLab->delete();
+
+        return response()->json(['message' => 'Lab berhasil dihapus'], 200);
     }
 }

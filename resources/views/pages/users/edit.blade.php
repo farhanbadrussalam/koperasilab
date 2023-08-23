@@ -24,7 +24,7 @@
                     </h2>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('users.update', $d_user->id) }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ route('users.update', encryptor($d_user->id)) }}" method="post" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="form-group mb-3">

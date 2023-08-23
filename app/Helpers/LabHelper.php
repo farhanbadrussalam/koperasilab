@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Session;
 use App\Events\NotifikasiEvent;
 use App\Models\notifikasi;
+use Illuminate\Support\Facades\Crypt;
 
 if (!function_exists('formatCurrency')) {
     function formatCurrency($amount)
@@ -178,4 +179,32 @@ if (!function_exists('iconDocument')){
     }
 }
 
+if (!function_exists('encryptor')) {
+  function encryptor($value)
+  {
+    $secret   = env('ENCRYPTION_KEY', 'robot.txt');
+    $base64   = base64_encode(hash('sha256', $secret, true));
+    $sub      = substr($base64, 0, 32); //secret key must be 32 char
+    $iv       = substr($sub, 0, 16);
+    $result   = openssl_encrypt($value, "AES-256-CBC", $sub, 0, $iv);
+    $dictionary = array('=', '/', '+');
+    $change   = array('', ':', '-');
+    $result   = str_replace($dictionary, $change, $result);
+    return $result;
+  }
+}
+if (!function_exists('decryptor')) {
+    function decryptor($value)
+    {
+        $dictionary = array('=', '/', '+');
+        $change     = array('.', ':', '-');
+        $value      = str_replace($change, $dictionary, $value);
+        $secret     = env('ENCRYPTION_KEY', 'robot.txt');
+        $base64     = base64_encode(hash('sha256', $secret, true));
+        $sub        = substr($base64, 0, 32); //secret key must be 32 char
+        $iv         = substr($sub, 0, 16);
+        $result     = openssl_decrypt($value, "AES-256-CBC", $sub, 0, $iv);
+        return $result;
+    }
+}
 ?>

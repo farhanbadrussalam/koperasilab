@@ -24,7 +24,7 @@
                         </h2>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('layananJasa.update', $layananjasa->id) }}" method="post">
+                        <form action="{{ route('layananJasa.update', encryptor($layananjasa->id)) }}" method="post">
                             @csrf
                             @method('PUT')
                             <div class="mb-3 row">

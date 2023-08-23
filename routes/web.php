@@ -13,6 +13,8 @@ use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\NotifController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PermohonanController;
+use App\Http\Controllers\LabController;
+use App\Http\Controllers\OtorisasiController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -59,6 +61,16 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('jadwal', JadwalController::class);
         Route::get('getDataJadwal', [JadwalController::class, 'getData'])->name('jadwal.getData');
         Route::post('updatePenugasan', [JadwalController::class, 'confirm'])->name('jadwal.updatePetugas');
+    });
+
+    Route::middleware(['permission:Management.Lab'])->group(function () {
+        Route::resource('lab', LabController::class);
+        Route::get('getDataLab', [LabController::class, 'getData'])->name('lab.getData');
+    });
+
+    Route::middleware(['permission:Management.Otorisasi'])->group(function () {
+        Route::resource('otorisasi', OtorisasiController::class);
+        Route::get('getDataOtorisasi', [OtorisasiController::class, 'getData'])->name('otorisasi.getData');
     });
 
     Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
