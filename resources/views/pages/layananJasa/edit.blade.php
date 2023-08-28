@@ -37,7 +37,7 @@
                                         disabled>
                                         <option value="">-- Select --</option>
                                         @foreach ($satuankerja as $key => $satuan)
-                                            <option value="{{ $satuan->id }}" @if($layananjasa->satuankerja_id == $satuan->id) selected @endif>{{ $satuan->name }}</option>
+                                            <option value="{{ encryptor($satuan->id) }}" @if($layananjasa->satuankerja_id == $satuan->id) selected @endif>{{ $satuan->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('satuankerja')

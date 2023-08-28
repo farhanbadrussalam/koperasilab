@@ -12,7 +12,7 @@
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.bunny.net/css?family=Nunito">
 
     <!-- Theme adminLTE -->
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">
@@ -21,10 +21,12 @@
 
     {{-- Plugin --}}
     <link rel="stylesheet" href="{{ asset('assets/jquery/jquery-ui.min.css') }}">
-    <link href="{{ asset('assets/toast/toastr.min.css') }}" rel="stylesheet"/>
-    <link href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}" rel="stylesheet"/>
-    <link href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ asset('assets/toast/toastr.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}"/>
+    <link rel="stylesheet" href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}"/>
     <link rel="stylesheet" href="{{ asset('assets/dropify/css/dropify.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.min.css') }}">
     @include('flatpickr::components.style')
 
     <!-- Scripts -->
@@ -59,6 +61,7 @@
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('assets/dropify/js/dropify.js') }}"></script>
+    <script src="{{ asset('vendor/select2/js/select2.full.js') }}"></script>
     @include('flatpickr::components.script')
     @stack('scripts')
 

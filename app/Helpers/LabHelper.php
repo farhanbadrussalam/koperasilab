@@ -146,6 +146,26 @@ if(!function_exists('statusFormat')){
                     ';
                     break;
             }
+        }else if($feature == 'petugas'){
+            switch ($status) {
+                case 1:
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-danger"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Not verif</span>
+                    </div>
+                    ';
+                    break;
+
+                case 2:
+                    $htmlStatus = '
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-success"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Verifikasi</span>
+                    </div>
+                    ';
+                    break;
+            }
         }
 
         return $htmlStatus;
@@ -205,6 +225,15 @@ if (!function_exists('decryptor')) {
         $iv         = substr($sub, 0, 16);
         $result     = openssl_decrypt($value, "AES-256-CBC", $sub, 0, $iv);
         return $result;
+    }
+}
+if (!function_exists('stringSplit')) {
+    function stringSplit($str, $prefix)
+    {
+        if (substr($str, 0, strlen($prefix)) === $prefix) {
+            $str = substr($str, strlen($prefix));
+        }
+        return $str;
     }
 }
 ?>

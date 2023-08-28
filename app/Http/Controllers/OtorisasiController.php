@@ -8,6 +8,12 @@ use DataTables;
 
 class OtorisasiController extends Controller
 {
+    private $prefix;
+
+    public function __construct()
+    {
+        $this->prefix = 'Otorisasi-';
+    }
     /**
      * Display a listing of the resource.
      */
@@ -19,12 +25,17 @@ class OtorisasiController extends Controller
 
     public function getData()
     {
-        $otorisasi = Permission::orderBy('name', 'ASC')->where('guard_name', 'otorisasi')->get();
+        $otorisasi = Permission::orderBy('name', 'ASC')->where('name', 'like', $this->prefix.'%')->get();
+        $prefix = $this->prefix;
+
         return DataTables::of($otorisasi)
                 ->addIndexColumn()
-                ->addColumn('action', function($data){
+                ->editColumn('name', function($data) use ($prefix) {
+                    return stringSplit($data->name, $prefix);
+                })
+                ->addColumn('action', function($data) use ($prefix){
                     return '
-                        <button class="btn btn-warning btn-sm m-1" data-id="'.encryptor($data->id).'" data-value="'.$data->name.'" onclick="btnEdit(this)">Edit</button>
+                        <button class="btn btn-warning btn-sm m-1" data-id="'.encryptor($data->id).'" data-value="'.stringSplit($data->name, $prefix).'" onclick="btnEdit(this)">Edit</button>
                         <button class="btn btn-danger btn-sm m-1" data-id="'.encryptor($data->id).'" onclick="btnDelete(this)">Delete</a>
                     ';
                 })
@@ -49,7 +60,7 @@ class OtorisasiController extends Controller
             'name' => 'required'
         ]);
 
-        Permission::create(['name' => $request->name, 'guard_name' => 'otorisasi']);
+        Permission::create(['name' => "$this->prefix$request->name"]);
 
         return redirect()->route('otorisasi.index')->with('success', 'Berhasil di tambah');
     }
@@ -82,7 +93,7 @@ class OtorisasiController extends Controller
         $idOtorisasi = decryptor($id);
         $data = Permission::findOrFail($idOtorisasi);
 
-        $data->name = $request->name;
+        $data->name = "$this->prefix$request->name";
         $data->update();
 
         return response()->json(['message' => 'Otorisasi berhasil diupdate'], 200);

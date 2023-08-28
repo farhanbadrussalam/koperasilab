@@ -156,36 +156,4 @@ class LayananJasaController extends Controller
     {
         //
     }
-
-    private function _resourceAPI($method, $url, $params = [])
-    {
-        $_token = generateToken();
-
-        // $httpClient = new Client([
-        //     'timeout' => 20
-        // ]);
-        $dataRes = '';
-        $response = Http::withHeaders([
-            'Accept' => 'application/json',
-            'Authorization' => 'Bearer ' . $_token, // Ganti dengan token yang valid
-        ])->get(url('/api/getPegawai'), $params);
-
-        // $response = $httpClient->request($method, url('/api/getPegawai'), [
-        //     'headers' => [
-        //         'Authorization' => 'Bearer ' . $_token,
-        //     ],
-        //     'form_params' => $params
-        // ]);
-
-        dd($response->successful());
-        $dataRes = json_decode($response->getBody()->getContents(), true);
-        $dataRes['status_code'] = $response->getStatusCode();
-        // try {
-        // } catch (\Throwable $th) {
-        //     //throw $th;
-        // }
-
-
-        return $dataRes;
-    }
 }

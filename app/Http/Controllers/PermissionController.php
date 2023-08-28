@@ -19,7 +19,7 @@ class PermissionController extends Controller
 
     public function getData()
     {
-        $permissions = Permission::orderBy('name', 'ASC')->where('guard_name', 'web')->get();
+        $permissions = Permission::orderBy('name', 'ASC')->where('name', 'not like', 'Otorisasi-%')->get();
         return DataTables::of($permissions)
                 ->addIndexColumn()
                 ->addColumn('action', function($data){

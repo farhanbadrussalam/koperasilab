@@ -1,0 +1,158 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Petugas_layanan;
+use App\Models\tbl_lab;
+use App\Models\User;
+use App\Models\Satuan_kerja;
+use Spatie\Permission\Models\Permission;
+use Auth;
+use DataTables;
+
+class PetugasLayananController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $data['token'] = generateToken();
+        $data['lab'] = tbl_lab::all();
+        $data['satuanKerja'] = Satuan_kerja::all();
+        $data['otorisasi'] = Permission::where('name', 'like', 'Otorisasi-%')->get();
+        return view('pages.petugas.index', $data);
+    }
+
+    public function getData()
+    {
+        $petugas = Petugas_layanan::where('status', '1');
+
+        if(!Auth::user()->hasRole('Super Admin')){
+            $petugas->where('satuankerja_id', Auth::user()->satuankerja_id);
+        }
+
+        return DataTables::of($petugas)
+                ->addIndexColumn()
+                ->addColumn('content', function($data) {
+                    if(isset($data->petugas->profile->avatar)){
+                        $avatar = asset("storage/images/avatar/".$data->petugas->profile->avatar);
+                    }else{
+                        $avatar = asset("assets/img/default-avatar.jpg");
+                    }
+
+                    $status = statusFormat('petugas', $data->status_verif);
+                    return '
+                        <div class="card m-0">
+                            <div class="card-body d-flex p-1">
+                                <div class="flex-grow-1 p-2 d-flex m-auto">
+                                    <div>
+                                        <img src=" '.$avatar.' " class="img-circle border shadow-sm" alt="Avatar"  onerror="this.src=`'.asset("assets/img/default-avatar.jpg").'`" style="width: 5em;" />
+                                    </div>
+                                    <div class="px-3 my-auto">
+                                        <div class="text-break fw-bolder">'.$data->petugas->name.'</div>
+                                        <div>'.$data->petugas->email.'</div>
+                                        <div>'.$data->lab->name_lab.'</div>
+                                    </div>
+                                </div>
+                                <div class="p-2 m-auto">'.$status.'</div>
+                                <div class="p-2 m-auto">
+                                    <div>
+                                        <button class="btn btn-outline-info btn-sm" role="button">Otorisasi</button>
+                                    </div>
+                                </div>
+                                <div class="p-2 m-auto flex-column d-flex">
+                                    <button role="button" class="btn btn-outline-warning btn-sm mb-2"><i class="bi bi-pencil-square"></i></button>
+                                    <button role="button" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash-fill"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    ';
+                })
+                ->filter(function ($query) {
+                    if(request()->has('search')){
+                        $query->whereHas('petugas', function($qPetugas) {
+                            $qPetugas->where('name', 'like', "%" . request('search') . "%");
+                        });
+                    }
+
+                    if(request()->has('filterStatus')){
+                        if(request('filterStatus')){
+                            $status = decryptor(request('filterStatus'));
+                            $query->where('status_verif', $status);
+                        }
+                    }
+                })
+                ->rawColumns(['content'])
+                ->make(true);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        $data['token'] = generateToken();
+        return view('pages.petugas.index', $data);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $satuankerja = decryptor($request->satuankerja);
+        $satuan_lab = decryptor($request->satuan_lab);
+        $idPegawai = $request->pegawai;
+
+        $dataUser = User::where('id', $idPegawai)->first();
+
+        Petugas_layanan::create([
+            'lab_id' => $satuan_lab,
+            'satuankerja_id' => $satuankerja,
+            'user_id' => $idPegawai,
+            'status_verif' => 1,
+            'status' => 1,
+            'created_by' => Auth::user()->id
+        ]);
+
+        foreach ($request->otorisasi as $key => $value) {
+            $dataUser->givePermissionTo(decryptor($value));
+        }
+
+        return redirect()->route('petugasLayanan.index')->with('success', 'Berhasil di tambah');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        //
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        //
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+    }
+}

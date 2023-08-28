@@ -17,8 +17,9 @@ class LayananjasaController extends Controller
         ]);
 
         if($credential){
-            $satuanKerja = isset($request->satuankerja) ? $request->satuankerja : null;
-            $pegawai = User::role($request->role);
+            $satuanKerja = isset($request->satuankerja) ? decryptor($request->satuankerja) : null;
+            $role = isset($request->role) ? $request->role : null;
+            $pegawai = User::role($role);
 
             if($satuanKerja){
                 $pegawai->where('satuankerja_id', $satuanKerja);

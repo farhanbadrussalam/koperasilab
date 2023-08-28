@@ -36,7 +36,7 @@
                                         onchange="getPegawai(this)">
                                         <option value="">-- Select --</option>
                                         @foreach ($satuankerja as $key => $satuan)
-                                            <option value="{{ $satuan->id }}">{{ $satuan->name }}</option>
+                                            <option value="{{ encryptor($satuan->id) }}">{{ $satuan->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('satuankerja')

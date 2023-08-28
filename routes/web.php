@@ -15,6 +15,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PermohonanController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\OtorisasiController;
+use App\Http\Controllers\PetugasLayananController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -72,6 +73,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('otorisasi', OtorisasiController::class);
         Route::get('getDataOtorisasi', [OtorisasiController::class, 'getData'])->name('otorisasi.getData');
     });
+
+    Route::resource('petugasLayanan', PetugasLayananController::class);
+    Route::get('getDataPetugas', [PetugasLayananController::class, 'getData'])->name('petugasLayanan.getData');
 
     Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
     Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);
