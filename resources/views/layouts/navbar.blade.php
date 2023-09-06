@@ -28,10 +28,24 @@
             </div>
         </li>
         <li class="nav-item dropdown">
+            <?php
+                $statusVerif = Auth::user()->petugasLayanan ? Auth::user()->petugasLayanan->status_verif : null;
+                $otorisasi = Auth::user()->getDirectPermissions();
+            ?>
             <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                {{ Auth::user()->name }} - {{ Auth::user()->getRoleNames()[0] }}
+                {{ Auth::user()->name }} - {{ count($otorisasi) != 0 ? "Petugas Layanan" : Auth::user()->getRoleNames()[0] }}
             </a>
             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                @if (count($otorisasi) != 0)
+                <div class="dropdown-item">
+                    <span>Otorisasi <span class="@if($statusVerif==1) text-danger @else text-primary @endif">(@if($statusVerif==1) Not verif @else Verifikasi @endif)</span></span>
+                    <ul>
+                        @foreach ($otorisasi as $val)
+                            <li>{{stringSplit($val->name, 'Otorisasi-')}}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                @endif
                 <a class="dropdown-item" href="{{ route('logout') }}"
                     onclick="event.preventDefault();
                                     document.getElementById('logout-form').submit();">

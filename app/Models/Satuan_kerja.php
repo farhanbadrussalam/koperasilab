@@ -15,7 +15,20 @@ class Satuan_kerja extends Model
         'name'
     ];
 
-    public function layananJasa() 
+    protected $hidden = [
+        'id'
+    ];
+
+    protected $appends = [
+        'satuankerja_hash'
+    ];
+
+    public function getSatuankerjaHashAttribute()
+    {
+        return encryptor($this->id);
+    }
+
+    public function layananJasa()
     {
         return hasOne(Layanan_jasa::class);
     }

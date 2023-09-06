@@ -242,3 +242,10 @@ function removeDropify(event, element) {
         return true;
     }
 }
+
+function stringSplit(str, prefix) {
+    if (str.startsWith(prefix)) {
+        str = str.substring(prefix.length);
+    }
+    return str;
+}

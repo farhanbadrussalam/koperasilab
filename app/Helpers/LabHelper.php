@@ -17,9 +17,11 @@ if (!function_exists('generateToken')) {
         $user = Auth::user();
         $_token = Session::get('token');
         if($_token == NULL){
-            $_token = $user->createToken('api-token')->plainTextToken;
+            $cToken = $user->createToken('api-token');
+            $_token = $cToken->plainTextToken;
 
             Session::put('token', $_token);
+            Session::put('token_id', $cToken->accessToken->id);
             session()->save();
         }
 

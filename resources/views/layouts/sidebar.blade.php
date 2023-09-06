@@ -83,15 +83,17 @@
                 </li>
                 @endcan
 
-                <li class="nav-item">
-                    <a href="{{ route('petugasLayanan.index') }}"
-                        class="nav-link {{ Request::is('petugasLayanan*') ? 'active' : '' }}">
-                        <i class="bi bi-postcard-fill"></i>
-                        <p>
-                            Petugas Layanan
-                        </p>
-                    </a>
-                </li>
+                @can('Petugas')
+                    <li class="nav-item">
+                        <a href="{{ route('petugasLayanan.index') }}"
+                            class="nav-link {{ Request::is('petugasLayanan*') ? 'active' : '' }}">
+                            <i class="bi bi-postcard-fill"></i>
+                            <p>
+                                Petugas Layanan
+                            </p>
+                        </a>
+                    </li>
+                @endcan
 
                 @can('User.management')
                     <li class="nav-header">USER MANAGEMENT</li>

@@ -138,8 +138,10 @@
         const d_user = @json($d_user);
         $(function() {
             $('#inputRole').val(role);
-            $('#inputJenisKelamin').val(profile.jenis_kelamin);
-            if(d_user.satuankerja_id){
+            if(profile?.jenis_kelamin){
+                $('#inputJenisKelamin').val(profile.jenis_kelamin);
+            }
+            if(d_user?.satuankerja_id){
                 $('#inputSatuanKerja').val(d_user.satuankerja_id);
             }else{
                 $('#inputSatuanKerja').attr('disabled', true);

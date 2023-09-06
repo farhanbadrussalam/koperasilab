@@ -42,6 +42,12 @@ class PetugasLayananController extends Controller
                         $avatar = asset("assets/img/default-avatar.jpg");
                     }
 
+                    $userPetugas = User::where('id', $data->user_id)->first();
+                    $otorisasi = $userPetugas->getDirectPermissions();
+                    $btnOtorisasi = "";
+                    foreach ($otorisasi as $key => $value) {
+                        $btnOtorisasi .= '<button class="btn btn-outline-dark btn-sm m-1" role="button">'.stringSplit($value->name, "Otorisasi-").'</button>';
+                    }
                     $status = statusFormat('petugas', $data->status_verif);
                     return '
                         <div class="card m-0">
@@ -56,15 +62,15 @@ class PetugasLayananController extends Controller
                                         <div>'.$data->lab->name_lab.'</div>
                                     </div>
                                 </div>
-                                <div class="p-2 m-auto">'.$status.'</div>
                                 <div class="p-2 m-auto">
-                                    <div>
-                                        <button class="btn btn-outline-info btn-sm" role="button">Otorisasi</button>
+                                    <div class="d-flex flex-wrap justify-content-end">
+                                        '.$btnOtorisasi.'
                                     </div>
                                 </div>
+                                <div class="p-2 m-auto">'.$status.'</div>
                                 <div class="p-2 m-auto flex-column d-flex">
-                                    <button role="button" class="btn btn-outline-warning btn-sm mb-2"><i class="bi bi-pencil-square"></i></button>
-                                    <button role="button" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash-fill"></i></button>
+                                    <button role="button" class="btn btn-outline-warning btn-sm mb-2" data-petugasid="'.$data->petugas_hash.'" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>
+                                    <button role="button" class="btn btn-outline-danger btn-sm" data-id="'.$data->petugas_hash.'" onclick="btnDelete(this)"><i class="bi bi-trash-fill"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -81,6 +87,13 @@ class PetugasLayananController extends Controller
                         if(request('filterStatus')){
                             $status = decryptor(request('filterStatus'));
                             $query->where('status_verif', $status);
+                        }
+                    }
+
+                    if(request()->has('filterLab')){
+                        if(request('filterLab')){
+                            $labId = decryptor(request('filterLab'));
+                            $query->where('lab_id', $labId);
                         }
                     }
                 })
@@ -102,6 +115,12 @@ class PetugasLayananController extends Controller
      */
     public function store(Request $request)
     {
+        $validator = $request->validate([
+            'satuankerja' => 'required',
+            'satuan_lab' => 'required',
+            'pegawai' => 'required|unique:petugas_layanan,user_id'
+        ]);
+
         $satuankerja = decryptor($request->satuankerja);
         $satuan_lab = decryptor($request->satuan_lab);
         $idPegawai = $request->pegawai;
@@ -145,7 +164,19 @@ class PetugasLayananController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $petugasId = decryptor($request->petugasId);
+        $petugas = Petugas_layanan::findOrFail($petugasId);
+        $labId = decryptor($request->satuan_lab);
+
+        $dataUser = User::where('id', $petugas->user_id)->first();
+
+        $petugas->lab_id = $labId;
+
+        $dataUser->syncPermissions($request->otorisasi);
+
+        $petugas->update();
+
+        return response()->json(['message' => 'Petugas berhasil diupdate'], 200);
     }
 
     /**
@@ -153,6 +184,17 @@ class PetugasLayananController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $petugasId = decryptor($id);
+        $data = Petugas_Layanan::findOrFail($petugasId);
+        $dataUser = User::where('id', $data->user_id)->first();
+
+        $permission = $dataUser->getDirectPermissions();
+        foreach ($permission as $key => $value) {
+            $dataUser->revokePermissionTo($value->name);
+        }
+        $data->status = 99;
+        $data->update();
+
+        return response()->json(['message' => 'Petugas berhasil dihapus'], 200);
     }
 }

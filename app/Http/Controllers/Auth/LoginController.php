@@ -7,6 +7,8 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Laravel\Fortify\Contracts\LoginResponse;
+use Laravel\Fortify\Contracts\LogoutResponse;
+use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
 {
@@ -58,5 +60,15 @@ class LoginController extends Controller
             // Login gagal, tangani respons sesuai kebutuhan
             return redirect()->back()->withErrors(['email' => 'These credentials do not match our records.']);
         }
+    }
+
+    public function logout(Request $request){
+        if ($request->user()->tokens()->where('id', Session::get('token_id'))) {
+            $request->user()->tokens()->where('id', Session::get('token_id'))->delete();
+        }
+        Session::forget('token');
+        Session::forget('token_id');
+        auth()->logout();
+        return app(LogoutResponse::class);
     }
 }

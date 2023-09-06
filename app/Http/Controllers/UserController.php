@@ -139,11 +139,7 @@ class UserController extends Controller
         $d_user->assignRole($request->role);
         $d_user->update();
 
-        $profile->nik = $request->nik;
-        $profile->no_hp = $request->no_telepon;
-        $profile->jenis_kelamin = $request->jenis_kelamin;
-        $profile->alamat = $request->alamat;
-
+        $avatar = "";
         if($request->file('avatar')){
             // Menghapus file sebelumnya
             if(Storage::exists('public/images/avatar'.$profile->avatar)){
@@ -156,10 +152,26 @@ class UserController extends Controller
 
             $path = $image->storeAs('public/images/avatar', $filename);
 
-            $profile->avatar = $filename;
+            $avatar = $filename;
         }
 
-        $profile->update();
+        if($profile){
+            $profile->nik = $request->nik;
+            $profile->no_hp = $request->no_telepon;
+            $profile->jenis_kelamin = $request->jenis_kelamin;
+            $profile->alamat = $request->alamat;
+            $profile->avatar = $avatar;
+            $profile->update();
+        }else{
+            profile::create(array(
+                'user_id' => $idHash,
+                'nik' => $request->nik,
+                'no_hp' => $request->no_telepon,
+                'jenis_kelamin' => $request->jenis_kelamin,
+                'alamat' => $request->alamat,
+                'avatar' => $avatar
+            ));
+        }
 
         return redirect()->route('users.index')->with('success', 'Berhasil di update');
     }

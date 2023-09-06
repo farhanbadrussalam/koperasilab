@@ -53,7 +53,7 @@
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
-    <script src="{{ asset('assets/js/global.js') }}"></script>
+    <script src="{{ asset('assets/js/global.js') }}" ></script>
     <script src="{{ asset('assets/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('assets/toast/toastr.min.js') }}"></script>

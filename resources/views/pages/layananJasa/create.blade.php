@@ -108,6 +108,11 @@
 @endsection
 @push('scripts')
     <script>
+        $('#selectPJ').select2({
+            theme: "bootstrap-5",
+            placeholder: "Select Penanggung jawab"
+        });
+
         function tambahFormJenis(){
             let html = `
                 <div class="mb-3 row">

@@ -20,6 +20,23 @@ class Petugas_layanan extends Model
         'created_by'
     ];
 
+    protected $hidden = [
+        'id',
+        'satuankerja_id',
+        'user_id',
+        'lab_id',
+        'created_by'
+    ];
+
+    protected $appends = [
+        'petugas_hash'
+    ];
+
+    public function getPetugasHashAttribute()
+    {
+        return encryptor($this->id);
+    }
+
     public function lab(){
         return $this->belongsTo(tbl_lab::class, 'lab_id', 'id');
     }

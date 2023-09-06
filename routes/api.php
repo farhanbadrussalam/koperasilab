@@ -5,6 +5,8 @@ use App\Http\Controllers\API\LayananjasaController;
 use App\Http\Controllers\API\JadwalController;
 use App\Http\Controllers\API\NotifikasiController;
 use App\Http\Controllers\API\PermohonanController;
+use App\Http\Controllers\API\OtorisasiAPI;
+use App\Http\Controllers\API\PetugasLayananAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -24,10 +26,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('/login', [AuthController::class, 'index']);
+Route::post('/login', [AuthController::class, 'login']);
 
 
 Route::middleware('auth:sanctum')->group(function() {
+    Route::get('/logout', [AuthController::class, 'logout']);
+
     Route::get('/getPegawai', [LayananjasaController::class, 'getPegawai']);
     Route::delete('/deletePegawai', [LayananjasaController::class, 'delete']);
 
@@ -42,4 +46,12 @@ Route::middleware('auth:sanctum')->group(function() {
 
     Route::resource('permohonan', PermohonanController::class);
     Route::post('/updatePermohonan', [PermohonanController::class, 'confirm']);
+
+    Route::prefix('otorisasi')->group(function () {
+        Route::get('/getOtorisasi', [OtorisasiAPI::class, 'getOtorisasi']);
+    });
+
+    Route::prefix('petugas')->group(function () {
+        Route::get('/getPetugas', [PetugasLayananAPI::class, 'getPetugas']);
+    });
 });

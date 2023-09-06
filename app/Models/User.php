@@ -34,7 +34,21 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $hidden = [
         'password',
         'remember_token',
+        'email_verified_at',
+        'google_id',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at'
     ];
+
+    protected $appends = [
+        'user_hash'
+    ];
+
+    public function getUserHashAttribute()
+    {
+        return encryptor($this->id);
+    }
 
     /**
      * The attributes that should be cast.
@@ -52,5 +66,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function perusahaan(){
         return $this->hasOne(Perusahaan::class);
+    }
+
+    public function petugasLayanan(){
+        return $this->hasOne(Petugas_layanan::class, 'user_id', 'id');
     }
 }
