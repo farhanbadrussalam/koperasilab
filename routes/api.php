@@ -8,6 +8,9 @@ use App\Http\Controllers\API\PermohonanController;
 use App\Http\Controllers\API\OtorisasiAPI;
 use App\Http\Controllers\API\PetugasLayananAPI;
 
+use App\Mail\SendEmail;
+use App\Jobs\SendEmailJob;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -27,7 +30,15 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::post('/login', [AuthController::class, 'login']);
-
+Route::get('/send-email', function(){
+    // $data['email'] = 'badrussalam859@gmail.com';
+    // dd($data['email']);
+    // dispatch(new SendEmailJob($data));
+    $mail = new SendEmail();
+    Mail::to('badrussalam859@gmail.com')->queue($mail);
+    
+    return 'success';
+});
 
 Route::middleware('auth:sanctum')->group(function() {
     Route::get('/logout', [AuthController::class, 'logout']);
