@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Models\Layanan_jasa;
 use Auth;
 
-class LayananjasaController extends Controller
+class LayananjasaAPI extends Controller
 {
     public function getPegawai(Request $request){
 
@@ -26,6 +26,10 @@ class LayananjasaController extends Controller
             }
 
             $dataPegawai = $pegawai->get();
+
+            foreach ($dataPegawai as $key => $value) {
+                $value->getDirectPermissions();
+            }
 
             return response()->json(['data' => $dataPegawai], 200);
         }else{

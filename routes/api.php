@@ -1,10 +1,10 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\LayananjasaController;
 use App\Http\Controllers\API\JadwalController;
 use App\Http\Controllers\API\NotifikasiController;
 use App\Http\Controllers\API\PermohonanController;
+use App\Http\Controllers\API\LayananjasaAPI;
 use App\Http\Controllers\API\OtorisasiAPI;
 use App\Http\Controllers\API\PetugasLayananAPI;
 
@@ -32,8 +32,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function() {
     Route::get('/logout', [AuthController::class, 'logout']);
 
-    Route::get('/getPegawai', [LayananjasaController::class, 'getPegawai']);
-    Route::delete('/deletePegawai', [LayananjasaController::class, 'delete']);
+    Route::get('/getPegawai', [LayananjasaAPI::class, 'getPegawai']);
+    Route::delete('/deletePegawai', [LayananjasaAPI::class, 'delete']);
 
     Route::get('/getNotifikasi', [NotifikasiController::class, 'getNotifikasi']);
     Route::get('/setNotifikasi', [NotifikasiController::class, 'setNotifikasi']);

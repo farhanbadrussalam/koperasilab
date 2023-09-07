@@ -20,10 +20,10 @@ class Satuan_kerja extends Model
     ];
 
     protected $appends = [
-        'satuankerja_hash'
+        'satuan_hash'
     ];
 
-    public function getSatuankerjaHashAttribute()
+    public function getSatuanHashAttribute()
     {
         return encryptor($this->id);
     }

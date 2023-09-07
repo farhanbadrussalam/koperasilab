@@ -249,3 +249,20 @@ function stringSplit(str, prefix) {
     }
     return str;
 }
+
+function formatSelect2Staff(state) {
+    if(!state.id){
+        return state.text;
+    }
+
+    let $content = $(
+        `
+            <div class="d-flex justify-content-between">
+                <div class="">${state.text}</div>
+                <div class="text-body-secondary fs-6">${state.title != '' ? state.title : ''}</div>
+            </div>
+        `
+    )
+
+    return $content;
+}

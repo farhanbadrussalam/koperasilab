@@ -19,7 +19,7 @@ $idSatuan = Auth::user()->satuankerja_id ? Auth::user()->satuankerja_id : null;
         </div><!-- /.container-fluid -->
     </section>
     <section class="content col-md-12">
-        <div class="container col-md-10 col-xl-7">
+        <div class="container col-md-10 col-xl-9">
             <div class="card card-default shadow">
                 <div class="card-header d-flex ">
                     <h3 class="card-title flex-grow-1">

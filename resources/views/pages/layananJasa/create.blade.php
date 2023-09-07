@@ -15,8 +15,8 @@
                 </div>
             </div><!-- /.container-fluid -->
         </section>
-        <section class="content col-xl-8 col-md-12">
-            <div class="container">
+        <section class="content">
+            <div class="container col-md-12 col-xl-8">
                 <div class="card card-default color-palette-box shadow bg-white">
                     <div class="card-header d-flex ">
                         <h2 class="card-title flex-grow-1">
@@ -27,8 +27,8 @@
                         <form action="{{ route('layananJasa.store') }}" method="post">
                             @csrf
                             <div class="mb-3 row">
-                                <label for="selectSatuankerja" class="col-sm-3 form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <div class="col-sm-9">
+                                <label for="selectSatuankerja" class="col-sm-4 form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <div class="col-sm-8">
                                     <select name="satuankerja" id="selectSatuankerja"
                                         class="form-control @error('satuankerja')
                                     is-invalid
@@ -36,7 +36,7 @@
                                         onchange="getPegawai(this)">
                                         <option value="">-- Select --</option>
                                         @foreach ($satuankerja as $key => $satuan)
-                                            <option value="{{ encryptor($satuan->id) }}">{{ $satuan->name }}</option>
+                                            <option value="{{ $satuan->satuan_hash }}">{{ $satuan->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('satuankerja')
@@ -47,8 +47,8 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="selectPJ" class="col-sm-3 form-label">Penanggung Jawab <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <div class="col-sm-9">
+                                <label for="selectPJ" class="col-sm-4 form-label">Penanggung Jawab <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <div class="col-sm-8">
                                     <select name="pj" id="selectPJ"
                                         class="form-control @error('pj')
                                     is-invalid
@@ -63,8 +63,8 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="inputNamaLayanan" class="col-sm-3 form-label">Nama Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <div class="col-sm-9">
+                                <label for="inputNamaLayanan" class="col-sm-4 form-label">Nama Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <div class="col-sm-8">
                                     <input type="text" name="name_layanan" id="inputNamaLayanan"
                                         class="form-control @error('name_layanan')
                                     is-invalid
@@ -77,8 +77,8 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label class="col-sm-3 form-label">Jenis layanan <i class="bi bi-plus-square-fill text-success" title="Tambah jenis" role="button" onclick="tambahFormJenis()"></i></label>
-                                <div class="col-md-9" id="formJenisLayanan">
+                                <label class="col-sm-4 form-label">Jenis layanan <i class="bi bi-plus-square-fill text-success" title="Tambah jenis" role="button" onclick="tambahFormJenis()"></i></label>
+                                <div class="col-md-8" id="formJenisLayanan">
                                     <div class="mb-3 row">
                                         <div class="col-7">
                                             <input type="text"
@@ -110,7 +110,8 @@
     <script>
         $('#selectPJ').select2({
             theme: "bootstrap-5",
-            placeholder: "Select Penanggung jawab"
+            placeholder: "Select Penanggung jawab",
+            templateResult: formatSelect2Staff
         });
 
         function tambahFormJenis(){
@@ -161,7 +162,7 @@
                     if (result.data) {
                         let html = '<option>-- Select --</option>';
                         for (const pegawai of result.data) {
-                            html += `<option value="${pegawai.id}">${pegawai.name}</option>`;
+                            html += `<option value="${pegawai.id}" title="${stringSplit(pegawai.permissions[0].name, 'Otorisasi-')}">${pegawai.name}</option>`;
                         }
 
                         $('#selectPJ').html(html);
