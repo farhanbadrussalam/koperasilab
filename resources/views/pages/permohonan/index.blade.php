@@ -117,7 +117,7 @@
 
         function modalConfirm(id) {
             $.ajax({
-                url: '{{ url('api/permohonan') }}/' + id,
+                url: "{{ url('api/permohonan') }}/" + id,
                 method: 'GET',
                 dataType: 'json',
                 processing: true,

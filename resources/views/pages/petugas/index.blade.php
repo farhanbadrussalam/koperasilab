@@ -59,13 +59,11 @@ $idSatuan = Auth::user()->satuankerja_id ? Auth::user()->satuankerja_id : null;
                             </div>
                         </div>
                     </div>
-                    <div id="table-container">
-                        <table class="table w-100 table-borderless" id="petugas-layanan-table">
-                            <thead>
-                                <th></th>
-                            </thead>
-                        </table>
-                    </div>
+                    <table class="table w-100 table-borderless" id="petugas-layanan-table">
+                        <thead>
+                            <th></th>
+                        </thead>
+                    </table>
                 </div>
             </div>
         </div>

@@ -5,8 +5,10 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\jadwal;
+use App\Models\Jadwal_petugas;
+use Auth;
 
-class JadwalController extends Controller
+class JadwalAPI extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -29,9 +31,11 @@ class JadwalController extends Controller
      */
     public function show(string $id)
     {
-        $dataJadwal = jadwal::with('layananjasa','media')->where('id', $id)->first();
+        $idHash = decryptor($id);
+        $data['jadwal'] = jadwal::with('layananjasa','media')->where('id', $idHash)->first();
+        $data['petugas'] = Jadwal_petugas::where('jadwal_id', $data['jadwal']->id)->where('petugas_id', Auth::user()->id)->first();
 
-        return response()->json(['data' => $dataJadwal], 200);
+        return response()->json(['data' => $data], 200);
     }
 
     public function getJadwal(Request $request)
@@ -50,6 +54,21 @@ class JadwalController extends Controller
         return response()->json(['data' => $data], 200);
     }
 
+    public function getJadwalPetugas(Request $request)
+    {
+        $idJadwal = $request->idJadwal ? decryptor($request->idJadwal) : null;
+
+        if($idJadwal){
+            $jadwal = jadwal::findOrFail($idJadwal);
+            $data['petugas'] = Jadwal_petugas::with('petugas')->where('jadwal_id', $idJadwal)->get();
+            $data['pj'] = encryptor($jadwal->layananjasa->user_id);
+
+            return response()->json(['data' => $data], 200);
+        }
+
+        return response()->json(['message' => 'Id jadwal not null'], 500);
+    }
+
     /**
      * Update the specified resource in storage.
      */
@@ -63,15 +82,12 @@ class JadwalController extends Controller
      */
     public function destroy(string $id)
     {
-        // if($credential){
-            $delete = jadwal::findOrFail($id);
-            $delete->status = '99';
-            $delete->update();
+        $idjadwal = decryptor($id);
+        $delete = jadwal::findOrFail($idjadwal);
+        $delete->status = '99';
+        $delete->update();
 
-            return response()->json(['message' => 'Berhasil di hapus'], 200);
-        // }else{
-        //     return response()->json(['message' => 'Invalid credentials'], 401);
-        // }
+        return response()->json(['message' => 'Berhasil di hapus'], 200);
     }
 
     public function confirm(Request $request){

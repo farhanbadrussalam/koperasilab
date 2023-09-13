@@ -62,6 +62,20 @@ function dateFormat(tanggal, time = false) {
     return `${hour}:${minute}, ${d.toLocaleString('id-ID', options)}`;
 }
 
+function convertDate(tanggal) {
+    const options = {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+    };
+
+    const date = new Date(tanggal);
+    return date.toLocaleString('en-US', options);
+}
+
 function statusFormat(feature, status) {
     let htmlStatus = '';
     status = Number(status);
@@ -69,78 +83,78 @@ function statusFormat(feature, status) {
         switch (status) {
             case 0:
                 htmlStatus = `
-                <div class="d-flex align-items-center">
-                    <div><div class="me-1 dot bg-secondary"></div></div>
-                    <span class="subbody-medium text-submain text-truncate">Belum ditugaskan</span>
-                </div>
-                `;
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-secondary"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Belum ditugaskan</span>
+                    </div>
+                    `;
                 break;
             case 1:
                 htmlStatus = `
-                <div class="d-flex align-items-center">
-                    <div><div class="me-1 dot bg-info"></div></div>
-                    <span class="subbody-medium text-submain text-truncate">Diajukan</span>
-                </div>
-                `;
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-info"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Diajukan</span>
+                    </div>
+                    `;
                 break;
-                case 2:
-                    htmlStatus = `
+            case 2:
+                htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-success"></div></div>
                         <span class="subbody-medium text-submain text-truncate">Bersedia</span>
                     </div>
                     `;
-                    break;
-                case 3:
-                    htmlStatus = `
+                break;
+            case 9:
+                htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-danger"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Tidak bersedia</span>
+                        <span class="subbody-medium text-submain text-truncate">Menolak</span>
                     </div>
                     `;
-                    break;
-                default:
-                    htmlStatus = `
+                break;
+            default:
+                htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-danger"></div></div>
                         <span class="subbody-medium text-submain text-truncate">Dibatalkan</span>
                     </div>
                     `;
-                    break;
+                break;
         }
     } else if (feature == 'permohonan') {
         switch (status) {
             case 1:
                 htmlStatus = `
-                <div class="d-flex align-items-center">
-                    <div><div class="me-1 dot bg-secondary"></div></div>
-                    <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
-                </div>
-                `;
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-secondary"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
+                    </div>
+                    `;
                 break;
             case 2:
                 htmlStatus = `
-                <div class="d-flex align-items-center">
-                    <div><div class="me-1 dot bg-info"></div></div>
-                    <span class="subbody-medium text-submain text-truncate">Terverifikasi</span>
-                </div>
-                `;
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-info"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Terverifikasi</span>
+                    </div>
+                    `;
                 break;
             case 3:
                 htmlStatus = `
-                <div class="d-flex align-items-center">
-                    <div><div class="me-1 dot bg-success"></div></div>
-                    <span class="subbody-medium text-submain text-truncate">Selesai</span>
-                </div>
-                `;
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-success"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Selesai</span>
+                    </div>
+                    `;
                 break;
             case 9:
                 htmlStatus = `
-                <div class="d-flex align-items-center">
-                    <div><div class="me-1 dot bg-danger"></div></div>
-                    <span class="subbody-medium text-submain text-truncate">Ditolak</span>
-                </div>
-                `;
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-danger"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Ditolak</span>
+                    </div>
+                    `;
                 break;
         }
     }
@@ -258,7 +272,9 @@ function formatSelect2Staff(state) {
     let $content = $(
         `
             <div class="d-flex justify-content-between">
-                <div class="">${state.text}</div>
+                <div class="row">
+                    <div>${state.text}</div>
+                </div>
                 <div class="text-body-secondary fs-6">${state.title != '' ? state.title : ''}</div>
             </div>
         `

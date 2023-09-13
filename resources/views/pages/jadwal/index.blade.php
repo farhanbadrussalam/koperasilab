@@ -26,19 +26,9 @@
                     @endcan
                 </div>
                 <div class="card-body">
-                    <table class="table table-hover w-100" id="jadwal-table">
+                    <table class="table table-borderless w-100" id="jadwal-table">
                         <thead>
-                            <th width="5%">No</th>
-                            <th>Nama Layanan</th>
-                            <th>Mulai</th>
-                            <th>Selesai</th>
-                            <th>Kuota</th>
-                            @cannot('Penjadwalan.confirm')
-                            <th>Petugas</th>
-                            @else
-                            <th>Status</th>
-                            @endcannot
-                            <th width="10%">Action</th>
+                            <th></th>
                         </thead>
                     </table>
                 </div>
@@ -47,6 +37,7 @@
     </section>
 </div>
 @include('pages.jadwal.confirm')
+@include('pages.jadwal.info')
 @endsection
 @push('scripts')
     <script>
@@ -55,18 +46,16 @@
             datatable_jadwal = $('#jadwal-table').DataTable({
                 processing: true,
                 serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
                 ajax: "{{ route('jadwal.getData') }}",
                 columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false },
-                    { data: 'nama_layanan', name: 'nama_layanan' },
-                    { data: 'date_mulai', name: 'date_mulai' },
-                    { data: 'date_selesai', name: 'date_selesai' },
-                    { data: 'kuota', name: 'kuota' },
-                    { data: 'petugas_id', name: 'petugas_id' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false },
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
                 ]
             });
         });
+            // { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false }
 
         function btnDelete(id) {
             deleteGlobal(() => {
@@ -109,18 +98,19 @@
                     'Content-Type': 'application/json'
                 }
             }).done(result => {
-                let jadwal = result.data;
-                $('#txtNamaLayanan').html(jadwal.layananjasa.name);
-                $('#txtJenisLayanan').html(jadwal.jenislayanan);
-                $('#txtHarga').html(formatRupiah(jadwal.tarif));
-                $('#txtStart').html(dateFormat(jadwal.date_mulai));
-                $('#txtEnd').html(dateFormat(jadwal.date_selesai));
-                let status = statusFormat('jadwal', jadwal.status);
+                let data = result.data;
+
+                $('#txtNamaLayanan').html(data.jadwal.layananjasa.name);
+                $('#txtJenisLayanan').html(data.jadwal.jenislayanan);
+                $('#txtHarga').html(formatRupiah(data.jadwal.tarif));
+                $('#txtStart').html(convertDate(data.jadwal.date_mulai));
+                $('#txtEnd').html(convertDate(data.jadwal.date_selesai));
+                let status = statusFormat('jadwal', data.petugas.status);
                 $('#txtStatus').html(status);
-                $('#txtSuratTugas').attr('href', `{{ asset('storage/dokumen/jadwal') }}/${jadwal.media.file_hash}`);
-                $('#txtSuratTugas').html(jadwal.media.file_ori);
-                $('#idJadwal').val(jadwal.id);
-                if(jadwal.status == 1){
+                $('#txtSuratTugas').attr('href', `{{ asset('storage/dokumen/jadwal') }}/${data.jadwal.media.file_hash}`);
+                $('#txtSuratTugas').html(data.jadwal.media.file_ori);
+                $('#idJadwal').val(data.jadwal.jadwal_hash);
+                if(data.petugas.status == 1){
                     $('#divConfirmBtn').show();
                 }else{
                     $('#divConfirmBtn').hide();
@@ -160,6 +150,56 @@
                 $('#confirmModal').modal('hide');
             }).fail(err => {
                 console.log(err);
+            })
+        }
+
+        function showPetugas(id) {
+            $.ajax({
+                url: "{{ url('api/getJadwalPetugas') }}",
+                method: "GET",
+                dataType: 'json',
+                processData: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                },
+                data: {
+                    idJadwal: id
+                }
+            }).done(result => {
+                let content = '';
+                for (const data of result.data.petugas) {
+                    let contentOtorisasi = '';
+                    for (const otorisasi of data.otorisasi) {
+                        contentOtorisasi += `<button class="btn btn-outline-dark btn-sm m-1" role="button">${stringSplit(otorisasi.name, 'Otorisasi-')}</button>`;
+                    }
+
+                    let pj = data.petugas.user_hash == result.data.pj ? `<small class="text-danger">Penanggung jawab</small>` : '';
+                    content += `
+                        <div class="card m-0 mb-2">
+                            <div class="card-body d-flex p-2">
+                                <div class="flex-grow-1 d-flex my-auto">
+                                    <div>
+                                        <img src="${data.avatar}" alt="Avatar" onerror="this.src='{{ asset('assets/img/default-avatar.jpg') }}'" style="width: 3em;" class="img-circle border shadow-sm">
+                                    </div>
+                                    <div class="px-3 my-auto">
+                                        <div class="lh-1">${data.petugas.name}</div>
+                                        ${pj}
+                                    </div>
+                                </div>
+                                <div class="p-2 m-auto">
+                                    <div class="d-flex flex-wrap justify-content-end">
+                                        ${contentOtorisasi}
+                                    </div>
+                                </div>
+                                <div class="p-2 m-auto">${statusFormat('jadwal', data.status)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                $('#content-petugas').html(content);
+                $('#infoModal').modal('show');
             })
         }
     </script>

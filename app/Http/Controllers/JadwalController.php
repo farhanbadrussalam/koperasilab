@@ -6,6 +6,9 @@ use App\Models\jadwal;
 use App\Models\Layanan_jasa;
 use App\Models\User;
 use App\Models\tbl_media;
+use App\Models\Jadwal_petugas;
+use App\Models\Petugas_layanan;
+
 use Illuminate\Http\Request;
 use Auth;
 use DataTables;
@@ -23,10 +26,13 @@ class JadwalController extends Controller
 
     public function getData() {
         $jadwal = jadwal::with('petugas','layananjasa','user')->where('status', '!=', 99);
+        $user = Auth::user();
 
-        if(!Auth::user()->hasRole('Super Admin')){
-            if(Auth::user()->hasPermissionTo('Penjadwalan.confirm')){
-                $jadwal->where('petugas_id', Auth::user()->id);
+        if(!$user->hasRole('Super Admin')){
+            if($user->hasPermissionTo('Penjadwalan.confirm')){
+                $jadwal->whereHas('petugas', function($query) use ($user){
+                    $query->where('petugas_id', $user->id);
+                });
             }else{
                 $jadwal->where('created_by', Auth::user()->id);
             }
@@ -34,33 +40,78 @@ class JadwalController extends Controller
 
         return DataTables::of($jadwal)
                 ->addIndexColumn()
-                ->addColumn('nama_layanan', function($data) {
-                    return "
-                        <div>".$data->layananjasa->nama_layanan."</div>
-                        <div>$data->jenislayanan</div>
-                        <div>".formatCurrency($data->tarif)."</div>
-                    ";
-                })
-                ->addColumn('action', function($data){
-                    $user = Auth::user();
-                    $btnAction = '<div class="text-center">';
-                    $user->hasPermissionTo('Penjadwalan.edit') && $btnAction .= '<a class="btn btn-warning btn-sm  m-1" href="'.route("jadwal.edit", $data->id).'"><i class="bi bi-pencil-square"></i></a>';
-                    $user->hasPermissionTo('Penjadwalan.delete') && $btnAction .= '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')"><i class="bi bi-trash3-fill"></i></a>';
+                ->addColumn('content', function($data) use ($user){
+                    $idHash = "'".$data->jadwal_hash."'";
+                    $countPetugas = Jadwal_petugas::where('jadwal_id', $data->id)->count();
+                    $countBersedia = Jadwal_petugas::where('jadwal_id', $data->id)->where('status', 2)->count();
+                    $dataPetugas = Jadwal_petugas::where('jadwal_id', $data->id)->where('petugas_id', $user->id)->first();
+
+                    $btnEdit = $user->hasPermissionTo('Penjadwalan.edit') ? '<a class="btn btn-outline-warning btn-sm m-1" href="'.route("jadwal.edit", $data->jadwal_hash).'"><i class="bi bi-pencil-square"></i></a>' : false;
+                    $btnDelete = $user->hasPermissionTo('Penjadwalan.delete') ? '<button class="btn btn-outline-danger btn-sm m-1" onclick="btnDelete('.$idHash.')"><i class="bi bi-trash3-fill"></i></a>' : false;
+                    $btnConfirm = false;
+                    $btnInfoPetugas = false;
+                    $infoBersedia = '';
                     if($user->hasPermissionTo('Penjadwalan.confirm')){
-                        $data->status == 1 ? $btnAction .= '<button class="btn btn-success btn-sm m-1" onclick="modalConfirm('.$data->id.')">Confirm</button>' : $btnAction .= '<button class="btn btn-info btn-sm m-1" onclick="modalConfirm('.$data->id.')"><i class="bi bi-eye-fill"></i></button>';
+                        if($dataPetugas->status == 1) {
+                            $btnConfirm .= '<button class="btn btn-outline-success btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check-circle"></i> Confirm</button>';
+                        } else if($dataPetugas->status == 2){
+                            $btnConfirm .= '<button class="btn btn-outline-info btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check"></i> Bersedia</button>';
+                        } else if($dataPetugas->status == 9){
+                            $btnConfirm .= '<button class="btn btn-outline-danger btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-x"></i> Menolak</button>';
+                        }
+                    }else{
+                        $btnInfoPetugas = '
+                            <button role="button" class="btn btn-outline-info btn-sm mb-2" onclick="showPetugas('.$idHash.')">
+                                <div><i class="bi bi-people-fill"></i> Petugas</div>
+                                <div class="badge text-bg-secondary">'.$countBersedia.' / '.$countPetugas.'</div>
+                            </button>
+                            ';
                     }
-                    $btnAction .= '</div>';
-                    return $btnAction;
+
+
+                    return '
+                        <div class="card m-0">
+                            <div class="card-body row d-flex p-3 align-items-center">
+                                <div class="col-3">
+                                    <div class="fw-bold text-wrap">'.$data->layananjasa->nama_layanan.'</div>
+                                    <small class="text-body-secondary text-wrap">'.$data->jenislayanan.'</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class=" d-flex p-2 flex-column">
+                                        <div>
+                                            <div class="fw-bold">Start date</div>
+                                            <small class="text-body-secondary">'.convert_date($data->date_mulai).'</small>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">End date</div>
+                                            <small class="text-body-secondary">'.convert_date($data->date_selesai).'</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-2">
+                                    <div class="fw-bold">Price</div>
+                                    <div>'.formatCurrency($data->tarif).'</div>
+                                </div>
+                                <div class="col-1">
+                                    '.$infoBersedia.'
+                                    <div class="fw-bold">Kuota</div>
+                                    <div>'.$data->kuota.'</div>
+                                </div>
+                                <div class="col-2 text-center">
+                                    <div>
+                                        '.$btnEdit.'
+                                        '.$btnDelete.'
+                                        '.$btnConfirm.'
+                                    </div>
+                                    <div>
+                                        '.$btnInfoPetugas.'
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ';
                 })
-                ->editColumn('petugas_id', function($data){
-                    $status = statusFormat("jadwal", $data->status);
-                    $petugas = ($data->petugas && !Auth::user()->hasPermissionTo('Penjadwalan.confirm')) ? $data->petugas->name : '';
-                    return "
-                        <div>".$petugas."</div>
-                        <div>".$status."</div>
-                    ";
-                })
-                ->rawColumns(['action', 'nama_layanan', 'petugas_id'])
+                ->rawColumns(['content'])
                 ->make(true);
     }
 
@@ -70,7 +121,7 @@ class JadwalController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $data['layanan'] = Layanan_jasa::where('satuankerja_id', Auth::user()->satuankerja_id)
+        $data['layanan'] = Layanan_jasa::with('user','satuanKerja')->where('satuankerja_id', Auth::user()->satuankerja_id)
                                 ->where('status', 1)
                                 ->get();
         $data['petugas'] = User::where('satuankerja_id', $user->satuankerja_id)->role('staff')->get();
@@ -92,6 +143,12 @@ class JadwalController extends Controller
             'petugas' => ['required']
         ]);
 
+        $layanan_jasa = Layanan_jasa::where('id', decryptor($request->layanan_jasa))->first();
+        $petugas = array($layanan_jasa->user_id);
+        foreach ($request->petugas as $key => $value) {
+            array_push($petugas, (int) decryptor($value));
+        }
+
         // upload dokumen
         $dokumen = $request->file('dokumen');
         $media = '';
@@ -110,24 +167,33 @@ class JadwalController extends Controller
         }
 
         $dataJadwal = array(
-            'layananjasa_id' => $request->layanan_jasa,
+            'layananjasa_id' => decryptor($request->layanan_jasa),
             'jenislayanan' => explode('|', $request->jenis_layanan)[0],
             'tarif' => $request->tarif,
             'date_mulai' => $request->tanggal_mulai,
             'date_selesai' => $request->tanggal_selesai,
             'kuota' => $request->kuota,
             'status' => 1,
-            'petugas_id' => $request->petugas,
             'dokumen' => $media->id,
             'created_by' => Auth::user()->id
         );
 
         $saveJadwal = jadwal::create($dataJadwal);
 
-        $sendNotif = notifikasi(array(
-            'to_user' => $request->petugas,
-            'type' => 'jadwal'
-        ), "Anda ditugaskan untuk layanan ".$saveJadwal->layananjasa->nama_layanan." pada tanggal ".$request->tanggal_mulai);
+        foreach ($petugas as $key => $value) {
+            Jadwal_petugas::create([
+                'jadwal_id' => $saveJadwal->id,
+                'petugas_id' => $value,
+                'status' => 1
+            ]);
+
+            # Send notifikasi
+            $pjContent = $value == $layanan_jasa->user_id ? "dan menjadi Penanggung jawab" : "";
+            $sendNotif = notifikasi(array(
+                'to_user' => $value,
+                'type' => 'jadwal'
+            ), "Anda ditugaskan untuk layanan ".$saveJadwal->layananjasa->nama_layanan." ".$pjContent." pada tanggal ".$request->tanggal_mulai);
+        }
 
         return redirect()->route('jadwal.index')->with('success', 'Berhasil di tambah');
     }
@@ -143,11 +209,16 @@ class JadwalController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(jadwal $jadwal)
+    public function edit($id)
     {
-        // $data['layanan'] = $jadwal->layananjasa;
-        $data['jadwal'] = $jadwal;
-        $data['petugas'] = $jadwal->petugas;
+        $idJadwal = decryptor($id);
+        $jadwal = jadwal::findOrFail($idJadwal);
+        $data = array();
+        if($jadwal){
+            $data['jadwal'] = $jadwal;
+            $data['pegawai'] = Petugas_layanan::where('satuankerja_id', $jadwal->layananjasa->satuankerja_id)->get();
+            $data['petugas'] = Jadwal_petugas::with('petugas')->where('jadwal_id', $idJadwal)->get();
+        }
         $data['token'] = generateToken();
         return view('pages.jadwal.edit', $data);
     }
@@ -211,7 +282,9 @@ class JadwalController extends Controller
             'answer' => ['required']
         ]);
 
-        $jadwal = jadwal::findOrFail($request->idJadwal);
+        $user = Auth::user();
+
+        $jadwal = Jadwal_petugas::where('jadwal_id', decryptor($request->idJadwal))->where('petugas_id', $user->id)->first();
         $jadwal->status = $request->answer;
 
         $jadwal->update();

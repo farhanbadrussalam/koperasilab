@@ -14,7 +14,8 @@ class PetugasLayananAPI extends Controller
      */
     public function getPetugas(Request $request)
     {
-        $idPetugas = $request->idPetugas ? (decryptor($request->idPetugas) ? decryptor($request->idPetugas) : $request->idPetugas) : null;
+        $idPetugas = $request->idPetugas ? decryptor($request->idPetugas) : null;
+        $idSatuankerja = $request->idSatuan ? decryptor($request->idSatuan) : null;
 
         $query = Petugas_layanan::with('satuankerja','lab', 'petugas:id,name,email', 'user:id,name,email')
                     ->where('status', '!=', 99);
@@ -26,7 +27,15 @@ class PetugasLayananAPI extends Controller
                 $petugas = User::where('id', $dataPetugas->petugas->id)->first();
                 $dataPetugas['otorisasi'] = $petugas->getDirectPermissions();
             }
-        }else{
+        } else if($idSatuankerja){
+            $query->where('satuankerja_id', $idSatuankerja);
+            $query->where('status_verif', 2);
+            $dataPetugas = $query->get();
+            foreach ($dataPetugas as $key => $value) {
+                $petugas = User::where('id', $value->petugas->id)->first();
+                $value['otorisasi'] = $petugas->getDirectPermissions();
+            }
+        } else{
             $query->orderBy('id', 'desc');
             $dataPetugas = $query->get();
         }

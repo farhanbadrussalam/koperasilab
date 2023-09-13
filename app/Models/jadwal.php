@@ -19,13 +19,25 @@ class jadwal extends Model
         'date_selesai',
         'kuota',
         'dokumen',
-        'petugas_id',
         'status',
         'created_by'
     ];
 
+    protected $hidden = [
+        'id'
+    ];
+
+    protected $appends = [
+        'jadwal_hash'
+    ];
+
+    public function getJadwalHashAttribute()
+    {
+        return encryptor($this->id);
+    }
+
     public function petugas(){
-        return $this->belongsTo(User::class, 'petugas_id', 'id');
+        return $this->belongsTo(Jadwal_petugas::class, 'id', 'jadwal_id');
     }
 
     public function layananjasa(){

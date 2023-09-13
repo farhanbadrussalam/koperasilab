@@ -28,8 +28,8 @@
                         @csrf
                         @method('PUT')
                         <div class="row">
-                            <div class="col-md-12 mb-2">
-                                <label for="selectLayananjasa" class="col-md-3 form-label">Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <div class="col-md-6 mb-2">
+                                <label for="selectLayananjasa" class="form-label">Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <select name="layanan_jasa" id="selectLayananjasa" class="form-control @error('layanan_jasa')
                                     is-invalid
                                 @enderror" onchange="selectLayanan(this)">
@@ -64,6 +64,17 @@
                                 </div>
                             </div>
                             <div class="col-md-6 mb-2">
+                                <label for="inputKuota" class="form-label">Kuota <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <input type="number" name="kuota" id="inputKuota" class="form-control @error('kuota')
+                                    is-invalid
+                                @enderror" value="{{ old('kuota') ? old('kuota') : $jadwal->kuota }}">
+                                @error('kuota')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-2">
                                 <label for="inputDateMulai" class="form-label">Tanggal mulai <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <x-flatpickr name="tanggal_mulai" show-time time-format="H:i"  value="{{ old('tanggal_mulai') ? old('tanggal_mulai') : $jadwal->date_mulai }}" />
                                 @error('tanggal_mulai')
@@ -81,23 +92,19 @@
                                     </div>
                                 @enderror
                             </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="inputKuota" class="form-label">Kuota <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="number" name="kuota" id="inputKuota" class="form-control @error('kuota')
-                                    is-invalid
-                                @enderror" value="{{ old('kuota') ? old('kuota') : $jadwal->kuota }}">
-                                @error('kuota')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
+                            <div class="col-md-12 mb-2">
+                                <label for="inputPJ" class="form-label">Penanggung jawab</label>
+                                <input type="text" id="inputPJ" class="form-control" value="{{ $jadwal->layananjasa->user->name ." (". stringSplit($jadwal->layananjasa->user->getDirectPermissions()[0]->name .")", 'Otorisasi-')}}" readonly>
                             </div>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-12 mb-2">
                                 <label for="selectPetugas" class="form-label">Petugas <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="petugas" id="selectPetugas" class="form-control @error('petugas')
+                                <select name="petugas[]" id="selectPetugas" class="form-control @error('petugas')
                                     is-invalid
-                                @enderror">
-                                    <option value="{{ $petugas->id }}">{{ $petugas->name }}</option>
+                                @enderror" multiple>
+                                    <option value="">--- Select ---</option>
+                                    @foreach ($pegawai as $val)
+                                        <option value="{{ $val->petugas->user_hash }}" title="{{ stringSplit($val->petugas->getDirectPermissions()[0]->name, 'Otorisasi-') }}">{{ $val->petugas->name }}</option>
+                                    @endforeach
                                 </select>
                                 @error('petugas')
                                     <div class="invalid-feedback">
@@ -133,11 +140,18 @@
 @push('scripts')
     <script>
         const mediaJadwal = @json($jadwal->media);
+        const petugas = @json($petugas);
 
         $('#inputDateMulai').datepicker({
             defaultDate: "+1w",
             changeMonth: true,
             numberOfMonths: 1
+        });
+
+        $('#selectPetugas').select2({
+            theme: "bootstrap-5",
+            placeholder: "Select petugas",
+            templateResult: formatSelect2Staff
         });
 
         setDropify('init', '#uploadFile', {
@@ -146,5 +160,11 @@
             defaultFile: mediaJadwal ? "{{ asset('storage/dokumen/jadwal/') }}/"+mediaJadwal.file_hash : false,
             fileNameOri: mediaJadwal ? mediaJadwal.file_ori : false
         });
+
+        let arrPetugas = [];
+        for (const val of petugas) {
+            arrPetugas.push(val.petugas.user_hash);
+        }
+        $('#selectPetugas').val(arrPetugas).trigger('change');
     </script>
 @endpush

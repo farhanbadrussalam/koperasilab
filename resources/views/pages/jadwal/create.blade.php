@@ -15,8 +15,8 @@
             </div>
         </div><!-- /.container-fluid -->
     </section>
-    <section class="content col-xl-8 col-md-12">
-        <div class="container">
+    <section class="content">
+        <div class="container col-md-12 col-xl-8">
             <div class="card card-default color-palette-box shadow">
                 <div class="card-header d-flex ">
                     <h2 class="card-title flex-grow-1">
@@ -27,14 +27,14 @@
                     <form action="{{ route('jadwal.store') }}" method="post" enctype="multipart/form-data">
                         @csrf
                         <div class="row">
-                            <div class="col-md-12 mb-2">
-                                <label for="selectLayananjasa" class="col-md-3 form-label">Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <div class="col-md-6 mb-2">
+                                <label for="selectLayananjasa" class="form-label">Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <select name="layanan_jasa" id="selectLayananjasa" class="form-control @error('layanan_jasa')
                                     is-invalid
                                 @enderror" onchange="selectLayanan(this)">
                                     <option value="">--- Select ---</option>
                                     @foreach ($layanan as $value)
-                                        <option value="{{ $value->id }}">{{ $value->nama_layanan }}</option>
+                                        <option value="{{ $value->layanan_hash }}">{{ $value->nama_layanan }}</option>
                                     @endforeach
                                 </select>
                                 @error('layanan_jasa')
@@ -66,6 +66,17 @@
                                 </div>
                             </div>
                             <div class="col-md-6 mb-2">
+                                <label for="inputKuota" class="form-label">Kuota <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <input type="number" name="kuota" id="inputKuota" class="form-control @error('kuota')
+                                    is-invalid
+                                @enderror">
+                                @error('kuota')
+                                    <div class="invalid-feedback">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-2">
                                 <label for="inputDateMulai" class="form-label">Tanggal mulai <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <x-flatpickr name="tanggal_mulai" show-time time-format="H:i" :min-date="today()" />
                                 @error('tanggal_mulai')
@@ -83,26 +94,16 @@
                                     </div>
                                 @enderror
                             </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="inputKuota" class="form-label">Kuota <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="number" name="kuota" id="inputKuota" class="form-control @error('kuota')
-                                    is-invalid
-                                @enderror">
-                                @error('kuota')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
+                            <div class="col-md-12 mb-2">
+                                <label for="inputPJ" class="form-label">Penanggung jawab</label>
+                                <input type="text" id="inputPJ" class="form-control" readonly>
                             </div>
-                            <div class="col-md-6 mb-2">
+                            <div class="col-md-12 mb-2">
                                 <label for="selectPetugas" class="form-label">Petugas <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="petugas" id="selectPetugas" class="form-control @error('petugas')
+                                <select name="petugas[]" id="selectPetugas" class="form-control @error('petugas')
                                     is-invalid
-                                @enderror">
+                                @enderror" multiple>
                                     <option value="">--- Select ---</option>
-                                    @foreach ($petugas as $value)
-                                        <option value="{{ $value->id }}">{{ $value->name }}</option>
-                                    @endforeach
                                 </select>
                                 @error('petugas')
                                     <div class="invalid-feedback">
@@ -138,21 +139,35 @@
 @push('scripts')
     <script>
         const layanan = @json($layanan);
+        const petugas = @json($petugas);
+
+        $('#selectPetugas').select2({
+            theme: "bootstrap-5",
+            placeholder: "Select petugas",
+            templateResult: formatSelect2Staff
+        });
 
         function selectLayanan(obj) {
             let idLayanan = obj.value;
-            let cariLayanan = layanan.find(d => d.id == idLayanan);
+            let cariLayanan = layanan.find(d => d.layanan_hash == idLayanan);
+            let contentPetugas = `<option value="">--- Select ---</option>`;
+            let contentTarif = `<option value="">--- Select ---</option>`;
 
             if(cariLayanan){
                 let jenis = JSON.parse(cariLayanan.jenis_layanan);
-                let html = `<option>--- Select ---</option>`;
 
                 for (const value of jenis) {
-                    html += `<option value="${value.jenis}|${value.tarif}">${value.jenis}</option>`;
+                    contentTarif += `<option value="${value.jenis}|${value.tarif}">${value.jenis}</option>`;
                 }
 
-                $('#selectJenisLayanan').html(html);
+                getPegawai(cariLayanan);
+            }else{
+                $('#inputPJ').val("");
+                $('#selectPetugas').val(null).trigger('change');
+                $('#selectPetugas').html(contentPetugas);
             }
+
+            $('#selectJenisLayanan').html(contentTarif);
         }
 
         function selectJenis(obj) {
@@ -170,5 +185,47 @@
             allowedFileExtensions: ['pdf', 'doc', 'docx'],
             maxFileSize: '5M'
         });
+
+        function getPegawai(layanan) {
+            if (layanan) {
+                $.ajax({
+                    method: 'GET',
+                    url: "{{ url('/api/petugas/getPetugas') }}",
+                    dataType: 'json',
+                    processData: true,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`,
+                        'Content-Type': 'application/json'
+                    },
+                    data: {
+                        idSatuan: layanan.satuan_kerja.satuan_hash
+                    }
+                }).done(function(result) {
+                    if (result.data) {
+                        let html = '<option>-- Select --</option>';
+                        for (const data of result.data) {
+                            if(data.petugas.user_hash == layanan.user.user_hash){
+                                $('#inputPJ').val(`${data.petugas.name} (${stringSplit(data.otorisasi[0].name, 'Otorisasi-')})`);
+                            }else{
+                                html += `<option value="${data.petugas.user_hash}" title="${stringSplit(data.otorisasi[0].name, 'Otorisasi-')}" >
+                                            ${data.petugas.name}
+                                        </option>`;
+                            }
+                        }
+
+                        $('#selectPetugas').html(html);
+                    }
+                }).fail(function(message) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message.responseJSON.message
+                    });
+                    console.error(message.responseJSON.message);
+                });
+            } else {
+                $('#selectPetugas').html('<option>-- Select --</option>');
+            }
+        }
     </script>
 @endpush

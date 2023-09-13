@@ -147,7 +147,7 @@
             if (obj.value) {
                 $.ajax({
                     method: 'GET',
-                    url: "{{ url('/api/getPegawai') }}",
+                    url: "{{ url('/api/petugas/getPetugas') }}",
                     dataType: 'json',
                     processData: true,
                     headers: {
@@ -155,14 +155,13 @@
                         'Content-Type': 'application/json'
                     },
                     data: {
-                        satuankerja: obj.value,
-                        role: "staff"
+                        idSatuan: obj.value
                     }
                 }).done(function(result) {
                     if (result.data) {
                         let html = '<option>-- Select --</option>';
-                        for (const pegawai of result.data) {
-                            html += `<option value="${pegawai.id}" title="${stringSplit(pegawai.permissions[0].name, 'Otorisasi-')}">${pegawai.name}</option>`;
+                        for (const data of result.data) {
+                            html += `<option value="${data.petugas.user_hash}" title="${stringSplit(data.otorisasi[0].name, 'Otorisasi-')}">${data.petugas.name}</option>`;
                         }
 
                         $('#selectPJ').html(html);

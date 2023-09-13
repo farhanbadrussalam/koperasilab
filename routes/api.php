@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\JadwalController;
+use App\Http\Controllers\API\JadwalAPI;
 use App\Http\Controllers\API\NotifikasiController;
 use App\Http\Controllers\API\PermohonanController;
 use App\Http\Controllers\API\LayananjasaAPI;
 use App\Http\Controllers\API\OtorisasiAPI;
 use App\Http\Controllers\API\PetugasLayananAPI;
+use App\Http\Controllers\API\AssetsAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -39,10 +40,11 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/setNotifikasi', [NotifikasiController::class, 'setNotifikasi']);
 
 
-    Route::resource('jadwal', JadwalController::class);
-    Route::get('/getJadwal', [JadwalController::class, 'getJadwal']);
-    Route::post('/updatePenugasan', [JadwalController::class, 'confirm']);
-    Route::delete('/deleteJadwal/{id}', [JadwalController::class, 'destroy']);
+    Route::resource('jadwal', JadwalAPI::class);
+    Route::get('/getJadwal', [JadwalAPI::class, 'getJadwal']);
+    Route::get('/getJadwalPetugas', [JadwalAPI::class, 'getJadwalPetugas']);
+    Route::post('/updatePenugasan', [JadwalAPI::class, 'confirm']);
+    Route::delete('/deleteJadwal/{id}', [JadwalAPI::class, 'destroy']);
 
     Route::resource('permohonan', PermohonanController::class);
     Route::post('/updatePermohonan', [PermohonanController::class, 'confirm']);
@@ -54,4 +56,5 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::prefix('petugas')->group(function () {
         Route::get('/getPetugas', [PetugasLayananAPI::class, 'getPetugas']);
     });
+
 });
