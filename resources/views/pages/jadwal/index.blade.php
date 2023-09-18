@@ -26,6 +26,49 @@
                     @endcan
                 </div>
                 <div class="card-body">
+                    <div class="d-flex flex-wrap">
+                        <div class="m-2">
+                            <label for="filterInputSearch" class="form-label">Searching</label>
+                            <div>
+                                <input type="text" name="filterInputSearch" id="filterInputSearch" class="form-control" aria-describedby="btnSearch" placeholder="Name layanan">
+                            </div>
+                        </div>
+                        @can('Penjadwalan.confirm')
+                        <div class="m-2">
+                            <label for="filterStatus" class="form-label">Status</label>
+                            <select name="filterStatus" id="filterStatus" class="form-select">
+                                <option value="" selected>All</option>
+                                <option value="{{ encryptor(1) }}">Confirm</option>
+                                <option value="{{ encryptor(2) }}">Bersedia</option>
+                                <option value="{{ encryptor(9) }}">Menolak</option>
+                            </select>
+                        </div>
+                        @endcan
+                        <div class="m-2">
+                            <label for="filterPrice" class="form-label">Price</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="">Rp</span>
+                                <input type="text" name="filterPriceMin" id="filterPriceMin" class="form-control rupiah" placeholder="Price Minimum">
+                            </div>
+                        </div>
+                        <div class="m-2">
+                            <label for="filterPrice" class="form-label">&nbsp;</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="">Rp</span>
+                                <input type="text" name="filterPriceMax" id="filterPriceMax" class="form-control rupiah" placeholder="Price Maximum">
+                            </div>
+                        </div>
+                        <div class="m-2 col-4">
+                            <label for="filterStartDate" class="form-label">Start date</label>
+                            <input type="text" name="filterStartDate" id="filterStartDate" class="form-control" placeholder="Choose Date" />
+                        </div>
+                        <div class="m-2">
+                            <label for="btnFilter" class="form-label">&nbsp;</label>
+                            <div>
+                                <button class="btn btn-outline-secondary" type="button" id="btnFilter">Filter</button>
+                            </div>
+                        </div>
+                    </div>
                     <table class="table table-borderless w-100" id="jadwal-table">
                         <thead>
                             <th></th>
@@ -49,11 +92,27 @@
                 searching: false,
                 ordering: false,
                 lengthChange: false,
-                ajax: "{{ route('jadwal.getData') }}",
+                ajax: {
+                    url: "{{ route('jadwal.getData') }}",
+                    data: function (d) {
+                        d.search = $('#filterInputSearch').val(),
+                        d.status = $('#filterStatus').val(),
+                        d.priceMin = $('#filterPriceMin').val(),
+                        d.priceMax = $('#filterPriceMax').val(),
+                        d.startDate = $('#filterStartDate').val()
+                    }
+                },
                 columns: [
                     { data: 'content', name: 'content', orderable: false, searchable: false}
                 ]
             });
+            $('#filterStartDate').flatpickr({
+                mode: "range"
+            });
+
+            $('#btnFilter').on('click', obj => {
+                datatable_jadwal?.ajax.reload();
+            })
         });
             // { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false }
 
@@ -89,7 +148,7 @@
 
         function modalConfirm(id){
             $.ajax({
-                url: "{{ url('api/jadwal') }}/"+id,
+                url: "{{ url('api/jadwal_api') }}/"+id,
                 method: 'GET',
                 dataType: 'json',
                 processData: true,

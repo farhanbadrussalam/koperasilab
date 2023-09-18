@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="{{ asset('assets/dropify/css/dropify.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.min.css') }}">
-    @include('flatpickr::components.style')
+    <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -62,7 +62,7 @@
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('assets/dropify/js/dropify.js') }}"></script>
     <script src="{{ asset('vendor/select2/js/select2.full.js') }}"></script>
-    @include('flatpickr::components.script')
+    <script src="{{ asset('vendor/flatpickr/flatpickr.min.js') }}"></script>
     @stack('scripts')
 
     <script>

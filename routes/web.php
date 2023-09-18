@@ -86,3 +86,32 @@ Route::middleware(['auth', 'verified'])->group(function() {
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 
+Route::post('password/email', [
+    'as' => 'laravel.password.email',
+    'uses' => 'App\Http\Controllers\Auth\ForgotPasswordController@sendResetLinkEmail'
+]);
+
+Route::get('password/reset', [
+    'as' => 'laravel.password.request',
+    'uses' => 'App\Http\Controllers\Auth\ForgotPasswordController@showLinkRequestForm'
+]);
+
+Route::get('password/reset/{token}', [
+    'as' => 'laravel.password.reset',
+    'uses' => 'App\Http\Controllers\Auth\ResetPasswordController@showResetForm'
+]);
+
+Route::get('password/reset', [
+    'as' => 'laravel.password.update',
+    'uses' => 'App\Http\Controllers\Auth\ResetPasswordController@reset'
+]);
+
+Route::post('password/reset', [
+    'as' => 'laravel.password.update.post',
+    'uses' => 'App\Http\Controllers\Auth\ResetPasswordController@reset'
+]);
+
+Route::get('password/confirm', [
+    'as' => 'laravel.password.confirm',
+    'uses' => 'App\Http\Controllers\Auth\ConfirmPasswordController@showConfirmForm'
+]);

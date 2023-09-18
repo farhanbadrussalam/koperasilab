@@ -78,7 +78,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputDateMulai" class="form-label">Tanggal mulai <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <x-flatpickr name="tanggal_mulai" show-time time-format="H:i" :min-date="today()" />
+                                <input type="text" name="tanggal_mulai" id="inputDateMulai" class="form-control">
                                 @error('tanggal_mulai')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -87,7 +87,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputDateSelesai" class="form-label">Tanggal selesai <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <x-flatpickr name="tanggal_selesai" show-time time-format="H:i" :min-date="today()" />
+                                <input type="text" name="tanggal_selesai" id="inputDateSelesai" class="form-control">
                                 @error('tanggal_selesai')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -145,6 +145,20 @@
             theme: "bootstrap-5",
             placeholder: "Select petugas",
             templateResult: formatSelect2Staff
+        });
+
+        $('#inputDateMulai').flatpickr({
+            enableTime: true,
+            minDate: 'today',
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
+        });
+
+        $('#inputDateSelesai').flatpickr({
+            enableTime: true,
+            minDate: 'today',
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
         });
 
         function selectLayanan(obj) {

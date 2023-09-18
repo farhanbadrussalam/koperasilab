@@ -40,13 +40,13 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/setNotifikasi', [NotifikasiController::class, 'setNotifikasi']);
 
 
-    Route::resource('jadwal', JadwalAPI::class);
+    Route::resource('jadwal_api', JadwalAPI::class);
     Route::get('/getJadwal', [JadwalAPI::class, 'getJadwal']);
     Route::get('/getJadwalPetugas', [JadwalAPI::class, 'getJadwalPetugas']);
     Route::post('/updatePenugasan', [JadwalAPI::class, 'confirm']);
     Route::delete('/deleteJadwal/{id}', [JadwalAPI::class, 'destroy']);
 
-    Route::resource('permohonan', PermohonanController::class);
+    Route::resource('permohonan_api', PermohonanController::class);
     Route::post('/updatePermohonan', [PermohonanController::class, 'confirm']);
 
     Route::prefix('otorisasi')->group(function () {

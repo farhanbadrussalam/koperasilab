@@ -111,6 +111,38 @@ class JadwalController extends Controller
                         </div>
                     ';
                 })
+                ->filter(function ($query) {
+                    if(request()->has('search') && request('search')){
+                        $query->whereHas('layananjasa', function($layanan){
+                            $layanan->where('nama_layanan', 'like', "%" . request('search') . "%");
+                        });
+                    }
+
+                    if(request()->has('status') && request('status')){
+                        $query->whereHas('petugas', function($petugas){
+                            $status = decryptor(request('status'));
+                            $petugas->where('status', $status);
+                        });
+                    }
+
+                    if(request()->has('priceMin') && request('priceMin')){
+                        $priceMin = (int) unmask(request('priceMin'));
+                        $query->where('tarif', '>=', $priceMin);
+                    }
+
+                    if(request()->has('priceMax') && request('priceMax')){
+                        $priceMax = (int) unmask(request('priceMax'));
+                        $query->where('tarif', '<=', $priceMax);
+                    }
+
+                    if(request()->has('startDate') && request('startDate')){
+                        $split = explode(' to ', request('startDate'));
+                        $start = $split[0];
+                        $end = $split[1];
+
+                        $query->whereDate('date_mulai', '>=', $start)->whereDate('date_mulai', '<=', $end);
+                    }
+                })
                 ->rawColumns(['content'])
                 ->make(true);
     }
