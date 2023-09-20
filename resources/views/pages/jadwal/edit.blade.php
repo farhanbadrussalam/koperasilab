@@ -76,7 +76,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputDateMulai" class="form-label">Tanggal mulai <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <x-flatpickr name="tanggal_mulai" show-time time-format="H:i"  value="{{ old('tanggal_mulai') ? old('tanggal_mulai') : $jadwal->date_mulai }}" />
+                                <input type="text" name="tanggal_mulai" id="inputDateMulai" class="form-control" value="{{ old('tanggal_mulai') ? old('tanggal_mulai') : $jadwal->date_mulai }}">
                                 @error('tanggal_mulai')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -85,7 +85,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputDateSelesai" class="form-label">Tanggal selesai <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <x-flatpickr name="tanggal_selesai" show-time time-format="H:i"  value="{{ old('tanggal_selesai') ? old('tanggal_selesai') : $jadwal->date_selesai }}" />
+                                <input type="text" name="tanggal_selesai" id="inputDateSelesai" class="form-control" value="{{ old('tanggal_selesai') ? old('tanggal_selesai') : $jadwal->date_selesai }}">
                                 @error('tanggal_selesai')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -95,22 +95,6 @@
                             <div class="col-md-12 mb-2">
                                 <label for="inputPJ" class="form-label">Penanggung jawab</label>
                                 <input type="text" id="inputPJ" class="form-control" value="{{ $jadwal->layananjasa->user->name ." (". stringSplit($jadwal->layananjasa->user->getDirectPermissions()[0]->name .")", 'Otorisasi-')}}" readonly>
-                            </div>
-                            <div class="col-md-12 mb-2">
-                                <label for="selectPetugas" class="form-label">Petugas <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="petugas[]" id="selectPetugas" class="form-control @error('petugas')
-                                    is-invalid
-                                @enderror" multiple>
-                                    <option value="">--- Select ---</option>
-                                    @foreach ($pegawai as $val)
-                                        <option value="{{ $val->petugas->user_hash }}" title="{{ stringSplit($val->petugas->getDirectPermissions()[0]->name, 'Otorisasi-') }}">{{ $val->petugas->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('petugas')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
                             </div>
                             <div class="col-md-12 mb-2">
                                 <label for="uploadFile" class="form-label">Surat tugas</label>
@@ -126,6 +110,14 @@
                                     </div>
                                 @enderror
                             </div>
+                            <div class="col-md-12 mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <label for="selectPetugas" class="form-label">Petugas <span class="fw-bold fs-14 text-danger">*</span></label>
+                                    <button class="btn btn-sm btn-outline-success" type="button">Tambah Petugas</button>
+                                </div>
+
+                                <table class="table table-borderless w-100" id="content-petugas"></table>
+                            </div>
                             <div class="col-md-12 mb-2 text-center">
                                 <button type="submit" class="btn btn-primary">Simpan</button>
                             </div>
@@ -139,13 +131,25 @@
 @endsection
 @push('scripts')
     <script>
+        // Initialisasi
+        // mengambil data yang dikirim oleh controller
         const mediaJadwal = @json($jadwal->media);
-        const petugas = @json($petugas);
+        const jadwal = @json($jadwal);
+        let datatable_petugas = false;
 
-        $('#inputDateMulai').datepicker({
-            defaultDate: "+1w",
-            changeMonth: true,
-            numberOfMonths: 1
+        // setting
+        $('#inputDateMulai').flatpickr({
+            enableTime: true,
+            minDate: 'today',
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
+        });
+
+        $('#inputDateSelesai').flatpickr({
+            enableTime: true,
+            minDate: 'today',
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true
         });
 
         $('#selectPetugas').select2({
@@ -161,10 +165,33 @@
             fileNameOri: mediaJadwal ? mediaJadwal.file_ori : false
         });
 
-        let arrPetugas = [];
-        for (const val of petugas) {
-            arrPetugas.push(val.petugas.user_hash);
-        }
-        $('#selectPetugas').val(arrPetugas).trigger('change');
+
+        // ketika load data selesai
+        $(function(){
+            // menambahkan list petugas layanan
+            datatable_petugas = $('#content-petugas').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                pageLength: 5,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('jadwal.getPetugasDT') }}",
+                    data: function(d){
+                        d.idJadwal = jadwal.jadwal_hash
+                    }
+                },
+                columns: [
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
+                ]
+            })
+        });
     </script>
 @endpush

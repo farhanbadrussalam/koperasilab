@@ -61,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::middleware(['permission:Penjadwalan'])->group(function () {
         Route::resource('jadwal', JadwalController::class);
         Route::get('getDataJadwal', [JadwalController::class, 'getData'])->name('jadwal.getData');
+        Route::get('getPetugasDT', [JadwalController::class, 'getPetugasDT'])->name('jadwal.getPetugasDT');
         Route::post('updatePenugasan', [JadwalController::class, 'confirm'])->name('jadwal.updatePetugas');
     });
 

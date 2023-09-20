@@ -22,3 +22,44 @@
 a{
     text-decoration: none !important;
 }
+
+.max-height-1{
+    max-height: 10em;
+}
+
+.max-height-2{
+    max-height: 20em;
+}
+
+.more-option {
+    width: 20px;
+    height: 28px;
+}
+
+.more-option:hover {
+    background-color: #d1d1d1;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.dropdown-item-lab {
+    border-radius: 6px !important;
+    color: #a0a0a0 !important;
+}
+
+.dropdown-item-lab.selected,.dropdown-item-lab:hover {
+    background-color: #efefef !important;
+    color: #232323 !important;
+}
+
+
+.subbody {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #232323;
+}
+
+.shadow-main {
+    box-shadow: 0px 8px 16px rgba(239, 239, 239, 0.49);
+}

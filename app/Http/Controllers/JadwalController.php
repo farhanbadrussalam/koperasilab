@@ -9,12 +9,17 @@ use App\Models\tbl_media;
 use App\Models\Jadwal_petugas;
 use App\Models\Petugas_layanan;
 
+use App\Http\Controllers\MediaController;
+
 use Illuminate\Http\Request;
 use Auth;
 use DataTables;
 
 class JadwalController extends Controller
 {
+    public function __construct() {
+        $this->mediaController = resolve(MediaController::class);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -70,7 +75,7 @@ class JadwalController extends Controller
 
 
                     return '
-                        <div class="card m-0">
+                        <div class="card m-0 border-0">
                             <div class="card-body row d-flex p-3 align-items-center">
                                 <div class="col-3">
                                     <div class="fw-bold text-wrap">'.$data->layananjasa->nama_layanan.'</div>
@@ -147,6 +152,72 @@ class JadwalController extends Controller
                 ->make(true);
     }
 
+    public function getPetugasDT(Request $request){
+        $idJadwal = decryptor($request->idJadwal);
+        $dataPetugas = Jadwal_petugas::with('petugas')->where('jadwal_id', $idJadwal);
+
+        return DataTables::of($dataPetugas)
+                ->addColumn('content', function($data){
+                    $btnOtorisasi = "";
+                    foreach ($data->otorisasi as $key => $value) {
+                        $btnOtorisasi .= '<button class="btn btn-outline-dark btn-sm m-1" type="button">'.stringSplit($value->name, "Otorisasi-").'</button>';
+                    }
+
+                    $btnAction = '
+                    <div class="dropdown">
+                        <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </div>
+                        <ul class="dropdown-menu shadow-sm px-2">
+                    ';
+                    if($data->status == 1 || $data->status == 9){
+                        $btnAction .= '
+                            <li class="my-1 cursoron">
+                                <a class="dropdown-item dropdown-item-lab subbody">
+                                    <i class="bi bi-arrow-repeat"></i>&nbsp;Change
+                                </a>
+                            </li>
+                        ';
+                    }
+                    $btnAction .= '
+                                <li class="my-1 cursoron">
+                                <a class="dropdown-item dropdown-item-lab subbody text-danger">
+                                    <i class="bi bi-trash"></i>&nbsp;Delete
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    ';
+                    return '
+                    <div class="card m-0 border-0">
+                        <div class="card-body d-flex p-2">
+                            <div class="flex-grow-1 d-flex my-auto">
+                                <div>
+                                    <img src="'.$data->avatar.'" alt="Avatar" onerror="this.src=`'.asset("assets/img/default-avatar.jpg").'`" style="width: 3em;" class="img-circle border shadow-sm">
+                                </div>
+                                <div class="px-3 my-auto">
+                                    <div class="lh-1">'.$data->petugas->name.'</div>
+                                </div>
+                            </div>
+                            <div class="p-2 m-auto">
+                                <div class="d-flex flex-wrap justify-content-end">
+                                    '.$btnOtorisasi.'
+                                </div>
+                            </div>
+                            <div class="p-2 m-auto">
+                                '.statusFormat('jadwal', $data->status).'
+                            </div>
+                            <div class="p-2 m-auto">
+                                '.$btnAction.'
+                            </div>
+                        </div>
+                    </div>
+                    ';
+                })
+                ->rawColumns(['content'])
+                ->make(true);
+    }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -182,20 +253,9 @@ class JadwalController extends Controller
         }
 
         // upload dokumen
-        $dokumen = $request->file('dokumen');
-        $media = '';
-        if($dokumen){
-            $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
-            $filename = 'dokumen_jadwal_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
-            $path = $dokumen->storeAs('public/dokumen/jadwal', $filename);
-
-            $media = tbl_media::create([
-                'file_hash' => $filename,
-                'file_ori' => $dokumen->getClientOriginalName(),
-                'file_size' => $dokumen->getSize(),
-                'file_type' => $dokumen->getClientMimeType(),
-                'status' => 1
-            ]);
+        $idMedia = '';
+        if($request->file('dokumen')){
+            $idMedia = $this->mediaController->upload($request, 'jadwal');
         }
 
         $dataJadwal = array(
@@ -206,7 +266,7 @@ class JadwalController extends Controller
             'date_selesai' => $request->tanggal_selesai,
             'kuota' => $request->kuota,
             'status' => 1,
-            'dokumen' => $media->id,
+            'dokumen' => $idMedia,
             'created_by' => Auth::user()->id
         );
 
@@ -249,7 +309,6 @@ class JadwalController extends Controller
         if($jadwal){
             $data['jadwal'] = $jadwal;
             $data['pegawai'] = Petugas_layanan::where('satuankerja_id', $jadwal->layananjasa->satuankerja_id)->get();
-            $data['petugas'] = Jadwal_petugas::with('petugas')->where('jadwal_id', $idJadwal)->get();
         }
         $data['token'] = generateToken();
         return view('pages.jadwal.edit', $data);
@@ -267,6 +326,10 @@ class JadwalController extends Controller
             'tanggal_selesai' => ['required'],
             'kuota' => ['required']
         ]);
+
+        if($request->file('dokumen')){
+            $this->mediaController->update($request, $jadwal->dokumen);
+        }
 
         $jadwal->kuota = $request->kuota;
         $jadwal->date_mulai = $request->tanggal_mulai;

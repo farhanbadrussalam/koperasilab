@@ -92,6 +92,12 @@
                 searching: false,
                 ordering: false,
                 lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
                 ajax: {
                     url: "{{ route('jadwal.getData') }}",
                     data: function (d) {
