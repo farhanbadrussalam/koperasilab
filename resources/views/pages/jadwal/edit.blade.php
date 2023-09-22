@@ -113,7 +113,7 @@
                             <div class="col-md-12 mb-2">
                                 <div class="d-flex justify-content-between">
                                     <label for="selectPetugas" class="form-label">Petugas <span class="fw-bold fs-14 text-danger">*</span></label>
-                                    <button class="btn btn-sm btn-outline-success" type="button">Tambah Petugas</button>
+                                    <button class="btn btn-sm btn-outline-success" type="button" onclick="addPetugas()">Tambah Petugas</button>
                                 </div>
 
                                 <table class="table table-borderless w-100" id="content-petugas"></table>
@@ -128,6 +128,7 @@
         </div>
     </section>
 </div>
+@include('pages.jadwal.addPetugas')
 @endsection
 @push('scripts')
     <script>
@@ -135,6 +136,7 @@
         // mengambil data yang dikirim oleh controller
         const mediaJadwal = @json($jadwal->media);
         const jadwal = @json($jadwal);
+        const pegawai = @json($pegawai);
         let datatable_petugas = false;
 
         // setting
@@ -193,5 +195,66 @@
                 ]
             })
         });
+
+        // METHOD
+        function addPetugas() {
+            $.ajax({
+                method: 'GET',
+                url: "{{ url('api/petugas/getJadwalPetugas/'.$jadwal->jadwal_hash) }}",
+                dataType: "JSON",
+                processData: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(function(result){
+                let arrResult = [];
+                for (const data of pegawai) {
+                    let find = result.data.find(f => f.petugas.user_hash == data.petugas.user_hash);
+
+                    if(!find){
+                        arrResult.push({
+                            id: data.petugas.user_hash,
+                            text: data.petugas.name,
+                            title: stringSplit(data.otorisasi[0].name, 'Otorisasi-')
+                        });
+                    }
+                }
+                $('#selectPetugas').select2({
+                    theme: "bootstrap-5",
+                    placeholder: "Select petugas",
+                    templateResult: formatSelect2Staff,
+                    dropdownParent: $('#addPetugas'),
+                    data: arrResult
+                });
+
+                $('#addPetugas').modal('show');
+            })
+        }
+        function storePetugas(){
+            let select = $('#selectPetugas').val();
+            let formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('idPetugas', select);
+            formData.append('idJadwal', jadwal.jadwal_hash);
+
+            $.ajax({
+                method: "POST",
+                url: "{{ url('api/petugas/storeJadwalPetugas') }}",
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`
+                },
+                data: formData
+            }).done(result => {
+                toastr.success(result.message);
+                datatable_petugas?.ajax.reload();
+                $('#addPetugas').modal('hide');
+            });
+        }
+
+        // END METHOD
     </script>
 @endpush

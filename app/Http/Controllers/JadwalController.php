@@ -308,7 +308,11 @@ class JadwalController extends Controller
         $data = array();
         if($jadwal){
             $data['jadwal'] = $jadwal;
-            $data['pegawai'] = Petugas_layanan::where('satuankerja_id', $jadwal->layananjasa->satuankerja_id)->get();
+            $data['pegawai'] = Petugas_layanan::with('petugas')->where('satuankerja_id', $jadwal->layananjasa->satuankerja_id)->get();
+            foreach ($data['pegawai'] as $key => $value) {
+                $petugas = User::where('id', $value->petugas->id)->first();
+                $value['otorisasi'] = $petugas->getDirectPermissions();
+            }
         }
         $data['token'] = generateToken();
         return view('pages.jadwal.edit', $data);

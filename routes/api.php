@@ -55,6 +55,8 @@ Route::middleware('auth:sanctum')->group(function() {
 
     Route::prefix('petugas')->group(function () {
         Route::get('/getPetugas', [PetugasLayananAPI::class, 'getPetugas']);
+        Route::get('/getJadwalPetugas/{jadwal_hash}', [PetugasLayananAPI::class, 'getJadwalPetugas']);
+        Route::post('/storeJadwalPetugas', [PetugasLayananAPI::class, 'storeJadwalPetugas']);
     });
 
 });
