@@ -154,10 +154,12 @@ class JadwalController extends Controller
 
     public function getPetugasDT(Request $request){
         $idJadwal = decryptor($request->idJadwal);
+        $jadwal = jadwal::findOrFail($idJadwal);
         $dataPetugas = Jadwal_petugas::with('petugas')->where('jadwal_id', $idJadwal);
 
         return DataTables::of($dataPetugas)
-                ->addColumn('content', function($data){
+                ->addColumn('content', function($data) use ($jadwal) {
+                    $idHash = "'".$data->jadwalpetugas_hash."'";
                     $btnOtorisasi = "";
                     foreach ($data->otorisasi as $key => $value) {
                         $btnOtorisasi .= '<button class="btn btn-outline-dark btn-sm m-1" type="button">'.stringSplit($value->name, "Otorisasi-").'</button>';
@@ -173,22 +175,22 @@ class JadwalController extends Controller
                     if($data->status == 1 || $data->status == 9){
                         $btnAction .= '
                             <li class="my-1 cursoron">
-                                <a class="dropdown-item dropdown-item-lab subbody">
+                                <a class="dropdown-item dropdown-item-lab subbody" onclick="changePetugas('.$idHash.')">
                                     <i class="bi bi-arrow-repeat"></i>&nbsp;Change
                                 </a>
                             </li>
                         ';
                     }
                     $btnAction .= '
-                                <li class="my-1 cursoron">
-                                <a class="dropdown-item dropdown-item-lab subbody text-danger">
+                            <li class="my-1 cursoron">
+                                <a class="dropdown-item dropdown-item-lab subbody text-danger" onclick="deletePetugas('.$idHash.')">
                                     <i class="bi bi-trash"></i>&nbsp;Delete
                                 </a>
                             </li>
                         </ul>
                     </div>
                     ';
-                    return '
+                    return $data->petugas->id == $jadwal->layananjasa->user_id ? '' : '
                     <div class="card m-0 border-0">
                         <div class="card-body d-flex p-2">
                             <div class="flex-grow-1 d-flex my-auto">
@@ -197,6 +199,7 @@ class JadwalController extends Controller
                                 </div>
                                 <div class="px-3 my-auto">
                                     <div class="lh-1">'.$data->petugas->name.'</div>
+                                    <small class="text-secondary">'.$data->petugas->email.'</small>
                                 </div>
                             </div>
                             <div class="p-2 m-auto">

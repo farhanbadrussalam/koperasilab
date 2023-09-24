@@ -129,6 +129,7 @@
     </section>
 </div>
 @include('pages.jadwal.addPetugas')
+@include('pages.jadwal.changePetugas')
 @endsection
 @push('scripts')
     <script>
@@ -231,6 +232,41 @@
                 $('#addPetugas').modal('show');
             })
         }
+        function changePetugas(idHash){
+            $.ajax({
+                method: 'GET',
+                url: "{{ url('api/petugas/getJadwalPetugas/'.$jadwal->jadwal_hash) }}",
+                dataType: "JSON",
+                processData: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(function(result){
+                let arrResult = [];
+                for (const data of pegawai) {
+                    let find = result.data.find(f => f.petugas.user_hash == data.petugas.user_hash);
+
+                    if(!find){
+                        arrResult.push({
+                            id: data.petugas.user_hash,
+                            text: data.petugas.name,
+                            title: stringSplit(data.otorisasi[0].name, 'Otorisasi-')
+                        });
+                    }
+                }
+                $('#idJadwalPetugas').val(idHash);
+                $('#selectChangePetugas').select2({
+                    theme: "bootstrap-5",
+                    placeholder: "Select petugas",
+                    templateResult: formatSelect2Staff,
+                    dropdownParent: $('#changePetugas'),
+                    data: arrResult
+                });
+
+                $('#changePetugas').modal('show');
+            })
+        }
         function storePetugas(){
             let select = $('#selectPetugas').val();
             let formData = new FormData();
@@ -252,6 +288,61 @@
                 toastr.success(result.message);
                 datatable_petugas?.ajax.reload();
                 $('#addPetugas').modal('hide');
+            });
+        }
+
+        function updatePetugas() {
+            let select = $('#selectChangePetugas').val();
+            let idJadwalPetugas = $('#idJadwalPetugas').val();
+            let formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('idPetugas', select);
+            formData.append('id', idJadwalPetugas);
+
+            $.ajax({
+                method: "POST",
+                url: "{{ url('api/petugas/updateJadwalPetugas') }}",
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`
+                },
+                data: formData
+            }).done(result => {
+                toastr.success(result.message);
+                datatable_petugas?.ajax.reload();
+                $('#changePetugas').modal('hide');
+            });
+        }
+
+        function deletePetugas(id){
+            deleteGlobal(() => {
+                $.ajax({
+                    url: "{{ url('/api/petugas/destroyJadwalPetugas') }}/"+id,
+                    method: 'DELETE',
+                    dataType: 'json',
+                    processData: true,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`,
+                        'Content-Type': 'application/json'
+                    }
+                }).done((result) => {
+                    if(result.message){
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: result.message
+                        });
+                        datatable_petugas?.ajax.reload();
+                    }
+                }).fail(function(message) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: message.responseJSON.message
+                    });
+                });
             });
         }
 

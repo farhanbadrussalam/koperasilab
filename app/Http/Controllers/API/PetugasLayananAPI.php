@@ -82,4 +82,26 @@ class PetugasLayananAPI extends Controller
 
         return response()->json(['message' => 'Gagal ditambah'], 500);
     }
+
+    public function updateJadwalPetugas(Request $request)
+    {
+        $idPetugas = decryptor($request->idPetugas);
+        $idHash = decryptor($request->id);
+
+        $jadwalPetugas = Jadwal_petugas::findOrFail($idHash);
+        $jadwalPetugas->petugas_id = $idPetugas;
+        $jadwalPetugas->status = 1;
+        $jadwalPetugas->update();
+
+        return response()->json(['message' => 'Petugas Berhasil diupdate'], 200);
+    }
+
+    public function destroyJadwalPetugas($jadwalPetugas_hash)
+    {
+        $idJadwalPetugas = decryptor($jadwalPetugas_hash);
+
+        Jadwal_petugas::findOrFail($idJadwalPetugas)->delete();
+
+        return response()->json(['message' => 'Jadwal petugas berhasil dihapus'], 200);
+    }
 }
