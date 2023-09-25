@@ -86,8 +86,8 @@ class LayananJasaController extends Controller
             );
         }
         $dataLayanan = array(
-            'satuankerja_id' => $request->satuankerja,
-            'user_id' => $request->pj,
+            'satuankerja_id' => decryptor($request->satuankerja),
+            'user_id' => decryptor($request->pj),
             'nama_layanan' => $request->name_layanan,
             'jenis_layanan' => json_encode($arrJenis),
             'status' => 1,
@@ -140,7 +140,7 @@ class LayananJasaController extends Controller
 
         $layanan = Layanan_jasa::findOrFail($idHash);
 
-        $layanan->user_id = $request->pj;
+        $layanan->user_id = decryptor($request->pj);
         $layanan->nama_layanan = $request->nama_layanan;
         $layanan->jenis_layanan = json_encode($arrJenis);
 

@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Session;
 use App\Events\NotifikasiEvent;
 use App\Models\notifikasi;
+use App\Models\User;
 use Illuminate\Support\Facades\Crypt;
 
 if (!function_exists('formatCurrency')) {
@@ -236,6 +237,31 @@ if (!function_exists('stringSplit')) {
             $str = substr($str, strlen($prefix));
         }
         return $str;
+    }
+}
+
+#ex: Thursday, 31 Aug 2023 12:42 WIB
+if (!function_exists('convert_date')) {
+	function convert_date($tanggal)
+	{
+		return date('l, d M Y H:i', strtotime($tanggal));
+	}
+}
+
+if (!function_exists('getAvatar')) {
+    function getAvatar($id_user){
+        $uidHash = $id_user ? decryptor($id_user) : null;
+
+        $urlDev = asset("assets/img/default-avatar.jpg");
+        if($uidHash){
+            $user = User::findOrFail($uidHash);
+
+            if($user->profile){
+                $urlDev = asset("storage/images/avatar/".$user->profile->avatar);
+            }
+        }
+
+        return $urlDev;
     }
 }
 ?>

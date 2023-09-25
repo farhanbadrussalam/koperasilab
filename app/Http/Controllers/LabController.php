@@ -24,8 +24,8 @@ class LabController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <button class="btn btn-warning btn-sm m-1" data-id="'.encryptor($data->id).'" data-value="'.$data->name_lab.'" onclick="btnEdit(this)">Edit</button>
-                        <button class="btn btn-danger btn-sm m-1" data-id="'.encryptor($data->id).'" onclick="btnDelete(this)">Delete</a>
+                        <button class="btn btn-warning btn-sm m-1" data-id="'.encryptor($data->id).'" data-value="'.$data->name_lab.'" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-danger btn-sm m-1" data-id="'.encryptor($data->id).'" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></a>
                     ';
                 })
                 ->rawColumns(['action'])

@@ -26,19 +26,52 @@
                     @endcan
                 </div>
                 <div class="card-body">
-                    <table class="table table-hover w-100" id="jadwal-table">
+                    <div class="d-flex flex-wrap">
+                        <div class="m-2">
+                            <label for="filterInputSearch" class="form-label">Searching</label>
+                            <div>
+                                <input type="text" name="filterInputSearch" id="filterInputSearch" class="form-control" aria-describedby="btnSearch" placeholder="Name layanan">
+                            </div>
+                        </div>
+                        @can('Penjadwalan.confirm')
+                        <div class="m-2">
+                            <label for="filterStatus" class="form-label">Status</label>
+                            <select name="filterStatus" id="filterStatus" class="form-select">
+                                <option value="" selected>All</option>
+                                <option value="{{ encryptor(1) }}">Confirm</option>
+                                <option value="{{ encryptor(2) }}">Bersedia</option>
+                                <option value="{{ encryptor(9) }}">Menolak</option>
+                            </select>
+                        </div>
+                        @endcan
+                        <div class="m-2">
+                            <label for="filterPrice" class="form-label">Price</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="">Rp</span>
+                                <input type="text" name="filterPriceMin" id="filterPriceMin" class="form-control rupiah" placeholder="Price Minimum">
+                            </div>
+                        </div>
+                        <div class="m-2">
+                            <label for="filterPrice" class="form-label">&nbsp;</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="">Rp</span>
+                                <input type="text" name="filterPriceMax" id="filterPriceMax" class="form-control rupiah" placeholder="Price Maximum">
+                            </div>
+                        </div>
+                        <div class="m-2 col-4">
+                            <label for="filterStartDate" class="form-label">Start date</label>
+                            <input type="text" name="filterStartDate" id="filterStartDate" class="form-control" placeholder="Choose Date" />
+                        </div>
+                        <div class="m-2">
+                            <label for="btnFilter" class="form-label">&nbsp;</label>
+                            <div>
+                                <button class="btn btn-outline-secondary" type="button" id="btnFilter">Filter</button>
+                            </div>
+                        </div>
+                    </div>
+                    <table class="table table-borderless w-100" id="jadwal-table">
                         <thead>
-                            <th width="5%">No</th>
-                            <th>Nama Layanan</th>
-                            <th>Mulai</th>
-                            <th>Selesai</th>
-                            <th>Kuota</th>
-                            @cannot('Penjadwalan.confirm')
-                            <th>Petugas</th>
-                            @else
-                            <th>Status</th>
-                            @endcannot
-                            <th width="10%">Action</th>
+                            <th></th>
                         </thead>
                     </table>
                 </div>
@@ -47,6 +80,7 @@
     </section>
 </div>
 @include('pages.jadwal.confirm')
+@include('pages.jadwal.info')
 @endsection
 @push('scripts')
     <script>
@@ -55,18 +89,38 @@
             datatable_jadwal = $('#jadwal-table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('jadwal.getData') }}",
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('jadwal.getData') }}",
+                    data: function (d) {
+                        d.search = $('#filterInputSearch').val(),
+                        d.status = $('#filterStatus').val(),
+                        d.priceMin = $('#filterPriceMin').val(),
+                        d.priceMax = $('#filterPriceMax').val(),
+                        d.startDate = $('#filterStartDate').val()
+                    }
+                },
                 columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false },
-                    { data: 'nama_layanan', name: 'nama_layanan' },
-                    { data: 'date_mulai', name: 'date_mulai' },
-                    { data: 'date_selesai', name: 'date_selesai' },
-                    { data: 'kuota', name: 'kuota' },
-                    { data: 'petugas_id', name: 'petugas_id' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false },
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
                 ]
             });
+            $('#filterStartDate').flatpickr({
+                mode: "range"
+            });
+
+            $('#btnFilter').on('click', obj => {
+                datatable_jadwal?.ajax.reload();
+            })
         });
+            // { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false }
 
         function btnDelete(id) {
             deleteGlobal(() => {
@@ -100,7 +154,7 @@
 
         function modalConfirm(id){
             $.ajax({
-                url: "{{ url('api/jadwal') }}/"+id,
+                url: "{{ url('api/jadwal_api') }}/"+id,
                 method: 'GET',
                 dataType: 'json',
                 processData: true,
@@ -109,18 +163,19 @@
                     'Content-Type': 'application/json'
                 }
             }).done(result => {
-                let jadwal = result.data;
-                $('#txtNamaLayanan').html(jadwal.layananjasa.name);
-                $('#txtJenisLayanan').html(jadwal.jenislayanan);
-                $('#txtHarga').html(formatRupiah(jadwal.tarif));
-                $('#txtStart').html(dateFormat(jadwal.date_mulai));
-                $('#txtEnd').html(dateFormat(jadwal.date_selesai));
-                let status = statusFormat('jadwal', jadwal.status);
+                let data = result.data;
+
+                $('#txtNamaLayanan').html(data.jadwal.layananjasa.name);
+                $('#txtJenisLayanan').html(data.jadwal.jenislayanan);
+                $('#txtHarga').html(formatRupiah(data.jadwal.tarif));
+                $('#txtStart').html(convertDate(data.jadwal.date_mulai));
+                $('#txtEnd').html(convertDate(data.jadwal.date_selesai));
+                let status = statusFormat('jadwal', data.petugas.status);
                 $('#txtStatus').html(status);
-                $('#txtSuratTugas').attr('href', `{{ asset('storage/dokumen/jadwal') }}/${jadwal.media.file_hash}`);
-                $('#txtSuratTugas').html(jadwal.media.file_ori);
-                $('#idJadwal').val(jadwal.id);
-                if(jadwal.status == 1){
+                $('#txtSuratTugas').attr('href', `{{ asset('storage/dokumen/jadwal') }}/${data.jadwal.media.file_hash}`);
+                $('#txtSuratTugas').html(data.jadwal.media.file_ori);
+                $('#idJadwal').val(data.jadwal.jadwal_hash);
+                if(data.petugas.status == 1){
                     $('#divConfirmBtn').show();
                 }else{
                     $('#divConfirmBtn').hide();
@@ -160,6 +215,56 @@
                 $('#confirmModal').modal('hide');
             }).fail(err => {
                 console.log(err);
+            })
+        }
+
+        function showPetugas(id) {
+            $.ajax({
+                url: "{{ url('api/getJadwalPetugas') }}",
+                method: "GET",
+                dataType: 'json',
+                processData: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                },
+                data: {
+                    idJadwal: id
+                }
+            }).done(result => {
+                let content = '';
+                for (const data of result.data.petugas) {
+                    let contentOtorisasi = '';
+                    for (const otorisasi of data.otorisasi) {
+                        contentOtorisasi += `<button class="btn btn-outline-dark btn-sm m-1" role="button">${stringSplit(otorisasi.name, 'Otorisasi-')}</button>`;
+                    }
+
+                    let pj = data.petugas.user_hash == result.data.pj ? `<small class="text-danger">Penanggung jawab</small>` : '';
+                    content += `
+                        <div class="card m-0 mb-2">
+                            <div class="card-body d-flex p-2">
+                                <div class="flex-grow-1 d-flex my-auto">
+                                    <div>
+                                        <img src="${data.avatar}" alt="Avatar" onerror="this.src='{{ asset('assets/img/default-avatar.jpg') }}'" style="width: 3em;" class="img-circle border shadow-sm">
+                                    </div>
+                                    <div class="px-3 my-auto">
+                                        <div class="lh-1">${data.petugas.name}</div>
+                                        ${pj}
+                                    </div>
+                                </div>
+                                <div class="p-2 m-auto">
+                                    <div class="d-flex flex-wrap justify-content-end">
+                                        ${contentOtorisasi}
+                                    </div>
+                                </div>
+                                <div class="p-2 m-auto">${statusFormat('jadwal', data.status)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                $('#content-petugas').html(content);
+                $('#infoModal').modal('show');
             })
         }
     </script>

@@ -21,6 +21,20 @@ class Layanan_jasa extends Model
         'created_by'
     ];
 
+    protected $hidden = [
+        'id',
+        'user_id'
+    ];
+
+    protected $appends = [
+        'layanan_hash'
+    ];
+
+    public function getLayananHashAttribute()
+    {
+        return encryptor($this->id);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

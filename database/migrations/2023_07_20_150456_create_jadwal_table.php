@@ -19,7 +19,7 @@ return new class extends Migration
             $table->dateTime('date_mulai');
             $table->dateTime('date_selesai');
             $table->integer('kuota');
-            $table->integer('petugas_id')->nullabel();
+            $table->json('petugas_id')->nullabel();
             $table->string('dokumen')->nullabel();
             $table->integer('status');
             $table->integer('created_by');

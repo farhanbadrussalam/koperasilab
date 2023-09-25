@@ -16,6 +16,7 @@ class tbl_media extends Model
         'file_ori',
         'file_size',
         'file_type',
+        'file_path',
         'status'
     ];
 }

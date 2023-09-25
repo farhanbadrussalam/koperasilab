@@ -15,8 +15,8 @@
                 </div>
             </div><!-- /.container-fluid -->
         </section>
-        <section class="content col-xl-8 col-md-12">
-            <div class="container">
+        <section class="content">
+            <div class="container col-md-12 col-xl-8">
                 <div class="card card-default color-palette-box shadow">
                     <div class="card-header d-flex ">
                         <h2 class="card-title flex-grow-1">
@@ -24,12 +24,12 @@
                         </h2>
                     </div>
                     <div class="card-body">
-                        <form action="{{ route('layananJasa.update', encryptor($layananjasa->id)) }}" method="post">
+                        <form action="{{ route('layananJasa.update', $layananjasa->layanan_hash) }}" method="post">
                             @csrf
                             @method('PUT')
                             <div class="mb-3 row">
-                                <label for="selectSatuankerja" class="col-sm-3 form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <div class="col-sm-9">
+                                <label for="selectSatuankerja" class="col-sm-4 form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <div class="col-sm-8">
                                     <select name="satuankerja" id="selectSatuankerja"
                                         class="form-control @error('satuankerja')
                                     is-invalid
@@ -37,7 +37,7 @@
                                         disabled>
                                         <option value="">-- Select --</option>
                                         @foreach ($satuankerja as $key => $satuan)
-                                            <option value="{{ encryptor($satuan->id) }}" @if($layananjasa->satuankerja_id == $satuan->id) selected @endif>{{ $satuan->name }}</option>
+                                            <option value="{{ $satuan->satuan_hash }}" @if($layananjasa->satuanKerja->satuan_hash == $satuan->satuan_hash) selected @endif>{{ $satuan->name }}</option>
                                         @endforeach
                                     </select>
                                     @error('satuankerja')
@@ -48,8 +48,8 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="selectPJ" class="col-sm-3 form-label">Penanggung Jawab <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <div class="col-sm-9">
+                                <label for="selectPJ" class="col-sm-4 form-label">Penanggung Jawab <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <div class="col-sm-8">
                                     <select name="pj" id="selectPJ"
                                         class="form-control @error('pj')
                                     is-invalid
@@ -64,8 +64,8 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label for="inputnamaLayanan" class="col-sm-3 form-label">Nama layanan <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <div class="col-sm-9">
+                                <label for="inputnamaLayanan" class="col-sm-4 form-label">Nama layanan <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <div class="col-sm-8">
                                     <input type="text"
                                         class="form-control @error('nama_layanan')
                                     is-invalid
@@ -79,8 +79,8 @@
                                 </div>
                             </div>
                             <div class="mb-3 row">
-                                <label class="col-sm-3 form-label">Jenis layanan <i class="bi bi-plus-square-fill text-success" title="Tambah" role="button" onclick="tambahFormJenis()"></i></label>
-                                <div class="col-md-9" id="formJenisLayanan">
+                                <label class="col-sm-4 form-label">Jenis layanan <i class="bi bi-plus-square-fill text-success" title="Tambah" role="button" onclick="tambahFormJenis()"></i></label>
+                                <div class="col-md-8" id="formJenisLayanan">
                                     <div class="mb-3 row">
                                         <div class="col-7">
                                             <input type="text"
@@ -111,13 +111,18 @@
 @endsection
 @push('scripts')
     <script>
-        let pj = '{{ $layananjasa ? $layananjasa->user_id : false }}';
+        let pj = '{{ $layananjasa->user ? $layananjasa->user->user_hash : false }}';
 
+        $('#selectPJ').select2({
+            theme: "bootstrap-5",
+            placeholder: "Select Penanggung jawab",
+            templateResult: formatSelect2Staff
+        });
         function getPegawai(obj) {
             if (obj.value) {
                 $.ajax({
                     method: 'GET',
-                    url: "{{ url('/api/getPegawai') }}",
+                    url: "{{ url('/api/petugas/getPetugas') }}",
                     dataType: 'json',
                     processData: true,
                     headers: {
@@ -125,14 +130,13 @@
                         'Content-Type': 'application/json'
                     },
                     data: {
-                        satuankerja: obj.value,
-                        role: "staff"
+                        idSatuan: obj.value
                     }
                 }).done(function(result) {
                     if (result.data) {
                         let html = '<option>-- Select --</option>';
-                        for (const pegawai of result.data) {
-                            html += `<option value="${pegawai.id}" ${pj == pegawai.id ? 'selected' : ''}>${pegawai.name}</option>`;
+                        for (const data of result.data) {
+                            html += `<option value="${data.petugas.user_hash}" title="${stringSplit(data.otorisasi[0].name, 'Otorisasi-')}" ${pj == data.petugas.user_hash ? 'selected' : ''}>${data.petugas.name}</option>`;
                         }
 
                         $('#selectPJ').html(html);

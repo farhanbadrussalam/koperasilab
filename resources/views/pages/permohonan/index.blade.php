@@ -88,7 +88,7 @@
         function btnDelete(id) {
             deleteGlobal(() => {
                 $.ajax({
-                    url: "{{ url('/api/permohonan') }}/" + id,
+                    url: "{{ url('/api/permohonan_api') }}/" + id,
                     method: 'DELETE',
                     dataType: 'json',
                     processData: true,
@@ -117,7 +117,7 @@
 
         function modalConfirm(id) {
             $.ajax({
-                url: '{{ url('api/permohonan') }}/' + id,
+                url: "{{ url('api/permohonan_api') }}/" + id,
                 method: 'GET',
                 dataType: 'json',
                 processing: true,
@@ -174,7 +174,7 @@
 
         function modalNote(id) {
             $.ajax({
-                url: '{{ url('api/permohonan') }}/' + id,
+                url: '{{ url('api/permohonan_api') }}/' + id,
                 method: 'GET',
                 dataType: 'json',
                 processing: true,
