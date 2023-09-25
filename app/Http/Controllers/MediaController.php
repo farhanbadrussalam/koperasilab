@@ -10,15 +10,14 @@ use Carbon\Carbon;
 
 class MediaController extends Controller
 {
-    public function upload(Request $request, $jenis){
-        $file = false;
-        if($request->file('dokumen')){
-            $file = $request->file('dokumen');
-        }
+    public function upload($file, $jenis){
+        // $file = false;
+        // if($request->file('dokumen')){
+        //     $file = $request->file('dokumen');
+        // }
 
         $path = $this->createPath($jenis);
         $idMedia = false;
-
         if($file){
             $realname =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $extension = $file->getClientOriginalExtension();
@@ -41,13 +40,13 @@ class MediaController extends Controller
         return $idMedia;
     }
 
-    public function update(Request $request, $id_media){
+    public function update($file, $id_media){
         $media = tbl_media::findOrFail($id_media);
 
-        $file = false;
-        if($request->file('dokumen')){
-            $file = $request->file('dokumen');
-        }
+        // $file = false;
+        // if($request->file('dokumen')){
+        //     $file = $request->file('dokumen');
+        // }
 
         if($file){
             $path = 'public/'.$media->file_path.'/'.$media->file_hash;
@@ -87,7 +86,9 @@ class MediaController extends Controller
             case 'jadwal':
                 $path = 'dokumen/jadwal';
                 break;
-
+            case 'avatar':
+                $path = 'images/avatar';
+                break;
             default:
                 $path = 'dokumen';
                 break;

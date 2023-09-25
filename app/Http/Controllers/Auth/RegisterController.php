@@ -7,6 +7,9 @@ use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use App\Models\Profile;
 use App\Models\Perusahaan;
+
+use App\Http\Controllers\MediaController;
+
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -42,6 +45,7 @@ class RegisterController extends Controller
     public function __construct()
     {
         $this->middleware('guest');
+        $this->mediaController = resolve(MediaController::class);
     }
 
     /**
@@ -59,7 +63,7 @@ class RegisterController extends Controller
             'jenis_kelamin' => ['required'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',//|max:2048
             'g-recaptcha-response' => 'required|captcha',
         ]);
     }
@@ -79,20 +83,16 @@ class RegisterController extends Controller
         ])->assignRole('Pelanggan');
 
         if($user){
-            $image = $data['avatar'];
-
-            $filename = 'avatar_'.$user->id.'.'.$image->getClientOriginalExtension();
-
-            $path = $image->storeAs('public/images/avatar', $filename);
+            $image = $this->mediaController->upload($data['avatar'], 'avatar');
 
             $profile = Profile::create([
                 'user_id' => $user->id,
-                'avatar' => $filename,
+                'avatar' => $image,
                 'nik' => $data['nik'],
                 'no_hp' => $data['no_telepon'],
                 'jenis_kelamin' => $data['jenis_kelamin']
             ]);
-    
+
             $perusahaan = Perusahaan::create([
                 'user_id' => $user->id
             ]);

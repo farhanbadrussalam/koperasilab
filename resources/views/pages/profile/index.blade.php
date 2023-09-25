@@ -26,8 +26,8 @@
                                     <div class="text-center">
                                         <div class="box-profile my-2">
                                             <img class="profile-user-img img-fluid img-circle"
-                                                src="@if (isset(Auth::user()->profile->avatar))
-                                                {{ asset('storage/images/avatar/' . Auth::user()->profile->avatar) }}
+                                                src="@if (isset(Auth::user()->profile->media))
+                                                {{ asset('storage/images/avatar/' . Auth::user()->profile->media->file_hash) }}
                                                 @else
                                                 {{ asset('assets/img/default-avatar.jpg') }}
                                                 @endif"

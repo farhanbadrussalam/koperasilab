@@ -18,4 +18,8 @@ class profile extends Model
         'no_hp',
         'jenis_kelamin',
     ];
+
+    public function media(){
+        return $this->belongsTo(tbl_media::class, 'avatar', 'id');
+    }
 }

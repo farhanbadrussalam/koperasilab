@@ -22,6 +22,11 @@
             </div>
           </div>
         </div>
+        @error('avatar')
+            <div class="alert alert-danger">
+                <span>{{ $message }}</span>
+            </div>
+        @enderror
         <div class="form-group mb-3">
           <input type="text" class="form-control @error('name')
             is-invalid
@@ -34,7 +39,7 @@
           @enderror
         </div>
         <div class="form-group mb-3">
-          <input type="number" name="nik" id="nik" class="form-control @error('nik') is-invalid @enderror" value="{{ old('nik') }}" placeholder="NIK">
+          <input type="number" name="nik" id="nik" class="form-control maskNIK @error('nik') is-invalid @enderror" value="{{ old('nik') }}" placeholder="NIK">
 
           @error('nik')
               <span class="invalid-feedback" role="alert">
@@ -43,7 +48,7 @@
           @enderror
         </div>
         <div class="form-group mb-3">
-          <input type="number" name="no_telepon" id="no_telepon" class="form-control @error('no_telepon') is-invalid @enderror" value="{{ old('no_telepon') }}" placeholder="Nomer Telepon">
+          <input type="number" name="no_telepon" id="no_telepon" class="form-control maskTelepon @error('no_telepon') is-invalid @enderror" value="{{ old('no_telepon') }}" placeholder="Nomer Telepon">
 
           @error('no_telepon')
               <span class="invalid-feedback" role="alert">

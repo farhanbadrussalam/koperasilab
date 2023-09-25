@@ -258,7 +258,7 @@ class JadwalController extends Controller
         // upload dokumen
         $idMedia = '';
         if($request->file('dokumen')){
-            $idMedia = $this->mediaController->upload($request, 'jadwal');
+            $idMedia = $this->mediaController->upload($request->file('dokumen'), 'jadwal');
         }
 
         $dataJadwal = array(
@@ -335,7 +335,7 @@ class JadwalController extends Controller
         ]);
 
         if($request->file('dokumen')){
-            $this->mediaController->update($request, $jadwal->dokumen);
+            $this->mediaController->update($request->file('dokumen'), $jadwal->dokumen);
         }
 
         $jadwal->kuota = $request->kuota;
