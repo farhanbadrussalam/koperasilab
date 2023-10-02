@@ -104,6 +104,44 @@ class PermohonanController extends Controller
         return view('pages.permohonan.create', $data);
     }
 
+    public function getDTListLayanan(){
+        $dataJadwal = jadwal::with('layananjasa')->where('status', 2)->where('kuota', '>', 0);
+
+        return DataTables::of($dataJadwal)
+                ->addColumn('content', function($data){
+                    return '
+                    <div class="card m-0 border-0 cursoron card-hover">
+                        <div class="ribbon-wrapper">
+                            <div class="ribbon bg-primary" title="Kuota">
+                                '.$data->kuota.'
+                            </div>
+                        </div>
+                        <div class="card-body d-flex p-3 align-items-center">
+                            <div class="col-6">
+                                <h5>'.$data->layananjasa->nama_layanan.'</h5>
+                                <div class=" d-flex py-1 flex-column">
+                                    <div>
+                                        <div class="fw-bold">Start date</div>
+                                        <small class="text-body-secondary">'.convert_date($data->date_mulai).'</small>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">End date</div>
+                                        <small class="text-body-secondary">'.convert_date($data->date_selesai).'</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="h5 col-3"><span class="badge bg-secondary">'.$data->jenislayanan.'</span></div>
+                            <div class="h3 fw-bolder">
+                                '.formatCurrency($data->tarif).'
+                            </div>
+                        </div>
+                    </div>
+                    ';
+                })
+                ->rawColumns(['content'])
+                ->make(true);
+    }
+
     /**
      * Store a newly created resource in storage.
      */

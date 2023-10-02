@@ -13,6 +13,7 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link rel="stylesheet" href="https://fonts.bunny.net/css?family=Nunito">
+    <link rel="stylesheet" href="{{ asset('assets/font/allFont.css') }}">
 
     <!-- Theme adminLTE -->
     <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">

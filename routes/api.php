@@ -32,12 +32,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/send-email', function(){
-    // $data['email'] = 'badrussalam859@gmail.com';
-    // dd($data['email']);
-    // dispatch(new SendEmailJob($data));
     $mail = new SendEmail();
     Mail::to('badrussalam859@gmail.com')->queue($mail);
-    
+
     return 'success';
 });
 

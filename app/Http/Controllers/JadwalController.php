@@ -385,11 +385,20 @@ class JadwalController extends Controller
         ]);
 
         $user = Auth::user();
+        $idJadwal = decryptor($request->idJadwal);
 
-        $jadwal = Jadwal_petugas::where('jadwal_id', decryptor($request->idJadwal))->where('petugas_id', $user->id)->first();
+        $jadwal = Jadwal_petugas::where('jadwal_id', $idJadwal)->where('petugas_id', $user->id)->first();
         $jadwal->status = $request->answer;
 
         $jadwal->update();
+
+        // cek status petugas
+        $status = Jadwal_petugas::where('jadwal_id', $idJadwal)->whereIn('status', [1, 9])->count();
+        if($status == 0){
+            $dataJadwal = jadwal::where('id', $idJadwal)->first();
+            $dataJadwal->status = 2;
+            $dataJadwal->update();
+        }
 
         $msg = $request->answer == 2 ? 'Anda bersedia' : 'Anda tidak bersedia';
 

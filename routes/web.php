@@ -56,6 +56,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::middleware(['permission:Permohonan'])->group(function () {
         Route::resource('permohonan', PermohonanController::class);
         Route::get('getDataPermohonan', [PermohonanController::class, 'getData'])->name('permohonan.getData');
+        Route::get('getDTListLayanan', [PermohonanController::class, 'getDTListLayanan'])->name('permohonan.getDTListLayanan');
     });
 
     Route::middleware(['permission:Penjadwalan'])->group(function () {

@@ -40,10 +40,12 @@ class JadwalAPI extends Controller
 
     public function getJadwal(Request $request)
     {
-        $id_layanan = isset($request->idLayanan) ? $request->idLayanan : null;
+        $id_layanan = isset($request->idLayanan) ? decryptor($request->idLayanan) : null;
         $jenis_layanan = isset($request->jenisLayanan) ? $request->jenisLayanan : null;
 
-        $jadwal = jadwal::where('status', 2)->where('kuota', '!=', 0);
+        $jadwal = jadwal::where('kuota', '!=', 0);
+        // Pengecekan petugas ready
+
         if($id_layanan){
             $jadwal->where('layananjasa_id', $id_layanan);
         }
