@@ -37,7 +37,7 @@ class jadwal extends Model
     }
 
     public function petugas(){
-        return $this->belongsTo(Jadwal_petugas::class, 'id', 'jadwal_id');
+        return $this->hasMany(Jadwal_petugas::class, 'jadwal_id', 'id');
     }
 
     public function layananjasa(){

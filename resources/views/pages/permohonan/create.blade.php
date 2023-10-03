@@ -14,14 +14,9 @@
             </div>
         </div><!-- /.container-fluid -->
     </section>
-    <section class="content col-xl-8 col-md-12">
+    <section class="content col-md-12">
         <div class="container">
             <div class="card card-default color-palette-box shadow bg-white">
-                <div class="card-header d-flex ">
-                    <h3 class="card-title flex-grow-1">
-                      List layanan
-                    </h3>
-                </div>
                 <div class="card-body">
                    <table class="table table-borderless w-100" id="listLayanan-table">
                    </table>

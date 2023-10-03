@@ -7,11 +7,17 @@ use App\Models\Layanan_jasa;
 use App\Models\jadwal;
 use App\Models\tbl_media;
 use Illuminate\Http\Request;
+
+use App\Http\Controllers\MediaController;
+
 use Auth;
 use DataTables;
 
 class PermohonanController extends Controller
 {
+    public function __construct() {
+        $this->mediaController = resolve(MediaController::class);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -105,21 +111,29 @@ class PermohonanController extends Controller
     }
 
     public function getDTListLayanan(){
-        $dataJadwal = jadwal::with('layananjasa')->where('status', 2)->where('kuota', '>', 0);
+        $dataJadwal = jadwal::with('layananjasa')
+                        ->where('status', 2)
+                        ->where('kuota', '>', 0)
+                        ->orderBy('date_mulai', 'DESC');
 
         return DataTables::of($dataJadwal)
                 ->addColumn('content', function($data){
                     return '
-                    <div class="card m-0 border-0 cursoron card-hover">
+                    <div class="card m-0 border-0 card-hover">
                         <div class="ribbon-wrapper">
                             <div class="ribbon bg-primary" title="Kuota">
                                 '.$data->kuota.'
                             </div>
                         </div>
-                        <div class="card-body d-flex p-3 align-items-center">
-                            <div class="col-6">
-                                <h5>'.$data->layananjasa->nama_layanan.'</h5>
-                                <div class=" d-flex py-1 flex-column">
+                        <div class="card-body d-flex flex-wrap p-3 align-items-center">
+                            <div class="col-md-5 col-sm-6">
+                                <span class="fw-bold">'.$data->layananjasa->nama_layanan.'</span>
+                                <div>
+                                    <span class="badge bg-secondary">'.$data->jenislayanan.'</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-sm-6">
+                                <div class="d-flex py-1 flex-column">
                                     <div>
                                         <div class="fw-bold">Start date</div>
                                         <small class="text-body-secondary">'.convert_date($data->date_mulai).'</small>
@@ -130,9 +144,9 @@ class PermohonanController extends Controller
                                     </div>
                                 </div>
                             </div>
-                            <div class="h5 col-3"><span class="badge bg-secondary">'.$data->jenislayanan.'</span></div>
-                            <div class="h3 fw-bolder">
-                                '.formatCurrency($data->tarif).'
+                            <div class="col-md-3 col-sm-12 text-sm-center d-flex flex-column">
+                                <span class="h4 fw-bolder ">'.formatCurrency($data->tarif).'</span>
+                                <a class="btn btn-sm btn-outline-success mt-2" href="'.url('create/layanan/'.$data->jadwal_hash).'">Pilih layanan</a>
                             </div>
                         </div>
                     </div>
@@ -142,25 +156,33 @@ class PermohonanController extends Controller
                 ->make(true);
     }
 
+    public function pilihLayanan($idJadwal)
+    {
+        $idJadwalHash = isset($idJadwal) ? decryptor($idJadwal) : null;
+        if($idJadwalHash){
+            $data['token'] = generateToken();
+            $data['jadwal'] = jadwal::with('layananjasa')->where('id', $idJadwalHash)->first();
+            // dd($data['jadwal']);
+            return view('pages.permohonan.formCreate', $data);
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
         $validator = $request->validate([
-            'layanan_jasa' => 'required',
-            'jenis_layanan' => 'required',
-            'tarif' => 'required',
-            'jadwal' => 'required',
+            'jadwal_id' => 'required',
             'noBapeten' => 'required',
             'jenisLimbah' => 'required',
             'radioAktif' => 'required',
             'jumlah' => 'required'
         ]);
 
-        $jadwal_id = explode('|', $request->jadwal)[0];
+        $jadwal_id = decryptor($request->jadwal_id);
 
-        $dataJadwal = jadwal::findOrFail($jadwal_id);
+        $dataJadwal = jadwal::with('petugas', 'layananjasa')->where('id', $jadwal_id)->first();
 
         // Mengurangi kuota jadwal
         $dataJadwal->kuota = $dataJadwal->kuota-1;
@@ -184,28 +206,18 @@ class PermohonanController extends Controller
         if($documents){
             $arrMedia = array();
             foreach ($documents as $key => $document) {
-                $realname =  pathinfo($document->getClientOriginalName(), PATHINFO_FILENAME);
-                $filename = 'permohonan_'.md5($realname).'.'.$document->getClientOriginalExtension();
-                $path = $document->storeAs('public/dokumen/permohonan', $filename);
-
-                $media = tbl_media::create([
-                    'file_hash' => $filename,
-                    'file_ori' => $document->getClientOriginalName(),
-                    'file_size' => $document->getSize(),
-                    'file_type' => $document->getClientMimeType(),
-                    'status' => 1
-                ]);
-                array_push($arrMedia, $media->id);
+                $idMedia = $this->mediaController->upload($document, 'permohonan');
+                array_push($arrMedia, $idMedia);
             }
 
             $dokumen_pendukung = json_encode($arrMedia);
         }
 
         $data = array(
-            'layananjasa_id' => $request->layanan_jasa,
+            'layananjasa_id' => $dataJadwal->layananjasa_id,
             'jadwal_id' => $jadwal_id,
-            'jenis_layanan' => explode('|', $request->jenis_layanan)[0],
-            'tarif' => $request->tarif,
+            'jenis_layanan' => $dataJadwal->jenislayanan,
+            'tarif' => $dataJadwal->tarif,
             'no_bapeten' => $request->noBapeten,
             'jenis_limbah' => $request->jenisLimbah,
             'sumber_radioaktif' => $request->radioAktif,
@@ -218,10 +230,13 @@ class PermohonanController extends Controller
 
         Permohonan::create($data);
 
-        $sendNotif = notifikasi(array(
-            'to_user' => $dataJadwal->petugas_id,
-            'type' => 'Permohonan'
-        ), Auth::user()->name." baru saja membuat permohonan untuk Pelayanan ".$dataJadwal->layananjasa->nama_layanan." pada tanggal $dataJadwal->date_mulai");
+        foreach ($dataJadwal->petugas as $key => $value) {
+            # code...
+            $sendNotif = notifikasi(array(
+                'to_user' => $value->petugas_id,
+                'type' => 'Permohonan'
+            ), Auth::user()->name." baru saja membuat permohonan untuk Pelayanan ".$dataJadwal->layananjasa->nama_layanan." pada tanggal $dataJadwal->date_mulai");
+        }
 
         return redirect()->route('permohonan.index')->with('success', 'Permohonan berhasil di buat');
     }
