@@ -3,7 +3,7 @@
     <a href="{{ route('home') }}" class="brand-link link-offset-2 link-underline link-underline-opacity-0 text-dark"
         style="background-color: #f1f1f1;">
         <!-- <img src="../../dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8"> -->
-        <span class="brand-text font-weight-light">Koperasi LAB</span>
+        <span class="brand-text font-weight-light fs-5">NuklindoLab Koperasi JKRL</span>
     </a>
 
     <!-- Sidebar -->

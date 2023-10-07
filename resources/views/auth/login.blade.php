@@ -6,7 +6,7 @@
             <!-- /.login-logo -->
             <div class="card shadow">
                 <div class="card-header text-center">
-                    <span class="h1"><b>Koperasi</b>LAB</span>
+                    <span class="h1"><b>NuklindoLab </b>Koperasi JKRL</span>
                 </div>
                 <div class="card-body">
                     <p class="login-box-msg">Sign in to start your session</p>

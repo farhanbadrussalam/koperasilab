@@ -71,3 +71,12 @@ a{
 .card-hover:hover{
     background-color: #f3f3f3;
 }
+
+/* Kumpulan Color */
+.bg-sm-secondary{
+    background-color: #f3f3f3;
+}
+
+.bg-sm-info{
+    background-color: rgb(179 242 255);
+}
