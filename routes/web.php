@@ -16,6 +16,7 @@ use App\Http\Controllers\PermohonanController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\OtorisasiController;
 use App\Http\Controllers\PetugasLayananController;
+use App\Http\Controllers\FrontdeskController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -76,6 +77,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('otorisasi', OtorisasiController::class);
         Route::get('getDataOtorisasi', [OtorisasiController::class, 'getData'])->name('otorisasi.getData');
     });
+
+    Route::get('frontdesk', [FrontdeskController::class, 'index'])->name('frontdesk.index');
+    Route::get('frontdesk/getData', [FrontdeskController::class, 'getData'])->name('frontdesk.getData');
 
     Route::resource('petugasLayanan', PetugasLayananController::class);
     Route::get('getDataPetugas', [PetugasLayananController::class, 'getData'])->name('petugasLayanan.getData');

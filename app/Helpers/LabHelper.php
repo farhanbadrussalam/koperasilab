@@ -242,9 +242,21 @@ if (!function_exists('stringSplit')) {
 
 #ex: Thursday, 31 Aug 2023 12:42 WIB
 if (!function_exists('convert_date')) {
-	function convert_date($tanggal)
+	function convert_date($tanggal, $type = false)
 	{
-		return date('l, d M Y H:i', strtotime($tanggal));
+        $format = '';
+        switch ($type) {
+            case 1:
+                # 11 Sep 2023 12:00
+                $format = 'd M Y H:i';
+                break;
+
+            default:
+                # Monday, 11 Sep 2023 12:00
+                $format = 'l, d M Y H:i';
+                break;
+        }
+		return date($format, strtotime($tanggal));
 	}
 }
 

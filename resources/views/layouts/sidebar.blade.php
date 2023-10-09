@@ -146,6 +146,17 @@
                 </li>
                 @endcan
                 @endif
+
+                @if(auth()->user()->hasPermissionTo('Otorisasi-Front desk'))
+                <li class="nav-item">
+                    <a href="{{ route('frontdesk.index') }}" class="nav-link {{ Request::is('frontdesk*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <p>
+                            Front desk
+                        </p>
+                    </a>
+                </li>
+                @endif
             </ul>
         </nav>
     </div>

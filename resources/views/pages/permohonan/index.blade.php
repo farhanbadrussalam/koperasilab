@@ -27,83 +27,30 @@
                     <div class="card-body">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link text-primary active" id="pengajuan-tab" data-bs-toggle="tab" data-bs-target="#pengajuan-tab-pane" type="button" role="tab" aria-controls="pengajuan-tab-pane" aria-selected="true">Pengajuan</button>
+                              <button class="nav-link text-primary active" id="pengajuan-tab" onclick="reloadTable(1)" data-bs-toggle="tab" data-bs-target="#pengajuan-tab-pane" type="button" role="tab" aria-controls="pengajuan-tab-pane" aria-selected="true">Pengajuan</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link text-success" id="disetujui-tab" data-bs-toggle="tab" data-bs-target="#disetujui-tab-pane" type="button" role="tab" aria-controls="disetujui-tab-pane" aria-selected="true">Disetujui</button>
+                              <button class="nav-link text-success" id="disetujui-tab" onclick="reloadTable(2)" data-bs-toggle="tab" data-bs-target="#disetujui-tab-pane" type="button" role="tab" aria-controls="disetujui-tab-pane" aria-selected="true">Disetujui</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link text-warning" id="pembayaran-tab" data-bs-toggle="tab" data-bs-target="#pembayaran-tab-pane" type="button" role="tab" aria-controls="pembayaran-tab-pane" aria-selected="false">Pembayaran</button>
+                              <button class="nav-link text-warning" id="pembayaran-tab" onclick="reloadTable(3)" data-bs-toggle="tab" data-bs-target="#pembayaran-tab-pane" type="button" role="tab" aria-controls="pembayaran-tab-pane" aria-selected="false">Pembayaran</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link text-danger" id="dikembalikan-tab" data-bs-toggle="tab" data-bs-target="#dikembalikan-tab-pane" type="button" role="tab" aria-controls="dikembalikan-tab-pane" aria-selected="false">Dikembalikan</button>
+                              <button class="nav-link text-danger" id="dikembalikan-tab" onclick="reloadTable(4)" data-bs-toggle="tab" data-bs-target="#dikembalikan-tab-pane" type="button" role="tab" aria-controls="dikembalikan-tab-pane" aria-selected="false">Dikembalikan</button>
                             </li>
                         </ul>
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade show active pt-3" id="pengajuan-tab-pane" role="tabpanel" aria-labelledby="pengajuan-tab" tabindex="0">
-                                <table class="table table-borderless w-100" id="pengajuan-table">
-                                    <tr>
-                                        <td>
-                                            <div class="card m-0 border-0">
-                                                <div class="ribbon-wrapper">
-                                                    <div class="ribbon bg-primary" title="Kuota">
-                                                        Baru
-                                                    </div>
-                                                </div>
-                                                <div class="card-body d-flex flex-wrap p-3 align-items-center">
-
-                                                    <div class="col-md-6 col-sm-12 mb-sm-2">
-                                                        <span class="fw-bold">Uji kebocoran sumber radioaktif</span>
-                                                        <div class="text-body-secondary text-start">
-                                                            <div>
-                                                                <small><b>Start date</b> : 12-03-2023</small>
-                                                                <small><b>End date</b> : 12-03-2023</small>
-                                                            </div>
-                                                            <small><b>Created</b> : 12-02-2023</small>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-2 col-sm-5 h5">
-                                                        <span class="badge text-bg-secondary">1-5 Sample</span>
-                                                    </div>
-                                                    <div class="col-md-2 col-sm-5 h5">
-                                                        <span class="badge text-bg-info">Antrian 1</span>
-                                                    </div>
-                                                    <div class="col-md-2 col-sm-2">
-                                                        <div class="dropdown">
-                                                            <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
-                                                                <i class="bi bi-three-dots-vertical"></i>
-                                                            </div>
-                                                            <ul class="dropdown-menu shadow-sm px-2">
-                                                                <li class="my-1 cursoron">
-                                                                    <a class="dropdown-item dropdown-item-lab subbody text-success">
-                                                                        <i class="bi bi-info-circle"></i>&nbsp;Rincian
-                                                                    </a>
-                                                                </li>
-                                                                <li class="my-1 cursoron">
-                                                                    <a class="dropdown-item dropdown-item-lab subbody text-danger">
-                                                                        <i class="bi bi-trash"></i>&nbsp;Delete
-                                                                    </a>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                    <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-none">
-                                                        <small><b>Reason:</b> ini alasan kenapa dokumen di balikkan</small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </table>
+                                <table class="table table-borderless w-100" id="pengajuan-table"></table>
                             </div>
                             <div class="tab-pane fade p-3" id="disetujui-tab-pane" role="tabpanel" aria-labelledby="disetujui-tab" tabindex="0">
-                                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Commodi provident illo voluptatibus dolorum maxime expedita maiores omnis sed temporibus voluptate? Sunt facere dolores ipsa porro quaerat expedita praesentium dicta qui!
+                                <table class="table table-borderless w-100" id="disetujui-table"></table>
                             </div>
                             <div class="tab-pane fade p-3" id="pembayaran-tab-pane" role="tabpanel" aria-labelledby="pembayaran-tab" tabindex="0">
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Itaque quidem vel minus numquam dignissimos magnam! Rerum nesciunt placeat sit, dolore maxime qui sapiente pariatur. Fuga cupiditate nam asperiores, perspiciatis molestiae blanditiis repudiandae cumque atque neque nisi earum debitis porro! Quidem?
+                                <table class="table table-borderless w-100" id="pembayaran-table"></table>
                             </div>
                             <div class="tab-pane fade p-3" id="dikembalikan-tab-pane" role="tabpanel" aria-labelledby="dikembalikan-tab" tabindex="0">
-                                Lorem, ipsum dolor sit amet consectetur adipisicing elit. Ad, nostrum dicta aut aspernatur dolorem reprehenderit voluptate totam non deleniti. Ullam incidunt maiores fugiat doloremque. Ipsam odio cupiditate amet eaque labore.
+                                <table class="table table-borderless w-100" id="dikembalikan-table"></table>
                             </div>
                         </div>
                     </div>
@@ -117,44 +64,123 @@
     <script>
         let idPermohonan = false;
         let datatable_permohonan = false;
+        let dt_pengajuan = false;
+        let dt_disetujui = false;
+        let dt_pembayaran = false;
+        let dt_return = false;
         $(function() {
-            // datatable_permohonan = $('#permohonan-table').DataTable({
-            //     processing: true,
-            //     serverSide: true,
-            //     ajax: "{{ route('permohonan.getData') }}",
-            //     columns: [{
-            //             data: 'DT_RowIndex',
-            //             name: 'DT_RowIndex',
-            //             orderable: false
-            //         },
-            //         {
-            //             data: 'nama_layanan',
-            //             name: 'nama_layanan'
-            //         },
-            //         {
-            //             data: 'jadwal',
-            //             name: 'jadwal'
-            //         },
-            //         {
-            //             data: 'status',
-            //             name: 'status'
-            //         },
-            //         {
-            //             data: 'nomor_antrian',
-            //             name: 'nomor_antrian'
-            //         },
-            //         {
-            //             data: 'action',
-            //             name: 'action',
-            //             orderable: false,
-            //             searchable: false
-            //         },
-            //     ]
-            // });
+            dt_pengajuan = $('#pengajuan-table').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('permohonan.getData') }}",
+                    data: function(d) {
+                        d.status = 1
+                    }
+                },
+                columns: [
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
+                ]
+            });
+
+            dt_disetujui = $('#disetujui-table').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('permohonan.getData') }}",
+                    data: function(d) {
+                        d.status = 2
+                    }
+                },
+                columns: [
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
+                ]
+            });
+
+            dt_disetujui = $('#pembayaran-table').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('permohonan.getData') }}",
+                    data: function(d) {
+                        d.status = 3
+                    }
+                },
+                columns: [
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
+                ]
+            });
+
+            dt_return = $('#dikembalikan-table').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('permohonan.getData') }}",
+                    data: function(d) {
+                        d.status = 9
+                    }
+                },
+                columns: [
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
+                ]
+            });
             // datatable_permohonan.on('init.dt', function() {
             //     maskReload();
             // });
         });
+
+        function reloadTable(index) {
+            switch (index) {
+                case 1:
+                    dt_pengajuan?.ajax.reload();
+                    break;
+                case 2:
+                    dt_disetujui?.ajax.reload();
+                    break;
+                case 3:
+                    dt_pembayaran?.ajax.reload();
+                    break;
+                case 4:
+                    dt_return?.ajax.reload();
+                    break;
+            }
+        }
 
         function btnDelete(id) {
             deleteGlobal(() => {
