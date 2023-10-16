@@ -185,7 +185,7 @@
         function btnDelete(id) {
             deleteGlobal(() => {
                 $.ajax({
-                    url: "{{ url('/api/permohonan_api') }}/" + id,
+                    url: "{{ url('/api/permohonan/destroy') }}/" + id,
                     method: 'DELETE',
                     dataType: 'json',
                     processData: true,
@@ -200,7 +200,7 @@
                             title: 'Success',
                             text: result.message
                         });
-                        datatable_permohonan?.ajax.reload();
+                        reloadTable(1);
                     }
                 }).fail(function(message) {
                     Swal.fire({
@@ -214,7 +214,7 @@
 
         function modalConfirm(id) {
             $.ajax({
-                url: "{{ url('api/permohonan_api') }}/" + id,
+                url: "{{ url('api/permohonan/show') }}/" + id,
                 method: 'GET',
                 dataType: 'json',
                 processing: true,
@@ -244,34 +244,16 @@
                     dokumen += printMedia(media, "permohonan");
                 }
                 $('#tmpDokumenPendukung').html(dokumen);
-                if (data.status == 1 && data.jadwal.petugas_id == "{{ Auth::user()->id }}") {
-                    $('#divConfirmBtn').show();
-                } else {
-                    $('#divConfirmBtn').hide();
-                }
+                $('#divConfirmBtn').hide();
                 maskReload();
                 idPermohonan = id;
                 $('#confirmModal').modal('show');
             })
         }
 
-        function btnConfirm(status) {
-            $('#confirmModal').modal('hide');
-            window.statusConfirm = status;
-
-            if (status == 2) {
-                $('#txtStatusSurat').html('rekomendasi');
-                $('#txtInfoConfirm').html('Setuju');
-            } else {
-                $('#txtStatusSurat').html('jawaban');
-                $('#txtInfoConfirm').html('Tolak');
-            }
-            $('#noteModal').modal('show');
-        }
-
         function modalNote(id) {
             $.ajax({
-                url: '{{ url('api/permohonan_api') }}/' + id,
+                url: "{{ url('api/permohonan') }}/" + id,
                 method: 'GET',
                 dataType: 'json',
                 processing: true,
@@ -292,45 +274,7 @@
             })
         }
 
-        function sendConfirm(key) {
-            if (key == 1) {
-                let note = $('#inputNote').val();
-                let documenSurat = $('#uploadSurat')[0].files[0];
 
-                const formData = new FormData();
-                formData.append('_token', '{{ csrf_token() }}');
-                formData.append('note', note);
-                formData.append('id', idPermohonan);
-                formData.append('file', documenSurat);
-                formData.append('status', window.statusConfirm);
-
-
-                $.ajax({
-                    url: '{{ url('api/updatePermohonan') }}',
-                    method: "POST",
-                    dataType: 'json',
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'Authorization': `Bearer {{ $token }}`
-                    },
-                    data: formData
-                }).done(result => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: result.message
-                    });
-                    datatable_permohonan?.ajax.reload();
-                    $('#noteModal').modal('hide');
-                }).fail(e => {
-                    console.error(e);
-                })
-            } else {
-                $('#noteModal').modal('hide');
-                $('#confirmModal').modal('show');
-            }
-        }
 
         function printMedia(media, folder){
             return `

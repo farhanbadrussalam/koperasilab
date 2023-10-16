@@ -1,5 +1,5 @@
 <div class="modal fade" id="confirmModal">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">Detail Permohonan</h4>
@@ -8,71 +8,88 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div class="row">
-                    <div class="col-4 fw-bolder">Nama Pelanggan</div>
-                    <div class="col-8">: <span id="txtNamaPelanggan"></span></div>
-                </div>
-                <div class="row">
-                    <div class="col-4 fw-bolder">Nama Layanan</div>
-                    <div class="col-8">: <span id="txtNamaLayanan">Uji Kebocoran Sumber Radioaktif</span></div>
-                </div>
-                <div class="row">
-                    <div class="col-4 fw-bolder">Jenis Layanan</div>
-                    <div class="col-8">: <span id="txtJenisLayanan">1-5 Sample</span></div>
-                </div>
-                <div class="row">
-                    <div class="col-4 fw-bolder">Harga</div>
-                    <div class="col-8">: <span id="txtHarga" class="rupiah">Rp 1.700.000</span></div>
-                </div>
-                <div class="row">
-                    <div class="col-4 fw-bolder">Start</div>
-                    <div class="col-8">: <span id="txtStart">2023-07-26 08:00:00</span></div>
-                </div>
-                <div class="row">
-                    <div class="col-4 fw-bolder">End</div>
-                    <div class="col-8">: <span id="txtEnd">2023-07-26 17:00:00</span></div>
-                </div>
-                <div class="row">
-                    <div class="col-4 fw-bolder">Status</div>
-                    <div class="col-8  d-flex">:&nbsp;<span id="txtStatus">Diajukan</span></div>
-                </div>
-                <div class="row">
-                    <div class="col-4 fw-bolder">BAPETEN</div>
-                    <div class="col-8">: <span id="txtNoBapeten"></span></div>
-                </div>
-                <div class="row">
-                    <div class="col-4 fw-bolder">Antrian</div>
-                    <div class="col-8">: <span id="txtAntrian"></span></div>
-                </div>
-                <div class="row px-2 my-2">
-                    <table class="table table-bordered shadow">
-                        <thead>
-                            <tr>
-                                <th width="50%">Jenis Limbah</th>
-                                <th width="50%">Sumber Radioaktif</th>
-                                <th>Jumlah</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="txtJeniLimbah"></td>
-                                <td id="txtRadioaktif"></td>
-                                <td id="txtJumlah"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="row">
-                    <div class="fw-bolder">Dokumen Pendukung :</div>
-                    <div id="tmpDokumenPendukung">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-primary active" id="informasi-tab" data-bs-toggle="tab"
+                            data-bs-target="#informasi-tab-pane" type="button" role="tab"
+                            aria-controls="informasi-tab-pane" aria-selected="true">Informasi</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link text-primary" id="dokumen-tab" data-bs-toggle="tab"
+                            data-bs-target="#dokumen-tab-pane" type="button" role="tab"
+                            aria-controls="dokumen-tab-pane" aria-selected="true">Dokumen pendukung</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active pt-3" id="informasi-tab-pane" role="tabpanel"
+                        aria-labelledby="informasi-tab" tabindex="0">
+                        <div class="row">
+                            <div class="col-4 fw-bolder">Nama Pelanggan</div>
+                            <div class="col-8">: <span id="txtNamaPelanggan"></span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bolder">Nama Layanan</div>
+                            <div class="col-8">: <span id="txtNamaLayanan">Uji Kebocoran Sumber Radioaktif</span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bolder">Jenis Layanan</div>
+                            <div class="col-8">: <span id="txtJenisLayanan">1-5 Sample</span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bolder">Harga</div>
+                            <div class="col-8">: <span id="txtHarga" class="rupiah">Rp 1.700.000</span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bolder">Start</div>
+                            <div class="col-8">: <span id="txtStart">2023-07-26 08:00:00</span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bolder">End</div>
+                            <div class="col-8">: <span id="txtEnd">2023-07-26 17:00:00</span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bolder">Status</div>
+                            <div class="col-8  d-flex">:&nbsp;<span id="txtStatus">Diajukan</span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bolder">BAPETEN</div>
+                            <div class="col-8">: <span id="txtNoBapeten"></span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4 fw-bolder">Antrian</div>
+                            <div class="col-8">: <span id="txtAntrian"></span></div>
+                        </div>
+                        <div class="row px-2 my-2">
+                            <table class="table table-bordered shadow">
+                                <thead>
+                                    <tr>
+                                        <th width="50%">Jenis Limbah</th>
+                                        <th width="50%">Sumber Radioaktif</th>
+                                        <th>Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td id="txtJeniLimbah"></td>
+                                        <td id="txtRadioaktif"></td>
+                                        <td id="txtJumlah"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade p-3" id="dokumen-tab-pane" role="tabpanel" aria-labelledby="dokumen-tab"
+                        tabindex="0">
+                        <div id="tmpDokumenPendukung">
 
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer" id="divConfirmBtn">
                 <div class="d-flex w-100">
                     <button class="btn btn-danger me-auto" onclick="btnConfirm(9)">Tolak</button>
-                    <button class="btn btn-primary" onclick="btnConfirm(2)">Setuju</button>
+                    <button class="btn btn-primary" onclick="btnConfirm(2)">Lengkap</button>
                 </div>
             </div>
         </div>
@@ -92,12 +109,13 @@
                     <div class="mb-2">
                         <label for="inputNote" class="form-label">Note <span
                                 class="fw-bold fs-14 text-danger">*</span></label>
-                        <textarea name="note" id="inputNote" cols="30" rows="3" class="form-control" placeholder="Masukan note"></textarea>
+                        <textarea name="note" id="inputNote" cols="30" rows="3" class="form-control"
+                            placeholder="Masukan note"></textarea>
                     </div>
                     {{-- Upload Surat --}}
                     <div class="mb-2">
-                        <label for="uploadSurat" class="form-label">Surat <span id="txtStatusSurat"></span>
-                            permohonan<span class="fw-bold fs-14 text-danger">*</span></label>
+                        <label for="uploadSurat" class="form-label"><span id="txtStatusSurat"></span><span
+                                class="fw-bold fs-14 text-danger">*</span></label>
                         <div class="card mb-0" style="height: 100px;">
                             <input type="file" name="uploadSurat" id="uploadSurat" class="form-control dropify">
                         </div>

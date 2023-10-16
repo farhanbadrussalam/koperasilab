@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permohonan;
+use App\Models\Detail_permohonan;
 use App\Models\Layanan_jasa;
 use App\Models\jadwal;
 use App\Models\tbl_media;
@@ -42,6 +43,8 @@ class PermohonanController extends Controller
         return DataTables::of($informasi)
                 ->addIndexColumn()
                 ->addColumn('content', function($data) {
+                    $idHash = "'".$data->permohonan_hash."'";
+
                     $co_rebbon = $data->status == 2 ? '
                     <div class="ribbon-wrapper">
                         <div class="ribbon bg-primary" title="Kuota">
@@ -83,12 +86,12 @@ class PermohonanController extends Controller
                                     </div>
                                     <ul class="dropdown-menu shadow-sm px-2">
                                         <li class="my-1 cursoron">
-                                            <a class="dropdown-item dropdown-item-lab subbody text-success">
+                                            <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="modalConfirm('.$idHash.')">
                                                 <i class="bi bi-info-circle"></i>&nbsp;Rincian
                                             </a>
                                         </li>
                                         <li class="my-1 cursoron">
-                                            <a class="dropdown-item dropdown-item-lab subbody text-danger">
+                                            <a class="dropdown-item dropdown-item-lab subbody text-danger" onclick="btnDelete('.$idHash.')">
                                                 <i class="bi bi-trash"></i>&nbsp;Delete
                                             </a>
                                         </li>
@@ -223,7 +226,7 @@ class PermohonanController extends Controller
                             </div>
                             <div class="col-md-3 col-sm-12 text-sm-center d-flex flex-column">
                                 <span class="h4 fw-bolder ">'.formatCurrency($data->tarif).'</span>
-                                <a class="btn btn-sm btn-outline-success mt-2" href="'.url('create/layanan/'.$data->jadwal_hash).'">Pilih layanan</a>
+                                <a class="btn btn-sm btn-outline-success mt-2" href="'.url('permohonan/create/layanan/'.$data->jadwal_hash).'">Pilih layanan</a>
                             </div>
                         </div>
                     </div>
@@ -300,14 +303,28 @@ class PermohonanController extends Controller
             'jumlah' => $request->jumlah,
             'dokumen' => $dokumen_pendukung,
             'status' => 1,
-            'flag' => 1,
+            'flag' => 'pengajuan',
             'tag' => 'pengajuan',
             'nomor_antrian' => $ambilAntrian,
             'created_by' => Auth::user()->id
         );
 
-        Permohonan::create($data);
+        $createPermohonan = Permohonan::create($data);
 
+        // save to detail permohonan
+        if(isset($createPermohonan)){
+            // reset status detail to 99
+            $reset = Detail_permohonan::where('permohonan_id', $createPermohonan->id)->update(['status' => '99']);
+
+            Detail_permohonan::create(array(
+                'permohonan_id' => $createPermohonan->id,
+                'status' => 1,
+                'flag' => 1,
+                'created_by' => Auth::user()->id
+            ));
+        }
+
+        // Send notif ke petugas
         foreach ($dataJadwal->petugas as $key => $value) {
             # code...
             $sendNotif = notifikasi(array(

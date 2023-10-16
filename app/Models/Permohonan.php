@@ -22,9 +22,24 @@ class Permohonan extends Model
         'jumlah',
         'dokumen',
         'status',
+        'flag',
+        'tag',
         'nomor_antrian',
         'created_by'
     ];
+
+    protected $hidden = [
+        'id'
+    ];
+
+    protected $appends = [
+        'permohonan_hash'
+    ];
+
+    public function getPermohonanHashAttribute()
+    {
+        return encryptor($this->id);
+    }
 
     public function layananjasa(){
         return $this->belongsTo(Layanan_jasa::class);

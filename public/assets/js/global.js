@@ -35,8 +35,8 @@ function deleteGlobal(callback = () => { }) {
         confirmButtonText: 'Yes, delete it!',
         cancelButtonText: 'No, cancel!',
         customClass: {
-            confirmButton: 'btn btn-success mx-1',
-            cancelButton: 'btn btn-danger mx-1'
+            confirmButton: 'btn btn-outline-success mx-1',
+            cancelButton: 'btn btn-outline-danger mx-1'
         },
         buttonsStyling: false,
         reverseButtons: true
