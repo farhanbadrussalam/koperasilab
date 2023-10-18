@@ -24,6 +24,11 @@
                                     aria-controls="layanan-tab-pane" aria-selected="true">Layanan</button>
                             </li>
                             <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="diteruskan-tab" data-bs-toggle="tab"
+                                    data-bs-target="#diteruskan-tab-pane" type="button" role="tab"
+                                    aria-controls="diteruskan-tab-pane" aria-selected="true">Diteruskan</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="kiplhu-tab" data-bs-toggle="tab"
                                     data-bs-target="#kiplhu-tab-pane" type="button" role="tab"
                                     aria-controls="kiplhu-tab-pane" aria-selected="true">KIP / LHU</button>
@@ -38,6 +43,10 @@
                             <div class="tab-pane fade show active pt-3" id="layanan-tab-pane" role="tabpanel"
                                 aria-labelledby="layanan-tab" tabindex="0">
                                 <table class="table table-borderless w-100" id="layanan-table"></table>
+                            </div>
+                            <div class="tab-pane fade pt-3" id="diteruskan-tab-pane" role="tabpanel"
+                                aria-labelledby="kiplhu-tab" tabindex="0">
+                                <table class="table table-borderless w-100" id="diteruskan-table"></table>
                             </div>
                             <div class="tab-pane fade pt-3" id="kiplhu-tab-pane" role="tabpanel"
                                 aria-labelledby="kiplhu-tab" tabindex="0">
@@ -66,6 +75,7 @@
     <script>
         let idPermohonan = false;
         let dt_frontdesk = false;
+        let dt_diteruskan = false;
         $(function() {
             // $.ajax({
             //     url: "{{ route('frontdesk.getData') }}",
@@ -88,7 +98,30 @@
                 ajax: {
                     url: "{{ route('frontdesk.getData') }}",
                     data: function(d) {
-                        d.status = 1
+                        d.flag = 1
+                    }
+                },
+                columns: [
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
+                ]
+            });
+
+            dt_diteruskan = $('#diteruskan-table').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('frontdesk.getData') }}",
+                    data: function(d) {
+                        d.flag = 2
                     }
                 },
                 columns: [
@@ -96,68 +129,6 @@
                 ]
             })
         })
-
-        function modalConfirm(id) {
-            $.ajax({
-                url: "{{ url('api/permohonan/show') }}/" + id,
-                method: 'GET',
-                dataType: 'json',
-                processing: true,
-                serverSide: true,
-                headers: {
-                    'Authorization': `Bearer {{ $token }}`,
-                    'Content-Type': 'application/json'
-                }
-            }).done(result => {
-                const data = result.data;
-                console.log(data);
-                $('#txtNamaPelanggan').html(data.user.name);
-                $('#txtNamaLayanan').html(data.layananjasa.nama_layanan);
-                $('#txtJenisLayanan').html(data.jenis_layanan);
-                $('#txtHarga').html(data.tarif);
-                $('#txtStart').html(data.jadwal.date_mulai);
-                $('#txtEnd').html(data.jadwal.date_end);
-                $('#txtStatus').html(statusFormat('permohonan', data.status));
-                $('#txtNoBapeten').html(data.no_bapeten);
-                $('#txtAntrian').html(data.nomor_antrian);
-                $('#txtJeniLimbah').html(data.jenis_limbah);
-                $('#txtRadioaktif').html(data.sumber_radioaktif);
-                $('#txtJumlah').html(data.jumlah);
-
-                // ambil dokumen
-                let dokumen = ``;
-                for (const media of data.media) {
-                    dokumen += printMedia(media, "permohonan");
-                }
-                $('#tmpDokumenPendukung').html(dokumen);
-                if(data.status == 2){
-                    $('#divConfirmBtn').hide();
-                }else{
-                    idPermohonan = id;
-                }
-                maskReload();
-                $('#confirmModal').modal('show');
-            })
-        }
-
-        function printMedia(media, folder){
-            return `
-            <a
-                class="mt-2 d-flex align-items-center justify-content-between px-3 mx-1 shadow-sm cursoron document border"
-                href="{{ asset('storage/dokumen') }}/${folder}/${media.file_hash}"
-                target="_blank">
-                    <div class="d-flex align-items-center">
-                        <img class="my-3" src="{{ asset('icons') }}/${iconDocument(media.file_type)}" alt=""
-                            style="width: 24px; height: 24px;">
-                        <div class="d-flex flex-column ms-2">
-                            <span class="caption text-main">${media.file_ori}</span>
-                            <span class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</span>
-                        </div>
-                    </div>
-                <div class="d-flex align-items-center"></div>
-            </a>
-            `;
-        }
 
         function btnConfirm(status){
             $('#confirmModal').modal('hide');

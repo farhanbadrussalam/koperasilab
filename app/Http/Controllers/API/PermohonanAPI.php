@@ -50,7 +50,7 @@ class PermohonanAPI extends Controller
 
         // Mengambil data media
         $dokumen = json_decode($dataPermohonan->dokumen);
-        $media = tbl_media::select('id','file_hash','file_ori','file_size','file_type')
+        $media = tbl_media::select('id','file_hash','file_ori','file_size','file_type','created_at')
                             ->whereIn('id', $dokumen)
                             ->get();
         $dataPermohonan->media = $media;

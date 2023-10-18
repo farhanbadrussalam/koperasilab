@@ -31,7 +31,7 @@ class PermohonanController extends Controller
     public function getData(){
         $user = Auth::user();
         $status = 0;
-        if(request()->has('status') && request('search')){
+        if(request()->has('status') && request('status')){
             $status = request('status');
         }
         $informasi = Permohonan::with(['layananjasa', 'jadwal'])
@@ -57,6 +57,22 @@ class PermohonanController extends Controller
                         <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
                             <small><b>Reason:</b> ini alasan kenapa dokumen di balikkan</small>
                         </div>
+                    ' : '';
+
+                    $btn_action = '
+                        <li class="my-1 cursoron">
+                            <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="modalConfirm('.$idHash.')">
+                                <i class="bi bi-info-circle"></i>&nbsp;Rincian
+                            </a>
+                        </li>
+                    ';
+
+                    $btn_action .= $data->status == 1 ? '
+                        <li class="my-1 cursoron">
+                            <a class="dropdown-item dropdown-item-lab subbody text-danger" onclick="btnDelete('.$idHash.')">
+                                <i class="bi bi-trash"></i>&nbsp;Delete
+                            </a>
+                        </li>
                     ' : '';
 
                     return '
@@ -85,16 +101,7 @@ class PermohonanController extends Controller
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </div>
                                     <ul class="dropdown-menu shadow-sm px-2">
-                                        <li class="my-1 cursoron">
-                                            <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="modalConfirm('.$idHash.')">
-                                                <i class="bi bi-info-circle"></i>&nbsp;Rincian
-                                            </a>
-                                        </li>
-                                        <li class="my-1 cursoron">
-                                            <a class="dropdown-item dropdown-item-lab subbody text-danger" onclick="btnDelete('.$idHash.')">
-                                                <i class="bi bi-trash"></i>&nbsp;Delete
-                                            </a>
-                                        </li>
+                                        '.$btn_action.'
                                     </ul>
                                 </div>
                             </div>

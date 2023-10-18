@@ -18,9 +18,12 @@ class FrontdeskController extends Controller
     public function getData(){
         $user = Auth::user();
 
+        $flag = request('flag');
+        // if(request()->has('flag') && request('flag')){
+        // }
         $informasi = Permohonan::with(['layananjasa', 'jadwal','user'])
                         ->where('status', '!=', 99)
-                        ->where('flag', 1)
+                        ->where('flag', $flag)
                         ->orderBy('jadwal_id', 'desc')
                         ->orderBy('nomor_antrian', 'desc');
         // dd($informasi);
@@ -28,15 +31,20 @@ class FrontdeskController extends Controller
                 ->addIndexColumn()
                 ->addColumn('content', function($data) {
                     $idHash = "'".$data->permohonan_hash."'";
+                    $btnAction = '';
                     if($data->status == 1){
-                        $btnAction = '
+                        $btnAction .= '
                             <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')"><i
                                 class="bi bi-check2-circle"></i> Cek berkas</button>
                         ';
                     }else if($data->status == 2){
-                        $btnAction = '
-                            <button class="btn btn-outline-success btn-sm mb-1" onclick="btnVerifikasi('.$idHash.')">
-                                <i class="bi bi-check"></i> Verifikasi</button>
+                        if($data->flag == 1){
+                            $btnAction .= '
+                                <button class="btn btn-outline-success btn-sm mb-1" onclick="btnVerifikasi('.$idHash.')">
+                                    <i class="bi bi-check"></i> Verifikasi</button>
+                            ';
+                        }
+                        $btnAction .= '
                             <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')">
                                 <i class="bi bi-info-circle"></i> Rincian</button>
                         ';

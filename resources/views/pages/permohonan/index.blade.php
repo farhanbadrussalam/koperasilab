@@ -212,44 +212,44 @@
             });
         }
 
-        function modalConfirm(id) {
-            $.ajax({
-                url: "{{ url('api/permohonan/show') }}/" + id,
-                method: 'GET',
-                dataType: 'json',
-                processing: true,
-                serverSide: true,
-                headers: {
-                    'Authorization': `Bearer {{ $token }}`,
-                    'Content-Type': 'application/json'
-                }
-            }).done(result => {
-                const data = result.data;
-                $('#txtNamaPelanggan').html(data.user.name);
-                $('#txtNamaLayanan').html(data.layananjasa.nama_layanan);
-                $('#txtJenisLayanan').html(data.jenis_layanan);
-                $('#txtHarga').html(data.tarif);
-                $('#txtStart').html(data.jadwal.date_mulai);
-                $('#txtEnd').html(data.jadwal.date_end);
-                $('#txtStatus').html(statusFormat('permohonan', data.status));
-                $('#txtNoBapeten').html(data.no_bapeten);
-                $('#txtAntrian').html(data.nomor_antrian);
-                $('#txtJeniLimbah').html(data.jenis_limbah);
-                $('#txtRadioaktif').html(data.sumber_radioaktif);
-                $('#txtJumlah').html(data.jumlah);
+        // function modalConfirm(id) {
+        //     $.ajax({
+        //         url: "{{ url('api/permohonan/show') }}/" + id,
+        //         method: 'GET',
+        //         dataType: 'json',
+        //         processing: true,
+        //         serverSide: true,
+        //         headers: {
+        //             'Authorization': `Bearer {{ $token }}`,
+        //             'Content-Type': 'application/json'
+        //         }
+        //     }).done(result => {
+        //         const data = result.data;
+        //         $('#txtNamaPelanggan').html(data.user.name);
+        //         $('#txtNamaLayanan').html(data.layananjasa.nama_layanan);
+        //         $('#txtJenisLayanan').html(data.jenis_layanan);
+        //         $('#txtHarga').html(data.tarif);
+        //         $('#txtStart').html(data.jadwal.date_mulai);
+        //         $('#txtEnd').html(data.jadwal.date_end);
+        //         $('#txtStatus').html(statusFormat('permohonan', data.status));
+        //         $('#txtNoBapeten').html(data.no_bapeten);
+        //         $('#txtAntrian').html(data.nomor_antrian);
+        //         $('#txtJeniLimbah').html(data.jenis_limbah);
+        //         $('#txtRadioaktif').html(data.sumber_radioaktif);
+        //         $('#txtJumlah').html(data.jumlah);
 
-                // ambil dokumen
-                let dokumen = ``;
-                for (const media of data.media) {
-                    dokumen += printMedia(media, "permohonan");
-                }
-                $('#tmpDokumenPendukung').html(dokumen);
-                $('#divConfirmBtn').hide();
-                maskReload();
-                idPermohonan = id;
-                $('#confirmModal').modal('show');
-            })
-        }
+        //         // ambil dokumen
+        //         let dokumen = ``;
+        //         for (const media of data.media) {
+        //             dokumen += printMedia(media, "permohonan");
+        //         }
+        //         $('#tmpDokumenPendukung').html(dokumen);
+        //         $('#divConfirmBtn').hide();
+        //         maskReload();
+        //         idPermohonan = id;
+        //         $('#confirmModal').modal('show');
+        //     })
+        // }
 
         function modalNote(id) {
             $.ajax({
@@ -276,24 +276,24 @@
 
 
 
-        function printMedia(media, folder){
-            return `
-            <a
-                class="mt-2 d-flex align-items-center justify-content-between px-3 mx-1 shadow-sm cursoron document border"
-                href="{{ asset('storage/dokumen') }}/${folder}/${media.file_hash}"
-                target="_blank">
-                    <div class="d-flex align-items-center">
-                        <img class="my-3" src="{{ asset('icons') }}/${iconDocument(media.file_type)}" alt=""
-                            style="width: 24px; height: 24px;">
-                        <div class="d-flex flex-column ms-2">
-                            <span class="caption text-main">${media.file_ori}</span>
-                            <span class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</span>
-                        </div>
-                    </div>
-                <div class="d-flex align-items-center"></div>
-            </a>
-            `;
-        }
+        // function printMedia(media, folder){
+        //     return `
+        //     <a
+        //         class="mt-2 d-flex align-items-center justify-content-between px-3 mx-1 shadow-sm cursoron document border"
+        //         href="{{ asset('storage/dokumen') }}/${folder}/${media.file_hash}"
+        //         target="_blank">
+        //             <div class="d-flex align-items-center">
+        //                 <img class="my-3" src="{{ asset('icons') }}/${iconDocument(media.file_type)}" alt=""
+        //                     style="width: 24px; height: 24px;">
+        //                 <div class="d-flex flex-column ms-2">
+        //                     <span class="caption text-main">${media.file_ori}</span>
+        //                     <span class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</span>
+        //                 </div>
+        //             </div>
+        //         <div class="d-flex align-items-center"></div>
+        //     </a>
+        //     `;
+        // }
 
         setDropify('init', '#uploadSurat', {
             allowedFileExtentions: ['pdf', 'doc', 'docx'],

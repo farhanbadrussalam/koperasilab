@@ -47,19 +47,37 @@ function deleteGlobal(callback = () => { }) {
     })
 }
 
-function dateFormat(tanggal, time = false) {
+function dateFormat(tanggal, type = false) {
     let d = new Date(tanggal);
 
-    const options = {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    };
+    let options = {};
 
-    let hour = d.getHours() < 10 ? `0${d.getHours()}` : d.getHours();
-    let minute = d.getMinutes() < 10 ? `0${d.getMinutes()}` : d.getMinutes();
+    switch (type) {
+        case 1:
+            // 14 Okt 2023, 18:40
+            options = {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            break;
 
-    return `${hour}:${minute}, ${d.toLocaleString('id-ID', options)}`;
+        default:
+            // sabtu, 14 Okt 2023, 18:40
+            options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            break;
+    }
+
+    return `${d.toLocaleString('id-ID', options)}`;
 }
 
 function convertDate(tanggal) {
