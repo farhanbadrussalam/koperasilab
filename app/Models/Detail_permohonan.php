@@ -28,4 +28,8 @@ class Detail_permohonan extends Model
     {
         return encryptor($this->id);
     }
+
+    public function media(){
+        return $this->belongsTo(tbl_media::class, 'surat_terbitan', 'id');
+    }
 }

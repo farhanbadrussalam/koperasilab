@@ -122,6 +122,8 @@
                         <span class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx.
                             Recommend size under 5MB.</span>
                     </div>
+                    {{-- Status --}}
+                    <input type="hidden" name="statusVerif" id="statusVerif">
                 </div>
             </div>
             <div class="modal-footer">
@@ -176,7 +178,7 @@
                 }
             }).done(result => {
                 const data = result.data;
-                console.log(data);
+
                 $('#txtNamaPelanggan').html(data.user.name);
                 $('#txtNamaLayanan').html(data.layananjasa.nama_layanan);
                 $('#txtJenisLayanan').html(data.jenis_layanan);
@@ -192,20 +194,20 @@
 
                 let allDocument = '';
                 // ambil dokumen petugas
-                allDocument += `<label>Petugas</label>`;
-                for (const media of data.media) {
-                    allDocument += printMedia(media, "permohonan");
+                if(data.detailPermohonan?.media){
+                    allDocument += `<label>Petugas</label>`;
+                    allDocument += printMedia(data.detailPermohonan.media);
                 }
 
                 // ambil dokumen pelanggan
                 allDocument += `<label class="mt-3">Pelanggan</label>`;
                 for (const media of data.media) {
-                    allDocument += printMedia(media, "permohonan");
+                    allDocument += printMedia(media, "dokumen/permohonan");
                 }
 
                 $('#tmpDokumenPendukung').html(allDocument);
 
-
+                $('#divConfirmBtn').show();
                 if(role.includes('Pelanggan')){
                     $('#divConfirmBtn').hide();
                 }else{
@@ -220,7 +222,7 @@
             })
     }
 
-    function printMedia(media, folder){
+    function printMedia(media, folder=false){
         return `
             <div
                 class="mt-2 d-flex align-items-center justify-content-between px-3 mx-1 shadow-sm cursoron document border">
@@ -231,7 +233,7 @@
                         </div>
                         <div class="flex-grow-1 ms-2">
                             <div class="d-flex flex-column">
-                                <a class="caption text-main" href="{{ asset('storage/dokumen') }}/${folder}/${media.file_hash}" target="_blank">${media.file_ori}</a>
+                                <a class="caption text-main" href="{{ asset('storage') }}/${folder ? folder : media.file_path}/${media.file_hash}" target="_blank">${media.file_ori}</a>
                                 <span class="text-submain caption text-secondary">${dateFormat(media.created_at, 1)}</span>
                             </div>
                         </div>

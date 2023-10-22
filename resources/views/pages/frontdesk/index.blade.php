@@ -78,7 +78,7 @@
         let dt_diteruskan = false;
         $(function() {
             // $.ajax({
-            //     url: "{{ route('frontdesk.getData') }}",
+            //     url: "{{ route('jobs.getData') }}",
             //     method: "GET",
             // }).success(result => {
             //     console.log(result);
@@ -96,9 +96,10 @@
                     return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
                 },
                 ajax: {
-                    url: "{{ route('frontdesk.getData') }}",
+                    url: "{{ route('jobs.getData') }}",
                     data: function(d) {
-                        d.flag = 1
+                        d.jobs = 'frontdesk';
+                        d.type = 'layanan';
                     }
                 },
                 columns: [
@@ -119,9 +120,10 @@
                     return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
                 },
                 ajax: {
-                    url: "{{ route('frontdesk.getData') }}",
+                    url: "{{ route('jobs.getData') }}",
                     data: function(d) {
-                        d.flag = 2
+                        d.jobs = 'frontdesk';
+                        d.type = 'diteruskan';
                     }
                 },
                 columns: [
@@ -148,6 +150,7 @@
                     cancelButtonText: 'No',
                     customClass: {
                         confirmButton: 'btn btn-outline-success mx-1',
+                        cancelButton: 'btn btn-outline-danger mx-1'
                     },
                     buttonsStyling: false,
                     reverseButtons: true,
@@ -172,6 +175,7 @@
             }else{
                 $('#txtStatusSurat').html('Surat jawaban permohonan');
                 $('#txtInfoConfirm').html('Tolak');
+                $('#statusVerif').val(9);
 
                 $('#noteModal').modal('show');
             }
@@ -193,6 +197,7 @@
 
             $('#txtStatusSurat').html('Upload berkas permohonan');
             $('#txtInfoConfirm').html('Verifikasi');
+            $('#statusVerif').val(2);
 
             $('#noteModal').modal('show');
         }
@@ -201,12 +206,14 @@
             if (key == 1) {
                 let note = $('#inputNote').val();
                 let documenSurat = $('#uploadSurat')[0].files[0];
+                let status = $('#statusVerif').val();
 
                 const formData = new FormData();
                 formData.append('_token', '{{ csrf_token() }}');
                 formData.append('note', note);
                 formData.append('id', idPermohonan);
                 formData.append('file', documenSurat);
+                formData.append('status', status);
 
                 $.ajax({
                     url: "{{ url('api/permohonan/verifikasi_fd') }}",

@@ -13,6 +13,7 @@ class Permohonan extends Model
 
     protected $fillable = [
         'layananjasa_id',
+        'no_kontrak',
         'jenis_layanan',
         'tarif',
         'jadwal_id',
@@ -33,12 +34,17 @@ class Permohonan extends Model
     ];
 
     protected $appends = [
-        'permohonan_hash'
+        'permohonan_hash',
+        'progress'
     ];
 
     public function getPermohonanHashAttribute()
     {
         return encryptor($this->id);
+    }
+
+    public function getProgressAttribute(){
+        return Detail_permohonan::where('permohonan_id', $this->id)->where('status', 1)->first();
     }
 
     public function layananjasa(){
@@ -60,4 +66,5 @@ class Permohonan extends Model
     public function suratTerbit(){
         return $this->belongsTo(tbl_media::class, 'surat_terbitan', 'id');
     }
+
 }

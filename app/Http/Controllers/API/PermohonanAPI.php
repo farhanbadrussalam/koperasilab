@@ -55,6 +55,10 @@ class PermohonanAPI extends Controller
                             ->get();
         $dataPermohonan->media = $media;
 
+        // Mengambil data media petugas
+        $detailPermohonan = Detail_permohonan::with('media')->where('permohonan_id', $idHash)->where('status', 1)->first();
+        $dataPermohonan->detailPermohonan = $detailPermohonan;
+
         return response()->json(['data' => $dataPermohonan], 200);
     }
 
@@ -104,7 +108,8 @@ class PermohonanAPI extends Controller
         $validator = $request->validate([
             'file' => 'required',
             'id' => 'required',
-            'note' => 'required'
+            'note' => 'required',
+            'status' => 'required'
         ]);
 
         $idPermohonan = decryptor($request->id);
@@ -114,8 +119,8 @@ class PermohonanAPI extends Controller
         $tmp_arr = array(
             'permohonan_id' => $idPermohonan,
             'note' => $request->note,
-            'flag' => 2,
             'status' => 1,
+            'flag' => $request->status == 2 ? 2 : 1,
             'created_by' => Auth::user()->id
         );
 
@@ -126,7 +131,10 @@ class PermohonanAPI extends Controller
         }
 
         $data_permohonan = Permohonan::findOrFail($idPermohonan);
-        $data_permohonan->flag = 2;
+        $data_permohonan->flag = $request->status == 2 ? 2 : 1;
+        if($request->status == 9) {
+            $data_permohonan->status = 9;
+        }
         $data_permohonan->update();
 
         Detail_permohonan::create($tmp_arr);

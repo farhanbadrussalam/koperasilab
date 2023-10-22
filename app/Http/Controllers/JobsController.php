@@ -8,21 +8,45 @@ use Illuminate\Http\Request;
 use Auth;
 use DataTables;
 
-class FrontdeskController extends Controller
+class JobsController extends Controller
 {
-    public function index(){
+    public function indexFrontdesk(){
         $data['token'] = generateToken();
         return view('pages.frontdesk.index', $data);
+    }
+
+    public function indexPelaksanaKontrak(){
+        $data['token'] = generateToken();
+        return view('pages.pelaksana.index', $data);
     }
 
     public function getData(){
         $user = Auth::user();
 
-        $flag = request('flag');
-        // if(request()->has('flag') && request('flag')){
-        // }
+        // initialisasi
+        $jobs = request('jobs');
+        $type = request('type');
+        $status = array();
+        $flag = false;
+
+        // pembagian
+        if($jobs == 'frontdesk'){
+            if($type == 'layanan'){
+                $flag = 1;
+                $status = [1, 2];
+            }else if($type == 'diteruskan'){
+                $flag = 2;
+                $status = [2];
+            }
+        }else if($jobs == "pelaksana"){
+            if($type == 'layanan'){
+                $flag = 2;
+                $status = [2];
+            }
+        }
+
         $informasi = Permohonan::with(['layananjasa', 'jadwal','user'])
-                        ->where('status', '!=', 99)
+                        ->whereIn('status', $status)
                         ->where('flag', $flag)
                         ->orderBy('jadwal_id', 'desc')
                         ->orderBy('nomor_antrian', 'desc');

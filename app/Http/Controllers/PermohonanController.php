@@ -39,12 +39,10 @@ class PermohonanController extends Controller
                         ->where('created_by', $user->id)
                         ->where('status', $status);
 
-
         return DataTables::of($informasi)
                 ->addIndexColumn()
                 ->addColumn('content', function($data) {
                     $idHash = "'".$data->permohonan_hash."'";
-
                     $co_rebbon = $data->status == 2 ? '
                     <div class="ribbon-wrapper">
                         <div class="ribbon bg-primary" title="Kuota">
@@ -55,7 +53,7 @@ class PermohonanController extends Controller
 
                     $co_reason = $data->status == 9 ? '
                         <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
-                            <small><b>Reason:</b> ini alasan kenapa dokumen di balikkan</small>
+                            <small><b>Reason:</b> '.($data->progress ? $data->progress->note : "").'</small>
                         </div>
                     ' : '';
 
@@ -310,7 +308,7 @@ class PermohonanController extends Controller
             'jumlah' => $request->jumlah,
             'dokumen' => $dokumen_pendukung,
             'status' => 1,
-            'flag' => 'pengajuan',
+            'flag' => 1,
             'tag' => 'pengajuan',
             'nomor_antrian' => $ambilAntrian,
             'created_by' => Auth::user()->id

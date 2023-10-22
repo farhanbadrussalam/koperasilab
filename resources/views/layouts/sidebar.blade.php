@@ -149,10 +149,21 @@
 
                 @if(auth()->user()->hasPermissionTo('Otorisasi-Front desk'))
                 <li class="nav-item">
-                    <a href="{{ route('frontdesk.index') }}" class="nav-link {{ Request::is('frontdesk*') ? 'active' : '' }}">
+                    <a href="{{ route('jobs.frontdesk.index') }}" class="nav-link {{ Request::is('jobs*') ? 'active' : '' }}">
                         <i class="bi bi-box-seam-fill"></i>
                         <p>
                             Front desk
+                        </p>
+                    </a>
+                </li>
+                @endif
+
+                @if(auth()->user()->hasPermissionTo('Otorisasi-Pelaksana kontrak'))
+                <li class="nav-item">
+                    <a href="{{ route('jobs.pelaksana.index') }}" class="nav-link {{ Request::is('jobs*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <p>
+                            Pelaksana kontrak
                         </p>
                     </a>
                 </li>
