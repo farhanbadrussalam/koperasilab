@@ -185,7 +185,7 @@
         function btnDelete(id) {
             deleteGlobal(() => {
                 $.ajax({
-                    url: "{{ url('/api/permohonan_api') }}/" + id,
+                    url: "{{ url('/api/permohonan/destroy') }}/" + id,
                     method: 'DELETE',
                     dataType: 'json',
                     processData: true,
@@ -200,7 +200,7 @@
                             title: 'Success',
                             text: result.message
                         });
-                        datatable_permohonan?.ajax.reload();
+                        reloadTable(1);
                     }
                 }).fail(function(message) {
                     Swal.fire({
@@ -212,66 +212,48 @@
             });
         }
 
-        function modalConfirm(id) {
-            $.ajax({
-                url: "{{ url('api/permohonan_api') }}/" + id,
-                method: 'GET',
-                dataType: 'json',
-                processing: true,
-                serverSide: true,
-                headers: {
-                    'Authorization': `Bearer {{ $token }}`,
-                    'Content-Type': 'application/json'
-                }
-            }).done(result => {
-                const data = result.data;
-                $('#txtNamaPelanggan').html(data.user.name);
-                $('#txtNamaLayanan').html(data.layananjasa.nama_layanan);
-                $('#txtJenisLayanan').html(data.jenis_layanan);
-                $('#txtHarga').html(data.tarif);
-                $('#txtStart').html(data.jadwal.date_mulai);
-                $('#txtEnd').html(data.jadwal.date_end);
-                $('#txtStatus').html(statusFormat('permohonan', data.status));
-                $('#txtNoBapeten').html(data.no_bapeten);
-                $('#txtAntrian').html(data.nomor_antrian);
-                $('#txtJeniLimbah').html(data.jenis_limbah);
-                $('#txtRadioaktif').html(data.sumber_radioaktif);
-                $('#txtJumlah').html(data.jumlah);
+        // function modalConfirm(id) {
+        //     $.ajax({
+        //         url: "{{ url('api/permohonan/show') }}/" + id,
+        //         method: 'GET',
+        //         dataType: 'json',
+        //         processing: true,
+        //         serverSide: true,
+        //         headers: {
+        //             'Authorization': `Bearer {{ $token }}`,
+        //             'Content-Type': 'application/json'
+        //         }
+        //     }).done(result => {
+        //         const data = result.data;
+        //         $('#txtNamaPelanggan').html(data.user.name);
+        //         $('#txtNamaLayanan').html(data.layananjasa.nama_layanan);
+        //         $('#txtJenisLayanan').html(data.jenis_layanan);
+        //         $('#txtHarga').html(data.tarif);
+        //         $('#txtStart').html(data.jadwal.date_mulai);
+        //         $('#txtEnd').html(data.jadwal.date_end);
+        //         $('#txtStatus').html(statusFormat('permohonan', data.status));
+        //         $('#txtNoBapeten').html(data.no_bapeten);
+        //         $('#txtAntrian').html(data.nomor_antrian);
+        //         $('#txtJeniLimbah').html(data.jenis_limbah);
+        //         $('#txtRadioaktif').html(data.sumber_radioaktif);
+        //         $('#txtJumlah').html(data.jumlah);
 
-                // ambil dokumen
-                let dokumen = ``;
-                for (const media of data.media) {
-                    dokumen += printMedia(media, "permohonan");
-                }
-                $('#tmpDokumenPendukung').html(dokumen);
-                if (data.status == 1 && data.jadwal.petugas_id == "{{ Auth::user()->id }}") {
-                    $('#divConfirmBtn').show();
-                } else {
-                    $('#divConfirmBtn').hide();
-                }
-                maskReload();
-                idPermohonan = id;
-                $('#confirmModal').modal('show');
-            })
-        }
-
-        function btnConfirm(status) {
-            $('#confirmModal').modal('hide');
-            window.statusConfirm = status;
-
-            if (status == 2) {
-                $('#txtStatusSurat').html('rekomendasi');
-                $('#txtInfoConfirm').html('Setuju');
-            } else {
-                $('#txtStatusSurat').html('jawaban');
-                $('#txtInfoConfirm').html('Tolak');
-            }
-            $('#noteModal').modal('show');
-        }
+        //         // ambil dokumen
+        //         let dokumen = ``;
+        //         for (const media of data.media) {
+        //             dokumen += printMedia(media, "permohonan");
+        //         }
+        //         $('#tmpDokumenPendukung').html(dokumen);
+        //         $('#divConfirmBtn').hide();
+        //         maskReload();
+        //         idPermohonan = id;
+        //         $('#confirmModal').modal('show');
+        //     })
+        // }
 
         function modalNote(id) {
             $.ajax({
-                url: '{{ url('api/permohonan_api') }}/' + id,
+                url: "{{ url('api/permohonan') }}/" + id,
                 method: 'GET',
                 dataType: 'json',
                 processing: true,
@@ -292,64 +274,26 @@
             })
         }
 
-        function sendConfirm(key) {
-            if (key == 1) {
-                let note = $('#inputNote').val();
-                let documenSurat = $('#uploadSurat')[0].files[0];
-
-                const formData = new FormData();
-                formData.append('_token', '{{ csrf_token() }}');
-                formData.append('note', note);
-                formData.append('id', idPermohonan);
-                formData.append('file', documenSurat);
-                formData.append('status', window.statusConfirm);
 
 
-                $.ajax({
-                    url: '{{ url('api/updatePermohonan') }}',
-                    method: "POST",
-                    dataType: 'json',
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'Authorization': `Bearer {{ $token }}`
-                    },
-                    data: formData
-                }).done(result => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: result.message
-                    });
-                    datatable_permohonan?.ajax.reload();
-                    $('#noteModal').modal('hide');
-                }).fail(e => {
-                    console.error(e);
-                })
-            } else {
-                $('#noteModal').modal('hide');
-                $('#confirmModal').modal('show');
-            }
-        }
-
-        function printMedia(media, folder){
-            return `
-            <a
-                class="mt-2 d-flex align-items-center justify-content-between px-3 mx-1 shadow-sm cursoron document border"
-                href="{{ asset('storage/dokumen') }}/${folder}/${media.file_hash}"
-                target="_blank">
-                    <div class="d-flex align-items-center">
-                        <img class="my-3" src="{{ asset('icons') }}/${iconDocument(media.file_type)}" alt=""
-                            style="width: 24px; height: 24px;">
-                        <div class="d-flex flex-column ms-2">
-                            <span class="caption text-main">${media.file_ori}</span>
-                            <span class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</span>
-                        </div>
-                    </div>
-                <div class="d-flex align-items-center"></div>
-            </a>
-            `;
-        }
+        // function printMedia(media, folder){
+        //     return `
+        //     <a
+        //         class="mt-2 d-flex align-items-center justify-content-between px-3 mx-1 shadow-sm cursoron document border"
+        //         href="{{ asset('storage/dokumen') }}/${folder}/${media.file_hash}"
+        //         target="_blank">
+        //             <div class="d-flex align-items-center">
+        //                 <img class="my-3" src="{{ asset('icons') }}/${iconDocument(media.file_type)}" alt=""
+        //                     style="width: 24px; height: 24px;">
+        //                 <div class="d-flex flex-column ms-2">
+        //                     <span class="caption text-main">${media.file_ori}</span>
+        //                     <span class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</span>
+        //                 </div>
+        //             </div>
+        //         <div class="d-flex align-items-center"></div>
+        //     </a>
+        //     `;
+        // }
 
         setDropify('init', '#uploadSurat', {
             allowedFileExtentions: ['pdf', 'doc', 'docx'],

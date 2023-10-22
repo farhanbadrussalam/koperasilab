@@ -3,7 +3,7 @@
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\JadwalAPI;
 use App\Http\Controllers\API\NotifikasiController;
-use App\Http\Controllers\API\PermohonanController;
+use App\Http\Controllers\API\PermohonanAPI;
 use App\Http\Controllers\API\LayananjasaAPI;
 use App\Http\Controllers\API\OtorisasiAPI;
 use App\Http\Controllers\API\PetugasLayananAPI;
@@ -54,8 +54,14 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::post('/updatePenugasan', [JadwalAPI::class, 'confirm']);
     Route::delete('/deleteJadwal/{id}', [JadwalAPI::class, 'destroy']);
 
-    Route::resource('permohonan_api', PermohonanController::class);
-    Route::post('/updatePermohonan', [PermohonanController::class, 'confirm']);
+    // Route::resource('permohonan', PermohonanAPI::class);
+
+    Route::prefix("permohonan")->group(function () {
+        Route::get('/show/{id}', [PermohonanAPI::class, 'show']);
+        Route::delete('/destroy/{id}', [PermohonanAPI::class, 'destroy']);
+        Route::post('/update/{id}', [PermohonanAPI::class, 'update']);
+        Route::post('/verifikasi_fd', [PermohonanAPI::class, 'verifikasi_fd']);
+    });
 
     Route::prefix('otorisasi')->group(function () {
         Route::get('/getOtorisasi', [OtorisasiAPI::class, 'getOtorisasi']);

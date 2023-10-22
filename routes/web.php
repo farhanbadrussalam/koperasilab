@@ -16,7 +16,8 @@ use App\Http\Controllers\PermohonanController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\OtorisasiController;
 use App\Http\Controllers\PetugasLayananController;
-use App\Http\Controllers\FrontdeskController;
+use App\Http\Controllers\JobsController;
+use App\Http\Controllers\PelaksanaKontrakController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -58,7 +59,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('permohonan', PermohonanController::class);
         Route::get('getDataPermohonan', [PermohonanController::class, 'getData'])->name('permohonan.getData');
         Route::get('getDTListLayanan', [PermohonanController::class, 'getDTListLayanan'])->name('permohonan.getDTListLayanan');
-        Route::get('create/layanan/{idJadwal}', [PermohonanController::class, 'pilihLayanan'])->name('permohonan.create.layanan');
+        Route::get('permohonan/create/layanan/{idJadwal}', [PermohonanController::class, 'pilihLayanan'])->name('permohonan.create.layanan');
     });
 
     Route::middleware(['permission:Penjadwalan'])->group(function () {
@@ -78,8 +79,10 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::get('getDataOtorisasi', [OtorisasiController::class, 'getData'])->name('otorisasi.getData');
     });
 
-    Route::get('frontdesk', [FrontdeskController::class, 'index'])->name('frontdesk.index');
-    Route::get('frontdesk/getData', [FrontdeskController::class, 'getData'])->name('frontdesk.getData');
+    Route::get('jobs/frontdesk', [JobsController::class, 'indexFrontdesk'])->name('jobs.frontdesk.index');
+    Route::get('jobs/pelaksana', [JobsController::class, 'indexPelaksanaKontrak'])->name('jobs.pelaksana.index');
+    Route::get('jobs/getData', [JobsController::class, 'getData'])->name('jobs.getData');
+
 
     Route::resource('petugasLayanan', PetugasLayananController::class);
     Route::get('getDataPetugas', [PetugasLayananController::class, 'getData'])->name('petugasLayanan.getData');

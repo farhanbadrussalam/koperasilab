@@ -104,7 +104,8 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3 d-flex justify-content-end">
+                        <div class="mt-3 d-flex justify-content-between">
+                            <a class="btn btn-danger" href="{{ route('permohonan.create') }}">Batal</a>
                             <button class="btn btn-primary">Buat permohonan</button>
                         </div>
                     </form>

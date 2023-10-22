@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permohonan;
+use App\Models\Detail_permohonan;
 use App\Models\Layanan_jasa;
 use App\Models\jadwal;
 use App\Models\tbl_media;
@@ -30,7 +31,7 @@ class PermohonanController extends Controller
     public function getData(){
         $user = Auth::user();
         $status = 0;
-        if(request()->has('status') && request('search')){
+        if(request()->has('status') && request('status')){
             $status = request('status');
         }
         $informasi = Permohonan::with(['layananjasa', 'jadwal'])
@@ -38,10 +39,10 @@ class PermohonanController extends Controller
                         ->where('created_by', $user->id)
                         ->where('status', $status);
 
-
         return DataTables::of($informasi)
                 ->addIndexColumn()
                 ->addColumn('content', function($data) {
+                    $idHash = "'".$data->permohonan_hash."'";
                     $co_rebbon = $data->status == 2 ? '
                     <div class="ribbon-wrapper">
                         <div class="ribbon bg-primary" title="Kuota">
@@ -52,8 +53,24 @@ class PermohonanController extends Controller
 
                     $co_reason = $data->status == 9 ? '
                         <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
-                            <small><b>Reason:</b> ini alasan kenapa dokumen di balikkan</small>
+                            <small><b>Reason:</b> '.($data->progress ? $data->progress->note : "").'</small>
                         </div>
+                    ' : '';
+
+                    $btn_action = '
+                        <li class="my-1 cursoron">
+                            <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="modalConfirm('.$idHash.')">
+                                <i class="bi bi-info-circle"></i>&nbsp;Rincian
+                            </a>
+                        </li>
+                    ';
+
+                    $btn_action .= $data->status == 1 ? '
+                        <li class="my-1 cursoron">
+                            <a class="dropdown-item dropdown-item-lab subbody text-danger" onclick="btnDelete('.$idHash.')">
+                                <i class="bi bi-trash"></i>&nbsp;Delete
+                            </a>
+                        </li>
                     ' : '';
 
                     return '
@@ -82,16 +99,7 @@ class PermohonanController extends Controller
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </div>
                                     <ul class="dropdown-menu shadow-sm px-2">
-                                        <li class="my-1 cursoron">
-                                            <a class="dropdown-item dropdown-item-lab subbody text-success">
-                                                <i class="bi bi-info-circle"></i>&nbsp;Rincian
-                                            </a>
-                                        </li>
-                                        <li class="my-1 cursoron">
-                                            <a class="dropdown-item dropdown-item-lab subbody text-danger">
-                                                <i class="bi bi-trash"></i>&nbsp;Delete
-                                            </a>
-                                        </li>
+                                        '.$btn_action.'
                                     </ul>
                                 </div>
                             </div>
@@ -223,7 +231,7 @@ class PermohonanController extends Controller
                             </div>
                             <div class="col-md-3 col-sm-12 text-sm-center d-flex flex-column">
                                 <span class="h4 fw-bolder ">'.formatCurrency($data->tarif).'</span>
-                                <a class="btn btn-sm btn-outline-success mt-2" href="'.url('create/layanan/'.$data->jadwal_hash).'">Pilih layanan</a>
+                                <a class="btn btn-sm btn-outline-success mt-2" href="'.url('permohonan/create/layanan/'.$data->jadwal_hash).'">Pilih layanan</a>
                             </div>
                         </div>
                     </div>
@@ -306,8 +314,22 @@ class PermohonanController extends Controller
             'created_by' => Auth::user()->id
         );
 
-        Permohonan::create($data);
+        $createPermohonan = Permohonan::create($data);
 
+        // save to detail permohonan
+        if(isset($createPermohonan)){
+            // reset status detail to 99
+            $reset = Detail_permohonan::where('permohonan_id', $createPermohonan->id)->update(['status' => '99']);
+
+            Detail_permohonan::create(array(
+                'permohonan_id' => $createPermohonan->id,
+                'status' => 1,
+                'flag' => 1,
+                'created_by' => Auth::user()->id
+            ));
+        }
+
+        // Send notif ke petugas
         foreach ($dataJadwal->petugas as $key => $value) {
             # code...
             $sendNotif = notifikasi(array(
