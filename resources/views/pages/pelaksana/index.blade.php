@@ -35,9 +35,11 @@
             </div>
         </section>
     </div>
+    @include('pages.permohonan.confirm')
 @endsection
 @push('scripts')
     <script>
+        let idPermohonan = false;
         let dt_layanan = false;
 
         $(function () {
@@ -65,5 +67,65 @@
                 ]
             });
         })
+
+        function btnConfirm(status){
+            $('#confirmModal').modal('hide');
+
+            if(status == 2){
+                $('#txtStatusSurat').html('Upload tanda terima');
+                $('#txtInfoConfirm').html('Setuju');
+                $('#statusVerif').val(3);
+
+                $('#noteModal').modal('show');
+            }else{
+                $('#txtStatusSurat').html('Surat jawaban permohonan');
+                $('#txtInfoConfirm').html('Tidak setuju');
+                $('#statusVerif').val(9);
+
+                $('#noteModal').modal('show');
+            }
+        }
+        function sendConfirm(key) {
+            if (key == 1) {
+                let note = $('#inputNote').val();
+                let documenSurat = $('#uploadSurat')[0].files[0];
+                let status = $('#statusVerif').val();
+
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('note', note);
+                formData.append('id', idPermohonan);
+                formData.append('file', documenSurat);
+                formData.append('status', status);
+
+                $.ajax({
+                    url: "{{ url('api/permohonan/verifikasi_kontrak') }}",
+                    method: "POST",
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`
+                    },
+                    data: formData
+                }).done(result => {
+                    // Swal.fire({
+                    //     icon: 'success',
+                    //     title: 'Success',
+                    //     text: result.message
+                    // });
+                    $('#noteModal').modal('hide');
+                    dt_layanan?.ajax.reload();
+                }).fail(e => {
+                    console.error(e);
+                })
+            } else {
+                $('#noteModal').modal('hide');
+            }
+        }
+        setDropify('init', '#uploadSurat', {
+            allowedFileExtentions: ['pdf', 'doc', 'docx'],
+            maxFileSize: '5M'
+        });
     </script>
 @endpush

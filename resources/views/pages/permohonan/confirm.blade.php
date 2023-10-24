@@ -88,8 +88,8 @@
             </div>
             <div class="modal-footer" id="divConfirmBtn">
                 <div class="d-flex w-100">
-                    <button class="btn btn-danger me-auto" onclick="btnConfirm(9)">Tolak</button>
-                    <button class="btn btn-primary" onclick="btnConfirm(2)">Lengkap</button>
+                    <button class="btn btn-danger me-auto" id="btnNo" onclick="btnConfirm(9)">Tolak</button>
+                    <button class="btn btn-primary" id="btnYes" onclick="btnConfirm(2)">Lengkap</button>
                 </div>
             </div>
         </div>
@@ -164,6 +164,7 @@
 
 <script>
     const role = @json(Auth::user()->getRoleNames());
+    const permission = @json(Auth::user()->getDirectPermissions());
 
     function modalConfirm(id) {
             $.ajax({
@@ -211,8 +212,12 @@
                 if(role.includes('Pelanggan')){
                     $('#divConfirmBtn').hide();
                 }else{
-                    if(data.status == 2){
+                    if(data.status == 2 && permission.find(d => d.name == 'Otorisasi-Front desk')){
                         $('#divConfirmBtn').hide();
+                    }else if(data.status == 2 && data.flag == 2){
+                        $('#btnNo').html('Tidak setuju');
+                        $('#btnYes').html('Setuju');
+                        idPermohonan = id;
                     }else{
                         idPermohonan = id;
                     }

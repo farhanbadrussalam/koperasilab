@@ -104,6 +104,48 @@ class PermohonanAPI extends Controller
         return response()->json(['message' => 'Berhasil di hapus'], 200);
     }
 
+    public function verifikasi_kontrak(Request $request)
+    {
+        $validator = $request->validate([
+            'file' => 'required',
+            'id' => 'required',
+            'note' => 'required',
+            'status' => 'required'
+        ]);
+
+        $idPermohonan = decryptor($request->id);
+
+        $this->detail->reset($idPermohonan);
+
+        $tmp_arr = array(
+            'permohonan_id' => $idPermohonan,
+            'note' => $request->note,
+            'status' => 1,
+            'flag' => $request->status == 3 ? 3 : 2,
+            'created_by' => Auth::user()->id
+        );
+
+        // upload Surat
+        $dokumen = $request->file('file');
+        if($dokumen){
+            $tmp_arr['surat_terbitan'] = $this->media->upload($dokumen, 'pelaksana');
+        }
+
+        $noKontrak = 'k'.$idPermohonan;
+
+        $data_permohonan = Permohonan::findOrFail($idPermohonan);
+        $data_permohonan->flag = $request->status == 3 ? 3 : 2;
+
+        $data_permohonan->status = $request->status;
+        $data_permohonan->no_kontrak = $noKontrak;
+        $data_permohonan->update();
+
+        Detail_permohonan::create($tmp_arr);
+
+        return response()->json(['message' => 'success'], 200);
+    }
+
+
     public function verifikasi_fd(Request $request){
         $validator = $request->validate([
             'file' => 'required',

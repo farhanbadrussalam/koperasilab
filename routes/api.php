@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::delete('/destroy/{id}', [PermohonanAPI::class, 'destroy']);
         Route::post('/update/{id}', [PermohonanAPI::class, 'update']);
         Route::post('/verifikasi_fd', [PermohonanAPI::class, 'verifikasi_fd']);
+        Route::post('/verifikasi_kontrak', [PermohonanAPI::class, 'verifikasi_kontrak']);
     });
 
     Route::prefix('otorisasi')->group(function () {
