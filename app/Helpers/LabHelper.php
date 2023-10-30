@@ -202,6 +202,13 @@ if (!function_exists('iconDocument')){
     }
 }
 
+if (!function_exists('generate')) {
+    function generate($value = false)
+    {
+        return uniqid($value);
+    }
+  }
+
 if (!function_exists('encryptor')) {
   function encryptor($value)
   {

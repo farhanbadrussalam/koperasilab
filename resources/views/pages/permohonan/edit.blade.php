@@ -8,7 +8,8 @@
                 <div class="col-sm-6">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ route('permohonan.index') }}">Pemohonan</a></li>
-                        <li class="breadcrumb-item active">Edit</li>
+                        <li class="breadcrumb-item">Create</li>
+                        <li class="breadcrumb-item active">{{ $permohonan->jadwal->jenislayanan }}</li>
                     </ol>
                 </div>
             </div>
@@ -23,46 +24,38 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('permohonan.update', $permohonan->id) }}" method="post" enctype="multipart/form-data">
+                    <div id="informasiLayanan" class="row border-bottom shadow-sm shadow-bottom rounded mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label for="" class="lh-1">Nama Layanan</label>
+                            <div>{{ $permohonan->layananjasa->nama_layanan }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="" class="lh-1">Jenis Layanan</label>
+                            <div>{{ $permohonan->jadwal->jenislayanan }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="" class="lh-1">Price</label>
+                            <div>{{ formatCurrency($permohonan->jadwal->tarif) }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="" class="lh-1">Start date</label>
+                            <div>{{ convert_date($permohonan->jadwal->date_mulai) }}</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="" class="lh-1">End date</label>
+                            <div>{{ convert_date($permohonan->jadwal->date_selesai) }}</div>
+                        </div>
+                    </div>
+                    <form action="{{ route('permohonan.update', $permohonan->permohonan_hash) }}" method="post" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <div class="row">
-                            <div class="col-md-12 mb-2">
-                                <label for="inputLayananjasa" class="col-md-3 form-label">Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="text" name="layanan_jasa" id="inputLayananjasa" class="form-control" value="{{ $permohonan->layananjasa->nama_layanan }}" readonly>
-                                @error('layanan_jasa')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="inputJenisLayanan" class="form-label">Jenis Layanan <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="text" name="jenis_layanan" id="inputJenisLayanan" class="form-control" value="{{ $permohonan->jenis_layanan }}" readonly>
-                                @error('jenis_layanan')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
-                                    </div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <label for="inputTarif" class="form-label">Tarif</label>
-                                <div class="input-group">
-                                    <span class="input-group-text" id="rupiah-text">Rp</span>
-                                    <input type="text" name="tarif" id="inputTarif"
-                                                    class="form-control rupiah"
-                                                    aria-describedby="rupiah-text" placeholder="Tarif" value="{{ $permohonan->tarif }}" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-12 mb-2">
-                                <label for="inputJadwal" class="form-label">Jadwal <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="text" name="jadwal" id="inputJadwal" class="form-control" value="{{ $permohonan->jadwal->date_mulai }} s/d {{ $permohonan->jadwal->date_selesai }}" readonly>
-                            </div>
+                            <input type="hidden" name="jadwal_id" value="{{ $permohonan->jadwal->jadwal_hash }}">
                             <div class="col-md-6 mb-2">
                                 <label for="inputNoBapeten" class="form-label">Nomor BAPETEN <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <input type="number" name="noBapeten" id="inputNoBapeten" class="form-control @error('noBapeten')
                                     is-invalid
-                                @enderror" value="{{ old('noBapeten') ? old('noBapeten') : $permohonan->no_bapeten }}">
+                                @enderror" value="{{ $permohonan->no_bapeten }}">
                                 @error('noBapeten')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -73,7 +66,7 @@
                                 <label for="inputJenisLimbah" class="form-label">Jenis Limbah <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <input type="text" name="jenisLimbah" id="inputJenisLimbah" class="form-control @error('jenisLimbah')
                                     is-invalid
-                                @enderror" value="{{ old('jenisLimbah') ? old('jenisLimbah') : $permohonan->jenis_limbah }}">
+                                @enderror" value="{{ $permohonan->jenis_limbah }}">
                                 @error('jenisLimbah')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -84,7 +77,7 @@
                                 <label for="inputRadioaktif" class="form-label">Sumber Radioaktif <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <input type="text" name="radioAktif" id="inputRadioaktif" class="form-control @error('radioAktif')
                                     is-invalid
-                                @enderror" value="{{ old('radioAktif') ? old('radioAktif') : $permohonan->sumber_radioaktif }}">
+                                @enderror" value="{{ $permohonan->sumber_radioaktif }}">
                                 @error('radioAktif')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -95,7 +88,7 @@
                                 <label for="inputJumlah" class="form-label">Jumlah <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <input type="number" name="jumlah" id="inputJumlah" class="form-control @error('jumlah')
                                     is-invalid
-                                @enderror" value="{{ old('jumlah') ? old('jumlah') : $permohonan->jumlah }}">
+                                @enderror" value="{{ $permohonan->jumlah }}">
                                 @error('jumlah')
                                     <div class="invalid-feedback">
                                         {{ $message }}
@@ -103,17 +96,19 @@
                                 @enderror
                             </div>
                             <div class="col-md-12 mb-2">
-                                <label for="uploadDokumen" class="form-label">Dokumen pendukung  <i class="bi bi-plus-square-fill text-success" title="Tambah jenis" role="button" onclick="tambahDocument()"></i></label>
+                                <label for="uploadDokumen" class="form-label">Dokumen pendukung <i class="bi bi-plus-square-fill text-success" title="Tambah jenis" role="button" onclick="tambahDocument()"></i></label>
+                                <div id="documentDefaut" class="mb-2 d-flex flex-wrap"></div>
                                 <div class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx. Recommend size under 5MB.</div>
                                 <div class="d-flex flex-wrap" id="tmpDocument">
                                     <div class="card m-1" style="width: 150px;height: 150px;">
-                                        <input type="file" name="dokumen[]" id="uploadDokumen0" accept=".pdf,.doc,.docx" class="form-control dropify">
+                                        <input type="file" name="dokumen[]" accept=".pdf,.doc,.docx" class="form-control dropify" id="uploadDokumen0">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3 d-flex justify-content-end">
-                            <button class="btn btn-primary">Kirim ulang permohonan</button>
+                        <div class="mt-3 d-flex justify-content-between">
+                            <a class="btn btn-danger" href="{{ route('permohonan.create') }}">Batal</a>
+                            <button class="btn btn-primary">Update permohonan</button>
                         </div>
                     </form>
                 </div>
@@ -127,22 +122,31 @@
         let media = @json($permohonan->media);
         let countDoc = 0;
 
+        setDropify('init', '#uploadDokumen0', {
+            allowedFileExtensions: ['pdf','doc', 'docx'],
+            maxSizeFile: '5M',
+        });
+
+        let allDocument = '';
         for (const i in media) {
             if (Object.hasOwnProperty.call(media, i)) {
                 const value = media[i];
 
-                if(i != 0){
-                    tambahDocument(i);
-                }
-                setDropify('init', `#uploadDokumen${i}`, {
-                    allowedFileExtensions: ['pdf','doc', 'docx'],
-                    maxSizeFile: '5M',
-                    defaultFile: value ? "{{ asset('storage/dokumen/permohonan/') }}/"+value.file_hash : false,
-                    fileNameOri: value ? value.file_ori : false
-                });
+                allDocument += printMedia(value, false, i);
 
+                // if(i != 0){
+                //     tambahDocument(i);
+                // }
+                // let upD = setDropify('init', `#uploadDokumen${i}`, {
+                //     allowedFileExtensions: ['pdf','doc', 'docx'],
+                //     maxSizeFile: '5M',
+                //     defaultFile: value ? "{{ asset('storage/dokumen/permohonan/') }}/"+value.file_hash : false,
+                //     fileNameOri: value ? value.file_ori : false
+                // });
+                // $(`#defaultDocumen${i}`).val(value.file_hash);
             }
         }
+        $('#documentDefaut').html(allDocument);
 
         function tambahDocument(i) {
             if(!i){
@@ -166,6 +170,40 @@
 
         function removeDocument(obj){
             $(obj).parent().remove();
+        }
+
+        function printMedia(media, folder=false, index){
+        return `
+            <div
+                class="col-md-6 col-12 d-flex align-items-center mb-1 justify-content-between shadow-sm cursoron border" id="contentMedia${index}">
+                    <div class="d-flex align-items-center w-100">
+                        <div>
+                            <img class="my-3" src="{{ asset('icons') }}/${iconDocument(media.file_type)}" alt=""
+                                style="width: 24px; height: 24px;">
+                        </div>
+                        <div class="flex-grow-1 ms-2">
+                            <div class="d-flex flex-column">
+                                <a class="caption text-main" href="{{ asset('storage') }}/${folder ? folder : media.file_path}/${media.file_hash}" target="_blank">${media.file_ori}</a>
+                                <span class="text-submain caption text-secondary">${dateFormat(media.created_at, 1)}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</small>
+                        </div>
+                        <div class="p-1">
+                            <input type="hidden" name="defaultDocumen[]" value="${media.media_hash}">
+                            <button class="btn btn-sm btn-outline-danger" type="button" title="hapus file" onclick="removeMedia(${index})"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                <div class="d-flex align-items-center"></div>
+            </div>
+            `;
+        }
+
+        function removeMedia(index) {
+            deleteGlobal(() => {
+                $(`#contentMedia${index}`).remove();
+            })
         }
     </script>
 @endpush

@@ -242,7 +242,7 @@
                                 <span class="text-submain caption text-secondary">${dateFormat(media.created_at, 1)}</span>
                             </div>
                         </div>
-                        <div class="p-1">
+                        <div class="col-md-3">
                             <small class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</small>
                         </div>
                         <div class="p-1">

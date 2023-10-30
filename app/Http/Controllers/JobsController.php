@@ -12,12 +12,17 @@ class JobsController extends Controller
 {
     public function indexFrontdesk(){
         $data['token'] = generateToken();
-        return view('pages.frontdesk.index', $data);
+        return view('pages.jobs.frontdesk', $data);
     }
 
     public function indexPelaksanaKontrak(){
         $data['token'] = generateToken();
-        return view('pages.pelaksana.index', $data);
+        return view('pages.jobs.pelaksana', $data);
+    }
+
+    public function indexPenyelia(){
+        $data['token'] = generateToken();
+        return view('pages.jobs.penyelia', $data);
     }
 
     public function getData(){
@@ -37,11 +42,19 @@ class JobsController extends Controller
             }else if($type == 'diteruskan'){
                 $flag = 2;
                 $status = [2];
+            }else if($type == 'return'){
+                $flag = 2;
+                $status = [9];
             }
         }else if($jobs == "pelaksana"){
             if($type == 'layanan'){
                 $flag = 2;
                 $status = [2];
+            }
+        }else if($jobs == "penyelia"){
+            if($type == 'layanan'){
+                $flag = 3;
+                $status = [3];
             }
         }
 
@@ -56,6 +69,7 @@ class JobsController extends Controller
             ->addColumn('content', function($data) use ($jobs) {
                 $idHash = "'".$data->permohonan_hash."'";
                 $btnAction = '';
+                $co_noted = '';
                 if($data->status == 1){
                     $btnAction .= '
                         <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')"><i
@@ -72,6 +86,11 @@ class JobsController extends Controller
                             <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')"><i
                                 class="bi bi-check2-circle"></i> Cek berkas</button>
                         ';
+                        $co_noted .= '
+                            <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
+                                <small><b class="text-info-emphasis">Note:</b> '.($data->progress ? $data->progress->note : "").'</small>
+                            </div>
+                        ';
                     }
 
                     if($jobs == 'frontdesk'){
@@ -80,7 +99,29 @@ class JobsController extends Controller
                                 <i class="bi bi-info-circle"></i> Rincian</button>
                         ';
                     }
+                }else if($data->status == 3){
+                    if($data->flag == 3){
+                        $btnAction .= '
+                            <button class="btn btn-outline-primary btn-sm" onclick="createSurat('.$idHash.')"><i
+                                class="bi bi-check2-circle"></i> Buat surat tugas</button>
+                        ';
+                    }
+                }else if($data->status == 9){
+                    if($data->flag == 2){
+                        $btnAction .= '
+                            <button class="btn btn-outline-danger btn-sm mb-2" onclick="confirmReturn('.$idHash.')">
+                                <i class="bi bi-arrow-return-left"></i> Return</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')">
+                                <i class="bi bi-info-circle"></i> Rincian</button>
+                        ';
+                    }
                 }
+
+                $co_reason = $data->status == 9 ? '
+                        <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
+                            <small class="text-danger-emphasis"><b>Reason:</b> '.($data->progress ? $data->progress->note : "").'</small>
+                        </div>
+                    ' : '';
 
                 $labelTag = '';
                 if($data->tag != 'pengajuan'){
@@ -118,6 +159,8 @@ class JobsController extends Controller
                         <div class="col-md-2 col-sm-2">
                             '.$btnAction.'
                         </div>
+                        '.$co_reason.'
+                        '.$co_noted.'
                     </div>
                 </div>
                 ';

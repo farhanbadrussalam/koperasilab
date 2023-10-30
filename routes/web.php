@@ -81,6 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::get('jobs/frontdesk', [JobsController::class, 'indexFrontdesk'])->name('jobs.frontdesk.index');
     Route::get('jobs/pelaksana', [JobsController::class, 'indexPelaksanaKontrak'])->name('jobs.pelaksana.index');
+    Route::get('jobs/penyelia', [JobsController::class, 'indexPenyelia'])->name('jobs.penyelia.index');
     Route::get('jobs/getData', [JobsController::class, 'getData'])->name('jobs.getData');
 
 

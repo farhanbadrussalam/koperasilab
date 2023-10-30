@@ -19,4 +19,17 @@ class tbl_media extends Model
         'file_path',
         'status'
     ];
+
+    protected $hidden = [
+        'id'
+    ];
+
+    protected $appends = [
+        'media_hash'
+    ];
+
+    public function getMediaHashAttribute()
+    {
+        return encryptor($this->id);
+    }
 }

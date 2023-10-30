@@ -168,6 +168,17 @@
                     </a>
                 </li>
                 @endif
+
+                @if(auth()->user()->hasPermissionTo('Otorisasi-Penyelia LAB'))
+                <li class="nav-item">
+                    <a href="{{ route('jobs.penyelia.index') }}" class="nav-link {{ Request::is('jobs*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <p>
+                            Penyelia LAB
+                        </p>
+                    </a>
+                </li>
+                @endif
             </ul>
         </nav>
     </div>

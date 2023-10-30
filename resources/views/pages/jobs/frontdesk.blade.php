@@ -23,11 +23,11 @@
                                     data-bs-target="#layanan-tab-pane" type="button" role="tab"
                                     aria-controls="layanan-tab-pane" aria-selected="true">Layanan</button>
                             </li>
-                            <li class="nav-item" role="presentation">
+                            {{-- <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="diteruskan-tab" data-bs-toggle="tab"
                                     data-bs-target="#diteruskan-tab-pane" type="button" role="tab"
                                     aria-controls="diteruskan-tab-pane" aria-selected="true">Diteruskan</button>
-                            </li>
+                            </li> --}}
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="kiplhu-tab" data-bs-toggle="tab"
                                     data-bs-target="#kiplhu-tab-pane" type="button" role="tab"
@@ -44,10 +44,10 @@
                                 aria-labelledby="layanan-tab" tabindex="0">
                                 <table class="table table-borderless w-100" id="layanan-table"></table>
                             </div>
-                            <div class="tab-pane fade pt-3" id="diteruskan-tab-pane" role="tabpanel"
+                            {{-- <div class="tab-pane fade pt-3" id="diteruskan-tab-pane" role="tabpanel"
                                 aria-labelledby="kiplhu-tab" tabindex="0">
                                 <table class="table table-borderless w-100" id="diteruskan-table"></table>
-                            </div>
+                            </div> --}}
                             <div class="tab-pane fade pt-3" id="kiplhu-tab-pane" role="tabpanel"
                                 aria-labelledby="kiplhu-tab" tabindex="0">
                                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem porro reiciendis
@@ -57,11 +57,7 @@
                             </div>
                             <div class="tab-pane fade pt-3" id="dikembalikan-tab-pane" role="tabpanel"
                                 aria-labelledby="dikembalikan-tab" tabindex="0">
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex dolor suscipit magnam nesciunt
-                                voluptate. Aperiam laudantium iure incidunt quo consequatur voluptatibus, reiciendis harum!
-                                Velit ab aperiam molestias repellendus vero eaque iste porro unde ipsam ipsa laborum,
-                                exercitationem, excepturi iure nihil officiis natus necessitatibus aspernatur modi quod
-                                molestiae! Alias, rerum repellendus.
+                                <table class="table table-borderless w-100" id="dikembalikan-table"></table>
                             </div>
                         </div>
                     </div>
@@ -76,6 +72,7 @@
         let idPermohonan = false;
         let dt_frontdesk = false;
         let dt_diteruskan = false;
+        let dt_return = false;
         $(function() {
             // $.ajax({
             //     url: "{{ route('jobs.getData') }}",
@@ -107,7 +104,31 @@
                 ]
             });
 
-            dt_diteruskan = $('#diteruskan-table').DataTable({
+            // dt_diteruskan = $('#diteruskan-table').DataTable({
+            //     processing: true,
+            //     serverSide: true,
+            //     searching: false,
+            //     ordering: false,
+            //     lengthChange: false,
+            //     infoCallback: function( settings, start, end, max, total, pre ) {
+            //         var api = this.api();
+            //         var pageInfo = api.page.info();
+
+            //         return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+            //     },
+            //     ajax: {
+            //         url: "{{ route('jobs.getData') }}",
+            //         data: function(d) {
+            //             d.jobs = 'frontdesk';
+            //             d.type = 'diteruskan';
+            //         }
+            //     },
+            //     columns: [
+            //         { data: 'content', name: 'content', orderable: false, searchable: false}
+            //     ]
+            // });
+
+            dt_return = $('#dikembalikan-table').DataTable({
                 processing: true,
                 serverSide: true,
                 searching: false,
@@ -123,13 +144,13 @@
                     url: "{{ route('jobs.getData') }}",
                     data: function(d) {
                         d.jobs = 'frontdesk';
-                        d.type = 'diteruskan';
+                        d.type = 'return';
                     }
                 },
                 columns: [
                     { data: 'content', name: 'content', orderable: false, searchable: false}
                 ]
-            })
+            });
         })
 
         function btnConfirm(status){
@@ -186,7 +207,9 @@
                 case 1:
                     dt_frontdesk?.ajax.reload();
                     break;
-
+                case 4:
+                    dt_return?.ajax.reload();
+                    break;
                 default:
                     break;
             }
@@ -239,6 +262,51 @@
             } else {
                 $('#noteModal').modal('hide');
             }
+        }
+
+        function confirmReturn(idHash){
+            Swal.fire({
+                title: 'Permohonan dikembalikan ?',
+                icon: false,
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No',
+                customClass: {
+                    confirmButton: 'btn btn-outline-success mx-1',
+                    cancelButton: 'btn btn-outline-danger mx-1'
+                },
+                buttonsStyling: false,
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('_token', '{{ csrf_token() }}');
+                    formData.append('note', '');
+                    formData.append('id', idHash);
+                    formData.append('status', 9);
+                    formData.append('type', 'return');
+                    $.ajax({
+                        url: "{{ url('api/permohonan/verifikasi_fd') }}",
+                        method: "POST",
+                        dataType: 'json',
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'Authorization': `Bearer {{ $token }}`
+                        },
+                        data: formData
+                    }).done(result => {
+                        // Swal.fire({
+                        //     icon: 'success',
+                        //     title: 'Success',
+                        //     text: result.message
+                        // });
+                        reloadTable(4);
+                    }).fail(e => {
+                        console.error(e);
+                    })
+                }
+            })
         }
 
         setDropify('init', '#uploadSurat', {

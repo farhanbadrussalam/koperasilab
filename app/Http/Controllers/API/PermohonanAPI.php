@@ -131,13 +131,15 @@ class PermohonanAPI extends Controller
             $tmp_arr['surat_terbitan'] = $this->media->upload($dokumen, 'pelaksana');
         }
 
-        $noKontrak = 'k'.$idPermohonan;
+        $noKontrak = 'K'.generate();
 
         $data_permohonan = Permohonan::findOrFail($idPermohonan);
         $data_permohonan->flag = $request->status == 3 ? 3 : 2;
 
         $data_permohonan->status = $request->status;
-        $data_permohonan->no_kontrak = $noKontrak;
+
+        $request->status != 9 ? $data_permohonan->no_kontrak = $noKontrak : false;
+
         $data_permohonan->update();
 
         Detail_permohonan::create($tmp_arr);
@@ -148,29 +150,12 @@ class PermohonanAPI extends Controller
 
     public function verifikasi_fd(Request $request){
         $validator = $request->validate([
-            'file' => 'required',
             'id' => 'required',
-            'note' => 'required',
             'status' => 'required'
         ]);
 
         $idPermohonan = decryptor($request->id);
-
-        $this->detail->reset($idPermohonan);
-
-        $tmp_arr = array(
-            'permohonan_id' => $idPermohonan,
-            'note' => $request->note,
-            'status' => 1,
-            'flag' => $request->status == 2 ? 2 : 1,
-            'created_by' => Auth::user()->id
-        );
-
-        // upload Surat
-        $dokumen = $request->file('file');
-        if($dokumen){
-            $tmp_arr['surat_terbitan'] = $this->media->upload($dokumen, 'frontdesk');
-        }
+        $type = isset($request->type) ? $request->type : null;
 
         $data_permohonan = Permohonan::findOrFail($idPermohonan);
         $data_permohonan->flag = $request->status == 2 ? 2 : 1;
@@ -179,7 +164,25 @@ class PermohonanAPI extends Controller
         }
         $data_permohonan->update();
 
-        Detail_permohonan::create($tmp_arr);
+        if($request->type != 'return'){
+            $this->detail->reset($idPermohonan);
+
+            $tmp_arr = array(
+                'permohonan_id' => $idPermohonan,
+                'note' => $request->note,
+                'status' => 1,
+                'flag' => $request->status == 2 ? 2 : 1,
+                'created_by' => Auth::user()->id
+            );
+
+            // upload Surat
+            $dokumen = $request->file('file');
+            if($dokumen){
+                $tmp_arr['surat_terbitan'] = $this->media->upload($dokumen, 'frontdesk');
+            }
+
+            Detail_permohonan::create($tmp_arr);
+        }
 
         // $request->status == 2 ? $text = 'setujui' : $text = 'tolak';
 

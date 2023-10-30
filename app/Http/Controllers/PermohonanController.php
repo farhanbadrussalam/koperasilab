@@ -10,6 +10,7 @@ use App\Models\tbl_media;
 use Illuminate\Http\Request;
 
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\DetailPermohonanController;
 
 use Auth;
 use DataTables;
@@ -18,6 +19,7 @@ class PermohonanController extends Controller
 {
     public function __construct() {
         $this->mediaController = resolve(MediaController::class);
+        $this->detail = resolve(DetailPermohonanController::class);
     }
     /**
      * Display a listing of the resource.
@@ -53,11 +55,23 @@ class PermohonanController extends Controller
 
                     $co_reason = $data->status == 9 ? '
                         <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
-                            <small><b>Reason:</b> '.($data->progress ? $data->progress->note : "").'</small>
+                            <small class="text-danger-emphasis"><b>Reason:</b> '.($data->progress ? $data->progress->note : "").'</small>
                         </div>
                     ' : '';
 
-                    $btn_action = '
+                    $btn_action = '';
+
+                    if($data->status == 1 || $data->status == 9){
+                        $btn_action .= '
+                            <li class="my-1 cursoron">
+                                <a class="dropdown-item dropdown-item-lab subbody text-warning" href="'.route("permohonan.edit", $data->permohonan_hash).'">
+                                    <i class="bi bi-pencil-square"></i>&nbsp;Update
+                                </a>
+                            </li>
+                        ';
+                    }
+
+                    $btn_action .= '
                         <li class="my-1 cursoron">
                             <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="modalConfirm('.$idHash.')">
                                 <i class="bi bi-info-circle"></i>&nbsp;Rincian
@@ -65,7 +79,7 @@ class PermohonanController extends Controller
                         </li>
                     ';
 
-                    $btn_action .= $data->status == 1 ? '
+                    $btn_action .= $data->status == 1 || $data->status == 9 ? '
                         <li class="my-1 cursoron">
                             <a class="dropdown-item dropdown-item-lab subbody text-danger" onclick="btnDelete('.$idHash.')">
                                 <i class="bi bi-trash"></i>&nbsp;Delete
@@ -352,22 +366,25 @@ class PermohonanController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Permohonan $permohonan)
+    public function edit($id)
     {
+        $idPermohonan = decryptor($id);
+        $permohonan = Permohonan::with('jadwal','layananjasa')->where('id', $idPermohonan)->first();
         $data['token'] = generateToken();
         $data['permohonan'] = $permohonan;
+
         $dokumen = json_decode($data['permohonan']->dokumen);
-        $media = tbl_media::select('id','file_hash','file_ori','file_size','file_type')
-                            ->whereIn('id', $dokumen)
+        $media = tbl_media::whereIn('id', $dokumen)
                             ->get();
         $data['permohonan']->media = $media;
+
         return view('pages.permohonan.edit', $data);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Permohonan $permohonan)
+    public function update(Request $request, $id)
     {
         $validator = $request->validate([
             'noBapeten' => 'required',
@@ -375,35 +392,37 @@ class PermohonanController extends Controller
             'radioAktif' => 'required',
             'jumlah' => 'required'
         ]);
+
+        // dd($id);
+        $idPermohonan = decryptor($id);
+
+        $arrMediaDefault = array();
+        if(isset($request->defaultDocumen)){
+            foreach ($request->defaultDocumen as $key => $value) {
+                array_push($arrMediaDefault, (int) decryptor($value));
+            }
+        }
+        $permohonan = Permohonan::findOrFail($idPermohonan);
+
         $permohonan->no_bapeten = $request->noBapeten;
         $permohonan->jenis_limbah = $request->jenisLimbah;
         $permohonan->sumber_radioaktif = $request->radioAktif;
         $permohonan->jumlah = $request->jumlah;
         $permohonan->status = 1;
-        $permohonan->note = null;
-        $permohonan->surat_terbitan = null;
 
         // Update file pendukung
         $documents = $request->file('dokumen');
+        $arrMedia = array();
         if($documents){
-            $arrMedia = array();
             foreach ($documents as $key => $document) {
-                $realname =  pathinfo($document->getClientOriginalName(), PATHINFO_FILENAME);
-                $filename = 'permohonan_'.md5($realname).'.'.$document->getClientOriginalExtension();
-                $path = $document->storeAs('public/dokumen/permohonan', $filename);
-
-                $media = tbl_media::create([
-                    'file_hash' => $filename,
-                    'file_ori' => $document->getClientOriginalName(),
-                    'file_size' => $document->getSize(),
-                    'file_type' => $document->getClientMimeType(),
-                    'status' => 1
-                ]);
-                array_push($arrMedia, $media->id);
+                $idMedia = $this->mediaController->upload($document, 'permohonan');
+                array_push($arrMedia, $idMedia);
             }
-            $permohonan->dokumen = array_merge(json_decode($permohonan->dokumen), $arrMedia);
         }
+        $permohonan->dokumen = array_merge($arrMediaDefault, $arrMedia);
         $permohonan->update();
+
+        $this->detail->reset($idPermohonan);
 
         return redirect()->route('permohonan.index')->with('success', 'Berhasil di update');
     }

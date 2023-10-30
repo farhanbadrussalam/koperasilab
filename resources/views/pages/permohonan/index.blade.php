@@ -115,7 +115,7 @@
                 ]
             });
 
-            dt_disetujui = $('#pembayaran-table').DataTable({
+            dt_pembayaran = $('#pembayaran-table').DataTable({
                 processing: true,
                 serverSide: true,
                 searching: false,
