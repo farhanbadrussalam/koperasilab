@@ -16,7 +16,7 @@
         <section class="content">
             <div class="container">
                 <div class="row">
-                    <div class="card col-xl-6 col-md-12 bg-white">
+                    <div class="card col-xl-8 col-md-12 bg-white">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-12 text-center fw-bolder border-bottom">

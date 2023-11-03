@@ -250,6 +250,7 @@
                                     <div class="px-3 my-auto">
                                         <div class="lh-1">${data.petugas.name}</div>
                                         ${pj}
+                                        <div class="lh-1">${data.petugas.email}</div>
                                     </div>
                                 </div>
                                 <div class="p-2 m-auto">

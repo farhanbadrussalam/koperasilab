@@ -15,7 +15,7 @@
             </div>
         </div><!-- /.container-fluid -->
     </section>
-    <section class="content col-xl-8 col-md-12">
+    <section class="content col-md-12">
         <div class="container">
             <div class="card card-default color-palette-box shadow bg-white">
                 <div class="card-header d-flex ">
