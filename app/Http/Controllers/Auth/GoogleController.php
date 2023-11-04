@@ -30,7 +30,7 @@ class GoogleController extends Controller
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s')
         ])->assignRole('pelanggan');
 
-        if($user->profile->media){
+        if($user){
             $urlEksternal = $googleUser->avatar;
 
             // Ambil konten gambar dari URL
