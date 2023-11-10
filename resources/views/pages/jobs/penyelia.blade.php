@@ -23,11 +23,20 @@
                                 data-bs-target="#layanan-tab-pane" type="button" role="tab"
                                 aria-controls="layanan-tab-pane" aria-selected="true">Layanan</button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="lhu-tab" data-bs-toggle="tab"
+                                data-bs-target="#lhu-tab-pane" type="button" role="tab"
+                                aria-controls="lhu-tab-pane" aria-selected="true">Data LHU</button>
+                        </li>
                     </ul>
                     <div class="tab-content" id="myTabContent">
                         <div class="tab-pane fade show active pt-3" id="layanan-tab-pane" role="tabpanel"
                             aria-labelledby="layanan-tab" tabindex="0">
                             <table class="table table-borderless w-100" id="layanan-table"></table>
+                        </div>
+                        <div class="tab-pane fade pt-3" id="lhu-tab-pane" role="tabpanel"
+                            aria-labelledby="lhu-tab" tabindex="0">
+                            <table class="table table-borderless w-100" id="lhu-table"></table>
                         </div>
                     </div>
                 </div>
@@ -35,6 +44,8 @@
         </div>
     </section>
 </div>
+@include('pages.permohonan.confirm')
+@include('pages.jobs.createSurat')
 @endsection
 @push('scripts')
 <script>
@@ -66,5 +77,22 @@
             ]
         });
     })
+
+    function createSurat(idPermohonan){
+        $.ajax({
+            url: "{{ url('api/permohonan/show') }}/" + idPermohonan,
+            method: 'GET',
+            dataType: 'json',
+            processing: true,
+            serverSide: true,
+            headers: {
+                'Authorization': `Bearer {{ $token }}`,
+                'Content-Type': 'application/json'
+            }
+        }).done(result => {
+            console.log(result);
+            $('#create-surat').modal('show');
+        })
+    }
 </script>
 @endpush

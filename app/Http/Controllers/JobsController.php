@@ -70,6 +70,9 @@ class JobsController extends Controller
                 $idHash = "'".$data->permohonan_hash."'";
                 $btnAction = '';
                 $co_noted = '';
+                $btnRincian = '<button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')">
+                                <i class="bi bi-info-circle"></i> Rincian</button>';
+
                 if($data->status == 1){
                     $btnAction .= '
                         <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')"><i
@@ -94,16 +97,29 @@ class JobsController extends Controller
                     }
 
                     if($jobs == 'frontdesk'){
-                        $btnAction .= '
-                            <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')">
-                                <i class="bi bi-info-circle"></i> Rincian</button>
-                        ';
+                        $btnAction .= $btnRincian;
                     }
                 }else if($data->status == 3){
                     if($data->flag == 3){
                         $btnAction .= '
-                            <button class="btn btn-outline-primary btn-sm" onclick="createSurat('.$idHash.')"><i
-                                class="bi bi-check2-circle"></i> Buat surat tugas</button>
+                            <div class="dropdown">
+                                <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </div>
+                                <ul class="dropdown-menu shadow-sm px-2">
+                                    <li class="my-1 cursoron">
+                                        <a class="dropdown-item dropdown-item-lab" onclick="createSurat('.$idHash.')">
+                                            Buat surat tugas
+                                        </a>
+                                    </li>
+                                    <li class="my-1 cursoron">
+                                        <a class="dropdown-item dropdown-item-lab" onclick="modalConfirm('.$idHash.')">
+                                            Rincian
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+
                         ';
                     }
                 }else if($data->status == 9){
@@ -111,8 +127,7 @@ class JobsController extends Controller
                         $btnAction .= '
                             <button class="btn btn-outline-danger btn-sm mb-2" onclick="confirmReturn('.$idHash.')">
                                 <i class="bi bi-arrow-return-left"></i> Return</button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')">
-                                <i class="bi bi-info-circle"></i> Rincian</button>
+                            '.$btnRincian.'
                         ';
                     }
                 }
@@ -141,6 +156,7 @@ class JobsController extends Controller
                     <div class="card-body d-flex flex-wrap p-3 align-items-center">
                         <div class="col-md-6 col-sm-12 mb-sm-2">
                             <span class="fw-bold">'.$data->layananjasa->nama_layanan.'</span>
+                            <div><b>No kontrak :</b> '.($data->no_kontrak ? $data->no_kontrak : "-").'</div>
                             <div class="text-body-secondary text-start">
                                 <div>
                                     <small><b>Start date</b> : '.convert_date($data->jadwal->date_mulai, 1).'</small>
@@ -156,7 +172,7 @@ class JobsController extends Controller
                         <div class="col-md-2 col-sm-5 h5">
                             <span class="badge text-bg-info">Antrian '.$data->nomor_antrian.'</span>
                         </div>
-                        <div class="col-md-2 col-sm-2">
+                        <div class="col-md-2 col-sm-2" style="z-index: 10;">
                             '.$btnAction.'
                         </div>
                         '.$co_reason.'
