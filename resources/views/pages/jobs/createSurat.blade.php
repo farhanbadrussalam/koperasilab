@@ -9,10 +9,6 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-2 fw-bolder">Nama LAB</div>
-                    <div class="col-8">: <span id="txtNamaLAB">LAB. Lingkungan</span></div>
-                </div>
-                <div class="row">
                     <div class="col-2 fw-bolder">Tugas</div>
                     <div class="col-8">: <span id="txtTugas">Uji kebocoran sumber radioaktif</span></div>
                 </div>
@@ -31,14 +27,15 @@
                 <h4 class="mt-2 border-bottom pb-2 text-end">List petugas</h4>
                 <div class="row mt-3">
                     <div class="col-md-5">
-                        <input type="text" name="" id="namaPetugas" class="form-control"
-                            placeholder="Pilih petugas">
+                        <select name="satuan_lab" id="namaPetugas" class="form-select" required>
+                            <option></option>
+                        </select>
                     </div>
                     <div class="col-md-5">
                         <input type="text" name="" id="tugas" class="form-control" placeholder="Tugas">
                     </div>
                     <div class="col-md-2">
-                        <button class="btn btn-outline-primary mb-3">Tambah</button>
+                        <button class="btn btn-outline-primary mb-3" onclick="tambahPetugas()">Tambah</button>
                     </div>
                 </div>
                 {{-- <div class="my-2 w-100">
@@ -87,3 +84,76 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    $('#namaPetugas').select2({
+        theme: "bootstrap-5",
+        placeholder: "Select petugas",
+        dropdownParent: $('#create-surat'),
+        // minimumInputLength: 3,
+        placeholder: "Pilih petugas",
+        ajax: {
+            url: "{{ url('api/petugas/search') }}",
+            dataType: "json",
+            processing: true,
+            serverSide: true,
+            delay: 250,
+            headers: {
+                'Authorization': `Bearer {{ $token }}`,
+                'Content-Type': 'application/json'
+            },
+            data: function (params) {
+                let query = {
+                    search: params.term
+                }
+
+                return query;
+            },
+            processResults: function(response, params){
+                let items = [];
+                for (const data of response.data) {
+                    items.push({
+                        'id' : data.petugas_hash,
+                        'text' : data.petugas.name
+                    });
+                }
+                return {
+                    results: items
+                }
+            }
+        }
+    });
+    function tambahPetugas(){
+        let petugas = $('#namaPetugas').val();
+        let tugas = $('#tugas').val();
+
+        $.ajax({
+            method: 'GET',
+            url: "{{ url('/api/petugas/getPetugas') }}",
+            dataType: 'json',
+            processData: true,
+            headers: {
+                'Authorization': `Bearer {{ $token }}`,
+                'Content-Type': 'application/json'
+            },
+            data: {
+                idPetugas: petugas
+            }
+        }).done(function(result) {
+            if (result.data) {
+                console.log(result.data);
+                console.log(tugas);
+            }
+        }).fail(function(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: message.responseJSON.message
+            });
+            console.error(message.responseJSON.message);
+        });
+
+    }
+</script>
+@endpush

@@ -8,9 +8,11 @@ use App\Models\Petugas_layanan;
 use App\Models\Jadwal_petugas;
 use App\Models\jadwal;
 use App\Models\User;
+use App\Traits\RestApi;
 
 class PetugasLayananAPI extends Controller
 {
+    use RestApi;
     /**
      * Display a listing of the resource.
      */
@@ -44,6 +46,17 @@ class PetugasLayananAPI extends Controller
 
 
         return response()->json(['data' => $dataPetugas], 200);
+    }
+
+    public function searchData(Request $request)
+    {
+        $search = $request->search ? $request->search : null;
+        $data = Petugas_layanan::with('petugas:id,name')
+                ->whereHas('petugas', function($query) use ($search){
+                    $query->where('name', 'like', "%$search%");
+                })->get();
+
+        return $this->output($data);
     }
 
     public function getJadwalPetugas($jadwal_hash)

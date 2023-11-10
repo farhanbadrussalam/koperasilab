@@ -47,6 +47,12 @@ function deleteGlobal(callback = () => { }) {
     })
 }
 
+/**
+ *
+ * @param {date} tanggal
+ * @param {integer} type 1,2,false
+ * @returns
+ */
 function dateFormat(tanggal, type = false) {
     let d = new Date(tanggal);
 
@@ -63,7 +69,14 @@ function dateFormat(tanggal, type = false) {
                 minute: '2-digit'
             };
             break;
-
+        case 2:
+            // 14 Okt 2023
+            options = {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            };
+            break;
         default:
             // sabtu, 14 Okt 2023, 18:40
             options = {

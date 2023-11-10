@@ -257,7 +257,10 @@ if (!function_exists('convert_date')) {
                 # 11 Sep 2023 12:00
                 $format = 'd M Y H:i';
                 break;
-
+            case 2:
+                # 11 Sep 2023 12:00
+                $format = 'd M Y';
+                break;
             default:
                 # Monday, 11 Sep 2023 12:00
                 $format = 'l, d M Y H:i';
