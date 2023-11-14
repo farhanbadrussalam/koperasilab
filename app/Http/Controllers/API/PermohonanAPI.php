@@ -4,6 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Traits\RestApi;
+
 use App\Models\Permohonan;
 use App\Models\Detail_permohonan;
 use App\Models\tbl_media;
@@ -15,6 +17,8 @@ use Auth;
 
 class PermohonanAPI extends Controller
 {
+    use RestApi;
+
     public function __construct(){
         $this->media = resolve(MediaController::class);
         $this->detail = resolve(DetailPermohonanController::class);
@@ -44,8 +48,7 @@ class PermohonanAPI extends Controller
         $dataPermohonan = Permohonan::with(
                             'layananjasa:id,nama_layanan',
                             'jadwal:id,date_mulai,date_selesai',
-                            'user:id,email,name',
-                            'suratTerbit:id,file_hash,file_ori,file_size,file_type')
+                            'user:id,email,name')
                         ->where('id', $idHash)->first();
 
         // Mengambil data media
@@ -193,5 +196,37 @@ class PermohonanAPI extends Controller
         // ), "Permohonan ".$data_permohonan->layananjasa->nama_layanan." di $text");
 
         return response()->json(['message' => 'success'], 200);
+    }
+
+    public function sendSuratTugas(Request $request)
+    {
+        $validator = $request->validate([
+            'file' => 'required',
+            'no_kontrak' => 'required'
+        ]);
+
+        $lampiran = $request->file('file');
+        $surat_tugas = null;
+        if($lampiran){
+            $surat_tugas = $this->media->upload($lampiran, 'surat_tugas');
+        }
+
+        $data_permohonan = Permohonan::where('no_kontrak', $request->no_kontrak)->first();
+
+        $data_permohonan->surat_tugas = $surat_tugas;
+        $data_permohonan->update();
+
+        if($data_permohonan){
+            $payload = array(
+                'message' => 'Berhasil di kirim'
+            );
+
+            return $this->output($payload);
+        }else{
+            return response()->json([
+                'message' => 'Gagal mengirim surat tugas'
+            ], 400);
+        }
+
     }
 }

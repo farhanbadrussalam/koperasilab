@@ -90,11 +90,11 @@
                 'Content-Type': 'application/json'
             }
         }).done(result => {
-            console.log(result);
             result = result.data;
             $('#txtTugas').val(result.layananjasa.nama_layanan);
             $('#txtCustomer').val(result.user.name);
             $('#txtJumlah').val(result.jumlah);
+            $('#noKontrak').val(result.no_kontrak);
             $('#txtTanggal').val(`${dateFormat(result.jadwal.date_mulai, 2)} - ${dateFormat(result.jadwal.date_selesai, 2)}`);
             $('#create-surat').modal('show');
         })

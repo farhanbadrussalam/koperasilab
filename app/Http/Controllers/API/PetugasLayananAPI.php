@@ -51,9 +51,13 @@ class PetugasLayananAPI extends Controller
     public function searchData(Request $request)
     {
         $search = $request->search ? $request->search : null;
+        $idSatuankerja = $request->satuankerja_id ? $request->satuankerja_id : null;
         $data = Petugas_layanan::with('petugas:id,name')
-                ->whereHas('petugas', function($query) use ($search){
+                ->whereHas('petugas', function($query) use ($search, $idSatuankerja){
                     $query->where('name', 'like', "%$search%");
+                    if($idSatuankerja){
+                        $query->where('satuankerja_id', $idSatuankerja);
+                    }
                 })->get();
 
         return $this->output($data);

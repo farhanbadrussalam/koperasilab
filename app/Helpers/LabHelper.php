@@ -193,7 +193,9 @@ if (!function_exists('iconDocument')){
             case 'application/pdf':
                 $icon = 'pdf-icon.svg';
                 break;
-
+            case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                $icon = 'word-icon.svg';
+                break;
             default:
                 $icon = 'other-icon.svg';
                 break;

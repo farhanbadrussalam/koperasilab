@@ -26,6 +26,7 @@ class Permohonan extends Model
         'flag',
         'tag',
         'nomor_antrian',
+        'surat_tugas',
         'created_by'
     ];
 
@@ -63,8 +64,8 @@ class Permohonan extends Model
         return $this->belongsTo(tbl_media::class, 'dokumen', 'id');
     }
 
-    public function suratTerbit(){
-        return $this->belongsTo(tbl_media::class, 'surat_terbitan', 'id');
+    public function suratTugas(){
+        return $this->belongsTo(tbl_media::class, 'surat_tugas', 'id');
     }
 
 }

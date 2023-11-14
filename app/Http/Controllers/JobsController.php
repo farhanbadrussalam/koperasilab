@@ -25,6 +25,12 @@ class JobsController extends Controller
         return view('pages.jobs.penyelia', $data);
     }
 
+    public function indexPelaksanaLab()
+    {
+        $data['token'] = generateToken();
+        return view('pages.jobs.pelaksanaLab', $data);
+    }
+
     public function getData(){
         $user = Auth::user();
 
@@ -33,6 +39,7 @@ class JobsController extends Controller
         $type = request('type');
         $status = array();
         $flag = false;
+        $suratTugas = false;
 
         // pembagian
         if($jobs == 'frontdesk'){
@@ -55,6 +62,13 @@ class JobsController extends Controller
             if($type == 'layanan'){
                 $flag = 3;
                 $status = [3];
+                $suratTugas = 1;
+            }
+        }else if($jobs == 'pelaksanaLab'){
+            if($type == "surat_tugas"){
+                $flag = 3;
+                $status = [3];
+                $surat_tugas = 2;
             }
         }
 
@@ -63,6 +77,12 @@ class JobsController extends Controller
                         ->where('flag', $flag)
                         ->orderBy('jadwal_id', 'desc')
                         ->orderBy('nomor_antrian', 'desc');
+
+        if($suratTugas == 1){
+            $informasi->whereNull('surat_tugas');
+        }else if($suratTugas == 2){
+            $informasi->whereNotNull('surat_tugas');
+        }
 
         return DataTables::of($informasi)
             ->addIndexColumn()
@@ -109,7 +129,7 @@ class JobsController extends Controller
                                 <ul class="dropdown-menu shadow-sm px-2">
                                     <li class="my-1 cursoron">
                                         <a class="dropdown-item dropdown-item-lab" onclick="createSurat('.$idHash.')">
-                                            Buat surat tugas
+                                            Kirim surat tugas
                                         </a>
                                     </li>
                                     <li class="my-1 cursoron">
@@ -177,6 +197,64 @@ class JobsController extends Controller
                         </div>
                         '.$co_reason.'
                         '.$co_noted.'
+                    </div>
+                </div>
+                ';
+            })
+            ->rawColumns(['content'])
+            ->make(true);
+    }
+
+    public function getDataPelaksanaLab()
+    {
+        $user = Auth::user();
+        $informasi = Permohonan::with(['layananjasa', 'jadwal','user', 'suratTugas'])
+                        ->where('status', 3)
+                        ->where('flag', 3)
+                        ->whereNotNull('surat_tugas')
+                        ->orderBy('jadwal_id', 'desc')
+                        ->orderBy('nomor_antrian', 'desc');
+
+        return DataTables::of($informasi)
+            ->addIndexColumn()
+            ->addColumn('content', function($data) {
+                $idHash = "'".$data->permohonan_hash."'";
+                $labelTag = '';
+                if($data->tag != 'pengajuan'){
+                    $labelColor = $data->tag == 'baru' ? 'bg-success' : 'bg-primary';
+                    $labelTag = '
+                        <div class="ribbon-wrapper">
+                            <div class="ribbon '.$labelColor.'" title="Tag">
+                                '.$data->tag.'
+                            </div>
+                        </div>
+                    ';
+                }
+
+                $btnProsess = '<button class="btn btn-outline-primary btn-sm" onclick="">
+                                <i class="bi bi-info-circle"></i> Procces</button>';
+
+                return '
+                <div class="card m-0 border-0">
+                    '.$labelTag.'
+                    <div class="card-body d-flex flex-wrap p-3 align-items-center">
+                        <div class="col-md-8 col-sm-12 mb-sm-2">
+                            <div class="h4"><a href="javascript:void(0)" onclick="modalConfirm('.$idHash.')">#'.($data->no_kontrak ? $data->no_kontrak : "-").'</a></div>
+                            <div><b>Antrian :</b> '.$data->nomor_antrian.'</div>
+                            <div>
+                                <a class="rounded p-2 w-auto mt-2 bg-sm-secondary d-block" href="#">
+                                    <img class="my-1" src=" '.asset("icons").'/'.iconDocument($data->suratTugas->file_type).'" alt=""
+                                    style="width: 24px; height: 24px;">
+                                    '.$data->suratTugas->file_ori.'
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-5 h5">
+                            <span class="badge text-bg-secondary">'.$data->jenis_layanan.'</span>
+                        </div>
+                        <div class="col-md-2 col-sm-2" style="z-index: 10;">
+                            '.$btnProsess.'
+                        </div>
                     </div>
                 </div>
                 ';

@@ -24,6 +24,7 @@ return new class extends Migration
             $table->json('dokumen');
             $table->string('status');
             $table->string('nomor_antrian');
+            $table->string('surat_tugas');
             $table->string('created_by');
             $table->timestamps();
         });

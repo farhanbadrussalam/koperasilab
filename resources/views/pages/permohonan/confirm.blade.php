@@ -220,6 +220,8 @@
                         idPermohonan = id;
                     }else if(data.status == 3 && permission.find(d => d.name == 'Otorisasi-Penyelia LAB')){
                         $('#divConfirmBtn').hide();
+                    }else if(data.status == 3 && permission.find(d => d.name == 'Otorisasi-Pelaksana LAB')){
+                        $('#divConfirmBtn').hide();
                     }else{
                         idPermohonan = id;
                     }
