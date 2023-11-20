@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('layananjasa_id');
             $table->foreignId('jadwal_id');
+            $table->string('no_kontrak');
             $table->string('jenis_layanan');
             $table->integer('tarif');
             $table->string('no_bapeten');
@@ -24,7 +25,6 @@ return new class extends Migration
             $table->json('dokumen');
             $table->string('status');
             $table->string('nomor_antrian');
-            $table->string('surat_tugas');
             $table->string('created_by');
             $table->timestamps();
         });

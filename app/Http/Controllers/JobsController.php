@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Permohonan;
+use App\Models\tbl_media;
+use App\Models\tbl_lhu;
 use Illuminate\Http\Request;
 
 use Auth;
@@ -72,16 +74,18 @@ class JobsController extends Controller
             }
         }
 
-        $informasi = Permohonan::with(['layananjasa', 'jadwal','user'])
+        $informasi = Permohonan::with(['layananjasa', 'jadwal','user', 'tbl_lhu'])
                         ->whereIn('status', $status)
                         ->where('flag', $flag)
                         ->orderBy('jadwal_id', 'desc')
                         ->orderBy('nomor_antrian', 'desc');
 
         if($suratTugas == 1){
-            $informasi->whereNull('surat_tugas');
+            $informasi->whereHas('tbl_lhu', function ($query) {
+                $query->where('status', '1');
+            });
         }else if($suratTugas == 2){
-            $informasi->whereNotNull('surat_tugas');
+            // $informasi->whereNotNull('surat_tugas');
         }
 
         return DataTables::of($informasi)
@@ -208,10 +212,12 @@ class JobsController extends Controller
     public function getDataPelaksanaLab()
     {
         $user = Auth::user();
-        $informasi = Permohonan::with(['layananjasa', 'jadwal','user', 'suratTugas'])
+        $informasi = Permohonan::with(['layananjasa', 'jadwal','user', 'tbl_lhu'])
                         ->where('status', 3)
                         ->where('flag', 3)
-                        ->whereNotNull('surat_tugas')
+                        ->whereHas('tbl_lhu', function($query){
+                            $query->where('level', '1');
+                        })
                         ->orderBy('jadwal_id', 'desc')
                         ->orderBy('nomor_antrian', 'desc');
 
@@ -219,6 +225,9 @@ class JobsController extends Controller
             ->addIndexColumn()
             ->addColumn('content', function($data) {
                 $idHash = "'".$data->permohonan_hash."'";
+                $lhuHash = "'".$data->tbl_lhu[0]->lhu_hash."'";
+
+                $media = tbl_media::where('id', $data->tbl_lhu[0]->surat_tugas)->first();
                 $labelTag = '';
                 if($data->tag != 'pengajuan'){
                     $labelColor = $data->tag == 'baru' ? 'bg-success' : 'bg-primary';
@@ -231,29 +240,26 @@ class JobsController extends Controller
                     ';
                 }
 
-                $btnProsess = '<button class="btn btn-outline-primary btn-sm" onclick="">
-                                <i class="bi bi-info-circle"></i> Procces</button>';
+                $btnCreateLHU = '<button class="btn btn-outline-primary btn-sm" onclick="createLHU('.$lhuHash.')">
+                                <i class="bi bi-info-circle"></i> Buat LHU</button>';
 
                 return '
                 <div class="card m-0 border-0">
                     '.$labelTag.'
                     <div class="card-body d-flex flex-wrap p-3 align-items-center">
-                        <div class="col-md-8 col-sm-12 mb-sm-2">
-                            <div class="h4"><a href="javascript:void(0)" onclick="modalConfirm('.$idHash.')">#'.($data->no_kontrak ? $data->no_kontrak : "-").'</a></div>
+                        <div class="col-md-10 col-sm-12 mb-sm-2">
+                            <a href="javascript:void(0)" class="caption h5" onclick="modalConfirm('.$idHash.')">#'.($data->no_kontrak ? $data->no_kontrak : "-").'</a>
                             <div><b>Antrian :</b> '.$data->nomor_antrian.'</div>
-                            <div>
-                                <a class="rounded p-2 w-auto mt-2 bg-sm-secondary d-block" href="#">
-                                    <img class="my-1" src=" '.asset("icons").'/'.iconDocument($data->suratTugas->file_type).'" alt=""
-                                    style="width: 24px; height: 24px;">
-                                    '.$data->suratTugas->file_ori.'
-                                </a>
-                            </div>
-                        </div>
-                        <div class="col-md-2 col-sm-5 h5">
-                            <span class="badge text-bg-secondary">'.$data->jenis_layanan.'</span>
                         </div>
                         <div class="col-md-2 col-sm-2" style="z-index: 10;">
-                            '.$btnProsess.'
+                            '.$btnCreateLHU.'
+                        </div>
+                        <div class="col-12">
+                            <a class="rounded p-2 w-auto mt-2 bg-sm-secondary d-block" href="'.asset('storage/'.$media->file_path.'/'.$media->file_hash).'" target="_blank">
+                                <img class="my-1" src=" '.asset("icons").'/'.iconDocument($media->file_type).'" alt=""
+                                style="width: 24px; height: 24px;">
+                                '.$media->file_ori.'
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -261,5 +267,42 @@ class JobsController extends Controller
             })
             ->rawColumns(['content'])
             ->make(true);
+    }
+
+    public function getDataLhu()
+    {
+        $informasi = tbl_lhu::with('media')->where('level', 2)->where('active', 2);
+
+        return DataTables::of($informasi)
+                ->addIndexColumn()
+                ->addColumn('content', function($data) {
+                    $idHash = "'".$data->lhu_hash."'";
+                    $noKontrak = "'".encryptor($data->no_kontrak)."'";
+
+                    $btnConfirm = '<button class="btn btn-outline-primary btn-sm" id="btn-confirm-lhu" data-id="'.$idHash.'" onclick="btnConfirm('.$idHash.')">
+                                    <i class="bi bi-info-circle"></i> Confirm</button>';
+
+                    return '
+                    <div class="card m-0 border-0">
+                        <div class="card-body d-flex flex-wrap p-3 align-items-center">
+                            <div class="col-md-10 col-sm-12 mb-sm-2 h5">
+                                No Kontrak : <a href="javascript:void(0)" class="caption h5" onclick="modalConfirm('.$noKontrak.')">#'.($data->no_kontrak ? $data->no_kontrak : "-").'</a>
+                            </div>
+                            <div class="col-md-2 col-sm-2" style="z-index: 10;">
+                                '.$btnConfirm.'
+                            </div>
+                            <div class="col-12">
+                                <a class="rounded p-2 w-auto mt-2 bg-sm-secondary d-block" href="'.asset('storage/'.$data->media->file_path.'/'.$data->media->file_hash).'" target="_blank">
+                                    <img class="my-1" src=" '.asset("icons").'/'.iconDocument($data->media->file_type).'" alt=""
+                                    style="width: 24px; height: 24px;">
+                                    '.$data->media->file_ori.'
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    ';
+                })
+                ->rawColumns(['content'])
+                ->make(true);
     }
 }

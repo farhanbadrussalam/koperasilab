@@ -8,6 +8,7 @@ use App\Http\Controllers\API\LayananjasaAPI;
 use App\Http\Controllers\API\OtorisasiAPI;
 use App\Http\Controllers\API\PetugasLayananAPI;
 use App\Http\Controllers\API\AssetsAPI;
+use App\Http\Controllers\API\LhuAPI;
 
 use App\Mail\SendEmail;
 use App\Jobs\SendEmailJob;
@@ -76,6 +77,12 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::post('/storeJadwalPetugas', [PetugasLayananAPI::class, 'storeJadwalPetugas']);
         Route::post('/updateJadwalPetugas', [PetugasLayananAPI::class, 'updateJadwalPetugas']);
         Route::delete('/destroyJadwalPetugas/{jadwalPetugas_hash}', [PetugasLayananAPI::class, 'destroyJadwalPetugas']);
+    });
+
+    Route::prefix('lhu')->group(function () {
+        Route::get('/getDokumenLHU/{id_lhu}', [LhuAPI::class, 'getDokumenLHU']);
+        Route::post('/sendDokumen', [LhuAPI::class, 'sendDokumen']);
+        Route::post('/validasiLHU', [LhuAPI::class, 'validasiLHU']);
     });
 
 });

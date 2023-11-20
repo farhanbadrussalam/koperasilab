@@ -7,8 +7,12 @@ export default defineConfig({
             input: [
                 'resources/sass/app.scss',
                 'resources/js/app.js',
+                'resources/js/pages/penyelia.js',
             ],
             refresh: true,
         }),
     ],
+    server: {
+        host: '192.168.18.16',
+    }
 });

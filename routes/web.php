@@ -85,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('jobs/pelaksanaLab', [JobsController::class, 'indexPelaksanaLab'])->name('jobs.pelaksanaLab.index');
     Route::get('jobs/getData', [JobsController::class, 'getData'])->name('jobs.getData');
     Route::get('jobs/getDataPelaksanaLab', [JobsController::class, 'getDataPelaksanaLab'])->name('jobs.getDataPelaksanaLab');
+    Route::get('jobs/getDataLhu', [JobsController::class, 'getDataLhu'])->name('jobs.getDataLhu');
 
 
     Route::resource('petugasLayanan', PetugasLayananController::class);

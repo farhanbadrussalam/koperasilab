@@ -36,59 +36,6 @@
                     <span class="mb-3 text-muted" style="font-size: 12px;">Allowed file types: pdf,doc,docx.
                         Recommend size under 5MB.</span>
                 </div>
-                <!-- <h4 class="mt-2 border-bottom pb-2 text-end">List petugas</h4>
-                <div class="row mt-3">
-                    <div class="col-md-5">
-                        <select name="satuan_lab" id="namaPetugas" class="form-select" required>
-                            <option></option>
-                        </select>
-                    </div>
-                    <div class="col-md-5">
-                        <input type="text" name="" id="tugas" class="form-control" placeholder="Tugas">
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-outline-primary mb-3" onclick="tambahPetugas()">Tambah</button>
-                    </div>
-                </div>
-                {{-- <div class="my-2 w-100">
-                    <div class="text-center h3">Belum ada petugas</div>
-                </div> --}}
-                <div class="d-flex flex-wrap">
-                    <div class="col-md-12 mb-1">
-                        <div class="d-flex align-items-center px-3 shadow-sm cursoron document border">
-                            <div>
-                                <img class="my-3 img-fluid img-circle" src="#" alt="" onerror="this.src=`{{ asset('assets/img/default-avatar.jpg') }}`" style="width: 3em;">
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <div class="d-flex flex-column">
-                                    <div class="text-main">Nama petugas</div>
-                                    <span class="text-submain text-secondary">Tugas yang diberikan</span>
-                                </div>
-                            </div>
-                            <div class="p-1">
-                                <button class="btn btn-sm btn-outline-danger" title="Hapus"><i
-                                        class="bi bi-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12 mb-1">
-                        <div class="d-flex align-items-center px-3 shadow-sm cursoron document border">
-                            <div>
-                                <img class="my-3 img-fluid img-circle" src="#" alt="" onerror="this.src=`{{ asset('assets/img/default-avatar.jpg') }}`" style="width: 3em;">
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <div class="d-flex flex-column">
-                                    <div class="text-main">Nama petugas</div>
-                                    <span class="text-submain text-secondary">Tugas yang diberikan</span>
-                                </div>
-                            </div>
-                            <div class="p-1">
-                                <button class="btn btn-sm btn-outline-danger" title="Hapus"><i
-                                        class="bi bi-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </div> -->
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline-success" onclick="sendSuratTugas()">Kirim tugas <i class="bi bi-send"></i></button>

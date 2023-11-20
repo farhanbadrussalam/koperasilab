@@ -64,8 +64,8 @@ class Permohonan extends Model
         return $this->belongsTo(tbl_media::class, 'dokumen', 'id');
     }
 
-    public function suratTugas(){
-        return $this->belongsTo(tbl_media::class, 'surat_tugas', 'id');
+    public function tbl_lhu(){
+        return $this->hasMany(tbl_lhu::class, 'no_kontrak', 'no_kontrak');
     }
 
 }

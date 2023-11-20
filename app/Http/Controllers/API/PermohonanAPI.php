@@ -9,6 +9,7 @@ use App\Traits\RestApi;
 use App\Models\Permohonan;
 use App\Models\Detail_permohonan;
 use App\Models\tbl_media;
+use App\Models\tbl_lhu;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\DetailPermohonanController;
@@ -49,7 +50,9 @@ class PermohonanAPI extends Controller
                             'layananjasa:id,nama_layanan',
                             'jadwal:id,date_mulai,date_selesai',
                             'user:id,email,name')
-                        ->where('id', $idHash)->first();
+                        ->where('id', $idHash)
+                        ->orWhere('no_kontrak', $idHash)
+                        ->first();
 
         // Mengambil data media
         $dokumen = json_decode($dataPermohonan->dokumen);
@@ -213,10 +216,17 @@ class PermohonanAPI extends Controller
 
         $data_permohonan = Permohonan::where('no_kontrak', $request->no_kontrak)->first();
 
-        $data_permohonan->surat_tugas = $surat_tugas;
-        $data_permohonan->update();
+        $arr = array(
+            'no_kontrak' => $request->no_kontrak,
+            'level' => 1,
+            'active' => 9,
+            'surat_tugas' => $surat_tugas,
+            'created_by' => Auth::user()->id
+        );
 
-        if($data_permohonan){
+        $create = tbl_lhu::create($arr);
+
+        if($create){
             $payload = array(
                 'message' => 'Berhasil di kirim'
             );
