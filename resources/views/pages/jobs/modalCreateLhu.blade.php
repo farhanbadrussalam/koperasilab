@@ -53,7 +53,6 @@
                 },
                 data: formData
             }).done(function (result) {
-                console.log(result);
                 if(result.meta.code == 200){
                     $('#create-lhu').modal('hide');
                     dt_tugas?.ajax.reload();

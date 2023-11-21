@@ -32,17 +32,24 @@ class LhuAPI extends Controller
     public function validasiLHU(Request $request)
     {
         $validator = $request->validate([
-            'idLhu' => 'required',
-            'level' => 'required'
+            'idLhu' => 'required'
         ]);
 
         $idLhu = decryptor($request->idLhu);
 
         $data_lhu = tbl_lhu::where('id', $idLhu)->first();
 
-        $data_lhu->level = $request->level;
 
-        $data_lhu->update();
+        if($request->active == 99){
+            $data_lhu->delete();
+        }else{
+            $request->level ? $data_lhu->level = $request->level : null;
+            $request->ttd_1 ? $data_lhu->ttd_1 = $request->ttd_1 : null;
+            $request->ttd_2 ? $data_lhu->ttd_2 = $request->ttd_2 : null;
+
+            $data_lhu->update();
+        }
+
 
         if($data_lhu){
             $payload = array(

@@ -81,11 +81,11 @@ class JobsController extends Controller
                         ->orderBy('nomor_antrian', 'desc');
 
         if($suratTugas == 1){
-            $informasi->whereHas('tbl_lhu', function ($query) {
-                $query->where('status', '1');
-            });
+            $informasi->doesntHave('tbl_lhu');
         }else if($suratTugas == 2){
-            // $informasi->whereNotNull('surat_tugas');
+            $informasi->whereHas('tbl_lhu', function ($query) {
+                $query->where('level', 1);
+            });
         }
 
         return DataTables::of($informasi)

@@ -18,6 +18,8 @@ return new class extends Migration
             $table->integer('active');
             $table->string('surat_tugas');
             $table->string('document')->nullabel();
+            $table->text('ttd_1')->nullabel();
+            $table->text('ttd_2')->nullabel();
             $table->string('created_by');
             $table->timestamps();
         });
