@@ -65,7 +65,11 @@ class Permohonan extends Model
     }
 
     public function tbl_lhu(){
-        return $this->hasMany(tbl_lhu::class, 'no_kontrak', 'no_kontrak');
+        return $this->belongsTo(tbl_lhu::class, 'no_kontrak', 'no_kontrak');
+    }
+
+    public function tbl_kip(){
+        return $this->belongsTo(tbl_kip::class, 'no_kontrak', 'no_kontrak');
     }
 
 }

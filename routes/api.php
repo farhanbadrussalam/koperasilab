@@ -81,8 +81,15 @@ Route::middleware('auth:sanctum')->group(function() {
 
     Route::prefix('lhu')->group(function () {
         Route::get('/getDokumenLHU/{id_lhu}', [LhuAPI::class, 'getDokumenLHU']);
+        Route::get('/getDokumenKIP/{id_kip}', [LhuAPI::class, 'getDokumenKIP']);
         Route::post('/sendDokumen', [LhuAPI::class, 'sendDokumen']);
         Route::post('/validasiLHU', [LhuAPI::class, 'validasiLHU']);
+        Route::post('/validasiKIP', [LhuAPI::class, 'validasiKIP']);
+        Route::post('/sendToPelanggan', [LhuAPI::class, 'sendToPelanggan']);
+    });
+
+    Route::prefix('kip')->group(function(){
+        Route::post('/sendPayment', [LhuAPI::class, 'sendPayment']);
     });
 
 });

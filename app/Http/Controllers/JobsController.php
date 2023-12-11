@@ -43,6 +43,8 @@ class JobsController extends Controller
         $flag = false;
         $suratTugas = false;
 
+        $informasi = Permohonan::with(['layananjasa', 'jadwal','user', 'tbl_lhu', 'tbl_kip']);
+
         // pembagian
         if($jobs == 'frontdesk'){
             if($type == 'layanan'){
@@ -54,6 +56,15 @@ class JobsController extends Controller
             }else if($type == 'return'){
                 $flag = 2;
                 $status = [9];
+            }else if($type == 'lhukip') {
+                $flag = 3;
+                $status = [3];
+                $informasi->whereHas('tbl_lhu', function ($query) {
+                    $query->where('level', 4);
+                });
+                $informasi->whereHas('tbl_kip', function ($query) {
+                    $query->where('status', 2);
+                });
             }
         }else if($jobs == "pelaksana"){
             if($type == 'layanan'){
@@ -72,13 +83,17 @@ class JobsController extends Controller
                 $status = [3];
                 $surat_tugas = 2;
             }
+        }else if($jobs == 'keuangan'){
+            if($type == "layanan"){
+                $flag = 3;
+                $status = [3];
+            }
         }
 
-        $informasi = Permohonan::with(['layananjasa', 'jadwal','user', 'tbl_lhu'])
-                        ->whereIn('status', $status)
-                        ->where('flag', $flag)
-                        ->orderBy('jadwal_id', 'desc')
-                        ->orderBy('nomor_antrian', 'desc');
+        $informasi->whereIn('status', $status)
+                    ->where('flag', $flag)
+                    ->orderBy('jadwal_id', 'desc')
+                    ->orderBy('nomor_antrian', 'desc');
 
         if($suratTugas == 1){
             $informasi->doesntHave('tbl_lhu');
@@ -94,6 +109,11 @@ class JobsController extends Controller
                 $idHash = "'".$data->permohonan_hash."'";
                 $btnAction = '';
                 $co_noted = '';
+                $co_status = '
+                    <div class="col-md-2 col-sm-5 h5">
+                        <span class="badge text-bg-info">Antrian '.$data->nomor_antrian.'</span>
+                    </div>
+                ';
                 $btnRincian = '<button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')">
                                 <i class="bi bi-info-circle"></i> Rincian</button>';
 
@@ -125,17 +145,56 @@ class JobsController extends Controller
                     }
                 }else if($data->status == 3){
                     if($data->flag == 3){
+                        $listItem = '';
+                        if($jobs == "keuangan"){
+                            if(isset($data->tbl_kip)){
+                                if($data->tbl_kip->status == 1){
+                                    $co_status = '
+                                        <div class="col-md-2 col-sm-5 h5">
+                                            Invoice dibuat
+                                        </div>
+                                    ';
+                                }
+                                $listItem = '
+                                    <li class="my-1 cursoron">
+                                        <a class="dropdown-item dropdown-item-lab" onclick="createInvoice('.$idHash.', true)">
+                                            Lihat invoice
+                                        </a>
+                                    </li>
+                                ';
+                            }else{
+                                $listItem = '
+                                    <li class="my-1 cursoron">
+                                        <a class="dropdown-item dropdown-item-lab" onclick="createInvoice('.$idHash.')">
+                                            Buat invoice
+                                        </a>
+                                    </li>
+                                ';
+                            }
+                        }else if($jobs == "penyelia"){
+                            $listItem = '
+                                <li class="my-1 cursoron">
+                                    <a class="dropdown-item dropdown-item-lab" onclick="createSurat('.$idHash.')">
+                                        Kirim surat tugas
+                                    </a>
+                                </li>
+                            ';
+                        }else if($jobs == "frontdesk"){
+                            $listItem = '
+                                <li class="my-1 cursoron">
+                                    <a class="dropdown-item dropdown-item-lab" onclick="detailkiplhu('.$idHash.')">
+                                        Lihat KIP / LHU
+                                    </a>
+                                </li>
+                            ';
+                        }
                         $btnAction .= '
                             <div class="dropdown">
                                 <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </div>
                                 <ul class="dropdown-menu shadow-sm px-2">
-                                    <li class="my-1 cursoron">
-                                        <a class="dropdown-item dropdown-item-lab" onclick="createSurat('.$idHash.')">
-                                            Kirim surat tugas
-                                        </a>
-                                    </li>
+                                    '.$listItem.'
                                     <li class="my-1 cursoron">
                                         <a class="dropdown-item dropdown-item-lab" onclick="modalConfirm('.$idHash.')">
                                             Rincian
@@ -193,9 +252,7 @@ class JobsController extends Controller
                         <div class="col-md-2 col-sm-5 h5">
                             <span class="badge text-bg-secondary">'.$data->jenis_layanan.'</span>
                         </div>
-                        <div class="col-md-2 col-sm-5 h5">
-                            <span class="badge text-bg-info">Antrian '.$data->nomor_antrian.'</span>
-                        </div>
+                        '.$co_status.'
                         <div class="col-md-2 col-sm-2" style="z-index: 10;">
                             '.$btnAction.'
                         </div>
@@ -225,9 +282,9 @@ class JobsController extends Controller
             ->addIndexColumn()
             ->addColumn('content', function($data) {
                 $idHash = "'".$data->permohonan_hash."'";
-                $lhuHash = "'".$data->tbl_lhu[0]->lhu_hash."'";
+                $lhuHash = "'".$data->tbl_lhu->lhu_hash."'";
 
-                $media = tbl_media::where('id', $data->tbl_lhu[0]->surat_tugas)->first();
+                $media = tbl_media::where('id', $data->tbl_lhu->surat_tugas)->first();
                 $labelTag = '';
                 if($data->tag != 'pengajuan'){
                     $labelColor = $data->tag == 'baru' ? 'bg-success' : 'bg-primary';

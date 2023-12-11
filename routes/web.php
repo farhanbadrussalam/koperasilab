@@ -18,6 +18,8 @@ use App\Http\Controllers\OtorisasiController;
 use App\Http\Controllers\PetugasLayananController;
 use App\Http\Controllers\JobsController;
 use App\Http\Controllers\PelaksanaKontrakController;
+use App\Http\Controllers\KeuanganController;
+use App\Http\Controllers\ManagerController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -59,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('permohonan', PermohonanController::class);
         Route::get('getDataPermohonan', [PermohonanController::class, 'getData'])->name('permohonan.getData');
         Route::get('getDTListLayanan', [PermohonanController::class, 'getDTListLayanan'])->name('permohonan.getDTListLayanan');
+        Route::get('permohonan/payment/{idPermohonan}', [PermohonanController::class, 'payment'])->name('permohonan.payment');
         Route::get('permohonan/create/layanan/{idJadwal}', [PermohonanController::class, 'pilihLayanan'])->name('permohonan.create.layanan');
     });
 
@@ -78,6 +81,16 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('otorisasi', OtorisasiController::class);
         Route::get('getDataOtorisasi', [OtorisasiController::class, 'getData'])->name('otorisasi.getData');
     });
+
+    Route::middleware(['permission:Keuangan'])->group(function () {
+        Route::get('keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
+        Route::post('sendKIP', [KeuanganController::class, 'sendKIP'])->name('keuangan.send');
+    });
+
+    // Route::middleware(['permission:kiplhu'])->group(function () {
+        Route::get('manager/lhukip', [ManagerController::class, 'index'])->name('manager.lhukip.index');
+        Route::get('manager/getData', [ManagerController::class, 'getData'])->name('manager.getData');
+    // });
 
     Route::get('jobs/frontdesk', [JobsController::class, 'indexFrontdesk'])->name('jobs.frontdesk.index');
     Route::get('jobs/pelaksana', [JobsController::class, 'indexPelaksanaKontrak'])->name('jobs.pelaksana.index');

@@ -67,12 +67,6 @@
         </div>
     </div>
 </div>
-
-<div>
-    <input type="hidden" name="bearer" id="bearer-token" value="{{ $token }}">
-    <input type="hidden" name="csrf" id="csrf-token" value="{{ csrf_token() }}">
-    <input type="hidden" id="base_url" value="{{ url('') }}">
-</div>
 @include('pages.permohonan.confirm')
 @include('pages.jobs.createSurat')
 @endsection

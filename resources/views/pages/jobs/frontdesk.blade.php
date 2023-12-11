@@ -50,10 +50,7 @@
                             </div> --}}
                             <div class="tab-pane fade pt-3" id="kiplhu-tab-pane" role="tabpanel"
                                 aria-labelledby="kiplhu-tab" tabindex="0">
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Exercitationem porro reiciendis
-                                temporibus aperiam quia! Soluta harum mollitia dolorum blanditiis id. Odio, quos! Cum
-                                explicabo maxime odio aliquid voluptates animi quidem voluptatum est distinctio dolorum
-                                accusamus porro tempore magnam, dolor nobis.
+                                <table class="table table-borderless w-100" id="lhukip-table"></table>
                             </div>
                             <div class="tab-pane fade pt-3" id="dikembalikan-tab-pane" role="tabpanel"
                                 aria-labelledby="dikembalikan-tab" tabindex="0">
@@ -66,20 +63,16 @@
         </section>
     </div>
     @include('pages.permohonan.confirm')
+    @include('pages.jobs.modalDocument')
 @endsection
 @push('scripts')
     <script>
         let idPermohonan = false;
         let dt_frontdesk = false;
         let dt_diteruskan = false;
+        let dt_lhukip = false;
         let dt_return = false;
         $(function() {
-            // $.ajax({
-            //     url: "{{ route('jobs.getData') }}",
-            //     method: "GET",
-            // }).success(result => {
-            //     console.log(result);
-            // })
             dt_frontdesk = $('#layanan-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -127,6 +120,30 @@
             //         { data: 'content', name: 'content', orderable: false, searchable: false}
             //     ]
             // });
+
+            dt_lhukip = $('#lhukip-table').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('jobs.getData') }}",
+                    data: function(d) {
+                        d.jobs = 'frontdesk';
+                        d.type = 'lhukip';
+                    }
+                },
+                columns: [
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
+                ]
+            });
 
             dt_return = $('#dikembalikan-table').DataTable({
                 processing: true,
@@ -207,6 +224,9 @@
                 case 1:
                     dt_frontdesk?.ajax.reload();
                     break;
+                case 2:
+                    dt_lhukip?.ajax.reload();
+                    break;
                 case 4:
                     dt_return?.ajax.reload();
                     break;
@@ -249,11 +269,11 @@
                     },
                     data: formData
                 }).done(result => {
-                    // Swal.fire({
-                    //     icon: 'success',
-                    //     title: 'Success',
-                    //     text: result.message
-                    // });
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message
+                    });
                     $('#noteModal').modal('hide');
                     reloadTable(1);
                 }).fail(e => {
@@ -296,11 +316,11 @@
                         },
                         data: formData
                     }).done(result => {
-                        // Swal.fire({
-                        //     icon: 'success',
-                        //     title: 'Success',
-                        //     text: result.message
-                        // });
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: result.message
+                        });
                         reloadTable(4);
                     }).fail(e => {
                         console.error(e);

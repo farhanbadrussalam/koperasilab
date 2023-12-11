@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Traits\RestApi;
 
 use App\Models\tbl_lhu;
+use App\Models\tbl_kip;
 
 use App\Http\Controllers\MediaController;
 
@@ -24,6 +25,18 @@ class LhuAPI extends Controller
 
         if($id_lhu){
             $data_lhu = tbl_lhu::with('media')->where('id', $id_lhu)->first();
+
+            return $this->output($data_lhu);
+        }
+    }
+
+    public function getDokumenKIP(string $id_kip)
+    {
+        $id_kip = $id_kip ? decryptor($id_kip) : null;
+
+        if($id_kip){
+            $data_lhu = tbl_kip::with(['permohonan', 'permohonan.layananjasa', 'permohonan.user'])
+                        ->where('id', $id_kip)->first();
 
             return $this->output($data_lhu);
         }
@@ -52,6 +65,34 @@ class LhuAPI extends Controller
 
 
         if($data_lhu){
+            $payload = array(
+                'message' => 'success'
+            );
+
+            return $this->output($payload);
+        }else{
+            return response()->json([
+                'message' => 'Fail'
+            ], 400);
+        }
+    }
+
+    public function validasiKIP(Request $request)
+    {
+        $validator = $request->validate([
+            'idKip' => 'required'
+        ]);
+
+        $idKip = decryptor($request->idKip);
+
+        $data_kip = tbl_kip::where('id', $idKip)->first();
+
+        $request->ttd_1 ? $data_kip->ttd_1 = $request->ttd_1 : null;
+        $request->status ? $data_kip->status = $request->status : null;
+
+        $data_kip->update();
+
+        if($data_kip){
             $payload = array(
                 'message' => 'success'
             );
@@ -96,6 +137,69 @@ class LhuAPI extends Controller
         }else{
             return response()->json([
                 'message' => 'Gagal mengirim LHU'
+            ], 400);
+        }
+    }
+
+    public function sendToPelanggan(Request $request)
+    {
+        $validator = $request->validate([
+            'idLhu' => 'required',
+            'idKip' => 'required'
+        ]);
+
+        $idLhu = decryptor($request->idLhu);
+        $idKip = decryptor($request->idKip);
+
+        $data_lhu = tbl_lhu::where('id', $idLhu)->update([
+            'level' => 5
+        ]);
+
+        $data_kip = tbl_kip::where('id', $idKip)->update([
+            'status' => 3
+        ]);
+
+        if($data_lhu && $data_kip){
+            $payload = array(
+                'message' => 'Document Berhasil di kirim'
+            );
+
+            return $this->output($payload);
+        }else{
+            return response()->json([
+                'message' => 'Gagal mengirim'
+            ], 400);
+        }
+    }
+
+    public function sendPayment(Request $request)
+    {
+        $validator = $request->validate([
+            'idKip' => 'required',
+            'file' => 'required'
+        ]);
+
+        $idKip = decryptor($request->idKip);
+        $file = $request->file('file');
+
+        if($file){
+            $imgKip = $this->media->upload($file, 'kip');
+        }
+
+        $data_kip = tbl_kip::where('id', $idKip)->first();
+
+        $data_kip->bukti_pembayaran = $imgKip;
+        $data_kip->update();
+
+        if($data_kip){
+            $payload = array(
+                'message' => 'Bukti berhasil di kirim'
+            );
+
+            return $this->output($payload);
+        }else{
+            return response()->json([
+                'message' => 'Gagal mengirim'
             ], 400);
         }
     }

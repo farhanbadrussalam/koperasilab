@@ -49,7 +49,7 @@ class PermohonanAPI extends Controller
         $dataPermohonan = Permohonan::with(
                             'layananjasa:id,nama_layanan',
                             'jadwal:id,date_mulai,date_selesai',
-                            'user:id,email,name')
+                            'user:id,email,name', 'tbl_lhu', 'tbl_lhu.media', 'tbl_kip')
                         ->where('id', $idHash)
                         ->orWhere('no_kontrak', $idHash)
                         ->first();

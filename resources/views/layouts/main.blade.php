@@ -37,6 +37,11 @@
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
+    <div>
+        <input type="hidden" name="bearer" id="bearer-token" value="{{ $token }}">
+        <input type="hidden" name="csrf" id="csrf-token" value="{{ csrf_token() }}">
+        <input type="hidden" id="base_url" value="{{ url('') }}">
+    </div>
     <div class="wrapper">
         <!-- Navbar -->
         @include('layouts.navbar')
