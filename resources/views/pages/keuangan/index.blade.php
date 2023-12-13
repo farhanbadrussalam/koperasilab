@@ -130,5 +130,24 @@
                 $('#moda-invoice').modal('show');
             })
         }
+
+        function showBukti(id){
+            $.ajax({
+                url: "{{ url('api/permohonan/show') }}/" + id,
+                method: 'GET',
+                dataType: 'json',
+                processing: true,
+                serverSide: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                const data = result.data;
+
+                $('#imgBukti').attr('src', `{{ asset('storage') }}/${data.tbl_kip.bukti.file_path}/${data.tbl_kip.bukti.file_hash}`);
+                $('#modal-bukti').modal('show');
+            })
+        }
     </script>
 @endpush

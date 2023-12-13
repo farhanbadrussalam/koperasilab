@@ -99,10 +99,17 @@ class PermohonanController extends Controller
                     ' : '';
 
                     if($data->status == 3){
-                        $btn_action = '
-                            <a class="btn btn-outline-primary btn-sm" href="'.url('permohonan/payment/'.$data->permohonan_hash).'">
-                                <i class="bi bi-credit-card-2-back-fill"></i> Proses payment</a>
-                        ';
+                        if($data->tbl_kip->bukti_pembayaran){
+                            $btn_action = '
+                                <button class="btn btn-outline-success btn-sm" onclick="btnDetailPayment('.$idHash.')">
+                                    <i class="bi bi-credit-card-2-back-fill"></i> Lunas</button>
+                            ';
+                        }else{
+                            $btn_action = '
+                                <a class="btn btn-outline-primary btn-sm" href="'.url('permohonan/payment/'.$data->permohonan_hash).'">
+                                    <i class="bi bi-credit-card-2-back-fill"></i> Proses payment</a>
+                            ';
+                        }
                     }else{
                         $btn_action = '
                             <div class="dropdown">

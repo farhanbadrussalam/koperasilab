@@ -59,6 +59,7 @@
         </section>
     </div>
     @include('pages.permohonan.confirm')
+    @include('pages.keuangan.modalinvoice')
 @endsection
 @push('scripts')
     <script>
@@ -274,7 +275,70 @@
             })
         }
 
+        function btnDetailPayment(id){
+            $.ajax({
+                url: "{{ url('api/permohonan/show') }}/" + id,
+                method: 'GET',
+                dataType: 'json',
+                processing: true,
+                serverSide: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                const data = result.data;
+                console.log(data);
+                $('#txtNoKontrakModal').html(data.no_kontrak);
+                $('#txtNamaLayananModal').html(data.layananjasa.nama_layanan);
+                $('#txtNamaPelangganModal').html(data.user.name);
+                $('#txtAlamatModal').html(data.user.email);
 
+                // Rincian
+                let contentRincian = '';
+                let tarif = data.tarif;
+                let total = 0;
+
+                // items
+                let totalItems = tarif * data.jumlah;
+                contentRincian += `
+                    <tr>
+                        <td>${data.jenis_layanan} x ${data.jumlah}</td>
+                        <td>${formatRupiah(totalItems)}</td>
+                    </tr>
+                `;
+
+                // Pajak
+                let totalPajak = totalItems * (11/100);
+                contentRincian += `
+                    <tr>
+                        <td>PPN 11%</td>
+                        <td>${formatRupiah(totalPajak)}</td>
+                    </tr>
+                `;
+                // Total
+                total = totalItems + totalPajak;
+                contentRincian += `
+                    <tr>
+                        <th class="w-100">Jumlah</th>
+                        <th>${formatRupiah(total)}</th>
+                    </tr>
+                `;
+
+                $('#inputNoKontrak').val(data.no_kontrak);
+                $('#inputPajak').val(totalPajak);
+                $('#inputHarga').val(totalItems);
+
+                $('#rincian-table').html(contentRincian);
+
+                $('#actionModalInvoice').hide();
+
+                $('#contentBuktiPembayaran').show();
+                $('#imgBuktiPembayaran').attr('src', `{{ asset('storage') }}/${data.tbl_kip.bukti.file_path}/${data.tbl_kip.bukti.file_hash}`);
+
+                $('#moda-invoice').modal('show');
+            })
+        }
 
         // function printMedia(media, folder){
         //     return `

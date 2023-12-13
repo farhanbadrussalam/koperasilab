@@ -16,13 +16,13 @@ class tbl_kip extends Model
         'harga',
         'pajak',
         'status',
-        'bukti_pembayaran',
         'ttd_1',
         'created_by'
     ];
 
     protected $hidden = [
-        'id'
+        'id',
+        'bukti_pembayaran'
     ];
 
     protected $appends = [
@@ -37,5 +37,10 @@ class tbl_kip extends Model
     public function permohonan()
     {
         return $this->belongsTo(Permohonan::class, 'no_kontrak', 'no_kontrak');
+    }
+
+    public function bukti()
+    {
+        return $this->belongsTo(tbl_media::class, 'bukti_pembayaran', 'id');
     }
 }

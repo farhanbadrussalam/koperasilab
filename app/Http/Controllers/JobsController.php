@@ -109,6 +109,7 @@ class JobsController extends Controller
                 $idHash = "'".$data->permohonan_hash."'";
                 $btnAction = '';
                 $co_noted = '';
+                $co_progress = '';
                 $co_status = '
                     <div class="col-md-2 col-sm-5 h5">
                         <span class="badge text-bg-info">Antrian '.$data->nomor_antrian.'</span>
@@ -152,6 +153,13 @@ class JobsController extends Controller
                                     $co_status = '
                                         <div class="col-md-2 col-sm-5 h5">
                                             Invoice dibuat
+                                        </div>
+                                    ';
+                                }
+                                if($data->tbl_kip->bukti_pembayaran){
+                                    $co_progress = '
+                                        <div id="progress" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
+                                            <small><b class="text-info-emphasis">Sudah membayar silahkan cek buktinya <a href="javascript:void(0)" onclick="showBukti('.$idHash.')">Disini</a></b> </small>
                                         </div>
                                     ';
                                 }
@@ -258,6 +266,7 @@ class JobsController extends Controller
                         </div>
                         '.$co_reason.'
                         '.$co_noted.'
+                        '.$co_progress.'
                     </div>
                 </div>
                 ';

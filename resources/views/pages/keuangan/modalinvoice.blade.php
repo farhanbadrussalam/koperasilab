@@ -36,9 +36,31 @@
                     <table class="table table-borderless w-100" id="rincian-table">
                     </table>
                 </div>
+                <div class="invoice p-2 rounded mt-2 text-center" id="contentBuktiPembayaran" style="display: none;">
+                    <h3>Bukti Pembayaran</h3>
+                    <img src="#" alt="Bukti pembayaran" class="img-fluid" id="imgBuktiPembayaran">
+                </div>
             </div>
             <div class="modal-footer" id="actionModalInvoice">
                 <button class="btn btn-outline-primary" role="button" onclick="sendKip()">Kirim</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal-bukti">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Bukti Pembayaran</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="#" alt="Bukti pembayaran" class="img-fluid" id="imgBukti">
+            </div>
+            <div class="modal-footer" id="actionModalInvoice">
+                <button class="btn btn-outline-primary" role="button" onclick="">Cetak Kuitansi</button>
             </div>
         </div>
     </div>
