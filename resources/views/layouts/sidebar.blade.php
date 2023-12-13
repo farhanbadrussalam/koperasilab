@@ -123,6 +123,30 @@
                     </li>
                 @endcan
 
+                @can('Keuangan')
+                    <li class="nav-item">
+                        <a href="{{ route('keuangan.index') }}"
+                            class="nav-link {{ Request::is('keuangan*') ? 'active' : '' }}">
+                            <i class="bi bi-postcard-fill"></i>
+                            <p>
+                                Keuangan
+                            </p>
+                        </a>
+                    </li>
+                @endcan
+
+                @can('lhukip')
+                <li class="nav-item">
+                    <a href="{{ route('manager.lhukip.index') }}"
+                        class="nav-link {{ Request::is('manager*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <p>
+                            LHU / KIP
+                        </p>
+                    </a>
+                </li>
+                @endcan
+
                 @if(auth()->user()->can('Management.Lab') || auth()->user()->can('Management.Otorisasi'))
                 <li class="nav-header">SERVICE USER MANAGEMENT</li>
                 @can('Management.Lab')
@@ -175,6 +199,17 @@
                         <i class="bi bi-box-seam-fill"></i>
                         <p>
                             Penyelia LAB
+                        </p>
+                    </a>
+                </li>
+                @endif
+
+                @if(auth()->user()->hasPermissionTo('Otorisasi-Pelaksana LAB'))
+                <li class="nav-item">
+                    <a href="{{ route('jobs.pelaksanaLab.index') }}" class="nav-link {{ Request::is('jobs*') ? 'active' : '' }}">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <p>
+                            Pelaksana LAB
                         </p>
                     </a>
                 </li>

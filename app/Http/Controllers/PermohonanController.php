@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\DetailPermohonanController;
+use App\Http\Controllers\API\PermohonanAPI;
 
 use Auth;
 use DataTables;
@@ -20,6 +21,7 @@ class PermohonanController extends Controller
     public function __construct() {
         $this->mediaController = resolve(MediaController::class);
         $this->detail = resolve(DetailPermohonanController::class);
+        $this->permohonanAPI = resolve(PermohonanAPI::class);
     }
     /**
      * Display a listing of the resource.
@@ -36,11 +38,20 @@ class PermohonanController extends Controller
         if(request()->has('status') && request('status')){
             $status = request('status');
         }
-        $informasi = Permohonan::with(['layananjasa', 'jadwal'])
+        $informasi = Permohonan::with(['layananjasa', 'jadwal', 'tbl_lhu', 'tbl_kip'])
                         ->where('status', '!=', 99)
                         ->where('created_by', $user->id)
                         ->where('status', $status);
 
+        if($status == 3){
+            $informasi->whereHas('tbl_lhu', function ($query) {
+                $query->where('level', 5);
+            });
+
+            $informasi->whereHas('tbl_kip', function ($query) {
+                $query->where('status', 3);
+            });
+        }
         return DataTables::of($informasi)
                 ->addIndexColumn()
                 ->addColumn('content', function($data) {
@@ -59,10 +70,10 @@ class PermohonanController extends Controller
                         </div>
                     ' : '';
 
-                    $btn_action = '';
+                    $btn_list_action = '';
 
                     if($data->status == 1 || $data->status == 9){
-                        $btn_action .= '
+                        $btn_list_action .= '
                             <li class="my-1 cursoron">
                                 <a class="dropdown-item dropdown-item-lab subbody text-warning" href="'.route("permohonan.edit", $data->permohonan_hash).'">
                                     <i class="bi bi-pencil-square"></i>&nbsp;Update
@@ -71,7 +82,7 @@ class PermohonanController extends Controller
                         ';
                     }
 
-                    $btn_action .= '
+                    $btn_list_action .= '
                         <li class="my-1 cursoron">
                             <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="modalConfirm('.$idHash.')">
                                 <i class="bi bi-info-circle"></i>&nbsp;Rincian
@@ -79,13 +90,38 @@ class PermohonanController extends Controller
                         </li>
                     ';
 
-                    $btn_action .= $data->status == 1 || $data->status == 9 ? '
+                    $btn_list_action .= $data->status == 1 || $data->status == 9 ? '
                         <li class="my-1 cursoron">
                             <a class="dropdown-item dropdown-item-lab subbody text-danger" onclick="btnDelete('.$idHash.')">
                                 <i class="bi bi-trash"></i>&nbsp;Delete
                             </a>
                         </li>
                     ' : '';
+
+                    if($data->status == 3){
+                        if($data->tbl_kip->bukti_pembayaran){
+                            $btn_action = '
+                                <button class="btn btn-outline-success btn-sm" onclick="btnDetailPayment('.$idHash.')">
+                                    <i class="bi bi-credit-card-2-back-fill"></i> Lunas</button>
+                            ';
+                        }else{
+                            $btn_action = '
+                                <a class="btn btn-outline-primary btn-sm" href="'.url('permohonan/payment/'.$data->permohonan_hash).'">
+                                    <i class="bi bi-credit-card-2-back-fill"></i> Proses payment</a>
+                            ';
+                        }
+                    }else{
+                        $btn_action = '
+                            <div class="dropdown">
+                                <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </div>
+                                <ul class="dropdown-menu shadow-sm px-2">
+                                    '.$btn_list_action.'
+                                </ul>
+                            </div>
+                        ';
+                    }
 
                     return '
                     <div class="card m-0 border-0">
@@ -108,14 +144,7 @@ class PermohonanController extends Controller
                                 <span class="badge text-bg-info">Antrian '.$data->nomor_antrian.'</span>
                             </div>
                             <div class="col-md-2 col-sm-2">
-                                <div class="dropdown">
-                                    <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </div>
-                                    <ul class="dropdown-menu shadow-sm px-2">
-                                        '.$btn_action.'
-                                    </ul>
-                                </div>
+                                '.$btn_action.'
                             </div>
                             '. $co_reason .'
                         </div>
@@ -425,6 +454,21 @@ class PermohonanController extends Controller
         $this->detail->reset($idPermohonan);
 
         return redirect()->route('permohonan.index')->with('success', 'Berhasil di update');
+    }
+
+    public function payment($idPermohonan)
+    {
+        $idHash = decryptor($idPermohonan);
+
+        $data['token'] = generateToken();
+        $data['permohonan'] = Permohonan::with(
+            'layananjasa:id,nama_layanan',
+            'jadwal:id,date_mulai,date_selesai',
+            'user:id,email,name', 'tbl_lhu', 'tbl_lhu.media', 'tbl_kip')
+        ->where('id', $idHash)
+        ->first();
+
+        return view('pages.permohonan.payment', $data);
     }
 
     /**

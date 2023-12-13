@@ -193,7 +193,9 @@ if (!function_exists('iconDocument')){
             case 'application/pdf':
                 $icon = 'pdf-icon.svg';
                 break;
-
+            case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                $icon = 'word-icon.svg';
+                break;
             default:
                 $icon = 'other-icon.svg';
                 break;
@@ -257,7 +259,10 @@ if (!function_exists('convert_date')) {
                 # 11 Sep 2023 12:00
                 $format = 'd M Y H:i';
                 break;
-
+            case 2:
+                # 11 Sep 2023 12:00
+                $format = 'd M Y';
+                break;
             default:
                 # Monday, 11 Sep 2023 12:00
                 $format = 'l, d M Y H:i';

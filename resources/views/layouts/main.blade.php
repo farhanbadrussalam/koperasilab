@@ -31,12 +31,17 @@
     <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
 
     <!-- Scripts -->
-    <link rel="stylesheet" href="{{ asset('assets/bootstrap/dist/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/bootstrap-icons/font/bootstrap-icons.min.css') }}">
-    {{-- @vite(['resources/sass/app.scss', 'resources/js/app.js']) --}}
+    {{-- <link rel="stylesheet" href="{{ asset('assets/bootstrap/dist/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/bootstrap-icons/font/bootstrap-icons.min.css') }}"> --}}
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed">
+    <div>
+        <input type="hidden" name="bearer" id="bearer-token" value="{{ $token }}">
+        <input type="hidden" name="csrf" id="csrf-token" value="{{ csrf_token() }}">
+        <input type="hidden" id="base_url" value="{{ url('') }}">
+    </div>
     <div class="wrapper">
         <!-- Navbar -->
         @include('layouts.navbar')
@@ -53,7 +58,7 @@
         @include('layouts.footer')
     </div>
 
-    <script src="{{ asset('assets/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    {{-- <script src="{{ asset('assets/bootstrap/dist/js/bootstrap.min.js') }}"></script> --}}
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>

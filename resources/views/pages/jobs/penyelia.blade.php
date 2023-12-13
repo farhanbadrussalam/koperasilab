@@ -44,13 +44,38 @@
         </div>
     </section>
 </div>
+
+{{-- Modal ttd confirm --}}
+<div class="modal fade" id="modal-confirm-ttd">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <input type="hidden" name="idLhu" id="idLhu">
+                <h3>Apakah data ini valid ?</h3>
+                <div class="wrapper">
+                    <button class="btn btn-danger btn-sm position-absolute ms-2 mt-2" id="signature-clear">Clear</button>
+                    <canvas id="signature-pad" class="signature-pad border border-success-subtle rounded border-3" width=400 height=200></canvas>
+                    <h4>Signature</h4>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex w-100">
+                    <button class="btn btn-danger me-auto" id="btn-invalid">Tidak valid</button>
+                    <button class="btn btn-primary" id="btn-valid">Valid</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @include('pages.permohonan.confirm')
 @include('pages.jobs.createSurat')
 @endsection
 @push('scripts')
+@vite(['resources/js/pages/penyelia.js'])
 <script>
     let idPermohonan = false;
     let dt_layanan = false;
+    let dt_lhu = false;
 
     $(function () {
         dt_layanan = $('#layanan-table').DataTable({
@@ -76,6 +101,33 @@
                 { data: 'content', name: 'content', orderable: false, searchable: false}
             ]
         });
+
+        dt_lhu = $('#lhu-table').DataTable({
+            processing: true,
+            serverSide: true,
+            searching: false,
+            ordering: false,
+            lengthChange: false,
+            infoCallback: function( settings, start, end, max, total, pre ) {
+                var api = this.api();
+                var pageInfo = api.page.info();
+
+                return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+            },
+            ajax: {
+                url: "{{ route('jobs.getDataLhu') }}",
+                data: function(d) {
+                    d.jobs = 'penyelia';
+                    d.type = 'lhu';
+                }
+            },
+            columns: [
+                { data: 'content', name: 'content', orderable: false, searchable: false}
+            ]
+        });
+
+        // initialisasi signature
+
     })
 
     function createSurat(idPermohonan){
@@ -90,9 +142,19 @@
                 'Content-Type': 'application/json'
             }
         }).done(result => {
-            console.log(result);
+            result = result.data;
+            $('#txtTugas').val(result.layananjasa.nama_layanan);
+            $('#txtCustomer').val(result.user.name);
+            $('#txtJumlah').val(result.jumlah);
+            $('#noKontrak').val(result.no_kontrak);
+            $('#txtTanggal').val(`${dateFormat(result.jadwal.date_mulai, 2)} - ${dateFormat(result.jadwal.date_selesai, 2)}`);
             $('#create-surat').modal('show');
         })
+    }
+
+    function btnConfirm(idLhu){
+        $('#idLhu').val(idLhu);
+        $('#modal-confirm-ttd').modal('show');
     }
 </script>
 @endpush

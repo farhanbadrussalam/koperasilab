@@ -8,6 +8,7 @@ use App\Http\Controllers\API\LayananjasaAPI;
 use App\Http\Controllers\API\OtorisasiAPI;
 use App\Http\Controllers\API\PetugasLayananAPI;
 use App\Http\Controllers\API\AssetsAPI;
+use App\Http\Controllers\API\LhuAPI;
 
 use App\Mail\SendEmail;
 use App\Jobs\SendEmailJob;
@@ -62,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::post('/update/{id}', [PermohonanAPI::class, 'update']);
         Route::post('/verifikasi_fd', [PermohonanAPI::class, 'verifikasi_fd']);
         Route::post('/verifikasi_kontrak', [PermohonanAPI::class, 'verifikasi_kontrak']);
+        Route::post('/sendSuratTugas', [PermohonanAPI::class, 'sendSuratTugas']);
     });
 
     Route::prefix('otorisasi')->group(function () {
@@ -71,9 +73,23 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::prefix('petugas')->group(function () {
         Route::get('/getPetugas', [PetugasLayananAPI::class, 'getPetugas']);
         Route::get('/getJadwalPetugas/{jadwal_hash}', [PetugasLayananAPI::class, 'getJadwalPetugas']);
+        Route::get('/search', [PetugasLayananAPI::class, 'searchData']);
         Route::post('/storeJadwalPetugas', [PetugasLayananAPI::class, 'storeJadwalPetugas']);
         Route::post('/updateJadwalPetugas', [PetugasLayananAPI::class, 'updateJadwalPetugas']);
         Route::delete('/destroyJadwalPetugas/{jadwalPetugas_hash}', [PetugasLayananAPI::class, 'destroyJadwalPetugas']);
+    });
+
+    Route::prefix('lhu')->group(function () {
+        Route::get('/getDokumenLHU/{id_lhu}', [LhuAPI::class, 'getDokumenLHU']);
+        Route::get('/getDokumenKIP/{id_kip}', [LhuAPI::class, 'getDokumenKIP']);
+        Route::post('/sendDokumen', [LhuAPI::class, 'sendDokumen']);
+        Route::post('/validasiLHU', [LhuAPI::class, 'validasiLHU']);
+        Route::post('/validasiKIP', [LhuAPI::class, 'validasiKIP']);
+        Route::post('/sendToPelanggan', [LhuAPI::class, 'sendToPelanggan']);
+    });
+
+    Route::prefix('kip')->group(function(){
+        Route::post('/sendPayment', [LhuAPI::class, 'sendPayment']);
     });
 
 });
