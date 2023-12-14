@@ -31,4 +31,18 @@ class HomeController extends Controller
             return view('home', $data);
         }
     }
+
+    public function login()
+    {
+        if(Auth::check()){
+            $data['token'] = generateToken();
+            if(Auth::user()->hasRole('pelanggan')){
+                return redirect('userProfile', $data);
+            }else{
+                return view('home', $data);
+            }
+        }else{
+            return view('auth.login');
+        }
+    }
 }

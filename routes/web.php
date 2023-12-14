@@ -32,14 +32,11 @@ use Illuminate\Support\Facades\Auth;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
-Route::get('/', function () {
-    return view('auth.login');
-});
 Auth::routes();
+Route::get('/', [HomeController::class, 'login']);
 
 Route::middleware(['auth', 'verified'])->group(function() {
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('home', [HomeController::class, 'index'])->name('home');
 
     Route::middleware(['permission:User.management'])->group(function () {
         Route::resource('users', UserController::class);
