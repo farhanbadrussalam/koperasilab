@@ -179,6 +179,16 @@ class PetugasLayananController extends Controller
         return response()->json(['message' => 'Petugas berhasil diupdate'], 200);
     }
 
+    public function verifikasiPetugas($id)
+    {
+        $id = decryptor($id);
+        $update = Petugas_layanan::where('id', $id)->update(array(
+            'status_verif' => 2
+        ));
+
+        return view('emails.resultPetugasLayanan');
+    }
+
     /**
      * Remove the specified resource from storage.
      */
