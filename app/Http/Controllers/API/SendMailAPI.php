@@ -15,13 +15,15 @@ use Mail;
 class SendMailAPI extends Controller
 {
     public function verifikasiPetugas(Request $request) {
-        $idPermission = $request->otorisasi ? decryptor($request->otorisasi) : null;
+        $nameOtorisasi = $request->nameOtorisasi ? decryptor($request->nameOtorisasi) : null;
         $idPetugasLayanan = $request->id ? decryptor($request->id) : null;
 
+        $dataPetugas = Petugas_layanan::with('petugas')->where('id', $idPetugasLayanan)->first();
+
         $data['id'] = $request->id;
-        $data['otorisasi'] = Permission::where('id', $idPermission)->first();
+        $data['otorisasi'] = $nameOtorisasi;
 
         $mail = new SendVerifikasiPetugas($data);
-        Mail::to('badrussalam859@gmail.com')->queue($mail);
+        Mail::to($dataPetugas->petugas->email)->queue($mail);
     }
 }

@@ -11,8 +11,13 @@ use Spatie\Permission\Models\Permission;
 use Auth;
 use DataTables;
 
+use App\Http\Controllers\API\SendMailAPI;
+
 class PetugasLayananController extends Controller
 {
+    public function __construct() {
+        $this->SendMailAPI = resolve(SendMailAPI::class);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -127,7 +132,7 @@ class PetugasLayananController extends Controller
 
         $dataUser = User::where('id', $idPegawai)->first();
 
-        Petugas_layanan::create([
+        $create = Petugas_layanan::create([
             'lab_id' => $satuan_lab,
             'satuankerja_id' => $satuankerja,
             'user_id' => $idPegawai,
@@ -138,7 +143,18 @@ class PetugasLayananController extends Controller
 
         foreach ($request->otorisasi as $key => $value) {
             $dataUser->givePermissionTo(decryptor($value));
+            $request->nameOtorisasi = $value;
         }
+
+        // send mail to petugas and notif
+        $request->id = $create->petugas_hash;
+        $this->SendMailAPI->verifikasiPetugas($request);
+
+        # Send notifikasi
+        $sendNotif = notifikasi(array(
+            'to_user' => $idPegawai,
+            'type' => 'Petugas Layanan'
+        ), "Anda telah ditambahkan menjadi petugas layanan, silahkan cek E-mail untuk melakukan verifikasi");
 
         return redirect()->route('petugasLayanan.index')->with('success', 'Berhasil di tambah');
     }
@@ -202,8 +218,7 @@ class PetugasLayananController extends Controller
         foreach ($permission as $key => $value) {
             $dataUser->revokePermissionTo($value->name);
         }
-        $data->status = 99;
-        $data->update();
+        $data->delete();
 
         return response()->json(['message' => 'Petugas berhasil dihapus'], 200);
     }
