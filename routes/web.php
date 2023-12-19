@@ -34,6 +34,7 @@ use Illuminate\Support\Facades\Auth;
 */
 Auth::routes();
 Route::get('/', [HomeController::class, 'login']);
+Route::get('petugasLayanan/v/{id}', [PetugasLayananController::class, 'verifikasiPetugas']);
 
 Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('home', [HomeController::class, 'index'])->name('home');

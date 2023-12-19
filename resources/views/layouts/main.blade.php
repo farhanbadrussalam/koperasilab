@@ -163,7 +163,9 @@
                 },
             }).done(result => {
                 // console.log(result);
-                window.location.href = url;
+                if(url){
+                    window.location.href = url;
+                }
             })
         }
     </script>

@@ -7,9 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Queue\SerializesModels;
 
-class SendEmail extends Mailable
+class SendVerifikasiPetugas extends Mailable
 {
     use Queueable, SerializesModels;
     public $data;
@@ -17,9 +18,9 @@ class SendEmail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct()
+    public function __construct($data)
     {
-        // $this->data = $data;
+        $this->data = $data;
     }
 
     /**
@@ -38,7 +39,7 @@ class SendEmail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.template',
+            view: 'emails.verifikasiPetugasLayanan',
         );
     }
 

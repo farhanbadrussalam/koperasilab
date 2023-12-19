@@ -5,9 +5,11 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\RestApi;
 
 class AuthController extends Controller
 {
+    use RestApi;
     /**
      * Display a listing of the resource.
      */
@@ -31,5 +33,17 @@ class AuthController extends Controller
         // Auth::logout();
 
         return response()->json(['message' => 'Logged out successfully'], 200);
+    }
+
+    public function encryptor(Request $request){
+        $allid = $request->id ? $request->id : [];
+
+        $tmp = array();
+
+        foreach ($allid as $key => $id) {
+            array_push($tmp, encryptor($id));
+        }
+
+        return $this->output($tmp);
     }
 }
