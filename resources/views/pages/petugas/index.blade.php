@@ -23,7 +23,7 @@ $idSatuan = Auth::user()->satuankerja_id ? Auth::user()->satuankerja_id : null;
             <div class="card card-default shadow">
                 <div class="card-header d-flex ">
                     <h3 class="card-title flex-grow-1">
-                        List Petugas Layanan
+                        List Petugas Penyelenggara Layanan
                     </h3>
                     @can('Petugas.create')
                     <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPetugasModal">Add petugas</button>

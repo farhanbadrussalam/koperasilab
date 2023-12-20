@@ -96,7 +96,7 @@
                                 <label for="inputPJ" class="form-label">Penanggung jawab</label>
                                 <input type="text" id="inputPJ" class="form-control" value="{{ $jadwal->layananjasa->user->name ." (". stringSplit($jadwal->layananjasa->user->getDirectPermissions()[0]->name .")", 'Otorisasi-')}}" readonly>
                             </div>
-                            <div class="col-md-12 mb-2">
+                            {{-- <div class="col-md-12 mb-2">
                                 <label for="uploadFile" class="form-label">Surat tugas</label>
                                 <div class="card mb-0" style="height: 150px;">
                                     <input type="file" name="dokumen" id="uploadFile" accept=".pdf,.doc,.docx" class="form-control dropify @error('dokumen')
@@ -117,7 +117,7 @@
                                 </div>
 
                                 <table class="table table-borderless w-100" id="content-petugas"></table>
-                            </div>
+                            </div> --}}
                             <div class="col-md-12 mb-2 text-center">
                                 <button type="submit" class="btn btn-primary">Simpan</button>
                             </div>

@@ -8,6 +8,7 @@ use App\Models\Layanan_jasa;
 use App\Models\jadwal;
 use App\Models\tbl_media;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\DetailPermohonanController;
@@ -239,9 +240,12 @@ class PermohonanController extends Controller
     }
 
     public function getDTListLayanan(){
+        $dateNow = Carbon::now('Asia/Jakarta')->toDateTimeString();
         $dataJadwal = jadwal::with('layananjasa')
-                        ->where('status', 2)
+                        ->where('status', 1)
                         ->where('kuota', '>', 0)
+                        ->whereDate('date_mulai', '<=', $dateNow)
+                        ->whereDate('date_selesai', '>', $dateNow)
                         ->orderBy('date_mulai', 'DESC');
 
         return DataTables::of($dataJadwal)

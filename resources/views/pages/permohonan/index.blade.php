@@ -21,7 +21,7 @@
                             Permohonan layanan
                         </h3>
                         @can('Permohonan.create')
-                            <a href="{{ route('permohonan.create') }}" class="btn btn-primary btn-sm">Add permohonan</a>
+                            <a href="{{ route('permohonan.create') }}" class="btn btn-primary btn-sm">Pengajuan permohonan</a>
                         @endcan
                     </div>
                     <div class="card-body">

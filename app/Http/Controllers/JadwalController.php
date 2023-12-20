@@ -108,9 +108,6 @@ class JadwalController extends Controller
                                         '.$btnDelete.'
                                         '.$btnConfirm.'
                                     </div>
-                                    <div>
-                                        '.$btnInfoPetugas.'
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -245,21 +242,8 @@ class JadwalController extends Controller
             'jenis_layanan' => ['required'],
             'tanggal_mulai' => ['required'],
             'tanggal_selesai' => ['required'],
-            'kuota' => ['required'],
-            'petugas' => ['required']
+            'kuota' => ['required']
         ]);
-
-        $layanan_jasa = Layanan_jasa::where('id', decryptor($request->layanan_jasa))->first();
-        $petugas = array($layanan_jasa->user_id);
-        foreach ($request->petugas as $key => $value) {
-            array_push($petugas, (int) decryptor($value));
-        }
-
-        // upload dokumen
-        $idMedia = '';
-        if($request->file('dokumen')){
-            $idMedia = $this->mediaController->upload($request->file('dokumen'), 'jadwal');
-        }
 
         $dataJadwal = array(
             'layananjasa_id' => decryptor($request->layanan_jasa),
@@ -269,26 +253,10 @@ class JadwalController extends Controller
             'date_selesai' => $request->tanggal_selesai,
             'kuota' => $request->kuota,
             'status' => 1,
-            'dokumen' => $idMedia,
             'created_by' => Auth::user()->id
         );
 
         $saveJadwal = jadwal::create($dataJadwal);
-
-        foreach ($petugas as $key => $value) {
-            Jadwal_petugas::create([
-                'jadwal_id' => $saveJadwal->id,
-                'petugas_id' => $value,
-                'status' => 1
-            ]);
-
-            # Send notifikasi
-            $pjContent = $value == $layanan_jasa->user_id ? "dan menjadi Penanggung jawab" : "";
-            $sendNotif = notifikasi(array(
-                'to_user' => $value,
-                'type' => 'jadwal'
-            ), "Anda ditugaskan untuk layanan ".$saveJadwal->layananjasa->nama_layanan." ".$pjContent." pada tanggal ".$request->tanggal_mulai);
-        }
 
         return redirect()->route('jadwal.index')->with('success', 'Berhasil di tambah');
     }
@@ -333,10 +301,6 @@ class JadwalController extends Controller
             'tanggal_selesai' => ['required'],
             'kuota' => ['required']
         ]);
-
-        if($request->file('dokumen')){
-            $this->mediaController->update($request->file('dokumen'), $jadwal->dokumen);
-        }
 
         $jadwal->kuota = $request->kuota;
         $jadwal->date_mulai = $request->tanggal_mulai;

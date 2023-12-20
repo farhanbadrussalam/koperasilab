@@ -24,7 +24,7 @@ class UserController extends Controller
     }
 
     public function getData(){
-        $query = User::orderBy('id');
+        $query = User::orderBy('satuankerja_id')->orderBy('id');
 
         return DataTables::of($query)
                 ->addIndexColumn()

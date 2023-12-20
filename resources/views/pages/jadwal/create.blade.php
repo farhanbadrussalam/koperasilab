@@ -98,7 +98,7 @@
                                 <label for="inputPJ" class="form-label">Penanggung jawab</label>
                                 <input type="text" id="inputPJ" class="form-control" readonly>
                             </div>
-                            <div class="col-md-12 mb-2">
+                            {{-- <div class="col-md-12 mb-2">
                                 <label for="selectPetugas" class="form-label">Petugas <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <select name="petugas[]" id="selectPetugas" class="form-control @error('petugas')
                                     is-invalid
@@ -124,7 +124,7 @@
                                         {{ $message }}
                                     </div>
                                 @enderror
-                            </div>
+                            </div> --}}
                             <div class="col-md-12 mb-2 text-center">
                                 <button type="submit" class="btn btn-primary">Simpan</button>
                             </div>
