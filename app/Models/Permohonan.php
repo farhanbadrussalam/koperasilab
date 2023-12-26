@@ -69,7 +69,7 @@ class Permohonan extends Model
     }
 
     public function tbl_kip(){
-        return $this->belongsTo(tbl_kip::class, 'no_kontrak', 'no_kontrak');
+        return $this->belongsTo(tbl_kip::class, 'id', 'no_kontrak');
     }
 
 }

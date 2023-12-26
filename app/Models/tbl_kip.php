@@ -36,7 +36,7 @@ class tbl_kip extends Model
 
     public function permohonan()
     {
-        return $this->belongsTo(Permohonan::class, 'no_kontrak', 'no_kontrak');
+        return $this->belongsTo(Permohonan::class, 'no_kontrak', 'id');
     }
 
     public function bukti()

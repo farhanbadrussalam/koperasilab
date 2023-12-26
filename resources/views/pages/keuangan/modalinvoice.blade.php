@@ -10,11 +10,7 @@
             <div class="modal-body">
                 <div class="invoice p-2 rounded">
                     <div class="row">
-                        <div class="col-6">
-                            <div class="fw-bolder">No kontrak</div>
-                            <div><span id="txtNoKontrakModal"></span></div>
-                        </div>
-                        <div class="col-6">
+                        <div class="col-12 mb-2">
                             <div class="fw-bolder">Nama Layanan</div>
                             <div><span id="txtNamaLayananModal"></span></div>
                         </div>
@@ -30,7 +26,7 @@
                     </div>
                     <hr>
                     <h3>Rincian: </h3>
-                    <input type="hidden" id="inputNoKontrak">
+                    <input type="hidden" id="inputIdPermohonan">
                     <input type="hidden" id="inputPajak">
                     <input type="hidden" id="inputHarga">
                     <table class="table table-borderless w-100" id="rincian-table">
@@ -58,9 +54,66 @@
             </div>
             <div class="modal-body">
                 <img src="#" alt="Bukti pembayaran" class="img-fluid" id="imgBukti">
+                {{-- Status --}}
+                <input type="hidden" name="idPermohonanPembayaran" id="idPermohonanPembayaran">
             </div>
-            <div class="modal-footer" id="actionModalInvoice">
-                <button class="btn btn-outline-primary" role="button" onclick="">Cetak Kuitansi</button>
+            <div class="modal-footer" id="actionModalBukti">
+                <button class="btn btn-outline-danger" role="button" onclick="tolakBukti()">Tolak</button>
+                <button class="btn btn-outline-primary" role="button" onclick="setujuBukti()">Setuju</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="noteModalPembayaran" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title text-center w-100">Tolak</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    {{-- note --}}
+                    <div class="mb-2">
+                        <label for="inputNotePembayaran" class="form-label">Note <span
+                                class="fw-bold fs-14 text-danger">*</span></label>
+                        <textarea name="note" id="inputNotePembayaran" cols="30" rows="3" class="form-control"
+                            placeholder="Masukan note"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" role="button" onclick="sendNote(2)">Batal</button>
+                <button class="btn btn-primary" role="button" onclick="sendNote(1)">Kirim</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="buatJadwalModal" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title text-center w-100">Buat jadwal</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="idPermohonanJadwal" id="idPermohonanJadwal">
+                <div class="row">
+                    <div class="col-4 fw-bolder">Tanggal mulai</div>
+                    <div class="col-8">: <span id="txtTglStart"></span></div>
+                </div>
+                <div class="row">
+                    <div class="col-4 fw-bolder">Tanggal selesai</div>
+                    <div class="col-8">: <span id="txtTglEnd"></span></div>
+                </div>
+                <div class="row">
+                    <div class="col-4 fw-bolder">Estimasi waktu</div>
+                    <div class="col-8">: <span id="txtEstimasi"></span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" role="button" onclick="sendJadwal()">Kirim</button>
             </div>
         </div>
     </div>
@@ -68,13 +121,13 @@
 @push('scripts')
     <script>
         function sendKip() {
-            const noKontrak = $('#inputNoKontrak').val();
+            const idPermohonan = $('#inputIdPermohonan').val();
             const pajak = $('#inputPajak').val();
             const harga = $('#inputHarga').val();
 
             const formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
-            formData.append('no_kontrak', noKontrak);
+            formData.append('idPermohonan', idPermohonan);
             formData.append('pajak', pajak);
             formData.append('harga', harga);
 
@@ -96,6 +149,110 @@
                 dt_keuangan?.ajax.reload();
                 $('#moda-invoice').modal('hide');
             })
+        }
+
+        function tolakBukti(){
+            $('#modal-bukti').modal('hide');
+            $('#noteModalPembayaran').modal('show');
+        }
+        function setujuBukti(){
+            Swal.fire({
+                title: 'Are you sure?',
+                icon: false,
+                showCancelButton: true,
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'No',
+                customClass: {
+                    confirmButton: 'btn btn-outline-success mx-1',
+                    cancelButton: 'btn btn-outline-danger mx-1'
+                },
+                buttonsStyling: false,
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('_token', '{{ csrf_token() }}');
+                    formData.append('idPermohonan', $('#idPermohonanPembayaran').val());
+
+                    $.ajax({
+                        url: "{{ url('setujuBuktiPembayaran') }}",
+                        method: "POST",
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'Authorization': `Bearer {{ $token }}`
+                        },
+                        data: formData
+                    }).done(result => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: result.message
+                        });
+                        dt_keuangan?.ajax.reload();
+                        $('#modal-bukti').modal('hide');
+                    })
+                }
+            })
+        }
+
+        function sendNote(a){
+            if(a == 2){
+                $('#modal-bukti').modal('show');
+                $('#noteModalPembayaran').modal('hide');
+            }else{
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('idPermohonan', $('#idPermohonanPembayaran').val());
+                formData.append('note', $('#inputNotePembayaran').val());
+
+                $.ajax({
+                    url: "{{ url('tolakBuktiPembayaran') }}",
+                    method: "POST",
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'Authorization': `Bearer {{ $token }}`
+                    },
+                    data: formData
+                }).done(result => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message
+                    });
+                    dt_keuangan?.ajax.reload();
+                    $('#modal-bukti').modal('hide');
+                    $('#noteModalPembayaran').modal('hide');
+                })
+            }
+        }
+
+        function sendJadwal(){
+            const idPermohonan = $('#idPermohonanJadwal').val();
+
+            const formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('idPermohonan', idPermohonan);
+            $.ajax({
+                url: "{{ url('api/permohonan/createJadwalPermohonan') }}",
+                method: "POST",
+                processData: false,
+                contentType: false,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`
+                },
+                data: formData
+            }).done(result => {
+                const data = result.data;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: data.message
+                });
+                dt_processing?.ajax.reload();
+                $('#buatJadwalModal').modal('hide');
+            });
         }
     </script>
 @endpush

@@ -56,10 +56,9 @@
                     return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
                 },
                 ajax: {
-                    url: "{{ route('jobs.getData') }}",
+                    url: "{{ route('keuangan.getPermohonan') }}",
                     data: function(d) {
-                        d.jobs = 'keuangan';
-                        d.type = 'layanan';
+
                     }
                 },
                 columns: [
@@ -81,7 +80,6 @@
                 }
             }).done(result => {
                 const data = result.data;
-                $('#txtNoKontrakModal').html(data.no_kontrak);
                 $('#txtNamaLayananModal').html(data.layananjasa.nama_layanan);
                 $('#txtNamaPelangganModal').html(data.user.name);
                 $('#txtAlamatModal').html(data.user.email);
@@ -112,12 +110,12 @@
                 total = totalItems + totalPajak;
                 contentRincian += `
                     <tr>
-                        <th class="w-100">Jumlah</th>
+                        <th class="w-100">Total</th>
                         <th>${formatRupiah(total)}</th>
                     </tr>
                 `;
 
-                $('#inputNoKontrak').val(data.no_kontrak);
+                $('#inputIdPermohonan').val(data.permohonan_hash);
                 $('#inputPajak').val(totalPajak);
                 $('#inputHarga').val(totalItems);
 
@@ -145,6 +143,12 @@
             }).done(result => {
                 const data = result.data;
 
+                $('#actionModalBukti').show();
+                if(data.tbl_kip.status == 3){
+                    $('#actionModalBukti').hide();
+                }
+
+                $('#idPermohonanPembayaran').val(data.permohonan_hash);
                 $('#imgBukti').attr('src', `{{ asset('storage') }}/${data.tbl_kip.bukti.file_path}/${data.tbl_kip.bukti.file_hash}`);
                 $('#modal-bukti').modal('show');
             })

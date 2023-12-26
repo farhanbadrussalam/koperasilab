@@ -36,8 +36,13 @@
                               <button class="nav-link text-warning" id="pembayaran-tab" onclick="reloadTable(3)" data-bs-toggle="tab" data-bs-target="#pembayaran-tab-pane" type="button" role="tab" aria-controls="pembayaran-tab-pane" aria-selected="false">Pembayaran</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link text-danger" id="dikembalikan-tab" onclick="reloadTable(4)" data-bs-toggle="tab" data-bs-target="#dikembalikan-tab-pane" type="button" role="tab" aria-controls="dikembalikan-tab-pane" aria-selected="false">Dikembalikan</button>
+                              <button class="nav-link text-info" id="penjadwalan-tab" onclick="reloadTable(4)" data-bs-toggle="tab" data-bs-target="#penjadwalan-tab-pane" type="button" role="tab" aria-controls="penjadwalan-tab-pane" aria-selected="false">Penjadwalan</button>
                             </li>
+                            @cannot('Permohonan.confirm')
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link text-danger" id="dikembalikan-tab" onclick="reloadTable(5)" data-bs-toggle="tab" data-bs-target="#dikembalikan-tab-pane" type="button" role="tab" aria-controls="dikembalikan-tab-pane" aria-selected="false">Dikembalikan</button>
+                            </li>
+                            @endcannot
                         </ul>
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade show active pt-3" id="pengajuan-tab-pane" role="tabpanel" aria-labelledby="pengajuan-tab" tabindex="0">
@@ -48,6 +53,9 @@
                             </div>
                             <div class="tab-pane fade p-3" id="pembayaran-tab-pane" role="tabpanel" aria-labelledby="pembayaran-tab" tabindex="0">
                                 <table class="table table-borderless w-100" id="pembayaran-table"></table>
+                            </div>
+                            <div class="tab-pane fade p-3" id="penjadwalan-tab-pane" role="tabpanel" aria-labelledby="penjadwalan-tab" tabindex="0">
+                                <table class="table table-borderless w-100" id="penjadwalan-table"></table>
                             </div>
                             <div class="tab-pane fade p-3" id="dikembalikan-tab-pane" role="tabpanel" aria-labelledby="dikembalikan-tab" tabindex="0">
                                 <table class="table table-borderless w-100" id="dikembalikan-table"></table>
@@ -69,6 +77,7 @@
         let dt_disetujui = false;
         let dt_pembayaran = false;
         let dt_return = false;
+        let dt_processing = false;
         $(function() {
             dt_pengajuan = $('#pengajuan-table').DataTable({
                 processing: true,
@@ -85,7 +94,7 @@
                 ajax: {
                     url: "{{ route('permohonan.getData') }}",
                     data: function(d) {
-                        d.status = 1
+                        d.flag = [1]
                     }
                 },
                 columns: [
@@ -108,7 +117,7 @@
                 ajax: {
                     url: "{{ route('permohonan.getData') }}",
                     data: function(d) {
-                        d.status = 2
+                        d.flag = [2]
                     }
                 },
                 columns: [
@@ -131,7 +140,30 @@
                 ajax: {
                     url: "{{ route('permohonan.getData') }}",
                     data: function(d) {
-                        d.status = 3
+                        d.flag = [3]
+                    }
+                },
+                columns: [
+                    { data: 'content', name: 'content', orderable: false, searchable: false}
+                ]
+            });
+
+            dt_processing = $('#penjadwalan-table').DataTable({
+                processing: true,
+                serverSide: true,
+                searching: false,
+                ordering: false,
+                lengthChange: false,
+                infoCallback: function( settings, start, end, max, total, pre ) {
+                    var api = this.api();
+                    var pageInfo = api.page.info();
+
+                    return 'Page '+ (pageInfo.page+1) +' of '+ pageInfo.pages;
+                },
+                ajax: {
+                    url: "{{ route('permohonan.getData') }}",
+                    data: function(d) {
+                        d.flag = [4,5]
                     }
                 },
                 columns: [
@@ -154,7 +186,7 @@
                 ajax: {
                     url: "{{ route('permohonan.getData') }}",
                     data: function(d) {
-                        d.status = 9
+                        d.flag = [9]
                     }
                 },
                 columns: [
@@ -178,6 +210,9 @@
                     dt_pembayaran?.ajax.reload();
                     break;
                 case 4:
+                    dt_processing?.ajax.reload();
+                    break;
+                case 5:
                     dt_return?.ajax.reload();
                     break;
             }
@@ -211,6 +246,71 @@
                     });
                 });
             });
+        }
+
+        function btnConfirm(status){
+            $('#confirmModal').modal('hide');
+
+            if(status == 2){
+                $('#txtStatusSurat').html('Surat rekomendasi permohonan');
+                $('#txtInfoConfirm').html('Disetujui');
+                $('#statusVerif').val('setuju');
+
+                $('#noteModal').modal('show');
+            }else{
+                $('#txtStatusSurat').html('Surat jawaban permohonan');
+                $('#txtInfoConfirm').html('Tolak');
+                $('#statusVerif').val('tolak');
+
+                $('#noteModal').modal('show');
+            }
+        }
+
+        function sendConfirm(key) {
+            if (key == 1) {
+                let note = $('#inputNote').val();
+                let documenSurat = $('#uploadSurat')[0].files[0];
+                let status = $('#statusVerif').val();
+
+                if(note != '' && documenSurat != undefined){
+                    const formData = new FormData();
+                    formData.append('_token', '{{ csrf_token() }}');
+                    formData.append('note', note);
+                    formData.append('id', idPermohonan);
+                    formData.append('file', documenSurat);
+                    formData.append('status', status);
+
+                    $.ajax({
+                        url: "{{ url('api/permohonan/updatePermohonan') }}",
+                        method: "POST",
+                        dataType: 'json',
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'Authorization': `Bearer {{ $token }}`
+                        },
+                        data: formData
+                    }).done(result => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success',
+                            text: result.message
+                        });
+                        $('#noteModal').modal('hide');
+                        reloadTable(1);
+                    }).fail(e => {
+                        console.error(e);
+                    })
+                }else{
+                    Swal.fire({
+                        icon: 'warning',
+                        text: 'Silahkan lengkapi data!'
+                    });
+                }
+            }else{
+                $('#noteModal').modal('hide');
+                $('#confirmModal').modal('show');
+            }
         }
 
         // function modalConfirm(id) {
@@ -288,7 +388,6 @@
                 }
             }).done(result => {
                 const data = result.data;
-                console.log(data);
                 $('#txtNoKontrakModal').html(data.no_kontrak);
                 $('#txtNamaLayananModal').html(data.layananjasa.nama_layanan);
                 $('#txtNamaPelangganModal').html(data.user.name);
@@ -337,6 +436,29 @@
                 $('#imgBuktiPembayaran').attr('src', `{{ asset('storage') }}/${data.tbl_kip.bukti.file_path}/${data.tbl_kip.bukti.file_hash}`);
 
                 $('#moda-invoice').modal('show');
+            })
+        }
+
+        function btnBuatJadwal(id){
+            $.ajax({
+                url: "{{ url('api/permohonan/show') }}/" + id,
+                method: 'GET',
+                dataType: 'json',
+                processing: true,
+                serverSide: true,
+                headers: {
+                    'Authorization': `Bearer {{ $token }}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(result => {
+                const data = result.data;
+
+                $('#idPermohonanJadwal').val(id);
+                $('#txtTglStart').html(data.jadwal.date_mulai);
+                $('#txtTglEnd').html(data.jadwal.date_selesai);
+                $('#txtEstimasi').html('-');
+
+                $('#buatJadwalModal').modal('show');
             })
         }
 

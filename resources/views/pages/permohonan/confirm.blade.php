@@ -89,7 +89,7 @@
             <div class="modal-footer" id="divConfirmBtn">
                 <div class="d-flex w-100">
                     <button class="btn btn-danger me-auto" id="btnNo" onclick="btnConfirm(9)">Tolak</button>
-                    <button class="btn btn-primary" id="btnYes" onclick="btnConfirm(2)">Lengkap</button>
+                    <button class="btn btn-primary" id="btnYes" onclick="btnConfirm(2)">Setuju</button>
                 </div>
             </div>
         </div>
@@ -213,21 +213,24 @@
                 if(role.includes('Pelanggan')){
                     $('#divConfirmBtn').hide();
                 }else{
-                    if(data.status == 2 && permission.find(d => d.name == 'Otorisasi-Front desk')){
-                        $('#divConfirmBtn').hide();
-                    }else if(data.status == 2 && data.flag == 2){
-                        $('#btnNo').html('Tidak setuju');
-                        $('#btnYes').html('Setuju');
-                        idPermohonan = id;
-                    }else if(data.status == 3 && permission.find(d => d.name == 'Otorisasi-Penyelia LAB')){
-                        $('#divConfirmBtn').hide();
-                    }else if(data.status == 3 && permission.find(d => d.name == 'Otorisasi-Pelaksana LAB')){
-                        $('#divConfirmBtn').hide();
-                    }else if(data.status == 3 && permissionInRole.find(d => d.name == 'Keuangan')){
+                    if(data.flag == 2 || data.flag == 3 || data.flag == 4){
                         $('#divConfirmBtn').hide();
                     }else{
                         idPermohonan = id;
                     }
+                    // }else if(data.status == 2 && data.flag == 2){
+                    //     $('#btnNo').html('Tidak setuju');
+                    //     $('#btnYes').html('Setuju');
+                    //     idPermohonan = id;
+                    // }else if(data.status == 3 && permission.find(d => d.name == 'Otorisasi-Penyelia LAB')){
+                    //     $('#divConfirmBtn').hide();
+                    // }else if(data.status == 3 && permission.find(d => d.name == 'Otorisasi-Pelaksana LAB')){
+                    //     $('#divConfirmBtn').hide();
+                    // }else if(data.status == 3 && permissionInRole.find(d => d.name == 'Keuangan')){
+                    //     $('#divConfirmBtn').hide();
+                    // }else{
+                    //     idPermohonan = id;
+                    // }
                 }
                 maskReload();
                 $('#confirmModal').modal('show');

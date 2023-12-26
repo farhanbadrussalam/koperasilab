@@ -172,8 +172,8 @@
                 $('#txtEnd').html(convertDate(data.jadwal.date_selesai));
                 let status = statusFormat('jadwal', data.petugas.status);
                 $('#txtStatus').html(status);
-                $('#txtSuratTugas').attr('href', `{{ asset('storage/dokumen/jadwal') }}/${data.jadwal.media.file_hash}`);
-                $('#txtSuratTugas').html(data.jadwal.media.file_ori);
+                // $('#txtSuratTugas').attr('href', `{{ asset('storage/dokumen/jadwal') }}/${data.jadwal.media.file_hash}`);
+                // $('#txtSuratTugas').html(data.jadwal.media.file_ori);
                 $('#idJadwal').val(data.jadwal.jadwal_hash);
                 if(data.petugas.status == 1){
                     $('#divConfirmBtn').show();

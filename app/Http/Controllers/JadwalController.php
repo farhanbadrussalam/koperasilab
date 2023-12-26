@@ -245,8 +245,10 @@ class JadwalController extends Controller
             'kuota' => ['required']
         ]);
 
+        $idLayananjasa = decryptor($request->layanan_jasa);
+
         $dataJadwal = array(
-            'layananjasa_id' => decryptor($request->layanan_jasa),
+            'layananjasa_id' => $idLayananjasa,
             'jenislayanan' => explode('|', $request->jenis_layanan)[0],
             'tarif' => $request->tarif,
             'date_mulai' => $request->tanggal_mulai,
@@ -257,6 +259,21 @@ class JadwalController extends Controller
         );
 
         $saveJadwal = jadwal::create($dataJadwal);
+
+        // menambahkan petugas
+        $layanan = Layanan_jasa::where('id', $idLayananjasa)->first();
+        $jadwalPetugas = Jadwal_petugas::create([
+            'jadwal_id' => $saveJadwal->id,
+            'petugas_id' => $layanan->user_id,
+            'status' => 1
+        ]);
+
+        # Send notifikasi
+        // $pjContent = $value == $layanan_jasa->user_id ? "dan menjadi Penanggung jawab" : "";
+        $sendNotif = notifikasi(array(
+            'to_user' => $layanan->user_id,
+            'type' => 'jadwal'
+        ), "Anda ditugaskan untuk layanan ".$layanan->nama_layanan." pada tanggal ".$request->tanggal_mulai);
 
         return redirect()->route('jadwal.index')->with('success', 'Berhasil di tambah');
     }

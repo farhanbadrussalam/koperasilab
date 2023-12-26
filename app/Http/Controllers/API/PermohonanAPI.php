@@ -10,6 +10,8 @@ use App\Models\Permohonan;
 use App\Models\Detail_permohonan;
 use App\Models\tbl_media;
 use App\Models\tbl_lhu;
+use App\Models\jadwal;
+use Spatie\Permission\Models\Role;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\DetailPermohonanController;
@@ -201,6 +203,62 @@ class PermohonanAPI extends Controller
         return response()->json(['message' => 'success'], 200);
     }
 
+    public function updatePermohonan(Request $request){
+        $validator = $request->validate([
+            'id' => 'required',
+            'status' => 'required',
+            'note' => 'required',
+            'file' => 'required'
+        ]);
+
+        $idPermohonan = decryptor($request->id);
+
+        // upload file
+        $dokumen = $request->file('file');
+        $file = false;
+        if($dokumen){
+            $file = $this->media->upload($dokumen, 'permohonan');
+        }
+
+        // reset status detail to 99
+        Detail_permohonan::where('permohonan_id', $idPermohonan)->update(['status' => '99']);
+        // save to detail permohonan
+        $flag = $request->status == 'setuju' ? 2 : 9;
+        $tmpDetail = array(
+            'permohonan_id' => $idPermohonan,
+            'status' => 1,
+            'flag' => $flag,
+            'note' => $request->note,
+            'surat_terbitan' => $file,
+            'created_by' => Auth::user()->id
+        );
+        $createDetail = Detail_permohonan::create($tmpDetail);
+
+        if($createDetail){
+            $update = Permohonan::where('id', $idPermohonan)->update(array(
+                'flag' => $flag
+            ));
+
+            $data = Permohonan::where('id', $idPermohonan)->select('created_by')->first();
+            // Send notif
+            $sendNotifPelanggan = notifikasi(array(
+                'to_user' => $data->created_by,
+                'type' => 'Permohonan'
+            ), "Permohonan anda ". ($flag == 2 ? 'Disetujui' : 'Ditolak') . " oleh " . Auth::user()->name);
+
+            // set payload
+            $payload = array(
+                'message' => 'Berhasil ' . ($flag == 2 ? 'Menyetujui' : 'Menolak') . 'permohonan ini'
+            );
+
+            return $this->output($payload);
+        }else{
+            return response()->json([
+                'message' => 'Gagal menyimpan'
+            ], 400);
+        }
+    }
+
     public function sendSuratTugas(Request $request)
     {
         $validator = $request->validate([
@@ -238,5 +296,74 @@ class PermohonanAPI extends Controller
             ], 400);
         }
 
+    }
+
+    public function createJadwalPermohonan(Request $request)
+    {
+        $validator = $request->validate([
+            'idPermohonan' => 'required'
+        ]);
+
+        $idPermohonan = decryptor($request->idPermohonan);
+
+        $data_permohonan = Permohonan::with('jadwal', 'layananjasa')->where('id', $idPermohonan)->first();
+
+        if($data_permohonan){
+            // Mengurangi kuota jadwal
+            $idJadwal = decryptor($data_permohonan->jadwal->jadwal_hash);
+            $dataJadwal = jadwal::where('id', $idJadwal)->first();
+            $dataJadwal->kuota = $dataJadwal->kuota-1;
+            $dataJadwal->update();
+
+            // Menerbitkan nomor antrian
+            $ambilAntrian = Permohonan::where('jadwal_id', $idJadwal)
+                ->where('status', '!=', '99')
+                ->select('nomor_antrian')
+                ->orderBy('nomor_antrian', 'DESC')
+                ->first();
+
+            if(!$ambilAntrian){
+                $ambilAntrian = 1;
+            }else{
+                $ambilAntrian = (int)$ambilAntrian->nomor_antrian + 1;
+            }
+
+            $data_permohonan->nomor_antrian = $ambilAntrian;
+            $data_permohonan->flag = 5;
+            $data_permohonan->update();
+
+            // save to detail permohonan
+            // reset status detail to 99
+            $reset = Detail_permohonan::where('permohonan_id', $idPermohonan)->update(['status' => '99']);
+
+            Detail_permohonan::create(array(
+                'permohonan_id' => $idPermohonan,
+                'status' => 1,
+                'flag' => 4,
+                'note' => 'Jadwal berhasil dibuat, permohonan sedang dalam proses',
+                'created_by' => Auth::user()->id
+            ));
+
+            // Send Notif ke manager
+            $userManager = Role::whereIn('name', ['Manager'])->first();
+            foreach ($userManager->users as $key => $user) {
+                if($user->satuankerja_id == $data_permohonan->layananjasa->satuankerja_id){
+                    $sendNotif = notifikasi(array(
+                        'to_user' => $user->id,
+                        'type' => 'JadwalPermohonan'
+                    ), "Jadwal permohonan untuk Pelayanan ".$dataJadwal->layananjasa->nama_layanan." sudah dibuat");
+                }
+            }
+
+            $payload = array(
+                'message' => 'Berhasil membuat jadwal'
+            );
+
+            return $this->output($payload);
+        }else{
+            return response()->json([
+                'message' => 'Gagal mengirim surat tugas'
+            ], 400);
+        }
     }
 }

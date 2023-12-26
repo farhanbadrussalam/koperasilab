@@ -20,6 +20,7 @@ use App\Http\Controllers\JobsController;
 use App\Http\Controllers\PelaksanaKontrakController;
 use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\PenugasanController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -83,6 +84,15 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::middleware(['permission:Keuangan'])->group(function () {
         Route::get('keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('sendKIP', [KeuanganController::class, 'sendKIP'])->name('keuangan.send');
+        Route::post('tolakBuktiPembayaran', [KeuanganController::class, 'tolakBuktiPembayaran'])->name('keuangan.tolakBuktiPembayaran');
+        Route::post('setujuBuktiPembayaran', [KeuanganController::class, 'setujuBuktiPembayaran'])->name('keuangan.setujuBuktiPembayaran');
+        Route::get('getPermohonan', [KeuanganController::class, 'getPermohonan'])->name('keuangan.getPermohonan');
+    });
+
+    Route::middleware(['permission:Penugasan'])->group(function () {
+        Route::get('penugasan', [PenugasanController::class, 'index'])->name('penugasan.index');
+        Route::get('penugasan/getWaktuJadwal', [PenugasanController::class, 'getWaktuJadwal'])->name('penugasan.getWaktuJadwal');
+        Route::get('penugasan/addPetugas/${id}', [PenugasanController::class, 'addPetugas'])->name('penugasan.tambah');
     });
 
     // Route::middleware(['permission:kiplhu'])->group(function () {

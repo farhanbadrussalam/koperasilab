@@ -44,4 +44,9 @@ class Layanan_jasa extends Model
     {
         return $this->belongsTo(Satuan_kerja::class, 'satuankerja_id', 'id');
     }
+
+    public function petugasLayanan()
+    {
+        return $this->hasMany(Petugas_layanan::class, 'satuankerja_id', 'satuankerja_id');
+    }
 }

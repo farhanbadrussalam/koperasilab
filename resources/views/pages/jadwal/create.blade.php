@@ -189,11 +189,11 @@
             $('#inputTarif').val(jenis[1]);
         }
 
-        $('#inputDateMulai').datepicker({
-            defaultDate: "+1w",
-            changeMonth: true,
-            numberOfMonths: 1
-        });
+        // $('#inputDateMulai').datepicker({
+        //     defaultDate: "+1w",
+        //     changeMonth: true,
+        //     numberOfMonths: 1
+        // });
 
         setDropify('init', '#uploadFile', {
             allowedFileExtensions: ['pdf', 'doc', 'docx'],

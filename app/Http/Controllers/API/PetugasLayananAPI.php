@@ -84,15 +84,15 @@ class PetugasLayananAPI extends Controller
         ]);
 
         if($jadwalPetugas){
-            // $jadwal = jadwal::where('id', $idJadwal)->first();
+            $jadwal = jadwal::where('id', $idJadwal)->first();
 
 
-            // # Send notifikasi
-            // // $pjContent = $value == $layanan_jasa->user_id ? "dan menjadi Penanggung jawab" : "";
-            // $sendNotif = notifikasi(array(
-            //     'to_user' => $value,
-            //     'type' => 'jadwal'
-            // ), "Anda ditugaskan untuk layanan ".$jadwal->layananjasa->nama_layanan." pada tanggal ".$jadwal->date_mulai);
+            # Send notifikasi
+            // $pjContent = $value == $layanan_jasa->user_id ? "dan menjadi Penanggung jawab" : "";
+            $sendNotif = notifikasi(array(
+                'to_user' => $idPetugas,
+                'type' => 'jadwal'
+            ), "Anda ditugaskan untuk layanan ".$jadwal->layananjasa->nama_layanan." pada tanggal ".$jadwal->date_mulai);
 
             return response()->json(['message' => 'Petugas berhasil ditambah'], 200);
         }

@@ -35,28 +35,26 @@ class PermohonanController extends Controller
 
     public function getData(){
         $user = Auth::user();
-        $status = 0;
-        if(request()->has('status') && request('status')){
-            $status = request('status');
+        $flag = 0;
+        if(request()->has('flag') && request('flag')){
+            $flag = request('flag');
         }
-        $informasi = Permohonan::with(['layananjasa', 'jadwal', 'tbl_lhu', 'tbl_kip'])
-                        ->where('status', '!=', 99)
-                        ->where('created_by', $user->id)
-                        ->where('status', $status);
+        $informasi = Permohonan::with(['layananjasa', 'jadwal', 'tbl_kip'])
+                        ->whereIn('flag', $flag)
+                        ->where('status', 1);
 
-        if($status == 3){
-            $informasi->whereHas('tbl_lhu', function ($query) {
-                $query->where('level', 5);
-            });
-
-            $informasi->whereHas('tbl_kip', function ($query) {
-                $query->where('status', 3);
+        if($user->hasRole('Pelanggan')){
+            $informasi->where('created_by', $user->id);
+        }else{
+            $informasi->whereHas('layananjasa', function ($query) use ($user) {
+                $query->where('satuankerja_id', $user->satuankerja_id);
             });
         }
         return DataTables::of($informasi)
                 ->addIndexColumn()
-                ->addColumn('content', function($data) {
+                ->addColumn('content', function($data) use ($user) {
                     $idHash = "'".$data->permohonan_hash."'";
+                    $labelTag = '';
                     $co_rebbon = $data->status == 2 ? '
                     <div class="ribbon-wrapper">
                         <div class="ribbon bg-primary" title="Kuota">
@@ -65,15 +63,28 @@ class PermohonanController extends Controller
                     </div>
                     ' : '';
 
-                    $co_reason = $data->status == 9 ? '
+                    $co_reason = $data->flag == 9 ? '
                         <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
                             <small class="text-danger-emphasis"><b>Reason:</b> '.($data->progress ? $data->progress->note : "").'</small>
                         </div>
                     ' : '';
 
+                    $co_progress = $data->flag == 2 ? '
+                        <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
+                            <small class="text-success-emphasis"><b>Catatan:</b> '.($data->progress ? $data->progress->note : "").'</small><br>
+                            <small class="text-success-emphasis"><b>Progress:</b> Pembuatan tagihan</small>
+                        </div>
+                    ' : '';
+
+                    $co_progress = $data->flag == 3 || $data->flag == 4 || $data->flag === 5 ? '
+                        <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
+                            <small class="text-success-emphasis"><b>Catatan:</b> '.($data->progress ? $data->progress->note : "").'</small><br>
+                        </div>
+                    ' : '';
+
                     $btn_list_action = '';
 
-                    if($data->status == 1 || $data->status == 9){
+                    if($data->flag == 1 || $data->flag == 9){
                         $btn_list_action .= '
                             <li class="my-1 cursoron">
                                 <a class="dropdown-item dropdown-item-lab subbody text-warning" href="'.route("permohonan.edit", $data->permohonan_hash).'">
@@ -91,7 +102,7 @@ class PermohonanController extends Controller
                         </li>
                     ';
 
-                    $btn_list_action .= $data->status == 1 || $data->status == 9 ? '
+                    $btn_list_action .= $data->flag == 1 || $data->flag == 9 ? '
                         <li class="my-1 cursoron">
                             <a class="dropdown-item dropdown-item-lab subbody text-danger" onclick="btnDelete('.$idHash.')">
                                 <i class="bi bi-trash"></i>&nbsp;Delete
@@ -99,36 +110,118 @@ class PermohonanController extends Controller
                         </li>
                     ' : '';
 
-                    if($data->status == 3){
-                        if($data->tbl_kip->bukti_pembayaran){
+                    if($user->hasRole('Pelanggan')){
+                        if($data->flag == 2){
+                            $btn_action = '
+                                <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')">
+                                <i class="bi bi-info-circle"></i> Rincian</button>
+                            ';
+                        }else if($data->flag == 3){
+                            if($data->tbl_kip->bukti_pembayaran){
+                                if($data->tbl_kip->status == 2){
+                                    $btn_action = '
+                                        <button class="btn btn-outline-info btn-sm" onclick="btnDetailPayment('.$idHash.')">
+                                            Bukti terkirim</button>
+                                    ';
+                                }
+                            }else{
+                                $btn_action = '
+                                    <a class="btn btn-outline-primary btn-sm" href="'.url('permohonan/payment/'.$data->permohonan_hash).'">
+                                        <i class="bi bi-credit-card-2-back-fill"></i> Proses payment</a>
+                                ';
+                            }
+                        }else if($data->flag == 4 || $data->flag === 5){
+                            $labelTag = '
+                                <div class="ribbon-wrapper">
+                                    <div class="ribbon bg-success" title="Tag">
+                                        Lunas
+                                    </div>
+                                </div>
+                            ';
                             $btn_action = '
                                 <button class="btn btn-outline-success btn-sm" onclick="btnDetailPayment('.$idHash.')">
                                     <i class="bi bi-credit-card-2-back-fill"></i> Lunas</button>
                             ';
+                            $list_items = '';
+                            if($data->flag == 4){
+                                $list_items = '
+                                    <li class="my-1 cursoron">
+                                        <a class="dropdown-item dropdown-item-lab subbody" onclick="btnBuatJadwal('.$idHash.')">
+                                        <i class="bi bi-calendar2-event-fill"></i>&nbsp;Buat Jadwal
+                                        </a>
+                                    </li>
+                                ';
+                            }
+
+                            $btn_action = '
+                                <div class="dropdown">
+                                    <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </div>
+                                    <ul class="dropdown-menu shadow-sm px-2">
+                                        <li class="my-1 cursoron">
+                                            <a class="dropdown-item dropdown-item-lab subbody" onclick="btnDetailPayment('.$idHash.')">
+                                                <i class="bi bi-credit-card-2-back-fill"></i>&nbsp;Invoice
+                                            </a>
+                                        </li>
+                                        '.$list_items.'
+                                    </ul>
+                                </div>
+                            ';
                         }else{
                             $btn_action = '
-                                <a class="btn btn-outline-primary btn-sm" href="'.url('permohonan/payment/'.$data->permohonan_hash).'">
-                                    <i class="bi bi-credit-card-2-back-fill"></i> Proses payment</a>
+                                <div class="dropdown">
+                                    <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </div>
+                                    <ul class="dropdown-menu shadow-sm px-2">
+                                        '.$btn_list_action.'
+                                    </ul>
+                                </div>
                             ';
                         }
+                        // if($data->tbl_kip->bukti_pembayaran){
+                        //     $btn_action = '
+                        //         <button class="btn btn-outline-success btn-sm" onclick="btnDetailPayment('.$idHash.')">
+                        //             <i class="bi bi-credit-card-2-back-fill"></i> Lunas</button>
+                        //     ';
+                        // }else{
+                        //     $btn_action = '
+                        //         <a class="btn btn-outline-primary btn-sm" href="'.url('permohonan/payment/'.$data->permohonan_hash).'">
+                        //             <i class="bi bi-credit-card-2-back-fill"></i> Proses payment</a>
+                        //     ';
+                        // }
                     }else{
-                        $btn_action = '
-                            <div class="dropdown">
-                                <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots-vertical"></i>
+                        if($data->flag == 1){
+                            $btn_action = '
+                                <button class="btn btn-outline-success btn-sm" onclick="modalConfirm('.$idHash.')">
+                                <i class="bi bi-info-circle"></i> Process</button>
+                            ';
+                        }else if($data->flag == 4 || $data->flag === 5){
+                            $labelTag = '
+                                <div class="ribbon-wrapper">
+                                    <div class="ribbon bg-success" title="Tag">
+                                        Lunas
+                                    </div>
                                 </div>
-                                <ul class="dropdown-menu shadow-sm px-2">
-                                    '.$btn_list_action.'
-                                </ul>
-                            </div>
-                        ';
+                            ';
+                            $btn_action = '
+                                <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')">
+                                <i class="bi bi-info-circle"></i> Rincian</button>
+                            ';
+                        }else{
+                            $btn_action = '
+                                <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')">
+                                <i class="bi bi-info-circle"></i> Rincian</button>
+                            ';
+                        }
                     }
 
                     return '
                     <div class="card m-0 border-0">
-                        '.  $co_rebbon .'
+                        '.$labelTag.'
                         <div class="card-body d-flex flex-wrap p-3 align-items-center">
-                            <div class="col-md-6 col-sm-12 mb-sm-2">
+                            <div class="col-md-5 col-sm-12 mb-sm-2">
                                 <span class="fw-bold">'.$data->layananjasa->nama_layanan.'</span>
                                 <div class="text-body-secondary text-start">
                                     <div>
@@ -138,16 +231,14 @@ class PermohonanController extends Controller
                                     <small><b>Created</b> : '.convert_date($data->created_at, 1).'</small>
                                 </div>
                             </div>
-                            <div class="col-md-2 col-sm-5 h5">
+                            <div class="col-md-5 col-sm-5 h5">
                                 <span class="badge text-bg-secondary">'.$data->jenis_layanan.'</span>
                             </div>
-                            <div class="col-md-2 col-sm-5 h5">
-                                <span class="badge text-bg-info">Antrian '.$data->nomor_antrian.'</span>
-                            </div>
-                            <div class="col-md-2 col-sm-2">
+                            <div class="col-md-2 col-sm-2 text-end">
                                 '.$btn_action.'
                             </div>
                             '. $co_reason .'
+                            '. $co_progress .'
                         </div>
                     </div>
                     ';
@@ -313,23 +404,23 @@ class PermohonanController extends Controller
 
         $jadwal_id = decryptor($request->jadwal_id);
 
-        $dataJadwal = jadwal::with('petugas', 'layananjasa')->where('id', $jadwal_id)->first();
+        $dataJadwal = jadwal::with('layananjasa', 'layananjasa.petugasLayanan')->where('id', $jadwal_id)->first();
 
         // Mengurangi kuota jadwal
-        $dataJadwal->kuota = $dataJadwal->kuota-1;
-        $dataJadwal->update();
+        // $dataJadwal->kuota = $dataJadwal->kuota-1;
+        // $dataJadwal->update();
 
-        $ambilAntrian = Permohonan::where('jadwal_id', $jadwal_id)
-                        ->where('status', '!=', '99')
-                        ->select('nomor_antrian')
-                        ->orderBy('nomor_antrian', 'DESC')
-                        ->first();
+        // $ambilAntrian = Permohonan::where('jadwal_id', $jadwal_id)
+        //                 ->where('status', '!=', '99')
+        //                 ->select('nomor_antrian')
+        //                 ->orderBy('nomor_antrian', 'DESC')
+        //                 ->first();
 
-        if(!$ambilAntrian){
-            $ambilAntrian = 1;
-        }else{
-            $ambilAntrian = (int)$ambilAntrian->nomor_antrian + 1;
-        }
+        // if(!$ambilAntrian){
+        //     $ambilAntrian = 1;
+        // }else{
+        //     $ambilAntrian = (int)$ambilAntrian->nomor_antrian + 1;
+        // }
 
         // upload dokumen pendukung
         $documents = $request->file('dokumen');
@@ -357,7 +448,6 @@ class PermohonanController extends Controller
             'status' => 1,
             'flag' => 1,
             'tag' => 'pengajuan',
-            'nomor_antrian' => $ambilAntrian,
             'created_by' => Auth::user()->id
         );
 
@@ -377,10 +467,10 @@ class PermohonanController extends Controller
         }
 
         // Send notif ke petugas
-        foreach ($dataJadwal->petugas as $key => $value) {
+        foreach ($dataJadwal->layananjasa->petugasLayanan as $key => $value) {
             # code...
             $sendNotif = notifikasi(array(
-                'to_user' => $value->petugas_id,
+                'to_user' => $value->user_id,
                 'type' => 'Permohonan'
             ), Auth::user()->name." baru saja membuat permohonan untuk Pelayanan ".$dataJadwal->layananjasa->nama_layanan." pada tanggal $dataJadwal->date_mulai");
         }
@@ -468,7 +558,7 @@ class PermohonanController extends Controller
         $data['permohonan'] = Permohonan::with(
             'layananjasa:id,nama_layanan',
             'jadwal:id,date_mulai,date_selesai',
-            'user:id,email,name', 'tbl_lhu', 'tbl_lhu.media', 'tbl_kip')
+            'user:id,email,name', 'tbl_kip')
         ->where('id', $idHash)
         ->first();
 

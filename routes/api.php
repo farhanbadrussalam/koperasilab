@@ -57,6 +57,8 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::post('/verifikasi_fd', [PermohonanAPI::class, 'verifikasi_fd']);
         Route::post('/verifikasi_kontrak', [PermohonanAPI::class, 'verifikasi_kontrak']);
         Route::post('/sendSuratTugas', [PermohonanAPI::class, 'sendSuratTugas']);
+        Route::post('/updatePermohonan', [PermohonanAPI::class, 'updatePermohonan']);
+        Route::post('/createJadwalPermohonan', [PermohonanAPI::class, 'createJadwalPermohonan']);
     });
 
     Route::prefix('otorisasi')->group(function () {

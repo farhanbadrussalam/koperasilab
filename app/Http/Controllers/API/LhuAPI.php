@@ -8,8 +8,11 @@ use App\Traits\RestApi;
 
 use App\Models\tbl_lhu;
 use App\Models\tbl_kip;
+use App\Models\Detail_permohonan;
+use Spatie\Permission\Models\Role;
 
 use App\Http\Controllers\MediaController;
+use Auth;
 
 class LhuAPI extends Controller
 {
@@ -189,7 +192,33 @@ class LhuAPI extends Controller
         $data_kip = tbl_kip::where('id', $idKip)->first();
 
         $data_kip->bukti_pembayaran = $imgKip;
+        $data_kip->status = 2;
         $data_kip->update();
+
+        // set detail permohonan
+        // reset status detail to 99
+        Detail_permohonan::where('permohonan_id', $data_kip->no_kontrak)->update(['status' => '99']);
+        // save to detail permohonan
+        $flag = 3;
+        $tmpDetail = array(
+            'permohonan_id' => $data_kip->no_kontrak,
+            'status' => 1,
+            'flag' => $flag,
+            'note' => 'Mengirim bukti pembayaran',
+            'created_by' => Auth::user()->id
+        );
+        $createDetail = Detail_permohonan::create($tmpDetail);
+
+        // Send notif
+        $getAlluser = Role::whereIn('name', ['Manager Keuangan','Staff keuangan'])->get();
+        foreach ($getAlluser as $key => $users) {
+            foreach ($users->users as $key => $user) {
+                $sendNotifPelanggan = notifikasi(array(
+                    'to_user' => $user->id,
+                    'type' => 'Keuangan'
+                ), Auth::user()->name . " telah melakukan pembayaran dengan invoice " . $data_kip->no_invoice);
+            }
+        }
 
         if($data_kip){
             $payload = array(
