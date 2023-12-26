@@ -213,7 +213,7 @@
                 if(role.includes('Pelanggan')){
                     $('#divConfirmBtn').hide();
                 }else{
-                    if(data.flag == 2 || data.flag == 3 || data.flag == 4){
+                    if(data.flag == 2 || data.flag == 3 || data.flag == 4 || data.flag == 5){
                         $('#divConfirmBtn').hide();
                     }else{
                         idPermohonan = id;

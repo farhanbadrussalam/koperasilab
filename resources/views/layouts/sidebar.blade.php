@@ -72,15 +72,7 @@
                 @endcan
 
                 @can('Penugasan')
-                <li class="nav-item">
-                    <a href="{{ route('penugasan.index') }}"
-                        class="nav-link {{ Request::is('penugasan*') ? 'active' : '' }}">
-                        <i class="bi bi-calendar2-event-fill"></i>
-                        <p>
-                            Penugasan
-                        </p>
-                    </a>
-                </li>
+
                 @endcan
 
                 @can('Permohonan')

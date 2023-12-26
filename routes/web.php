@@ -91,8 +91,10 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::middleware(['permission:Penugasan'])->group(function () {
         Route::get('penugasan', [PenugasanController::class, 'index'])->name('penugasan.index');
-        Route::get('penugasan/getWaktuJadwal', [PenugasanController::class, 'getWaktuJadwal'])->name('penugasan.getWaktuJadwal');
-        Route::get('penugasan/addPetugas/${id}', [PenugasanController::class, 'addPetugas'])->name('penugasan.tambah');
+        Route::get('jadwal/getWaktuJadwal', [PenugasanController::class, 'getWaktuJadwal'])->name('penugasan.getWaktuJadwal');
+        Route::get('jadwal/addPetugas/${id}', [PenugasanController::class, 'addPetugas'])->name('penugasan.tambah');
+        Route::get('jadwal/showPermohonan/${id}', [PenugasanController::class, 'showPermohonan'])->name('penugasan.show');
+        Route::get('penugasan/dataPermohonan', [PenugasanController::class, 'dataPermohonan'])->name('penugasan.dataPermohonan');
     });
 
     // Route::middleware(['permission:kiplhu'])->group(function () {

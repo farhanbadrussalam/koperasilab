@@ -7,6 +7,7 @@
             <div class="row mb-2">
                 <div class="col-sm-6">
                     <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                         <li class="breadcrumb-item active">Jadwal Permohonan</li>
                     </ol>
                 </div>
@@ -18,11 +19,11 @@
             <div class="card card-default color-palette-box shadow">
                 <div class="card-header d-flex ">
                     <h3 class="card-title flex-grow-1">
-                        Permohonan layanan
+                        Jadwal
                     </h3>
                 </div>
                 <div class="card-body">
-                    <table class="table table-borderless w-100" id="permohonan-table"></table>
+                    <table class="table table-borderless w-100" id="jadwal-table"></table>
                 </div>
             </div>
         </div>
@@ -71,13 +72,12 @@
         </div>
     </div>
 </div>
-@include('pages.jadwal.info')
 @endsection
 @push('scripts')
     <script>
-        let dt_permohonan = false;
+        let dt_jadwal = false;
 
-        dt_permohonan = $('#permohonan-table').DataTable({
+        dt_jadwal = $('#jadwal-table').DataTable({
             processing: true,
             serverSide: true,
             searching: false,
@@ -102,57 +102,6 @@
 
         function createJadwal(id){
 
-        }
-
-        function showPetugas(id) {
-            $.ajax({
-                url: "{{ url('api/getJadwalPetugas') }}",
-                method: "GET",
-                dataType: 'json',
-                processData: true,
-                headers: {
-                    'Authorization': `Bearer {{ $token }}`,
-                    'Content-Type': 'application/json'
-                },
-                data: {
-                    idJadwal: id
-                }
-            }).done(result => {
-                let content = '';
-                for (const data of result.data.petugas) {
-                    let contentOtorisasi = '';
-                    for (const otorisasi of data.otorisasi) {
-                        contentOtorisasi += `<button class="btn btn-outline-dark btn-sm m-1" role="button">${stringSplit(otorisasi.name, 'Otorisasi-')}</button>`;
-                    }
-
-                    let pj = data.petugas.user_hash == result.data.pj ? `<small class="text-danger">Penanggung jawab</small>` : '';
-                    content += `
-                        <div class="card m-0 mb-2">
-                            <div class="card-body d-flex p-2">
-                                <div class="flex-grow-1 d-flex my-auto">
-                                    <div>
-                                        <img src="${data.avatar}" alt="Avatar" onerror="this.src='{{ asset('assets/img/default-avatar.jpg') }}'" style="width: 3em;" class="img-circle border shadow-sm">
-                                    </div>
-                                    <div class="px-3 my-auto">
-                                        <div class="lh-1">${data.petugas.name}</div>
-                                        ${pj}
-                                        <div class="lh-1">${data.petugas.email}</div>
-                                    </div>
-                                </div>
-                                <div class="p-2 m-auto">
-                                    <div class="d-flex flex-wrap justify-content-end">
-                                        ${contentOtorisasi}
-                                    </div>
-                                </div>
-                                <div class="p-2 m-auto">${statusFormat('jadwal', data.status)}</div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                $('#content-petugas').html(content);
-                $('#infoModal').modal('show');
-            })
         }
     </script>
 @endpush

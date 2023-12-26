@@ -29,23 +29,15 @@ class PenugasanController extends Controller
                 ->addIndexColumn()
                 ->addColumn('content', function($data) use ($user){
                     $idHash = "'".$data->jadwal_hash."'";
-                    $countPetugas = Jadwal_petugas::where('jadwal_id', $data->id)->count();
-                    $countBersedia = Jadwal_petugas::where('jadwal_id', $data->id)->where('status', 2)->count();
                     $dataPetugas = Jadwal_petugas::where('jadwal_id', $data->id)->where('petugas_id', $user->id)->first();
 
                     $btnAddPetugas = '
-                        <a class="btn btn-outline-primary btn-sm mb-2" href="'.route("penugasan.tambah", $data->jadwal_hash).'">
-                            <div><i class="bi bi-person-add"></i> Add Petugas</div>
+                        <a class="btn btn-outline-primary btn-sm mb-2" href="'.route("penugasan.show", $data->jadwal_hash).'">
+                            <div> Show Permohonan</div>
                         </a>
                     ';
                     $btnInfoPetugas = false;
                     $infoBersedia = '';
-                    $btnInfoPetugas = '
-                        <button role="button" class="btn btn-outline-info btn-sm mb-2" onclick="showPetugas('.$idHash.')">
-                            <div><i class="bi bi-people-fill"></i> Petugas</div>
-                            <div class="badge text-bg-secondary">'.$countBersedia.' / '.$countPetugas.'</div>
-                        </button>
-                    ';
 
 
                     return '
@@ -79,7 +71,6 @@ class PenugasanController extends Controller
                                 <div class="col-2 text-center">
                                     <div>
                                         '.$btnAddPetugas.'
-                                        '.$btnInfoPetugas.'
                                     </div>
                                 </div>
                             </div>
@@ -106,5 +97,63 @@ class PenugasanController extends Controller
         }
         $data['token'] = generateToken();
         return view('pages.penugasan.tambahPetugas', $data);
+    }
+
+    public function showPermohonan($id)
+    {
+        $idJadwal = decryptor($id);
+
+        $d_jadwal = jadwal::with('layananjasa')->where('id', $idJadwal)->first();
+
+        if($d_jadwal){
+            $data['jadwal'] = $d_jadwal;
+            $data['pegawai'] = Petugas_layanan::with('petugas')->where('satuankerja_id', $d_jadwal->layananjasa->satuankerja_id)->get();
+            foreach ($data['pegawai'] as $key => $value) {
+                $petugas = User::where('id', $value->petugas->id)->first();
+                $value['otorisasi'] = $petugas->getDirectPermissions();
+            }
+        }
+
+        $data['token'] = generateToken();
+
+        return view('pages.penugasan.listPermohonan', $data);
+    }
+
+    public function dataPermohonan()
+    {
+        $idJadwal = decryptor(request('idJadwal'));
+
+        $d_permohonan = Permohonan::with('user')
+            ->where('jadwal_id', $idJadwal)
+            ->where('status', '!=', 99)
+            ->where('flag', 5)
+            ->orderBy('nomor_antrian');
+
+        return DataTables::of($d_permohonan)
+            ->addIndexColumn()
+            ->addColumn('customer', function($data) {
+                return $data->user->name;
+            })
+            ->addColumn('action', function($data){
+                $idHash = "'".$data->permohonan_hash."'";
+                $idJadwal = "'".encryptor($data->jadwal_id)."'";
+
+                $countPetugas = Jadwal_petugas::where('jadwal_id', $data->jadwal_id)->count();
+                $countBersedia = Jadwal_petugas::where('jadwal_id', $data->jadwal_id)->where('status', 2)->count();
+
+                return '
+                    <button class="btn btn-outline-primary btn-sm mb-2" onclick="modalConfirm('.$idHash.')" title="Rincian">
+                        <i class="bi bi-info-circle"></i></button>
+                    <button class="btn btn-outline-warning btn-sm mb-2" onclick="btnDetailPayment('.$idHash.')" title="Invoice">
+                        <i class="bi bi-credit-card-2-back-fill"></i></button>
+                    <button role="button" class="btn btn-outline-info btn-sm mb-2" onclick="showPetugas('.$idJadwal.')">
+                        <div><i class="bi bi-people-fill"></i> Petugas</div>
+                        <div class="badge text-bg-secondary">'.$countBersedia.' / '.$countPetugas.'</div>
+                    </button>
+                ';
+            })
+
+            ->rawColumns(['customer','action'])
+            ->make(true);
     }
 }

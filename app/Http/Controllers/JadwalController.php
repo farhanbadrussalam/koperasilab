@@ -52,10 +52,12 @@ class JadwalController extends Controller
                     $dataPetugas = Jadwal_petugas::where('jadwal_id', $data->id)->where('petugas_id', $user->id)->first();
 
                     $btnEdit = $user->hasPermissionTo('Penjadwalan.edit') ? '<a class="btn btn-outline-warning btn-sm m-1" href="'.route("jadwal.edit", $data->jadwal_hash).'"><i class="bi bi-pencil-square"></i></a>' : false;
-                    $btnDelete = $user->hasPermissionTo('Penjadwalan.delete') ? '<button class="btn btn-outline-danger btn-sm m-1" onclick="btnDelete('.$idHash.')"><i class="bi bi-trash3-fill"></i></a>' : false;
+                    $btnDelete = $user->hasPermissionTo('Penjadwalan.delete') ? '<button class="btn btn-outline-danger btn-sm m-1" onclick="btnDelete('.$idHash.')"><i class="bi bi-trash3-fill"></i></button>' : false;
                     $btnConfirm = false;
                     $btnInfoPetugas = false;
                     $infoBersedia = '';
+
+                    $btnShowPermohonan = '';
                     if($user->hasPermissionTo('Penjadwalan.confirm')){
                         if($dataPetugas->status == 1) {
                             $btnConfirm .= '<button class="btn btn-outline-success btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check-circle"></i> Confirm</button>';
@@ -73,6 +75,13 @@ class JadwalController extends Controller
                             ';
                     }
 
+                    if($user->hasRole('manager')){
+                        $btnShowPermohonan = '
+                            <a class="btn btn-outline-primary btn-sm mb-2" href="'.route("penugasan.show", $data->jadwal_hash).'">
+                                <div> Show Permohonan</div>
+                            </a>
+                        ';
+                    }
 
                     return '
                         <div class="card m-0 border-0">
@@ -106,6 +115,7 @@ class JadwalController extends Controller
                                     <div>
                                         '.$btnEdit.'
                                         '.$btnDelete.'
+                                        '.$btnShowPermohonan.'
                                         '.$btnConfirm.'
                                     </div>
                                 </div>
