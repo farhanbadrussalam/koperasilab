@@ -11,14 +11,12 @@ use PDF;
 
 class SuratTugas extends Controller
 {
-    public function index($idPermohonan)
+    public function index($id)
     {
-        $id = decryptor($idPermohonan);
-        
-        $dPermohonan = Permohonan::with('jadwal')->where('id', $id)->first();
+        $idPermohonan = decryptor($id);
 
-        dd($dPermohonan);
-        
+        $dPermohonan = Permohonan::with('jadwal')->where('id', $idPermohonan)->first();
+
         $data = [
             'title' => 'Laravel Example PDF',
             'content' => 'This is a sample PDF'

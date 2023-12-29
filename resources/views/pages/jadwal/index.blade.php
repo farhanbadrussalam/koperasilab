@@ -79,7 +79,6 @@
         </div>
     </section>
 </div>
-@include('pages.jadwal.confirm')
 @endsection
 @push('scripts')
     <script>
@@ -149,72 +148,6 @@
                     });
                 });
             });
-        }
-
-        function modalConfirm(id){
-            $.ajax({
-                url: "{{ url('api/jadwal_api') }}/"+id,
-                method: 'GET',
-                dataType: 'json',
-                processData: true,
-                headers: {
-                    'Authorization': `Bearer {{ $token }}`,
-                    'Content-Type': 'application/json'
-                }
-            }).done(result => {
-                let data = result.data;
-
-                $('#txtNamaLayanan').html(data.jadwal.layananjasa.name);
-                $('#txtJenisLayanan').html(data.jadwal.jenislayanan);
-                $('#txtHarga').html(formatRupiah(data.jadwal.tarif));
-                $('#txtStart').html(convertDate(data.jadwal.date_mulai));
-                $('#txtEnd').html(convertDate(data.jadwal.date_selesai));
-                let status = statusFormat('jadwal', data.petugas.status);
-                $('#txtStatus').html(status);
-                // $('#txtSuratTugas').attr('href', `{{ asset('storage/dokumen/jadwal') }}/${data.jadwal.media.file_hash}`);
-                // $('#txtSuratTugas').html(data.jadwal.media.file_ori);
-                $('#idJadwal').val(data.jadwal.jadwal_hash);
-                if(data.petugas.status == 1){
-                    $('#divConfirmBtn').show();
-                }else{
-                    $('#divConfirmBtn').hide();
-                }
-                $('#confirmModal').modal('show');
-            })
-        }
-
-        function btnConfirm(answer){
-            let formData = new FormData();
-            formData.append('_token', '{{ csrf_token() }}');
-            formData.append('idJadwal', $('#idJadwal').val());
-            formData.append('answer', answer);
-            $.ajax({
-                url: "{{ route('jadwal.updatePetugas') }}",
-                method: "POST",
-                dataType: 'json',
-                processData: false,
-                contentType: false,
-                data: formData
-            }).done(result => {
-                if(result.status == 2){
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: result.message
-                    });
-                    datatable_jadwal?.ajax.reload();
-                }else{
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'error',
-                        text: result.message
-                    });
-                    datatable_jadwal?.ajax.reload();
-                }
-                $('#confirmModal').modal('hide');
-            }).fail(err => {
-                console.log(err);
-            })
         }
     </script>
 @endpush

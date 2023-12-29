@@ -93,9 +93,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::middleware(['permission:Penugasan'])->group(function () {
         Route::get('penugasan', [PenugasanController::class, 'index'])->name('penugasan.index');
-        Route::get('jadwal/getWaktuJadwal', [PenugasanController::class, 'getWaktuJadwal'])->name('penugasan.getWaktuJadwal');
-        Route::get('jadwal/addPetugas/${id}', [PenugasanController::class, 'addPetugas'])->name('penugasan.tambah');
-        Route::get('jadwal/showPermohonan/${id}', [PenugasanController::class, 'showPermohonan'])->name('penugasan.show');
+        Route::get('penugasan/getJadwalPermohonan', [PenugasanController::class, 'getJadwalPermohonan'])->name('penugasan.getJadwalPermohonan');
+        Route::get('jadwal/addPetugas/{id}', [PenugasanController::class, 'addPetugas'])->name('penugasan.tambah');
+        Route::get('jadwal/showPermohonan/{id}', [PenugasanController::class, 'showPermohonan'])->name('penugasan.show');
         Route::get('penugasan/dataPermohonan', [PenugasanController::class, 'dataPermohonan'])->name('penugasan.dataPermohonan');
     });
 
@@ -122,7 +122,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
 
     Route::prefix('laporan')->group(function() {
-        Route::get('/suratTugas/${idPermohonan}', [SuratTugas::class, 'index'])->name('laporan.suratTugas');
+        Route::get('/suratTugas/{id}', [SuratTugas::class, 'index'])->name('laporan.suratTugas');
     });
 });
 

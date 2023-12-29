@@ -34,13 +34,7 @@ class JadwalController extends Controller
         $user = Auth::user();
 
         if(!$user->hasRole('Super Admin')){
-            if($user->hasPermissionTo('Penjadwalan.confirm')){
-                $jadwal->whereHas('petugas', function($query) use ($user){
-                    $query->where('petugas_id', $user->id);
-                });
-            }else{
-                $jadwal->where('created_by', Auth::user()->id);
-            }
+            $jadwal->where('created_by', $user->id);
         }
 
         return DataTables::of($jadwal)
@@ -53,27 +47,16 @@ class JadwalController extends Controller
 
                     $btnEdit = $user->hasPermissionTo('Penjadwalan.edit') ? '<a class="btn btn-outline-warning btn-sm m-1" href="'.route("jadwal.edit", $data->jadwal_hash).'"><i class="bi bi-pencil-square"></i></a>' : false;
                     $btnDelete = $user->hasPermissionTo('Penjadwalan.delete') ? '<button class="btn btn-outline-danger btn-sm m-1" onclick="btnDelete('.$idHash.')"><i class="bi bi-trash3-fill"></i></button>' : false;
-                    $btnConfirm = false;
                     $btnInfoPetugas = false;
                     $infoBersedia = '';
-
                     $btnShowPermohonan = '';
-                    if($user->hasPermissionTo('Penjadwalan.confirm')){
-                        if($dataPetugas->status == 1) {
-                            $btnConfirm .= '<button class="btn btn-outline-success btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check-circle"></i> Confirm</button>';
-                        } else if($dataPetugas->status == 2){
-                            $btnConfirm .= '<button class="btn btn-outline-info btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check"></i> Bersedia</button>';
-                        } else if($dataPetugas->status == 9){
-                            $btnConfirm .= '<button class="btn btn-outline-danger btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-x"></i> Menolak</button>';
-                        }
-                    }else{
-                        $btnInfoPetugas = '
-                            <button role="button" class="btn btn-outline-info btn-sm mb-2" onclick="showPetugas('.$idHash.')">
-                                <div><i class="bi bi-people-fill"></i> Petugas</div>
-                                <div class="badge text-bg-secondary">'.$countBersedia.' / '.$countPetugas.'</div>
-                            </button>
-                            ';
-                    }
+
+                    $btnInfoPetugas = '
+                        <button role="button" class="btn btn-outline-info btn-sm mb-2" onclick="showPetugas('.$idHash.')">
+                            <div><i class="bi bi-people-fill"></i> Petugas</div>
+                            <div class="badge text-bg-secondary">'.$countBersedia.' / '.$countPetugas.'</div>
+                        </button>
+                        ';
 
                     if($user->hasRole('manager')){
                         $btnShowPermohonan = '
@@ -116,7 +99,6 @@ class JadwalController extends Controller
                                         '.$btnEdit.'
                                         '.$btnDelete.'
                                         '.$btnShowPermohonan.'
-                                        '.$btnConfirm.'
                                     </div>
                                 </div>
                             </div>

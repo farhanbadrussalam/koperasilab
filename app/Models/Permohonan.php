@@ -72,4 +72,8 @@ class Permohonan extends Model
         return $this->belongsTo(tbl_kip::class, 'id', 'no_kontrak');
     }
 
+    public function petugas(){
+        return $this->hasMany(Jadwal_petugas::class, 'permohonan_id', 'id');
+    }
+
 }

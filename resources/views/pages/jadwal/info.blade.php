@@ -11,6 +11,7 @@
 
         </div>
         <div class="modal-footer">
+            <input type="hidden" id="idPermohonanPetugas">
             <button class="btn btn-outline-primary" onclick="addPetugas()">Tambah petugas</button>
         </div>
       </div>
@@ -34,6 +35,7 @@
                     id: id
                 }
             }).done(result => {
+                $('#idPermohonanPetugas').val(id);
                 let content = '';
                 for (const data of result.data.petugas) {
                     let contentOtorisasi = '';
@@ -95,17 +97,23 @@
                     `;
                 }
 
+                if(result.data.petugas.length == 0){
+                    content = '<div class="text-center">No petugas</div>';
+                }
+
                 $('#content-petugas').html(content);
                 $('#infoModal').modal('show');
             })
         }
 
         function storePetugas(){
+            let idPermohonan = $('#idPermohonanPetugas').val();
             let select = $('#selectPetugas').val();
             let formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('idPetugas', select);
             formData.append('idJadwal', d_jadwal.jadwal_hash);
+            formData.append('idPermohonan', idPermohonan);
 
             $.ajax({
                 method: "POST",
@@ -119,9 +127,10 @@
                 data: formData
             }).done(result => {
                 toastr.success(result.message);
-                dt_permohonan?.ajax.reload();
-                $('#addPetugas').modal('hide');
-                $('#infoModal').modal('hide');
+                window.location.reload();
+                // dt_permohonan?.ajax.reload();
+                // $('#addPetugas').modal('hide');
+                // $('#infoModal').modal('hide');
             });
         }
 

@@ -10,6 +10,7 @@ use App\Http\Controllers\API\PetugasLayananAPI;
 use App\Http\Controllers\API\AssetsAPI;
 use App\Http\Controllers\API\LhuAPI;
 use App\Http\Controllers\API\SendMailAPI;
+use App\Http\Controllers\API\PenugasanAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +73,11 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::post('/storeJadwalPetugas', [PetugasLayananAPI::class, 'storeJadwalPetugas']);
         Route::post('/updateJadwalPetugas', [PetugasLayananAPI::class, 'updateJadwalPetugas']);
         Route::delete('/destroyJadwalPetugas/{jadwalPetugas_hash}', [PetugasLayananAPI::class, 'destroyJadwalPetugas']);
+    });
+
+    Route::controller(PenugasanAPI::class)->prefix('penugasan')->group(function () {
+        Route::get('/show/{id}', 'show')->name('penugasan.show');
+        Route::post('/update', 'update')->name('penugasan.update');
     });
 
     Route::prefix('lhu')->group(function () {

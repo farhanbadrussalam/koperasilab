@@ -45,6 +45,10 @@
                                 <label for="">Tanggal selesai</label>
                                 <p>{{ convert_date($jadwal->date_selesai) }}</p>
                             </div>
+                            <div class="col-md-12">
+                                <label for="">Penanggung jawab</label>
+                                <p>{{ $jadwal->layananjasa->user->name }}</p>
+                            </div>
                         </div>
                     </div>
 
@@ -128,6 +132,7 @@
                 }
             }).done(function(result){
                 let arrResult = [];
+                console.log(result.data);
                 for (const data of pegawai) {
                     let find = result.data.find(f => f.petugas.user_hash == data.petugas.user_hash);
 

@@ -21,65 +21,69 @@ class PenugasanController extends Controller
         return view('pages.penugasan.index', $data);
     }
 
-    public function getWaktuJadwal(){
+    public function getJadwalPermohonan(){
         $user = Auth::user();
-        $jadwal = jadwal::with('petugas','layananjasa','user')->where('status', '!=', 99)->where('created_by', $user->id);
+        $jadwalP = Permohonan::with('jadwal', 'layananjasa', 'user')
+            ->where('flag', 5)
+            ->where('status', '!=', '99')
+            ->whereHas('layananjasa', function($query) use ($user) {
+                $query->where('satuankerja_id', $user->satuankerja_id);
+            })
+            ->whereHas('petugas', function($query) use ($user) {
+                $query->where('petugas_id', $user->id);
+            })
+            ->orderBy('nomor_antrian');
 
-        return DataTables::of($jadwal)
-                ->addIndexColumn()
-                ->addColumn('content', function($data) use ($user){
-                    $idHash = "'".$data->jadwal_hash."'";
-                    $dataPetugas = Jadwal_petugas::where('jadwal_id', $data->id)->where('petugas_id', $user->id)->first();
-
-                    $btnAddPetugas = '
-                        <a class="btn btn-outline-primary btn-sm mb-2" href="'.route("penugasan.show", $data->jadwal_hash).'">
-                            <div> Show Permohonan</div>
-                        </a>
-                    ';
-                    $btnInfoPetugas = false;
-                    $infoBersedia = '';
-
-
-                    return '
-                        <div class="card m-0 border-0">
-                            <div class="card-body row d-flex p-3 align-items-center">
-                                <div class="col-3">
-                                    <div class="fw-bold text-wrap">'.$data->layananjasa->nama_layanan.'</div>
-                                    <small class="text-body-secondary text-wrap">'.$data->jenislayanan.'</small>
-                                </div>
-                                <div class="col-4">
-                                    <div class=" d-flex p-2 flex-column">
-                                        <div>
-                                            <div class="fw-bold">Start date</div>
-                                            <small class="text-body-secondary">'.convert_date($data->date_mulai).'</small>
-                                        </div>
-                                        <div>
-                                            <div class="fw-bold">End date</div>
-                                            <small class="text-body-secondary">'.convert_date($data->date_selesai).'</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-2">
-                                    <div class="fw-bold">Price</div>
-                                    <div>'.formatCurrency($data->tarif).'</div>
-                                </div>
-                                <div class="col-1">
-                                    '.$infoBersedia.'
-                                    <div class="fw-bold">Kuota</div>
-                                    <div>'.$data->kuota.'</div>
-                                </div>
-                                <div class="col-2 text-center">
-                                    <div>
-                                        '.$btnAddPetugas.'
-                                    </div>
-                                </div>
+        return DataTables::of($jadwalP)
+        ->addIndexColumn()
+        ->addColumn('content', function($data) use ($user) {
+            $btn_action = '';
+            $petugas = Jadwal_petugas::where('petugas_id', $user->id)->where('permohonan_id', decryptor($data->permohonan_hash))->first();
+            $co_antrian = '
+                <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
+                    <small class="text-success-emphasis"><b>No Antrian:</b> '.($data->nomor_antrian).'</small><br>
+                </div>
+            ';
+            if($petugas){
+                $idHash = "'".$petugas->jadwalpetugas_hash."'";
+                switch ($petugas->status) {
+                    case 1:
+                        $btn_action = '<button class="btn btn-outline-success btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check-circle"></i> Confirm</button>';
+                        break;
+                    case 2:
+                        $btn_action = '<button class="btn btn-outline-info btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check"></i> Bersedia</button>';
+                        break;
+                    case 9:
+                        $btn_action = '<button class="btn btn-outline-danger btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-x"></i> Menolak</button>';
+                        break;
+                }
+            }
+            return '
+            <div class="card m-0 border-0">
+                <div class="card-body d-flex flex-wrap p-3 align-items-center">
+                    <div class="col-md-5 col-sm-12 mb-sm-2">
+                        <span class="fw-bold">'.$data->layananjasa->nama_layanan.'</span>
+                        <div class="text-body-secondary text-start">
+                            <div>
+                                <small><b>Start date</b> : '.convert_date($data->jadwal->date_mulai, 1).'</small>
+                                <small><b>End date</b> : '.convert_date($data->jadwal->date_selesai, 1).'</small>
                             </div>
+                            <small><b>Customer</b> : '.$data->user->name.'</small>
                         </div>
-                    ';
-                })
-
-                ->rawColumns(['content'])
-                ->make(true);
+                    </div>
+                    <div class="col-md-5 col-sm-5 h5">
+                        <span class="badge text-bg-secondary">'.$data->jenis_layanan.'</span>
+                    </div>
+                    <div class="col-md-2 col-sm-2 text-end">
+                        '.$btn_action.'
+                    </div>
+                    '.$co_antrian.'
+                </div>
+            </div>
+            ';
+        })
+        ->rawColumns(['content'])
+        ->make(true);
     }
 
     public function addPetugas($id)
@@ -103,7 +107,7 @@ class PenugasanController extends Controller
     {
         $idJadwal = decryptor($id);
 
-        $d_jadwal = jadwal::with('layananjasa')->where('id', $idJadwal)->first();
+        $d_jadwal = jadwal::with('layananjasa', 'layananjasa.user')->where('id', $idJadwal)->first();
 
         if($d_jadwal){
             $data['jadwal'] = $d_jadwal;

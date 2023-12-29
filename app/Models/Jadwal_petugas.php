@@ -17,7 +17,7 @@ class Jadwal_petugas extends Model
         'permohonan_id',
         'status'
     ];
-    
+
     protected $hidden = [
         'id',
         'jadwal_id',
@@ -50,5 +50,13 @@ class Jadwal_petugas extends Model
     public function getOtorisasiAttribute(){
         $user = User::findOrFail($this->petugas_id);
         return $user->getDirectPermissions();
+    }
+
+    public function permohonan(){
+        return $this->belongsTo(Permohonan::class, 'permohonan_id', 'id');
+    }
+
+    public function jadwal(){
+        return $this->belongsTo(Jadwal::class, 'jadwal_id', 'id');
     }
 }

@@ -66,7 +66,7 @@ class JadwalAPI extends Controller
             $data['petugas'] = Jadwal_petugas::with('petugas')
                 ->where('jadwal_id', $dPermohonan->jadwal_id)
                 ->where(function($query) use ($id) {
-                    $query->where('permohonan_id', $id)->orWhereNull('permohonan_id');
+                    $query->where('permohonan_id', $id);
                 })
                 ->get();
             $data['pj'] = encryptor($dPermohonan->layananjasa->user_id);
