@@ -31,7 +31,7 @@
                     'Content-Type': 'application/json'
                 },
                 data: {
-                    idJadwal: id
+                    id: id
                 }
             }).done(result => {
                 let content = '';

@@ -34,7 +34,7 @@
             </div>
             <div class="row">
                 <div  class="col-4 fw-bolder">Surat Penugasan</div>
-                <div class="col-8">: <a href="#" target="_blank" id="txtSuratTugas"></a></div>
+                <div class="col-8">: <a href="#" target="_blank" id="downloadSuratTugas" class="btn btn-outline-primary btn-sm">Lihat Surat tugas</a></div>
             </div>
             <div class="row text-center mt-3" id="divConfirmBtn">
                 <input type="hidden" id="idJadwal">

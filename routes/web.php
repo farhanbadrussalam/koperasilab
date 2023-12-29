@@ -21,6 +21,8 @@ use App\Http\Controllers\PelaksanaKontrakController;
 use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\PenugasanController;
+
+use App\Http\Controllers\Report\SuratTugas;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -118,6 +120,10 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);
 
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
+
+    Route::prefix('laporan')->group(function() {
+        Route::get('/suratTugas/${idPermohonan}', [SuratTugas::class, 'index'])->name('laporan.suratTugas');
+    });
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');

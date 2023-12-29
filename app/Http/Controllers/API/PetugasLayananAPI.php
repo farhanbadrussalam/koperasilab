@@ -76,10 +76,12 @@ class PetugasLayananAPI extends Controller
     {
         $idPetugas = decryptor($request->idPetugas);
         $idJadwal = decryptor($request->idJadwal);
+        $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : null;
 
         $jadwalPetugas = Jadwal_petugas::create([
             'jadwal_id' => $idJadwal,
             'petugas_id' => $idPetugas,
+            'permohonan_id' => $idPermohonan,
             'status' => 1
         ]);
 

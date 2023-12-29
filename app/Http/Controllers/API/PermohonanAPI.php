@@ -11,6 +11,7 @@ use App\Models\Detail_permohonan;
 use App\Models\tbl_media;
 use App\Models\tbl_lhu;
 use App\Models\jadwal;
+use App\Models\Jadwal_petugas;
 use Spatie\Permission\Models\Role;
 
 use App\Http\Controllers\MediaController;
@@ -66,6 +67,10 @@ class PermohonanAPI extends Controller
         // Mengambil data media petugas
         $detailPermohonan = Detail_permohonan::with('media')->where('permohonan_id', $idHash)->where('status', 1)->first();
         $dataPermohonan->detailPermohonan = $detailPermohonan;
+
+        // Mengambil petugas
+        $petugas = Jadwal_petugas::where('permohonan_id', $idHash)->where('status', 1)->where('petugas_id', Auth::user()->id)->first();
+        $dataPermohonan->petugas = $petugas;
 
         return response()->json(['data' => $dataPermohonan], 200);
     }

@@ -77,6 +77,10 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="row" id="divSuratTugas">
+                            <div  class="col-4 fw-bolder">Surat Penugasan</div>
+                            <div class="col-8">: <a href="#" target="_blank" id="downloadSuratTugas" class="btn btn-outline-primary btn-sm">Lihat Surat tugas</a></div>
+                        </div>
                     </div>
                     <div class="tab-pane fade p-3" id="dokumen-tab-pane" role="tabpanel" aria-labelledby="dokumen-tab"
                         tabindex="0">
@@ -90,6 +94,12 @@
                 <div class="d-flex w-100">
                     <button class="btn btn-danger me-auto" id="btnNo" onclick="btnConfirm(9)">Tolak</button>
                     <button class="btn btn-primary" id="btnYes" onclick="btnConfirm(2)">Setuju</button>
+                </div>
+            </div>
+            <div class="modal-footer" id="divConfirmPetugasBtn">
+                <div class="d-flex w-100">
+                    <button class="btn btn-danger me-auto" id="btnNo" onclick="btnPetugasSetuju()">Tolak</button>
+                    <button class="btn btn-primary" id="btnYes" onclick="btnPetugasTolak()">Setuju</button>
                 </div>
             </div>
         </div>
@@ -210,11 +220,24 @@
                 $('#tmpDokumenPendukung').html(allDocument);
 
                 $('#divConfirmBtn').show();
+                $('#divConfirmPetugasBtn').hide();
+                $('#divSuratTugas').hide();
                 if(role.includes('Pelanggan')){
                     $('#divConfirmBtn').hide();
                 }else{
-                    if(data.flag == 2 || data.flag == 3 || data.flag == 4 || data.flag == 5){
+                    if(data.flag == 2 || data.flag == 3 || data.flag == 4){
                         $('#divConfirmBtn').hide();
+                    }else if(data.flag == 5){
+                        idPermohonan = id;
+                        $('#divConfirmBtn').hide();
+
+                        if(data.petugas){
+                            $('#downloadSuratTugas').attr('href', `{{ url('laporan/suratTugas') }}/${idPermohonan}`);
+                            $('#divSuratTugas').show();
+                            $('#divConfirmPetugasBtn').show();
+                        }
+
+
                     }else{
                         idPermohonan = id;
                     }

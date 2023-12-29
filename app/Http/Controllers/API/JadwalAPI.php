@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\jadwal;
+use App\Models\Permohonan;
 use App\Models\Jadwal_petugas;
 use Auth;
 
@@ -58,12 +59,17 @@ class JadwalAPI extends Controller
 
     public function getJadwalPetugas(Request $request)
     {
-        $idJadwal = $request->idJadwal ? decryptor($request->idJadwal) : null;
+        $id = $request->id ? decryptor($request->id) : null;
 
-        if($idJadwal){
-            $jadwal = jadwal::findOrFail($idJadwal);
-            $data['petugas'] = Jadwal_petugas::with('petugas')->where('jadwal_id', $idJadwal)->get();
-            $data['pj'] = encryptor($jadwal->layananjasa->user_id);
+        if($id){
+            $dPermohonan = Permohonan::with('layananjasa')->where('id', $id)->first();
+            $data['petugas'] = Jadwal_petugas::with('petugas')
+                ->where('jadwal_id', $dPermohonan->jadwal_id)
+                ->where(function($query) use ($id) {
+                    $query->where('permohonan_id', $id)->orWhereNull('permohonan_id');
+                })
+                ->get();
+            $data['pj'] = encryptor($dPermohonan->layananjasa->user_id);
 
             return response()->json(['data' => $data], 200);
         }

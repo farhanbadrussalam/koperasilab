@@ -138,15 +138,17 @@ class PenugasanController extends Controller
                 $idHash = "'".$data->permohonan_hash."'";
                 $idJadwal = "'".encryptor($data->jadwal_id)."'";
 
-                $countPetugas = Jadwal_petugas::where('jadwal_id', $data->jadwal_id)->count();
-                $countBersedia = Jadwal_petugas::where('jadwal_id', $data->jadwal_id)->where('status', 2)->count();
+                $id = decryptor($data->permohonan_hash);
+
+                $countPetugas = Jadwal_petugas::where('permohonan_id', $id)->count();
+                $countBersedia = Jadwal_petugas::where('permohonan_id', $id)->where('status', 2)->count();
 
                 return '
                     <button class="btn btn-outline-primary btn-sm mb-2" onclick="modalConfirm('.$idHash.')" title="Rincian">
                         <i class="bi bi-info-circle"></i></button>
                     <button class="btn btn-outline-warning btn-sm mb-2" onclick="btnDetailPayment('.$idHash.')" title="Invoice">
                         <i class="bi bi-credit-card-2-back-fill"></i></button>
-                    <button role="button" class="btn btn-outline-info btn-sm mb-2" onclick="showPetugas('.$idJadwal.')">
+                    <button role="button" class="btn btn-outline-info btn-sm mb-2" onclick="showPetugas('.$idHash.')">
                         <div><i class="bi bi-people-fill"></i> Petugas</div>
                         <div class="badge text-bg-secondary">'.$countBersedia.' / '.$countPetugas.'</div>
                     </button>

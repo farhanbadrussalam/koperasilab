@@ -199,16 +199,17 @@ class PermohonanController extends Controller
                             ';
                         }else if($data->flag == 4 || $data->flag === 5){
                             $labelTag = '
-                                <div class="ribbon-wrapper">
+                                <div class="ribbon-wrapper" style="z-index: 0;">
                                     <div class="ribbon bg-success" title="Tag">
                                         Lunas
                                     </div>
                                 </div>
                             ';
                             $btn_action = '
-                                <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')">
-                                <i class="bi bi-info-circle"></i> Rincian</button>
+                                <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')" title="Rincian">
+                                <i class="bi bi-info-circle"></i></button>
                             ';
+                            $btn_action .= '<button class="btn btn-outline-success btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check-circle"></i> Confirm</button>';
                         }else{
                             $btn_action = '
                                 <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')">

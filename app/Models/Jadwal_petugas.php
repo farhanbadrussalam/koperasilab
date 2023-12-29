@@ -14,12 +14,14 @@ class Jadwal_petugas extends Model
     protected $fillable = [
         'jadwal_id',
         'petugas_id',
+        'permohonan_id',
         'status'
     ];
-
+    
     protected $hidden = [
         'id',
         'jadwal_id',
+        'permohonan_id',
         'petugas_id'
     ];
 
