@@ -12,7 +12,8 @@ class Satuan_kerja extends Model
     protected $table = 'satuankerja';
 
     protected $fillable = [
-        'name'
+        'name',
+        'alias'
     ];
 
     protected $hidden = [

@@ -49,4 +49,9 @@ class Layanan_jasa extends Model
     {
         return $this->hasMany(Petugas_layanan::class, 'satuankerja_id', 'satuankerja_id');
     }
+
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id');
+    }
 }
