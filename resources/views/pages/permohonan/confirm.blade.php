@@ -55,10 +55,6 @@
                             <div class="col-4 fw-bolder">BAPETEN</div>
                             <div class="col-8">: <span id="txtNoBapeten"></span></div>
                         </div>
-                        <div class="row">
-                            <div class="col-4 fw-bolder">Antrian</div>
-                            <div class="col-8">: <span id="txtAntrian"></span></div>
-                        </div>
                         <div class="row px-2 my-2">
                             <table class="table table-bordered shadow">
                                 <thead>
@@ -197,9 +193,8 @@
                 $('#txtHarga').html(data.tarif);
                 $('#txtStart').html(data.jadwal.date_mulai);
                 $('#txtEnd').html(data.jadwal.date_end);
-                $('#txtStatus').html(statusFormat('permohonan', data.status));
+                $('#txtStatus').html(statusFormat('permohonan', data.flag));
                 $('#txtNoBapeten').html(data.no_bapeten);
-                $('#txtAntrian').html(data.nomor_antrian);
                 $('#txtJeniLimbah').html(data.jenis_limbah);
                 $('#txtRadioaktif').html(data.sumber_radioaktif);
                 $('#txtJumlah').html(data.jumlah);

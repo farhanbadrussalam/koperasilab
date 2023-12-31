@@ -32,7 +32,7 @@ class PenugasanController extends Controller
             ->whereHas('petugas', function($query) use ($user) {
                 $query->where('petugas_id', $user->id);
             })
-            ->orderBy('nomor_antrian');
+            ->orderBy('nomor_antrian', 'DESC');
 
         return DataTables::of($jadwalP)
         ->addIndexColumn()

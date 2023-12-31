@@ -73,7 +73,10 @@ class KeuanganController extends Controller
 
         $informasi = Permohonan::with('layananjasa', 'layananjasa.satuanKerja', 'jadwal', 'user', 'tbl_kip')
                         ->whereIn('flag', [2, 3, 4, 5])
-                        ->where('status', 1);
+                        ->where('status', 1)
+                        ->orderBy('flag')
+                        ->orderBy('nomor_antrian')
+                        ->orderBy('created_at', 'DESC');
 
         return DataTables::of($informasi)
             ->addIndexColumn()
@@ -232,7 +235,7 @@ class KeuanganController extends Controller
 
         // update permohonan
         $permohonanD = Permohonan::where('id', $idPermohonan)->first();
-        $permohonanD->status = 4;
+        $permohonanD->flag = 4;
         $permohonanD->update();
 
         // set permohonan

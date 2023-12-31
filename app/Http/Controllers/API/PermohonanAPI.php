@@ -251,6 +251,19 @@ class PermohonanAPI extends Controller
                 'type' => 'Permohonan'
             ), "Permohonan anda ". ($flag == 2 ? 'Disetujui' : 'Ditolak') . " oleh " . Auth::user()->name);
 
+            if($flag == 2){
+                // Send notif to keuangan
+                $getAlluser = Role::whereIn('name', ['Manager Keuangan','Staff keuangan'])->get();
+                foreach ($getAlluser as $key => $users) {
+                    foreach ($users->users as $key => $user) {
+                        $sendNotifPelanggan = notifikasi(array(
+                            'to_user' => $user->id,
+                            'type' => 'Keuangan'
+                        ), "Ada permohonan baru");
+                    }
+                }
+            }
+
             // set payload
             $payload = array(
                 'message' => 'Berhasil ' . ($flag == 2 ? 'Menyetujui' : 'Menolak') . 'permohonan ini'

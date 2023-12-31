@@ -111,7 +111,7 @@
             let select = $('#selectPetugas').val();
             let formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
-            formData.append('idPetugas', select);
+            formData.append('idPetugas', JSON.stringify(select));
             formData.append('idJadwal', d_jadwal.jadwal_hash);
             formData.append('idPermohonan', idPermohonan);
 
@@ -131,13 +131,17 @@
                 // dt_permohonan?.ajax.reload();
                 // $('#addPetugas').modal('hide');
                 // $('#infoModal').modal('hide');
+            }).fail(result => {
+                toastr.error(result.responseJSON.message);
             });
         }
 
         function changePetugas(idHash){
+            const idPermohonan = $('#idPermohonanPetugas').val();
+
             $.ajax({
                 method: 'GET',
-                url: "{{ url('api/petugas/getJadwalPetugas/'.$jadwal->jadwal_hash) }}",
+                url: `{{ url('api/petugas/getJadwalPetugas') }}/${idPermohonan}`,
                 dataType: "JSON",
                 processData: true,
                 headers: {
@@ -149,7 +153,7 @@
                 for (const data of pegawai) {
                     let find = result.data.find(f => f.petugas.user_hash == data.petugas.user_hash);
 
-                    if(!find){
+                    if(!find && (d_jadwal.layananjasa.user.user_hash != data.petugas.user_hash)){
                         arrResult.push({
                             id: data.petugas.user_hash,
                             text: data.petugas.name,
@@ -166,9 +170,16 @@
                     data: arrResult
                 });
 
+                $('#selectChangePetugas').val(null).trigger("change");
+
                 $('#changePetugas').modal('show');
             })
         }
+
+        $('#changePetugas').on('hide.bs.modal', () => {
+            $('#selectChangePetugas').select2("destroy");
+            $('#selectChangePetugas').html('');
+        })
 
         function deletePetugas(id){
             deleteGlobal(() => {

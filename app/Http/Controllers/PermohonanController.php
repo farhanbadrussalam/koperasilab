@@ -41,7 +41,9 @@ class PermohonanController extends Controller
         }
         $informasi = Permohonan::with(['layananjasa', 'jadwal', 'tbl_kip'])
                         ->whereIn('flag', $flag)
-                        ->where('status', 1);
+                        ->where('status', 1)
+                        ->orderBy('flag')
+                        ->orderBy('created_at');
 
         if($user->hasRole('Pelanggan')){
             $informasi->where('created_by', $user->id);
@@ -132,50 +134,56 @@ class PermohonanController extends Controller
                             }
                         }else if($data->flag == 4 || $data->flag === 5){
                             $labelTag = '
-                                <div class="ribbon-wrapper">
+                                <div class="ribbon-wrapper z-0">
                                     <div class="ribbon bg-success" title="Tag">
                                         Lunas
                                     </div>
                                 </div>
                             ';
-                            $btn_action = '
-                                <button class="btn btn-outline-success btn-sm" onclick="btnDetailPayment('.$idHash.')">
-                                    <i class="bi bi-credit-card-2-back-fill"></i> Lunas</button>
-                            ';
                             $list_items = '';
                             if($data->flag == 4){
-                                $list_items = '
-                                    <li class="my-1 cursoron">
-                                        <a class="dropdown-item dropdown-item-lab subbody" onclick="btnBuatJadwal('.$idHash.')">
+                                $btn_action = '
+                                    <button class="btn btn-outline-info btn-sm mb-2" onclick="btnDetailPayment('.$idHash.')">
+                                        <i class="bi bi-credit-card-2-back-fill"></i>&nbsp;Invoice
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm" onclick="btnBuatJadwal('.$idHash.')">
                                         <i class="bi bi-calendar2-event-fill"></i>&nbsp;Buat Jadwal
-                                        </a>
-                                    </li>
+                                    </button>
                                 ';
                             }else if($data->flag == 5){
-                                $list_items = '
-                                    <li class="my-1 cursoron">
-                                        <a class="dropdown-item dropdown-item-lab subbody" target="_blank" href="'.route('laporan.kwitansi', $data->tbl_kip->kip_hash).'">
-                                        <i class="bi bi-credit-card-2-back-fill"></i>&nbsp;Kwitansi
-                                        </a>
-                                    </li>
+                                if($data->tbl_kip->bukti_pembayaran){
+                                    $list_items .= '
+                                        <li class="my-1 cursoron">
+                                            <a class="dropdown-item dropdown-item-lab subbody" target="_blank" href="'.route('laporan.kwitansi', $data->tbl_kip->kip_hash).'">
+                                            <i class="bi bi-credit-card-2-back-fill"></i>&nbsp;Kwitansi
+                                            </a>
+                                        </li>
+                                    ';
+
+                                }
+                                $btn_action = '
+                                    <div class="dropdown">
+                                        <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </div>
+                                        <ul class="dropdown-menu shadow-sm px-2">
+                                            <li class="my-1 cursoron">
+                                                <a class="dropdown-item dropdown-item-lab subbody" onclick="btnDetailPayment('.$idHash.')">
+                                                    <i class="bi bi-credit-card-2-back-fill"></i>&nbsp;Invoice
+                                                </a>
+                                            </li>
+                                            '.$list_items.'
+                                            <li class="my-1 cursoron">
+                                                <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="modalConfirm('.$idHash.')">
+                                                    <i class="bi bi-info-circle"></i>&nbsp;Rincian
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 ';
                             }
 
-                            $btn_action = '
-                                <div class="dropdown">
-                                    <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </div>
-                                    <ul class="dropdown-menu shadow-sm px-2">
-                                        <li class="my-1 cursoron">
-                                            <a class="dropdown-item dropdown-item-lab subbody" onclick="btnDetailPayment('.$idHash.')">
-                                                <i class="bi bi-credit-card-2-back-fill"></i>&nbsp;Invoice
-                                            </a>
-                                        </li>
-                                        '.$list_items.'
-                                    </ul>
-                                </div>
-                            ';
+
                         }else{
                             $btn_action = '
                                 <div class="dropdown">
@@ -207,7 +215,7 @@ class PermohonanController extends Controller
                             ';
                         }else if($data->flag == 4 || $data->flag === 5){
                             $labelTag = '
-                                <div class="ribbon-wrapper" style="z-index: 0;">
+                                <div class="ribbon-wrapper z-0">
                                     <div class="ribbon bg-success" title="Tag">
                                         Lunas
                                     </div>
@@ -215,13 +223,18 @@ class PermohonanController extends Controller
                             ';
                             $btn_action = '
                                 <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')" title="Rincian">
-                                <i class="bi bi-info-circle"></i></button>
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
                             ';
-                            $btn_action .= '<button class="btn btn-outline-success btn-sm m-1" onclick="modalConfirm('.$idHash.')"><i class="bi bi-check-circle"></i> Confirm</button>';
+                            // $btn_action .= '
+                            //     <button class="btn btn-outline-success btn-sm m-1" onclick="modalConfirm('.$idHash.')">
+                            //         <i class="bi bi-check-circle"></i> Confirm
+                            //     </button>';
                         }else{
                             $btn_action = '
-                                <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')">
-                                <i class="bi bi-info-circle"></i> Rincian</button>
+                                <button class="btn btn-outline-info btn-sm" onclick="modalConfirm('.$idHash.')" title="Rincian">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
                             ';
                         }
                     }
@@ -525,7 +538,6 @@ class PermohonanController extends Controller
             'jumlah' => 'required'
         ]);
 
-        // dd($id);
         $idPermohonan = decryptor($id);
 
         $arrMediaDefault = array();
@@ -541,6 +553,7 @@ class PermohonanController extends Controller
         $permohonan->sumber_radioaktif = $request->radioAktif;
         $permohonan->jumlah = $request->jumlah;
         $permohonan->status = 1;
+        $permohonan->flag = 1;
 
         // Update file pendukung
         $documents = $request->file('dokumen');

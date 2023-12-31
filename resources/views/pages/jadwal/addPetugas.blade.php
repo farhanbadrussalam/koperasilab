@@ -11,8 +11,8 @@
                 <div class="col-md-12 mb-2">
                     <label for="selectPetugas" class="form-label">Petugas <span class="fw-bold fs-14 text-danger">*</span></label>
                     <div class="input-group mb-3">
-                        <select name="petugas" id="selectPetugas" class="form-control">
-                            <option value="">--- Select ---</option>
+                        <select name="petugas" id="selectPetugas" class="form-control" multiple>
+
                         </select>
                         <button class="btn btn-outline-primary" type="button" onclick="storePetugas()">Simpan</button>
                     </div>

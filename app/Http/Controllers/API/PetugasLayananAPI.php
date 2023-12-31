@@ -63,38 +63,43 @@ class PetugasLayananAPI extends Controller
         return $this->output($data);
     }
 
-    public function getJadwalPetugas($jadwal_hash)
+    public function getJadwalPetugas($permohonan_hash)
     {
-        $idJadwal = decryptor($jadwal_hash);
+        $idPermohonan = decryptor($permohonan_hash);
 
-        $dataPetugas = Jadwal_petugas::with('petugas')->where('jadwal_id', $idJadwal)->get();
+        $dataPetugas = Jadwal_petugas::with('petugas')->where('permohonan_id', $idPermohonan)->get();
 
         return response()->json(['data' => $dataPetugas], 200);
     }
 
     public function storeJadwalPetugas(Request $request)
     {
-        $idPetugas = decryptor($request->idPetugas);
         $idJadwal = decryptor($request->idJadwal);
         $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : null;
 
-        $jadwalPetugas = Jadwal_petugas::create([
-            'jadwal_id' => $idJadwal,
-            'petugas_id' => $idPetugas,
-            'permohonan_id' => $idPermohonan,
-            'status' => 1
-        ]);
+        $listPetugas = json_decode($request->idPetugas);
 
-        if($jadwalPetugas){
-            $jadwal = jadwal::where('id', $idJadwal)->first();
+        if($request->idPetugas){
+            foreach ($listPetugas as $idPetugas) {
+                $jadwalPetugas = Jadwal_petugas::create([
+                    'jadwal_id' => $idJadwal,
+                    'petugas_id' => decryptor($idPetugas),
+                    'permohonan_id' => $idPermohonan,
+                    'status' => 1
+                ]);
 
+                if($jadwalPetugas){
+                    $jadwal = jadwal::where('id', $idJadwal)->first();
 
-            # Send notifikasi
-            // $pjContent = $value == $layanan_jasa->user_id ? "dan menjadi Penanggung jawab" : "";
-            $sendNotif = notifikasi(array(
-                'to_user' => $idPetugas,
-                'type' => 'jadwal'
-            ), "Anda ditugaskan untuk layanan ".$jadwal->layananjasa->nama_layanan." pada tanggal ".$jadwal->date_mulai);
+                    # Send notifikasi
+                    // $pjContent = $value == $layanan_jasa->user_id ? "dan menjadi Penanggung jawab" : "";
+                    $sendNotif = notifikasi(array(
+                        'to_user' => decryptor($idPetugas),
+                        'type' => 'jadwal'
+                    ), "Anda ditugaskan untuk layanan ".$jadwal->layananjasa->nama_layanan." pada tanggal ".$jadwal->date_mulai);
+                }
+            }
+
 
             return response()->json(['message' => 'Petugas berhasil ditambah'], 200);
         }

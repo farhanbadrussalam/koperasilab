@@ -90,6 +90,8 @@
         let d_jadwal = @json($jadwal);
         const pegawai = @json($pegawai);
 
+        let select2Petugas = $('#selectPetugas');
+
         $(function(){
             dt_permohonan = $('#permohonan-table').DataTable({
                 processing: true,
@@ -121,9 +123,11 @@
         })
 
         function addPetugas() {
+            const idPermohonan = $('#idPermohonanPetugas').val();
+
             $.ajax({
                 method: 'GET',
-                url: "{{ url('api/petugas/getJadwalPetugas/'.$jadwal->jadwal_hash) }}",
+                url: `{{ url('api/petugas/getJadwalPetugas') }}/${idPermohonan}`,
                 dataType: "JSON",
                 processData: true,
                 headers: {
@@ -132,11 +136,11 @@
                 }
             }).done(function(result){
                 let arrResult = [];
-                console.log(result.data);
                 for (const data of pegawai) {
                     let find = result.data.find(f => f.petugas.user_hash == data.petugas.user_hash);
 
-                    if(!find){
+
+                    if(!find && (d_jadwal.layananjasa.user.user_hash != data.petugas.user_hash)){
                         arrResult.push({
                             id: data.petugas.user_hash,
                             text: data.petugas.name,
@@ -144,17 +148,23 @@
                         });
                     }
                 }
-                $('#selectPetugas').select2({
+                select2Petugas.select2({
                     theme: "bootstrap-5",
                     placeholder: "Select petugas",
                     templateResult: formatSelect2Staff,
                     dropdownParent: $('#addPetugas'),
                     data: arrResult
                 });
+                select2Petugas.val(null).trigger("change");
 
                 $('#addPetugas').modal('show');
             })
         }
+
+        $('#addPetugas').on('hide.bs.modal', () => {
+            select2Petugas.select2("destroy");
+            select2Petugas.html('');
+        })
 
     </script>
 @endpush

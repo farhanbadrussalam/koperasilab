@@ -167,11 +167,27 @@ function statusFormat(feature, status) {
                 htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-info"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Terverifikasi</span>
+                        <span class="subbody-medium text-submain text-truncate">Disetujui</span>
                     </div>
                     `;
                 break;
             case 3:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-info"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Pembayaran</span>
+                    </div>
+                    `;
+                break;
+            case 4:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-info"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Penjadwalan</span>
+                    </div>
+                    `;
+                break;
+            case 5:
                 htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-success"></div></div>
