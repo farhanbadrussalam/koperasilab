@@ -118,6 +118,37 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="modal-kwitansi">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kwitansi</h4>
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-center">
+                <h2>Signature</h2>
+                <div id="doc-lampiran"></div>
+                <div class="d-flex justify-content-between m-2 mt-4">
+                    <input type="hidden" id="idKip">
+                    <div class="row w-100">
+                        <div class="wrapper">
+                            <div class="wrapper" id="content-ttd">
+                                <button class="btn btn-danger btn-sm position-absolute ms-1 mt-1" id="signature-clear"><i class="bi bi-trash"></i></button>
+                                <canvas id="signature-keuangan" class="signature-pad border border-success-subtle rounded border-1" width=300 height=210></canvas>
+                                <p class="text-center">Keuangan</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="actionModalLhu">
+                <button class="btn btn-outline-primary" role="button" id="sendKwitansi" >Create</button>
+            </div>
+        </div>
+    </div>
+</div>
 @push('scripts')
     <script>
         function sendKip() {
@@ -318,5 +349,11 @@
                 $('#moda-invoice').modal('show');
             })
         }
-    </script>
+
+        function createKwitansi(id){
+            $('#idKip').val(id);
+            $('#modal-kwitansi').modal('show');
+        }
+
+   </script>
 @endpush

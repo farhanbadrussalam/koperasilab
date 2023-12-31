@@ -72,7 +72,7 @@ class KeuanganController extends Controller
         $user = Auth::user();
 
         $informasi = Permohonan::with('layananjasa', 'layananjasa.satuanKerja', 'jadwal', 'user', 'tbl_kip')
-                        ->whereIn('flag', [2, 3, 4])
+                        ->whereIn('flag', [2, 3, 4, 5])
                         ->where('status', 1);
 
         return DataTables::of($informasi)
@@ -83,7 +83,7 @@ class KeuanganController extends Controller
                 $listItem = '';
                 $labelTag = '';
 
-                if($data->flag == 3 || $data->flag == 4){
+                if($data->flag == 3 || $data->flag == 4 || $data->flag == 5){
                     if($data->tbl_kip->bukti_pembayaran){
                         $co_progress = '
                             <div id="progress" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
@@ -97,14 +97,25 @@ class KeuanganController extends Controller
                             </div>
                         ';
                     }
-                    if($data->tbl_kip->status == 3){
-                        $listItem .= '
-                            <li class="my-1 cursoron">
-                                <a class="dropdown-item dropdown-item-lab" onclick="">
-                                    Cetak kuitansi
-                                </a>
-                            </li>
-                        ';
+                    if($data->tbl_kip->status == 3 || $data->tbl_kip->status == 4){
+                        $idHashKip = "'". $data->tbl_kip->kip_hash ."'";
+                        if($data->tbl_kip->status == 3){
+                            $listItem .= '
+                                <li class="my-1 cursoron">
+                                    <a class="dropdown-item dropdown-item-lab" onclick="createKwitansi('.$idHashKip.')">
+                                        Buat kwitansi
+                                    </a>
+                                </li>
+                            ';
+                        }else if($data->tbl_kip->status == 4){
+                            $listItem .= '
+                                <li class="my-1 cursoron">
+                                    <a class="dropdown-item dropdown-item-lab" target="_blank" href="'.route('laporan.kwitansi', $data->tbl_kip->kip_hash).'">
+                                        Lihat kwitansi
+                                    </a>
+                                </li>
+                            ';
+                        }
 
                         $labelTag = '
                             <div class="ribbon-wrapper">

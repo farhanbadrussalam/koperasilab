@@ -2,7 +2,7 @@ import SignaturePad from 'signature_pad';
 
 document.addEventListener('DOMContentLoaded', function () {
     // initialisasi
-    const canvas_lhu = document.getElementById('signature-lhu');
+    const canvas_lhu = document.getElementById('signature-keuangan');
     const signaturePadLhu = new SignaturePad(canvas_lhu, {
         backgroundColor: 'rgb(255, 255, 255)' // necessary for saving image as JPEG; can be removed is only saving as PNG or SVG
     });
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
         signaturePadLhu.clear();
     });
 
-    $('#sendTtdLhu').on('click', () => {
+    $('#sendKwitansi').on('click', () => {
         if(signaturePadLhu.isEmpty()){
             return Swal.fire({
                 icon: "warning",
@@ -24,15 +24,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const ttd = signaturePadLhu.toDataURL();
+        const idKip = $('#idKip').val();
 
         const formData = new FormData();
         formData.append('_token', csrf);
-        formData.append('level', 4);
-        formData.append('idLhu', $('#idLhu').val());
-        formData.append('ttd_2', ttd);
+        formData.append('idKip', idKip);
+        formData.append('ttd_1', ttd);
+        formData.append('status', 4);
 
         $.ajax({
-            url: `${base_url}/api/lhu/validasiLHU`,
+            url: `${base_url}/api/lhu/validasiKIP`,
             method: 'POST',
             dataType: 'json',
             processData: false,
@@ -46,10 +47,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',
-                    text: result.data.message
+                    text: 'Kwitansi berhasil diterbitkan'
                 });
-                dt_permohonan?.ajax.reload();
-                $('#modal-lhu').modal('hide');
+                dt_keuangan?.ajax.reload();
+                $('#modal-kwitansi').modal('hide');
             }else{
                 Swal.fire({
                     icon: 'error',
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
         })
     });
 
-    $('#modal-lhu').on('show.bs.modal', () => {
+    $('#modal-kwitansi').on('show.bs.modal', () => {
         signaturePadLhu.clear();
     })
 })

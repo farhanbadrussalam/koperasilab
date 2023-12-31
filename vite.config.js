@@ -13,6 +13,7 @@ export default defineConfig({
         }),
     ],
     server: {
-        host: 'localhost',
+        // host: 'localhost',
+        host: '192.168.18.16',
     }
 });

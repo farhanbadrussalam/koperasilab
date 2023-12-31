@@ -39,6 +39,7 @@
 @include('pages.keuangan.modalinvoice')
 @endsection
 @push('scripts')
+@vite(['resources/js/pages/keuangan.js'])
     <script>
         let dt_keuangan = false;
 

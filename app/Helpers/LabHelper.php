@@ -292,4 +292,54 @@ if (!function_exists('getAvatar')) {
         return $urlDev;
     }
 }
+
+if (!function_exists('strPad')) {
+    function strPad($angka, $jumlah = 3){
+
+        // Menggunakan str_pad untuk menambahkan nol di depan angka
+        $angkaFormatted = str_pad($angka, $jumlah, '0', STR_PAD_LEFT);
+
+        return $angkaFormatted;
+    }
+}
+
+if (!function_exists('angkaKeHuruf')) {
+    function angkaKeHuruf($angka){
+        $bilangan = array(
+            '',
+            'satu',
+            'dua',
+            'tiga',
+            'empat',
+            'lima',
+            'enam',
+            'tujuh',
+            'delapan',
+            'sembilan'
+        );
+
+        $ribu = array('', 'ribu', 'juta', 'miliar', 'triliun');
+
+        if ($angka < 10) {
+            return $bilangan[$angka];
+        } elseif ($angka < 20) {
+            return 'sepuluh ' . angkaKeHuruf($angka - 10);
+        } elseif ($angka < 100) {
+            return $bilangan[floor($angka / 10)] . ' puluh ' . angkaKeHuruf($angka % 10);
+        } elseif ($angka < 1000) {
+            return $bilangan[floor($angka / 100)] . ' ratus ' . angkaKeHuruf($angka % 100);
+        } else {
+            $result = '';
+            $idxRibuan = 0;
+            while ($angka > 0) {
+                if ($angka % 1000 > 0) {
+                    $result = angkaKeHuruf($angka % 1000) . ' ' . $ribu[$idxRibuan] . ' ' . $result;
+                }
+                $angka = floor($angka / 1000);
+                $idxRibuan++;
+            }
+            return $result;
+        }
+    }
+}
 ?>

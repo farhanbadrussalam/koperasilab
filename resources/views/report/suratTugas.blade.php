@@ -3,7 +3,7 @@
 @section('content')
     <div class="title">
         <h2>SURAT TUGAS UJI</h2>
-        <span>No.{{ decryptor($permohonan->permohonan_hash) }}/NL-{{ $permohonan->layananjasa->satuanKerja->alias }}/I/{{ $date }}</span>
+        <span>No.{{ strPad(decryptor($permohonan->permohonan_hash)) }}/NL-{{ $permohonan->layananjasa->satuanKerja->alias }}/I/{{ $date }}</span>
     </div>
 
     <div class="content">

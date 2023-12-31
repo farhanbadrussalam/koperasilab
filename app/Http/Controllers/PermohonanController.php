@@ -151,6 +151,14 @@ class PermohonanController extends Controller
                                         </a>
                                     </li>
                                 ';
+                            }else if($data->flag == 5){
+                                $list_items = '
+                                    <li class="my-1 cursoron">
+                                        <a class="dropdown-item dropdown-item-lab subbody" target="_blank" href="'.route('laporan.kwitansi', $data->tbl_kip->kip_hash).'">
+                                        <i class="bi bi-credit-card-2-back-fill"></i>&nbsp;Kwitansi
+                                        </a>
+                                    </li>
+                                ';
                             }
 
                             $btn_action = '
