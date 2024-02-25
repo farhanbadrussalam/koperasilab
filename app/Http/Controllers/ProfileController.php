@@ -14,7 +14,11 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Profile',
+            'module' => 'biodata-pribadi'
+        ];
+
         return view('pages.profile.index', $data);
     }
 

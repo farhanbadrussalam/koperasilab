@@ -1,58 +1,46 @@
 @extends('layouts.main')
 
 @section('content')
-<div class="content-wrapper">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                        <li class="breadcrumb-item active">Permission</li>
-                    </ol>
-                </div>
-            </div>
-        </div><!-- /.container-fluid -->
-    </section>
-    <section class="content">
-        <div class="container col-xl-8 col-md-12">
-            <div class="card card-default color-palette-box shadow">
-                <div class="card-header d-flex ">
-                    <h3 class="card-title flex-grow-1">
-                      Permission
-                    </h3>
-                    <a href="{{ route('permission.create') }}" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createPermissionModal">Add permission</a>
-                </div>
-                <div class="card-body">
-                    <table class="table table-hover w-100" id="permission-table">
+<div class="card p-0 m-0 shadow border-0">
+    <div class="card-body">
+        <div class="row d-flex align-items-center mb-4 px-3">
+            <h4 class="col-12 col-md-10">Permission</h4>
+            <a class="btn btn-primary col-12 col-md-2" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#create_modal">
+                <i class="bi bi-plus"></i>
+                Created
+            </a>
+        </div>
+        <div class="row mt-2">
+            <div class="overflow-y-auto">
+                <table class="table table-hover w-100" id="permission-table">
                         <thead>
                             <th width="5%">No</th>
                             <th>Name Permission</th>
                             <th width="20%">Action</th>
                         </thead>
                     </table>
-                </div>
             </div>
         </div>
-    </section>
+    </div>
 </div>
 @include('pages.permission.create')
 @include('pages.permission.edit')
 @endsection
 @push('scripts')
+@vite(['resources/js/pages/permission.js'])
     <script>
-        let datatable_permission = false;
+        // let datatable_permission = false;
         $(function(){
-            datatable_permission = $('#permission-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: "{{ route('permission.getData') }}",
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false },
-                    { data: 'name', name: 'name' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false}
-                ]
-            });
+            // datatable_permission = $('#permission-table').DataTable({
+            //     processing: true,
+            //     serverSide: true,
+            //     ajax: "{{ route('permission.getData') }}",
+            //     columns: [
+            //         { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false },
+            //         { data: 'name', name: 'name' },
+            //         { data: 'action', name: 'action', orderable: false, searchable: false}
+            //     ]
+            // });
         })
 
         $('#form-edit').on("submit", (evt) => {

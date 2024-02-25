@@ -23,10 +23,14 @@ class PetugasLayananController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
-        $data['lab'] = tbl_lab::all();
-        $data['satuanKerja'] = Satuan_kerja::all();
-        $data['otorisasi'] = Permission::where('name', 'like', 'Otorisasi-%')->get();
+        $data = [
+            'title' => 'Petugas layanan',
+            'module' => 'petugas',
+            'lab' => tbl_lab::all(),
+            'satuanKerja' => Satuan_kerja::all(),
+            'otorisasi' => Permission::where('name', 'like', 'Otorisasi-%')->get()
+        ];
+
         return view('pages.petugas.index', $data);
     }
 
@@ -59,7 +63,7 @@ class PetugasLayananController extends Controller
                             <div class="card-body d-flex p-1">
                                 <div class="flex-grow-1 p-2 d-flex m-auto">
                                     <div>
-                                        <img src=" '.$avatar.' " class="img-circle border shadow-sm" alt="Avatar"  onerror="this.src=`'.asset("assets/img/default-avatar.jpg").'`" style="width: 5em;" />
+                                        <img src=" '.$avatar.' " class="rounded-circle border shadow-sm" alt="Avatar"  onerror="this.src=`'.asset("assets/img/default-avatar.jpg").'`" style="width: 5em;" />
                                     </div>
                                     <div class="px-3 my-auto">
                                         <div class="text-break fw-bolder">'.$data->petugas->name.'</div>
@@ -111,7 +115,11 @@ class PetugasLayananController extends Controller
      */
     public function create()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Create petugas',
+            'module' => 'petugas'
+        ];
+
         return view('pages.petugas.index', $data);
     }
 

@@ -61,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::get('getDTListLayanan', [PermohonanController::class, 'getDTListLayanan'])->name('permohonan.getDTListLayanan');
         Route::get('permohonan/payment/{idPermohonan}', [PermohonanController::class, 'payment'])->name('permohonan.payment');
         Route::get('permohonan/create/layanan/{idJadwal}', [PermohonanController::class, 'pilihLayanan'])->name('permohonan.create.layanan');
+        Route::get('listLayanan', [LayananJasaController::class, 'listLayanan'])->name('layananJasa.listLayanan');
     });
 
     Route::middleware(['permission:Penjadwalan'])->group(function () {

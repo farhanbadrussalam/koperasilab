@@ -3,9 +3,7 @@
       <div class="modal-content">
         <div class="modal-header border-0">
           <h4 class="modal-title">Edit Petugas Layanan</h4>
-          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form id="form-edit" method="post">
             @csrf

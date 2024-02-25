@@ -130,7 +130,7 @@
                     dataType: 'json',
                     processData: true,
                     headers: {
-                        'Authorization': `Bearer {{ $token }}`,
+                        'Authorization': `Bearer {{ generateToken() }}`,
                         'Content-Type': 'application/json'
                     }
                 }).done((result) => {
@@ -159,7 +159,7 @@
                 dataType: 'json',
                 processData: true,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 }
             }).done(result => {
@@ -225,7 +225,7 @@
                 dataType: 'json',
                 processData: true,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 },
                 data: {

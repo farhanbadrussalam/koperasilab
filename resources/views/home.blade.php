@@ -1,25 +1,12 @@
 @extends('layouts.main')
 
 @section('content')
-<div class="content-wrapper">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Selamat datang</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                        <li class="breadcrumb-item active">Dashboard</li>
-                    </ol>
-                </div>
-            </div>
-        </div><!-- /.container-fluid -->
-    </section>
-    <section class="content">
-
-    </section>
+<div class="card p-0 m-0 shadow border-0">
+    <div class="card-body">
+        <div class="row row-space d-flex align-items-center mb-4 w-100">
+            <h1 class="col-12 col-md-10">Selamat Datang</h4>
+        </div>
+    </div>
 </div>
 @endsection
 @push('scripts')

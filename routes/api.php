@@ -50,26 +50,36 @@ Route::middleware('auth:sanctum')->group(function() {
 
     // Route::resource('permohonan', PermohonanAPI::class);
 
-    Route::prefix("permohonan")->group(function () {
-        Route::get('/show/{id}', [PermohonanAPI::class, 'show']);
-        Route::delete('/destroy/{id}', [PermohonanAPI::class, 'destroy']);
-        Route::post('/update/{id}', [PermohonanAPI::class, 'update']);
-        Route::post('/verifikasi_fd', [PermohonanAPI::class, 'verifikasi_fd']);
-        Route::post('/verifikasi_kontrak', [PermohonanAPI::class, 'verifikasi_kontrak']);
-        Route::post('/sendSuratTugas', [PermohonanAPI::class, 'sendSuratTugas']);
+    Route::prefix("layananjasa")->controller(LayananjasaAPI::class)->group(function() {
+        Route::get('/list', 'listLayananjasa');
+        Route::get('/getLayanan/{id}', 'getLayananjasa');
+        Route::post('/addLayanan', 'addLayananjasa');
+        Route::post('/updateLayanan', 'updateLayananjasa');
+        Route::delete('/deleteLayanan/{id}', 'deleteLayananjasa');
+    });
+
+    Route::prefix("permohonan")->controller(PermohonanAPI::class)->group(function () {
+        Route::get('/show/{id}', 'show');
+        Route::get('/list', 'listPermohonan');
+        Route::delete('/destroy/{id}', 'destroy');
+        Route::post('/update/{id}', 'update');
+        Route::post('/verifikasi_fd', 'verifikasi_fd');
+        Route::post('/verifikasi_kontrak', 'verifikasi_kontrak');
+        Route::post('/sendSuratTugas', 'sendSuratTugas');
+        Route::post('/addPermohonan', 'addPermohonan');
     });
 
     Route::prefix('otorisasi')->group(function () {
         Route::get('/getOtorisasi', [OtorisasiAPI::class, 'getOtorisasi']);
     });
 
-    Route::prefix('petugas')->group(function () {
-        Route::get('/getPetugas', [PetugasLayananAPI::class, 'getPetugas']);
-        Route::get('/getJadwalPetugas/{jadwal_hash}', [PetugasLayananAPI::class, 'getJadwalPetugas']);
-        Route::get('/search', [PetugasLayananAPI::class, 'searchData']);
-        Route::post('/storeJadwalPetugas', [PetugasLayananAPI::class, 'storeJadwalPetugas']);
-        Route::post('/updateJadwalPetugas', [PetugasLayananAPI::class, 'updateJadwalPetugas']);
-        Route::delete('/destroyJadwalPetugas/{jadwalPetugas_hash}', [PetugasLayananAPI::class, 'destroyJadwalPetugas']);
+    Route::prefix('petugas')->controller(PetugasLayananAPI::class)->group(function () {
+        Route::get('/getPetugas', 'getPetugas');
+        Route::get('/getJadwalPetugas/{jadwal_hash}', 'getJadwalPetugas');
+        Route::get('/search', 'searchData');
+        Route::post('/storeJadwalPetugas', 'storeJadwalPetugas');
+        Route::post('/updateJadwalPetugas', 'updateJadwalPetugas');
+        Route::delete('/destroyJadwalPetugas/{jadwalPetugas_hash}', 'destroyJadwalPetugas');
     });
 
     Route::prefix('lhu')->group(function () {

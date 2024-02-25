@@ -18,11 +18,6 @@
     <section class="content">
         <div class="container col-md-12 col-xl-8">
             <div class="card card-default color-palette-box shadow">
-                <div class="card-header d-flex ">
-                    <h2 class="card-title flex-grow-1">
-                        Create Jadwal
-                    </h2>
-                </div>
                 <div class="card-body">
                     <form action="{{ route('jadwal.store') }}" method="post" enctype="multipart/form-data">
                         @csrf
@@ -168,10 +163,10 @@
             let contentTarif = `<option value="">--- Select ---</option>`;
 
             if(cariLayanan){
-                let jenis = JSON.parse(cariLayanan.jenis_layanan);
+                let biaya = JSON.parse(cariLayanan.biaya_layanan);
 
-                for (const value of jenis) {
-                    contentTarif += `<option value="${value.jenis}|${value.tarif}">${value.jenis}</option>`;
+                for (const value of biaya) {
+                    contentTarif += `<option value="${value.desc}|${value.tarif}">${value.desc}</option>`;
                 }
 
                 getPegawai(cariLayanan);
@@ -208,7 +203,7 @@
                     dataType: 'json',
                     processData: true,
                     headers: {
-                        'Authorization': `Bearer {{ $token }}`,
+                        'Authorization': `Bearer {{ generateToken() }}`,
                         'Content-Type': 'application/json'
                     },
                     data: {

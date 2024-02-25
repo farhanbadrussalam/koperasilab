@@ -1,42 +1,43 @@
 @extends('layouts.main')
 
 @section('content')
-<div class="content-wrapper">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                        <li class="breadcrumb-item active">Layanan Jasa</li>
-                    </ol>
+<div class="card p-0 m-0 shadow border-0">
+    <div class="card-body">
+        <div class="row d-flex align-items-center mb-4 px-3">
+            <h4 class="col-12 col-md-10">&nbsp;</h4>
+            @can('Layananjasa.create')
+            <a class="btn btn-primary col-12 col-md-2" href="javascript:void(0)" id="create_layanan">
+                <i class="bi bi-plus"></i>
+                Created
+            </a>
+            @endcan
+        </div>
+        <div class="row mt-2">
+            <div class="mb-4 d-flex justify-content-between ">
+                <div class="d-flex">
+
+                </div>
+                <div class="">
+                    <div class="input-group">
+                        <input type="text" name="search" id="search" class="form-control">
+                        <button class="btn btn-info" id="btn-search"><i class="bi bi-search"></i></button>
+                    </div>
                 </div>
             </div>
-        </div><!-- /.container-fluid -->
-    </section>
-    <section class="content">
-        <div class="container col-md-10 col-xl-9">
-            <div class="card card-default color-palette-box shadow">
-                <div class="card-header d-flex ">
-                    <h3 class="card-title flex-grow-1">
-                      Layanan jasa
-                    </h3>
-                    @can('Layananjasa.create')
-                    <a href="{{ route('layananJasa.create') }}" class="btn btn-primary btn-sm">Add Layanan</a>
-                    @endcan
-                </div>
-                <div class="card-body">
-                    <table class="table table-hover w-100" id="layanan-table">
-                        <thead>
-                            <th width="5%">No</th>
-                            <th>Nama Layanan</th>
-                            <th width="20%">Action</th>
-                        </thead>
-                    </table>
+            <div class="overflow-y-auto">
+                <div>
+                    <div id="skeleton-container" class="placeholder-glow">
+                        @for ($a=0; $a < 5; $a++)
+                        <div class="placeholder rounded w-100 mb-2 bg-secondary" style="height: 50px;"></div>
+                        @endfor
+                    </div>
+                    <div id="content-container">
+                    </div>
+                    <div id="pagination-container"></div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 </div>
 
 <div class="modal fade" id="modalJenisLayanan" tabindex="-1" aria-labelledby="modalJenisLayanan" aria-hidden="true">
@@ -57,53 +58,125 @@
       </div>
     </div>
 </div>
+
+{{-- Modal Create --}}
+<div class="modal fade" id="modal_form" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_title">Create Layanan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{-- Satuan kerja --}}
+                <div class="mb-3">
+                    <label for="selectSatuanKerja" class="form-label">Satuan kerja</label>
+                    <select name="satuankerja" id="selectSatuanKerja" class="form-control">
+                        <option value="">-- Select --</option>
+                        @foreach ($satuankerja as $key => $satuan)
+                            <option value="{{ $satuan->satuan_hash }}">{{ $satuan->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="selectPJ" class="form-label">Penanggung Jawab</label>
+                    <div id="invalid-pj" class="rounded">
+                        <select name="selectPj" id="selectPj" class="form-control">
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="inputNamaLayanan" class="form-label">Nama Layanan</label>
+                    <input type="text" id="inputNamaLayanan" name="inputNamaLayanan" class="form-control">
+                    <div class="invalid-feedback d-none" id="invalid-namalayanan"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="inputBiayaLayanan" class="form-label">Biaya Layanan</label>
+                    <div id="contentBiayaLayanan">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-grey" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save-layanan"><i class="bi bi-floppy2-fill"></i> Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal buat permohonan --}}
+<div class="modal fade" id="modal_permohonan" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_title">Form Permohonan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body row">
+                <form action="#" method="post" id="formPermohonan" class="row">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="permohonan_namalayanan" class="form-label">Nama Layanan</label>
+                        <input type="text" class="form-control" id="permohonan_namalayanan" name="namalayanan" readonly>
+                        <input type="hidden" name="layanan_hash" id="permohonan_layananHash" readonly>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label for="permohonanJenis" class="form-label">Jenis <span class="fw-bold fs-14 text-danger">*</span></label>
+                        <select name="desc_biaya" id="permohonanJenis" class="form-control" required>
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label for="permohonan_biaya" class="form-label">Biaya</label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="text" class="form-control rupiah" id="permohonan_biaya" name="biaya" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label for="permohonan_noBapeten" class="form-label">Nomor BAPETEN</label>
+                        <input type="number" class="form-control" id="permohonan_noBapeten" name="no_bapeten" autocomplete="false" required>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label for="permohonan_jenisLimbah" class="form-label">Jenis limbah <span class="fw-bold fs-14 text-danger">*</span></label>
+                        <input type="text" class="form-control" id="permohonan_jenisLimbah" name="jenis_limbah" autocomplete="false" required>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label for="permohonan_radioaktif" class="form-label">Sumber Radioaktif <span class="fw-bold fs-14 text-danger">*</span></label>
+                        <input type="text" class="form-control" id="permohonan_radioaktif" name="sumber_radioaktif" autocomplete="false" required>
+                    </div>
+
+                    <div class="mb-3 col-md-6">
+                        <label for="permohonan_jumlah" class="form-label">Jumlah <span class="fw-bold fs-14 text-danger">*</span></label>
+                        <input type="number" class="form-control" id="permohonan_jumlah" name="jumlah" autocomplete="false" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">File pendukung</label>
+                        <div id="contentFilePermohonan"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-grey" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="save-permohonan"><i class="bi bi-floppy2-fill"></i> Create</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 @push('scripts')
+@vite(['resources/js/pages/layananjasa.js'])
     <script>
-        let datatable_layanan = false;
-        $(function () {
-            datatable_layanan = $('#layanan-table').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: "{{ route('layananJasa.getData') }}",
-                columns: [
-                    { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false },
-                    { data: 'nama_layanan', name: 'nama_layanan' },
-                    { data: 'action', name: 'action', orderable: false, searchable: false },
-                ]
-            });
-        });
-
-        function btnDelete(id) {
-            deleteGlobal(() => {
-                $.ajax({
-                    url: "{{ url('/api/deletePegawai') }}?id="+id,
-                    method: 'DELETE',
-                    dataType: 'json',
-                    processData: true,
-                    headers: {
-                        'Authorization': `Bearer {{ $token }}`,
-                        'Content-Type': 'application/json'
-                    }
-                }).done((result) => {
-                    if(result.message){
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: result.message
-                        });
-                        datatable_layanan?.ajax.reload();
-                    }
-                }).fail(function(message) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: message.responseJSON.message
-                    });
-                });
-            });
-        }
-
         function showJenis(obj) {
             const arrJenis = $(obj).data('jenis');
             let html = '';

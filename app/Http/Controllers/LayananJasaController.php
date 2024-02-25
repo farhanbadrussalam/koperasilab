@@ -20,7 +20,22 @@ class LayananJasaController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'layanan jasa',
+            'module' => 'Layananjasa',
+            'satuankerja' => Satuan_kerja::where('id', Auth::user()->satuankerja_id)->get()
+        ];
+        return view('pages.layananJasa.index', $data);
+    }
+
+    public function listLayanan()
+    {
+        $data = [
+            'title' => 'List layanan jasa',
+            'module' => 'Layananjasa',
+            'satuankerja' => Satuan_kerja::where('id', Auth::user()->satuankerja_id)->get()
+        ];
+
         return view('pages.layananJasa.index', $data);
     }
 
@@ -60,9 +75,11 @@ class LayananJasaController extends Controller
      */
     public function create()
     {
-        $_token = generateToken();
-        $data['satuankerja'] = Satuan_kerja::where('id', Auth::user()->satuankerja_id)->get();
-        $data['token'] = $_token;
+        $data = [
+            'title' => 'Create Layanan',
+            'module' => 'Layananjasa',
+            'satuankerja' => Satuan_kerja::where('id', Auth::user()->satuankerja_id)->get()
+        ];
         return view('pages.layananJasa.create', $data);
     }
 

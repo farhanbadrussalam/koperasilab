@@ -84,7 +84,7 @@
                 processData: false,
                 contentType: false,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`
+                    'Authorization': `Bearer {{ generateToken() }}`
                 },
                 data: formData
             }).done(result => {

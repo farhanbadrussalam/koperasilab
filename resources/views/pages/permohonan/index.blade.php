@@ -2,28 +2,17 @@
 
 @section('content')
     <div class="content-wrapper">
-        <section class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item active">Permohonan</li>
-                        </ol>
-                    </div>
-                </div>
-            </div><!-- /.container-fluid -->
-        </section>
         <section class="content col-md-12">
             <div class="container">
                 <div class="card card-default color-palette-box shadow">
-                    <div class="card-header d-flex ">
+                    {{-- <div class="card-header d-flex ">
                         <h3 class="card-title flex-grow-1">
-                            Permohonan layanan
+                            &nbsp;
                         </h3>
                         @can('Permohonan.create')
                             <a href="{{ route('permohonan.create') }}" class="btn btn-primary btn-sm">Add permohonan</a>
                         @endcan
-                    </div>
+                    </div> --}}
                     <div class="card-body">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
@@ -183,6 +172,10 @@
             }
         }
 
+        function btnUpdate(){
+
+        }
+
         function btnDelete(id) {
             deleteGlobal(() => {
                 $.ajax({
@@ -191,7 +184,7 @@
                     dataType: 'json',
                     processData: true,
                     headers: {
-                        'Authorization': `Bearer {{ $token }}`,
+                        'Authorization': `Bearer {{ generateToken() }}`,
                         'Content-Type': 'application/json'
                     }
                 }).done((result) => {
@@ -213,45 +206,6 @@
             });
         }
 
-        // function modalConfirm(id) {
-        //     $.ajax({
-        //         url: "{{ url('api/permohonan/show') }}/" + id,
-        //         method: 'GET',
-        //         dataType: 'json',
-        //         processing: true,
-        //         serverSide: true,
-        //         headers: {
-        //             'Authorization': `Bearer {{ $token }}`,
-        //             'Content-Type': 'application/json'
-        //         }
-        //     }).done(result => {
-        //         const data = result.data;
-        //         $('#txtNamaPelanggan').html(data.user.name);
-        //         $('#txtNamaLayanan').html(data.layananjasa.nama_layanan);
-        //         $('#txtJenisLayanan').html(data.jenis_layanan);
-        //         $('#txtHarga').html(data.tarif);
-        //         $('#txtStart').html(data.jadwal.date_mulai);
-        //         $('#txtEnd').html(data.jadwal.date_end);
-        //         $('#txtStatus').html(statusFormat('permohonan', data.status));
-        //         $('#txtNoBapeten').html(data.no_bapeten);
-        //         $('#txtAntrian').html(data.nomor_antrian);
-        //         $('#txtJeniLimbah').html(data.jenis_limbah);
-        //         $('#txtRadioaktif').html(data.sumber_radioaktif);
-        //         $('#txtJumlah').html(data.jumlah);
-
-        //         // ambil dokumen
-        //         let dokumen = ``;
-        //         for (const media of data.media) {
-        //             dokumen += printMedia(media, "permohonan");
-        //         }
-        //         $('#tmpDokumenPendukung').html(dokumen);
-        //         $('#divConfirmBtn').hide();
-        //         maskReload();
-        //         idPermohonan = id;
-        //         $('#confirmModal').modal('show');
-        //     })
-        // }
-
         function modalNote(id) {
             $.ajax({
                 url: "{{ url('api/permohonan') }}/" + id,
@@ -260,7 +214,7 @@
                 processing: true,
                 serverSide: true,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 }
             }).done(result => {
@@ -283,7 +237,7 @@
                 processing: true,
                 serverSide: true,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 }
             }).done(result => {

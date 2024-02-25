@@ -147,7 +147,7 @@ $idSatuan = Auth::user()->satuankerja_id ? Auth::user()->satuankerja_id : null;
                     url: '{{ url("/api/getPegawai") }}',
                     dataType: 'json',
                     headers: {
-                        'Authorization': `Bearer {{ $token }}`,
+                        'Authorization': `Bearer {{ generateToken() }}`,
                         'Content-Type': 'application/json'
                     },
                     data: {
@@ -180,7 +180,7 @@ $idSatuan = Auth::user()->satuankerja_id ? Auth::user()->satuankerja_id : null;
                 url: '{{ url("api/petugas/getPetugas") }}',
                 dataType: 'JSON',
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 },
                 data: {

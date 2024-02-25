@@ -13,7 +13,11 @@ class PermissionController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Management',
+            'module' => 'permission'
+        ];
+
         return view('pages.permission.index', $data);
     }
 

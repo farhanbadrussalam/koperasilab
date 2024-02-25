@@ -1,20 +1,12 @@
 @extends('layouts.main')
 
 @section('content')
+<div class="card p-0 m-0 shadow border-0">
+    <div class="card-body">
+
+    </div>
+</div>
     <div class="content-wrapper">
-        <section class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('layananJasa.index') }}">Layanan Jasa</a></li>
-                            <li class="breadcrumb-item active">Create</li>
-                        </ol>
-                    </div>
-                </div>
-            </div><!-- /.container-fluid -->
-        </section>
         <section class="content">
             <div class="container col-md-12 col-xl-8">
                 <div class="card card-default color-palette-box shadow bg-white">
@@ -151,7 +143,7 @@
                     dataType: 'json',
                     processData: true,
                     headers: {
-                        'Authorization': `Bearer {{ $token }}`,
+                        'Authorization': `Bearer {{ generateToken() }}`,
                         'Content-Type': 'application/json'
                     },
                     data: {

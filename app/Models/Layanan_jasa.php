@@ -15,7 +15,7 @@ class Layanan_jasa extends Model
         'satuankerja_id',
         'user_id',
         'nama_layanan',
-        'jenis_layanan',
+        'biaya_layanan',
         'status',
         'name',
         'created_by'
@@ -23,7 +23,8 @@ class Layanan_jasa extends Model
 
     protected $hidden = [
         'id',
-        'user_id'
+        'user_id',
+        'satuankerja_id'
     ];
 
     protected $appends = [

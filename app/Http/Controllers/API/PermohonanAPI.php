@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use App\Models\Permohonan;
@@ -15,6 +16,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\DetailPermohonanController;
 
 use Auth;
+use DB;
 
 class PermohonanAPI extends Controller
 {
@@ -27,17 +29,93 @@ class PermohonanAPI extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function listPermohonan(Request $request)
     {
-        //
+        $limit = $request->has('limit') ? $request->limit : 10;
+        $page = $request->has('page') ? $request->page : 1;
+        $search = $request->has('search') ? $request->search : '';
+        $status = $request->has('status') ? $request->status : 1;
+
+        $query = Permohonan::with(['layananjasa', 'tbl_lhu', 'tbl_kip'])
+                    ->where('status', $status)
+                    ->where('created_by', Auth::user()->id)
+                    ->offset(($page - 1) * $limit)
+                    ->limit($limit)
+                    ->paginate($limit);
+        $arr = $query->toArray();
+        $this->pagination = Arr::except($arr, 'data');
+        return $this->output($query);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function addPermohonan(Request $request)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $layanan_id = $request->layanan_hash ? decryptor($request->layanan_hash) : false;
+            $desc_biaya = $request->desc_biaya ? $request->desc_biaya : false;
+            $biaya = $request->biaya ? unmask($request->biaya) : false;
+            $no_bapeten = $request->no_bapeten ? $request->no_bapeten : false;
+            $jenis_limbah = $request->jenis_limbah ? $request->jenis_limbah : false;
+            $sumber_radioaktif = $request->sumber_radioaktif ? $request->sumber_radioaktif : false;
+            $jumlah = $request->jumlah ? $request->jumlah : false;
+            $documents = $request->file('documents');
+
+            $dokumen_pendukung = "";
+            if($documents){
+                $arrMedia = array();
+                foreach ($documents as $key => $document) {
+                    $idMedia = $this->media->upload($document, 'permohonan');
+                    array_push($arrMedia, $idMedia);
+                }
+
+                $dokumen_pendukung = json_encode($arrMedia);
+            }
+            $data = array(
+                'layananjasa_id' => $layanan_id,
+                'jenis_layanan' => $desc_biaya,
+                'tarif' => $biaya,
+                'no_bapeten' => $no_bapeten,
+                'jenis_limbah' => $jenis_limbah,
+                'sumber_radioaktif' => $sumber_radioaktif,
+                'jumlah' => $jumlah,
+                'dokumen' => $dokumen_pendukung,
+                'status' => 1,
+                'flag' => 1,
+                'tag' => 'pengajuan',
+                'created_by' => Auth::user()->id
+            );
+
+            $permohonan = Permohonan::create($data);
+
+            // save to detail permohonan
+            if(isset($permohonan)){
+                // reset status detail to 99
+                $reset = Detail_permohonan::where('permohonan_id', $permohonan->id)->update(['status' => '99']);
+
+                Detail_permohonan::create(array(
+                    'permohonan_id' => $permohonan->id,
+                    'status' => 1,
+                    'flag' => 1,
+                    'created_by' => Auth::user()->id
+                ));
+            }
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil disimpan!'
+            ], 200);
+
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $ex->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -65,7 +143,7 @@ class PermohonanAPI extends Controller
         $detailPermohonan = Detail_permohonan::with('media')->where('permohonan_id', $idHash)->where('status', 1)->first();
         $dataPermohonan->detailPermohonan = $detailPermohonan;
 
-        return response()->json(['data' => $dataPermohonan], 200);
+        return $this->output($dataPermohonan);
     }
 
     /**
@@ -76,20 +154,42 @@ class PermohonanAPI extends Controller
         $idPermohonan = decryptor($idHash);
         $status = isset($request->status) ? $request->status : null;
         $tag = isset($request->tag) ? $request->tag : null;
+        $flag = isset($request->flag) ? $request->flag : null;
+        $jenis_limbah = isset($request->jenis_limbah) ? $request->jenis_limbah : null;
+        $sumber_radioaktif = isset($request->sumber_radioaktif) ? $request->sumber_radioaktif : null;
+        $jumlah = isset($request->jumlah) ? $request->jumlah : null;
+        $nomor_antrian = isset($request->nomor_antrian) ? $request->nomor_antrian : null;
+        $jadwal_id = isset($request->jadwal_id) ? decryptor($request->jadwal_id) : null;
+        $no_bapeten = isset($request->no_bapeten) ? $request->no_bapeten : null;
+        DB::beginTransaction();
+        try {
+            $permohonan = Permohonan::findOrFail($idPermohonan);
 
-        $permohonan = Permohonan::findOrFail($idPermohonan);
+            $status && $permohonan->status = $status;
+            $tag && $permohonan->tag = $tag;
+            $flag && $permohonan->flag = $flag;
+            $jenis_limbah && $permohonan->jenis_limbah = $jenis_limbah;
+            $sumber_radioaktif && $permohonan->sumber_radioaktif = $sumber_radioaktif;
+            $jumlah && $permohonan->jumlah = $jumlah;
+            $nomor_antrian && $permohonan->nomor_antrian = $nomor_antrian;
+            $jadwal_id && $permohonan->jadwal_id = $jadwal_id;
+            $no_bapeten && $permohonan->no_bapeten = $no_bapeten;
 
-        if($status){
-            $permohonan->status = $status;
+            $permohonan->update();
+
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil diupdate!'
+            ], 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $ex->getMessage()
+            ], 500);
         }
-
-        if($tag){
-            $permohonan->tag = $tag;
-        }
-
-        $permohonan->update();
-
-        return response()->json(['message' => 'Berhasil di update'], 200);
     }
 
     /**

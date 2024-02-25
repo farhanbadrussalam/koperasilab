@@ -25,7 +25,10 @@ class JadwalController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Penjadwalan',
+            'module' => 'jadwal',
+        ];
         return view('pages.jadwal.index', $data);
     }
 
@@ -72,7 +75,6 @@ class JadwalController extends Controller
                             </button>
                             ';
                     }
-
 
                     return '
                         <div class="card m-0 border-0">
@@ -227,11 +229,16 @@ class JadwalController extends Controller
     public function create()
     {
         $user = Auth::user();
+        $data = [
+            'title' => 'Create jadwal',
+            'module' => 'jadwal'
+        ];
+
         $data['layanan'] = Layanan_jasa::with('user','satuanKerja')->where('satuankerja_id', Auth::user()->satuankerja_id)
                                 ->where('status', 1)
                                 ->get();
         $data['petugas'] = User::where('satuankerja_id', $user->satuankerja_id)->role('staff')->get();
-        $data['token'] = generateToken();
+
         return view('pages.jadwal.create', $data);
     }
 

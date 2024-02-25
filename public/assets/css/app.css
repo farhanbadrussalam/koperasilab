@@ -1,0 +1,63 @@
+hr {
+    color: #d1d9dd;
+}
+
+.btn-grey {
+    background-color: #6C757D;
+    color: white;
+}
+
+.btn-outline-grey {
+    border-color: #6C757D;
+}
+
+.btn-grey:hover,
+.btn-outline-grey:hover {
+    background-color: #4e545b;
+    color: white;
+}
+
+.bg-red {
+    background-color: #d33;
+    color: white;
+}
+
+.cursoron {
+    cursor: pointer;
+}
+
+.text-grey {
+    color: #999999;
+}
+
+.bg-grey {
+    background-color: #999999;
+    color: white;
+}
+
+.bg-greylight {
+    background-color: #c1c1c1;
+    color: white;
+}
+
+.bg-grey.cursoron:hover,
+.bg-greylight.cursoron:hover {
+    background-color: #7e7d7d;
+}
+
+/* Text */
+.text-caption {
+    font-size: 10px;
+}
+
+.text-small {
+    font-size: 12px;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.medium {
+    font-weight: 500;
+}

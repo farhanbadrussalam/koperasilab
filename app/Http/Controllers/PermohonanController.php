@@ -28,7 +28,11 @@ class PermohonanController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Permohonan',
+            'module' => 'permohonan'
+        ];
+
         return view('pages.permohonan.index', $data);
     }
 
@@ -38,7 +42,7 @@ class PermohonanController extends Controller
         if(request()->has('status') && request('status')){
             $status = request('status');
         }
-        $informasi = Permohonan::with(['layananjasa', 'jadwal', 'tbl_lhu', 'tbl_kip'])
+        $informasi = Permohonan::with(['layananjasa', 'tbl_lhu', 'tbl_kip'])
                         ->where('status', '!=', 99)
                         ->where('created_by', $user->id)
                         ->where('status', $status);
@@ -75,9 +79,9 @@ class PermohonanController extends Controller
                     if($data->status == 1 || $data->status == 9){
                         $btn_list_action .= '
                             <li class="my-1 cursoron">
-                                <a class="dropdown-item dropdown-item-lab subbody text-warning" href="'.route("permohonan.edit", $data->permohonan_hash).'">
+                                <button class="dropdown-item dropdown-item-lab subbody text-warning" onclick="btnUpdate('.$idHash.')">
                                     <i class="bi bi-pencil-square"></i>&nbsp;Update
-                                </a>
+                                </button>
                             </li>
                         ';
                     }
@@ -124,26 +128,25 @@ class PermohonanController extends Controller
                     }
 
                     return '
-                    <div class="card m-0 border-0">
+                    <div class="row border m-0 rounded">
                         '.  $co_rebbon .'
-                        <div class="card-body d-flex flex-wrap p-3 align-items-center">
-                            <div class="col-md-6 col-sm-12 mb-sm-2">
+                        <div class="d-flex flex-wrap p-3 align-items-center">
+                            <div class="col-md-9 col-sm-12 mb-sm-2">
                                 <span class="fw-bold">'.$data->layananjasa->nama_layanan.'</span>
                                 <div class="text-body-secondary text-start">
-                                    <div>
-                                        <small><b>Start date</b> : '.convert_date($data->jadwal->date_mulai, 1).'</small>
-                                        <small><b>End date</b> : '.convert_date($data->jadwal->date_selesai, 1).'</small>
-                                    </div>
                                     <small><b>Created</b> : '.convert_date($data->created_at, 1).'</small>
+                                    <div>
+                                        <span class="badge text-bg-secondary">'.$data->jenis_layanan.'</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-2 col-sm-5 h5">
-                                <span class="badge text-bg-secondary">'.$data->jenis_layanan.'</span>
+                            <div class="col-md-2 align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div><div class="me-1 dot bg-primary"></div></div>
+                                    <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
+                                </div>
                             </div>
-                            <div class="col-md-2 col-sm-5 h5">
-                                <span class="badge text-bg-info">Antrian '.$data->nomor_antrian.'</span>
-                            </div>
-                            <div class="col-md-2 col-sm-2">
+                            <div class="col-md-1 text-end">
                                 '.$btn_action.'
                             </div>
                             '. $co_reason .'
@@ -233,8 +236,12 @@ class PermohonanController extends Controller
      */
     public function create()
     {
-        $data['token'] = generateToken();
-        $data['layanan'] = Layanan_jasa::where('status', '!=', '99')->get();
+        $data = [
+            'title' => 'Create permohonan',
+            'module' => 'permohonan',
+            'layanan' => Layanan_jasa::where('status', '!=', '99')->get()
+        ];
+
         return view('pages.permohonan.create', $data);
     }
 

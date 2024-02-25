@@ -1,78 +1,81 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="hold-transition login-page">
-        <div class="login-box">
-            <!-- /.login-logo -->
-            <div class="card shadow">
-                <div class="card-header text-center">
-                    <span class="h1"><b>NuklindoLab </b>Koperasi JKRL</span>
-                </div>
-                <div class="card-body">
-                    <p class="login-box-msg">Sign in to start your session</p>
-
-                    <form action="{{ route('login') }}" method="post">
-                        @csrf
-                        <div class="input-group mb-3">
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" name="email"
-                                id="email" placeholder="Email" value="{{ old('email') }}" autofocus>
-                            <div class="input-group-append">
-                                <div class="input-group-text">
-                                    <i class="bi bi-envelope"></i>
-                                </div>
-                            </div>
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="input-group mb-3">
-                            <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                name="password" id="password" placeholder="Password" value="{{ old('password') }}">
-                            <div class="input-group-append">
-                                <div class="input-group-text">
-                                    <i class="bi bi-lock-fill"></i>
-                                </div>
-                            </div>
-                            @error('password')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="form-group">
-                            {!! NoCaptcha::renderJs() !!}
-                            {!! NoCaptcha::display() !!}
-                            @if ($errors->has('g-recaptcha-response'))
-                                <span class="help-block text-danger">
-                                    <strong>{{ $errors->first('g-recaptcha-response') }}</strong>
-                                </span>
-                            @endif
-                        </div>
-                        <div class="row">
-
-                            <!-- /.col -->
-                            <div class="col">
-                                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-                            </div>
-                            <!-- /.col -->
-                        </div>
-                    </form>
-
-                    <div class="social-auth-links text-center mt-2 mb-3">
-                        <a href="{{ route('google.redirect') }}" class="btn btn-block btn-danger">
-                            <i class="bi bi-google"></i> Sign in using Google
-                        </a>
-                    </div>
-                    <!-- /.social-auth-links -->
-
-                    <!-- <p class="mb-1">
-                <a href="{{ route('password.request') }}">I forgot my password</a>
-              </p> -->
-                    <p class="mb-0">
-                        <a href="{{ route('register') }}" class="text-center">Register a new akun</a>
-                    </p>
-                </div>
-                <!-- /.card-body -->
-            </div>
-            <!-- /.card -->
+<div class="container-fluid row">
+    <div class="d-none d-md-flex col-md-6 col-lg-7 px-0">
+        <div class="w-100 h-100 ms-5">
+            <img class="w-100 vh-100" src="{{ asset('/images/backgrounds/background_login.svg') }}" alt="" style="object-fit: contain" />
         </div>
     </div>
+    <div class="col-md-6 col-lg-5">
+        <div style="height: 100vh" class="d-flex flex-column">
+            <div class="d-flex justify-content-center align-items-center flex-fill">
+                <div class="text-center">
+                    <h4 class="mt-2"><b>NuklindoLab</b> Koperasi JKRL</h4>
+                    <div class="text-grey">You need to be logged in to access</div>
+                    <form action="{{ route('login') }}" method="post">
+                        @csrf
+                        <div class="mb-3 mt-4 text-start" style="width: 360px">
+                            <label for="input_nik" class="form-label text-main body-medium">NIK</label>
+                            <div class="input-group mb-1" style="border-radius: 20px">
+                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <input
+                                    type="text"
+                                    class="form-control px-3 @error('email') is-invalid @enderror"
+                                    id="email"
+                                    name="email"
+                                    value="{{ old('email') }}"
+                                    placeholder="Email" autofocus />
+                                @error('email')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-4 text-start" style="width: 360px">
+                                <label for="input_password" class="form-label text-main body-medium">Password</label>
+                                <div class="input-group mb-2 mt-1" style="border-radius: 20px">
+                                    <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                        <i class="bi bi-lock-fill"></i>
+                                    </div>
+                                    <input
+                                        class="form-control form-control input-login @error('password') is-invalid @enderror"
+                                        id="input_password"
+                                        type="password"
+                                        name="password"
+                                        value="{{ old('password') }}"
+                                        placeholder="Enter your password" />
+                                    <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                        <i class="bi bi-eye"></i>
+                                    </div>
+                                    @error('password')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                {!! NoCaptcha::renderJs() !!}
+                                {!! NoCaptcha::display() !!}
+                                @if ($errors->has('g-recaptcha-response'))
+                                    <span class="help-block text-danger">
+                                        <strong>{{ $errors->first('g-recaptcha-response') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
+                            <button class="btn btn-primary" style="width: 360px;" type="submit">Login</button>
+                            <div class="social-auth-links text-center mt-2 mb-3">
+                                <a href="{{ route('google.redirect') }}" class="btn btn-block btn-danger">
+                                    <i class="bi bi-google"></i> Sign in using Google
+                                </a>
+                            </div>
+                            <div class="text-center">
+                                <a href="{{ route('register') }}" class="text-center">Register a new akun</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            <div>
+        </div>
+    </div>
+</div>
 @endsection

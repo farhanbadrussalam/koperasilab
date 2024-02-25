@@ -3,9 +3,7 @@
       <div class="modal-content">
         <div class="modal-header border-0">
           <h4 class="modal-title">Create Petugas</h4>
-          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form action="{{ route('petugasLayanan.store') }}" method="post">
             @csrf

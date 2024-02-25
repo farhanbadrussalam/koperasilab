@@ -24,7 +24,10 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Home',
+            'module' => 'home'
+        ];
         if(Auth::user()->hasRole('pelanggan')){
             return redirect('userProfile', $data);
         }else{
@@ -35,10 +38,13 @@ class HomeController extends Controller
     public function login()
     {
         if(Auth::check()){
-            $data['token'] = generateToken();
+            $data = [
+                'title' => 'layanan jasa'
+            ];
             if(Auth::user()->hasRole('pelanggan')){
                 return redirect('userProfile', $data);
             }else{
+                $data['module'] = 'home';
                 return view('home', $data);
             }
         }else{

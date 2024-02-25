@@ -16,8 +16,8 @@
     <link rel="stylesheet" href="{{ asset('assets/font/allFont.css') }}">
 
     <!-- Theme adminLTE -->
-    <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">
-
+    <link rel="stylesheet" href="{{ asset('assets/css/styles.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
 
     {{-- Plugin --}}
@@ -33,48 +33,56 @@
     <!-- Scripts -->
     {{-- <link rel="stylesheet" href="{{ asset('assets/bootstrap/dist/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/bootstrap-icons/font/bootstrap-icons.min.css') }}"> --}}
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-</head>
-
-<body class="hold-transition sidebar-mini layout-fixed">
-    <div>
-        <input type="hidden" name="bearer" id="bearer-token" value="{{ $token }}">
-        <input type="hidden" name="csrf" id="csrf-token" value="{{ csrf_token() }}">
-        <input type="hidden" id="base_url" value="{{ url('') }}">
-    </div>
-    <div class="wrapper">
-        <!-- Navbar -->
-        @include('layouts.navbar')
-        <!-- /.navbar -->
-
-        <!-- Main Sidebar Container -->
-        @include('layouts.sidebar')
-
-
-        <main>
-            @yield('content')
-        </main>
-
-        @include('layouts.footer')
-    </div>
-
     {{-- <script src="{{ asset('assets/bootstrap/dist/js/bootstrap.min.js') }}"></script> --}}
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
     <script src="{{ asset('assets/js/global.js') }}" ></script>
-    <script src="{{ asset('assets/js/adminlte.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('assets/toast/toastr.min.js') }}"></script>
     <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('assets/dropify/js/dropify.js') }}"></script>
+    <script src="{{ asset('assets/js/app.min.js') }}"></script>
     <script src="{{ asset('vendor/select2/js/select2.full.js') }}"></script>
     <script src="{{ asset('vendor/flatpickr/flatpickr.min.js') }}"></script>
+    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+</head>
+
+<body>
+    <input type="hidden" name="bearer" id="bearer-token" value="{{ generateToken() }}">
+    <input type="hidden" name="csrf" id="csrf-token" value="{{ csrf_token() }}">
+    <input type="hidden" id="base_url" value="{{ url('') }}">
+    <input type="hidden" id="role" value="{{ Auth::user()->getRoleNames()[0] }}">
+
+    <!--  Body Wrapper -->
+    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
+        <!-- Main Sidebar Container -->
+        @include('layouts.sidebar')
+
+        <!--  Main wrapper -->
+        <div class="body-wrapper">
+            <header class="app-header">
+                <!-- Navbar -->
+                @include('layouts.navbar')
+
+            </header>
+
+            <div class="container-fluid">
+                @yield('content')
+            </div>
+        </div>
+
+
+        <!-- @include('layouts.footer') -->
+    </div>
+
+
     @stack('scripts')
 
     <script>
+
         @if (session('success'))
             toastr.success('{{ session('success') }}');
         @elseif (session('error'))
@@ -94,6 +102,19 @@
                 );
                 loadNotifikasi();
             })
+
+            $('[data-bs-toggle="tooltip"]').attr('data-bs-placement', 'bottom')
+            $('[data-bs-toggle="tooltip"]').tooltip()
+
+            $("#collapseManagement").on('show.bs.collapse', function () {
+                $('#icon_collapse').addClass('bi-chevron-up');
+                $('#icon_collapse').removeClass('bi-chevron-down');
+            });
+
+            $("#collapseManagement").on('hide.bs.collapse', function () {
+                $('#icon_collapse').addClass('bi-chevron-down');
+                $('#icon_collapse').removeClass('bi-chevron-up');
+            });
         })
 
         function loadNotifikasi() {
@@ -103,7 +124,7 @@
                 method: 'GET',
                 processData: true,
                 headers: {
-                    'Authorization' : `Bearer {{ $token }}`,
+                    'Authorization' : `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 },
             }).done((result) => {
@@ -158,7 +179,7 @@
                     status: 2
                 },
                 headers: {
-                    'Authorization' : `Bearer {{ $token }}`,
+                    'Authorization' : `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 },
             }).done(result => {

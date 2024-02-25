@@ -1,219 +1,225 @@
-<aside class="main-sidebar main-sidebar-custom sidebar-light-primary elevation-4">
-    <!-- Brand Logo -->
-    <a href="{{ route('home') }}" class="brand-link link-offset-2 link-underline link-underline-opacity-0 text-dark"
-        style="background-color: #f1f1f1;">
-        <!-- <img src="../../dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8"> -->
-        <span class="brand-text font-weight-light fs-5">NuklindoLab Koperasi JKRL</span>
-    </a>
+<aside class="left-sidebar">
+    <!-- Sidebar scroll-->
+    <div>
+        <div class="brand-logo d-flex align-items-center justify-content-between">
+            <a href="<?= url('/') ?>" class="text-nowrap logo-img">
+                <span class="brand-text font-weight-light fs-5">Koperasi JKRL</span>
+            </a>
+            <div class="close-btn d-xl-none d-block sidebartoggler cursor-pointer" id="sidebarCollapse">
+                <i class="bi bi-x fs-8"></i>
+            </div>
+        </div>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <!-- Sidebar Menu -->
-        <nav class="mt-2">
-            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
-                data-accordion="false">
-                @can('Home')
-                    <li class="nav-item">
-                        <a href="{{ route('home') }}" class="nav-link {{ Request::is('home*') ? 'active' : '' }}">
+        <!-- Sidebar navigation-->
+        <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+            <ul id="sidebarnav" class="p-0">
+                <!-- MAIN MENU -->
+                <li class="nav-small-cap">
+                    <i class="bi bi-list nav-small-cap-icon fs-4"></i>
+                    <span class="hide-menu">Main</span>
+                </li>
+
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'home' ? 'active' : '' }}"
+                        href="{{ route('home') }}" aria-expanded="false">
+                        <span>
                             <i class="bi bi-person-badge-fill"></i>
-                            <p>
-                                Home
-                            </p>
-                        </a>
-                    </li>
-                @endcan
+                        </span>
+                        <span class="hide-menu">Dashboard</span>
+                    </a>
+                </li>
 
                 @can('Biodata.pribadi')
-                    <li class="nav-item">
-                        <a href="{{ route('userProfile.index') }}"
-                            class="nav-link {{ Request::is('userProfile*') ? 'active' : '' }}">
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'biodata-pribadi' ? 'active' : '' }}"
+                        href="{{ route('userProfile.index') }}" aria-expanded="false">
+                        <span>
                             <i class="bi bi-person-fill"></i>
-                            <p>
-                                Profile
-                            </p>
-                        </a>
-                    </li>
-                @endcan
-
-                @can('Biodata.perusahaan')
-                    <li class="nav-item">
-                        <a href="{{ route('userPerusahaan.index') }}"
-                            class="nav-link {{ Request::is('userPerusahaan*') ? 'active' : '' }}">
-                            <i class="bi bi-building-fill"></i>
-                            <p>
-                                Profile Perusahaan
-                            </p>
-                        </a>
-                    </li>
+                        </span>
+                        <span class="hide-menu">Profile</span>
+                    </a>
+                </li>
                 @endcan
 
                 @can('Layananjasa')
-                    <li class="nav-item">
-                        <a href="{{ route('layananJasa.index') }}"
-                            class="nav-link {{ Request::is('layananJasa*') ? 'active' : '' }}">
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'Layananjasa' ? 'active' : '' }}"
+                        href="{{ route('layananJasa.index') }}" aria-expanded="false">
+                        <span>
                             <i class="bi bi-briefcase-fill"></i>
-                            <p>
-                                Layanan Jasa
-                            </p>
-                        </a>
-                    </li>
+                        </span>
+                        <span class="hide-menu">Layanan Jasa</span>
+                    </a>
+                </li>
                 @endcan
 
                 @can('Penjadwalan')
-                <li class="nav-item">
-                    <a href="{{ route('jadwal.index') }}"
-                        class="nav-link {{ Request::is('jadwal*') ? 'active' : '' }}">
-                        <i class="bi bi-calendar2-event-fill"></i>
-                        <p>
-                            Penjadwalan
-                        </p>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'jadwal' ? 'active' : '' }}"
+                        href="{{ route('jadwal.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi-calendar2-event-fill"></i>
+                        </span>
+                        <span class="hide-menu">Penjadwalan</span>
                     </a>
                 </li>
                 @endcan
 
                 @can('Permohonan')
-                <li class="nav-item">
-                    <a href="{{ route('permohonan.index') }}"
-                        class="nav-link {{ Request::is('permohonan*') ? 'active' : '' }}">
-                        <i class="bi bi-box-seam-fill"></i>
-                        <p>
-                            Permohonan Layanan
-                        </p>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'Layananjasa' ? 'active' : '' }}"
+                        href="{{ route('layananJasa.listLayanan') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi- bi-briefcase-fill"></i>
+                        </span>
+                        <span class="hide-menu">Layanan jasa</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'permohonan' ? 'active' : '' }}"
+                        href="{{ route('permohonan.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi- bi-box-seam-fill"></i>
+                        </span>
+                        <span class="hide-menu">Permohonan Layanan</span>
                     </a>
                 </li>
                 @endcan
 
                 @can('Petugas')
-                    <li class="nav-item">
-                        <a href="{{ route('petugasLayanan.index') }}"
-                            class="nav-link {{ Request::is('petugasLayanan*') ? 'active' : '' }}">
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'petugas' ? 'active' : '' }}"
+                        href="{{ route('petugasLayanan.index') }}" aria-expanded="false">
+                        <span>
                             <i class="bi bi-postcard-fill"></i>
-                            <p>
-                                Petugas Layanan
-                            </p>
-                        </a>
-                    </li>
-                @endcan
-
-                @can('User.management')
-                    <li class="nav-header">USER MANAGEMENT</li>
-                    <li class="nav-item">
-                        <a href="{{ route('permission.index') }}" class="nav-link {{ Request::is('permission*') ? 'active' : '' }}">
-                            <i class="bi bi-person-fill-slash fs-4"></i>
-                            <p>
-                                Permission
-                            </p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('roles.index') }}" class="nav-link {{ Request::is('roles*') ? 'active' : '' }}">
-                            <i class="bi bi-person-fill-lock fs-4"></i>
-                            <p>
-                                Roles
-                            </p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('users.index') }}" class="nav-link {{ Request::is('users*') ? 'active' : '' }}">
-                            <i class="nav-icon bi bi-people-fill"></i>
-                            <p>
-                                Users
-                            </p>
-                        </a>
-                    </li>
+                        </span>
+                        <span class="hide-menu">Petugas Layanan</span>
+                    </a>
+                </li>
                 @endcan
 
                 @can('Keuangan')
-                    <li class="nav-item">
-                        <a href="{{ route('keuangan.index') }}"
-                            class="nav-link {{ Request::is('keuangan*') ? 'active' : '' }}">
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'keuangan' ? 'active' : '' }}"
+                        href="{{ route('keuangan.index') }}" aria-expanded="false">
+                        <span>
                             <i class="bi bi-postcard-fill"></i>
-                            <p>
-                                Keuangan
-                            </p>
-                        </a>
-                    </li>
+                        </span>
+                        <span class="hide-menu">Keuangan</span>
+                    </a>
+                </li>
                 @endcan
 
                 @can('lhukip')
-                <li class="nav-item">
-                    <a href="{{ route('manager.lhukip.index') }}"
-                        class="nav-link {{ Request::is('manager*') ? 'active' : '' }}">
-                        <i class="bi bi-box-seam-fill"></i>
-                        <p>
-                            LHU / KIP
-                        </p>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'lhukip' ? 'active' : '' }}"
+                        href="{{ route('manager.lhukip.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi-box-seam-fill"></i>
+                        </span>
+                        <span class="hide-menu">LHU / KIP</span>
                     </a>
                 </li>
                 @endcan
-
-                @if(auth()->user()->can('Management.Lab') || auth()->user()->can('Management.Otorisasi'))
-                <li class="nav-header">SERVICE USER MANAGEMENT</li>
-                @can('Management.Lab')
-                <li class="nav-item">
-                    <a href="{{ route('lab.index') }}" class="nav-link {{ Request::is('lab*') ? 'active' : '' }}">
-                        <i class="bi bi-person-workspace fs-4"></i>
-                        <p>
-                            Lab
-                        </p>
-                    </a>
-                </li>
-                @endcan
-                @can('Management.Otorisasi')
-                <li class="nav-item">
-                    <a href="{{ route('otorisasi.index') }}" class="nav-link {{ Request::is('otorisasi*') ? 'active' : '' }}">
-                        <i class="bi bi-person-gear fs-4"></i>
-                        <p>
-                            Otorisasi
-                        </p>
-                    </a>
-                </li>
-                @endcan
-                @endif
 
                 @if(auth()->user()->hasPermissionTo('Otorisasi-Front desk'))
-                <li class="nav-item">
-                    <a href="{{ route('jobs.frontdesk.index') }}" class="nav-link {{ Request::is('jobs*') ? 'active' : '' }}">
-                        <i class="bi bi-box-seam-fill"></i>
-                        <p>
-                            Front desk
-                        </p>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'frontdesk' ? 'active' : '' }}"
+                        href="{{ route('jobs.frontdesk.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi-box-seam-fill"></i>
+                        </span>
+                        <span class="hide-menu">Front desk</span>
                     </a>
                 </li>
                 @endif
 
                 @if(auth()->user()->hasPermissionTo('Otorisasi-Pelaksana kontrak'))
-                <li class="nav-item">
-                    <a href="{{ route('jobs.pelaksana.index') }}" class="nav-link {{ Request::is('jobs*') ? 'active' : '' }}">
-                        <i class="bi bi-box-seam-fill"></i>
-                        <p>
-                            Pelaksana kontrak
-                        </p>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'pelaksanakontrak' ? 'active' : '' }}"
+                        href="{{ route('jobs.pelaksana.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi-box-seam-fill"></i>
+                        </span>
+                        <span class="hide-menu">Pelaksana kontrak</span>
                     </a>
                 </li>
                 @endif
 
                 @if(auth()->user()->hasPermissionTo('Otorisasi-Penyelia LAB'))
-                <li class="nav-item">
-                    <a href="{{ route('jobs.penyelia.index') }}" class="nav-link {{ Request::is('jobs*') ? 'active' : '' }}">
-                        <i class="bi bi-box-seam-fill"></i>
-                        <p>
-                            Penyelia LAB
-                        </p>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'penyelialab' ? 'active' : '' }}"
+                        href="{{ route('jobs.penyelia.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi-box-seam-fill"></i>
+                        </span>
+                        <span class="hide-menu">Penyelia LAB</span>
                     </a>
                 </li>
                 @endif
 
                 @if(auth()->user()->hasPermissionTo('Otorisasi-Pelaksana LAB'))
-                <li class="nav-item">
-                    <a href="{{ route('jobs.pelaksanaLab.index') }}" class="nav-link {{ Request::is('jobs*') ? 'active' : '' }}">
-                        <i class="bi bi-box-seam-fill"></i>
-                        <p>
-                            Pelaksana LAB
-                        </p>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'pelaksanalab' ? 'active' : '' }}"
+                        href="{{ route('jobs.pelaksanaLab.index') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi-box-seam-fill"></i>
+                        </span>
+                        <span class="hide-menu">Pelaksana LAB</span>
                     </a>
                 </li>
                 @endif
+                <!-- END MAIN MENU -->
+
+                @can('User.management')
+                <!-- MANAGEMENT MENU -->
+                <li class="nav-small-cap cursoron" data-bs-toggle="collapse" data-bs-target="#collapseManagement" aria-expanded="false" aria-controls="collapseManagement">
+                    <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="hide-menu">Management</span>
+                        <i id="icon_collapse" class="bi {{ $title == 'Management' ? 'bi-chevron-up' : 'bi-chevron-down' }}"></i>
+                    </div>
+                </li>
+                <div class="collapse {{ $title == 'Management' ? 'show' : '' }}" id="collapseManagement">
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'permission' ? 'active' : '' }}"
+                            href="{{ route('permission.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="bi bi-circle"></i>
+                            </span>
+                            <span class="hide-menu">Permission</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'roles' ? 'active' : '' }}"
+                            href="{{ route('roles.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="bi bi-circle"></i>
+                            </span>
+                            <span class="hide-menu">Roles</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'users' ? 'active' : '' }}"
+                            href="{{ route('users.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="bi bi-circle"></i>
+                            </span>
+                            <span class="hide-menu">Users</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'lab' ? 'active' : '' }}"
+                            href="{{ route('lab.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="bi bi-circle"></i>
+                            </span>
+                            <span class="hide-menu">Lab</span>
+                        </a>
+                    </li>
+                </div>
+                <!-- END MANAGEMENT MENU -->
+                @endcan
             </ul>
         </nav>
     </div>
