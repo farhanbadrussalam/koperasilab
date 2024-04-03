@@ -2,6 +2,8 @@ const bearer = $('#bearer-token').val();
 const csrf = $('#csrf-token').val();
 const base_url = $('#base_url').val();
 const role = $('#role').val();
+const permission = JSON.parse($('#permission').val());
+const permissionInRole = JSON.parse($('#permissionInRole').val());
 
 function formatRupiah(angka) {
     // Mengubah angka menjadi format mata uang Rupiah
@@ -427,5 +429,6 @@ export {
     formatSelect2Staff, stringSplit, removeDropify,
     setDropify, formatBytes, iconDocument, createPaginationHTML,
     ajaxPost, unmask, ajaxDelete, ajaxGet,
-    bearer, csrf, base_url,role
+    bearer, csrf, base_url, role, permission,
+    permissionInRole
 };

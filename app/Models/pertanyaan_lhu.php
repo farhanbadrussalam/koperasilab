@@ -5,32 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Satuan_kerja extends Model
+class pertanyaan_lhu extends Model
 {
     use HasFactory;
 
-    protected $table = 'satuankerja';
-
+    protected $table = 'pertanyaan_lhu';
     protected $fillable = [
-        'name',
-        'alias'
+        'title',
+        'type'
     ];
-
     protected $hidden = [
         'id'
     ];
-
     protected $appends = [
-        'satuan_hash'
+        'pertanyaan_lhu_hash'
     ];
 
-    public function getSatuanHashAttribute()
+    public function getPertanyaanLhuHashAttribute()
     {
         return encryptor($this->id);
-    }
-
-    public function layananJasa()
-    {
-        return hasOne(Layanan_jasa::class);
     }
 }

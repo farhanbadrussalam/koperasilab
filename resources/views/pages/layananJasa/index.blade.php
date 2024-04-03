@@ -176,21 +176,4 @@
 @endsection
 @push('scripts')
 @vite(['resources/js/pages/layananjasa.js'])
-    <script>
-        function showJenis(obj) {
-            const arrJenis = $(obj).data('jenis');
-            let html = '';
-            for (const data of arrJenis) {
-                let tarif = formatRupiah(data.tarif)
-                html += `
-                    <div class="row mb-1">
-                        <span class="col-6">${data.jenis}</span>
-                        <span class="col-6">${tarif}</span>
-                    </div>
-                `;
-            }
-            $('#isi-jenislayanan').html(html);
-            $('#modalJenisLayanan').modal('show');
-        }
-    </script>
 @endpush

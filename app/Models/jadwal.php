@@ -15,8 +15,11 @@ class jadwal extends Model
         'layananjasa_id',
         'jenislayanan',
         'tarif',
+        'permohonan_id',
         'date_mulai',
         'date_selesai',
+        'ttd_1',
+        'ttd_1_by',
         'kuota',
         'dokumen',
         'status',
@@ -50,5 +53,17 @@ class jadwal extends Model
 
     public function media(){
         return $this->belongsTo(tbl_media::class, 'dokumen', 'id');
+    }
+
+    public function permohonan(){
+        return $this->belongsTo(Permohonan::class, 'permohonan_id', 'id');
+    }
+
+    public function signature_1(){
+        return $this->belongsTo(User::class, 'ttd_1_by', 'id');
+    }
+
+    public function tbl_lhu(){
+        return $this->belongsTo(tbl_lhu::class, 'id', 'id_jadwal');
     }
 }

@@ -68,7 +68,7 @@
                 processData: false,
                 contentType: false,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`
+                    'Authorization': `Bearer {{ generateToken() }}`
                 },
                 data: formData
             }).done(function(result) {
@@ -102,7 +102,7 @@
     //         serverSide: true,
     //         delay: 250,
     //         headers: {
-    //             'Authorization': `Bearer {{ $token }}`,
+    //             'Authorization': `Bearer {{ generateToken() }}`,
     //             'Content-Type': 'application/json'
     //         },
     //         data: function (params) {
@@ -137,7 +137,7 @@
     //         dataType: 'json',
     //         processData: true,
     //         headers: {
-    //             'Authorization': `Bearer {{ $token }}`,
+    //             'Authorization': `Bearer {{ generateToken() }}`,
     //             'Content-Type': 'application/json'
     //         },
     //         data: {

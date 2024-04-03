@@ -79,7 +79,7 @@
                 processing: true,
                 serverSide: true,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 }
             }).done(result => {
@@ -136,7 +136,7 @@
                 processing: true,
                 serverSide: true,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 }
             }).done(result => {

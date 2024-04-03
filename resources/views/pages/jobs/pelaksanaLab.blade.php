@@ -35,9 +35,10 @@
         </div>
     </section>
 </div>
-@include('pages.permohonan.confirm')
-@include('pages.jobs.createSurat')
-@include('pages.jobs.modalCreateLhu')
+@include('modal.detail_permohonan')
+@include('modal.create_lhu')
+{{-- @include('pages.jobs.createSurat') --}}
+{{-- @include('pages.jobs.modalCreateLhu') --}}
 @endsection
 @push('scripts')
 <script>
@@ -71,24 +72,8 @@
     })
 
     function createLHU(id){
-        $.ajax({
-            url: "{{ url('api/lhu/getDokumenLHU') }}/" + id,
-            method: "GET",
-            dataType: "json",
-            processing: true,
-            serverSide: true,
-            headers: {
-                'Authorization': `Bearer {{ $token }}`,
-                'Content-Type': 'application/json'
-            }
-        }).done(result => {
-            if(result.meta?.code == 200){
-                $('#idLhu').val(result.data.lhu_hash);
-                $('#create-lhu').modal('show');
-            }else{
-                console.error(result.meta?.message);
-            }
-        })
+        $('#idJadwal').val(id)
+        $('#create-lhu').modal('show');
     }
 </script>
 @endpush

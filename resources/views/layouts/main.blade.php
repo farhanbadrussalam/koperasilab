@@ -37,7 +37,6 @@
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
-    <script src="{{ asset('assets/js/global.js') }}" ></script>
     <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
     <script src="{{ asset('assets/toast/toastr.min.js') }}"></script>
     <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
@@ -54,7 +53,10 @@
     <input type="hidden" name="bearer" id="bearer-token" value="{{ generateToken() }}">
     <input type="hidden" name="csrf" id="csrf-token" value="{{ csrf_token() }}">
     <input type="hidden" id="base_url" value="{{ url('') }}">
+    <input type="hidden" id="userActive" value="{{ Auth::user() }}">
     <input type="hidden" id="role" value="{{ Auth::user()->getRoleNames()[0] }}">
+    <input type="hidden" id="permission" value="{{ Auth::user()->getDirectPermissions() }}">
+    <input type="hidden" id="permissionInRole" value="{{ Auth::user()->getPermissionsViaRoles() }}">
 
     <!--  Body Wrapper -->
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
@@ -81,8 +83,8 @@
 
     @stack('scripts')
 
+    <script src="{{ asset('assets/js/global.js') }}"></script>
     <script>
-
         @if (session('success'))
             toastr.success('{{ session('success') }}');
         @elseif (session('error'))

@@ -2,17 +2,6 @@
 
 @section('content')
     <div class="content-wrapper">
-        <section class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item active">Front desk</li>
-                        </ol>
-                    </div>
-                </div>
-            </div><!-- /.container-fluid -->
-        </section>
         <section class="content col-md-12">
             <div class="container">
                 <div class="card card-default color-palette-box shadow">
@@ -62,12 +51,13 @@
             </div>
         </section>
     </div>
-    @include('pages.permohonan.confirm')
+
+    @include('modal.detail_permohonan')
+    @include('modal.signature')
     @include('pages.jobs.modalDocument')
 @endsection
 @push('scripts')
     <script>
-        let idPermohonan = false;
         let dt_frontdesk = false;
         let dt_diteruskan = false;
         let dt_lhukip = false;
@@ -171,50 +161,19 @@
         })
 
         function btnConfirm(status){
-            $('#confirmModal').modal('hide');
-            window.statusConfirm = status;
+            $('#detail_permohonan').modal('hide');
 
-            if(status == 2){
-                let formData = new FormData();
-                formData.append('_token', '{{ csrf_token() }}');
-                formData.append('status', status);
-                formData.append('tag', 'baru');
-
-                Swal.fire({
-                    title: 'Are you sure ?',
-                    icon: true,
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes',
-                    cancelButtonText: 'No',
-                    customClass: {
-                        confirmButton: 'btn btn-outline-success mx-1',
-                        cancelButton: 'btn btn-outline-danger mx-1'
-                    },
-                    buttonsStyling: false,
-                    reverseButtons: true,
-                    width: '20em'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.ajax({
-                            url: "{{ url('api/permohonan/update') }}/" + idPermohonan,
-                            method: 'POST',
-                            dataType: 'json',
-                            processData: false,
-                            contentType: false,
-                            headers: {
-                                'Authorization': `Bearer {{ $token }}`
-                            },
-                            data: formData
-                        }).done(result => {
-                            reloadTable(1);
-                        })
-                    }
-                })
+            if(status){
+                $('#modal-signature').modal('show');
+                let idPermohonan = $('#idPermohonan').val();
+                let tmpArr = {
+                    'id_hash': idPermohonan,
+                    'url': '',
+                    'jenis': 'frontdesk'
+                };
+                $('#nameSignature').html(userActive.name)
+                $('#createSignature').attr('data-item', JSON.stringify(tmpArr));
             }else{
-                $('#txtStatusSurat').html('Surat jawaban permohonan');
-                $('#txtInfoConfirm').html('Tolak');
-                $('#statusVerif').val(9);
-
                 $('#noteModal').modal('show');
             }
         }
@@ -246,38 +205,34 @@
         }
 
         function sendConfirm(key) {
-            if (key == 1) {
+            if (key) {
                 let note = $('#inputNote').val();
-                let documenSurat = $('#uploadSurat')[0].files[0];
-                let status = $('#statusVerif').val();
+                let idPermohonan = $('#idPermohonan').val();
 
                 const formData = new FormData();
-                formData.append('_token', '{{ csrf_token() }}');
-                formData.append('note', note);
                 formData.append('id', idPermohonan);
-                formData.append('file', documenSurat);
-                formData.append('status', status);
+                formData.append('note', note);
+                formData.append('status', 9); // di tolak
 
-                $.ajax({
-                    url: "{{ url('api/permohonan/verifikasi_fd') }}",
-                    method: "POST",
-                    dataType: 'json',
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'Authorization': `Bearer {{ $token }}`
-                    },
-                    data: formData
-                }).done(result => {
+                ajaxPost('api/permohonan/verifikasi_fd', formData, result => {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Success',
-                        text: result.message
+                        text: 'success',
+                        timer: 1000,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        $('#noteModal').modal('hide');
+                        reloadTable(1);
                     });
-                    $('#noteModal').modal('hide');
-                    reloadTable(1);
-                }).fail(e => {
-                    console.error(e);
+                }, err => {
+                    Swal.fire({
+                        icon: 'error',
+                        text: 'Terjadi masalah !!',
+                        timer: 2000,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    })
                 })
             } else {
                 $('#noteModal').modal('hide');
@@ -287,7 +242,7 @@
         function confirmReturn(idHash){
             Swal.fire({
                 title: 'Permohonan dikembalikan ?',
-                icon: false,
+                icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Yes',
                 cancelButtonText: 'No',
@@ -299,39 +254,37 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const formData = new FormData();
-                    formData.append('_token', '{{ csrf_token() }}');
-                    formData.append('note', '');
-                    formData.append('id', idHash);
-                    formData.append('status', 9);
-                    formData.append('type', 'return');
-                    $.ajax({
-                        url: "{{ url('api/permohonan/verifikasi_fd') }}",
-                        method: "POST",
-                        dataType: 'json',
-                        processData: false,
-                        contentType: false,
-                        headers: {
-                            'Authorization': `Bearer {{ $token }}`
-                        },
-                        data: formData
-                    }).done(result => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: result.message
-                        });
-                        reloadTable(4);
-                    }).fail(e => {
-                        console.error(e);
+                    ajaxGet(`api/permohonan/show/${idHash}`, false, result => {
+                        const data = result.data;
+
+                        const formData = new FormData();
+                        formData.append('id', idHash);
+                        formData.append('note', data.progress?.note);
+                        formData.append('flag', 1);
+                        formData.append('ttd_1', false);
+                        formData.append('ttd_1_by', false);
+
+                        ajaxPost(`api/permohonan/update/${idHash}`, formData, result2 => {
+                            Swal.fire({
+                                icon: 'success',
+                                text: 'success',
+                                timer: 1000,
+                                timerProgressBar: true,
+                                showConfirmButton: false
+                            }).then(() => {
+                                $('#detail_permohonan').modal("hide");
+
+                                reloadTable(1);
+                                reloadTable(4);
+                            });
+                        })
+
                     })
+
+
                 }
             })
         }
 
-        setDropify('init', '#uploadSurat', {
-            allowedFileExtentions: ['pdf', 'doc', 'docx'],
-            maxFileSize: '5M'
-        });
     </script>
 @endpush

@@ -9,27 +9,27 @@ class Detail_permohonan extends Model
 {
     use HasFactory;
 
-    protected $table = "detail_permohonan";
+    protected $table = "permohonan_log";
 
     protected $fillable = [
         'permohonan_id',
         'status',
         'flag',
         'note',
-        'surat_terbitan',
+        'file',
         'created_by'
     ];
 
     protected $appends = [
-        'detail_permohonan_hash'
+        'permohonan_log_hash'
     ];
 
-    public function getDetailPermohonanHashAttribute()
+    public function getPermohonanLogHashAttribute()
     {
         return encryptor($this->id);
     }
 
     public function media(){
-        return $this->belongsTo(tbl_media::class, 'surat_terbitan', 'id');
+        return $this->belongsTo(tbl_media::class, 'file', 'id');
     }
 }

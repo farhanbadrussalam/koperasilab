@@ -1,3 +1,11 @@
+const bearer = $('#bearer-token').val();
+const csrf = $('#csrf-token').val();
+const userActive = JSON.parse($('#userActive').val());
+const base_url = $('#base_url').val();
+const role = $('#role').val();
+const permission = JSON.parse($('#permission').val());
+const permissionInRole = JSON.parse($('#permissionInRole').val());
+
 function formatRupiah(angka) {
     // Mengubah angka menjadi format mata uang Rupiah
     var format = new Intl.NumberFormat('id-ID', {
@@ -58,6 +66,12 @@ function dateFormat(tanggal, type = false) {
 
     let options = {};
 
+    let year = d.getFullYear();
+    let month = String(d.getMonth() + 1).padStart(2, '0'); // Menambahkan leading zero jika perlu
+    let day = String(d.getDate()).padStart(2, '0'); // Menambahkan leading zero jika perlu
+    let hour = String(d.getHours()).padStart(2, '0'); // Menambahkan leading zero jika perlu
+    let minute = String(d.getMinutes()).padStart(2, '0'); // Menambahkan leading zero jika perlu
+
     switch (type) {
         case 1:
             // 14 Okt 2023, 18:40
@@ -76,6 +90,10 @@ function dateFormat(tanggal, type = false) {
                 month: 'short',
                 year: 'numeric'
             };
+            break;
+        case 3:
+            // 2023-10-14 18:40
+            return `${year}-${month}-${day} ${hour}:${minute}`;
             break;
         default:
             // sabtu, 14 Okt 2023, 18:40
@@ -314,4 +332,140 @@ function formatSelect2Staff(state) {
     )
 
     return $content;
+}
+
+// Fungsi untuk membuat elemen pagination dari data pagination
+function createPaginationHTML(pagination) {
+    // Periksa apakah data pagination ada
+    if (!pagination) {
+        return '';
+    }
+
+    // Buat string HTML untuk pagination
+    let html = '<nav aria-label="Page navigation example"><ul class="pagination pagination-sm mb-0 d-flex align-items-center justify-content-end mt-4">';
+
+    // Tambahkan tombol First dan Previous
+    html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="1" onclick="fetchData(1)">First</a></li>`;
+    html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${pagination.current_page - 1}" aria-label="Previous">&laquo;</a></li>`;
+
+    // Tambahkan tombol-tombol halaman
+    for (let i = 1; i <= pagination.last_page; i++) {
+        html += `<li class="page-item ${i === pagination.current_page ? 'active' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${i}">${i}</a></li>`;
+    }
+
+    // Tambahkan tombol Next dan Last
+    html += `<li class="page-item ${pagination.current_page == pagination.last_page ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${pagination.current_page + 1}" aria-label="Next">&raquo;</a></li>`;
+    html += `<li class="page-item ${pagination.current_page == pagination.last_page ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${pagination.last_page}">Last</a></li>`;
+
+    // Tutup tag HTML
+    html += '</ul></nav>';
+
+    return html;
+}
+
+function unmask(data) {
+    const regMask = ['.', ',', '-'];
+    let unmaskedAmount = data;
+
+    // Loop through each character in the mask array and remove it from the data
+    regMask.forEach(maskChar => {
+        unmaskedAmount = unmaskedAmount.split(maskChar).join('');
+    });
+
+    return unmaskedAmount;
+}
+
+
+function ajaxPost(url, params, callback = () => {}, onError = () => {}) {
+    $.ajax({
+        url: `${base_url}/${url}`,
+        method: 'POST',
+        dataType: 'json',
+        processData: false,
+        contentType: false,
+        headers: {
+            'Authorization': `Bearer ${bearer}`
+        },
+        data: params
+    }).done(callback).fail(onError)
+}
+
+function ajaxGet(url, params, callback = () => {}, onError = () => {}) {
+    $.ajax({
+        method: 'GET',
+        url: `${base_url}/${url}`,
+        dataType: 'json',
+        processData: true,
+        headers: {
+            'Authorization': `Bearer ${bearer}`,
+            'Content-Type': 'application/json'
+        },
+        data: params
+    }).done(callback).fail(onError)
+}
+
+function ajaxDelete(url, callback = () => {}, onError = () => {}){
+    Swal.fire({
+        icon: 'warning',
+        title: 'Are you sure?',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'No, cancel!',
+        customClass: {
+            confirmButton: 'btn btn-outline-success mx-1',
+            cancelButton: 'btn btn-outline-danger mx-1'
+        },
+        buttonsStyling: false,
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `${base_url}/${url}`,
+                method: 'DELETE',
+                dataType: 'json',
+                processData: true,
+                headers: {
+                    'Authorization': `Bearer ${bearer}`,
+                    'Content-Type': 'application/json'
+                }
+            }).done(callback).fail(onError);
+        }
+    })
+}
+
+function printMedia(media, folder=false, option = {}){
+    const options = {
+        download: option.download == undefined ? true : option.download,
+        date: option.date == undefined ? true : option.date,
+        size:  option.size == undefined ? true : option.size
+    }
+
+    const dateContent = options.date ? `<span class="text-submain caption text-secondary">${dateFormat(media.created_at, 1)}</span>` : '';
+    const downloadContent = options.download ? `<button class="btn btn-sm btn-link" title="Download file"><i class="bi bi-download"></i></button>` : '';
+    const sizeContent = options.size ? `<small class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</small>` : '';
+
+    return `
+        <div
+            class="d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border">
+                <div class="d-flex align-items-center w-100">
+                    <div>
+                        <img class="my-3" src="${base_url}/icons/${iconDocument(media.file_type)}" alt=""
+                            style="width: 24px; height: 24px;">
+                    </div>
+                    <div class="flex-grow-1 ms-2">
+                        <div class="d-flex flex-column">
+                            <a class="caption text-main" href="${base_url}/storage/${folder ? folder : media.file_path}/${media.file_hash}" target="_blank">${media.file_ori}</a>
+                            ${dateContent}
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        ${sizeContent}
+                    </div>
+                    <div class="p-1">
+                        ${downloadContent}
+                    </div>
+                </div>
+            <div class="d-flex align-items-center"></div>
+        </div>
+        `;
 }

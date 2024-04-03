@@ -1,0 +1,82 @@
+Untuk menambahkan watermark ke PDF yang dihasilkan menggunakan DOMPDF di Laravel, Anda dapat mengikuti langkah-langkah berikut:
+
+1. **Install DOMPDF:**
+
+   Pastikan Anda sudah menginstal DOMPDF di Laravel. Jika belum, Anda dapat menambahkannya menggunakan Composer:
+
+   ```bash
+   composer require barryvdh/laravel-dompdf
+   ```
+
+   Ikuti petunjuk yang disediakan oleh paket [barryvdh/laravel-dompdf](https://github.com/barryvdh/laravel-dompdf) untuk menyelesaikan konfigurasi.
+
+2. **Buat Middleware untuk Watermark:**
+
+   Buat middleware untuk menambahkan watermark ke PDF. Buat file middleware dengan menggunakan perintah artisan:
+
+   ```bash
+   php artisan make:middleware AddWatermark
+   ```
+
+   Kemudian, buka file middleware yang baru dibuat di `app/Http/Middleware/AddWatermark.php` dan tambahkan kode berikut:
+
+   ```php
+   <?php
+
+   namespace App\Http\Middleware;
+
+   use Closure;
+   use Barryvdh\DomPDF\Facade as PDF;
+
+   class AddWatermark
+   {
+       public function handle($request, Closure $next)
+       {
+           $response = $next($request);
+
+           if ($response->headers->get('content-type') === 'application/pdf') {
+               $pdf = PDF::loadHTML($response->getContent());
+
+               // Tambahkan watermark ke PDF
+               $pdf->getDomPDF()->getCanvas()->page_script(function ($pageNumber, $canvas, $fontMetrics) {
+                   $canvas->text(50, 500, 'Your Watermark Here', 20, ['color' => '#808080']);
+               });
+
+               $response->setContent($pdf->output());
+           }
+
+           return $response;
+       }
+   }
+   ```
+
+3. **Daftarkan Middleware:**
+
+   Daftarkan middleware yang baru saja Anda buat di `app/Http/Kernel.php`:
+
+   ```php
+   protected $middlewareGroups = [
+       'web' => [
+           // ...
+           \App\Http\Middleware\AddWatermark::class,
+       ],
+   ];
+   ```
+
+   Anda dapat menyesuaikan grup middleware sesuai kebutuhan Anda.
+
+4. **Gunakan Middleware:**
+
+   Gunakan middleware ini di rute atau grup rute yang sesuai di dalam file `routes/web.php` atau `routes/api.php`:
+
+   ```php
+   Route::get('/generate-pdf', 'YourController@generatePDF')->middleware('web');
+   ```
+
+   Pastikan bahwa rute Anda menghasilkan response berupa PDF.
+
+5. **Uji Watermark:**
+
+   Buka browser dan akses URL `/generate-pdf`. Ini akan menghasilkan dan mengunduh PDF dengan watermark.
+
+Pastikan untuk mengganti teks dan propertinya sesuai dengan kebutuhan Anda dalam metode `page_script` di middleware. Anda dapat menyesuaikan posisi, ukuran, warna, dan gaya watermark sesuai keinginan Anda.

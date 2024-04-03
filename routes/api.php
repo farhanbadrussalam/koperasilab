@@ -41,6 +41,9 @@ Route::middleware('auth:sanctum')->group(function() {
     Route::get('/getNotifikasi', [NotifikasiController::class, 'getNotifikasi']);
     Route::get('/setNotifikasi', [NotifikasiController::class, 'setNotifikasi']);
 
+    Route::prefix("jadwal")->controller(jadwalAPI::class)->group(function() {
+        Route::post('/addJadwal', 'store');
+    });
 
     Route::resource('jadwal_api', JadwalAPI::class);
     Route::get('/getJadwal', [JadwalAPI::class, 'getJadwal']);
@@ -89,6 +92,7 @@ Route::middleware('auth:sanctum')->group(function() {
         Route::post('/validasiLHU', [LhuAPI::class, 'validasiLHU']);
         Route::post('/validasiKIP', [LhuAPI::class, 'validasiKIP']);
         Route::post('/sendToPelanggan', [LhuAPI::class, 'sendToPelanggan']);
+        Route::get('/getPertanyaan', [LhuAPI::class, 'ambilPertanyaanLhu']);
     });
 
     Route::prefix('kip')->group(function(){

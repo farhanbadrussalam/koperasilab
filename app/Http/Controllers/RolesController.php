@@ -14,8 +14,12 @@ class RolesController extends Controller
      */
     public function index()
     {
-        $data['permissions'] = Permission::orderBy('name', 'ASC')->get();
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Management',
+            'module' => 'role',
+            'permissions' => Permission::orderBy('name', 'ASC')->get()
+        ];
+
         return view('pages.roles.index', $data);
     }
 

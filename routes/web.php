@@ -20,6 +20,10 @@ use App\Http\Controllers\JobsController;
 use App\Http\Controllers\PelaksanaKontrakController;
 use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\ManagerController;
+
+use App\Http\Controllers\Report\SuratTugas;
+use App\Http\Controllers\Report\Kwitansi;
+
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -107,6 +111,11 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);
 
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
+
+    Route::prefix('laporan')->group(function() {
+        Route::get('/suratTugas/{id}', [SuratTugas::class, 'index'])->name('laporan.suratTugas');
+        Route::get('/kwitansi/{id}', [Kwitansi::class, 'index'])->name('laporan.kwitansi');
+    });
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');

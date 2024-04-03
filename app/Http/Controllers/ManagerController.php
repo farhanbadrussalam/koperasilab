@@ -12,7 +12,11 @@ class ManagerController extends Controller
 {
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'LHU & KIP',
+            'module' => 'lhukip'
+        ];
+
         return view('pages.manager.lhu-kip', $data);
     }
 

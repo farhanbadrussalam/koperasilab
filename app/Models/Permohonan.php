@@ -27,6 +27,10 @@ class Permohonan extends Model
         'tag',
         'nomor_antrian',
         'surat_tugas',
+        'ttd_1',
+        'ttd_1_by',
+        'ttd_2',
+        'ttd_2_by',
         'created_by'
     ];
 
@@ -45,7 +49,7 @@ class Permohonan extends Model
     }
 
     public function getProgressAttribute(){
-        return Detail_permohonan::where('permohonan_id', $this->id)->where('status', 1)->first();
+        return Detail_permohonan::where('permohonan_id', $this->id)->orderBy('created_at', 'DESC')->first();
     }
 
     public function layananjasa(){
@@ -53,7 +57,7 @@ class Permohonan extends Model
     }
 
     public function jadwal(){
-        return $this->belongsTo(jadwal::class);
+        return $this->belongsTo(jadwal::class, 'permohonan_id', 'id');
     }
 
     public function user(){
@@ -69,7 +73,14 @@ class Permohonan extends Model
     }
 
     public function tbl_kip(){
-        return $this->belongsTo(tbl_kip::class, 'no_kontrak', 'no_kontrak');
+        return $this->belongsTo(tbl_kip::class, 'id', 'id_permohonan');
+    }
+
+    public function signature_1(){
+        return $this->belongsTo(User::class, 'ttd_1_by', 'id');
+    }
+    public function signature_2(){
+        return $this->belongsTo(User::class, 'ttd_2_by', 'id');
     }
 
 }

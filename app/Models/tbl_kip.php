@@ -11,6 +11,7 @@ class tbl_kip extends Model
 
     protected $table = 'tbl_kip';
     protected $fillable = [
+        'id_permohonan',
         'no_kontrak',
         'no_invoice',
         'harga',

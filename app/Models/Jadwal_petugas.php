@@ -14,13 +14,15 @@ class Jadwal_petugas extends Model
     protected $fillable = [
         'jadwal_id',
         'petugas_id',
+        'jobs',
         'status'
     ];
 
     protected $hidden = [
         'id',
         'jadwal_id',
-        'petugas_id'
+        'petugas_id',
+        'jobs'
     ];
 
     protected $appends = [
@@ -36,10 +38,10 @@ class Jadwal_petugas extends Model
         return encryptor($this->id);
     }
 
-    public function getAvatarAttribute()
-    {
-        return getAvatar(encryptor($this->petugas_id));
-    }
+    // public function getAvatarAttribute()
+    // {
+    //     return getAvatar(encryptor($this->petugas_id));
+    // }
 
     public function petugas(){
         return $this->belongsTo(User::class, 'petugas_id', 'id');

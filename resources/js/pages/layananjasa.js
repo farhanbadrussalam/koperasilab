@@ -1,9 +1,3 @@
-import {
-    base_url, formatRupiah, createPaginationHTML,
-    maskReload, formatSelect2Staff, ajaxPost, unmask, ajaxDelete,
-    ajaxGet, role
-} from "../global";
-
 document.addEventListener('DOMContentLoaded', function () {
     // Initialisasi
     const inputBiayaLayanan = document.getElementById('contentBiayaLayanan');
@@ -273,7 +267,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function btnUpdate(id) {
         ajaxGet(`api/layananjasa/getLayanan/${id}`, false, result => {
-            console.log(result)
             const data = result.data
             const biayaLayanan = JSON.parse(data.biaya_layanan)
             idLayanan = id

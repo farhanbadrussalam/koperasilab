@@ -95,7 +95,7 @@
                 processing: true,
                 serverSide: true,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer ${bearer}`,
                     'Content-Type': 'application/json'
                 }
             }).done(result => {
@@ -192,7 +192,7 @@
                         processData: false,
                         contentType: false,
                         headers: {
-                            'Authorization': `Bearer {{ $token }}`
+                            'Authorization': `Bearer ${bearer}`
                         },
                         data: formData
                     }).done(result => {

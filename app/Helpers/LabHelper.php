@@ -114,7 +114,7 @@ if(!function_exists('statusFormat')){
                     ';
                     break;
             }
-        }else if($feature == 'permohonan'){
+        }else if($feature == 'permohonan' || $feature == 'frontdesk'){
             switch ($status) {
                 case 1:
                     $htmlStatus = '
@@ -220,7 +220,7 @@ if (!function_exists('encryptor')) {
     $iv       = substr($sub, 0, 16);
     $result   = openssl_encrypt($value, "AES-256-CBC", $sub, 0, $iv);
     $dictionary = array('=', '/', '+');
-    $change   = array('', ':', '-');
+    $change   = array('', '_', '-');
     $result   = str_replace($dictionary, $change, $result);
     return $result;
   }
@@ -229,7 +229,7 @@ if (!function_exists('decryptor')) {
     function decryptor($value)
     {
         $dictionary = array('=', '/', '+');
-        $change     = array('.', ':', '-');
+        $change     = array('.', '_', '-');
         $value      = str_replace($change, $dictionary, $value);
         $secret     = env('ENCRYPTION_KEY', 'robot.txt');
         $base64     = base64_encode(hash('sha256', $secret, true));
@@ -260,12 +260,20 @@ if (!function_exists('convert_date')) {
                 $format = 'd M Y H:i';
                 break;
             case 2:
-                # 11 Sep 2023 12:00
+                # 11 Sep 2023
                 $format = 'd M Y';
                 break;
-            default:
-                # Monday, 11 Sep 2023 12:00
+            case 3:
+                # 11 Sep 2023
                 $format = 'l, d M Y H:i';
+                break;
+            case 4:
+                # Monday, 11 Sep 2023
+                $format = 'l, d M Y';
+                break;
+            case 5:
+                # 2024-03-24
+                $format = 'Y-m-d';
                 break;
         }
 		return date($format, strtotime($tanggal));
@@ -286,6 +294,16 @@ if (!function_exists('getAvatar')) {
         }
 
         return $urlDev;
+    }
+}
+
+if (!function_exists('strPad')) {
+    function strPad($angka, $jumlah = 3){
+
+        // Menggunakan str_pad untuk menambahkan nol di depan angka
+        $angkaFormatted = str_pad($angka, $jumlah, '0', STR_PAD_LEFT);
+
+        return $angkaFormatted;
     }
 }
 ?>

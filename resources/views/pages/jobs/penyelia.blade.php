@@ -47,15 +47,26 @@
 
 {{-- Modal ttd confirm --}}
 <div class="modal fade" id="modal-confirm-ttd">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
-            <div class="modal-body text-center">
+            <div class="modal-body">
+                <div class="w-100 text-center h2">DATA LHU</div>
+                <div id="content-pertanyaan" class="row"></div>
                 <input type="hidden" name="idLhu" id="idLhu">
-                <h3>Apakah data ini valid ?</h3>
-                <div class="wrapper">
-                    <button class="btn btn-danger btn-sm position-absolute ms-2 mt-2" id="signature-clear">Clear</button>
-                    <canvas id="signature-pad" class="signature-pad border border-success-subtle rounded border-3" width=400 height=200></canvas>
-                    <h4>Signature</h4>
+
+                <div class="mt-2 w-100 row">
+                    <div class="wrapper text-center col-md-6">
+                        <img src="{{ asset('icons/default/white.png') }}" width="200" height="114" class="rounded border p-0" alt="ttd pelaksana lab" id="ttd_1_lhu">
+                        <p class="mt-2 mb-0">Pelaksana Lab</p>
+                        <span>(<span id="ttd_1_by_lhu">______________</span>)</span>
+                    </div>
+
+                    <div class="wrapper text-center col-md-6">
+                        <button class="btn btn-danger btn-sm position-absolute ms-2 mt-2" id="signature-clear"><i class="bi bi-trash"></i></button>
+                        <canvas id="signature-pad" class="signature-pad border border-success-subtle rounded border-3" width=200 height=114></canvas>
+                        <p class="mb-0">{{ $title }}</p>
+                        <span>(<span id="nameSignature"></span>)</span>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -67,8 +78,8 @@
         </div>
     </div>
 </div>
-@include('pages.permohonan.confirm')
-@include('pages.jobs.createSurat')
+@include('modal.detail_permohonan')
+@include('modal.surat_tugas')
 @endsection
 @push('scripts')
 @vite(['resources/js/pages/penyelia.js'])
@@ -125,31 +136,12 @@
                 { data: 'content', name: 'content', orderable: false, searchable: false}
             ]
         });
-
-        // initialisasi signature
-
     })
 
     function createSurat(idPermohonan){
-        $.ajax({
-            url: "{{ url('api/permohonan/show') }}/" + idPermohonan,
-            method: 'GET',
-            dataType: 'json',
-            processing: true,
-            serverSide: true,
-            headers: {
-                'Authorization': `Bearer {{ $token }}`,
-                'Content-Type': 'application/json'
-            }
-        }).done(result => {
-            result = result.data;
-            $('#txtTugas').val(result.layananjasa.nama_layanan);
-            $('#txtCustomer').val(result.user.name);
-            $('#txtJumlah').val(result.jumlah);
-            $('#noKontrak').val(result.no_kontrak);
-            $('#txtTanggal').val(`${dateFormat(result.jadwal.date_mulai, 2)} - ${dateFormat(result.jadwal.date_selesai, 2)}`);
-            $('#create-surat').modal('show');
-        })
+        $('#idPermohonanSuratTugas').val(idPermohonan)
+        $('#inputDateStart').val(dateFormat(new Date(), 3))
+        $('#modal-surat-tugas').modal('show')
     }
 
     function btnConfirm(idLhu){

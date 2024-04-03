@@ -45,7 +45,8 @@ class PermohonanController extends Controller
         $informasi = Permohonan::with(['layananjasa', 'tbl_lhu', 'tbl_kip'])
                         ->where('status', '!=', 99)
                         ->where('created_by', $user->id)
-                        ->where('status', $status);
+                        ->where('status', $status)
+                        ->orderBy('created_at', 'DESC');
 
         if($status == 3){
             $informasi->whereHas('tbl_lhu', function ($query) {
@@ -79,7 +80,7 @@ class PermohonanController extends Controller
                     if($data->status == 1 || $data->status == 9){
                         $btn_list_action .= '
                             <li class="my-1 cursoron">
-                                <button class="dropdown-item dropdown-item-lab subbody text-warning" onclick="btnUpdate('.$idHash.')">
+                                <button class="dropdown-item dropdown-item-lab subbody text-warning" onclick="edit_permohonan('.$idHash.')">
                                     <i class="bi bi-pencil-square"></i>&nbsp;Update
                                 </button>
                             </li>
@@ -88,7 +89,7 @@ class PermohonanController extends Controller
 
                     $btn_list_action .= '
                         <li class="my-1 cursoron">
-                            <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="modalConfirm('.$idHash.')">
+                            <a class="dropdown-item dropdown-item-lab subbody text-success" onclick="show_detail_permohonan('.$idHash.')">
                                 <i class="bi bi-info-circle"></i>&nbsp;Rincian
                             </a>
                         </li>
@@ -129,7 +130,6 @@ class PermohonanController extends Controller
 
                     return '
                     <div class="row border m-0 rounded">
-                        '.  $co_rebbon .'
                         <div class="d-flex flex-wrap p-3 align-items-center">
                             <div class="col-md-9 col-sm-12 mb-sm-2">
                                 <span class="fw-bold">'.$data->layananjasa->nama_layanan.'</span>
@@ -141,10 +141,7 @@ class PermohonanController extends Controller
                                 </div>
                             </div>
                             <div class="col-md-2 align-items-center">
-                                <div class="d-flex align-items-center">
-                                    <div><div class="me-1 dot bg-primary"></div></div>
-                                    <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
-                                </div>
+                                '.statusFormat('permohonan', $data->status).'
                             </div>
                             <div class="col-md-1 text-end">
                                 '.$btn_action.'
@@ -157,79 +154,6 @@ class PermohonanController extends Controller
                 ->rawColumns(['content'])
                 ->make(true);
     }
-
-    // public function getData() {
-    //     $informasi = Permohonan::where('status', '!=', 99);
-    //     $user = Auth::user();
-
-    //     if(!$user->hasRole('Super Admin')){
-    //         if($user->hasPermissionTo('Permohonan.confirm')){
-    //             $informasi->whereHas('jadwal', function($query) use ($user){
-    //                 $query->where('petugas_id', $user->id);
-    //             });
-    //         }else{
-    //             $informasi->where('created_by', $user->id);
-    //         }
-    //     }
-
-    //     return DataTables::of($informasi)
-    //             ->addIndexColumn()
-    //             ->addColumn('nama_layanan', function($data) {
-    //                 return "
-    //                     <div class='fw-bolder'>".$data->user->name."</div>
-    //                     <div>".$data->layananjasa->nama_layanan."</div>
-    //                     <div>$data->jenis_layanan</div>
-    //                 ";
-    //             })
-    //             ->addColumn('jadwal', function($data){
-    //                 return "
-    //                     <div class='text-center'>".$data->jadwal->date_mulai."</div>
-    //                     <div class='text-center'>S/D</div>
-    //                     <div class='text-center'>".$data->jadwal->date_selesai."</div>
-    //                 ";
-    //             })
-    //             ->editColumn('status', function($data){
-    //                 return statusFormat("permohonan",$data->status);
-    //             })
-    //             ->editColumn('nomor_antrian', function($data){
-    //                 return "<span class='badge text-bg-light fs-3 border shadow-sm'>$data->nomor_antrian</span>";
-    //             })
-    //             ->addColumn('action', function($data){
-    //                 $user = Auth::user();
-
-    //                 $btnView = '<button class="btn btn-info btn-sm m-1" onclick="modalConfirm('.$data->id.')" title="View"><i class="bi bi-eye-fill"></i></button>';
-    //                 $btnDelete = '<button class="btn btn-danger btn-sm  m-1" onclick="btnDelete('.$data->id.')" title="Batalkan"><i class="bi bi-trash3-fill"></i></a>';
-    //                 $btnEdit = '<a class="btn btn-warning btn-sm  m-1" href="'.route("permohonan.edit", $data->id).'" title="Edit"><i class="bi bi-pencil-square"></i></a>';
-    //                 $btnNote = '<button class="btn btn-secondary btn-sm m-1" onclick="modalNote('.$data->id.')" title="note"><i class="bi bi-chat-square-dots-fill"></i></button>';
-    //                 $btnConfirm = '<button class="btn btn-success btn-sm m-1" onclick="modalConfirm('.$data->id.')">Confirm</button>';
-
-    //                 $btnAction = '<div class="text-center">';
-    //                 if($data->status == 1){
-    //                     if($user->hasPermissionTo('Permohonan.confirm')){
-    //                         $btnAction .= $btnConfirm;
-    //                     }else{
-    //                         $btnAction .= $btnView;
-    //                     }
-    //                     $user->hasPermissionTo('Permohonan.delete') && $btnAction .= $btnDelete;
-    //                 }else if($data->status == 2) {
-    //                     if($user->hasPermissionTo('Permohonan.confirm')) {
-    //                         $btnAction .= $btnView;
-    //                     }else{
-    //                         $btnAction .= $btnNote;
-    //                         $btnAction .= $btnView;
-    //                     }
-    //                 }else if($data->status == 9){
-    //                     $btnAction .= $btnNote;
-    //                     $user->hasPermissionTo('Permohonan.confirm') && $btnAction .= $btnView;
-    //                     $user->hasPermissionTo('Permohonan.edit') && $btnAction .= $btnEdit;
-    //                     $user->hasPermissionTo('Permohonan.delete') && $btnAction .= $btnDelete;
-    //                 }
-    //                 $btnAction .= '</div>';
-    //                 return $btnAction;
-    //             })
-    //             ->rawColumns(['action','nama_layanan', 'jadwal', 'status', 'nomor_antrian'])
-    //             ->make(true);
-    // }
 
     /**
      * Show the form for creating a new resource.

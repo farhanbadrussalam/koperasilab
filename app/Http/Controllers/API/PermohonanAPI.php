@@ -127,17 +127,19 @@ class PermohonanAPI extends Controller
         $dataPermohonan = Permohonan::with(
                             'layananjasa:id,nama_layanan',
                             'jadwal:id,date_mulai,date_selesai',
-                            'user:id,email,name', 'tbl_lhu', 'tbl_lhu.media', 'tbl_kip', 'tbl_kip.bukti')
+                            'user:id,email,name', 'tbl_lhu',
+                            'tbl_lhu.media', 'tbl_kip', 'tbl_kip.bukti',
+                            'signature_1:id,name', 'signature_2:id,name')
                         ->where('id', $idHash)
                         ->orWhere('no_kontrak', $idHash)
                         ->first();
 
         // Mengambil data media
-        $dokumen = json_decode($dataPermohonan->dokumen);
-        $media = tbl_media::select('id','file_hash','file_ori','file_size','file_type','created_at')
+        $dokumen = isset($dataPermohonan->dokumen) ? json_decode($dataPermohonan->dokumen) : array();
+        $media = tbl_media::select('id','file_hash','file_ori','file_size','file_type','file_path','created_at')
                             ->whereIn('id', $dokumen)
                             ->get();
-        $dataPermohonan->media = $media;
+        $dataPermohonan->media = count($media) != 0 ? $media : false;
 
         // Mengambil data media petugas
         $detailPermohonan = Detail_permohonan::with('media')->where('permohonan_id', $idHash)->where('status', 1)->first();
@@ -161,6 +163,12 @@ class PermohonanAPI extends Controller
         $nomor_antrian = isset($request->nomor_antrian) ? $request->nomor_antrian : null;
         $jadwal_id = isset($request->jadwal_id) ? decryptor($request->jadwal_id) : null;
         $no_bapeten = isset($request->no_bapeten) ? $request->no_bapeten : null;
+        $ttd_1 = isset($request->ttd_1) ? $request->ttd_1 : null;
+        $ttd_1_by = isset($request->ttd_1_by) ? $request->ttd_1_by : null;
+        $ttd_2 = isset($request->ttd_2) ? $request->ttd_2 : null;
+        $ttd_2_by = isset($request->ttd_2_by) ? $request->ttd_2_by : null;
+        $note = isset($request->note) ? $request->note : null;
+
         DB::beginTransaction();
         try {
             $permohonan = Permohonan::findOrFail($idPermohonan);
@@ -174,8 +182,36 @@ class PermohonanAPI extends Controller
             $nomor_antrian && $permohonan->nomor_antrian = $nomor_antrian;
             $jadwal_id && $permohonan->jadwal_id = $jadwal_id;
             $no_bapeten && $permohonan->no_bapeten = $no_bapeten;
+            isset($ttd_1) && ($ttd_1 == 'false' ? $permohonan->ttd_1 = null : $permohonan->ttd_1 = $ttd_1);
+            isset($ttd_1_by) && ($ttd_1_by == 'false' ? $permohonan->ttd_1_by = null : $permohonan->ttd_1_by = decryptor($ttd_1_by));
+            isset($ttd_2) && ($ttd_2 == 'false' ? $permohonan->ttd_2 = null : $permohonan->ttd_2 = $ttd_2);
+            isset($ttd_2_by) && ($ttd_2_by == 'false' ? $permohonan->ttd_2_by = null : $permohonan->ttd_2_by = decryptor($ttd_2_by));
 
             $permohonan->update();
+
+            // Add log permohonan Front desk
+            if($ttd_1 && $ttd_1 != 'false') {
+                $tmp_log = array(
+                    'permohonan_id' => $idPermohonan,
+                    'note' => 'Berkas permohonan lengkap',
+                    'status' => 1,
+                    'flag' => 1, // Front desk
+                    'created_by' => Auth::user()->id
+                );
+
+                Detail_permohonan::create($tmp_log);
+            } else if($note){
+                $tmp_log = array(
+                    'permohonan_id' => $idPermohonan,
+                    'note' => $note,
+                    'status' => $status ? $status : $permohonan->status,
+                    'flag' => $permohonan->flag,
+                    'created_by' => Auth::user()->id
+                );
+
+                Detail_permohonan::create($tmp_log);
+            }
+
 
             DB::commit();
             return response()->json([
@@ -270,27 +306,16 @@ class PermohonanAPI extends Controller
         }
         $data_permohonan->update();
 
-        if($request->type != 'return'){
-            $this->detail->reset($idPermohonan);
+        // add to log
+        $tmp_log = array(
+            'permohonan_id' => $idPermohonan,
+            'note' => $request->note,
+            'status' => 9,
+            'flag' => 1, // Front desk
+            'created_by' => Auth::user()->id
+        );
 
-            $tmp_arr = array(
-                'permohonan_id' => $idPermohonan,
-                'note' => $request->note,
-                'status' => 1,
-                'flag' => $request->status == 2 ? 2 : 1,
-                'created_by' => Auth::user()->id
-            );
-
-            // upload Surat
-            $dokumen = $request->file('file');
-            if($dokumen){
-                $tmp_arr['surat_terbitan'] = $this->media->upload($dokumen, 'frontdesk');
-            }
-
-            Detail_permohonan::create($tmp_arr);
-        }
-
-        // $request->status == 2 ? $text = 'setujui' : $text = 'tolak';
+        Detail_permohonan::create($tmp_log);
 
         // // Notifikasi
         // $notif = notifikasi(array(

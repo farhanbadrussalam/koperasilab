@@ -6,10 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\jadwal;
 use App\Models\Jadwal_petugas;
+use App\Models\Detail_permohonan;
+use App\Traits\RestApi;
 use Auth;
+use DB;
 
 class JadwalAPI extends Controller
 {
+    use RestApi;
+
     /**
      * Display a listing of the resource.
      */
@@ -23,7 +28,45 @@ class JadwalAPI extends Controller
      */
     public function store(Request $request)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $petugas = $request->idPetugas;
+            $jobsPetugas = $request->jobsPetugas;
+
+            $dataJadwal = array(
+                'permohonan_id' => decryptor($request->idPermohonan),
+                'date_mulai' => $request->date_mulai,
+                'date_selesai' => $request->date_end,
+                'ttd_1' => $request->ttd_1,
+                'ttd_1_by' => decryptor($request->ttd_1_by),
+                'created_by' => Auth::user()->id,
+                'status' => 1
+            );
+
+            $dataJadwal = jadwal::create($dataJadwal);
+
+            foreach ($petugas as $key => $value) {
+                $detailPetugas = array(
+                    'jadwal_id' => $dataJadwal->id,
+                    'petugas_id' => $value,
+                    'jobs' => $jobsPetugas[$key],
+                    'status' => 1
+                );
+                jadwal_petugas::create($detailPetugas);
+            }
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Surat tugas berhasil dikirim!'
+            ], 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $ex->getMessage()
+            ], 500);
+        }
     }
 
     /**

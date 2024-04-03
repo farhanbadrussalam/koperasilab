@@ -10,19 +10,23 @@ class KeuanganController extends Controller
 {
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Keuangan',
+            'module' => 'keuangan'
+        ];
+
         return view('pages.keuangan.index', $data);
     }
 
     public function sendKIP(Request $request)
     {
         $validator = $request->validate([
-            'no_kontrak' => 'required',
+            'id_permohonan' => 'required',
         ]);
 
         $noInvoice = 'I-'.generate();
         $data = array(
-            'no_kontrak' => $request->no_kontrak,
+            'id_permohonan' => decryptor($request->id_permohonan),
             'no_invoice' => $noInvoice,
             'harga' => $request->harga,
             'pajak' => $request->pajak,

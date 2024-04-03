@@ -3,18 +3,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Invoice</h4>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="invoice p-2 rounded">
                     <div class="row">
-                        <div class="col-6">
-                            <div class="fw-bolder">No kontrak</div>
-                            <div><span id="txtNoKontrakModal"></span></div>
-                        </div>
-                        <div class="col-6">
+                        <div class="col-12">
                             <div class="fw-bolder">Nama Layanan</div>
                             <div><span id="txtNamaLayananModal"></span></div>
                         </div>
@@ -30,7 +24,7 @@
                     </div>
                     <hr>
                     <h3>Rincian: </h3>
-                    <input type="hidden" id="inputNoKontrak">
+                    <input type="hidden" id="inputIdPermohonan">
                     <input type="hidden" id="inputPajak">
                     <input type="hidden" id="inputHarga">
                     <table class="table table-borderless w-100" id="rincian-table">
@@ -68,26 +62,17 @@
 @push('scripts')
     <script>
         function sendKip() {
-            const noKontrak = $('#inputNoKontrak').val();
+            const idPermohonan = $('#inputIdPermohonan').val();
             const pajak = $('#inputPajak').val();
             const harga = $('#inputHarga').val();
 
             const formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
-            formData.append('no_kontrak', noKontrak);
+            formData.append('id_permohonan', idPermohonan);
             formData.append('pajak', pajak);
             formData.append('harga', harga);
 
-            $.ajax({
-                url: "{{ url('sendKIP') }}",
-                method: "POST",
-                processData: false,
-                contentType: false,
-                headers: {
-                    'Authorization': `Bearer {{ generateToken() }}`
-                },
-                data: formData
-            }).done(result => {
+            ajaxPost(`sendKIP`, formData, result => {
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',

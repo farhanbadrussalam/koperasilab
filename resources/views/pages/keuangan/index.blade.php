@@ -35,7 +35,7 @@
         </div>
     </section>
 </div>
-@include('pages.permohonan.confirm')
+@include('modal.detail_permohonan')
 @include('pages.keuangan.modalinvoice')
 @endsection
 @push('scripts')
@@ -69,19 +69,9 @@
         })
 
         function createInvoice(id, show = false){
-            $.ajax({
-                url: "{{ url('api/permohonan/show') }}/" + id,
-                method: 'GET',
-                dataType: 'json',
-                processing: true,
-                serverSide: true,
-                headers: {
-                    'Authorization': `Bearer {{ $token }}`,
-                    'Content-Type': 'application/json'
-                }
-            }).done(result => {
+            ajaxGet(`api/permohonan/show/${id}`, false, result => {
                 const data = result.data;
-                $('#txtNoKontrakModal').html(data.no_kontrak);
+                // $('#txtNoKontrakModal').html(data.no_kontrak);
                 $('#txtNamaLayananModal').html(data.layananjasa.nama_layanan);
                 $('#txtNamaPelangganModal').html(data.user.name);
                 $('#txtAlamatModal').html(data.user.email);
@@ -117,7 +107,7 @@
                     </tr>
                 `;
 
-                $('#inputNoKontrak').val(data.no_kontrak);
+                $('#inputIdPermohonan').val(id);
                 $('#inputPajak').val(totalPajak);
                 $('#inputHarga').val(totalItems);
 
@@ -128,7 +118,7 @@
                     $('#actionModalInvoice').hide();
                 }
                 $('#moda-invoice').modal('show');
-            })
+            });
         }
 
         function showBukti(id){
@@ -139,7 +129,7 @@
                 processing: true,
                 serverSide: true,
                 headers: {
-                    'Authorization': `Bearer {{ $token }}`,
+                    'Authorization': `Bearer {{ generateToken() }}`,
                     'Content-Type': 'application/json'
                 }
             }).done(result => {

@@ -65,7 +65,7 @@
                 </li>
                 @endcan
 
-                @can('Permohonan')
+                @can('Permohonan.create')
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'Layananjasa' ? 'active' : '' }}"
                         href="{{ route('layananJasa.listLayanan') }}" aria-expanded="false">
@@ -75,6 +75,9 @@
                         <span class="hide-menu">Layanan jasa</span>
                     </a>
                 </li>
+                @endcan
+
+                @can('Permohonan')
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'permohonan' ? 'active' : '' }}"
                         href="{{ route('permohonan.index') }}" aria-expanded="false">

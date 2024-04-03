@@ -8,8 +8,13 @@ use App\Traits\RestApi;
 
 use App\Models\tbl_lhu;
 use App\Models\tbl_kip;
+use App\Models\Jawaban_lhu;
+use App\Models\pertanyaan_lhu;
 
 use App\Http\Controllers\MediaController;
+
+use Auth;
+use DB;
 
 class LhuAPI extends Controller
 {
@@ -24,7 +29,7 @@ class LhuAPI extends Controller
         $id_lhu = $id_lhu ? decryptor($id_lhu) : null;
 
         if($id_lhu){
-            $data_lhu = tbl_lhu::with('media')->where('id', $id_lhu)->first();
+            $data_lhu = tbl_lhu::with('jawaban', 'jawaban.pertanyaan:id,title', 'signature_1')->where('id', $id_lhu)->first();
 
             return $this->output($data_lhu);
         }
@@ -58,7 +63,9 @@ class LhuAPI extends Controller
         }else{
             $request->level ? $data_lhu->level = $request->level : null;
             $request->ttd_1 ? $data_lhu->ttd_1 = $request->ttd_1 : null;
+            $request->ttd_1_by ? $data_lhu->ttd_1_by = decryptor($request->ttd_1_by) : null;
             $request->ttd_2 ? $data_lhu->ttd_2 = $request->ttd_2 : null;
+            $request->ttd_2_by ? $data_lhu->ttd_2_by = decryptor($request->ttd_2_by) : null;
 
             $data_lhu->update();
         }
@@ -107,38 +114,57 @@ class LhuAPI extends Controller
 
     public function sendDokumen(Request $request)
     {
-        $validator =$request->validate([
-            'file' => 'required',
-            'idLhu' => 'required'
+        $validator = $request->validate([
+            'ttd_1' => 'required',
+            'id_jadwal' => 'required',
+            'answer' => 'required'
         ]);
 
-        $idLhu = decryptor($request->idLhu);
+        DB::beginTransaction();
 
-        $lampiran = $request->file('file');
-        $lhu = null;
-        if($lampiran){
-            $lhu = $this->media->upload($lampiran, 'lhu');
-        }
+        try {
+            $idJadwal = decryptor($request->id_jadwal);
+            $answer = json_decode($request->answer);
+            $ttd = $request->ttd_1;
+            $ttd_by = Auth::user()->id;
 
-        $data_lhu = tbl_lhu::where('id', $idLhu)->first();
-
-        $data_lhu->document = $lhu;
-        $data_lhu->level = 2;
-        $data_lhu->active = 2;
-
-        $data_lhu->update();
-
-        if($data_lhu){
-            $payload = array(
-                'message' => 'Berhasil di kirim'
+            $data = array(
+                'id_jadwal' => $idJadwal,
+                'ttd_1' => $ttd,
+                'ttd_1_by' => $ttd_by,
+                'created_by' => $ttd_by,
+                'level' => 2,
+                'active' => 2,
+                'tgl_selesai' => convert_date(now(), 5)
             );
 
-            return $this->output($payload);
-        }else{
+            $data_lhu = tbl_lhu::create($data);
+
+            if(isset($data_lhu)){
+                foreach ($answer as $key => $value) {
+                    Jawaban_lhu::create(array(
+                        'lhu_id' => $data_lhu->id,
+                        'pertanyaan_id' => decryptor($value->pertanyaan_id),
+                        'jawaban' => $value->jawaban,
+                        'created_by' => $ttd_by
+                    ));
+                }
+            }
+
+            DB::commit();
             return response()->json([
-                'message' => 'Gagal mengirim LHU'
-            ], 400);
+                'success' => true,
+                'message' => 'LHU terkirim!'
+            ], 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $ex->getMessage()
+            ], 500);
         }
+
     }
 
     public function sendToPelanggan(Request $request)
@@ -202,5 +228,14 @@ class LhuAPI extends Controller
                 'message' => 'Gagal mengirim'
             ], 400);
         }
+    }
+
+    public function ambilPertanyaanLhu(Request $request)
+    {
+        $idLhu = $request->id_lhu ? $request->id_lhu : null;
+
+        $data = pertanyaan_lhu::all();
+
+        return $this->output($data);
     }
 }
