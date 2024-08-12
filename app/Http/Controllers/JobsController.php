@@ -62,8 +62,7 @@ class JobsController extends Controller
         $flag = false;
         $suratTugas = false;
 
-        $informasi = Permohonan::with(['layananjasa', 'jadwal','user', 'tbl_lhu', 'tbl_kip']);
-
+        $informasi = Permohonan::with(['layananjasa', 'jadwal','user', 'jadwal.tbl_lhu', 'tbl_kip']);
         // pembagian
         if($jobs == 'frontdesk'){
             if($type == 'layanan'){
@@ -78,7 +77,7 @@ class JobsController extends Controller
             }else if($type == 'lhukip') {
                 $flag = 3;
                 $status = [3];
-                $informasi->whereHas('tbl_lhu', function ($query) {
+                $informasi->whereHas('jadwal.tbl_lhu', function ($query) {
                     $query->where('level', 4);
                 });
                 $informasi->whereHas('tbl_kip', function ($query) {
@@ -114,16 +113,17 @@ class JobsController extends Controller
                     ->orderBy('created_at', 'desc');
 
         if($suratTugas == 1){
-            $informasi->doesntHave('tbl_lhu');
+            $informasi->doesntHave('jadwal.tbl_lhu');
         }else if($suratTugas == 2){
-            $informasi->whereHas('tbl_lhu', function ($query) {
+            $informasi->whereHas('jadwal.tbl_lhu', function ($query) {
                 $query->where('level', 1);
             });
         }
 
         return DataTables::of($informasi)
             ->addIndexColumn()
-            ->addColumn('content', function($data) use ($jobs) {
+            ->addColumn('content', function($data) use ($jobs, $type) {
+
                 $idHash = "'".$data->permohonan_hash."'";
                 $btnAction = '';
                 $co_noted = '';
@@ -131,124 +131,6 @@ class JobsController extends Controller
                 $labelTag = '';
                 $co_reason = '';
                 $co_status = statusFormat($jobs, $data->status);
-
-                // if($data->status == 2){
-                //     if($data->flag == 1){
-                //         $btnAction .= '
-                //             <button class="btn btn-outline-success btn-sm mb-1" onclick="btnVerifikasi('.$idHash.')">
-                //                 <i class="bi bi-check"></i> Verifikasi</button>
-                //         ';
-                //     }else if($data->flag == 2 && $jobs == 'pelaksana'){
-                //         $btnAction .= '
-                //             <button class="btn btn-outline-primary btn-sm" onclick="modalConfirm('.$idHash.')"><i
-                //                 class="bi bi-check2-circle"></i> Cek berkas</button>
-                //         ';
-                //         $co_noted .= '
-                //             <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
-                //                 <small><b class="text-info-emphasis">Note:</b> '.($data->progress ? $data->progress->note : "").'</small>
-                //             </div>
-                //         ';
-                //     }
-
-                //     if($jobs == 'frontdesk'){
-                //         $btnAction .= $btnRincian;
-                //     }
-                // }else if($data->status == 3){
-                //     if($data->flag == 3){
-                //         $listItem = '';
-                //         if($jobs == "keuangan"){
-                //             if(isset($data->tbl_kip)){
-                //                 if($data->tbl_kip->status == 1){
-                //                     $co_status = '
-                //                         <div class="col-md-2 col-sm-5 h5">
-                //                             Invoice dibuat
-                //                         </div>
-                //                     ';
-                //                 }
-                //                 if($data->tbl_kip->bukti_pembayaran){
-                //                     $co_progress = '
-                //                         <div id="progress" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
-                //                             <small><b class="text-info-emphasis">Sudah membayar silahkan cek buktinya <a href="javascript:void(0)" onclick="showBukti('.$idHash.')">Disini</a></b> </small>
-                //                         </div>
-                //                     ';
-                //                 }
-                //                 $listItem = '
-                //                     <li class="my-1 cursoron">
-                //                         <a class="dropdown-item dropdown-item-lab" onclick="createInvoice('.$idHash.', true)">
-                //                             Lihat invoice
-                //                         </a>
-                //                     </li>
-                //                 ';
-                //             }else{
-                //                 $listItem = '
-                //                     <li class="my-1 cursoron">
-                //                         <a class="dropdown-item dropdown-item-lab" onclick="createInvoice('.$idHash.')">
-                //                             Buat invoice
-                //                         </a>
-                //                     </li>
-                //                 ';
-                //             }
-                //         }else if($jobs == "penyelia"){
-                //             $listItem = '
-                //                 <li class="my-1 cursoron">
-                //                     <a class="dropdown-item dropdown-item-lab" onclick="createSurat('.$idHash.')">
-                //                         Kirim surat tugas
-                //                     </a>
-                //                 </li>
-                //             ';
-                //         }else if($jobs == "frontdesk"){
-                //             $listItem = '
-                //                 <li class="my-1 cursoron">
-                //                     <a class="dropdown-item dropdown-item-lab" onclick="detailkiplhu('.$idHash.')">
-                //                         Lihat KIP / LHU
-                //                     </a>
-                //                 </li>
-                //             ';
-                //         }
-                //         $btnAction .= '
-                //             <div class="dropdown">
-                //                 <div class="more-option d-flex align-items-center justify-content-center mx-0 mx-md-4" data-bs-toggle="dropdown" aria-expanded="false">
-                //                     <i class="bi bi-three-dots-vertical"></i>
-                //                 </div>
-                //                 <ul class="dropdown-menu shadow-sm px-2">
-                //                     '.$listItem.'
-                //                     <li class="my-1 cursoron">
-                //                         <a class="dropdown-item dropdown-item-lab" onclick="modalConfirm('.$idHash.')">
-                //                             Rincian
-                //                         </a>
-                //                     </li>
-                //                 </ul>
-                //             </div>
-
-                //         ';
-                //     }
-                // }else if($data->status == 9){
-                //     if($data->flag == 2){
-                //         $btnAction .= '
-                //             <button class="btn btn-outline-danger btn-sm mb-2" onclick="confirmReturn('.$idHash.')">
-                //                 <i class="bi bi-arrow-return-left"></i> Return</button>
-                //             '.$btnRincian.'
-                //         ';
-                //     }
-                // }
-
-                // $co_reason = $data->status == 9 ? '
-                //         <div id="reason" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
-                //             <small class="text-danger-emphasis"><b>Reason:</b> '.($data->progress ? $data->progress->note : "").'</small>
-                //         </div>
-                //     ' : '';
-
-                // if($data->tag != 'pengajuan'){
-                //     $labelColor = $data->tag == 'baru' ? 'bg-success' : 'bg-primary';
-                //     $labelTag = '
-                //         <div class="ribbon-wrapper">
-                //             <div class="ribbon '.$labelColor.'" title="Tag">
-                //                 '.$data->tag.'
-                //             </div>
-                //         </div>
-                //     ';
-                // }
-
 
                 switch ($jobs) {
                     case 'frontdesk':
@@ -265,6 +147,10 @@ class JobsController extends Controller
                                 </div>
                             ';
                         }
+
+                        if($type == 'lhukip') {
+                            $btnAction .= '<button class="btn btn-outline-primary btn-sm" onclick="detailkiplhu('.$idHash.')">Show LHU / KIP</button>';
+                        }
                         break;
                     case 'pelaksana':
                         $btnAction .= '
@@ -279,10 +165,9 @@ class JobsController extends Controller
                         break;
                     case 'penyelia':
                         $permohonanJadwal = jadwal::where('permohonan_id', decryptor($data->permohonan_hash))->first();
-
                         $btnAction .= '<button class="btn btn-info btn-sm me-2" onclick="show_detail_permohonan('.$idHash.')"><i class="bi bi-info-circle"></i></button>';
                         if(isset($permohonanJadwal)){
-                            $btnAction .= '<button class="btn btn-success btn-sm" onclick="showSurat('.$idHash.')"><i class="bi bi-eye-fill"></i> Surat tugas</button>';
+                            $btnAction .= '<a class="btn btn-success btn-sm" href="'.url('laporan/suratTugas/'.$data->jadwal->jadwal_hash).'" target="_blank"><i class="bi bi-eye-fill"></i> Surat tugas</a>';
                         }else{
                             $btnAction .= '<button class="btn btn-primary btn-sm" onclick="createSurat('.$idHash.')"><i class="bi bi-plus-circle"></i> Surat tugas</button>';
                         }
@@ -296,9 +181,17 @@ class JobsController extends Controller
                         $btnAction .= '<button class="btn btn-info btn-sm me-2" onclick="show_detail_permohonan('.$idHash.')"><i class="bi bi-info-circle"></i></button>';
 
                         if(isset($data->tbl_kip)){
-                            $btnAction .= '<button class="btn btn-outline-primary btn-sm" onclick="createInvoice('.$idHash.', true)"><i class="bi bi-eye-fill"></i> Lihat invoice</button>';
+                            $btnAction .= '<button class="btn btn-outline-success btn-sm" onclick="createInvoice('.$idHash.', true)"><i class="bi bi-eye-fill"></i> Lihat invoice</button>';
                         }else{
                             $btnAction .= '<button class="btn btn-outline-primary btn-sm" onclick="createInvoice('.$idHash.')"><i class="bi bi-plus-circle"></i> Buat invoice</button>';
+                        }
+
+                        if(isset($data->tbl_kip) && $data->tbl_kip->bukti_pembayaran){
+                            $co_progress = '
+                                <div id="progress" class="rounded p-2 col-12 mt-2 bg-sm-secondary d-block">
+                                    <small><b class="text-info-emphasis">Sudah membayar silahkan cek buktinya <a href="javascript:void(0)" onclick="showBukti('.$idHash.')">Disini</a></b> </small>
+                                </div>
+                            ';
                         }
                         break;
                     default:
@@ -318,10 +211,8 @@ class JobsController extends Controller
                                 <small><b>Customer</b> : '.$data->user->name.'</small>
                             </div>
                         </div>
-                        <div class="col-md-2 col-sm-5 h5">
-                            <span class="badge text-bg-secondary">'.$data->jenis_layanan.'</span>
-                        </div>
-                        <div class="col-md-2 col-sm-5">
+                        <div class="col-md-4 col-sm-5 h5">
+                            <span class="badge text-bg-secondary mb-2">'.$data->jenis_layanan.'</span>
                             '.$co_status.'
                         </div>
                         <div class="col-md-2 col-sm-2" style="z-index: 10;">

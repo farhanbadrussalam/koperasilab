@@ -328,6 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function permohonan(layanan_hash){
+        resetModalPermohonan()
         ajaxGet(`api/layananjasa/getLayanan/${layanan_hash}`, false, result => {
 
             const data = result.data
@@ -378,6 +379,18 @@ document.addEventListener('DOMContentLoaded', function () {
     function removeFile(obj) {
         $(obj.target).parent().remove();
         countFile--;
+    }
+
+    function resetModalPermohonan(){
+        permohonanNamaLayanan.val("")
+        permohonanJenis.val("")
+        permohonanBiaya.val("")
+        permohonanNoBapeten.val("")
+        permohonanJumlah.val("")
+        permohonanJenisLimbah.val("")
+        permohonanRadioaktif.val("")
+        contentFilePermohonan.innerHTML = ""
+        countFile = 1
     }
 
     // EVENT

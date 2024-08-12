@@ -42,14 +42,14 @@ class PermohonanController extends Controller
         if(request()->has('status') && request('status')){
             $status = request('status');
         }
-        $informasi = Permohonan::with(['layananjasa', 'tbl_lhu', 'tbl_kip'])
+        $informasi = Permohonan::with(['layananjasa', 'jadwal.tbl_lhu', 'tbl_kip'])
                         ->where('status', '!=', 99)
                         ->where('created_by', $user->id)
                         ->where('status', $status)
                         ->orderBy('created_at', 'DESC');
 
         if($status == 3){
-            $informasi->whereHas('tbl_lhu', function ($query) {
+            $informasi->whereHas('jadwal.tbl_lhu', function ($query) {
                 $query->where('level', 5);
             });
 
@@ -131,7 +131,7 @@ class PermohonanController extends Controller
                     return '
                     <div class="row border m-0 rounded">
                         <div class="d-flex flex-wrap p-3 align-items-center">
-                            <div class="col-md-9 col-sm-12 mb-sm-2">
+                            <div class="col-md-8 col-sm-10 mb-sm-2">
                                 <span class="fw-bold">'.$data->layananjasa->nama_layanan.'</span>
                                 <div class="text-body-secondary text-start">
                                     <small><b>Created</b> : '.convert_date($data->created_at, 1).'</small>
@@ -143,7 +143,7 @@ class PermohonanController extends Controller
                             <div class="col-md-2 align-items-center">
                                 '.statusFormat('permohonan', $data->status).'
                             </div>
-                            <div class="col-md-1 text-end">
+                            <div class="col-md-2 col-sm-12 text-end">
                                 '.$btn_action.'
                             </div>
                             '. $co_reason .'
@@ -391,11 +391,16 @@ class PermohonanController extends Controller
     {
         $idHash = decryptor($idPermohonan);
 
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Permohonan',
+            'module' => 'permohonan'
+        ];
+
         $data['permohonan'] = Permohonan::with(
             'layananjasa:id,nama_layanan',
             'jadwal:id,date_mulai,date_selesai',
-            'user:id,email,name', 'tbl_lhu', 'tbl_lhu.media', 'tbl_kip')
+            'user:id,email,name',
+            'jadwal.tbl_lhu', 'tbl_kip')
         ->where('id', $idHash)
         ->first();
 

@@ -37,8 +37,6 @@
 </div>
 @include('modal.detail_permohonan')
 @include('modal.create_lhu')
-{{-- @include('pages.jobs.createSurat') --}}
-{{-- @include('pages.jobs.modalCreateLhu') --}}
 @endsection
 @push('scripts')
 <script>

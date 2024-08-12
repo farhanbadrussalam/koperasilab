@@ -81,9 +81,9 @@
     </div>
 
 
-    @stack('scripts')
-
+    
     <script src="{{ asset('assets/js/global.js') }}"></script>
+    @stack('scripts')
     <script>
         @if (session('success'))
             toastr.success('{{ session('success') }}');

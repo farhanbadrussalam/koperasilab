@@ -46,15 +46,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Bukti Pembayaran</h4>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                 </button>
             </div>
             <div class="modal-body">
                 <img src="#" alt="Bukti pembayaran" class="img-fluid" id="imgBukti">
             </div>
             <div class="modal-footer" id="actionModalInvoice">
-                <button class="btn btn-outline-primary" role="button" onclick="">Cetak Kuitansi</button>
+                <a class="btn btn-outline-primary" id="btn-cetak" href="#" target="blank">Cetak Kuitansi</a>
             </div>
         </div>
     </div>

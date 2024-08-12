@@ -71,14 +71,22 @@
                         </div>
                         <div id="signature-content" style="display: none">
                             <div class="d-flex justify-content-between m-2 mt-4">
-                                <div class="row w-50">
+                                <div class="row w-50" id="content-ttd">
                                     <div class="wrapper text-center">
-                                        <img src="{{ asset('icons/default/white.png') }}" width="200" height="114" class="rounded border p-0" alt="ttd front desk" id="ttd_1">
+                                        <button class="btn btn-danger btn-sm position-absolute ms-1 mt-1" id="signature-clear"><i class="bi bi-trash"></i></button>
+                                        <canvas id="signature-canvas" class="signature-pad border border-success-subtle rounded border-2" width=200 height=114></canvas>
+                                        <p class="text-center mb-0">{{ $title }}</p>
+                                        <span>(<span id="nameSignature"></span>)</span>
+                                    </div>
+                                </div>
+                                <div class="row w-50" id="content-image-1">
+                                    <div class="wrapper text-center">
+                                        <img src="{{ asset('icons/default/white.png') }}" width="200" height="114" class="rounded border p-0" alt="ttd penyelia lab" id="ttd_1">
                                         <p class="mt-2 mb-0">Front desk</p>
                                         <span>(<span id="ttd_1_by">______________</span>)</span>
                                     </div>
                                 </div>
-                                <div class="row w-50">
+                                <div class="row w-50" id="content-image-2">
                                     <div class="wrapper text-center">
                                         <img src="{{ asset('icons/default/white.png') }}" width="200" height="114" class="rounded border p-0" alt="ttd penyelia lab" id="ttd_2">
                                         <p class="mt-2 mb-0">Pelaksana Kontrak</p>
@@ -99,7 +107,7 @@
             <div class="modal-footer" id="divConfirmBtn">
                 <div class="d-flex w-100">
                     <button class="btn btn-danger me-auto" id="btnNo" onclick="btnConfirm(false)">Tidak lengkap</button>
-                    <button class="btn btn-primary" id="btnYes" onclick="btnConfirm(2)">Lengkap</button>
+                    <button class="btn btn-primary" id="createSignature">Lengkap</button>
                 </div>
             </div>
         </div>
@@ -135,7 +143,6 @@
 </div>
 
 <script>
-
     function show_detail_permohonan(id) {
         ajaxGet(`api/permohonan/show/${id}`, false, result => {
             const data = result.data;
@@ -188,10 +195,46 @@
                 }else{
                     idPermohonan = id;
                 }
+
+                if(permission.find(d => d.name == 'Otorisasi-Front desk')){
+                    // signature
+                    let tmpArr = {
+                        'id_hash': idPermohonan,
+                        'url': '',
+                        'jenis': 'frontdesk'
+                    };
+                    $('#nameSignature').html(userActive.name)
+                    $('#signature-canvas').attr('data-item', JSON.stringify(tmpArr));
+                }else if(permission.find(d => d.name == 'Otorisasi-Pelaksana kontrak')){
+                    // signature
+                    let tmpArr = {
+                        'id_hash': idPermohonan,
+                        'url': '',
+                        'jenis': 'pelaksana'
+                    };
+                    $('#nameSignature').html(userActive.name)
+                    $('#signature-canvas').attr('data-item', JSON.stringify(tmpArr));
+                }
             }
             maskReload();
 
             // Signature
+            let title = "{{ $title }}";
+
+            $('#content-ttd').show();
+            $('#content-image-1').show();
+            $('#content-image-2').show();
+
+            if(data.ttd_1 && data.ttd_2){
+                $('#content-ttd').hide();
+            }
+
+            if(title == 'frontdesk'){
+                $('#content-image-1').hide();
+            }else if(title == 'Pelaksana kontrak'){
+                $('#content-image-2').hide();
+            }
+
             data.ttd_1 && $('#ttd_1').attr('src', data.ttd_1);
             data.ttd_2 && $('#ttd_2').attr('src', data.ttd_2);
             data.signature_1?.name && $('#ttd_1_by').html(data.signature_1.name);
@@ -200,4 +243,5 @@
             $('#detail_permohonan').modal('show');
         })
     }
+
 </script>

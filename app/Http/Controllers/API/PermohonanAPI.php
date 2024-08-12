@@ -126,9 +126,10 @@ class PermohonanAPI extends Controller
         $idHash = decryptor($id);
         $dataPermohonan = Permohonan::with(
                             'layananjasa:id,nama_layanan',
-                            'jadwal:id,date_mulai,date_selesai',
-                            'user:id,email,name', 'tbl_lhu',
-                            'tbl_lhu.media', 'tbl_kip', 'tbl_kip.bukti',
+                            'jadwal:id,permohonan_id,date_mulai,date_selesai',
+                            'user:id,email,name',
+                            'jadwal.tbl_lhu', 'jadwal.tbl_lhu.jawaban', 'jadwal.tbl_lhu.jawaban.pertanyaan:id,title',
+                            'tbl_kip', 'tbl_kip.bukti',
                             'signature_1:id,name', 'signature_2:id,name')
                         ->where('id', $idHash)
                         ->orWhere('no_kontrak', $idHash)
@@ -163,6 +164,8 @@ class PermohonanAPI extends Controller
         $nomor_antrian = isset($request->nomor_antrian) ? $request->nomor_antrian : null;
         $jadwal_id = isset($request->jadwal_id) ? decryptor($request->jadwal_id) : null;
         $no_bapeten = isset($request->no_bapeten) ? $request->no_bapeten : null;
+        $desc_biaya = isset($request->desc_biaya) ? $request->desc_biaya : null;
+        $biaya = isset($request->biaya) ? unmask($request->biaya) : null;
         $ttd_1 = isset($request->ttd_1) ? $request->ttd_1 : null;
         $ttd_1_by = isset($request->ttd_1_by) ? $request->ttd_1_by : null;
         $ttd_2 = isset($request->ttd_2) ? $request->ttd_2 : null;
@@ -182,6 +185,8 @@ class PermohonanAPI extends Controller
             $nomor_antrian && $permohonan->nomor_antrian = $nomor_antrian;
             $jadwal_id && $permohonan->jadwal_id = $jadwal_id;
             $no_bapeten && $permohonan->no_bapeten = $no_bapeten;
+            $desc_biaya && $permohonan->jenis_layanan = $desc_biaya;
+            $biaya && $permohonan->tarif = $biaya;
             isset($ttd_1) && ($ttd_1 == 'false' ? $permohonan->ttd_1 = null : $permohonan->ttd_1 = $ttd_1);
             isset($ttd_1_by) && ($ttd_1_by == 'false' ? $permohonan->ttd_1_by = null : $permohonan->ttd_1_by = decryptor($ttd_1_by));
             isset($ttd_2) && ($ttd_2 == 'false' ? $permohonan->ttd_2 = null : $permohonan->ttd_2 = $ttd_2);

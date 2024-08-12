@@ -12,7 +12,7 @@
                     <div id="content-pertanyaan"></div>
                     <div class="wrapper text-center" id="content-ttd">
                         <button type="button" class="btn btn-danger btn-sm position-absolute ms-1 mt-1" id="signature-clear-createlhu"><i class="bi bi-trash"></i></button>
-                        <canvas id="signature-canvas-createlhu" class="signature-pad border border-success-subtle rounded border-1" width=200 height=150></canvas>
+                        <canvas id="signature-canvas-createlhu" class="signature-pad border border-success-subtle rounded border-2" width=200 height=150></canvas>
                         <p class="text-center mb-0">{{ $title }}</p>
                         <span>(<span id="nameSignature">{{ Auth::user()->name }}</span>)</span>
                     </div>

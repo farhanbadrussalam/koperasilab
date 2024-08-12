@@ -63,7 +63,7 @@
 
                     <div class="wrapper text-center col-md-6">
                         <button class="btn btn-danger btn-sm position-absolute ms-2 mt-2" id="signature-clear"><i class="bi bi-trash"></i></button>
-                        <canvas id="signature-pad" class="signature-pad border border-success-subtle rounded border-3" width=200 height=114></canvas>
+                        <canvas id="signature-pad" class="signature-pad border border-success-subtle rounded border-2" width=200 height=114></canvas>
                         <p class="mb-0">{{ $title }}</p>
                         <span>(<span id="nameSignature"></span>)</span>
                     </div>

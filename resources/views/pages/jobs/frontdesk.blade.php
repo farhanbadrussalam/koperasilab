@@ -53,10 +53,10 @@
     </div>
 
     @include('modal.detail_permohonan')
-    @include('modal.signature')
     @include('pages.jobs.modalDocument')
 @endsection
 @push('scripts')
+    @vite(['resources/js/component/signature.js'])
     <script>
         let dt_frontdesk = false;
         let dt_diteruskan = false;

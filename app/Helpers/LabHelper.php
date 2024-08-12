@@ -252,7 +252,7 @@ if (!function_exists('stringSplit')) {
 #ex: Thursday, 31 Aug 2023 12:42 WIB
 if (!function_exists('convert_date')) {
 	function convert_date($tanggal, $type = false)
-	{
+    {
         $format = '';
         switch ($type) {
             case 1:
@@ -276,8 +276,26 @@ if (!function_exists('convert_date')) {
                 $format = 'Y-m-d';
                 break;
         }
-		return date($format, strtotime($tanggal));
-	}
+
+        // Mengganti nama hari dalam bahasa Inggris dengan bahasa Indonesia
+        $new_tanggal = date($format, strtotime($tanggal));
+        $new_tanggal = str_replace(
+            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu', 'Minggu'],
+            $new_tanggal
+        );
+        
+        // Mengganti nama bulan dalam bahasa Inggris dengan bahasa Indonesia
+        $new_tanggal = str_replace(
+            ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+            $new_tanggal
+        );
+
+        // Mengembalikan tanggal dengan format yang diinginkan
+        return $new_tanggal;
+    }
+
 }
 
 if (!function_exists('getAvatar')) {
@@ -304,6 +322,46 @@ if (!function_exists('strPad')) {
         $angkaFormatted = str_pad($angka, $jumlah, '0', STR_PAD_LEFT);
 
         return $angkaFormatted;
+    }
+}
+
+if (!function_exists('angkaKeHuruf')) {
+    function angkaKeHuruf($angka){
+        $bilangan = array(
+            '',
+            'satu',
+            'dua',
+            'tiga',
+            'empat',
+            'lima',
+            'enam',
+            'tujuh',
+            'delapan',
+            'sembilan'
+        );
+
+        $ribu = array('', 'ribu', 'juta', 'miliar', 'triliun');
+
+        if ($angka < 10) {
+            return $bilangan[$angka];
+        } elseif ($angka < 20) {
+            return 'sepuluh ' . angkaKeHuruf($angka - 10);
+        } elseif ($angka < 100) {
+            return $bilangan[floor($angka / 10)] . ' puluh ' . angkaKeHuruf($angka % 10);
+        } elseif ($angka < 1000) {
+            return $bilangan[floor($angka / 100)] . ' ratus ' . angkaKeHuruf($angka % 100);
+        } else {
+            $result = '';
+            $idxRibuan = 0;
+            while ($angka > 0) {
+                if ($angka % 1000 > 0) {
+                    $result = angkaKeHuruf($angka % 1000) . ' ' . $ribu[$idxRibuan] . ' ' . $result;
+                }
+                $angka = floor($angka / 1000);
+                $idxRibuan++;
+            }
+            return $result;
+        }
     }
 }
 ?>

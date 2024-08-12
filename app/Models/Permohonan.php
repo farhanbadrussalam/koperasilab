@@ -57,7 +57,7 @@ class Permohonan extends Model
     }
 
     public function jadwal(){
-        return $this->belongsTo(jadwal::class, 'permohonan_id', 'id');
+        return $this->belongsTo(jadwal::class, 'id', 'permohonan_id');
     }
 
     public function user(){
@@ -69,7 +69,7 @@ class Permohonan extends Model
     }
 
     public function tbl_lhu(){
-        return $this->belongsTo(tbl_lhu::class, 'no_kontrak', 'no_kontrak');
+        return $this->belongsTo(tbl_lhu::class, 'id', 'id_jadwal');
     }
 
     public function tbl_kip(){

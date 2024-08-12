@@ -19,7 +19,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     $('#createSignature').on('click', obj => {
-        const item = $(obj.target).data('item');
+        if(signaturePad.isEmpty()){
+            return Swal.fire({
+                icon: "warning",
+                text: "Please provide a signature first.",
+            });
+        }
+
+        const item = $(canvas).data('item');
         const ttd = signaturePad.toDataURL();
 
         if(item.id_hash){

@@ -55,7 +55,7 @@
             </td>
             <td width="50%" class="text-center">
                 <div>
-                    <div>Tangerang Selatan, {{ convert_date($date, 3) }}</div>
+                    <div>Tangerang Selatan, {{ convert_date($date, 4) }}</div>
                     <div class="p-2"><img src="{{ $kip->ttd_1 }}" alt="TTD_keuangan" class="img-fluid"></div>
                     <div>{{ $kip->user->name }}</div>
                 </div>

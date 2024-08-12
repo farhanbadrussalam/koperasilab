@@ -136,6 +136,7 @@
                 const data = result.data;
 
                 $('#imgBukti').attr('src', `{{ asset('storage') }}/${data.tbl_kip.bukti.file_path}/${data.tbl_kip.bukti.file_hash}`);
+                $('#btn-cetak').attr('href', `{{ url('laporan/kwitansi') }}/${data.tbl_kip.kip_hash}`)
                 $('#modal-bukti').modal('show');
             })
         }

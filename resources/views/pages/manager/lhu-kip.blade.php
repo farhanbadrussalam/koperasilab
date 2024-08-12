@@ -71,56 +71,34 @@
             $('#content-ttd').hide();
             $('#content-show').hide();
             $('#actionModalLhu').hide();
+            const contentPertanyaan = document.getElementById('content-pertanyaan');
 
-            $.ajax({
-                url: "{{ url('api/lhu/getDokumenLHU') }}/" + id,
-                method: "GET",
-                dataType: "json",
-                processing: true,
-                serverSide: true,
-                headers: {
-                    'Authorization': `Bearer {{ generateToken() }}`,
-                    'Content-Type': 'application/json'
-                }
-            }).done(result => {
+            contentPertanyaan.innerHTML = '';
+            ajaxGet(`api/lhu/getDokumenLHU/${id}`, false, result => {
                 if(result.meta?.code == 200){
                     const data = result.data;
 
-                    let html = `
-                        <div class="mt-2 d-flex align-items-center justify-content-between px-3 mx-1 shadow-sm cursoron document border bg-white">
-                            <div class="d-flex align-items-center w-100">
-                                <div>
-                                    <img class="my-3" src="{{ asset('icons') }}/${iconDocument(data.media.file_type)}" alt=""
-                                        style="width: 24px; height: 24px;">
-                                </div>
-                                <div class="flex-grow-1 ms-2">
-                                    <div class="d-flex flex-column">
-                                        <a class="caption text-main" href="{{ asset('storage') }}/${data.media.file_path}/${data.media.file_hash}" target="_blank">${data.media.file_ori}</a>
-                                        <span class="text-submain caption text-secondary">${dateFormat(data.media.created_at, 1)}</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <small class="text-submain caption" style="margin-top: -3px;">${formatBytes(data.media.file_size)}</small>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
                     if(isShow){
-                        $('#ttd_manager').attr('src', data.ttd_2);
+                        $('#ttd_manager').attr('src', data.ttd_3);
                         $('#content-show').show();
                     }else{
                         $('#content-ttd').show();
                         $('#actionModalLhu').show();
                     }
+
+                    for (const jawaban of data.jawaban) {
+                        let contentJwb = createPertanyaan(jawaban);
+                        contentPertanyaan.appendChild(contentJwb);
+                    }
+
                     $('#idLhu').val(data.lhu_hash);
-                    $('#doc-lampiran').html(html);
                     $('#ttd_penyelialab').attr('src', data.ttd_1);
+                    $('#ttd_pelaksanalab').attr('src', data.ttd_2);
                     $('#modal-lhu').modal('show');
                 }else{
                     console.error(result.meta?.message);
                 }
-            })
+            });
             return;
         }
 
@@ -129,19 +107,9 @@
             $('#content-show-invoice').hide();
             $('#actionModalKip').hide();
 
-            $.ajax({
-                url: "{{ url('api/lhu/getDokumenKIP') }}/" + id,
-                method: 'GET',
-                dataType: 'json',
-                processing: true,
-                serverSide: true,
-                headers: {
-                    'Authorization': `Bearer {{ generateToken() }}`,
-                    'Content-Type': 'application/json'
-                }
-            }).done(result => {
+            ajaxGet(`api/lhu/getDokumenKIP/${id}`, false, result => {
                 const data = result.data;
-                $('#txtNoKontrakModal').html(data.no_kontrak);
+
                 $('#txtNamaLayananModal').html(data.permohonan.layananjasa.nama_layanan);
                 $('#txtNamaPelangganModal').html(data.permohonan.user.name);
                 $('#txtAlamatModal').html(data.permohonan.user.email);
@@ -182,7 +150,26 @@
 
                 $('#rincian-table-kip').html(contentRincian);
                 $('#modal-kip').modal('show');
-            })
+            });
+        }
+
+        function createPertanyaan(list){
+            const mainDiv = document.createElement('div');
+            mainDiv.className = 'col-md-6 mb-2'
+
+            const labelP = document.createElement('label')
+            labelP.className = 'fw-bolder';
+            labelP.innerHTML = list.pertanyaan.title
+
+            const inputP = document.createElement('input')
+            inputP.className = 'form-control'
+            inputP.disabled = true
+            inputP.value = list.jawaban
+
+            mainDiv.appendChild(labelP)
+            mainDiv.appendChild(inputP)
+
+            return mainDiv;
         }
     </script>
 @endpush

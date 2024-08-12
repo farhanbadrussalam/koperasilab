@@ -66,6 +66,8 @@ class LhuAPI extends Controller
             $request->ttd_1_by ? $data_lhu->ttd_1_by = decryptor($request->ttd_1_by) : null;
             $request->ttd_2 ? $data_lhu->ttd_2 = $request->ttd_2 : null;
             $request->ttd_2_by ? $data_lhu->ttd_2_by = decryptor($request->ttd_2_by) : null;
+            $request->ttd_3 ? $data_lhu->ttd_3 = $request->ttd_3 : null;
+            $request->ttd_3_by ? $data_lhu->ttd_3_by = decryptor($request->ttd_3_by) : null;
 
             $data_lhu->update();
         }
@@ -95,6 +97,7 @@ class LhuAPI extends Controller
         $data_kip = tbl_kip::where('id', $idKip)->first();
 
         $request->ttd_1 ? $data_kip->ttd_1 = $request->ttd_1 : null;
+        $request->ttd_1_by ? $data_kip->ttd_1_by = decryptor($request->ttd_1_by) : null;
         $request->status ? $data_kip->status = $request->status : null;
 
         $data_kip->update();

@@ -1,8 +1,8 @@
 @extends('layouts.main')
 
 @section('content')
-<div class="content-wrapper">
-    <section class="content-header">
+<div class="content-wrapper mt-4 mt-sm-2 mt-md-1 mt-xl-0">
+    <section class="content col-md-12">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
@@ -15,17 +15,13 @@
         </div><!-- /.container-fluid -->
     </section>
     <section class="content col-md-12">
-        <div class="d-flex">
-            <div class="col-md-8">
+        <div class="row d-flex">
+            <div class="col-md-8 col-sm-12 pe-md-1 p-sm-0">
                 <div class="card card-default shadow bg-white">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12 mb-3">
                                 <h3 class="card-title fw-bolder mb-3">Detail permohonan</h3>
-                            </div>
-                            <div class="col-6">
-                                <div class="fw-bolder">No kontrak</div>
-                                <div><span id="txtNoKontrakModal">{{ $permohonan->no_kontrak }}</span></div>
                             </div>
                             <div class="col-6">
                                 <div class="fw-bolder">Nama Layanan</div>
@@ -62,14 +58,14 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 col-sm-12 ps-md-1 p-sm-0">
                 <div class="card card-default shadow bg-white">
                     <div class="card-body">
                         <div class="row">
                             <div class="col-12 mb-3">
                                 <h3 class="card-title fw-bolder">Payment Method</h3>
                             </div>
-                            <div class="col-12">
+                            <div class="col-12 mb-2">
                                 <input type="radio" class="btn-check" name="options-base" onclick="payMethod('other')" id="option-other" autocomplete="off" checked>
                                 <label class="btn" for="option-other">Other</label>
 
@@ -80,6 +76,11 @@
                                 <p class="border rounded p-3">
                                     BRI : 393494847548537 <br>
                                     BNI : 234828934923842
+                                </p>
+                            </div>
+                            <div id="payCC" class="col-12" style="display: none;">
+                                <p class="border rounded p-3 text-center">
+                                    <b>Is coming soon</b>
                                 </p>
                             </div>
                             <div class="col-12 text-center">
@@ -123,14 +124,19 @@
 @endsection
 @push('scripts')
     <script>
+        setDropify('init', '#uploadBuktiPembayaran', {
+            allowedFileExtentions: ['jpg', 'png', 'jpeg'],
+            maxFileSize: '5M'
+        });
+        
         const permohonan = @json($permohonan);
         function payMethod(type){
             $('#payOther').hide();
+            $('#payCC').hide();
             switch (type) {
                 case 'cc':
-
+                    $('#payCC').show();
                     break;
-
                 default:
                     $('#payOther').show();
                     break;
@@ -147,16 +153,7 @@
                 formData.append('file', file);
                 formData.append('idKip', permohonan.tbl_kip.kip_hash);
 
-                $.ajax({
-                    url: "{{ url('api/kip/sendPayment') }}",
-                    method: "POST",
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'Authorization': `Bearer {{ $token }}`
-                    },
-                    data: formData
-                }).done((result) => {
+                ajaxPost(`api/kip/sendPayment`, formData, result => {
                     Swal.fire({
                         icon: 'success',
                         title: 'Success',
@@ -165,7 +162,7 @@
 
                     $('#paymentModal').modal('hide');
                     window.location.href = "{{ url('permohonan') }}";
-                })
+                });
             }else{
                 Swal.fire({
                     icon: "error",
@@ -175,9 +172,5 @@
 
         }
 
-        setDropify('init', '#uploadBuktiPembayaran', {
-            allowedFileExtentions: ['jpg', 'png', 'jpeg'],
-            maxFileSize: '5M'
-        });
     </script>
 @endpush

@@ -22,8 +22,8 @@ class ManagerController extends Controller
 
     public function getData()
     {
-        $informasi = Permohonan::with(['layananjasa', 'jadwal', 'tbl_kip', 'tbl_lhu'])
-                        ->whereHas('tbl_lhu', function ($query) {
+        $informasi = Permohonan::with(['layananjasa', 'jadwal', 'jadwal.tbl_lhu', 'tbl_kip'])
+                        ->whereHas('jadwal.tbl_lhu', function ($query) {
                             $query->where('level', 3);
                         })
                         ->orWhereHas('tbl_kip', function ($query) {
@@ -34,18 +34,18 @@ class ManagerController extends Controller
                 ->addIndexColumn()
                 ->addColumn('content', function ($data) {
                     $idHash = "'".$data->permohonan_hash."'";
-                    $idLHUhash = "'".$data->tbl_lhu->lhu_hash."'";
+                    $idLHUhash = "'".$data->jadwal->tbl_lhu->lhu_hash."'";
                     $idKIPhash = "'".$data->tbl_kip->kip_hash."'";
 
                     $buttonLHU = '';
-                    if($data->tbl_lhu->ttd_2){
+                    if($data->jadwal->tbl_lhu->ttd_3){
                         $buttonLHU = '<button class="btn btn-outline-success btn-sm" onclick="ttdDocumentLHU('.$idLHUhash.', 1)"><i class="bi bi-check2-all"></i> Show TTD LHU</button>';
                     }else{
                         $buttonLHU = '<button class="btn btn-outline-primary btn-sm" onclick="ttdDocumentLHU('.$idLHUhash.')"><i class="bi bi-check2"></i> TTD Document LHU</button>';
                     }
 
                     return '
-                        <div class="card m-0 border-0">
+                        <div class="card m-0">
                             <div class="card-body d-flex flex-wrap p-3 align-items-center">
                                 <div class="col-md-8 col-sm-12 mb-sm-2">
                                     <span class="fw-bold">'.$data->layananjasa->nama_layanan.'</span>

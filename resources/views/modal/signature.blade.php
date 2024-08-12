@@ -12,7 +12,7 @@
                         <input type="hidden" id="tmp_id_hash">
                         <div class="wrapper text-center" id="content-ttd">
                             <button class="btn btn-danger btn-sm position-absolute ms-1 mt-1" id="signature-clear"><i class="bi bi-trash"></i></button>
-                            <canvas id="signature-canvas" class="signature-pad border border-success-subtle rounded border-1" width=300 height=200></canvas>
+                            <canvas id="signature-canvas" class="signature-pad border border-success-subtle rounded border-2" width=300 height=200></canvas>
                             <p class="text-center mb-0">{{ $title }}</p>
                             <span>(<span id="nameSignature"></span>)</span>
                         </div>

@@ -31,6 +31,6 @@ class Satuan_kerja extends Model
 
     public function layananJasa()
     {
-        return hasOne(Layanan_jasa::class);
+        return $this->hasOne(Layanan_jasa::class);
     }
 }

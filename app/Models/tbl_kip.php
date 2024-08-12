@@ -18,6 +18,7 @@ class tbl_kip extends Model
         'pajak',
         'status',
         'ttd_1',
+        'ttd_1_by',
         'created_by'
     ];
 
@@ -37,11 +38,16 @@ class tbl_kip extends Model
 
     public function permohonan()
     {
-        return $this->belongsTo(Permohonan::class, 'no_kontrak', 'no_kontrak');
+        return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id');
     }
 
     public function bukti()
     {
         return $this->belongsTo(tbl_media::class, 'bukti_pembayaran', 'id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(user::class, 'ttd_1_by', 'id');
     }
 }
