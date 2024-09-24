@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\tbl_media;
+use App\Models\Master_media;
+use App\Helpers\FileUpload;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,14 +19,13 @@ class MediaController extends Controller
 
         $path = $this->createPath($jenis);
         $idMedia = false;
+        $filename = false;
         if($file){
             $realname =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $extension = $file->getClientOriginalExtension();
             $filename = $this->filename($realname, $extension);
 
-            $file->storeAs('public/'.$path, $filename);
-
-            $media = tbl_media::create([
+            $media = Master_media::create([
                 'file_hash' => $filename,
                 'file_ori' => $file->getClientOriginalName(),
                 'file_size' => $file->getSize(),
@@ -37,11 +37,11 @@ class MediaController extends Controller
             $idMedia = $media->id;
         }
 
-        return $idMedia;
+        return new FileUpload($file, $path, $filename, $idMedia);
     }
 
     public function update($file, $id_media){
-        $media = tbl_media::findOrFail($id_media);
+        $media = Master_media::findOrFail($id_media);
 
         // $file = false;
         // if($request->file('dokumen')){
@@ -68,6 +68,20 @@ class MediaController extends Controller
             $media->file_type = $file->getClientMimeType();
 
             $media->update();
+        }
+    }
+
+    public function destroy($id_media){
+        $media = Master_media::findOrFail($id_media);
+
+        if($media){
+            $path = 'public/'.$media->file_path.'/'.$media->file_hash;
+
+            if(Storage::exists($path)){
+                Storage::delete($path);
+            }
+
+            $media->delete();
         }
     }
 

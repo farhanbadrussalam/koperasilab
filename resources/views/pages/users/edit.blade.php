@@ -133,7 +133,7 @@
 @push('scripts')
     <script>
         // Initialisasi
-        const role = @json($d_user->getRoleNames()[0]);
+        const role = @json((count($d_user->getRoleNames()) != 0) ? $d_user->getRoleNames()[0] : []);
         const profile = @json($d_user->profile);
         const d_user = @json($d_user);
         $(function() {

@@ -44,8 +44,14 @@
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('assets/dropify/js/dropify.js') }}"></script>
     <script src="{{ asset('assets/js/app.min.js') }}"></script>
+    {{-- Select 2 --}}
     <script src="{{ asset('vendor/select2/js/select2.full.js') }}"></script>
+    {{-- Flat pickr --}}
     <script src="{{ asset('vendor/flatpickr/flatpickr.min.js') }}"></script>
+    <script src="{{ asset('vendor/flatpickr/l10n/id.js') }}"></script>
+    {{-- Signature --}}
+    <script src="{{ asset('vendor/signature/signature_pad.umd.min.js') }}"></script>
+
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 
@@ -65,7 +71,7 @@
 
         <!--  Main wrapper -->
         <div class="body-wrapper">
-            <header class="app-header">
+            <header class="app-header shadow-sm">
                 <!-- Navbar -->
                 @include('layouts.navbar')
 
@@ -80,8 +86,21 @@
         <!-- @include('layouts.footer') -->
     </div>
 
+    {{-- modal --}}
+    <div class="modal fade" id="modal-preview-ktp" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="">KTP</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body row justify-content-center">
+                    <img src="#" alt="" class="img-fluid" id="img-preview-ktp">
+                </div>
+            </div>
+        </div>
+    </div>
 
-    
     <script src="{{ asset('assets/js/global.js') }}"></script>
     @stack('scripts')
     <script>
@@ -121,7 +140,7 @@
 
         function loadNotifikasi() {
             $.ajax({
-                url: "{{ url('api/getNotifikasi') }}",
+                url: "{{ url('api/v1/getNotifikasi') }}",
                 dataType: 'json',
                 method: 'GET',
                 processData: true,
@@ -165,7 +184,7 @@
                     url = "{{ route('jadwal.index') }}";
                     break;
                 case 'permohonan':
-                    url = "{{ route('permohonan.index') }}";
+                    url = "{{ route('staff.permohonan') }}";
                     break;
                 default:
                     break;

@@ -95,6 +95,14 @@ function dateFormat(tanggal, type = false) {
             // 2023-10-14 18:40
             return `${year}-${month}-${day} ${hour}:${minute}`;
             break;
+        case 4:
+            // 14 August 2024
+            options = {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            };
+            break;
         default:
             // sabtu, 14 Okt 2023, 18:40
             options = {
@@ -197,13 +205,27 @@ function statusFormat(feature, status) {
                     </div>
                     `;
                 break;
-            case 9:
+            case 90:
                 htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-danger"></div></div>
                         <span class="subbody-medium text-submain text-truncate">Ditolak</span>
                     </div>
                     `;
+                break;
+        }
+    } else if (feature == 'keuangan') {
+        switch (status) {
+            case 2:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-secondary"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
+                    </div>
+                    `;
+                break;
+        
+            default:
                 break;
         }
     }
@@ -345,7 +367,7 @@ function createPaginationHTML(pagination) {
     let html = '<nav aria-label="Page navigation example"><ul class="pagination pagination-sm mb-0 d-flex align-items-center justify-content-end mt-4">';
 
     // Tambahkan tombol First dan Previous
-    html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="1" onclick="fetchData(1)">First</a></li>`;
+    html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="1">First</a></li>`;
     html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${pagination.current_page - 1}" aria-label="Previous">&laquo;</a></li>`;
 
     // Tambahkan tombol-tombol halaman
@@ -468,4 +490,87 @@ function printMedia(media, folder=false, option = {}){
             <div class="d-flex align-items-center"></div>
         </div>
         `;
+}
+
+function spinner(status = 'show', obj, options = {}){
+    options = {
+        place: options.place ? options.place : 'before' // after or before
+    }
+    if(status == 'show'){
+        const spin = `<span class="spinner-border spinner-border-sm" role="status"></span> `;
+        if(options.place == 'after'){
+            $(obj).attr('disabled', true).append(spin);
+        } else {
+            $(obj).attr('disabled', true).prepend(spin);
+        }
+    }else if(status == 'hide'){
+        $(obj).attr('disabled', false).children('.spinner-border').remove();
+    }
+}
+
+function validate(...data){
+    console.log(data);
+}
+
+function showPreviewKtp(obj) {
+    let path = $(obj).data('path');
+    let file = $(obj).data('file');
+
+    $('#img-preview-ktp').attr('src', `${base_url}/storage/${path}/${file}`);
+    $('#modal-preview-ktp').modal('show');
+}
+
+// Signature
+function signature(parent, options){
+    options = {
+        text: options.text ? options.text : '',
+        defaultSig: options.defaultSig ? options.defaultSig : false,
+        width: options.width ? options.width : 200,
+        height: options.height ? options.height : 120
+    };
+
+    // Create Element canvas
+    const canvas = document.createElement('canvas');
+    canvas.className = 'p-0 signature-pad border border-success-subtle rounded border-2';
+    canvas.width = options.width;
+    canvas.height = options.height;
+    canvas.style.width = `${options.width}px`;
+    canvas.style.height = `${options.height}px`;
+
+    // Create Element remove
+    const btnRemove = document.createElement('button');
+    btnRemove.className = 'btn btn-danger btn-sm position-absolute ms-1 mt-1 z-2';
+    btnRemove.innerHTML = '<i class="bi bi-trash"></i>';
+
+    // Create Element text
+    const text = document.createElement('p');
+    text.className = 'text-center mb-0';
+    text.innerText = options.text;
+
+    if(options.defaultSig){
+        // Create Element img default
+        const img = document.createElement('img');
+        img.className = 'rounded border p-0';
+        img.width = options.width;
+        img.height = options.height;
+        img.src = options.defaultSig;
+
+        parent.appendChild(img);
+    }else{
+        parent.appendChild(btnRemove);
+        parent.appendChild(canvas);
+    }
+
+    parent.appendChild(text);
+
+    const signaturePad = new SignaturePad(canvas, {
+        backgroundColor: 'rgb(255, 255, 255)'
+    });
+
+    btnRemove.onclick = () => {
+        signaturePad.clear();
+    }
+
+
+    return signaturePad;
 }

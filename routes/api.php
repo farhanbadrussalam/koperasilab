@@ -28,11 +28,12 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::prefix('v1/')->group(function() {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/encryptor', [AuthController::class, 'encryptor']);
+});
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/encryptor', [AuthController::class, 'encryptor']);
-
-Route::middleware('auth:sanctum')->group(function() {
+Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::get('/logout', [AuthController::class, 'logout']);
 
     Route::get('/getPegawai', [LayananjasaAPI::class, 'getPegawai']);
@@ -62,14 +63,23 @@ Route::middleware('auth:sanctum')->group(function() {
     });
 
     Route::prefix("permohonan")->controller(PermohonanAPI::class)->group(function () {
-        Route::get('/show/{id}', 'show');
-        Route::get('/list', 'listPermohonan');
-        Route::delete('/destroy/{id}', 'destroy');
-        Route::post('/update/{id}', 'update');
-        Route::post('/verifikasi_fd', 'verifikasi_fd');
-        Route::post('/verifikasi_kontrak', 'verifikasi_kontrak');
-        Route::post('/sendSuratTugas', 'sendSuratTugas');
-        Route::post('/addPermohonan', 'addPermohonan');
+        // Route::get('/show/{id}', 'show');
+        // Route::get('/list', 'listPermohonan');
+        // Route::post('/update/{id}', 'update');
+        // Route::post('/verifikasi_fd', 'verifikasi_fd');
+        // Route::post('/verifikasi_kontrak', 'verifikasi_kontrak');
+        // Route::post('/sendSuratTugas', 'sendSuratTugas');
+        // Route::post('/addPermohonan', 'addPermohonan');
+        Route::delete('/destroyPermohonan/{id}', 'destroyPermohonan');
+        Route::get('/listPengajuan', 'listPengajuan');
+        Route::post('/tambahPengajuan', 'tambahPengajuan');
+        Route::post('/tambahPengguna', 'tambahPengguna');
+        Route::delete('/destroyPengguna/{idPengguna}', 'destroyPengguna');
+        Route::get('/listPengguna', 'listPengguna');
+        Route::get('/getChildJenisLayanan/{idParent}', 'getChildJenisLayanan');
+        Route::get('/getJenisTld/{idJenisLayanan}', 'getJenisTld');
+        Route::get('/getPrice', 'getPrice');
+        Route::post('/verifikasi/cek', 'verifPermohonan');
     });
 
     Route::prefix('otorisasi')->group(function () {

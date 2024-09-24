@@ -19,7 +19,10 @@ class UserController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Management',
+            'module' => 'users'
+        ];
         return view('pages.users.index', $data);
     }
 
@@ -34,7 +37,7 @@ class UserController extends Controller
                     ';
                 })
                 ->addColumn('role', function($data){
-                    return $data->getRoleNames()[0];
+                    return (count($data->getRoleNames()) != 0)  ? $data->getRoleNames()[0] : '-';
                 })
                 ->rawColumns(['action'])
                 ->make(true);
@@ -45,9 +48,12 @@ class UserController extends Controller
      */
     public function create()
     {
-        $data['satuankerja'] = Satuan_kerja::all();
-        $data['role'] = Role::all();
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Management',
+            'module' => 'users',
+            'satuankerja' => Satuan_kerja::all(),
+            'role' => Role::all()
+        ];
         return view('pages.users.create', $data);
     }
 
@@ -118,10 +124,13 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
-        $data['satuankerja'] = Satuan_kerja::all();
-        $data['role'] = Role::all();
-        $data['d_user'] = User::findOrFail(decryptor($id));
-        $data['token'] = generateToken();
+        $data = [
+            'title' => 'Management',
+            'module' => 'users',
+            'satuankerja' => Satuan_kerja::all(),
+            'role' => Role::all(),
+            'd_user' => User::findOrFail(decryptor($id))
+        ];
         return view('pages.users.edit', $data);
     }
 
@@ -135,7 +144,7 @@ class UserController extends Controller
         $profile = profile::where('user_id', $idHash)->first();
 
         $d_user->name = $request->name;
-        $d_user->removeRole($d_user->getRoleNames()[0]);
+        (count($d_user->getRoleNames()) != 0) ? $d_user->removeRole($d_user->getRoleNames()[0]) : false;
         $d_user->assignRole($request->role);
         $d_user->update();
 

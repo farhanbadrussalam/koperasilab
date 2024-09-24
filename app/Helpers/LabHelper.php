@@ -325,6 +325,13 @@ if (!function_exists('strPad')) {
     }
 }
 
+if (!function_exists('getRomawiBulan')) {
+    function getRomawiBulan($bulan){
+        $romawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        return $romawi[$bulan - 1]; // Bulan ke-1 (Januari) dimulai dari index 0
+    }
+}
+
 if (!function_exists('angkaKeHuruf')) {
     function angkaKeHuruf($angka){
         $bilangan = array(

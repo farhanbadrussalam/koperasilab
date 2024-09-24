@@ -5,31 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class tbl_media extends Model
+class Master_radiasi extends Model
 {
     use HasFactory;
 
-    protected $table = 'tbl_media';
+    protected $table = 'master_radiasi';
 
     protected $fillable = [
-        'file_hash',
-        'file_ori',
-        'file_size',
-        'file_type',
-        'file_path',
+        'nama_radiasi',
         'status'
     ];
 
     protected $hidden = [
-        'id'
+        'id_radiasi'
     ];
 
     protected $appends = [
-        'media_hash'
+        'radiasi_hash'
     ];
 
-    public function getMediaHashAttribute()
+    public function getRadiasiHashAttribute()
     {
-        return encryptor($this->id);
+        return encryptor($this->id_radiasi);
     }
 }

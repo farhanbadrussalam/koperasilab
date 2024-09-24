@@ -12,11 +12,16 @@ class ProfileController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public function __construct() {
+        $this->module = 'profile-pelanggan';
+    }
+
     public function index()
     {
         $data = [
             'title' => 'Profile',
-            'module' => 'biodata-pribadi'
+            'module' => $this->module
         ];
 
         return view('pages.profile.index', $data);

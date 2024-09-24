@@ -1,0 +1,215 @@
+@extends('layouts.main')
+
+@section('content')
+<div class="content-wrapper">
+    <section class="content col-md-12">
+        <div class="container">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item px-3">
+                    <a href="{{ route('staff.permohonan') }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="detailPermohonan-tab" onclick="" data-bs-toggle="tab" data-bs-target="#detailPermohonan-tab-pane" type="button" role="tab" aria-controls="detailPermohonan-tab-pane" aria-selected="true">Detail Permohonan</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="detailPelanggan-tab" onclick="" data-bs-toggle="tab" data-bs-target="#detailPelanggan-tab-pane" type="button" role="tab" aria-controls="detailPelanggan-tab-pane" aria-selected="true">Detail Pelanggan</button>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="detailPermohonan-tab-pane" role="tabpanel" aria-labelledby="detailPermohonan-tab" tabindex="0">
+                    <div class="card card-default border-0 color-palette-box shadow py-3">
+                        <div class="card-body row">
+                            <div class="col-md-4 col-12">
+                                <h2>Informasi</h2>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <label for="layanan-jasa" class="col-form-label">Layanan jasa</label>
+                                        <input type="text" name="layanan-jasa" id="layanan-jasa" class="form-control bg-secondary-subtle" value="{{ $permohonan->layanan_jasa->nama_layanan }}" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="jenis-layanan" class="col-form-label">Jenis Layanan</label>
+                                        <input type="text" name="jenis-layanan" id="jenis-layanan" class="form-control bg-secondary-subtle" value="{{ $permohonan->jenis_layanan_parent->name }} - {{ $permohonan->jenis_layanan->name }}" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="jenis-tld" class="col-form-label">Jenis TLD</label>
+                                        <input type="text" name="jenis-tld" id="jenis-tld" class="form-control bg-secondary-subtle" value="{{ $permohonan->jenisTld->name }}" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="tipe-kontrak" class="col-form-label">Tipe Kontrak</label>
+                                        <input type="text" name="tipe-kontrak" id="tipe-kontrak" class="form-control bg-secondary-subtle" value="{{ $permohonan->tipe_kontrak }}" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="col-form-label" for="periode-pemakaian">Periode pemakaian</label>
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control bg-secondary-subtle" id="periode-pemakaian" aria-label="Periode pemakaian" value="" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" id="btn-periode">Show periode</button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="jum-pengguna" class="col-form-label">Jumlah Pengguna</label>
+                                        <input type="text" name="jum-pengguna" id="jum-pengguna" class="form-control bg-secondary-subtle" value="{{ $permohonan->jumlah_pengguna }}" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="jum-kontrol" class="col-form-label">Jumlah Kontrol</label>
+                                        <input type="text" name="jum-kontrol" id="jum-kontrol" class="form-control bg-secondary-subtle" value="{{ $permohonan->jumlah_kontrol }}" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="jum-kontrol" class="col-form-label">Total harga</label>
+                                        <input type="text" name="jum-kontrol" id="jum-kontrol" class="form-control bg-secondary-subtle" value="{{ formatCurrency($permohonan->total_harga) }}" readonly>
+                                        <small class="text-info">*Belum termasuk PPN</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
+                        <div class="card-body row">
+                            <div class="col-md-4 col-12">
+                                <h2>Data Pengguna</h2>
+                            </div>
+                            <div class="col-md-8 col-12" style="max-height: 25rem;">
+                                <div class="body-placeholder my-3" id="pengguna-placeholder">
+                                    @for ($i = 1; $i < 6; $i++)
+                                    <div class="card mb-2 shadow-sm border-dark">
+                                        <div class="card-body row align-items-center">
+                                            <div class="placeholder-glow col-md-4 lh-sm d-flex flex-column">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                                <div class="placeholder w-25 mb-1"></div>
+                                            </div>
+                                            <div class="placeholder-glow col-md-3">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                            </div>
+                                            <div class="placeholder-glow col-md-3">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                            </div>
+                                            <div class="placeholder-glow col-md-2 text-end">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endfor
+                                </div>
+                                <div class="body my-3" id="pengguna-list-container">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
+                        <div class="card-body row">
+                            {{-- <div class="col-md-6 d-flex justify-content-center">
+                                <div class="wrapper" id="content-ttd-1"></div>
+                            </div> --}}
+                            <div class="col-md-12 d-flex justify-content-center">
+                                <div class="wrapper" id="content-ttd-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="detailPelanggan-tab-pane" role="tabpanel" aria-labelledby="detailPelanggan-tab" tabindex="0">
+                    <div class="card card-default border-0 color-palette-box shadow py-3">
+                        <div class="card-body row">
+                            <div class="col-md-4 col-12">
+                                <h2>Data Perusahaan</h2>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <label for="nama-instansi" class="col-form-label">Nama instansi</label>
+                                        <input type="text" name="nama-instansi" id="nama-instansi" class="form-control bg-secondary-subtle" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="nama-pic" class="col-form-label">Nama PIC</label>
+                                        <input type="text" name="nama-pic" id="nama-pic" class="form-control bg-secondary-subtle" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="jabatan-pic" class="col-form-label">Jabatan PIC</label>
+                                        <input type="text" name="jabatan-pic" id="jabatan-pic" class="form-control bg-secondary-subtle" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="email" class="col-form-label">Email</label>
+                                        <input type="text" name="email" id="email" class="form-control bg-secondary-subtle" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="telepon" class="col-form-label">Telepon</label>
+                                        <input type="text" name="telepon" id="telepon" class="form-control bg-secondary-subtle" readonly>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="npwp" class="col-form-label">NPWP</label>
+                                        <input type="text" name="npwp" id="npwp" class="form-control bg-secondary-subtle" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-3">
+                        <div class="card-body row">
+                            <div class="col-md-4 col-12">
+                                <h2>Alamat</h2>
+                            </div>
+                            <div class="col-md-6 col-12">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <label for="alamat-utama" class="col-form-label">Alamat Utama</label>
+                                        <textarea name="alamat-utama" id="alamat-utama" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="alamat-tld" class="col-form-label">Alamat TLD</label>
+                                        <textarea name="alamat-tld" id="alamat-tld" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="alamat-lhu" class="col-form-label">Alamat LHU</label>
+                                        <textarea name="alamat-lhu" id="alamat-lhu" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="alamat-invoice" class="col-form-label">Alamat Invoice</label>
+                                        <textarea name="alamat-invoice" id="alamat-invoice" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <button class="btn btn-danger" onclick="verif_kelengkapan('tidak_lengkap', this)">Data tidak lengkap</button>
+                    </div>
+                    <div class="col-6 text-end">
+                        <button class="btn btn-primary" onclick="verif_kelengkapan('lengkap', this)">Data Lengkap</button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+</div>
+<div class="modal fade" id="modal-verif-invalid" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Data tidak lengkap</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body row justify-content-center">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="col-form-label" for="txt_note">Note</label>
+                        <textarea name="txt_note" id="txt_note" rows="3" class="form-control"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="return_permohonan(this)">Return</button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+@push('scripts')
+    <script>
+        const dataPermohonan = @json($permohonan);
+    </script>
+    <script src="{{ asset('js/staff/verifikasi_permohonan.js') }}"></script>
+@endpush

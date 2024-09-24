@@ -2,6 +2,10 @@
     font-family: 'inter';
 }
 
+body {
+    background-color: #F2F2F2 !important;
+}
+
 .cursoron {
     cursor: pointer;
     border-radius: 10px;

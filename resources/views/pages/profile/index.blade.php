@@ -2,129 +2,226 @@
 
 @section('content')
     <div class="content-wrapper">
-        <section class="content-header">
-            <div class="container-fluid">
-                <div class="row mb-2">
-                    <div class="col-sm-6">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('userProfile.index') }}">Profile</a></li>
-                        </ol>
-                    </div>
-                </div>
-            </div><!-- /.container-fluid -->
-        </section>
-        <section class="content">
+        <section class="content col-md-12">
             <div class="container">
-                <div class="row">
-                    <div class="card col-xl-8 col-md-12 bg-white">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-12 text-center fw-bolder border-bottom">
-                                    <h2>Biodata pribadi</h2>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="text-center">
-                                        <div class="box-profile my-2">
-                                            <img class="profile-user-img img-fluid img-circle"
-                                                src="@if (isset(Auth::user()->profile->media))
-                                                {{ asset('storage/images/avatar/' . Auth::user()->profile->media->file_hash) }}
-                                                @else
-                                                {{ asset('assets/img/default-avatar.jpg') }}
-                                                @endif"
-                                                alt="User profile picture" onerror="this.src=`{{ asset('assets/img/default-avatar.jpg') }}`" style="width: 15em;">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail-tab-pane" type="button" role="tab" aria-controls="detail-tab-pane" aria-selected="true">My Details</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="alamat-tab" data-bs-toggle="tab" data-bs-target="#alamat-tab-pane" type="button" role="tab" aria-controls="alamat-tab-pane" aria-selected="true">Alamat</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="changepassword-tab" data-bs-toggle="tab" data-bs-target="#changepassword-tab-pane" type="button" role="tab" aria-controls="changepassword-tab-pane" aria-selected="true">Change Password</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTabContent">
+                    <div class="tab-pane fade show active pt-3" id="detail-tab-pane" role="tabpanel" aria-labelledby="detail-tab" tabindex="0">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 fw-bolder mb-3">
+                                        <h2>Biodata PIC</h2>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="nama_instansi" class="form-label">Nama instansi</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" id="nama_instansi" name="nama_instansi" placeholder="" value="PT Sejahtera" disabled>
+                                                    <a href="#">Edit</a>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <h4>{{ Auth::user()->getRoleNames()[0] }}</h4>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="nama_pic" class="form-label">Nama PIC</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" id="nama_pic" name="nama_pic" placeholder="" value="{{ Auth::user()->name }}" disabled>
+                                                    <a href="#">Edit</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="jabatan_pic" class="form-label">Jabatan PIC</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" id="jabatan_pic" name="jabatan_pic" placeholder="" value="Manager" disabled>
+                                                    <a href="#">Edit</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="email" class="form-label">Email</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="email" class="form-control me-2" id="email" name="email" placeholder="" value="Sejahtera@gmail.com" disabled>
+                                                    <a href="#">Edit</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="telepon" class="form-label">Telepon</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" id="telepon" name="telepon" value="08962736152" disabled>
+                                                    <a href="#">Edit</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="npwp" class="form-label">NPWP</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" id="npwp" name="npwp" value="890948347363748547" disabled>
+                                                    <a href="#">Edit</a>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-8 mt-sm-3">
-                                    <form action="{{ route('userProfile.update', Auth::user()->profile->id) }}" method="post">
-                                        @csrf
-                                        @method('PUT')
-                                        <div class="mb-3 row">
-                                            <label for="inputName" class="col-sm-3 col-md-4 col-form-label">Nama
-                                                lengkap </label>
-                                            <div class="col-sm-9 col-md-8">
-                                                <input type="text" name="name" class="form-control" id="inputName"
-                                                    value="{{ old('name') ? old('name') : Auth::user()->name }}" readonly>
-                                            </div>
-                                        </div>
-                                        <div class="mb-3 row">
-                                            <label for="inputNik" class="col-sm-3 col-md-4 col-form-label">NIK</label>
-                                            <div class="col-sm-9 col-md-8">
-                                                <input type="text" name="nik"
-                                                    class="form-control maskNIK @error('nik') is-invalid @enderror" id="inputNik"
-                                                    value="{{ old('nik') ? old('nik') : Auth::user()->profile->nik }}" readonly>
-                                                @error('nik')
-                                                    <div class="invalid-feedback">
-                                                        {{ $message }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade show pt-3" id="alamat-tab-pane" role="tabpanel" aria-labelledby="alamat-tab" tabindex="0">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 fw-bolder mb-3">
+                                        <h2>Alamat Perusahaan</h2>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex mb-3">
+                                            <div class="flex-fill">
+                                                <label for="alamat_utama" class="form-label">Alamat utama</label>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-fill me-2">
+                                                        <textarea name="alamat_utama" id="alamat_utama" cols="30" rows="3" class="form-control mb-2" disabled></textarea>
+                                                        <input type="text" class="form-control me-2" placeholder="Kode pos" disabled>
                                                     </div>
-                                                @enderror
+                                                    <a href="#">Edit</a>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="mb-3 row">
-                                            <label for="inputEmail" class="col-sm-3 col-md-4 col-form-label">Email</label>
-                                            <div class="col-sm-9 col-md-8">
-                                                <input type="email" name="email"
-                                                    class="form-control @error('email') is-invalid @enderror" id="inputEmail"
-                                                    value="{{ old('email') ? old('email') : Auth::user()->email }}" readonly>
-                                                @error('email')
-                                                    <div class="invalid-feedback">
-                                                        {{ $message }}
+                                        <div class="d-flex mb-3">
+                                            <div class="flex-fill">
+                                                <div class="d-flex">
+                                                    <label for="alamat_tld" class="form-label me-3">Alamat TLD</label>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" role="switch" id="switchAlamatTld">
                                                     </div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="mb-3 row">
-                                            <label for="inputNomer" class="col-sm-3 col-md-4 col-form-label">No Telepon</label>
-                                            <div class="col-sm-9 col-md-8">
-                                                <input type="text" name="telepon"
-                                                    class="form-control maskTelepon @error('telepon') is-invalid @enderror" id="inputNomer"
-                                                    value="{{ old('telepon') ? old('telepon') : Auth::user()->profile->no_hp }}"
-                                                    readonly>
-                                                @error('telepon')
-                                                    <div class="invalid-feedback">
-                                                        {{ $message }}
+                                                </div>
+                                                <div id="alamat_tld_inactive">
+                                                    <p>Alamat sesuai dengan alamat utama</p>
+                                                </div>
+                                                <div class="d-flex align-items-center d-none" id="alamat_tld_active">
+                                                    <div class="flex-fill me-2">
+                                                        <textarea name="alamat_utama" id="alamat_utama" cols="30" rows="3" class="form-control mb-2" disabled></textarea>
+                                                        <input type="text" class="form-control me-2" placeholder="Kode pos" disabled>
                                                     </div>
-                                                @enderror
+                                                    <a href="#">Edit</a>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="mb-3 row">
-                                            <label for="inputJeniskelamin" class="col-sm-3 col-md-4 col-form-label">Jenis
-                                                Kelamin</label>
-                                            <div class="col-sm-9 col-md-8">
-                                                <select name="jenis_kelamin" id="inputJenisKelamin"
-                                                    class="form-control @error('jenis_kelamin') is-invalid @enderror" disabled>
-                                                    <option value="">Pilih Jenis Kelamin</option>
-                                                    <option value="laki-laki"
-                                                        {{ old('jenis_kelamin') ? (old('jenis_kelamin') === 'laki-laki' ? 'selected' : '') : (Auth::user()->profile->jenis_kelamin === 'laki-laki' ? 'selected' : '') }}>
-                                                        Laki-laki</option>
-                                                    <option value="perempuan"
-                                                        {{ old('jenis_kelamin') ? (old('jenis_kelamin') === 'perempuan' ? 'selected' : '') : (Auth::user()->profile->jenis_kelamin === 'perempuan' ? 'selected' : '') }}>
-                                                        Perempuan</option>
-                                                </select>
-                                                @error('jenis_kelamin')
-                                                    <div class="invalid-feedback">
-                                                        {{ $message }}
+                                        <div class="d-flex mb-3">
+                                            <div class="flex-fill">
+                                                <div class="d-flex">
+                                                    <label for="alamat_lhu" class="form-label me-3">Alamat LHU</label>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" role="switch" id="switchAlamatLhu" checked>
                                                     </div>
-                                                @enderror
+                                                </div>
+                                                <div id="alamat_lhu_inactive" class="d-none">
+                                                    <p>Alamat sesuai dengan alamat utama</p>
+                                                </div>
+                                                <div class="d-flex align-items-center" id="alamat_lhu_active">
+                                                    <div class="flex-fill me-2">
+                                                        <textarea name="alamat_utama" id="alamat_utama" cols="30" rows="3" class="form-control mb-2" disabled></textarea>
+                                                        <input type="text" class="form-control me-2" placeholder="Kode pos" disabled>
+                                                    </div>
+                                                    <a href="#">Edit</a>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="mb-3 row">
-                                            <label for="inputAlamat" class="col-sm-3 col-md-4 col-form-label">Alamat</label>
-                                            <div class="col-sm-9 col-md-8">
-                                                <textarea name="alamat" id="inputAlamat" rows="5" class="form-control" readonly>{{ old('alamat') ? old('alamat') : Auth::user()->profile->alamat }}</textarea>
+                                        <div class="d-flex mb-3">
+                                            <div class="flex-fill">
+                                                <div class="d-flex">
+                                                    <label for="alamat_invoice" class="form-label me-3">Alamat Invoice</label>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" role="switch" id="switchAlamatInvoice">
+                                                    </div>
+                                                </div>
+                                                <div id="alamat_invoice_inactive">
+                                                    <p>Alamat sesuai dengan alamat utama</p>
+                                                </div>
+                                                <div class="d-flex align-items-center d-none" id="alamat_invoice_active">
+                                                    <div class="flex-fill me-2">
+                                                        <textarea name="alamat_utama" id="alamat_utama" cols="30" rows="3" class="form-control mb-2" disabled></textarea>
+                                                        <input type="text" class="form-control me-2" placeholder="Kode pos" disabled>
+                                                    </div>
+                                                    <a href="#">Edit</a>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="mb-3 d-flex justify-content-end">
-                                            <button class="btn btn-warning" type="button" id="btnEditProfile"
-                                                onclick="editProfile(this)">Edit biodata</button>
-                                            <div id="actionBtnProfile" class="d-none">
-                                                <button class="btn btn-primary">Simpan</button>
-                                                <button class="btn btn-danger" type="reset"
-                                                    onclick="window.location.reload();">Batal</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade show pt-3" id="changepassword-tab-pane" role="tabpanel" aria-labelledby="changepassword-tab" tabindex="0">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 fw-bolder mb-3">
+                                        <h2>Change Password</h2>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-4 text-start">
+                                            <label for="old_password" class="form-label text-main body-medium">Old Password</label>
+                                            <div class="input-group mb-2 mt-1">
+                                                <input
+                                                    class="form-control form-control input-login"
+                                                    id="old_password"
+                                                    type="password"
+                                                    name="old_password"
+                                                    placeholder="Enter your old password" />
+                                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                                    <i class="bi bi-eye"></i>
+                                                </div>
                                             </div>
                                         </div>
-                                    </form>
+                                        <div class="mb-4 text-start">
+                                            <label for="new_password" class="form-label text-main body-medium">New Password</label>
+                                            <div class="input-group mb-2 mt-1">
+                                                <input
+                                                    class="form-control form-control input-login"
+                                                    id="new_password"
+                                                    type="password"
+                                                    name="new_password"
+                                                    placeholder="Enter your new password" />
+                                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                                    <i class="bi bi-eye"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-4 text-start">
+                                            <label for="confirm_password" class="form-label text-main body-medium">Confirm Password</label>
+                                            <div class="input-group mb-2 mt-1">
+                                                <input
+                                                    class="form-control form-control input-login"
+                                                    id="confirm_password"
+                                                    type="password"
+                                                    name="confirm_password"
+                                                    placeholder="Enter your confirm password" />
+                                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                                    <i class="bi bi-eye"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-4">
+                                            <button class="btn btn-primary">Change</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

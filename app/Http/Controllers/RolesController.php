@@ -16,7 +16,7 @@ class RolesController extends Controller
     {
         $data = [
             'title' => 'Management',
-            'module' => 'role',
+            'module' => 'roles',
             'permissions' => Permission::orderBy('name', 'ASC')->get()
         ];
 

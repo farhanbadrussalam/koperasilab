@@ -11,7 +11,7 @@
         </div>
 
         <!-- Sidebar navigation-->
-        <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
+        <nav class="sidebar-nav scroll-sidebar shadow-sm" data-simplebar="">
             <ul id="sidebarnav" class="p-0">
                 <!-- MAIN MENU -->
                 <li class="nav-small-cap">
@@ -29,26 +29,14 @@
                     </a>
                 </li>
 
-                @can('Biodata.pribadi')
+                @can('Profile/pelanggan')
                 <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'biodata-pribadi' ? 'active' : '' }}"
+                    <a class="sidebar-link {{ $module == 'profile-pelanggan' ? 'active' : '' }}"
                         href="{{ route('userProfile.index') }}" aria-expanded="false">
                         <span>
                             <i class="bi bi-person-fill"></i>
                         </span>
                         <span class="hide-menu">Profile</span>
-                    </a>
-                </li>
-                @endcan
-
-                @can('Layananjasa')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'Layananjasa' ? 'active' : '' }}"
-                        href="{{ route('layananJasa.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-briefcase-fill"></i>
-                        </span>
-                        <span class="hide-menu">Layanan Jasa</span>
                     </a>
                 </li>
                 @endcan
@@ -124,9 +112,72 @@
                     </a>
                 </li>
                 @endcan
+                <!-- END MAIN MENU -->
 
-                @if(auth()->user()->hasPermissionTo('Otorisasi-Front desk'))
+                {{-- PERMOHONAN --}}
+                @role('Pelanggan')
+                <li class="nav-small-cap">
+                    <i class="bi bi-list nav-small-cap-icon fs-4"></i>
+                    <span class="hide-menu">Permohonan</span>
+                </li>
+
+                @can('Permohonan/pengajuan')
                 <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'permohonan-pengajuan' ? 'active' : '' }}"
+                        href="{{ route('permohonan.pengajuan') }}" aria-expanded="false">
+                        <span>&nbsp;</span>
+                        <span class="hide-menu">Pengajuan</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'permohonan-dikembalikan' ? 'active' : '' }}"
+                        href="{{ route('permohonan.dikembalikan') }}" aria-expanded="false">
+                        <span>&nbsp;</span>
+                        <span class="hide-menu">Dikembalikan</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'permohonan-pembayaran' ? 'active' : '' }}"
+                        href="{{ route('permohonan.pembayaran') }}" aria-expanded="false">
+                        <span>&nbsp;</span>
+                        <span class="hide-menu">Pembayaran</span>
+                    </a>
+                </li>
+                @endcan
+                @endrole
+                {{-- END PERMOHONAN --}}
+
+                {{-- STAFF --}}
+                @if(!auth()->user()->hasAnyRole(['Pelanggan', 'Super Admin']))
+                <li class="nav-small-cap">
+                    <i class="bi bi-list nav-small-cap-icon fs-4"></i>
+                    <span class="hide-menu">STAFF</span>
+                </li>
+                @endif
+
+                @can('Staff/permohonan')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-permohonan' ? 'active' : '' }}"
+                    href="{{ route('staff.permohonan') }}" aria-expanded="false">
+                    <span>&nbsp;</span>
+                    <span class="hide-menu">Permohonan</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('Staff/keuangan')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-keuangan' ? 'active' : '' }}"
+                    href="{{ route('staff.keuangan') }}" aria-expanded="false">
+                    <span>&nbsp;</span>
+                    <span class="hide-menu">Keuangan</span>
+                    </a>
+                </li>
+                @endcan
+                {{-- END STAFF --}}
+
+                @can('Management')
+                {{-- <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'frontdesk' ? 'active' : '' }}"
                         href="{{ route('jobs.frontdesk.index') }}" aria-expanded="false">
                         <span>
@@ -135,9 +186,6 @@
                         <span class="hide-menu">Front desk</span>
                     </a>
                 </li>
-                @endif
-
-                @if(auth()->user()->hasPermissionTo('Otorisasi-Pelaksana kontrak'))
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'pelaksanakontrak' ? 'active' : '' }}"
                         href="{{ route('jobs.pelaksana.index') }}" aria-expanded="false">
@@ -147,9 +195,6 @@
                         <span class="hide-menu">Pelaksana kontrak</span>
                     </a>
                 </li>
-                @endif
-
-                @if(auth()->user()->hasPermissionTo('Otorisasi-Penyelia LAB'))
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'penyelialab' ? 'active' : '' }}"
                         href="{{ route('jobs.penyelia.index') }}" aria-expanded="false">
@@ -159,9 +204,6 @@
                         <span class="hide-menu">Penyelia LAB</span>
                     </a>
                 </li>
-                @endif
-
-                @if(auth()->user()->hasPermissionTo('Otorisasi-Pelaksana LAB'))
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'pelaksanalab' ? 'active' : '' }}"
                         href="{{ route('jobs.pelaksanaLab.index') }}" aria-expanded="false">
@@ -170,11 +212,7 @@
                         </span>
                         <span class="hide-menu">Pelaksana LAB</span>
                     </a>
-                </li>
-                @endif
-                <!-- END MAIN MENU -->
-
-                @can('User.management')
+                </li> --}}
                 <!-- MANAGEMENT MENU -->
                 <li class="nav-small-cap cursoron" data-bs-toggle="collapse" data-bs-target="#collapseManagement" aria-expanded="false" aria-controls="collapseManagement">
                     <i class="ti ti-dots nav-small-cap-icon fs-4"></i>

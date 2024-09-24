@@ -12,14 +12,20 @@ use App\Http\Controllers\LayananJasaController;
 use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\NotifController;
 use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\PermohonanController;
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\OtorisasiController;
 use App\Http\Controllers\PetugasLayananController;
 use App\Http\Controllers\JobsController;
 use App\Http\Controllers\PelaksanaKontrakController;
-use App\Http\Controllers\KeuanganController;
+// use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\ManagerController;
+
+use App\Http\Controllers\Permohonan\PengajuanController;
+use App\Http\Controllers\Permohonan\DikembalikanController;
+use App\Http\Controllers\Permohonan\PembayaranController;
+
+use App\Http\Controllers\Staff\PermohonanController;
+use App\Http\Controllers\Staff\KeuanganController;
 
 use App\Http\Controllers\Report\SuratTugas;
 use App\Http\Controllers\Report\Kwitansi;
@@ -43,7 +49,34 @@ Route::get('petugasLayanan/v/{id}', [PetugasLayananController::class, 'verifikas
 Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('home', [HomeController::class, 'index'])->name('home');
 
-    Route::middleware(['permission:User.management'])->group(function () {
+    // NEW ROUTE
+    Route::prefix('permohonan')->group(function () {
+        Route::middleware(['permission:Permohonan/pengajuan'])->controller(PengajuanController::class)->group(function () {
+            Route::get('/pengajuan', 'index')->name('permohonan.pengajuan');
+            Route::get('/pengajuan/tambah', 'tambah')->name('permohonan.pengajuan.tambah');
+            Route::get('/pengajuan/edit/{id_permohonan}', 'edit')->name('permohonan.pengajuan.edit');
+        });
+        Route::controller(DikembalikanController::class)->group(function () {
+            Route::get('/dikembalikan', 'index')->name('permohonan.dikembalikan');
+        });
+        Route::controller(PembayaranController::class)->group(function () {
+            Route::get('/pembayaran', 'index')->name('permohonan.pembayaran');
+        });
+    });
+
+    Route::prefix('staff')->group(function () {
+        Route::controller(PermohonanController::class)->group(function () {
+            Route::get('/permohonan', 'index')->name('staff.permohonan');
+            Route::get('/permohonan/verifikasi/{idPermohonan}', 'verifikasiPermohonan')->name('staff.permohonan.verifikasi');
+        });
+
+        Route::controller(KeuanganController::class)->group(function() {
+            Route::get('/keuangan', 'index')->name('staff.keuangan');
+        });
+    });
+
+    // Route::middleware(['permission:User.management'])->group(function () {
+    // Route::group(function () {
         Route::resource('users', UserController::class);
         Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
 
@@ -52,43 +85,49 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
         Route::resource('roles', RolesController::class);
         Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');
-    });
+    // });
 
-    Route::middleware(['permission:Layananjasa'])->group(function () {
+    // Route::middleware(['permission:Layananjasa'])->group(function () {
+    // Route::group(function () {
         Route::resource('layananJasa', LayananJasaController::class);
         Route::get('getDataLayananJasa', [LayananJasaController::class, 'getData'])->name('layananJasa.getData');
-    });
+    // });
 
-    Route::middleware(['permission:Permohonan'])->group(function () {
-        Route::resource('permohonan', PermohonanController::class);
-        Route::get('getDataPermohonan', [PermohonanController::class, 'getData'])->name('permohonan.getData');
-        Route::get('getDTListLayanan', [PermohonanController::class, 'getDTListLayanan'])->name('permohonan.getDTListLayanan');
-        Route::get('permohonan/payment/{idPermohonan}', [PermohonanController::class, 'payment'])->name('permohonan.payment');
-        Route::get('permohonan/create/layanan/{idJadwal}', [PermohonanController::class, 'pilihLayanan'])->name('permohonan.create.layanan');
-        Route::get('listLayanan', [LayananJasaController::class, 'listLayanan'])->name('layananJasa.listLayanan');
-    });
+    // Route::middleware(['permission:Permohonan'])->group(function () {
+    // Route::group(function () {
+        // Route::resource('permohonan', PermohonanController::class);
+        // Route::get('getDataPermohonan', [PermohonanController::class, 'getData'])->name('permohonan.getData');
+        // Route::get('getDTListLayanan', [PermohonanController::class, 'getDTListLayanan'])->name('permohonan.getDTListLayanan');
+        // Route::get('permohonan/payment/{idPermohonan}', [PermohonanController::class, 'payment'])->name('permohonan.payment');
+        // Route::get('permohonan/create/layanan/{idJadwal}', [PermohonanController::class, 'pilihLayanan'])->name('permohonan.create.layanan');
+        // Route::get('listLayanan', [LayananJasaController::class, 'listLayanan'])->name('layananJasa.listLayanan');
+    // });
 
-    Route::middleware(['permission:Penjadwalan'])->group(function () {
+    // Route::middleware(['permission:Penjadwalan'])->group(function () {
+    // Route::group(function () {
         Route::resource('jadwal', JadwalController::class);
         Route::get('getDataJadwal', [JadwalController::class, 'getData'])->name('jadwal.getData');
         Route::get('getPetugasDT', [JadwalController::class, 'getPetugasDT'])->name('jadwal.getPetugasDT');
         Route::post('updatePenugasan', [JadwalController::class, 'confirm'])->name('jadwal.updatePetugas');
-    });
+    // });
 
-    Route::middleware(['permission:Management.Lab'])->group(function () {
+    // Route::middleware(['permission:Management.Lab'])->group(function () {
+    // Route::group(function () {
         Route::resource('lab', LabController::class);
         Route::get('getDataLab', [LabController::class, 'getData'])->name('lab.getData');
-    });
+    // });
 
-    Route::middleware(['permission:Management.Otorisasi'])->group(function () {
+    // Route::middleware(['permission:Management.Otorisasi'])->group(function () {
+    // Route::group(function () {
         Route::resource('otorisasi', OtorisasiController::class);
         Route::get('getDataOtorisasi', [OtorisasiController::class, 'getData'])->name('otorisasi.getData');
-    });
+    // });
 
-    Route::middleware(['permission:Keuangan'])->group(function () {
+    // Route::middleware(['permission:Keuangan'])->group(function () {
+    // Route::group(function () {
         Route::get('keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
         Route::post('sendKIP', [KeuanganController::class, 'sendKIP'])->name('keuangan.send');
-    });
+    // });
 
     // Route::middleware(['permission:kiplhu'])->group(function () {
         Route::get('manager/lhukip', [ManagerController::class, 'index'])->name('manager.lhukip.index');
@@ -107,8 +146,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::resource('petugasLayanan', PetugasLayananController::class);
     Route::get('getDataPetugas', [PetugasLayananController::class, 'getData'])->name('petugasLayanan.getData');
 
-    Route::resource('userProfile', ProfileController::class)->middleware(['permission:Biodata.pribadi']);
-    Route::resource('userPerusahaan', userPerusahaanController::class)->middleware(['permission:Biodata.perusahaan']);
+    Route::resource('userProfile', ProfileController::class);//->middleware(['permission:Biodata.pribadi']);
+    Route::resource('userPerusahaan', userPerusahaanController::class);//->middleware(['permission:Biodata.perusahaan']);
 
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
 
