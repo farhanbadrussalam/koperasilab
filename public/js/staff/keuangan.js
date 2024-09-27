@@ -1,54 +1,91 @@
+let arrDiskon = [{
+    name: 'Diskon',
+    diskon: 10
+}];
+let dataPengajuan = false;
+let ppn = false;
+let jumTotal = 0;
+
 $(function () {
-    loadDataPengajuan();
+    switchLoadTab(1);
+    $('#checkPpn').on('change', (obj) => {
+        ppn = $(obj.target).is(':checked');
+        descInvoice();
+    });
+    $('#inputPpn').on('input', descInvoice);
+    $('#diskonModal').on('hide.bs.modal', () => {
+        $('#createInvoiceModal').modal('show');
+    });
 });
 
 function switchLoadTab(menu){
     switch (menu) {
         case 1:
-            loadDataPengajuan();
+            menu = 'pengajuan';
             break;
 
         case 2:
-            
+            menu = 'pembayaran';
+            break;
+
+        case 3:
+            menu = 'verifikasi';
+            break;
+
+        case 4:
+            menu = 'diterima';
             break;
 
         default:
+            menu = 'ditolak';
             break;
     }
+    loadData(1, menu);
 }
 
-function loadDataPengajuan(page = 1) {
+function loadData(page = 1, menu) {
     let params = {
         limit: 10,
         page: page,
-        status: [2]
+        menu: menu
     };
-
-    $('#list-placeholder-pengajuan').show();
-    $('#list-container-pengajuan').hide();
-    ajaxGet(`api/v1/permohonan/listPengajuan`, params, result => {
+    
+    $(`#list-placeholder-${menu}`).show();
+    $(`#list-container-${menu}`).hide();
+    ajaxGet(`api/v1/keuangan/listKeuangan`, params, result => {
         let html = '';
-        for (const [i, pengajuan] of result.data.entries()) {
-            let periode = JSON.parse(pengajuan.periode_pemakaian);
+        for (const [i, keuangan] of result.data.entries()) {
+            const permohonan = keuangan.permohonan;
+            let periode = JSON.parse(permohonan.periode_pemakaian);
+            let btnAction = '';
+            switch (menu) {
+                case 'pengajuan':
+                    btnAction = `<button class="btn btn-outline-primary btn-sm" title="Buat Invoice" onclick="createInvoice(this)"><i class="bi bi-plus"></i> Buat invoice</button>`;
+                    break;
+            
+                default:
+                    break;
+            }
+
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
                         <div class="col-12 col-md-3">
-                            <div class="title">Layanan ${pengajuan.layanan_jasa.nama_layanan}</div>
+                            <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>${pengajuan.jenis_tld.name}</div>
+                                <div>${permohonan.jenis_tld.name}</div>
                                 <div>Periode : ${periode.length} Bulan</div>
-                                <div>Created : ${dateFormat(pengajuan.created_at, 4)}</div>
+                                <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                             </small>
                         </div>
-                        <div class="col-6 col-md-2 my-3">${pengajuan.jenis_layanan_parent.name}-${pengajuan.jenis_layanan.name}</div>
+                        <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
                         <div class="col-6 col-md-3 my-3 text-end text-md-start">
-                            <div>${pengajuan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${pengajuan.no_kontrak}</small>
+                            <div>${permohonan.tipe_kontrak}</div>
+                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
                         </div>
-                        <div class="col-6 col-md-2">${statusFormat('keuangan', pengajuan.status)}</div>
-                        <div class="col-6 col-md-2 text-center" data-id="${pengajuan.permohonan_hash}">
-                            <button class="btn btn-outline-primary" title="Buat Invoice"><i class="bi bi-file-earmark-plus"></i></button>
+                        <div class="col-6 col-md-2">${statusFormat('keuangan', permohonan.status)}</div>
+                        <div class="col-6 col-md-2 text-center" data-keuangan='${JSON.stringify(permohonan)}'>
+                            ${btnAction}
                         </div>
                     </div>
                 </div>
@@ -64,12 +101,12 @@ function loadDataPengajuan(page = 1) {
             `;
         }
 
-        $('#list-container-pengajuan').html(html);
+        $(`#list-container-${menu}`).html(html);
 
-        $('#list-pagination-pengajuan').html(createPaginationHTML(result.pagination));
+        $(`#list-pagination-${menu}`).html(createPaginationHTML(result.pagination));
 
-        $('#list-placeholder-pengajuan').hide();
-        $('#list-container-pengajuan').show();
+        $(`#list-placeholder-${menu}`).hide();
+        $(`#list-container-${menu}`).show();
     }, error => {
         const result = error.responseJSON;
         if(result.meta.code == 500){
@@ -80,4 +117,150 @@ function loadDataPengajuan(page = 1) {
             console.error(result.data.msg);
         }
     })
+}
+
+function tambahDiskon() {
+    const namaDiskon = $('#inputNamaDiskon').val();
+    const diskon = $('#inputJumDiskon').val();
+
+    arrDiskon.push({
+        name: namaDiskon,
+        diskon: diskon
+    });
+
+    descInvoice();
+    $('#diskonModal').modal('hide');
+    $('#inputNamaDiskon').val("");
+    $('#inputJumDiskon').val("");
+}
+
+function createInvoice(obj){
+    const pengajuan = $(obj).parent().data("keuangan");
+    
+    dataPengajuan = pengajuan;
+    $('#txtNoKontrakInvoice').html(pengajuan.no_kontrak ? pengajuan.no_kontrak : '-');
+    $('#txtJenisInvoice').html(pengajuan.jenis_layanan?.name ? pengajuan.jenis_layanan.name : '-');
+    $('#txtPenggunaInvoice').html(pengajuan.jumlah_pengguna ? pengajuan.jumlah_pengguna : '-');
+    $('#txtTipeKontrakInvoice').html(pengajuan.tipe_kontrak ? pengajuan.tipe_kontrak : '-');
+    $('#txtPelangganInvoice').html(pengajuan.pelanggan?.name ? pengajuan.pelanggan.name : '-');
+    $('#txtJenisTldInvoice').html(pengajuan.jenis_tld?.name ? pengajuan.jenis_tld.name : '-');
+    $('#txtInstansiInvoice').html('-');
+
+    descInvoice();
+
+    $('#createInvoiceModal').modal('show');
+}
+
+function descInvoice(){
+    let hargaLayanan = dataPengajuan.harga_layanan;
+    let qty = dataPengajuan.jumlah_kontrol+dataPengajuan.jumlah_pengguna;
+    let jumLayanan = dataPengajuan.total_harga;
+    let periode = JSON.parse(dataPengajuan.periode_pemakaian);
+    let jumPpn = 0;
+    let jumDiskon = 0;
+    let descInvoice = `
+        <tr>
+            <th class="text-start">${dataPengajuan.layanan_jasa.nama_layanan}</th>
+            <td>${formatRupiah(hargaLayanan)}</td>
+            <td>${qty}</td>
+            <td>${periode.length}</td>
+            <td>${formatRupiah(jumLayanan)}</td>
+        </tr>
+    `;
+
+    if(ppn){
+        let valPpn = $('#inputPpn').val()
+        jumPpn = jumLayanan * (valPpn/100);
+        descInvoice += `
+            <tr>
+                <th class="text-start">PPN ${valPpn}%</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>${formatRupiah(jumPpn)}</td>
+            </tr>
+        `;
+    }
+    
+    for (const diskon of arrDiskon) {
+        countDiskon = jumLayanan * (diskon.diskon/100);
+        jumDiskon += countDiskon;
+        descInvoice += `
+            <tr>
+                <th class="text-start">${diskon.name}&nbsp${diskon.diskon}%</th>
+                <td></td>
+                <th colspan="2"></th>
+                <td>- ${formatRupiah(countDiskon)}</td>
+            </tr>
+        `;
+    }
+
+    // total harga
+    jumTotal = jumLayanan + jumPpn - jumDiskon;
+    descInvoice += `
+        <tr>
+            <td></td>
+            <td></td>
+            <th colspan="2">Total Jumlah</th>
+            <td>${formatRupiah(jumTotal)}</td>
+        </tr>
+    `;
+    $('#deskripsiInvoice').html(descInvoice);
+}
+
+function simpanInvoice(obj){
+    const formData = new FormData();
+    formData.append('idPermohonan', dataPengajuan.permohonan_hash);
+    formData.append('diskon', JSON.stringify(arrDiskon));
+    formData.append('totalHarga', jumTotal);
+    ppn && formData.append('ppn', $('#inputPpn').val());
+
+    Swal.fire({
+        text: 'Apa anda yakin ingin membuat invoice ?',
+        icon: false,
+        showCancelButton: true,
+        confirmButtonText: 'Iya',
+        cancelButtonText: 'Tidak',
+        customClass: {
+            confirmButton: 'btn btn-success mx-1',
+            cancelButton: 'btn btn-danger mx-1'
+        },
+        buttonsStyling: false,
+        reverseButtons: true
+    }).then(result => {
+        if(result.isConfirmed){
+            spinner('show', $(obj));
+            ajaxPost(`api/v1/keuangan/keuanganAction`, formData, result => {
+                if(result.meta.code == 200){
+                    Swal.fire({
+                        icon: 'success',
+                        text: result.data.msg,
+                        timer: 1200,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        loadDataPengajuan();
+                        closeInvoice();
+                        spinner('hide', $(obj));
+                    });
+                }
+            }, error => {
+                Swal.fire({
+                    icon: "error",
+                    text: 'Server error',
+                });
+                console.error(error.responseJSON.data.msg);
+                spinner('hide', obj);
+            })
+        }
+    })
+}
+
+function closeInvoice(){
+    arrDiskon = [];
+    ppn = false;
+    jumTotal = 0;
+    dataPengajuan = false;
+    $('#checkPpn').prop('checked', false);
+    $('#createInvoiceModal').modal('hide');
 }

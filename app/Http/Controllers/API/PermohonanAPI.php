@@ -283,6 +283,9 @@ class PermohonanAPI extends Controller
                             case 'Staff Admin':
                                 $q->where('status', 1);
                                 break;
+                            case 'Staff keuangan':
+                                $q->where('status', 2);
+                                break;
                             default:
                                 # code...
                                 break;

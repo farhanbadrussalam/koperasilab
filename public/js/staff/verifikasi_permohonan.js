@@ -114,6 +114,7 @@ function verif_kelengkapan(status, obj){
                         timerProgressBar: true,
                         showConfirmButton: false
                     }).then(() => {
+                        createInvoice(dataPermohonan.permohonan_hash);
                         window.location.href = base_url+"/staff/permohonan";
                     });
                 }, error => {
@@ -132,6 +133,12 @@ function verif_kelengkapan(status, obj){
     }else if(status == 'tidak_lengkap'){
         $('#modal-verif-invalid').modal('show');
     }
+}
+
+function createInvoice(idPermohonan){
+    const formData = new FormData();
+    formData.append('idPermohonan', idPermohonan);
+    ajaxPost(`api/v1/keuangan/keuanganAction`, formData, result => {})
 }
 
 function return_permohonan(obj){

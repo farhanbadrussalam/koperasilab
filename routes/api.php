@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\JadwalAPI;
+use App\Http\Controllers\API\KeuanganAPI;
 use App\Http\Controllers\API\NotifikasiController;
 use App\Http\Controllers\API\PermohonanAPI;
 use App\Http\Controllers\API\LayananjasaAPI;
@@ -63,13 +64,6 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     });
 
     Route::prefix("permohonan")->controller(PermohonanAPI::class)->group(function () {
-        // Route::get('/show/{id}', 'show');
-        // Route::get('/list', 'listPermohonan');
-        // Route::post('/update/{id}', 'update');
-        // Route::post('/verifikasi_fd', 'verifikasi_fd');
-        // Route::post('/verifikasi_kontrak', 'verifikasi_kontrak');
-        // Route::post('/sendSuratTugas', 'sendSuratTugas');
-        // Route::post('/addPermohonan', 'addPermohonan');
         Route::delete('/destroyPermohonan/{id}', 'destroyPermohonan');
         Route::get('/listPengajuan', 'listPengajuan');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
@@ -80,6 +74,11 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getJenisTld/{idJenisLayanan}', 'getJenisTld');
         Route::get('/getPrice', 'getPrice');
         Route::post('/verifikasi/cek', 'verifPermohonan');
+    });
+
+    Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
+        Route::post('/keuanganAction', 'keuanganAction');
+        Route::get('/listKeuangan', 'listKeuangan');
     });
 
     Route::prefix('otorisasi')->group(function () {
