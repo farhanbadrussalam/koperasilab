@@ -29,6 +29,15 @@ function maskReload() {
         rightAlign: false,
         removeMaskOnSubmit: true
     });
+    
+    $('.maskNumber').inputmask('numeric', {
+        min: 0,
+        max: 100,
+        allowMinus: false,
+        allowPlus: false,
+        integer: true,
+        rightAlign: false
+    });
 
     $('.maskNPWP').inputmask('99.999.999.9-999.999', { "placeholder": "_", "removeMaskOnSubmit": true });
     $('.maskNIK').inputmask('9999999999999999', { "placeholder": "_", "removeMaskOnSubmit": true });

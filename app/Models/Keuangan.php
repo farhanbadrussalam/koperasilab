@@ -10,8 +10,10 @@ class Keuangan extends Model
     use HasFactory;
 
     protected $table = "keuangan";
+    protected $primaryKey = 'id_keuangan';
 
     protected $fillable = [
+        'id_keuangan',
         'id_permohonan',
         'no_invoice',
         'status',

@@ -1,12 +1,10 @@
-let arrDiskon = [{
-    name: 'Diskon',
-    diskon: 10
-}];
+let arrDiskon = [];
 let dataPengajuan = false;
 let ppn = false;
 let jumTotal = 0;
 
 $(function () {
+    // maskReload();
     switchLoadTab(1);
     $('#checkPpn').on('change', (obj) => {
         ppn = $(obj.target).is(':checked');
@@ -56,6 +54,7 @@ function loadData(page = 1, menu) {
         let html = '';
         for (const [i, keuangan] of result.data.entries()) {
             const permohonan = keuangan.permohonan;
+            permohonan.idkeuangan = keuangan.keuangan_hash;
             let periode = JSON.parse(permohonan.periode_pemakaian);
             let btnAction = '';
             switch (menu) {
@@ -84,7 +83,7 @@ function loadData(page = 1, menu) {
                             <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
                         </div>
                         <div class="col-6 col-md-2">${statusFormat('keuangan', permohonan.status)}</div>
-                        <div class="col-6 col-md-2 text-center" data-keuangan='${JSON.stringify(permohonan)}'>
+                        <div class="col-6 col-md-2 text-center" data-keuangan='${JSON.stringify(permohonan)}' data-invoice='${keuangan.no_invoice}'>
                             ${btnAction}
                         </div>
                     </div>
@@ -123,21 +122,35 @@ function tambahDiskon() {
     const namaDiskon = $('#inputNamaDiskon').val();
     const diskon = $('#inputJumDiskon').val();
 
-    arrDiskon.push({
-        name: namaDiskon,
-        diskon: diskon
-    });
+    if(namaDiskon != '' && diskon != ''){
+        arrDiskon.push({
+            name: namaDiskon,
+            diskon: diskon
+        });
+    
+        descInvoice();
+        $('#diskonModal').modal('hide');
+        $('#inputNamaDiskon').val("");
+        $('#inputJumDiskon').val("");
+    }else{
+        Swal.fire({
+            icon: 'warning',
+            text: 'Harap isi diskon'
+        });
+    }
+}
 
+function removeDiskon(index) {
+    arrDiskon.splice(index, 1);
     descInvoice();
-    $('#diskonModal').modal('hide');
-    $('#inputNamaDiskon').val("");
-    $('#inputJumDiskon').val("");
 }
 
 function createInvoice(obj){
     const pengajuan = $(obj).parent().data("keuangan");
-    
+    const noInvoice = $(obj).parent().data("invoice");
+
     dataPengajuan = pengajuan;
+    $('#txtNoInvoice').html(noInvoice ? noInvoice : '-');
     $('#txtNoKontrakInvoice').html(pengajuan.no_kontrak ? pengajuan.no_kontrak : '-');
     $('#txtJenisInvoice').html(pengajuan.jenis_layanan?.name ? pengajuan.jenis_layanan.name : '-');
     $('#txtPenggunaInvoice').html(pengajuan.jumlah_pengguna ? pengajuan.jumlah_pengguna : '-');
@@ -182,12 +195,12 @@ function descInvoice(){
         `;
     }
     
-    for (const diskon of arrDiskon) {
+    for (const [i,diskon] of arrDiskon.entries()) {
         countDiskon = jumLayanan * (diskon.diskon/100);
         jumDiskon += countDiskon;
         descInvoice += `
             <tr>
-                <th class="text-start">${diskon.name}&nbsp${diskon.diskon}%</th>
+                <th class="text-start">${diskon.name}&nbsp${diskon.diskon}% <i class="bi bi-x-circle-fill text-danger" type="button" onclick="removeDiskon(${i})" title="Hapus diskon"></i></th>
                 <td></td>
                 <th colspan="2"></th>
                 <td>- ${formatRupiah(countDiskon)}</td>
@@ -211,6 +224,7 @@ function descInvoice(){
 function simpanInvoice(obj){
     const formData = new FormData();
     formData.append('idPermohonan', dataPengajuan.permohonan_hash);
+    formData.append('idKeuangan', dataPengajuan.idkeuangan);
     formData.append('diskon', JSON.stringify(arrDiskon));
     formData.append('totalHarga', jumTotal);
     ppn && formData.append('ppn', $('#inputPpn').val());
@@ -234,12 +248,12 @@ function simpanInvoice(obj){
                 if(result.meta.code == 200){
                     Swal.fire({
                         icon: 'success',
-                        text: result.data.msg,
+                        text: 'Invoice berhasil dibuat.',
                         timer: 1200,
                         timerProgressBar: true,
                         showConfirmButton: false
                     }).then(() => {
-                        loadDataPengajuan();
+                        switchLoadTab(1);
                         closeInvoice();
                         spinner('hide', $(obj));
                     });

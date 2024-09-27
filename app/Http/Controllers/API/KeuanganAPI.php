@@ -82,18 +82,30 @@ class KeuanganAPI extends Controller
             $ppn = $request->ppn ?? false;
 
             $data = [];
-
+            
             $totalHarga && $data['total_harga'] = $totalHarga;
             $ppn && $data['ppn'] = $ppn;
-            $data['status'] = 1;
+            $data['status'] = 2;
             $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
-            !$idPermohonan && $data['created_by'] = Auth::user()->name;
             $idPermohonan && $data['id_permohonan'] = $idPermohonan;
+            
+            $invoice = Keuangan::where('id_keuangan', $idKeuangan)->first();
+            if($invoice){
+                !$invoice->created_by && $data['created_by'] = Auth::user()->id;
+            }
 
             $keuangan = Keuangan::updateOrCreate(
                 ["id_keuangan" => $idKeuangan],
                 $data
             );
+
+            foreach ($diskon as $key => $value) {
+                Keuangan_diskon::create(array(
+                    'id_keuangan' => decryptor($keuangan->keuangan_hash),
+                    'name' => $value->name,
+                    'diskon' => $value->diskon
+                ));
+            }
 
             DB::commit();
 
@@ -102,7 +114,7 @@ class KeuanganAPI extends Controller
             if ($keuangan->wasRecentlyCreated) {
                 $result['status'] = "created";
                 $result['msg'] = "Invoice berhasil dibuat.";
-            } elseif ($hastag->wasChanged()) {
+            } elseif ($keuangan->wasChanged()) {
                 $result['status'] = "updated";
                 $result['msg'] = "Invoice berhasil diedit.";
             } else {

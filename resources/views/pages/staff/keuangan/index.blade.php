@@ -417,7 +417,7 @@
                     </div>
                     <div class="col-md-12 mb-2">
                         <label class="col-form-label" for="inputJumDiskon">Jumlah diskon %</label>
-                        <input type="text" name="inputJumDiskon" id="inputJumDiskon" class="form-control">
+                        <input type="text" name="inputJumDiskon" id="inputJumDiskon" class="form-control maskNumber" autocomplete="off">
                     </div>
                     <div class="col-md-12 d-flex justify-content-center">
                         <button type="button" class="btn btn-primary" onclick="tambahDiskon()"><i class="bi bi-plus"></i> Tambah</button>
@@ -437,7 +437,11 @@
         </div>
         <div class="modal-body px-4">
             <div class="row mx-2">
-                <div class="col-md-12 col-12">
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">No Invoice</label>
+                    <div id="txtNoInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
                     <label class="fw-bolder">No Kontrak</label>
                     <div id="txtNoKontrakInvoice">-</div>
                 </div>
@@ -472,7 +476,7 @@
                     <div>
                         <label class="col-form-label" for="inputPpn">PPN %</label>
                         <div class="input-group">
-                            <input type="text" name="inputPpn" id="inputPpn" class="form-control" value="11">
+                            <input type="text" name="inputPpn" id="inputPpn" class="form-control maskNumber" value="11" autocomplete="off">
                             <span class="input-group-text"><input class="form-check-input m-0" type="checkbox" id="checkPpn"></span>
                         </div>
                     </div>

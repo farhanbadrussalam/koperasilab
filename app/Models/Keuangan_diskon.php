@@ -10,8 +10,10 @@ class Keuangan_diskon extends Model
     use HasFactory;
 
     protected $table = "keuangan_diskon";
+    public $timestamps = false;
 
     protected $fillable = [
+        'id_keuangan',
         'name',
         'diskon'
     ];
