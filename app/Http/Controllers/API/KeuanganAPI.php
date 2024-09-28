@@ -38,8 +38,11 @@ class KeuanganAPI extends Controller
             case 'diterima':
                 $status = 5;
                 break;
-            default:
+            case 'ditolak':
                 $status = 90;
+                break;
+            default:
+                $status = false;
                 break;
         }
 
@@ -55,7 +58,9 @@ class KeuanganAPI extends Controller
                         )
                         ->orderBy('created_at','DESC')
                         ->offset(($page - 1) * $limit)
-                        ->where('status', $status)
+                        ->when($status, function($q, $status) {
+                            return $q->where('status', $status);
+                        })
                         ->limit($limit)
                         ->paginate($limit);
 
@@ -78,19 +83,26 @@ class KeuanganAPI extends Controller
             $idKeuangan = $request->idKeuangan ? decryptor($request->idKeuangan) : false;
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
             $diskon = $request->diskon ? json_decode($request->diskon) : array();
+            $status = $request->status ? $request->status : false;
             $totalHarga = $request->totalHarga ?? false;
             $ppn = $request->ppn ?? false;
+            $ttd = $request->ttd ?? false;
+            $ttd_by = $request->ttd_by ? decryptor($request->ttd_by) : false;
 
+            $result = array();
             $data = [];
             
             $totalHarga && $data['total_harga'] = $totalHarga;
             $ppn && $data['ppn'] = $ppn;
-            $data['status'] = 2;
-            $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
             $idPermohonan && $data['id_permohonan'] = $idPermohonan;
+            $ttd && $data['ttd'] = $ttd;
+            $ttd_by && $data['ttd_by'] = $ttd_by;
+            
+            $data['status'] = $status;
             
             $invoice = Keuangan::where('id_keuangan', $idKeuangan)->first();
             if($invoice){
+                !$invoice->no_invoice && $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
                 !$invoice->created_by && $data['created_by'] = Auth::user()->id;
             }
 

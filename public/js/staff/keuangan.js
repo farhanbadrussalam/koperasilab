@@ -4,7 +4,6 @@ let ppn = false;
 let jumTotal = 0;
 
 $(function () {
-    // maskReload();
     switchLoadTab(1);
     $('#checkPpn').on('change', (obj) => {
         ppn = $(obj.target).is(':checked');
@@ -223,10 +222,12 @@ function descInvoice(){
 
 function simpanInvoice(obj){
     const formData = new FormData();
+    formData.append('_token', csrf);
     formData.append('idPermohonan', dataPengajuan.permohonan_hash);
     formData.append('idKeuangan', dataPengajuan.idkeuangan);
     formData.append('diskon', JSON.stringify(arrDiskon));
     formData.append('totalHarga', jumTotal);
+    formData.append('status', 2);
     ppn && formData.append('ppn', $('#inputPpn').val());
 
     Swal.fire({

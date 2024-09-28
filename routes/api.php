@@ -11,6 +11,7 @@ use App\Http\Controllers\API\PetugasLayananAPI;
 use App\Http\Controllers\API\AssetsAPI;
 use App\Http\Controllers\API\LhuAPI;
 use App\Http\Controllers\API\SendMailAPI;
+use App\Http\Controllers\API\ManagerAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,10 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
         Route::post('/keuanganAction', 'keuanganAction');
         Route::get('/listKeuangan', 'listKeuangan');
+    });
+
+    Route::prefix("manager")->controller(ManagerAPI::class)->group(function () {
+        Route::get('/listManager', 'listManager');
     });
 
     Route::prefix('otorisasi')->group(function () {

@@ -52,4 +52,25 @@ class Keuangan extends Model
     {
         return $this->belongsTo(permohonan::class, 'id_permohonan', 'id_permohonan');
     }
+
+    public function diskon()
+    {
+        return $this->hasMany(Keuangan_diskon::class, 'id_keuangan', 'id_keuangan');
+    }
+
+    public function media(){
+        return $this->belongsTo(tbl_media::class, 'document_faktur', 'id');
+    }
+
+    public function media_bayar(){
+        return $this->belongsTo(tbl_media::class, 'bukti_bayar', 'id');
+    }
+
+    public function media_bayar_pph(){
+        return $this->belongsTo(tbl_media::class, 'bukti_bayar_pph', 'id');
+    }
+
+    public function user(){
+        return $this->belongsTo(user::class, 'ttd_by', 'id');
+    }
 }

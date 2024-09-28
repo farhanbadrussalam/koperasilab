@@ -27,6 +27,8 @@ use App\Http\Controllers\Permohonan\PembayaranController;
 use App\Http\Controllers\Staff\PermohonanController;
 use App\Http\Controllers\Staff\KeuanganController;
 
+use App\Http\Controllers\Manager\ManagerPengajuanController;
+
 use App\Http\Controllers\Report\SuratTugas;
 use App\Http\Controllers\Report\Kwitansi;
 
@@ -61,6 +63,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         });
         Route::controller(PembayaranController::class)->group(function () {
             Route::get('/pembayaran', 'index')->name('permohonan.pembayaran');
+            Route::get('/pembayaran/bayar/{idKeuangan}', 'bayarInvoice')->name('permohonan.pembayaran.bayar');
         });
     });
 
@@ -74,6 +77,13 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/keuangan', 'index')->name('staff.keuangan');
         });
     });
+
+    Route::prefix('manager')->group(function () {
+        Route::controller(ManagerPengajuanController::class)->group(function () {
+            Route::get('/pengajuan', 'index')->name('manager.pengajuan');
+        });
+    });
+
 
     // Route::middleware(['permission:User.management'])->group(function () {
     // Route::group(function () {

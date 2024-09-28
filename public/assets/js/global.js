@@ -226,11 +226,19 @@ function statusFormat(feature, status) {
         }
     } else if (feature == 'keuangan') {
         switch (status) {
-            case 2:
+            case 1:
                 htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-secondary"></div></div>
                         <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
+                    </div>
+                    `;
+                break;
+            case 2:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-warning"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Belum bayar</span>
                     </div>
                     `;
                 break;

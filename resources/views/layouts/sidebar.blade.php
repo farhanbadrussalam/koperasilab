@@ -148,7 +148,7 @@
                 {{-- END PERMOHONAN --}}
 
                 {{-- STAFF --}}
-                @if(!auth()->user()->hasAnyRole(['Pelanggan', 'Super Admin']))
+                @if(auth()->user()->hasAnyRole(['Staff Admin', 'Staff keuangan']))
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">STAFF</span>
@@ -175,6 +175,24 @@
                 </li>
                 @endcan
                 {{-- END STAFF --}}
+
+                {{-- Manager --}}
+                @if(auth()->user()->hasAnyRole(['Manager', 'General manager']))
+                <li class="nav-small-cap">
+                    <i class="bi bi-list nav-small-cap-icon fs-4"></i>
+                    <span class="hide-menu">Manager</span>
+                </li>
+                @endif
+
+                @can('Manager/pengajuan')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'manager-pengajuan' ? 'active' : '' }}"
+                    href="{{ route('manager.pengajuan') }}" aria-expanded="false">
+                    <span>&nbsp;</span>
+                    <span class="hide-menu">Pengajuan</span>
+                    </a>
+                </li>
+                @endcan
 
                 @can('Management')
                 {{-- <li class="sidebar-item">

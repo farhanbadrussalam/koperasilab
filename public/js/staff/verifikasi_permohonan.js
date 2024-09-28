@@ -138,6 +138,7 @@ function verif_kelengkapan(status, obj){
 function createInvoice(idPermohonan){
     const formData = new FormData();
     formData.append('idPermohonan', idPermohonan);
+    formData.append('status', 1);
     ajaxPost(`api/v1/keuangan/keuanganAction`, formData, result => {})
 }
 
