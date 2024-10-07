@@ -428,63 +428,20 @@
     </div>
 </div>
 
-<div class="modal fade" id="createInvoiceModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="createInvoiceModalLabel" aria-hidden="true">
+<div class="modal fade" id="invoiceModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <h1 class="modal-title fs-5" id="createInvoiceModalLabel">Buat Invoice</h1>
-          <button type="button" class="btn-close" aria-label="Close" onclick="closeInvoice()"></button>
+          <h1 class="modal-title fs-5" id="invoiceModalLabel">Invoice</h1>
+          <button type="button" class="btn-close" aria-label="Close" onclick="closeInvoiceModal()"></button>
         </div>
         <div class="modal-body px-4">
-            <div class="row mx-2">
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">No Invoice</label>
-                    <div id="txtNoInvoice">-</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">No Kontrak</label>
-                    <div id="txtNoKontrakInvoice">-</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Jenis</label>
-                    <div id="txtJenisInvoice">-</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Pengguna</label>
-                    <div id="txtPenggunaInvoice">-</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Tipe Kontrak</label>
-                    <div id="txtTipeKontrakInvoice">-</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Pelanggan</label>
-                    <div id="txtPelangganInvoice">-</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Jenis TLD</label>
-                    <div id="txtJenisTldInvoice">-</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Instansi</label>
-                    <div id="txtInstansiInvoice">-</div>
-                </div>
+            <div class="row mx-2" id="invoiceDetails">
+                <!-- Invoice details will be dynamically inserted here -->
             </div>
             <hr class="my-2">
-            <div class="row">
-                <div class="col-md-6 col-12">
-                    <div>
-                        <label class="col-form-label" for="inputPpn">PPN %</label>
-                        <div class="input-group">
-                            <input type="text" name="inputPpn" id="inputPpn" class="form-control maskNumber" value="11" autocomplete="off">
-                            <span class="input-group-text"><input class="form-check-input m-0" type="checkbox" id="checkPpn"></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-12 d-flex align-items-end">
-                    <button class="btn btn-outline-secondary me-3" data-bs-toggle="modal" data-bs-target="#diskonModal"><i class="bi bi-plus"></i> Tambah Diskon</button>
-                    <button class="btn btn-outline-secondary"><i class="bi bi-plus"></i> Tambah Faktur</button>
-                </div>
+            <div class="row" id="invoiceActions">
+                <!-- Action buttons will be dynamically inserted here -->
             </div>
             <div class="border rounded p-3 mt-3">
                 <table class="table w-100 text-center">
@@ -501,15 +458,27 @@
                     </tbody>
                 </table>
             </div>
+            <div id="paymentProofSection" class="mt-3 row" style="display: none;">
+                <div class="col-6">
+                    <h5>Bukti Pembayaran</h5>
+                    <ul id="paymentProofImage" class="list-group list-group-horizontal">
+                        <!-- Payment proof image will be inserted here -->
+                    </ul>
+                </div>
+                <div class="col-6">
+                    <h5>Bukti PPH</h5>
+                    <ul id="paymentPphProofImage" class="list-group list-group-horizontal">
+                        <!-- Payment proof image will be inserted here -->
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div class="modal-footer d-flex justify-content-center">
-          <button type="button" class="btn btn-primary" onclick="simpanInvoice(this)">Simpan</button>
+        <div class="modal-footer d-flex justify-content-center" id="modalFooter">
+          <!-- Footer buttons will be dynamically inserted here -->
         </div>
       </div>
     </div>
 </div>
-
-
 @endsection
 @push('scripts')
     <script src="{{ asset('js/staff/keuangan.js') }}"></script>

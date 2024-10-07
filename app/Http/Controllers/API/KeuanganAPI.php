@@ -11,12 +11,21 @@ use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
 
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\LogController;
+
 use Auth;
 use DB;
 
 class KeuanganAPI extends Controller
 {
     use RestApi;
+
+    public function __construct()
+    {
+        $this->media = resolve(MediaController::class);
+        $this->log = resolve(LogController::class);
+    }
 
     public function listKeuangan(Request $request)
     {
@@ -27,19 +36,19 @@ class KeuanganAPI extends Controller
 
         switch ($menu) {
             case 'pengajuan':
-                $status = 1;
+                $status = [1];
                 break;
             case 'pembayaran':
-                $status = 3;
+                $status = [2,3];
                 break;
-            case 'verifikas':
-                $status = 4;
+            case 'verifikasi':
+                $status = [4];
                 break;
             case 'diterima':
-                $status = 5;
+                $status = [5];
                 break;
             case 'ditolak':
-                $status = 90;
+                $status = [90];
                 break;
             default:
                 $status = false;
@@ -50,6 +59,10 @@ class KeuanganAPI extends Controller
         try {
             $query = Keuangan::with(
                             'permohonan',
+                            'diskon',
+                            'media_bayar',
+                            'media_bayar_pph',
+                            'usersig',
                             'permohonan.layanan_jasa:id_layanan,nama_layanan',
                             'permohonan.jenisTld:id_jenisTld,name', 
                             'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
@@ -59,7 +72,7 @@ class KeuanganAPI extends Controller
                         ->orderBy('created_at','DESC')
                         ->offset(($page - 1) * $limit)
                         ->when($status, function($q, $status) {
-                            return $q->where('status', $status);
+                            return $q->whereIn('status', $status);
                         })
                         ->limit($limit)
                         ->paginate($limit);
@@ -86,14 +99,19 @@ class KeuanganAPI extends Controller
             $status = $request->status ? $request->status : false;
             $totalHarga = $request->totalHarga ?? false;
             $ppn = $request->ppn ?? false;
+            $pph = $request->pph ?? false;
             $ttd = $request->ttd ?? false;
             $ttd_by = $request->ttd_by ? decryptor($request->ttd_by) : false;
+            $buktiBayar = $request->file('buktiBayar') ?? false;
+            $buktiBayarPph = $request->file('buktiPph') ?? false;
+            $textNote = $request->note ?? '';
 
             $result = array();
             $data = [];
             
             $totalHarga && $data['total_harga'] = $totalHarga;
             $ppn && $data['ppn'] = $ppn;
+            $pph && $data['pph'] = $pph;
             $idPermohonan && $data['id_permohonan'] = $idPermohonan;
             $ttd && $data['ttd'] = $ttd;
             $ttd_by && $data['ttd_by'] = $ttd_by;
@@ -104,6 +122,22 @@ class KeuanganAPI extends Controller
             if($invoice){
                 !$invoice->no_invoice && $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
                 !$invoice->created_by && $data['created_by'] = Auth::user()->id;
+            }else{
+                $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
+                $data['created_by'] = Auth::user()->id;
+            }
+
+            // Upload bukti
+            $file_buktiBayar = false;
+            $file_buktiBayarPph = false;
+            if($buktiBayar){
+                $file_buktiBayar = $this->media->upload($buktiBayar, 'keuangan');
+                $data['bukti_bayar'] = $file_buktiBayar->getIdMedia();
+            }
+
+            if($buktiBayarPph){
+                $file_buktiBayarPph = $this->media->upload($buktiBayarPph, 'keuangan');
+                $data['bukti_bayar_pph'] = $file_buktiBayarPph->getIdMedia();
             }
 
             $keuangan = Keuangan::updateOrCreate(
@@ -126,9 +160,31 @@ class KeuanganAPI extends Controller
             if ($keuangan->wasRecentlyCreated) {
                 $result['status'] = "created";
                 $result['msg'] = "Invoice berhasil dibuat.";
+
+                // log keuangan
+                $note = $this->log->noteLog('keuangan', $status);
+                $this->log->addLog('keuangan', array(
+                    'id_keuangan' => $keuangan->id_keuangan,
+                    'status' => $status,
+                    'note' => $note,
+                    'created_by' => Auth::user()->id
+                ));
+
             } elseif ($keuangan->wasChanged()) {
+                $file_buktiBayar && $file_buktiBayar->store();
+                $file_buktiBayarPph && $file_buktiBayarPph->store();
+
                 $result['status'] = "updated";
                 $result['msg'] = "Invoice berhasil diedit.";
+
+                // log keuangan
+                $note = $this->log->noteLog('keuangan', $status, $textNote);
+                $this->log->addLog('keuangan', array(
+                    'id_keuangan' => $keuangan->id_keuangan,
+                    'status' => $status,
+                    'note' => $note,
+                    'created_by' => Auth::user()->id
+                ));
             } else {
                 $result['status'] = "none";
                 $result['msg'] = "Nothing has changed.";

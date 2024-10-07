@@ -113,6 +113,7 @@ function descInvoice(data){
     let jumLayanan = data.permohonan.total_harga;
     let periode = JSON.parse(data.permohonan.periode_pemakaian);
     let jumPpn = 0;
+    let jumPph = 0;
     let jumDiskon = 0;
     let descInvoice = `
         <tr>
@@ -123,19 +124,6 @@ function descInvoice(data){
             <td>${formatRupiah(jumLayanan)}</td>
         </tr>
     `;
-
-    if(data.ppn){
-        jumPpn = jumLayanan * (data.ppn/100);
-        descInvoice += `
-            <tr>
-                <th class="text-start">PPN ${data.ppn}%</th>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>${formatRupiah(jumPpn)}</td>
-            </tr>
-        `;
-    }
     
     for (const [i,diskon] of data.diskon.entries()) {
         countDiskon = jumLayanan * (diskon.diskon/100);
@@ -150,8 +138,38 @@ function descInvoice(data){
         `;
     }
 
+    let jumAfterDiskon = jumLayanan - jumDiskon;
+
+    if(data.pph){
+        jumPph = jumAfterDiskon * (data.pph/100);
+        descInvoice += `
+            <tr>
+                <th class="text-start">PPH 23 (${data.pph}%)</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>- ${formatRupiah(jumPph)}</td>
+            </tr>
+        `;
+    }
+
+    let jumAfterPph = jumAfterDiskon - jumPph;
+
+    if(data.ppn){
+        jumPpn = jumAfterPph * (data.ppn/100);
+        descInvoice += `
+            <tr>
+                <th class="text-start">PPN ${data.ppn}%</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>${formatRupiah(jumPpn)}</td>
+            </tr>
+        `;
+    }
+
     // total harga
-    let jumTotal = jumLayanan + jumPpn - jumDiskon;
+    let jumTotal = jumAfterPph + jumPpn;
     descInvoice += `
         <tr>
             <td></td>

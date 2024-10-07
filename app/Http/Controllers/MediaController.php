@@ -121,6 +121,9 @@ class MediaController extends Controller
             case 'kip':
                 $path = 'images/kip';
                 break;
+            case 'keuangan':
+                $path = 'dokumen/keuangan';
+                break;
             default:
                 $path = 'dokumen';
                 break;

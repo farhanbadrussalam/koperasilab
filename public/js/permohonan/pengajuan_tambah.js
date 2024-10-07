@@ -355,8 +355,8 @@ $(function () {
                 icon: "error",
                 text: 'Server error',
             });
+            spinner('hide', obj.target);
             console.error(error.responseJSON.data.msg);
-            spinner('hide', obj);
         });
     });
 
@@ -576,7 +576,7 @@ function simpanPeriode(){
     if(lastPeriode?.start_date != ''){
         Swal.fire({
             text: 'Apa anda yakin ingin menyimpan data ?',
-            icon: false,
+            icon: 'question',
             showCancelButton: true,
             confirmButtonText: 'Iya',
             cancelButtonText: 'Tidak',

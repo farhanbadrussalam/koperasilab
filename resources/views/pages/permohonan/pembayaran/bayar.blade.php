@@ -71,8 +71,45 @@
                     Atas perhatian dan kerjasamanya, diucapkan terima kasih
                 </p>
             </div>
+            <div class="row my-4">
+                <div class="col-md-12 d-flex justify-content-center">
+                    <div class="wrapper" id="content-ttd-manager"></div>
+                </div>
+            </div>
             <div class="modal-footer d-flex justify-content-center mt-3">
-                <button type="button" class="btn btn-primary" onclick="">Upload bukti bayar</button>
+                <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#modal-upload-bukti">Upload bukti bayar</button>
+                <button type="button" class="btn btn-secondary"><i class="bi bi-printer-fill"></i> Cetak</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- modal --}}
+    <div class="modal fade" id="modal-upload-bukti" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="pilih_periode" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header py-0">
+                    <h1 class="modal-title">&nbsp;</h1>
+                    <button class="btn-close" data-bs-dismiss="modal" aria-label="close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12 mb-2">
+                            <label for="uploadBuktiBayar">Upload bukti bayar</label>
+                            <div class="card mb-0" style="height: 150px;">
+                                <input type="file" name="dokumen" id="uploadBuktiBayar" accept="image/*" class="form-control dropify">
+                            </div>
+                        </div>
+                        <div class="col-12 mb-2">
+                            <label for="uploadBuktiPph">Upload bukti bayar PPH</label>
+                            <div class="card mb-0" style="height: 150px;">
+                                <input type="file" name="dokumen" id="uploadBuktiPph" accept=".pdf" class="form-control dropify">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-sm btn-primary" id="btn-upload-bukti" onclick="uploadBukti()">Upload</button>
+                </div>
             </div>
         </div>
     </div>

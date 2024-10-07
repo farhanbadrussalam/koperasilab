@@ -17,6 +17,7 @@ use App\Models\Master_price;
 use App\Models\Master_jenistld;
 
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\LogController;
 
 use Auth;
 use DB;
@@ -27,6 +28,7 @@ class PermohonanAPI extends Controller
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
+        $this->log = resolve(LogController::class);
     }
     /**
      * Display a listing of the resource.
@@ -98,6 +100,15 @@ class PermohonanAPI extends Controller
             DB::commit();
 
             if($permohonan) {
+                // tambah log permohonan
+                $note = $this->log->noteLog('permohonan', 1);
+                $this->log->addLog('permohonan', array(
+                    'id_permohonan' => $idPermohonan,
+                    'status' => 1,
+                    'note' => $note,
+                    'created_by' => Auth::user()->id
+                ));
+
                 return $this->output(array('msg' => 'Data berhasil disimpan!'));
             }
         } catch (\Exception $ex) {
@@ -413,6 +424,8 @@ class PermohonanAPI extends Controller
                 $arrayUpdate['note'] = $note;
                 $arrayUpdate['status'] = 90;
             }
+
+
 
             Permohonan::where('id_permohonan', $idPermohonan)->update($arrayUpdate);
             DB::commit();

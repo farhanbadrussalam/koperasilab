@@ -36,7 +36,7 @@ function loadData(page = 1) {
                         <div class="col-6 col-md-2 my-3 text-end text-md-start">${pengajuan.tipe_kontrak}</div>
                         <div class="col-6 col-md-2">${pengajuan.pelanggan.name}</div>
                         <div class="col-6 col-md-2 text-center" data-id="${pengajuan.permohonan_hash}">
-                            <a class="btn btn-outline-primary" title="Verifikasi" href="${base_url}/staff/permohonan/verifikasi/${pengajuan.permohonan_hash}"><i class="bi bi-check2-circle"></i></a>
+                            <a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/staff/permohonan/verifikasi/${pengajuan.permohonan_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>
                         </div>
                     </div>
                 </div>

@@ -230,20 +230,50 @@ function statusFormat(feature, status) {
                 htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-secondary"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
+                        <span class="subbody-medium text-submain text-wrap">Pengajuan</span>
                     </div>
                     `;
                 break;
             case 2:
                 htmlStatus = `
                     <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-warning"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Belum bayar</span>
+                        <div><div class="me-1 dot bg-secondary"></div></div>
+                        <span class="subbody-medium text-submain text-wrap">TTD manager</span>
                     </div>
                     `;
                 break;
-        
+            case 3:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-warning"></div></div>
+                        <span class="subbody-medium text-submain text-wrap">Belum bayar</span>
+                    </div>
+                    `;
+                break;
+            case 4:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-primary"></div></div>
+                        <span class="subbody-medium text-submain text-wrap">Menunggu konfirmasi</span>
+                    </div>
+                    `;
+                break;
+            case 5:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-success"></div></div>
+                        <span class="subbody-medium text-submain text-wrap">Pembayaran diterima</span>
+                    </div>
+                    `;
+                break;
+                
             default:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-danger"></div></div>
+                        <span class="subbody-medium text-submain text-wrap">Pembayaran ditolak</span>
+                    </div>
+                    `;
                 break;
         }
     }
@@ -542,6 +572,7 @@ function showPreviewKtp(obj) {
 function signature(parent, options){
     options = {
         text: options.text ? options.text : '',
+        name: options.name ? options.name : '',
         defaultSig: options.defaultSig ? options.defaultSig : false,
         width: options.width ? options.width : 200,
         height: options.height ? options.height : 120
@@ -565,6 +596,11 @@ function signature(parent, options){
     text.className = 'text-center mb-0';
     text.innerText = options.text;
 
+    // Create Element text
+    const name = document.createElement('p');
+    name.className = 'text-center mb-0';
+    name.innerText = `(${options.name})`;
+
     if(options.defaultSig){
         // Create Element img default
         const img = document.createElement('img');
@@ -580,6 +616,7 @@ function signature(parent, options){
     }
 
     parent.appendChild(text);
+    options.name != '' && parent.appendChild(name);
 
     const signaturePad = new SignaturePad(canvas, {
         backgroundColor: 'rgb(255, 255, 255)'

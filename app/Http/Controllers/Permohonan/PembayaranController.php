@@ -32,6 +32,9 @@ class PembayaranController extends Controller
          
          $keuangan = Keuangan::with(
                         'diskon',
+                        'usersig:id,name',
+                        'media_bayar',
+                        'media_bayar_pph',
                         'permohonan',
                         'permohonan.layanan_jasa:id_layanan,nama_layanan',
                         'permohonan.jenisTld:id_jenisTld,name', 

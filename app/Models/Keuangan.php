@@ -18,6 +18,7 @@ class Keuangan extends Model
         'no_invoice',
         'status',
         'ppn',
+        'pph',
         'document_faktur',
         'bukti_bayar',
         'bukti_bayar_pph',
@@ -30,7 +31,10 @@ class Keuangan extends Model
 
     protected $hidden = [
         'id_keuangan',
-        'id_permohonan'
+        'id_permohonan',
+        'bukti_bayar',
+        'bukti_bayar_pph',
+        'document_faktur'
     ];
 
     protected $appends = [
@@ -59,18 +63,18 @@ class Keuangan extends Model
     }
 
     public function media(){
-        return $this->belongsTo(tbl_media::class, 'document_faktur', 'id');
+        return $this->belongsTo(master_media::class, 'document_faktur', 'id');
     }
 
     public function media_bayar(){
-        return $this->belongsTo(tbl_media::class, 'bukti_bayar', 'id');
+        return $this->belongsTo(master_media::class, 'bukti_bayar', 'id');
     }
 
     public function media_bayar_pph(){
-        return $this->belongsTo(tbl_media::class, 'bukti_bayar_pph', 'id');
+        return $this->belongsTo(master_media::class, 'bukti_bayar_pph', 'id');
     }
 
-    public function user(){
+    public function usersig(){
         return $this->belongsTo(user::class, 'ttd_by', 'id');
     }
 }

@@ -17,6 +17,11 @@ function loadData(page = 1) {
             permohonan.idkeuangan = keuangan.keuangan_hash;
             let periode = JSON.parse(permohonan.periode_pemakaian);
             let btnAction = '';
+            if(keuangan.status == 3){
+                btnAction = `<a class="btn btn-outline-warning btn-sm" href="${base_url}/permohonan/pembayaran/bayar/${keuangan.keuangan_hash}" title="Bayar"><i class="bi bi-cash"></i> Bayar</a>`;
+            }else{
+                btnAction = `<button class="btn btn-outline-info btn-sm" title="Show Invoice" onclick=""><i class="bi bi-eye-fill"></i> Detail</button>`;
+            }
 
             html += `
                 <div class="card mb-2">
@@ -34,9 +39,9 @@ function loadData(page = 1) {
                             <div>${permohonan.tipe_kontrak}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
                         </div>
-                        <div class="col-6 col-md-2">${statusFormat('keuangan', permohonan.status)}</div>
+                        <div class="col-6 col-md-2">${statusFormat('keuangan', keuangan.status)}</div>
                         <div class="col-6 col-md-2 text-center" data-keuangan='${JSON.stringify(permohonan)}' data-invoice='${keuangan.no_invoice}'>
-                            <a class="btn btn-outline-warning btn-sm" href="${base_url}/permohonan/pembayaran/bayar/${keuangan.keuangan_hash}" title="Bayar"><i class="bi bi-cash"></i> Bayar</a>
+                            ${btnAction}
                         </div>
                     </div>
                 </div>
