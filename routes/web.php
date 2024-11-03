@@ -26,6 +26,8 @@ use App\Http\Controllers\Permohonan\PembayaranController;
 
 use App\Http\Controllers\Staff\PermohonanController;
 use App\Http\Controllers\Staff\KeuanganController;
+use App\Http\Controllers\Staff\StaffController;
+use App\Http\Controllers\Staff\PenyeliaController;
 
 use App\Http\Controllers\Manager\ManagerPengajuanController;
 
@@ -68,13 +70,14 @@ Route::middleware(['auth', 'verified'])->group(function() {
     });
 
     Route::prefix('staff')->group(function () {
-        Route::controller(PermohonanController::class)->group(function () {
-            Route::get('/permohonan', 'index')->name('staff.permohonan');
+        Route::controller(StaffController::class)->group(function() {
+            Route::get('/keuangan', 'indexKeuangan')->name('staff.keuangan');
+            Route::get('/permohonan', 'indexPermohonan')->name('staff.permohonan');
             Route::get('/permohonan/verifikasi/{idPermohonan}', 'verifikasiPermohonan')->name('staff.permohonan.verifikasi');
-        });
-
-        Route::controller(KeuanganController::class)->group(function() {
-            Route::get('/keuangan', 'index')->name('staff.keuangan');
+            Route::get('/penyelia', 'indexPenyelia')->name('staff.penyelia');
+            Route::get('/lhu', 'indexLhu')->name('staff.lhu');
+            Route::get('/pengiriman', 'indexPengiriman')->name('staff.pengiriman');
+            Route::get('/pengiriman/tambah', 'tambahPengiriman')->name('staff.pengiriman.tambah');
         });
     });
 

@@ -36,7 +36,7 @@ class PengajuanController extends Controller
             'created_by' => Auth::user()->id,
             'status' => 80,
         ));
-        return redirect(Route('permohonan.pengajuan.edit', encryptor($dataPermohonan->id)));
+        return redirect(Route('permohonan.pengajuan.edit', $dataPermohonan->permohonan_hash));
     }
 
     public function edit($id_permohonan)

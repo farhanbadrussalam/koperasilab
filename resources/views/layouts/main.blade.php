@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}"/>
     <link rel="stylesheet" href="{{ asset('assets/dropify/css/dropify.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
 
     <!-- Scripts -->

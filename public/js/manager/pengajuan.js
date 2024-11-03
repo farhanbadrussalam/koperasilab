@@ -198,7 +198,7 @@ function simpanInvoice(obj){
     formData.append('status', 3);
 
     spinner('show', $(obj));
-    ajaxPost(`api/v1/keuangan/keuanganAction`, formData, result => {
+    ajaxPost(`api/v1/keuangan/action`, formData, result => {
         Swal.fire({
             icon: 'success',
             text: 'Invoice berhasil diverifikasi',
@@ -232,7 +232,7 @@ function tolakInvoice(obj){
     formData.append('status', 91);
     formData.append('note', note);
     formData.append('idKeuangan', $('#idKeuangan').val());
-    ajaxPost(`api/v1/keuangan/keuanganAction`, formData, result => {
+    ajaxPost(`api/v1/keuangan/action`, formData, result => {
         Swal.fire({
             icon: 'success',
             text: 'Pengajuan ditolak',

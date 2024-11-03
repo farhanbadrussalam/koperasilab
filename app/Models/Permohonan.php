@@ -10,6 +10,7 @@ class Permohonan extends Model
     use HasFactory;
 
     protected $table = "permohonan";
+    protected $primaryKey = 'id_permohonan';
 
     protected $fillable = [
         'tipe_kontrak',
@@ -69,4 +70,15 @@ class Permohonan extends Model
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
 
+    public function tandaterima() {
+        return $this->hasMany(Permohonan_tandaterima::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function invoice(){
+        return $this->hasOne(Keuangan::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function lhu(){
+        
+    }
 }

@@ -42,7 +42,7 @@ function loadData(page = 1, menu) {
         page: page,
         menu: menu
     };
-    
+
     $(`#list-placeholder-${menu}`).show();
     $(`#list-container-${menu}`).hide();
     ajaxGet(`api/v1/keuangan/listKeuangan`, params, result => {
@@ -124,7 +124,7 @@ function tambahDiskon() {
             name: namaDiskon,
             diskon: diskon
         });
-    
+
         updateInvoiceDescription();
         $('#diskonModal').modal('hide');
         $('#inputNamaDiskon').val("");
@@ -147,11 +147,11 @@ let invoiceMode = 'create'; // 'create' or 'verify'
 function openInvoiceModal(obj, mode) {
     const keuangan = $(obj).parent().data("keuangan");
     const noInvoice = $(obj).parent().data("invoice");
-    
+
     invoiceMode = mode;
     dataKeuangan = keuangan;
     let permohonan = keuangan.permohonan;
-    
+
     // Populate invoice details
     let detailsHTML = `
         <div class="col-md-6 col-12">
@@ -251,12 +251,12 @@ function openInvoiceModal(obj, mode) {
     $('#modalFooter').html(footerHTML);
 
     updateInvoiceDescription(mode);
+    maskReload();
 
     $('#invoiceModal').modal('show');
 }
 
 function showPaymentProof() {
-    // Assuming the payment proof URL is stored in dataKeuangan.bukti_pembayaran
     if (dataKeuangan.media_bayar) {
         let media = dataKeuangan.media_bayar;
         let mediaPph = dataKeuangan.media_bayar_pph;
@@ -265,9 +265,14 @@ function showPaymentProof() {
                 <img src="${base_url}/storage/${ media.file_path}/${media.file_hash}" alt="Bukti Pembayaran" class="img-fluid rounded img-thumbnail">
             </li>
         `);
-        $('#paymentPphProofImage').html(`
-            <li class="w-50">
-                <img src="${base_url}/storage/${ mediaPph.file_path}/${mediaPph.file_hash}" alt="Bukti PPH" class="img-fluid rounded img-thumbnail">
+
+        let option = {
+            download: false,
+            date: false
+        }
+        $('#paymentPphProof').html(`
+            <li class="w-100 mb-2">
+                ${printMedia(mediaPph, false, option)}
             </li>
         `);
         $('#paymentProofSection').show();
@@ -278,7 +283,7 @@ function showPaymentProof() {
 
 function updateInvoiceDescription(mode) {
     const permohonan = dataKeuangan.permohonan;
-    
+
     let hargaLayanan = permohonan.harga_layanan;
     let qty = permohonan.jumlah_kontrol+permohonan.jumlah_pengguna;
     let jumLayanan = permohonan.total_harga;
@@ -296,6 +301,7 @@ function updateInvoiceDescription(mode) {
         </tr>
     `;
 
+
     if(dataKeuangan.diskon){
         for (const diskon of dataKeuangan.diskon) {
             arrDiskon.push({
@@ -304,7 +310,7 @@ function updateInvoiceDescription(mode) {
             });
         }
     }
-    
+
     for (const [i,diskon] of arrDiskon.entries()) {
         countDiskon = jumLayanan * (diskon.diskon/100);
         jumDiskon += countDiskon;
@@ -322,7 +328,7 @@ function updateInvoiceDescription(mode) {
 
     if(pph || dataKeuangan.pph) {
         let valPph = $('#inputPph').val() || dataKeuangan.pph;
-        valPph = parseInt(valPph);
+        valPph = valPph ? parseInt(valPph) : 0;
         jumPph = jumAfterDiskon * (valPph/100);
         descInvoice += `
             <tr>
@@ -391,7 +397,7 @@ function simpanInvoice(obj) {
     }).then(result => {
         if(result.isConfirmed){
             spinner('show', $(obj));
-            ajaxPost(`api/v1/keuangan/keuanganAction`, formData, result => {
+            ajaxPost(`api/v1/keuangan/action`, formData, result => {
                 if(result.meta.code == 200){
                     Swal.fire({
                         icon: 'success',
@@ -434,13 +440,13 @@ function verifikasiInvoice(obj, action) {
     }).then(result => {
         if (result.isConfirmed) {
             spinner('show', $(obj));
-            
+
             const formData = new FormData();
             formData.append('_token', csrf);
             formData.append('idKeuangan', dataKeuangan.keuangan_hash);
             formData.append('status', action === 'approve' ? 5 : 90);
 
-            ajaxPost('api/v1/keuangan/keuanganAction', formData, result => {
+            ajaxPost('api/v1/keuangan/action', formData, result => {
                 if (result.meta.code == 200) {
                     Swal.fire({
                         icon: 'success',

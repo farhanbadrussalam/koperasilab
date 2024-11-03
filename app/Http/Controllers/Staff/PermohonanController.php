@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Staff;
 use App\Models\Permohonan;
 use App\Models\Permohonan_pengguna;
 use App\Models\User;
+use App\Models\Master_pertanyaan;
 // use App\Models\Detail_permohonan;
 // use App\Models\Layanan_jasa;
 // use App\Models\jadwal;
@@ -40,8 +41,9 @@ class PermohonanController extends Controller
 
     public function verifikasiPermohonan($idPermohonan)
     {
+        $arrTandaTerima = [1];
         $id = decryptor($idPermohonan);
-        $dataUser = false;
+        $pertanyaan_tr = false;
         $dataPermohonan = Permohonan::with(
                             'layanan_jasa:id_layanan,nama_layanan',
                             'jenisTld:id_jenisTld,name', 
@@ -51,15 +53,16 @@ class PermohonanController extends Controller
                             'pelanggan:id,name'
                         )->where('id_permohonan', $id)->first();
         
-        if($dataPermohonan){
-            $dataUser = User::where('id', $dataPermohonan->created_by)->first();
+        if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){
+            $pertanyaan_tr = Master_pertanyaan::where('id_jenisLayanan', $dataPermohonan->jenis_layanan_parent->id_jenisLayanan)->get();
         }
 
         $dataPengguna = Permohonan_pengguna::where('id_permohonan', $id)->first();
         $data = [
             'title' => 'Verifikasi Permohonan',
             'module' => 'staff-permohonan',
-            'permohonan' => $dataPermohonan
+            'permohonan' => $dataPermohonan,
+            'pertanyaan' => $pertanyaan_tr
         ];
 
         return view('pages.staff.permohonan.verifikasi', $data);

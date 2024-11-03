@@ -148,7 +148,7 @@
                 {{-- END PERMOHONAN --}}
 
                 {{-- STAFF --}}
-                @if(auth()->user()->hasAnyRole(['Staff Admin', 'Staff keuangan']))
+                @if(auth()->user()->hasAnyRole(['Staff Admin', 'Staff keuangan', 'Staff Penyelia', 'Staff LHU', 'Staff Pengiriman']))
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">STAFF</span>
@@ -161,6 +161,36 @@
                     href="{{ route('staff.permohonan') }}" aria-expanded="false">
                     <span>&nbsp;</span>
                     <span class="hide-menu">Permohonan</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('Staff/pengiriman')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-pengiriman' ? 'active' : '' }}"
+                    href="{{ route('staff.pengiriman') }}" aria-expanded="false">
+                    <span>&nbsp;</span>
+                    <span class="hide-menu">Pengiriman</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('Staff/penyelia')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-penyelia' ? 'active' : '' }}"
+                    href="{{ route('staff.penyelia') }}" aria-expanded="false">
+                    <span>&nbsp;</span>
+                    <span class="hide-menu">Penyelia</span>
+                    </a>
+                </li>
+                @endcan
+
+                @can('Staff/lhu')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-lhu' ? 'active' : '' }}"
+                    href="{{ route('staff.lhu') }}" aria-expanded="false">
+                    <span>&nbsp;</span>
+                    <span class="hide-menu">LHU</span>
                     </a>
                 </li>
                 @endcan

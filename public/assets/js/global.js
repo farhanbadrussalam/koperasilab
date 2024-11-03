@@ -517,14 +517,14 @@ function printMedia(media, folder=false, option = {}){
     return `
         <div
             class="d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border">
-                <div class="d-flex align-items-center w-100">
+                <a class="d-flex align-items-center w-100" href="${base_url}/storage/${folder ? folder : media.file_path}/${media.file_hash}" target="_blank">
                     <div>
                         <img class="my-3" src="${base_url}/icons/${iconDocument(media.file_type)}" alt=""
                             style="width: 24px; height: 24px;">
                     </div>
                     <div class="flex-grow-1 ms-2">
                         <div class="d-flex flex-column">
-                            <a class="caption text-main" href="${base_url}/storage/${folder ? folder : media.file_path}/${media.file_hash}" target="_blank">${media.file_ori}</a>
+                            <span class="caption text-main">${media.file_ori}</span>
                             ${dateContent}
                         </div>
                     </div>
@@ -534,7 +534,7 @@ function printMedia(media, folder=false, option = {}){
                     <div class="p-1">
                         ${downloadContent}
                     </div>
-                </div>
+                </a>
             <div class="d-flex align-items-center"></div>
         </div>
         `;
@@ -542,13 +542,20 @@ function printMedia(media, folder=false, option = {}){
 
 function spinner(status = 'show', obj, options = {}){
     options = {
-        place: options.place ? options.place : 'before' // after or before
+        place: options.place ? options.place : 'before', // after or before
+        width: options.width ? options.width : false,
+        height: options.height ? options.height : false,
     }
     if(status == 'show'){
-        const spin = `<span class="spinner-border spinner-border-sm" role="status"></span> `;
+        const spin = document.createElement('span');
+        spin.role = 'status';
+        options.width && (spin.style.width = options.width);
+        options.height && (spin.style.height = options.height);
         if(options.place == 'after'){
+            spin.className = `spinner-border spinner-border-sm ms-1`;
             $(obj).attr('disabled', true).append(spin);
         } else {
+            spin.className = `spinner-border spinner-border-sm me-1`;
             $(obj).attr('disabled', true).prepend(spin);
         }
     }else if(status == 'hide'){

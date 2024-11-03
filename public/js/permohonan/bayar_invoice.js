@@ -40,7 +40,7 @@ function uploadBukti(){
     }).then(result => {
         if(result.isConfirmed){
             spinner('show', $('#btn-upload-bukti'));
-            ajaxPost(`api/v1/keuangan/keuanganAction`, formData, result => {
+            ajaxPost(`api/v1/keuangan/action`, formData, result => {
                 if(result.meta.code == 200){
                     Swal.fire({
                         icon: 'success',

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Log_permohonan;
 use App\Models\Log_keuangan;
+use App\Models\Log_penyelia;
 
 class LogController extends Controller
 {
@@ -16,6 +17,9 @@ class LogController extends Controller
                 break;
             case 'keuangan':
                 $query = Log_keuangan::create($params);
+                break;
+            case 'penyelia':
+                $query = Log_penyelia::create($params);
                 break;
             default:
                 # code...
@@ -66,6 +70,31 @@ class LogController extends Controller
                 
                 default:
                     # code...
+                    break;
+            }
+        } else if ($mode == 'penyelia'){
+            switch ($status) {
+                case 1:
+                    $note = 'Penyelia - Pengajuan berhasil dibuat';
+                    break;
+                case 2:
+                    $note = 'Penyelia - Start '.($text != '' ? "($text)" : "");
+                    break;
+                case 3:
+                    $note = 'Penyelia - Proses anealing '.($text != '' ? "($text)" : "");
+                    break;
+                case 4:
+                    $note = 'Penyelia - Proses pembacaan '.($text != '' ? "($text)" : "");
+                    break;
+                case 5:
+                    $note = 'Penyelia - Proses penerbitan LHU '.($text != '' ? "($text)" : "");
+                    break;
+                case 6:
+                    $note = 'Penyelia - Selesai '.($text != '' ? "($text)" : "");
+                    break;
+                
+                default:
+                    $note = $text;
                     break;
             }
         }

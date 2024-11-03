@@ -98,6 +98,12 @@
                         </div>
                     </div>
                     <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
+                        <div class="card-body mx-5">
+                            <h2 class="text-center">TANDA TERIMA</h2>
+                            <form class="row mt-2" id="content-pertanyaan"></form>
+                        </div>
+                    </div>
+                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
                         <div class="card-body row">
                             {{-- <div class="col-md-6 d-flex justify-content-center">
                                 <div class="wrapper" id="content-ttd-1"></div>
@@ -210,6 +216,7 @@
 @push('scripts')
     <script>
         const dataPermohonan = @json($permohonan);
+        const tandaterima = @json($pertanyaan);
     </script>
     <script src="{{ asset('js/staff/verifikasi_permohonan.js') }}"></script>
 @endpush

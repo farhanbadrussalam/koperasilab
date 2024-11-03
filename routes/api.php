@@ -12,6 +12,8 @@ use App\Http\Controllers\API\AssetsAPI;
 use App\Http\Controllers\API\LhuAPI;
 use App\Http\Controllers\API\SendMailAPI;
 use App\Http\Controllers\API\ManagerAPI;
+use App\Http\Controllers\API\PenyeliaAPI;
+use App\Http\Controllers\API\PengirimanAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -78,8 +80,20 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     });
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
-        Route::post('/keuanganAction', 'keuanganAction');
+        Route::post('/action', 'keuanganAction');
         Route::get('/listKeuangan', 'listKeuangan');
+    });
+
+    Route::prefix("pengiriman")->controller(PengirimanAPI::class)->group(function () {
+        Route::post('/action', 'actionPengiriman');
+        Route::get('/list', 'listPengiriman');
+        Route::get('/getPermohonan', 'getPermohonan');
+    });
+
+    Route::prefix("penyelia")->controller(PenyeliaAPI::class)->group(function () {
+        Route::post('/action', 'actionPenyelia');
+        Route::get('/list', 'listPenyelia');
+        Route::get('/listPetugas', 'getListPetugas');
     });
 
     Route::prefix("manager")->controller(ManagerAPI::class)->group(function () {

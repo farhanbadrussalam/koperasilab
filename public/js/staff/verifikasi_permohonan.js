@@ -2,17 +2,57 @@ let signaturePad = false;
 $(function () {
     const periode = JSON.parse(dataPermohonan.periode_pemakaian);
     $('#periode-pemakaian').val(periode.length + ' Periode');
-    // const conten_1 = document.getElementById("content-ttd-1");
-    // signature(conten_1, {
-    //     text: 'Manager',
-    //     defaultSig: `${base_url}/icons/default/white.png`
-    // })
+    
     const conten_2 = document.getElementById("content-ttd-2");
     signaturePad = signature(conten_2, {
         text: 'Front desk'
     });
     loadPengguna();
+    if(tandaterima){
+        loadPertanyaan();
+    }
 });
+
+function loadPertanyaan(){
+    let html = '';
+    $('#content-pertanyaan').html('');
+    for (const [i, value] of tandaterima.entries()) {
+        let htmlAnswer = ``;
+        if(value.type == 1){
+            htmlAnswer = `<textarea name="answer_${i}" id="answer_${i}" cols="30" rows="3" class="form-control"></textarea>`;
+        }else if(value.type == 2){
+            htmlAnswer = `
+                <div class="my-3">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="answer_${i}" id="answer_${i}_baik" value="baik" onclick="toggleReason(${i}, false)">
+                        <label class="form-check-label" for="answer_${i}_baik">Baik</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="answer_${i}" id="answer_${i}_cacat" value="cacat" onclick="toggleReason(${i}, true)">
+                        <label class="form-check-label" for="answer_${i}_cacat">Cacat</label>
+                    </div>
+                    <div>
+                        <input type="text" class="form-control w-100" id="reason_${i}" placeholder="Bila cacat, sebutkan : ....." disabled>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `
+            <div class="col-sm-6 mt-2">
+                <label for="">${value.pertanyaan} :</label>
+                ${htmlAnswer}
+            </div>
+        `;
+    }
+
+    $('#content-pertanyaan').html(html);
+
+}
+
+function toggleReason(index, enable) {
+    $(`#reason_${index}`).prop('disabled', !enable);
+}
 
 function loadPengguna(){
     let params = {
@@ -77,6 +117,42 @@ function loadPengguna(){
 
 function verif_kelengkapan(status, obj){
     if(status == 'lengkap'){
+        const formQuestion = $('#content-pertanyaan'); // You already have this
+        
+        // Get all form elements within #content-pertanyaan
+        const answerTandaterima = [];
+        if(tandaterima){
+            for (const [i, value] of tandaterima.entries()) {
+                let elementAnswer = false;
+                if(value.type == 1){
+                    elementAnswer = $(`#answer_${i}`).val();
+                    answerTandaterima.push({
+                        id: value.pertanyaan_hash,
+                        answer: elementAnswer,
+                        note: ''
+                    });
+                } else if(value.type == 2) {
+                    elementAnswer = $(`[name="answer_${i}"]:checked`).val();
+                    let note = '';
+                    if(elementAnswer == 'cacat'){
+                        note = $(`#reason_${i}`).val();
+                    }
+                    answerTandaterima.push({
+                        id: value.pertanyaan_hash,
+                        answer: elementAnswer,
+                        note: note
+                    });
+                }
+            }
+        }
+        
+        if(signaturePad.isEmpty()){
+            return Swal.fire({
+                icon: "warning",
+                text: "Harap berikan tanda tangan terlebih dahulu.",
+            });
+        }
+
         Swal.fire({
             icon: 'warning',
             title: 'Apakah data sudah lengkap?',
@@ -91,12 +167,6 @@ function verif_kelengkapan(status, obj){
             reverseButtons: true
         }).then(result => {
             if(result.isConfirmed){
-                if(signaturePad.isEmpty()){
-                    return Swal.fire({
-                        icon: "warning",
-                        text: "Harap berikan tanda tangan terlebih dahulu.",
-                    });
-                }
 
                 let ttd = signaturePad.toDataURL();
                 let formData = new FormData();
@@ -104,6 +174,7 @@ function verif_kelengkapan(status, obj){
                 formData.append('ttd', ttd);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
+                formData.append('tandaterima', JSON.stringify(answerTandaterima));
 
                 spinner('show', obj);
                 ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
@@ -115,6 +186,7 @@ function verif_kelengkapan(status, obj){
                         showConfirmButton: false
                     }).then(() => {
                         createInvoice(dataPermohonan.permohonan_hash);
+                        createPenyelia(dataPermohonan.permohonan_hash);
                         window.location.href = base_url+"/staff/permohonan";
                     });
                 }, error => {
@@ -139,8 +211,16 @@ function createInvoice(idPermohonan){
     const formData = new FormData();
     formData.append('idPermohonan', idPermohonan);
     formData.append('status', 1);
-    ajaxPost(`api/v1/keuangan/keuanganAction`, formData, result => {})
+    ajaxPost(`api/v1/keuangan/action`, formData, result => {})
 }
+
+function createPenyelia(idPermohonan){
+    const formData = new FormData();
+    formData.append('idPermohonan', idPermohonan);
+    formData.append('status', 1);
+    ajaxPost(`api/v1/penyelia/action`, formData, result => {})
+}
+
 
 function return_permohonan(obj){
     let note = $('#txt_note').val();
@@ -173,3 +253,30 @@ function return_permohonan(obj){
         }
     })
 }
+
+function areThereEmptyFields(formElements) {
+    let isEmpty = false; // Assume no empty fields initially
+  
+    // Iterate through each form element
+    formElements.each(function() {
+      const element = $(this); // Get the jQuery object for the element
+  
+      // Check for empty values based on element type
+      if (element.is('input[type="text"], input[type="email"], input[type="number"], textarea') && element.val().trim() === "") {
+        isEmpty = true; // Found an empty field
+        return false; // Exit the .each() loop early
+      } else if (element.is('input[type="radio"], input[type="checkbox"]') && !element.is(':checked')) {
+        // Check if at least one radio button in a group is selected
+        const name = element.attr('name');
+        if ($(`input[name="${name}"]:checked`).length === 0) {
+          isEmpty = true;
+          return false;
+        }
+      } else if (element.is('select') && element.val() === null) {
+        isEmpty = true;
+        return false;
+      }
+    });
+  
+    return isEmpty;
+  }

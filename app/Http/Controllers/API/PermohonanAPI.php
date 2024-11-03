@@ -9,6 +9,7 @@ use App\Traits\RestApi;
 
 use App\Models\Permohonan;
 use App\Models\Permohonan_pengguna;
+use App\Models\Permohonan_tandaterima;
 use App\Models\Master_layanan_jasa;
 use App\Models\Master_jenisLayanan;
 use App\Models\Master_media;
@@ -412,8 +413,20 @@ class PermohonanAPI extends Controller
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
             if($status == 'lengkap'){
                 $ttd = $request->ttd ? $request->ttd : null;
+                $tandaterima = $request->tandaterima ? json_decode($request->tandaterima) : [];
 
                 $no_kontrak = $this->generateNoKontrak($idPermohonan);
+
+                foreach ($tandaterima as $value) {
+                    $params = array(
+                        'id_permohonan' => $idPermohonan,
+                        'id_pertanyaan' => decryptor($value->id),
+                        'jawaban' => $value->answer,
+                        'note' => $value->note
+                    );
+
+                    Permohonan_tandaterima::create($params);
+                }
 
                 $arrayUpdate['ttd'] = $ttd;
                 $arrayUpdate['ttd_by'] = Auth::user()->id;
@@ -424,8 +437,6 @@ class PermohonanAPI extends Controller
                 $arrayUpdate['note'] = $note;
                 $arrayUpdate['status'] = 90;
             }
-
-
 
             Permohonan::where('id_permohonan', $idPermohonan)->update($arrayUpdate);
             DB::commit();

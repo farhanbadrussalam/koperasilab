@@ -5,23 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class pertanyaan_lhu extends Model
+class Log_penyelia extends Model
 {
     use HasFactory;
+    protected $table = "log_penyelia";
 
-    protected $table = 'pertanyaan_lhu';
     protected $fillable = [
-        'title',
-        'type'
-    ];
-    protected $hidden = [
-        'id'
-    ];
-    protected $appends = [
-        'pertanyaan_lhu_hash'
+        'id_penyelia',
+        'status',
+        'note',
+        'document',
+        'created_by'
     ];
 
-    public function getPertanyaanLhuHashAttribute()
+    protected $appends = [
+        'log_penyelia_hash'
+    ];
+
+    public function getLogPenyeliaHashAttribute()
     {
         return encryptor($this->id);
     }

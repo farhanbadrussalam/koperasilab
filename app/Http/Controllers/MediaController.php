@@ -36,7 +36,7 @@ class MediaController extends Controller
 
             $idMedia = $media->id;
         }
-
+        
         return new FileUpload($file, $path, $filename, $idMedia);
     }
 
@@ -123,6 +123,12 @@ class MediaController extends Controller
                 break;
             case 'keuangan':
                 $path = 'dokumen/keuangan';
+                break;
+            case 'penyelia':
+                $path = 'dokumen/penyelia';
+                break;
+            case 'pengiriman':
+                $path = 'dokumen/pengiriman';
                 break;
             default:
                 $path = 'dokumen';
