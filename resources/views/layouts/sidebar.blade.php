@@ -143,6 +143,13 @@
                         <span class="hide-menu">Pembayaran</span>
                     </a>
                 </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'permohonan-pengiriman' ? 'active' : '' }}"
+                        href="{{ route('permohonan.pengiriman') }}" aria-expanded="false">
+                        <span>&nbsp;</span>
+                        <span class="hide-menu">Pengiriman</span>
+                    </a>
+                </li>
                 @endcan
                 @endrole
                 {{-- END PERMOHONAN --}}

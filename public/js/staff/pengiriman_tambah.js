@@ -50,7 +50,7 @@ $(function (){
             spinner('show', $(obj.target));
             
             arrImgBukti.push(imgtmp);
-            loadPreviewBukti()
+            loadPreviewBukti();
             spinner('hide', $(obj.target));
             $('#uploadBuktiPengiriman').val('');
         }
@@ -64,6 +64,8 @@ $(function (){
             let idPermohonan = dataPermohonan.permohonan_hash;
             let noKontrak = dataPermohonan.no_kontrak;
             let alamat = $('#alamat').val();
+            let periode = $('#periode').val();
+            let arrPeriode = JSON.parse(dataPermohonan.periode_pemakaian);
 
             const formData = new FormData();
             formData.append('jenisPengiriman', jenisPengiriman);
@@ -71,6 +73,8 @@ $(function (){
             formData.append('idPermohonan', idPermohonan);
             formData.append('noKontrak', noKontrak);
             formData.append('alamat', alamat);
+            formData.append('tujuan', dataPermohonan.pelanggan.id);
+            formData.append('periode', JSON.stringify(arrPeriode[periode]));
             formData.append('status', 1);
             arrImgBukti.forEach((file, index) => {
                 formData.append('buktiPengiriman[]', file);

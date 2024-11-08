@@ -20,9 +20,7 @@ use App\Http\Controllers\PelaksanaKontrakController;
 // use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\ManagerController;
 
-use App\Http\Controllers\Permohonan\PengajuanController;
-use App\Http\Controllers\Permohonan\DikembalikanController;
-use App\Http\Controllers\Permohonan\PembayaranController;
+use App\Http\Controllers\Permohonan\PelangganController;
 
 use App\Http\Controllers\Staff\PermohonanController;
 use App\Http\Controllers\Staff\KeuanganController;
@@ -55,17 +53,17 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     // NEW ROUTE
     Route::prefix('permohonan')->group(function () {
-        Route::middleware(['permission:Permohonan/pengajuan'])->controller(PengajuanController::class)->group(function () {
-            Route::get('/pengajuan', 'index')->name('permohonan.pengajuan');
-            Route::get('/pengajuan/tambah', 'tambah')->name('permohonan.pengajuan.tambah');
-            Route::get('/pengajuan/edit/{id_permohonan}', 'edit')->name('permohonan.pengajuan.edit');
-        });
-        Route::controller(DikembalikanController::class)->group(function () {
-            Route::get('/dikembalikan', 'index')->name('permohonan.dikembalikan');
-        });
-        Route::controller(PembayaranController::class)->group(function () {
-            Route::get('/pembayaran', 'index')->name('permohonan.pembayaran');
-            Route::get('/pembayaran/bayar/{idKeuangan}', 'bayarInvoice')->name('permohonan.pembayaran.bayar');
+        Route::controller(PelangganController::class)->group(function () {
+            Route::get('/pengajuan', 'indexPengajuan')->name('permohonan.pengajuan');
+            Route::get('/pengajuan/tambah', 'tambahPengajuan')->name('permohonan.pengajuan.tambah');
+            Route::get('/pengajuan/edit/{id_permohonan}', 'editPengajuan')->name('permohonan.pengajuan.edit');
+            
+            Route::get('/dikembalikan', 'indexPengembalian')->name('permohonan.dikembalikan');
+
+            Route::get('/pembayaran', 'indexPembayaran')->name('permohonan.pembayaran');
+            Route::get('/pembayaran/bayar/{idKeuangan}', 'bayarInvoicePembayaran')->name('permohonan.pembayaran.bayar');
+            
+            Route::get('/pengiriman', 'indexPengiriman')->name('permohonan.pengiriman');
         });
     });
 

@@ -66,12 +66,18 @@ function loadPengajuan(page = 1) {
         $('#pengajuan-list-container').show();
     }, error => {
         const result = error.responseJSON;
-        if(result.meta.code == 500){
+        if(result?.meta?.code && result.meta.code == 500){
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
             });
             console.error(result.data.msg);
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(result.message);
         }
     });
 }
@@ -90,12 +96,18 @@ function remove(obj){
         });
     }, error => {
         const result = error.responseJSON;
-        if(result.meta.code == 500){
+        if(result?.meta?.code && result.meta.code == 500){
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
             });
             console.error(result.data.msg);
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(result.message);
         }
     });
 }

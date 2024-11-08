@@ -87,7 +87,9 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("pengiriman")->controller(PengirimanAPI::class)->group(function () {
         Route::post('/action', 'actionPengiriman');
         Route::get('/list', 'listPengiriman');
+        Route::get('/getById/{pengiriman_hash}', 'getPengirimanById');
         Route::get('/getPermohonan', 'getPermohonan');
+        Route::delete('/destroy/{pengiriman_hash}', 'destroy');
     });
 
     Route::prefix("penyelia")->controller(PenyeliaAPI::class)->group(function () {

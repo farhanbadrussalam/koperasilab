@@ -21,8 +21,12 @@ class Pengiriman extends Model
         'alamat',
         'detail_alamat',
         'status',
+        'tujuan',
+        'periode',
         'bukti_pengiriman',
         'bukti_penerima',
+        'send_at',
+        'recived_at',
         'created_by',
         'created_at'
     ];
@@ -45,5 +49,10 @@ class Pengiriman extends Model
     public function getPengirimanHashAttribute()
     {
         return encryptor($this->id_pengiriman);
+    }
+
+    public function permohonan()
+    {
+        return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id_permohonan');
     }
 }

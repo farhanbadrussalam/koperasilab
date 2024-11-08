@@ -32,6 +32,7 @@ class PengirimanAPI extends Controller
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
         $menu = $request->has('menu') ? $request->menu : '';
+        $idPelanggan = $request->has('idPelanggan') ? decryptor($request->idPelanggan) : '';
 
         switch ($menu) {
             case 'list':
@@ -49,10 +50,16 @@ class PengirimanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Pengiriman::orderBy('created_at', 'DESC')
+            $query = Pengiriman::with(
+                        'permohonan:id_permohonan,periode_pemakaian,created_by',
+                        'permohonan.pelanggan'
+                    )->orderBy('created_at', 'DESC')
                     ->offset(($page - 1) * $limit)
                     ->when($status, function($q, $status) {
                         return $q->whereIn('status', $status);
+                    })
+                    ->when($idPelanggan, function($q, $idPelanggan) {
+                        return $q->where('tujuan', $idPelanggan);
                     })
                     ->limit($limit)
                     ->paginate($limit);
@@ -67,6 +74,28 @@ class PengirimanAPI extends Controller
             info($ex);
             DB::rollBack();
             return response()->json(array('msg' => $ex->getMessage()), 500);
+        }
+    }
+
+    public function getPengirimanById(string $idPengiriman)
+    {
+        $id = decryptor($idPengiriman);
+
+        DB::beginTransaction();
+        try {
+            $query = Pengiriman::with(
+                'permohonan:id_permohonan,periode_pemakaian,created_by',
+                'permohonan.pelanggan',
+                'permohonan.invoice'
+            )->where('id_pengiriman', $id)->first();
+            
+            DB::commit();
+
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
 
@@ -122,8 +151,12 @@ class PengirimanAPI extends Controller
             $jenisPengiriman = $request->jenisPengiriman ? $request->jenisPengiriman : false;
             $noKontrak = $request->noKontrak ? $request->noKontrak : false;
             $alamat = $request->alamat ? $request->alamat : false;
+            $tujuan = $request->tujuan ? $request->tujuan : false;
+            $periode = $request->periode ? $request->periode : false;
             $status = $request->status ? $request->status : false;
+            $recivedAt = $request->dateRecived ? $request->dateRecived : false;
             $buktiPengiriman = $request->file('buktiPengiriman') ? $request->file('buktiPengiriman') : array();
+            $buktiPenerima = $request->file('buktiPenerima') ? $request->file('buktiPenerima') : array();
             
             $params = array();
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
@@ -131,7 +164,10 @@ class PengirimanAPI extends Controller
             $jenisPengiriman && $params['jenis_pengiriman'] = $jenisPengiriman;
             $noKontrak && $params['no_kontrak'] = $noKontrak;
             $alamat && $params['alamat'] = $alamat;
+            $tujuan && $params['tujuan'] = $tujuan;
+            $periode && $params['periode'] = $periode;
             $status && $params['status'] = $status;
+            $recivedAt && $params['recived_at'] = $recivedAt;
 
             // upload file
             $bukti = array();
@@ -144,6 +180,18 @@ class PengirimanAPI extends Controller
                 }
 
                 $params['bukti_pengiriman'] = json_encode($bukti);
+            }
+
+            $tmpBuktiPenerima = array();
+            $tmpFilePenerima = array();
+            if(count($buktiPenerima) != 0){
+                foreach ($buktiPenerima as $key => $file) {
+                    $fileBukti = $this->media->upload($file, 'pengiriman');
+                    array_push($tmpBuktiPenerima, $fileBukti->getIdMedia());
+                    array_push($tmpFilePenerima, $fileBukti);
+                }
+
+                $params['bukti_penerima'] = json_encode($tmpBuktiPenerima);
             }
 
             $pengiriman = Pengiriman::where('id_pengiriman', $idPengiriman)->first();
@@ -177,9 +225,52 @@ class PengirimanAPI extends Controller
                 }
             }
 
+            if(count($tmpFilePenerima) != 0){
+                foreach ($tmpFilePenerima as $key => $file) {
+                    $file->store();
+                }
+            }
+
             DB::commit();
             
             return $this->output($result);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroy(string $idPengiriman)
+    {
+        $id = decryptor($idPengiriman);
+
+        DB::beginTransaction();
+        try {
+            $fileBukti = Pengiriman::select('bukti_pengiriman','bukti_penerima')->where('id_pengiriman', $id)->first();
+            $delete = Pengiriman::where('id_pengiriman', $id)->delete();
+            DB::commit();
+
+            if($fileBukti && $delete){
+                $buktiPengiriman = json_decode($fileBukti->bukti_pengiriman);
+                $buktiPenerima = json_decode($fileBukti->bukti_penerima);
+
+                if($buktiPengiriman){
+                    foreach ($buktiPengiriman as $key => $value) {
+                        $this->media->destroy($value);
+                    }
+                }
+
+                if($buktiPenerima){
+                    foreach ($buktiPenerima as $key => $value) {
+                        $this->media->destroy($value);
+                    }
+                }
+
+                return $this->output(array('msg' => 'Data berhasil dihapus'));
+            }
+
+            return $this->output(array('msg' => 'Data gagal dihapus'), 'Fail', 400);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

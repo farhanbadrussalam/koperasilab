@@ -276,6 +276,18 @@ function statusFormat(feature, status) {
                     `;
                 break;
         }
+    } else if (feature == 'pengiriman') {
+        switch (status) {
+            case 1:
+                htmlStatus = `
+                    <span class="badge text-bg-primary">Sedang dikirim</span>`;
+                break;
+        
+            default:
+                htmlStatus = `
+                    <span class="badge text-bg-success">Terkirim</span>`;
+                break;
+        }
     }
 
     return htmlStatus;

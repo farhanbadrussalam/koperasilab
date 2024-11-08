@@ -39,7 +39,7 @@
                                 </div>
                             </div>
                             <div class="mb-3 col-md-6">
-                                <label for="" class="form-label">Pelanggan</label>
+                                <label for="" class="form-label">Tujuan</label>
                                 <input type="text" name="pelanggan" id="pelanggan" class="form-control" disabled>
                             </div>
                             <div class="mb-3 col-md-6">
