@@ -14,6 +14,7 @@ use App\Http\Controllers\API\SendMailAPI;
 use App\Http\Controllers\API\ManagerAPI;
 use App\Http\Controllers\API\PenyeliaAPI;
 use App\Http\Controllers\API\PengirimanAPI;
+use App\Http\Controllers\API\ProfileAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -35,6 +36,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('v1/')->group(function() {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/encryptor', [AuthController::class, 'encryptor']);
+    Route::get('/profile/list/perusahaan', [ProfileAPI::class, 'getListPerusahaan']);
 });
 
 Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
@@ -100,6 +102,11 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix("manager")->controller(ManagerAPI::class)->group(function () {
         Route::get('/listManager', 'listManager');
+    });
+
+    Route::prefix("profile")->controller(ProfileAPI::class)->group(function () {
+        Route::post('/action', 'actionProfile');
+        Route::post('/action/alamat', 'actionAlamat');
     });
 
     Route::prefix('otorisasi')->group(function () {

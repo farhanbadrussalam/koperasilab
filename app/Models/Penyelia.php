@@ -20,6 +20,7 @@ class Penyelia extends Model
         'ttd',
         'ttd_by',
         'petugas',
+        'document',
         'created_by',
         'created_at'
     ];
@@ -51,5 +52,13 @@ class Penyelia extends Model
 
     public function usersig(){
         return $this->belongsTo(User::class, 'ttd_by', 'id');
+    }
+
+    public function log(){
+        return $this->hasMany(Log_penyelia::class, 'id_penyelia', 'id_penyelia');
+    }
+
+    public function media(){
+        return $this->belongsTo(Master_media::class, 'document', 'id');
     }
 }

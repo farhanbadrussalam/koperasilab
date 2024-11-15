@@ -12,7 +12,8 @@
                 <div class="row g-3 mx-lg-5">
                     <div class="col-md-6">
                         <label for="nama_instansi" class="form-label">Nama Instansi</label>
-                        <input type="text" class="form-control @error('nama_instansi') is-invalid @enderror" id="nama_instansi" name="nama_instansi" placeholder="">
+                        <input type="hidden" name="type_instansi" id="type_instansi">
+                        <select name="nama_instansi" class="form-select @error('nama_instansi') is-invalid @enderror" id="nama_instansi"></select>
                         @error('nama_instansi')
                             <span class="invalid-feedback" role="alert">
                                 <strong>{{ $message }}</strong>
@@ -20,8 +21,16 @@
                         @enderror
                     </div>
                     <div class="col-md-6">
+                        <label for="email_instansi" class="form-label">Email instansi</label>
+                        <input type="email" class="form-control" id="email_instansi" name="email_instansi" placeholder="" autocomplete="true">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="nik" class="form-label">NIK</label>
+                        <input type="text" class="form-control maskNIK" id="nik" name="nik" placeholder="">
+                    </div>
+                    <div class="col-md-6">
                         <label for="npwp" class="form-label">NPWP</label>
-                        <input type="text" class="form-control" id="npwp" name="npwp" placeholder="">
+                        <input type="text" class="form-control maskNPWP" id="npwp" name="npwp" placeholder="">
                     </div>
                     <div class="col-md-6">
                         <label for="email" class="form-label">Email address</label>
@@ -47,9 +56,16 @@
                         <label for="password_confirmation" class="form-label">Retype password</label>
                         <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="">
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-6">
+                        <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
+                        <select name="jenis_kelamin" id="jenis_kelamin" class="form-select">
+                            <option value="laki-laki">Laki-laki</option>
+                            <option value="perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
                         <label for="telepon" class="form-label">Telepon</label>
-                        <input type="text" class="form-control" id="telepon" name="telepon" placeholder="">
+                        <input type="text" class="form-control maskTelepon" id="telepon" name="telepon" placeholder="">
                     </div>
                     <div class="mb-3">
                         <label for="alamat" class="form-label">Alamat Instansi</label>
@@ -73,3 +89,7 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="{{ asset('js/auth/register.js') }}"></script>
+@endpush

@@ -85,6 +85,12 @@ Route::middleware(['auth', 'verified'])->group(function() {
         });
     });
 
+    Route::prefix('profile')->group(function () {
+        Route::controller(ProfileController::class)->group(function () {
+            Route::post('/update/{idAlamat}', 'updateAlamat')->name('profile.update');
+        });
+    });
+
 
     // Route::middleware(['permission:User.management'])->group(function () {
     // Route::group(function () {

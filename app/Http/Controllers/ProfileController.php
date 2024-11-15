@@ -2,13 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Arr;
+use App\Traits\RestApi;
+
 use App\Models\profile;
 use App\Models\user;
+use App\Models\Master_alamat;
 use Illuminate\Http\Request;
+
 use Auth;
+use DB;
 
 class ProfileController extends Controller
 {
+    use RestApi;
     /**
      * Display a listing of the resource.
      */
@@ -21,7 +28,8 @@ class ProfileController extends Controller
     {
         $data = [
             'title' => 'Profile',
-            'module' => $this->module
+            'module' => $this->module,
+            'profile' => user::with('perusahaan','perusahaan.alamat')->where('id', decryptor(Auth::user()->user_hash))->first()
         ];
 
         return view('pages.profile.index', $data);
@@ -62,34 +70,32 @@ class ProfileController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function updateAlamat(Request $request, $id)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string'],
-            'nik' => ['required'],
-            'email' => ['required', 'email'],
-            'telepon' => ['required'],
-            'jenis_kelamin' => ['required']
-        ]);
-
-        $profile = profile::findOrFail($id);
-        $user = user::findOrFail($profile->user_id);
-
-        $dataProfil = array(
-            'nik' => $request->nik,
-            'alamat' => $request->alamat,
-            'no_hp' => $request->telepon,
-            'jenis_kelamin' => $request->jenis_kelamin,
-        );
-        $dataUser = array(
-            'name' => $request->name,
-            'email' => $request->email
-        );
-
-        $profile->update($dataProfil);
-        $user->update($dataUser);
-
-        return redirect()->route('userProfile.index')->with('success', 'Berhasil di update');
+        try {
+            $profile = Master_alamat::findOrFail(decryptor($id));
+    
+            $params = array();
+    
+            $status = $request->has('status') ? $request->status : 99;
+            $alamat = $request->has('alamat') ? $request->alamat : false;
+            $kodePos = $request->has('kodePos') ? $request->kodePos : false;
+    
+            $status != 99 && $params['status'] = $status;
+            $alamat && $params['alamat'] = $alamat;
+            $kodePos && $params['kodePos'] = $kodePos;
+    
+            $profile->update($params);
+    
+            $result = array(
+                'status' => 'change'
+            );
+            return $this->output($result);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
     }
 
     /**

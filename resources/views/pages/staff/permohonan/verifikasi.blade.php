@@ -118,7 +118,7 @@
                     <div class="card card-default border-0 color-palette-box shadow py-3">
                         <div class="card-body row">
                             <div class="col-md-4 col-12">
-                                <h2>Data Perusahaan</h2>
+                                <h2>Data Pelanggan</h2>
                             </div>
                             <div class="col-md-6 col-12">
                                 <div class="row">
@@ -136,15 +136,15 @@
                                     </div>
                                     <div class="col-12">
                                         <label for="email" class="col-form-label">Email</label>
-                                        <input type="text" name="email" id="email" class="form-control bg-secondary-subtle" readonly>
+                                        <input type="text" name="email-pic" id="email-pic" class="form-control bg-secondary-subtle" readonly>
                                     </div>
                                     <div class="col-12">
                                         <label for="telepon" class="col-form-label">Telepon</label>
-                                        <input type="text" name="telepon" id="telepon" class="form-control bg-secondary-subtle" readonly>
+                                        <input type="text" name="telepon-pic" id="telepon-pic" class="form-control bg-secondary-subtle" readonly>
                                     </div>
                                     <div class="col-12">
                                         <label for="npwp" class="col-form-label">NPWP</label>
-                                        <input type="text" name="npwp" id="npwp" class="form-control bg-secondary-subtle" readonly>
+                                        <input type="text" name="npwp-pic" id="npwp-pic" class="form-control bg-secondary-subtle" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -160,18 +160,22 @@
                                     <div class="col-12">
                                         <label for="alamat-utama" class="col-form-label">Alamat Utama</label>
                                         <textarea name="alamat-utama" id="alamat-utama" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                        <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-utama" readonly>
                                     </div>
                                     <div class="col-12">
                                         <label for="alamat-tld" class="col-form-label">Alamat TLD</label>
                                         <textarea name="alamat-tld" id="alamat-tld" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                        <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-tld" readonly>
                                     </div>
                                     <div class="col-12">
                                         <label for="alamat-lhu" class="col-form-label">Alamat LHU</label>
                                         <textarea name="alamat-lhu" id="alamat-lhu" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                        <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-lhu" readonly>
                                     </div>
                                     <div class="col-12">
                                         <label for="alamat-invoice" class="col-form-label">Alamat Invoice</label>
                                         <textarea name="alamat-invoice" id="alamat-invoice" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                        <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-invoice" readonly>
                                     </div>
                                 </div>
                             </div>

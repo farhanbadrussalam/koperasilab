@@ -71,7 +71,7 @@ function loadData(page = 1, menu) {
                             <div>${dateFormat(lhu.end_date, 4)}</div>
                         </div>
                         <div class="col-6 col-md-2 text-center" data-lhu='${JSON.stringify(lhu)}' data-surattugas='${lhu.no_surat_tugas}'>
-                            
+                            ${btnAction}
                         </div>
                     </div>
                 </div>

@@ -47,15 +47,16 @@ class PenyeliaAPI extends Controller
             if($document){
                 $file_document = $this->media->upload($document, 'penyelia');
             }
-
+            
             $params = array();
             $result = array();
-
+            
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
             $ttd && $params['ttd'] = $ttd;
             $ttd_by && $params['ttd_by'] = $ttd_by;
+            $file_document && $params['document'] = $file_document->getIdMedia();
             
             if($petugas){
                 $arr = json_decode($petugas);
@@ -161,7 +162,8 @@ class PenyeliaAPI extends Controller
                             'permohonan.jenisTld:id_jenisTld,name', 
                             'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                             'permohonan.jenis_layanan_parent',
-                            'permohonan.pelanggan:id,name'
+                            'permohonan.pelanggan',
+                            'permohonan.pelanggan.perusahaan'
                         )
                         ->orderBy('created_at','DESC')
                         ->offset(($page - 1) * $limit)

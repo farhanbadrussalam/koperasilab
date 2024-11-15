@@ -7,6 +7,7 @@ use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use App\Models\Profile;
 use App\Models\Perusahaan;
+use App\Models\Master_alamat;
 
 use App\Http\Controllers\MediaController;
 
@@ -57,14 +58,17 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
+            'nama_instansi' => ['required', 'string', 'max:255'],
+            'nama_pic' => ['required', 'string', 'max:255'],
             'nik' => ['required'],
-            'no_telepon' => ['required'],
+            'telepon' => ['required'],
             'jenis_kelamin' => ['required'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',//|max:2048
+            // 'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',//|max:2048
             'g-recaptcha-response' => 'required|captcha',
+            'kode_pos' => ['required'],
+            'alamat' => ['required']
         ]);
     }
 
@@ -76,26 +80,58 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ])->assignRole('Pelanggan');
+        // Pengecekan Instansi
+        $dataPerusahaan = false;
+        $idPerusahaan = decryptor($data['nama_instansi']);
+        
+        if(!$idPerusahaan) {
+            $dataPerusahaan = Perusahaan::create([
+                'nama_perusahaan' => $data['nama_instansi'],
+                'npwp_perusahaan' => $data['npwp'],
+                'email' => $data['email_instansi'],
+                'status' => 1
+            ]);
 
-        if($user){
-            $image = $this->mediaController->upload($data['avatar'], 'avatar');
+            $idPerusahaan = decryptor($dataPerusahaan->perusahaan_hash);
 
-            $profile = Profile::create([
-                'user_id' => $user->id,
-                'avatar' => $image,
+            // set alamat
+            $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
+
+            $arrAlamat = array();
+            $arrAlamat[] = array(
+                'id_perusahaan' => $idPerusahaan,
+                'jenis' => 'Utama',
+                'status' => 1,
+                'alamat' => $data['alamat'],
+                'kode_pos' => $data['kode_pos']
+            );
+            foreach ($arrJenisAlamat as $key => $value) {
+                $arrAlamat[] = array(
+                    'id_perusahaan' => $idPerusahaan,
+                    'jenis' => $value,
+                    'status' => 0,
+                    'alamat' => null,
+                    'kode_pos' => null
+                );
+            }
+
+            Master_alamat::insert($arrAlamat);
+        } else {
+            $dataPerusahaan = Perusahaan::where('id_perusahaan', $idPerusahaan)->first();
+        }
+
+        if($dataPerusahaan){
+            $user = User::create([
+                'name' => $data['nama_pic'],
+                'id_perusahaan'=> $idPerusahaan,
                 'nik' => $data['nik'],
-                'no_hp' => $data['no_telepon'],
-                'jenis_kelamin' => $data['jenis_kelamin']
-            ]);
-
-            $perusahaan = Perusahaan::create([
-                'user_id' => $user->id
-            ]);
+                'jenis_kelamin' => $data['jenis_kelamin'],
+                'status' => 1,
+                'jabatan' => $data['jabatan_pic'],
+                'telepon' => $data['telepon'],
+                'email' => $data['email'],
+                'password' => Hash::make($data['password']),
+            ])->assignRole('Pelanggan');
         }
 
         return $user;

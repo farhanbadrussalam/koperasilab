@@ -11,7 +11,45 @@ $(function () {
     if(tandaterima){
         loadPertanyaan();
     }
+
+    loadPelanggan();
 });
+
+function loadPelanggan() {
+    const pelanggan = dataPermohonan.pelanggan;
+    const perusahaan = pelanggan.perusahaan;
+    
+    $('#nama-instansi').val(perusahaan.nama_perusahaan);
+    $('#nama-pic').val(pelanggan.name);
+    $('#jabatan-pic').val(pelanggan.jabatan);
+    $('#email-pic').val(pelanggan.email);
+    $('#telepon-pic').val(pelanggan.telepon);
+    $('#npwp-pic').val(perusahaan.npwp_perusahaan);
+
+    // Alamat
+    let alamatUtama = false;
+    let kodeposUtama = false;
+    for (const value of perusahaan.alamat) {
+        let valAlamat = value.alamat;
+        let valKodepos = value.kode_pos;
+
+        if(value.jenis == 'utama'){
+            alamatUtama = value.alamat;
+            kodeposUtama = value.kode_pos;
+        }else{
+            if(value.status){
+                valAlamat = value.alamat;
+                valKodepos = value.kode_pos;
+            }else{
+                valAlamat = alamatUtama;
+                valKodepos = kodeposUtama;
+            }
+        }
+
+        $(`#alamat-${value.jenis}`).val(valAlamat);
+        $(`#txt-kode-pos-${value.jenis}`).val(valKodepos);
+    }
+}
 
 function loadPertanyaan(){
     let html = '';
@@ -279,4 +317,4 @@ function areThereEmptyFields(formElements) {
     });
   
     return isEmpty;
-  }
+}

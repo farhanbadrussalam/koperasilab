@@ -1,10 +1,10 @@
-const bearer = $('#bearer-token').val();
-const csrf = $('#csrf-token').val();
-const userActive = JSON.parse($('#userActive').val());
-const base_url = $('#base_url').val();
-const role = $('#role').val();
-const permission = JSON.parse($('#permission').val());
-const permissionInRole = JSON.parse($('#permissionInRole').val());
+const bearer = $('#bearer-token')?.val();
+const csrf = $('#csrf-token')?.val();
+const userActive = $('#userActive').val() ? JSON.parse($('#userActive').val()) : false;
+const base_url = $('#base_url')?.val();
+const role = $('#role')?.val();
+const permission = $('#permission')?.val() ? JSON.parse($('#permission').val()) : false;
+const permissionInRole = $('#permissionInRole').val() ? JSON.parse($('#permissionInRole').val()) : false;
 
 function formatRupiah(angka) {
     // Mengubah angka menjadi format mata uang Rupiah
@@ -286,6 +286,39 @@ function statusFormat(feature, status) {
             default:
                 htmlStatus = `
                     <span class="badge text-bg-success">Terkirim</span>`;
+                break;
+        }
+    } else if (feature == 'penyelia') {
+        switch (status){
+            case 1:
+                htmlStatus = `
+                    <span class="badge text-bg-secondary rounded-pill">Pengajuan</span>
+                `;
+                break;
+            case 2:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Start</span>
+                `;
+                break;
+            case 3:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Proses Anealing</span>
+                `;
+                break;
+            case 4:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Proses Pembacaan</span>
+                `;
+                break;
+            case 5:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Proses Penerbitan LHU</span>
+                `;
+                break;
+            case 6:
+                htmlStatus = `
+                    <span class="badge text-bg-success rounded-pill">Selesai</span>
+                `;
                 break;
         }
     }

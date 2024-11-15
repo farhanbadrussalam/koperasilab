@@ -109,17 +109,17 @@ function loadData(page = 1, menu) {
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>${data.no_kontrak}</div>
                                 <div>Periode: </div>
-                                <div>${dateFormat(periode.start_date, 4)} s/d ${dateFormat(periode.end_date, 4)}</div>
+                                <div class="badge text-bg-secondary">${dateFormat(periode.start_date, 4)} s/d ${dateFormat(periode.end_date, 4)}</div>
                             </small>
                         </div>
                         <div class="col-6 col-md-1">
                             ${htmlJenis}
                         </div>
                         <div class="col-6 col-md-2">
-                            <span>${data.permohonan.pelanggan.name}</span>
+                            <span>${data.permohonan.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>Alamat: ${data.alamat}</div>
-                                <div>Jln terusan</div>
+                                <div>Alamat: </div>
+                                <div>${data.alamat}</div>
                             </small>
                         </div>
                         <div class="col-6 col-md-2 text-center">
@@ -216,7 +216,22 @@ function showModalDiterima(obj){
                         </li>
                     `;
                     break;
-            
+                case 'lhu':
+                
+                    htmlJenis += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">LHU</div>
+                                <a class="p-2 rounded border cursoron document" target="_blank" href="${base_url}/storage/${data.permohonan.lhu.media.file_path}/${data.permohonan.lhu.media.file_hash}">
+                                    <img class="my-2" src="${base_url}/icons/${iconDocument(data.permohonan.lhu.media.file_type)}" style="width: 24px; height: 24px;">
+                                    <span class="caption text-main">${data.permohonan.lhu.media.file_ori}</span>
+                                </a>
+                            </div>
+                            ${statusFormat('penyelia',data.permohonan.lhu.status)}
+                        </li>
+                    `;
+
+                    break;
                 default:
                     break;
             }

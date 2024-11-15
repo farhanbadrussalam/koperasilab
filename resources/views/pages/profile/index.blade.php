@@ -28,8 +28,8 @@
                                             <div class="flex-fill">
                                                 <label for="nama_instansi" class="form-label">Nama instansi</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" id="nama_instansi" name="nama_instansi" placeholder="" value="PT Sejahtera" disabled>
-                                                    <a href="#">Edit</a>
+                                                    <input type="text" class="form-control me-2" id="nama_instansi" name="nama_instansi" placeholder="" disabled>
+                                                    <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm" type="button"><i class="bi bi-pencil"></i></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -37,8 +37,14 @@
                                             <div class="flex-fill">
                                                 <label for="nama_pic" class="form-label">Nama PIC</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" id="nama_pic" name="nama_pic" placeholder="" value="{{ Auth::user()->name }}" disabled>
-                                                    <a href="#">Edit</a>
+                                                    <input type="text" class="form-control me-2" id="nama_pic" name="nama_pic" placeholder="" disabled autocomplete="true">
+                                                    <div id="btnEditDiv-nama_pic" class="d-block" data-field="nama_pic">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-nama_pic" class="d-none d-flex" data-field="nama_pic">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -46,8 +52,14 @@
                                             <div class="flex-fill">
                                                 <label for="jabatan_pic" class="form-label">Jabatan PIC</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" id="jabatan_pic" name="jabatan_pic" placeholder="" value="Manager" disabled>
-                                                    <a href="#">Edit</a>
+                                                    <input type="text" class="form-control me-2" id="jabatan_pic" name="jabatan_pic" placeholder="" disabled autocomplete="true">
+                                                    <div id="btnEditDiv-jabatan_pic" class="d-block" data-field="jabatan_pic">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-jabatan_pic" class="d-none d-flex" data-field="jabatan_pic">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -55,8 +67,14 @@
                                             <div class="flex-fill">
                                                 <label for="email" class="form-label">Email</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="email" class="form-control me-2" id="email" name="email" placeholder="" value="Sejahtera@gmail.com" disabled>
-                                                    <a href="#">Edit</a>
+                                                    <input type="email" class="form-control me-2" id="email" name="email" placeholder="" disabled>
+                                                    <div id="btnEditDiv-email" class="d-block" data-field="email">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-email" class="d-none d-flex" data-field="email">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -64,8 +82,14 @@
                                             <div class="flex-fill">
                                                 <label for="telepon" class="form-label">Telepon</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" id="telepon" name="telepon" value="08962736152" disabled>
-                                                    <a href="#">Edit</a>
+                                                    <input type="text" class="form-control me-2 maskTelepon" id="telepon" name="telepon" disabled autocomplete="true">
+                                                    <div id="btnEditDiv-telepon" class="d-block" data-field="telepon">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-telepon" class="d-none d-flex" data-field="telepon">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -73,8 +97,14 @@
                                             <div class="flex-fill">
                                                 <label for="npwp" class="form-label">NPWP</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" id="npwp" name="npwp" value="890948347363748547" disabled>
-                                                    <a href="#">Edit</a>
+                                                    <input type="text" class="form-control me-2 maskNPWP" id="npwp" name="npwp" disabled autocomplete="true">
+                                                    <div id="btnEditDiv-npwp" class="d-block" data-field="npwp">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-npwp" class="d-none d-flex" data-field="npwp">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -90,79 +120,8 @@
                                     <div class="col-md-4 fw-bolder mb-3">
                                         <h2>Alamat Perusahaan</h2>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="d-flex mb-3">
-                                            <div class="flex-fill">
-                                                <label for="alamat_utama" class="form-label">Alamat utama</label>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="flex-fill me-2">
-                                                        <textarea name="alamat_utama" id="alamat_utama" cols="30" rows="3" class="form-control mb-2" disabled></textarea>
-                                                        <input type="text" class="form-control me-2" placeholder="Kode pos" disabled>
-                                                    </div>
-                                                    <a href="#">Edit</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex mb-3">
-                                            <div class="flex-fill">
-                                                <div class="d-flex">
-                                                    <label for="alamat_tld" class="form-label me-3">Alamat TLD</label>
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" role="switch" id="switchAlamatTld">
-                                                    </div>
-                                                </div>
-                                                <div id="alamat_tld_inactive">
-                                                    <p>Alamat sesuai dengan alamat utama</p>
-                                                </div>
-                                                <div class="d-flex align-items-center d-none" id="alamat_tld_active">
-                                                    <div class="flex-fill me-2">
-                                                        <textarea name="alamat_utama" id="alamat_utama" cols="30" rows="3" class="form-control mb-2" disabled></textarea>
-                                                        <input type="text" class="form-control me-2" placeholder="Kode pos" disabled>
-                                                    </div>
-                                                    <a href="#">Edit</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex mb-3">
-                                            <div class="flex-fill">
-                                                <div class="d-flex">
-                                                    <label for="alamat_lhu" class="form-label me-3">Alamat LHU</label>
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" role="switch" id="switchAlamatLhu" checked>
-                                                    </div>
-                                                </div>
-                                                <div id="alamat_lhu_inactive" class="d-none">
-                                                    <p>Alamat sesuai dengan alamat utama</p>
-                                                </div>
-                                                <div class="d-flex align-items-center" id="alamat_lhu_active">
-                                                    <div class="flex-fill me-2">
-                                                        <textarea name="alamat_utama" id="alamat_utama" cols="30" rows="3" class="form-control mb-2" disabled></textarea>
-                                                        <input type="text" class="form-control me-2" placeholder="Kode pos" disabled>
-                                                    </div>
-                                                    <a href="#">Edit</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex mb-3">
-                                            <div class="flex-fill">
-                                                <div class="d-flex">
-                                                    <label for="alamat_invoice" class="form-label me-3">Alamat Invoice</label>
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" role="switch" id="switchAlamatInvoice">
-                                                    </div>
-                                                </div>
-                                                <div id="alamat_invoice_inactive">
-                                                    <p>Alamat sesuai dengan alamat utama</p>
-                                                </div>
-                                                <div class="d-flex align-items-center d-none" id="alamat_invoice_active">
-                                                    <div class="flex-fill me-2">
-                                                        <textarea name="alamat_utama" id="alamat_utama" cols="30" rows="3" class="form-control mb-2" disabled></textarea>
-                                                        <input type="text" class="form-control me-2" placeholder="Kode pos" disabled>
-                                                    </div>
-                                                    <a href="#">Edit</a>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="col-md-6" id="list-alamat">
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -237,6 +196,8 @@
             editProfile($('#btnEditProfile'));
         @endif
 
+        const user = @json($profile);
+
         function editProfile(obj) {
             const name = $('#inputName');
             const nik = $('#inputNik');
@@ -258,4 +219,5 @@
             $('#actionBtnProfile').removeClass('d-none');
         }
     </script>
+    <script src="{{ asset('js/profile.js') }}"></script>
 @endpush

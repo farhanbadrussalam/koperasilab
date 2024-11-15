@@ -28,6 +28,14 @@ $(function (){
 
     });
 
+    $('#alamat').on('change', obj => {
+        if(dataPermohonan){
+            const perusahaan = dataPermohonan.pelanggan.perusahaan;
+
+            $('#txt_alamat').val(perusahaan.alamat[obj.target.value].alamat + ", "+ perusahaan.alamat[obj.target.value].kode_pos);
+        }
+    });
+
     $('#periode').on('change', obj => {
         if(dataPermohonan){
             let arrPeriode = JSON.parse(dataPermohonan.periode_pemakaian);
@@ -63,7 +71,7 @@ $(function (){
             let noResi = $('#no_resi').val();
             let idPermohonan = dataPermohonan.permohonan_hash;
             let noKontrak = dataPermohonan.no_kontrak;
-            let alamat = $('#alamat').val();
+            let alamat = dataPermohonan.pelanggan.perusahaan.alamat[$('#alamat').val()].alamat;
             let periode = $('#periode').val();
             let arrPeriode = JSON.parse(dataPermohonan.periode_pemakaian);
 
@@ -124,7 +132,7 @@ $(function (){
 
             for (const value of result.data) {
                 let periode = JSON.parse(value.periode_pemakaian);
-                html = `
+                html += `
                     <div class="card mb-2">
                         <div class="card-body p-2 d-flex align-items-center">
                             <div class="flex-fill">
@@ -173,8 +181,10 @@ function loadForm(){
     let periode = JSON.parse(dataPermohonan.periode_pemakaian);
     let jenisPengiriman = $('#jenis_pengiriman').val();
 
+    const perusahaan = dataPermohonan.pelanggan.perusahaan;
+
     $('#no_permohonan').val(dataPermohonan.no_kontrak);
-    $('#pelanggan').val(dataPermohonan.pelanggan.name);
+    $('#pelanggan').val(perusahaan.nama_perusahaan);
 
     let htmlSelect = '<option value="">Pilih periode</option>';
     for (const [i,value] of periode.entries()) {
@@ -182,6 +192,13 @@ function loadForm(){
     }
 
     $('#periode').html(htmlSelect);
+
+    let htmlAlamat = '<option value="">Pilih alamat</option>';
+    for (const [i,value] of perusahaan.alamat.entries()) {
+        htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+    }
+
+    $('#alamat').html(htmlAlamat);
 
     let htmlJenis = ``;
     for (const jenis of jenisPengiriman) {
@@ -203,7 +220,22 @@ function loadForm(){
                     </li>
                 `;
                 break;
-        
+            case 'lhu':
+                
+                htmlJenis += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold">LHU</div>
+                            <a class="p-2 rounded border cursoron document" target="_blank" href="${base_url}/storage/${dataPermohonan.lhu.media.file_path}/${dataPermohonan.lhu.media.file_hash}">
+                                <img class="my-2" src="${base_url}/icons/${iconDocument(dataPermohonan.lhu.media.file_type)}" style="width: 24px; height: 24px;">
+                                <span class="caption text-main">${dataPermohonan.lhu.media.file_ori}</span>
+                            </a>
+                        </div>
+                        ${statusFormat('penyelia',dataPermohonan.lhu.status)}
+                    </li>
+                `;
+
+                break;
             default:
                 break;
         }
@@ -257,8 +289,9 @@ function validateForm(){
     let noResi = $('#no_resi').val();
     let periode = $('#periode').val();
     let bukti = arrImgBukti.length;
+    let alamat = $('#alamat').val();
 
-    if(jenisPengiriman == '' || noResi == '' || periode == '' || bukti == 0){
+    if(jenisPengiriman == '' || noResi == '' || periode == '' || bukti == 0 || alamat == ''){
         Swal.fire({
             icon: 'warning',
             text: 'Harap pastikan semua form sudah diisi dengan benar'

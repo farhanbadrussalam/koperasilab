@@ -36,7 +36,7 @@ class PelangganController extends Controller
         return redirect(Route('permohonan.pengajuan.edit', $dataPermohonan->permohonan_hash));
     }
 
-    public function editPengajuan()
+    public function editPengajuan($id_permohonan)
     {
         $idPermohonan = decryptor($id_permohonan);
         $dataPermohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();

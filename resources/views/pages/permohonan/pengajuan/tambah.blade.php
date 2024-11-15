@@ -53,15 +53,15 @@
                 <form action="#" method="post" id="form-simpan-pengajuan">
                     @csrf
                     <div class="row g-0 g-md-3">
-                        <div class="col-12 row">
-                            <div class="col-md-6" id="form-tipe-kontrak">
-                                <label class="col-form-label" for="tipe_kontrak">Tipe kontrak</label>
-                                <select name="tipe_kontrak" id="tipe_kontrak" class="form-select">
-                                    <option value="kontrak baru">Kontrak Baru</option>
-                                    <option value="perpanjangan">Perpanjangan</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6" id="form-no-kontrak">
+                        <div class="col-md-6" id="form-tipe-kontrak">
+                            <label class="col-form-label" for="tipe_kontrak">Tipe kontrak</label>
+                            <select name="tipe_kontrak" id="tipe_kontrak" class="form-select">
+                                <option value="kontrak baru">Kontrak Baru</option>
+                                <option value="perpanjangan">Perpanjangan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="form-no-kontrak">
                                 <label class="col-form-label" for="no_kontrak">No kontrak</label>
                                 <div class="input-group mb-3">
                                     <input type="text" class="form-control bg-secondary-subtle" name="no_kontrak" id="no_kontrak" readonly>
@@ -127,7 +127,7 @@
                             <label class="col-form-label" for="periode_2">Periode 2</label>
                             <input type="text" name="periode_2" id="periode_2" class="form-control">
                         </div>
-                        <div class="" id="form-total-harga">
+                        <div class="col-md-12" id="form-total-harga">
                             <label class="col-form-label" for="total_harga" id="label_total_harga">Total harga </label>
                             <div class="input-group">
                                 <span class="input-group-text" id="inputGroup-sizing-default">Rp</span>

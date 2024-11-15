@@ -51,17 +51,17 @@ function loadData(page = 1, menu) {
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>${data.no_kontrak}</div>
                                 <div>Periode: </div>
-                                <div>${dateFormat(periode.start_date, 4)} s/d ${dateFormat(periode.end_date, 4)}</div>
+                                <div class="badge text-bg-secondary">${dateFormat(periode.start_date, 4)} s/d ${dateFormat(periode.end_date, 4)}</div>
                             </small>
                         </div>
                         <div class="col-6 col-md-2">
                             ${htmlJenis}
                         </div>
                         <div class="col-6 col-md-2">
-                            <span>${data.permohonan.pelanggan.name}</span>
+                            <span>${data.permohonan.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>Alamat: ${data.alamat}</div>
-                                <div>Jln terusan</div>
+                                <div>Alamat: </div>
+                                <div>${data.alamat}</div>
                             </small>
                         </div>
                         <div class="col-6 col-md-3 text-center">

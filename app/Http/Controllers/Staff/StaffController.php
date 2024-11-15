@@ -70,7 +70,9 @@ class StaffController extends Controller
                             'jenis_layanan:id_jenisLayanan,name,parent',
                             'jenis_layanan_parent',
                             'pengguna',
-                            'pelanggan:id,name'
+                            'pelanggan',
+                            'pelanggan.perusahaan',
+                            'pelanggan.perusahaan.alamat',
                         )->where('id_permohonan', $id)->first();
         
         if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){

@@ -70,14 +70,11 @@
                             <div class="mb-3 col-md-6">
                                 <label for="" class="form-label">Alamat</label>
                                 <select name="alamat" id="alamat" class="form-select">
-                                    <option value="utama">Alamat Utama</option>
-                                    <option value="tld">Alamat TLD</option>
-                                    <option value="lhu">Alamat LHU</option>
-                                    <option value="invoice">Alamat Invoice</option>
+                                    <option value="">Pilih alamat</option>
                                 </select>
                             </div>
                             <div class="mb-3 col-md-12">
-                                <textarea name="" id="" cols="30" rows="5" class="form-control" disabled></textarea>
+                                <textarea name="txt_alamat" id="txt_alamat" cols="30" rows="5" class="form-control" disabled></textarea>
                             </div>
                             <div class="mb-3 col-md-12 d-flex justify-content-end">
                                 <button class="btn btn-primary" id="btnSendDocument">Kirim Document</button>

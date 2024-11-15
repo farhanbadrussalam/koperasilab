@@ -20,6 +20,13 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $fillable = [
         'name',
+        'jobs',
+        'jabatan',
+        'telepon',
+        'avatar',
+        'nik',
+        'jenis_kelamin',
+        'status',
         'email',
         'password',
         'google_id',
@@ -32,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $hidden = [
+        'id_perusahaan',
         'password',
         'remember_token',
         'email_verified_at',
@@ -60,15 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'password' => 'hashed',
     ];
 
-    public function profile(){
-        return $this->hasOne(Profile::class);
-    }
-
     public function perusahaan(){
-        return $this->hasOne(Perusahaan::class);
-    }
-
-    public function petugasLayanan(){
-        return $this->hasOne(Petugas_layanan::class, 'user_id', 'id');
+        return $this->hasOne(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
     }
 }

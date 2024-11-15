@@ -79,6 +79,6 @@ class Permohonan extends Model
     }
 
     public function lhu(){
-        
+        return $this->hasOne(Penyelia::class, 'id_permohonan', 'id_permohonan');
     }
 }

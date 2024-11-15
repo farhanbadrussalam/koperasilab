@@ -141,7 +141,7 @@ function loadData(page = 1, menu) {
                                     <div>${permohonan.tipe_kontrak}</div>
                                     <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
                                 </div>
-                                <div class="col-6 col-md-2">${permohonan.pelanggan.name}</div>
+                                <div class="col-6 col-md-2">${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
                                 <div class="col-6 col-md-2 text-center" data-penyelia='${JSON.stringify(penyelia)}' data-surattugas='${penyelia.no_surat_tugas}'>
                                     <button class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" onclick="openSuratTugasModal(this, 'create')"><i class="bi bi-plus"></i> Buat Surat Tugas</button>
                                 </div>
@@ -235,12 +235,14 @@ function openProgressModal(obj) {
 function tambahPetugas(){
     let petugas = $('#inputPetugas').data('petugas');
 
-    tmpPetugas.push(petugas);
-    tmpPetugas = tmpPetugas.filter((value, index, self) =>
-        index === self.findIndex((t) => t.id === value.id)
-      );
-    loadListPetugas();
-    $('#inputPetugas').val(null).trigger('change');
+    if(petugas){
+        tmpPetugas.push(petugas);
+        tmpPetugas = tmpPetugas.filter((value, index, self) =>
+            index === self.findIndex((t) => t.id === value.id)
+        );
+        loadListPetugas();
+        $('#inputPetugas').val(null).trigger('change');
+    }
 }
 
 function closeModal() {

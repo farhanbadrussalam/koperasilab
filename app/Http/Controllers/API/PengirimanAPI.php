@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use App\Traits\RestApi;
 
 use App\Models\Pengiriman;
@@ -52,7 +53,8 @@ class PengirimanAPI extends Controller
         try {
             $query = Pengiriman::with(
                         'permohonan:id_permohonan,periode_pemakaian,created_by',
-                        'permohonan.pelanggan'
+                        'permohonan.pelanggan',
+                        'permohonan.pelanggan.perusahaan'
                     )->orderBy('created_at', 'DESC')
                     ->offset(($page - 1) * $limit)
                     ->when($status, function($q, $status) {
@@ -86,7 +88,9 @@ class PengirimanAPI extends Controller
             $query = Pengiriman::with(
                 'permohonan:id_permohonan,periode_pemakaian,created_by',
                 'permohonan.pelanggan',
-                'permohonan.invoice'
+                'permohonan.invoice',
+                'permohonan.lhu',
+                'permohonan.lhu.media',
             )->where('id_pengiriman', $id)->first();
             
             DB::commit();
@@ -113,8 +117,16 @@ class PengirimanAPI extends Controller
             if($idPermohonan){
                 $query = Permohonan::with(
                     'pelanggan',
-                    'invoice'
-                )->where('id_permohonan', decryptor($idPermohonan))->first();
+                    'pelanggan.perusahaan',
+                    'pelanggan.perusahaan.alamat',
+                    'invoice',
+                    'lhu',
+                    'lhu.media',
+                    'lhu.log'
+                )->whereHas('lhu.log', function ($q) {
+                    $q->whereColumn('log_penyelia.status', 'penyelia.status');
+                })
+                ->where('id_permohonan', decryptor($idPermohonan))->first();
             }else{
                 $query = Permohonan::with(
                     'layanan_jasa:id_layanan,nama_layanan',
@@ -123,6 +135,7 @@ class PengirimanAPI extends Controller
                 )->when($search, function($q, $search){
                     return $q->where('no_kontrak', 'like', "%$search%");
                 })
+                ->whereNotIn('status', ['80','99'])
                 ->orderBy('created_at','DESC')
                 ->offset(($page - 1) * $limit)
                 ->limit($limit)
@@ -198,6 +211,7 @@ class PengirimanAPI extends Controller
             if($pengiriman){
 
             }else{
+                $params['send_at'] = Carbon::now();
                 $params['created_by'] = Auth::user()->id;
             }
 
