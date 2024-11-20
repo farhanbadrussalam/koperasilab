@@ -57,14 +57,14 @@ function loadData(page = 1, menu) {
                         <div class="col-6 col-md-2">
                             ${htmlJenis}
                         </div>
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-md-3">
                             <span>${data.permohonan.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>Alamat: </div>
                                 <div>${data.alamat}</div>
                             </small>
                         </div>
-                        <div class="col-6 col-md-3 text-center">
+                        <div class="col-6 col-md-2 text-center">
                             ${statusFormat('pengiriman', data.status)}
                         </div>
                         <div class="col-6 col-md-2 text-center" data-id="${data.pengiriman_hash}">

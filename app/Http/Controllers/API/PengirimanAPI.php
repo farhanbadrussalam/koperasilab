@@ -91,6 +91,8 @@ class PengirimanAPI extends Controller
                 'permohonan.invoice',
                 'permohonan.lhu',
                 'permohonan.lhu.media',
+                'permohonan.pelanggan.perusahaan',
+                'permohonan.kontrak'
             )->where('id_pengiriman', $id)->first();
             
             DB::commit();
@@ -120,9 +122,15 @@ class PengirimanAPI extends Controller
                     'pelanggan.perusahaan',
                     'pelanggan.perusahaan.alamat',
                     'invoice',
+                    'invoice.usersig',
+                    'invoice.diskon',
                     'lhu',
                     'lhu.media',
-                    'lhu.log'
+                    'lhu.log',
+                    'kontrak',
+                    'jenis_layanan',
+                    'jenisTld',
+                    'layanan_jasa'
                 )->whereHas('lhu.log', function ($q) {
                     $q->whereColumn('log_penyelia.status', 'penyelia.status');
                 })
@@ -131,7 +139,9 @@ class PengirimanAPI extends Controller
                 $query = Permohonan::with(
                     'layanan_jasa:id_layanan,nama_layanan',
                     'pelanggan',
-                    'jenis_layanan_parent'
+                    'pelanggan.perusahaan',
+                    'jenis_layanan_parent',
+                    'kontrak'
                 )->when($search, function($q, $search){
                     return $q->where('no_kontrak', 'like', "%$search%");
                 })

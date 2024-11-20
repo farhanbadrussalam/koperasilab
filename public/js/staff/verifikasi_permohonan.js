@@ -1,7 +1,8 @@
 let signaturePad = false;
+let periodeJs = false;
 $(function () {
-    const periode = JSON.parse(dataPermohonan.periode_pemakaian);
-    $('#periode-pemakaian').val(periode.length + ' Periode');
+    const arrPeriode = JSON.parse(dataPermohonan.periode_pemakaian);
+    $('#periode-pemakaian').val(arrPeriode.length + ' Periode');
     
     const conten_2 = document.getElementById("content-ttd-2");
     signaturePad = signature(conten_2, {
@@ -11,6 +12,47 @@ $(function () {
     if(tandaterima){
         loadPertanyaan();
     }
+
+    periodeJs = new Periode(arrPeriode, {
+        preview: false,
+        max: arrPeriode.length
+    });
+    
+    $('#btn-periode').on('click', () => {
+        periodeJs.show();
+    });
+
+    periodeJs.on('periode.simpan', () => {
+        const dataPeriode = periodeJs.getData();
+        const params = new FormData();
+        params.append('idPermohonan', dataPermohonan.permohonan_hash);
+        params.append('periodePemakaian', JSON.stringify(dataPeriode));
+
+        ajaxPost(`api/v1/permohonan/tambahPengajuan`, params, result => {
+            Swal.fire({
+                icon: 'success',
+                text: 'Update periode successfully',
+                timer: 1200,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
+        }, error => {
+            const result = error.responseJSON;
+            if(result?.meta?.code && result.meta.code == 500){
+                Swal.fire({
+                    icon: "error",
+                    text: 'Server error',
+                });
+                console.error(result.data.msg);
+            }else{
+                Swal.fire({
+                    icon: "error",
+                    text: 'Server error',
+                });
+                console.error(result.message);
+            }
+        });
+    });
 
     loadPelanggan();
 });
@@ -103,7 +145,7 @@ function loadPengguna(){
         let html = '';
         for (const [i,pengguna] of result.data.entries()) {
             let txtRadiasi = '';
-            pengguna.radiasi?.map(data => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${data.nama_radiasi}</span>`);
+            pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
             html += `
                 <div class="card mb-2 border-dark">
                     <div class="card-body row align-items-center">

@@ -67,7 +67,9 @@ class KeuanganAPI extends Controller
                             'permohonan.jenisTld:id_jenisTld,name', 
                             'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                             'permohonan.jenis_layanan_parent',
-                            'permohonan.pelanggan:id,name'
+                            'permohonan.pelanggan',
+                            'permohonan.pelanggan.perusahaan',
+                            'permohonan.kontrak'
                         )
                         ->orderBy('created_at','DESC')
                         ->offset(($page - 1) * $limit)

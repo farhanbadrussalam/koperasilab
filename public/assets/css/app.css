@@ -40,6 +40,10 @@ hr {
     color: white;
 }
 
+.bg-white.cursoron:hover {
+    background-color: #efefef !important;
+}
+
 .bg-grey.cursoron:hover,
 .bg-greylight.cursoron:hover {
     background-color: #7e7d7d;

@@ -40,7 +40,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="jenis_layanan_2" class="col-form-label d-none d-md-flex">&nbsp;</label>
-                        <select name="jenis_layanan_2" id="jenis_layanan_2" class="form-select" onchange="setPrice()">
+                        <select name="jenis_layanan_2" id="jenis_layanan_2" class="form-select">
                             <option value="">Pilih</option>
                         </select>
                     </div>
@@ -93,7 +93,7 @@
                         </div>
                         <div class="col-md-6" id="form-jum-pengguna">
                             <label class="col-form-label" for="jum_pengguna">Jumlah Pengguna</label>
-                            <input type="number" name="jum_pengguna" id="jum_pengguna" class="form-control bg-secondary-subtle" onchange="setPrice()" readonly>
+                            <input type="number" name="jum_pengguna" id="jum_pengguna" class="form-control bg-secondary-subtle" readonly>
                         </div>
                         <div class="col-md-6" id="form-jum-kontrol">
                             <label class="col-form-label" for="jum_kontrol">Jumlah Kontrol</label>
@@ -175,34 +175,6 @@
     </div>
 
     <!-- Modal -->
-    <div class="modal fade" id="modal-pilih-periode" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="pilih_periode" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="pilih_periode">Pilih periode</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="g-2 row" id="form-pilih-periode">
-                        <div>
-                            <label for="" class="col-form-label">Periode 1</label>
-                            <div class="input-group">
-                                <button class="btn btn-outline-danger"><i class="bi bi-dash-lg"></i></button>
-                                <input type="text" aria-label="Date Start" class="form-control date-periode" name="date_start[]" id="periode_start_1" data-periode="1" placeholder="Pilih Bulan">
-                                <input type="text" aria-label="Date End" class="form-control bg-secondary-subtle" name="date_end[]" id="periode_end_1" readonly>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="my-3">
-                        <button class="btn btn-outline-success col-12" id="btn-tambah-periode"><i class="bi bi-plus-lg"></i> Tambah periode</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="simpanPeriode()">Simpan</button>
-                </div>
-            </div>
-        </div>
-    </div>
     <div class="modal fade" id="modal-add-pengguna" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">

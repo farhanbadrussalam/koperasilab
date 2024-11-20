@@ -139,7 +139,7 @@ function loadData(page = 1, menu) {
                                 <div class="col-6 col-md-3 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
                                 <div class="col-6 col-md-2 my-3 text-end text-md-start">
                                     <div>${permohonan.tipe_kontrak}</div>
-                                    <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
+                                    <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                                 </div>
                                 <div class="col-6 col-md-2">${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
                                 <div class="col-6 col-md-2 text-center" data-penyelia='${JSON.stringify(penyelia)}' data-surattugas='${penyelia.no_surat_tugas}'>
@@ -164,7 +164,7 @@ function loadData(page = 1, menu) {
                                 <div class="col-6 col-md-2 my-3">${penyelia.petugas.length} Petugas</div>
                                 <div class="col-6 col-md-2 my-3 text-end text-md-start">
                                     <div>${permohonan.tipe_kontrak}</div>
-                                    <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
+                                    <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                                 </div>
                                 <div class="col-6 col-md-3 text-center">
                                     <div class="fw-bolder">Start date</div>

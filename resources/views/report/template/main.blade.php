@@ -4,15 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SURAT TUGAS</title>
-    @include('report.template.style')
+    <title>{{ $title }}</title>
+    @yield('style')
 </head>
 
 <body>
 
     @include('report.template.header')
 
-    <main>
+    <main class="main">
         @yield('content')
     </main>
 

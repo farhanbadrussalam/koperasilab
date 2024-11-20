@@ -11,7 +11,7 @@ function loadPengguna(){
             let html = '';
             for (const [i,pengguna] of result.data.entries()) {
                 let txtRadiasi = '';
-                pengguna.radiasi?.map(data => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${data.nama_radiasi}</span>`);
+                pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
                 
                 html += `
                     <div class="card mb-2 shadow-sm border-dark">
@@ -118,8 +118,16 @@ $(function () {
 
     modalJenisRadiasi.select2({
         theme: "bootstrap-5",
+        tags: true,
         placeholder: "Pilih Jenis Radiasi",
-        dropdownParent: $('#modal-add-pengguna')
+        dropdownParent: $('#modal-add-pengguna'),
+        createTag: (params) => {
+            return {
+                id: params.term,
+                text: params.term,
+                newTag: true
+            };
+        }
     });
     setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
 
@@ -363,15 +371,17 @@ $(function () {
     $('#btn-clear-periode').on('click', obj => {
         $('#periode-pemakaian').val('');
         $('#periode-pemakaian').attr('data-periode', '');
+        $('#periode-pemakaian').attr('data-jumperiode', '');
         $('#btn-clear-periode').addClass('d-none').removeClass('d-block');
-        setPrice();
+        periodeJs.addData([]);
+        calcPrice();
     });
 
     btnTambahPengguna.on('click', obj => {
         spinner('show', obj.target);
-        const namaPengguna = $('#nama_pengguna').val();
-        const divisiPengguna = $('#divisi_pengguna').val();
-        const jenisRadiasi = $('#jenis_radiasi').val();
+        const namaPengguna = modalNamaPengguna.val();
+        const divisiPengguna = modalDivisiPengguna.val();
+        const jenisRadiasi = modalJenisRadiasi.val();
         const imageKtp = $('#uploadKtpPengguna')[0].files[0];
 
         const formData = new FormData();
@@ -412,69 +422,26 @@ $(function () {
         $('#jenis_radiasi').val(null).trigger('change');
         setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
     });
-
-    
 })
 
 
 // js add periode
+let getPeriode = $('#periode-pemakaian').attr('data-periode');
+const periodeJs = new Periode(getPeriode);
 
 $('#btn-periode').on('click', obj => {
-    let getPeriode = $('#periode-pemakaian').attr('data-periode');
-    
-    getPeriode ? periode.push(...JSON.parse(getPeriode)) : false;
-    periode.length == 0 ? addPeriode() : loadPeriode();
-
-    $('#modal-pilih-periode').modal('show');
+    periodeJs.show();
 });
 
-$('#btn-tambah-periode').on('click', addPeriode);
-$('#modal-pilih-periode').on('hide.bs.modal', obj => {
-    periode.splice(0, periode.length);
+periodeJs.on('periode.simpan', result => {
+    const dataPeriode = periodeJs.getData();
+    $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
+    $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
+    $('#periode-pemakaian').attr('data-jumperiode', dataPeriode.length);
+    $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
+    
+    calcPrice();
 });
-
-
-
-function addPeriode(){
-    let lastPeriode = periode[periode.length-1];
-    if(lastPeriode?.start_date == '' || lastPeriode?.end_date == ''){
-        return Swal.fire({
-            icon: "warning",
-            text: `Silahkan pilih periode ${periode.length}`,
-        });
-    }
-    
-    periode.push({
-        start_date: '',
-        end_date: ''
-    });
-
-    loadPeriode();
-}
-
-function loadPeriode(){
-    let html = '';
-    periode.forEach((data, index) => {
-        let isLast = periode.length-1 == index ? true : false;
-        html += `
-            <div>
-                <label class="col-form-label">Periode ${index+1}</label>
-                <div class="input-group">
-                    <button class="btn btn-outline-danger" onclick="removePeriode(${index})"><i class="bi bi-dash-lg"></i></button>
-                    <input type="text" aria-label="Date Start" class="form-control ${isLast ? 'date-periode' : 'bg-secondary-subtle'}" name="date_start[]" id="periode_start_${index}" value="${isLast ? data.start_date : dateFormat(data.start_date, 4)}" data-periode="${index}" placeholder="Pilih Bulan" ${!isLast ? 'readonly' : ''}>
-                    <input type="text" aria-label="Date End" class="form-control ${isLast && data.end_date != '' ? 'end-periode' : 'bg-secondary-subtle'}" name="date_end[]" id="periode_end_${index}" value="${isLast ? data.end_date : dateFormat(data.end_date, 4)}" data-periode="${index}"  ${!isLast ? 'readonly' : ''}>
-                </div>
-            </div>
-        `;
-    });
-
-    $('#form-pilih-periode').html(html);
-    setPeriode('all');
-}
-
-function setPrice(){
-    
-}
 
 function calcPrice(){
     let price = window.price;
@@ -492,114 +459,4 @@ function calcPrice(){
     $('#total_harga').val(subTotal);
     
     maskReload();
-}
-
-function setPeriode(type = 1){
-    let lastDate = false;
-    if(type == 1 || type == 'all'){
-        lastDate = periode[periode.length-2];
-        $('.date-periode').flatpickr({
-            altInput: true,
-            locale: "id",
-            minDate: lastDate ? lastDate.end_date : 'today',
-            dateFormat: "Y-m-d",
-            altFormat: "j F Y",
-            disable: [
-                function(date) {
-                    // Hanya mengizinkan tanggal antara 1 dan 10
-                    return date.getDate() > 10;
-                }
-            ],
-            onChange: (selectedDates, dateStr, instance) => {
-                let id_input_start = $(instance.input).data("periode");
-    
-                if(dateStr){
-                    let nextDate = new Date(dateStr);
-                    nextDate.setMonth(nextDate.getMonth() + 2);
-        
-                    let end_date = nextDate.toISOString().split('T')[0];
-                    
-                    $(`#periode_end_${id_input_start}`).val(end_date);
-                    $(`#periode_end_${id_input_start}`).addClass('end-periode').removeClass('bg-secondary-subtle');
-                    $(`#periode_end_${id_input_start}`).attr('readonly', false);
-        
-                    periode[id_input_start].start_date = dateStr;
-                    periode[id_input_start].end_date = end_date;
-                }else{
-                    $(`#periode_end_${id_input_start}`).val('');
-                    $(`#periode_end_${id_input_start}`).addClass('bg-secondary-subtle').removeClass('end-periode');
-                    $(`#periode_end_${id_input_start}`).attr('readonly', true);
-                    periode[id_input_start].start_date = '';
-                    periode[id_input_start].end_date = '';
-                }
-                setPeriode(2);
-            }
-        });
-    }
-    
-    if(type == 2 || type == 'all'){
-        lastDate = periode[periode.length-1];
-        $('.end-periode').flatpickr({
-            altInput: true,
-            locale: "id",
-            minDate: lastDate ? lastDate.start_date : 'today',
-            maxDate: lastDate ? lastDate.end_date : false,
-            dateFormat: "Y-m-d",
-            altFormat: "j F Y",
-            disable: [
-                function(date) {
-                    // Hanya mengizinkan tanggal antara 1 dan 10
-                    return date.getDate() > 10;
-                }
-            ],
-            onChange: (selectedDates, dateStr, instance) => {
-                let id_input_start = $(instance.input).data("periode");
-                if(dateStr){
-                    periode[id_input_start].end_date = dateStr;
-                }else{
-                    periode[id_input_start].end_date = '';
-                }
-            }
-        })
-    }
-}
-
-function removePeriode(index){
-    periode.splice(index, 1);
-    loadPeriode();
-    setPeriode(2);
-}
-
-function simpanPeriode(){
-    let lastPeriode = periode[periode.length-1];
-
-    if(lastPeriode?.start_date != ''){
-        Swal.fire({
-            text: 'Apa anda yakin ingin menyimpan data ?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Iya',
-            cancelButtonText: 'Tidak',
-            customClass: {
-                confirmButton: 'btn btn-success mx-1',
-                cancelButton: 'btn btn-danger mx-1'
-            },
-            buttonsStyling: false,
-            reverseButtons: true
-        }).then(result => {
-            if(result.isConfirmed){
-                $('#periode-pemakaian').val(periode.length + ' Periode');
-                $('#periode-pemakaian').attr('data-periode', JSON.stringify(periode));
-                $('#periode-pemakaian').attr('data-jumperiode', periode.length);
-                $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
-                $('#modal-pilih-periode').modal('hide');
-                calcPrice();
-            }
-        })
-    }else{
-        return Swal.fire({
-            icon: "warning",
-            text: `Silahkan pilih periode ${periode.length}`,
-        });
-    }
 }

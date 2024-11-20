@@ -16,6 +16,8 @@ use App\Models\Master_media;
 use App\Models\Master_radiasi;
 use App\Models\Master_price;
 use App\Models\Master_jenistld;
+use App\Models\Kontrak;
+use App\Models\Kontrak_pengguna;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -59,16 +61,10 @@ class PermohonanAPI extends Controller
     {
         DB::beginTransaction();
         try {
-            $validator = $request->validate([
-                'idPermohonan' => 'required',
-                'idLayanan' => 'required',
-                'jenisLayanan1' => 'required',
-                'jenisLayanan2' => 'required'
-            ]);
-            $idPermohonan = decryptor($request->idPermohonan);
-            $idLayanan = decryptor($request->idLayanan);
-            $jenisLayanan1 = decryptor($request->jenisLayanan1);
-            $jenisLayanan2 = decryptor($request->jenisLayanan2);
+            $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            $idLayanan = $request->idLayanan ? decryptor($request->idLayanan) : false;
+            $jenisLayanan1 = $request->jenisLayanan1 ? decryptor($request->jenisLayanan1) : false;
+            $jenisLayanan2 = $request->jenisLayanan2 ? decryptor($request->jenisLayanan2) : false;
 
             $tipeKontrak = $request->tipeKontrak ? $request->tipeKontrak : false;
             $noKontrak = $request->noKontrak ? $request->noKontrak : null;
@@ -81,9 +77,9 @@ class PermohonanAPI extends Controller
 
             $data = array();
 
-            $data['id_layanan'] = $idLayanan;
-            $data['jenis_layanan_1'] = $jenisLayanan1;
-            $data['jenis_layanan_2'] = $jenisLayanan2;
+            $idLayanan && $data['id_layanan'] = $idLayanan;
+            $jenisLayanan1 && $data['jenis_layanan_1'] = $jenisLayanan1;
+            $jenisLayanan2 && $data['jenis_layanan_2'] = $jenisLayanan2;
 
             $tipeKontrak && $data['tipe_kontrak'] = $tipeKontrak;
             $noKontrak && $data['no_kontrak'] = $noKontrak;
@@ -137,7 +133,8 @@ class PermohonanAPI extends Controller
             $arrRadiasi = json_decode($request->radiasi);
             
             foreach ($arrRadiasi as $key => $value) {
-                array_push($radiasi, decryptor($value));
+                $idRadiasi = decryptor($value);
+                array_push($radiasi, $idRadiasi ? $idRadiasi : $value);
             }
 
             $ktp = $request->file('ktp');
@@ -252,10 +249,22 @@ class PermohonanAPI extends Controller
                 // Cek apakah ada array yang valid dari JSON
                 if (!empty($id_radiasi_array)) {
                     // Ambil data dari tabel radiasi berdasarkan array 'id_radiasi'
-                    $radiasi_data = Master_radiasi::select('nama_radiasi')->whereIn('id_radiasi', $id_radiasi_array)->get();
+                    $arrDataRadiasi = array();
+                    foreach ($id_radiasi_array as $key => $value) {
+                        $nama_radiasi = "";
+                        $radiasi_data = Master_radiasi::select('nama_radiasi')->where('id_radiasi', $value)->first();
+                        if($radiasi_data){
+                            $nama_radiasi = $radiasi_data->nama_radiasi;
+                        }else{
+                            $nama_radiasi = $value;
+                        }
+                        array_push($arrDataRadiasi, $nama_radiasi);
+                    }
 
                     // Tambahkan hasil radiasi ke dalam response
-                    $item->radiasi = $radiasi_data;
+                    $item->radiasi = $arrDataRadiasi;
+                }else{
+
                 }
             }
             
@@ -411,35 +420,94 @@ class PermohonanAPI extends Controller
         try {
             $arrayUpdate = array();
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
-            if($status == 'lengkap'){
-                $ttd = $request->ttd ? $request->ttd : null;
-                $tandaterima = $request->tandaterima ? json_decode($request->tandaterima) : [];
+            $dataPermohonan = Permohonan::with('pengguna')->where('id_permohonan', $idPermohonan)->first();
+            if($dataPermohonan){
+                if($status == 'lengkap'){
+                    $ttd = $request->ttd ? $request->ttd : null;
+                    $no_kontrak = null;
+    
+                    // mengecek apakah harus generate kontrak atau tidak
+                    switch ($dataPermohonan->jenis_layanan_2) {
+                        case 2: // kontrak - sewa
+                        case 3: // kontrak - Evaluasi
+                        case 5: // evaluasi - Dengan kontrak
+                        case 8: // zero cek - Dengan kontrak
+                            if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
+                                $no_kontrak = $this->generateNoKontrak($idPermohonan);
+                            }
+                            break;
+                    }
+    
+                    $tandaterima = $request->tandaterima ? json_decode($request->tandaterima) : [];
+                    foreach ($tandaterima as $value) {
+                        $params = array(
+                            'id_permohonan' => $idPermohonan,
+                            'id_pertanyaan' => decryptor($value->id),
+                            'jawaban' => $value->answer,
+                            'note' => $value->note
+                        );
+    
+                        Permohonan_tandaterima::create($params);
+                    }
+    
+                    $arrayUpdate['ttd'] = $ttd;
+                    $arrayUpdate['ttd_by'] = Auth::user()->id;
+                    $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
+                    $dataPermohonan->update($arrayUpdate);
 
-                $no_kontrak = $this->generateNoKontrak($idPermohonan);
+                    // Memindahkan Permohonan ke tabel kontrak
+                    switch ($dataPermohonan->jenis_layanan_1) {
+                        case 1: // Kontrak
+                        case 4: // Evaluasi
+                        case 7: // Zero cek
+                            $params = array(
+                                'id_layanan' => $dataPermohonan->id_layanan,
+                                'jenis_layanan_1' => $dataPermohonan->jenis_layanan_1,
+                                'jenis_layanan_2' => $dataPermohonan->jenis_layanan_2,
+                                'tipe_kontrak' => $dataPermohonan->tipe_kontrak,
+                                'no_kontrak' => $no_kontrak,
+                                'jenis_tld' => $dataPermohonan->jenis_tld,
+                                'periode_pemakaian' => $dataPermohonan->periode_pemakaian,
+                                'jumlah_pengguna' => $dataPermohonan->jumlah_pengguna,
+                                'jumlah_kontrol' => $dataPermohonan->jumlah_kontrol,
+                                'total_harga' => $dataPermohonan->total_harga,
+                                'harga_layanan' => $dataPermohonan->harga_layanan,
+                                'ttd' => $dataPermohonan->ttd,
+                                'ttd_by' => $dataPermohonan->ttd_by,
+                                'status' => 1,
+                                'note' => $dataPermohonan->note,
+                                'pelanggan' => $dataPermohonan->created_by,
+                                'created_by' => Auth::user()->id
+                            );
+                            $dataKontrak = Kontrak::create($params);
 
-                foreach ($tandaterima as $value) {
-                    $params = array(
-                        'id_permohonan' => $idPermohonan,
-                        'id_pertanyaan' => decryptor($value->id),
-                        'jawaban' => $value->answer,
-                        'note' => $value->note
-                    );
+                            foreach ($dataPermohonan->pengguna as $key => $value) {
+                                $paramsPengguna = array(
+                                    'id_kontrak' => $dataKontrak->id_kontrak,
+                                    'nama' => $value->nama,
+                                    'posisi' => $value->posisi,
+                                    'id_radiasi' => $value->id_radiasi,
+                                    'file_ktp' => $value->file_ktp,
+                                    'status' => $value->status,
+                                    'created_by' => Auth::user()->id
+                                );
 
-                    Permohonan_tandaterima::create($params);
+                                Kontrak_pengguna::create($paramsPengguna);
+                            }
+
+                            // Menambahkan id_kontrak ke table permohonan 
+                            $dataPermohonan->update(array('id_kontrak' => $dataKontrak->id_kontrak));
+                            break;
+                    }
+                } else {
+                    $note = $request->note ? $request->note : '';
+                    $arrayUpdate['note'] = $note;
+                    $arrayUpdate['status'] = 90; // Pengajuan di tolak oleh front desk
+                    $dataPermohonan->update($arrayUpdate);
                 }
-
-                $arrayUpdate['ttd'] = $ttd;
-                $arrayUpdate['ttd_by'] = Auth::user()->id;
-                $arrayUpdate['status'] = 2;
-                $arrayUpdate['no_kontrak'] = $no_kontrak;
-            } else {
-                $note = $request->note ? $request->note : '';
-                $arrayUpdate['note'] = $note;
-                $arrayUpdate['status'] = 90;
+    
+                DB::commit();
             }
-
-            Permohonan::where('id_permohonan', $idPermohonan)->update($arrayUpdate);
-            DB::commit();
 
             return $this->output(array('msg' => 'Success'));
         } catch (\Exception $ex) {
@@ -468,7 +536,7 @@ class PermohonanAPI extends Controller
             $tahunSekarang = date('Y');
 
             // Incremental number
-            $lastContractNumber = Permohonan::whereNotNull('no_kontrak')
+            $lastContractNumber = Kontrak::whereNotNull('no_kontrak')
                                     ->whereMonth('created_at', $bulanSekarang)
                                     ->whereYear('created_at', $tahunSekarang)
                                     ->count(); // Ubah dengan pengambilan nomor terakhir dari database
@@ -479,6 +547,10 @@ class PermohonanAPI extends Controller
 
             return $noKontrak;
         }
+    }
+
+    private function cekUpdateKontrak(){
+
     }
     // public function addPermohonan(Request $request)
     // {

@@ -31,6 +31,7 @@ use App\Http\Controllers\Manager\ManagerPengajuanController;
 
 use App\Http\Controllers\Report\SuratTugas;
 use App\Http\Controllers\Report\Kwitansi;
+use App\Http\Controllers\Report\Invoice;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -171,6 +172,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::prefix('laporan')->group(function() {
         Route::get('/suratTugas/{id}', [SuratTugas::class, 'index'])->name('laporan.suratTugas');
         Route::get('/kwitansi/{id}', [Kwitansi::class, 'index'])->name('laporan.kwitansi');
+        Route::get('/invoice/{id}', [Invoice::class, 'index'])->name('laporan.kwitansi');
     });
 });
 

@@ -90,7 +90,9 @@ class PelangganController extends Controller
                        'permohonan.jenisTld:id_jenisTld,name', 
                        'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                        'permohonan.jenis_layanan_parent',
-                       'permohonan.pelanggan:id,name'
+                       'permohonan.pelanggan',
+                       'permohonan.pelanggan.perusahaan',
+                       'permohonan.kontrak'
                    )->where('id_keuangan', $idKeuangan)->first();
         $data['keuangan'] = $keuangan;
 

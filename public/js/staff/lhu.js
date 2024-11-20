@@ -62,7 +62,7 @@ function loadData(page = 1, menu) {
                         <div class="col-6 col-md-2 my-3">${lhu.petugas.length} Petugas</div>
                         <div class="col-6 col-md-2 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
+                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                         </div>
                         <div class="col-6 col-md-3 text-center">
                             <div class="fw-bolder">Start date</div>

@@ -42,7 +42,7 @@ function loadData(page = 1) {
                         <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
                         <div class="col-6 col-md-3 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
+                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                         </div>
                         <div class="col-6 col-md-2">${permohonan.pelanggan.name}</div>
                         <div class="col-6 col-md-2 text-center" data-keuangan='${JSON.stringify(keuangan)}'>
@@ -94,13 +94,13 @@ function closeInvoice(){
 function verifikasiInvoice(obj){
     const keuangan = $(obj).parent().data("keuangan");
     $('#txtNoInvoice').html(keuangan.no_invoice ? keuangan.no_invoice : '-');
-    $('#txtNoKontrakInvoice').html(keuangan.permohonan.no_kontrak ? keuangan.permohonan.no_kontrak : '-');
-    $('#txtJenisInvoice').html(keuangan.permohonan.jenis_layanan?.name ? keuangan.permohonan.jenis_layanan.name : '-');
-    $('#txtPenggunaInvoice').html(keuangan.permohonan.jumlah_pengguna ? keuangan.permohonan.jumlah_pengguna : '-');
-    $('#txtTipeKontrakInvoice').html(keuangan.permohonan.tipe_kontrak ? keuangan.permohonan.tipe_kontrak : '-');
-    $('#txtPelangganInvoice').html(keuangan.permohonan.pelanggan?.name ? keuangan.permohonan.pelanggan.name : '-');
-    $('#txtJenisTldInvoice').html(keuangan.permohonan.jenis_tld?.name ? keuangan.permohonan.jenis_tld.name : '-');
-    $('#txtInstansiInvoice').html('-');
+    $('#txtNoKontrakInvoice').html(keuangan?.permohonan?.kontrak?.no_kontrak || '-');
+    $('#txtJenisInvoice').html(keuangan?.permohonan?.jenis_layanan?.name || '-');
+    $('#txtPenggunaInvoice').html(keuangan?.permohonan?.jumlah_pengguna || '-');
+    $('#txtTipeKontrakInvoice').html(keuangan?.permohonan?.tipe_kontrak || '-');
+    $('#txtPelangganInvoice').html(keuangan?.permohonan?.pelanggan?.name || '-');
+    $('#txtJenisTldInvoice').html(keuangan?.permohonan?.jenis_tld?.name || '-');
+    $('#txtInstansiInvoice').html(keuangan?.permohonan?.pelanggan?.perusahaan?.nama_perusahaan || '-');
     $('#idKeuangan').val(keuangan.keuangan_hash);
 
     descInvoice(keuangan);

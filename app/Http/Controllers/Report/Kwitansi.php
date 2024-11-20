@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 use App\Models\Permohonan;
-use App\Models\tbl_kip;
+use App\Models\keuangan;
 
 use PDF;
 use Auth;
@@ -16,11 +16,17 @@ class Kwitansi extends Controller
 {
     public function index($id)
     {
-        $idKip = decryptor($id);
+        $idKeuangan = decryptor($id);
 
-        $dKip = tbl_kip::with('permohonan', 'permohonan.user', 'permohonan.user.perusahaan', 'user')->where('id', $idKip)->first();
+        $query = keuangan::with(
+            'permohonan',
+            'permohonan.jenis_layanan',
+            'permohonan.pelanggan',
+            'permohonan.pelanggan.perusahaan'
+        )->where('id_keuangan', $idKeuangan)->first();
 
-        $data['kip'] = $dKip;
+        $data['data'] = $query;
+        $data['title'] = 'Kwitansi';
         $data['date'] = Carbon::now();
 
         $pdf = PDF::loadView('report.kwitansi', $data);

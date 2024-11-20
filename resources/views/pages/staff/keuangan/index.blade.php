@@ -479,6 +479,74 @@
       </div>
     </div>
 </div>
+
+<div class="modal fade" id="modal-detail-invoice" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modal-detail-invoiceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="verifInvoiceModalLabel">Detail Invoice</h1>
+          <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body px-4">
+            <div class="row mx-2">
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">No Invoice</label>
+                    <div id="txtNoInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">No Kontrak</label>
+                    <div id="txtNoKontrakInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Jenis</label>
+                    <div id="txtJenisInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Pengguna</label>
+                    <div id="txtPenggunaInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Tipe Kontrak</label>
+                    <div id="txtTipeKontrakInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Pelanggan</label>
+                    <div id="txtPelangganInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Jenis TLD</label>
+                    <div id="txtJenisTldInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Instansi</label>
+                    <div id="txtInstansiInvoice">-</div>
+                </div>
+            </div>
+            <hr class="my-2">
+            <div class="border rounded p-3 mt-3">
+                <table class="table w-100 text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-start" width="40%">Rincian</th>
+                            <th>Harga</th>
+                            <th>Qty</th>
+                            <th>Periode (Bulan)</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deskripsiDetailInvoice">
+                    </tbody>
+                </table>
+            </div>
+            <div class="row my-2 d-none" id="ttd-div-manager">
+                <div class="col-md-12 d-flex justify-content-center">
+                    <div class="wrapper" id="content-ttd-manager"></div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+</div>
 @endsection
 @push('scripts')
     <script src="{{ asset('js/staff/keuangan.js') }}"></script>

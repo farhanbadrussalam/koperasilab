@@ -5,15 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Permohonan extends Model
+class Kontrak extends Model
 {
     use HasFactory;
 
-    protected $table = "permohonan";
-    protected $primaryKey = 'id_permohonan';
+    protected $table = "kontrak";
+    protected $primaryKey = 'id_kontrak';
 
     protected $fillable = [
-        'id_kontrak',
+        'id_layanan',
+        'jenis_layanan_2',
+        'jenis_layanan_1',
         'tipe_kontrak',
         'no_kontrak',
         'jenis_tld',
@@ -26,25 +28,22 @@ class Permohonan extends Model
         'ttd_by',
         'status',
         'note',
-        'flag_read',
+        'pelanggan',
         'created_by',
         'created_at'
     ];
 
     protected $hidden = [
-        'jenis_layanan_2',
-        'jenis_layanan_1',
-        'id_layanan',
-        'id_permohonan'
+        'id_kontrak'
     ];
 
     protected $appends = [
-        'permohonan_hash'
+        'kontrak_hash'
     ];
 
-    public function getPermohonanHashAttribute()
+    public function getKontrakHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return encryptor($this->id_kontrak);
     }
 
     public function jenisTld(){
@@ -64,19 +63,15 @@ class Permohonan extends Model
     }
 
     public function pengguna() {
-        return $this->hasMany(Permohonan_pengguna::class, 'id_permohonan', 'id_permohonan');
+        return $this->hasMany(Kontrak_pengguna::class, 'id_kontrak', 'id_kontrak');
     }
 
     public function pelanggan() {
-        return $this->belongsTo(User::class, 'created_by', 'id');
+        return $this->belongsTo(User::class, 'pelanggan', 'id');
     }
 
     public function tandaterima() {
         return $this->hasMany(Permohonan_tandaterima::class, 'id_permohonan', 'id_permohonan');
-    }
-    
-    public function kontrak(){
-        return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }
 
     public function invoice(){

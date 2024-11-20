@@ -7,7 +7,6 @@ $(function (){
     });
 
     $('#btn-modal-search').on('click', () => {
-        const tipe = $('#tipe-search').val();
         const jenisPengiriman = $('#jenis_pengiriman').val();
 
         if(jenisPengiriman.length == 0){
@@ -16,8 +15,6 @@ $(function (){
                 text: `Silahkan pilih jenis pengiriman terlebih dahulu`
             });
         }
-
-        $('#label-tipe-search').text(tipe == 'no_kontrak' ? 'No Kontrak' : 'Permohonan');
 
         loadPermohonan();
 
@@ -70,7 +67,7 @@ $(function (){
             let jenisPengiriman = $('#jenis_pengiriman').val();
             let noResi = $('#no_resi').val();
             let idPermohonan = dataPermohonan.permohonan_hash;
-            let noKontrak = dataPermohonan.no_kontrak;
+            let noKontrak = dataPermohonan.kontrak.no_kontrak;
             let alamat = dataPermohonan.pelanggan.perusahaan.alamat[$('#alamat').val()].alamat;
             let periode = $('#periode').val();
             let arrPeriode = JSON.parse(dataPermohonan.periode_pemakaian);
@@ -136,10 +133,10 @@ $(function (){
                     <div class="card mb-2">
                         <div class="card-body p-2 d-flex align-items-center">
                             <div class="flex-fill">
-                                <div class="title fw-bolder" id="txt-title">${value.no_kontrak}</div>
+                                <div class="title fw-bolder" id="txt-title">${value.kontrak.no_kontrak}</div>
                                 <small class="subdesc text-body-secondary fw-light lh-sm">
-                                    <div>Pelanggan: ${value.pelanggan.name}</div>
-                                    <div>${value.layanan_jasa.nama_layanan} - ${value.jenis_layanan_parent.name}</div>
+                                    <div>Pelanggan: ${value.pelanggan.perusahaan.nama_perusahaan}</div>
+                                    <div>Layanan ${value.layanan_jasa.nama_layanan} - ${value.jenis_layanan_parent.name}</div>
                                 </small>
                             </div>
                             <div class="flex-fill text-center">
@@ -183,7 +180,7 @@ function loadForm(){
 
     const perusahaan = dataPermohonan.pelanggan.perusahaan;
 
-    $('#no_permohonan').val(dataPermohonan.no_kontrak);
+    $('#no_permohonan').val(dataPermohonan.kontrak.no_kontrak);
     $('#pelanggan').val(perusahaan.nama_perusahaan);
 
     let htmlSelect = '<option value="">Pilih periode</option>';
@@ -211,7 +208,7 @@ function loadForm(){
                     badgeStatus = `<span class="badge text-bg-danger rounded-pill">Status : Belum bayar</span>`
                 }
                 htmlJenis += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                    <li class="list-group-item d-flex justify-content-between align-items-center p-2 cursoron" onclick="openDetailInvoiceModal()">
                         <div class="ms-2 me-auto">
                             <div class="fw-bold">Invoice</div>
                             ${dataPermohonan.invoice.no_invoice}
@@ -301,4 +298,116 @@ function validateForm(){
     }
 
     return true;
+}
+
+function openDetailInvoiceModal(){
+    console.log(dataPermohonan);
+    // return;
+    const keuangan = dataPermohonan.invoice;
+    $('#txtNoInvoice').html(keuangan.no_invoice ? keuangan.no_invoice : '-');
+    $('#txtNoKontrakInvoice').html(dataPermohonan?.kontrak?.no_kontrak || '-');
+    $('#txtJenisInvoice').html(dataPermohonan?.jenis_layanan?.name || '-');
+    $('#txtPenggunaInvoice').html(dataPermohonan?.jumlah_pengguna || '-');
+    $('#txtTipeKontrakInvoice').html(dataPermohonan?.tipe_kontrak || '-');
+    $('#txtPelangganInvoice').html(dataPermohonan?.pelanggan?.name || '-');
+    $('#txtJenisTldInvoice').html(dataPermohonan?.jenis_tld?.name || '-');
+    $('#txtInstansiInvoice').html(dataPermohonan?.pelanggan?.perusahaan?.nama_perusahaan || '-');
+    $('#idKeuangan').val(keuangan.keuangan_hash);
+
+    descInvoice(keuangan);
+    $('#ttd-div-manager').addClass('d-none').removeClass('d-block');
+    document.getElementById("content-ttd-manager").innerHTML = '';
+
+    if(keuangan.ttd){
+        signature(document.getElementById("content-ttd-manager"), {
+            text: 'Manager',
+            name: keuangan.usersig.name,
+            defaultSig: keuangan.ttd
+        });
+        $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
+
+    }
+    $('#modal-detail-invoice').modal('show');
+}
+
+function descInvoice(data){
+    let hargaLayanan = dataPermohonan?.harga_layanan;
+    let qty = dataPermohonan?.jumlah_kontrol+dataPermohonan?.jumlah_pengguna;
+    let jumLayanan = dataPermohonan?.total_harga;
+    let periode = JSON.parse(dataPermohonan?.periode_pemakaian);
+    let jumPpn = 0;
+    let jumPph = 0;
+    let jumDiskon = 0;
+    let descInvoice = `
+        <tr>
+            <th class="text-start">${dataPermohonan?.layanan_jasa.nama_layanan}</th>
+            <td>${formatRupiah(hargaLayanan)}</td>
+            <td>${qty}</td>
+            <td>${periode.length}</td>
+            <td>${formatRupiah(jumLayanan)}</td>
+        </tr>
+    `;
+    
+    for (const [i,diskon] of data.diskon.entries()) {
+        countDiskon = jumLayanan * (diskon.diskon/100);
+        jumDiskon += countDiskon;
+        descInvoice += `
+            <tr>
+                <th class="text-start">${diskon.name}&nbsp${diskon.diskon}%</th>
+                <td></td>
+                <th colspan="2"></th>
+                <td>- ${formatRupiah(countDiskon)}</td>
+            </tr>
+        `;
+    }
+
+    let jumAfterDiskon = jumLayanan - jumDiskon;
+
+    if(data.pph){
+        jumPph = jumAfterDiskon * (data.pph/100);
+        descInvoice += `
+            <tr>
+                <th class="text-start">PPH 23 (${data.pph}%)</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>- ${formatRupiah(jumPph)}</td>
+            </tr>
+        `;
+    }
+
+    let jumAfterPph = jumAfterDiskon - jumPph;
+
+    if(data.ppn){
+        jumPpn = jumAfterPph * (data.ppn/100);
+        descInvoice += `
+            <tr>
+                <th class="text-start">PPN ${data.ppn}%</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>${formatRupiah(jumPpn)}</td>
+            </tr>
+        `;
+    }
+
+    // total harga
+    let jumTotal = jumAfterPph + jumPpn;
+    descInvoice += `
+        <tr>
+            <td></td>
+            <td></td>
+            <th colspan="2">Total Jumlah</th>
+            <td>${formatRupiah(jumTotal)}</td>
+        </tr>
+    `;
+    $('#deskripsiDetailInvoice').html(descInvoice);
+}
+
+function cetakDocument(){
+    console.log(dataPermohonan.invoice.keuangan_hash);
+    const link = document.createElement('a');
+    link.target = '_blank';
+    link.href = `${base_url}/laporan/kwitansi/${dataPermohonan.invoice.keuangan_hash}`;
+    link.click();
 }

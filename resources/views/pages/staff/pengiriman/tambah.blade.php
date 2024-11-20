@@ -30,10 +30,6 @@
                             <div class="mb-3 col-md-6">
                                 <label for="" class="form-label">No kontrak/Permohonan</label>
                                 <div class="input-group">
-                                    <select name="tipe-search" id="tipe-search" class="form-select">
-                                        <option value="no_kontrak">No kontrak</option>
-                                        <option value="permohonan">Permohonan</option>
-                                    </select>
                                     <input type="text" name="no_permohonan" id="no_permohonan" class="form-control w-auto" disabled>
                                     <button class="btn btn-outline-secondary" id="btn-modal-search">Pilih</button>
                                 </div>
@@ -91,7 +87,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="modal-searchLabel">Pilih <span id="label-tipe-search"></span></h1>
+        <h1 class="modal-title fs-5" id="modal-searchLabel">Pilih Permohonan</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -138,6 +134,76 @@
                 <img src="#" alt="preview" class="img-fluid rounded" id="modal-preview-image">
             </div>
         </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-detail-invoice" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modal-detail-invoiceLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="verifInvoiceModalLabel">Detail Invoice</h1>
+          <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body px-4">
+            <div class="row mx-2">
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">No Invoice</label>
+                    <div id="txtNoInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">No Kontrak</label>
+                    <div id="txtNoKontrakInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Jenis</label>
+                    <div id="txtJenisInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Pengguna</label>
+                    <div id="txtPenggunaInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Tipe Kontrak</label>
+                    <div id="txtTipeKontrakInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Pelanggan</label>
+                    <div id="txtPelangganInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Jenis TLD</label>
+                    <div id="txtJenisTldInvoice">-</div>
+                </div>
+                <div class="col-md-6 col-12">
+                    <label class="fw-bolder">Instansi</label>
+                    <div id="txtInstansiInvoice">-</div>
+                </div>
+            </div>
+            <hr class="my-2">
+            <div class="border rounded p-3 mt-3">
+                <table class="table w-100 text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-start" width="40%">Rincian</th>
+                            <th>Harga</th>
+                            <th>Qty</th>
+                            <th>Periode (Bulan)</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deskripsiDetailInvoice">
+                    </tbody>
+                </table>
+            </div>
+            <div class="row my-2 d-none" id="ttd-div-manager">
+                <div class="col-md-12 d-flex justify-content-center">
+                    <div class="wrapper" id="content-ttd-manager"></div>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-secondary" onclick="cetakDocument()"><i class="bi bi-printer-fill"></i> Cetak Kwitansi</button>
+        </div>
+      </div>
     </div>
 </div>
 @endsection

@@ -16,7 +16,7 @@
                 </div>
                 <div class="col-md-6 col-12">
                     <label class="fw-bolder">No Kontrak</label>
-                    <div id="txtNoKontrakInvoice">{{ $keuangan->permohonan->no_kontrak }}</div>
+                    <div id="txtNoKontrakInvoice">{{ $keuangan->permohonan->kontrak->no_kontrak }}</div>
                 </div>
                 <div class="col-md-6 col-12">
                     <label class="fw-bolder">Jenis</label>
@@ -40,7 +40,7 @@
                 </div>
                 <div class="col-md-6 col-12">
                     <label class="fw-bolder">Instansi</label>
-                    <div id="txtInstansiInvoice">-</div>
+                    <div id="txtInstansiInvoice">{{ $keuangan->permohonan->pelanggan->perusahaan->nama_perusahaan }}</div>
                 </div>
             </div>
             <hr class="my-2">
@@ -78,7 +78,7 @@
             </div>
             <div class="modal-footer d-flex justify-content-center mt-3">
                 <button type="button" class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#modal-upload-bukti">Upload bukti bayar</button>
-                <button type="button" class="btn btn-secondary"><i class="bi bi-printer-fill"></i> Cetak</button>
+                <a type="button" class="btn btn-secondary" target="_blank" href="{{ url('laporan/invoice/'.$keuangan->keuangan_hash) }}"><i class="bi bi-printer-fill"></i> Cetak</a>
             </div>
         </div>
     </div>

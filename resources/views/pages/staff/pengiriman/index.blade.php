@@ -50,8 +50,8 @@
                                 <div class="header px-3 fw-bolder d-none d-md-flex row">
                                     <div class="col-md-3">&nbsp;</div>
                                     <div class="col-md-2">Jenis</div>
-                                    <div class="col-md-2">Tujuan</div>
-                                    <div class="col-md-3 text-center">Status</div>
+                                    <div class="col-md-3">Tujuan</div>
+                                    <div class="col-md-2 text-center">Status</div>
                                     <div class="col-md-2 text-center">Action</div>
                                 </div>
                                 <hr>
@@ -101,8 +101,8 @@
                                 <div class="header px-3 fw-bolder d-none d-md-flex row">
                                     <div class="col-md-3">&nbsp;</div>
                                     <div class="col-md-2">Jenis</div>
-                                    <div class="col-md-2">Tujuan</div>
-                                    <div class="col-md-3 text-center">Status</div>
+                                    <div class="col-md-3">Tujuan</div>
+                                    <div class="col-md-2 text-center">Status</div>
                                     <div class="col-md-2 text-center">Action</div>
                                 </div>
                                 <hr>

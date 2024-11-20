@@ -56,6 +56,10 @@ function loadData(page = 1, menu) {
                 case 'pengajuan':
                     btnAction = `<button class="btn btn-outline-primary btn-sm" title="Buat Invoice" onclick="openInvoiceModal(this, 'create')"><i class="bi bi-plus"></i> Buat invoice</button>`;
                     break;
+                case 'pembayaran':
+                case 'diterima':
+                    btnAction = `<button class="btn btn-outline-info btn-sm" title="Detail Invoice" onclick="openDetailModal(this)"><i class="bi bi-info-circle"></i> Detail invoice</button>`;
+                    break;
                 case 'verifikasi':
                     btnAction = `<button class="btn btn-outline-primary" title="Verifikasi" onclick="openInvoiceModal(this, 'verify')"><i class="bi bi-check2-circle"></i> Verif Invoice</button>`;
                     break;
@@ -77,7 +81,7 @@ function loadData(page = 1, menu) {
                         <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
                         <div class="col-6 col-md-3 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
+                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                         </div>
                         <div class="col-6 col-md-2">${statusFormat('keuangan', keuangan.status)}</div>
                         <div class="col-6 col-md-2 text-center" data-keuangan='${JSON.stringify(keuangan)}' data-invoice='${keuangan.no_invoice}'>
@@ -160,7 +164,7 @@ function openInvoiceModal(obj, mode) {
         </div>
         <div class="col-md-6 col-12">
             <label class="fw-bolder">No Kontrak</label>
-            <div id="txtNoKontrakInvoice">${permohonan.no_kontrak || '-'}</div>
+            <div id="txtNoKontrakInvoice">${permohonan.kontrak.no_kontrak || '-'}</div>
         </div>
         <div class="col-md-6 col-12">
             <label class="fw-bolder">Jenis</label>
@@ -184,7 +188,7 @@ function openInvoiceModal(obj, mode) {
         </div>
         <div class="col-md-6 col-12">
             <label class="fw-bolder">Instansi</label>
-            <div id="txtInstansiInvoice">-</div>
+            <div id="txtInstansiInvoice">${permohonan?.pelanggan?.perusahaan?.nama_perusahaan || '-'}</div>
         </div>
     `;
     $('#invoiceDetails').html(detailsHTML);
@@ -254,6 +258,108 @@ function openInvoiceModal(obj, mode) {
     maskReload();
 
     $('#invoiceModal').modal('show');
+}
+
+function openDetailModal(obj){
+    const keuangan = $(obj).parent().data("keuangan");
+    $('#txtNoInvoice').html(keuangan.no_invoice ? keuangan.no_invoice : '-');
+    $('#txtNoKontrakInvoice').html(keuangan?.permohonan?.kontrak?.no_kontrak || '-');
+    $('#txtJenisInvoice').html(keuangan?.permohonan?.jenis_layanan?.name || '-');
+    $('#txtPenggunaInvoice').html(keuangan?.permohonan?.jumlah_pengguna || '-');
+    $('#txtTipeKontrakInvoice').html(keuangan?.permohonan?.tipe_kontrak || '-');
+    $('#txtPelangganInvoice').html(keuangan?.permohonan?.pelanggan?.name || '-');
+    $('#txtJenisTldInvoice').html(keuangan?.permohonan?.jenis_tld?.name || '-');
+    $('#txtInstansiInvoice').html(keuangan?.permohonan?.pelanggan?.perusahaan?.nama_perusahaan || '-');
+    $('#idKeuangan').val(keuangan.keuangan_hash);
+
+    descInvoice(keuangan);
+    $('#ttd-div-manager').addClass('d-none').removeClass('d-block');
+    document.getElementById("content-ttd-manager").innerHTML = '';
+
+    if(keuangan.ttd){
+        signature(document.getElementById("content-ttd-manager"), {
+            text: 'Manager',
+            name: keuangan.usersig.name,
+            defaultSig: keuangan.ttd
+        });
+        $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
+
+    }
+    $('#modal-detail-invoice').modal('show');
+}
+
+function descInvoice(data){
+    let hargaLayanan = data.permohonan.harga_layanan;
+    let qty = data.permohonan.jumlah_kontrol+data.permohonan.jumlah_pengguna;
+    let jumLayanan = data.permohonan.total_harga;
+    let periode = JSON.parse(data.permohonan.periode_pemakaian);
+    let jumPpn = 0;
+    let jumPph = 0;
+    let jumDiskon = 0;
+    let descInvoice = `
+        <tr>
+            <th class="text-start">${data.permohonan.layanan_jasa.nama_layanan}</th>
+            <td>${formatRupiah(hargaLayanan)}</td>
+            <td>${qty}</td>
+            <td>${periode.length}</td>
+            <td>${formatRupiah(jumLayanan)}</td>
+        </tr>
+    `;
+    
+    for (const [i,diskon] of data.diskon.entries()) {
+        countDiskon = jumLayanan * (diskon.diskon/100);
+        jumDiskon += countDiskon;
+        descInvoice += `
+            <tr>
+                <th class="text-start">${diskon.name}&nbsp${diskon.diskon}%</th>
+                <td></td>
+                <th colspan="2"></th>
+                <td>- ${formatRupiah(countDiskon)}</td>
+            </tr>
+        `;
+    }
+
+    let jumAfterDiskon = jumLayanan - jumDiskon;
+
+    if(data.pph){
+        jumPph = jumAfterDiskon * (data.pph/100);
+        descInvoice += `
+            <tr>
+                <th class="text-start">PPH 23 (${data.pph}%)</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>- ${formatRupiah(jumPph)}</td>
+            </tr>
+        `;
+    }
+
+    let jumAfterPph = jumAfterDiskon - jumPph;
+
+    if(data.ppn){
+        jumPpn = jumAfterPph * (data.ppn/100);
+        descInvoice += `
+            <tr>
+                <th class="text-start">PPN ${data.ppn}%</th>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>${formatRupiah(jumPpn)}</td>
+            </tr>
+        `;
+    }
+
+    // total harga
+    let jumTotal = jumAfterPph + jumPpn;
+    descInvoice += `
+        <tr>
+            <td></td>
+            <td></td>
+            <th colspan="2">Total Jumlah</th>
+            <td>${formatRupiah(jumTotal)}</td>
+        </tr>
+    `;
+    $('#deskripsiDetailInvoice').html(descInvoice);
 }
 
 function showPaymentProof() {
