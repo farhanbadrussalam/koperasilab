@@ -1,93 +1,51 @@
 <style>
     body {
-        font-family: Times;
-    }
-
-    main{
-        padding-left: 50px;
-        padding-right: 50px;
-        margin-top: 30px;
-    }
-
-    .title {
-        text-align: center;
-    }
-
-    .title h2, span{
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        line-height: 1.4;
         margin: 0;
-        padding: 0;
     }
-
+    .main {
+        padding: 0px 30px 0px 30px;
+    }
+    .header {
+        max-width: 30%;
+        margin-bottom: 0px;
+    }
+    .header p {
+        margin: 3px 0;
+    }
     .content {
-        font-size: 16px;
-        text-align: justify;
+        margin-bottom: 0px;
     }
-
+    .table {
+        width: 100%;
+        margin-bottom: 10px;
+    }
     .table-content {
         border-collapse: collapse;
-        width: 100%;
     }
 
-    .table-content td,.table-content th {
-        border: 1px solid #000000;
-        padding: 8px;
+    .center {
+        text-align: center !important;
     }
 
-    .table-kwitansi {
-        width: 100%;
+    .w-100 {
+        width: 100vw !important;
+    }
+    .w-25 {
+        width: 25% !important;
+    }
+    .w-limapuluh {
+        width: 200px !important;
     }
 
-    .table-kwitansi td {
-        padding: 8px;
-    }
-    .table-kwitansi th {
-        text-align: left;
+    .text-underline {
+        text-decoration: underline;
     }
 
-    footer {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
+    label {
+        font-weight: bold;
     }
 
-    .d-flex {
-        display: flex;
-    }
-
-    .justify-content-between {
-        justify-content: space-between;
-    }
-
-    .border-bottom{
-        border-bottom: 1px solid gray;
-    }
-
-    .border {
-        border: 1px solid black;
-    }
-
-    .p-5 {
-        padding: 5px;
-    }
-
-    .p-2{
-        padding: 2px;
-    }
-
-    .px-5 {
-        padding-top: 5px;
-        padding-bottom: 5px;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
-    .img-fluid{
-        width: 100%;
-    }
-
-    .align-top {
-        vertical-align: top !important;
-    }
 </style>

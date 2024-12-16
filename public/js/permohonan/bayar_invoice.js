@@ -1,5 +1,9 @@
+const invoice = new Invoice({modal : false});
+
 $(function() {
-    descInvoice(dataKeuangan);
+    invoice.addData(dataKeuangan);
+
+    $('#deskripsiInvoice').empty().html(invoice.updateInvoiceDescription());
 
     setDropify('init', '#uploadBuktiBayar', {
         allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
@@ -62,85 +66,4 @@ function uploadBukti(){
             })
         }
     })
-}
-
-
-function descInvoice(keuangan){
-    let dataPengajuan = keuangan.permohonan;
-
-    let hargaLayanan = dataPengajuan.harga_layanan;
-    let qty = dataPengajuan.jumlah_kontrol+dataPengajuan.jumlah_pengguna;
-    let jumLayanan = dataPengajuan.total_harga;
-    let periode = JSON.parse(dataPengajuan.periode_pemakaian);
-    let jumPph = 0;
-    let jumPpn = 0;
-    let jumDiskon = 0;
-    let descInvoice = `
-        <tr>
-            <th class="text-start">${dataPengajuan.layanan_jasa.nama_layanan}</th>
-            <td>${formatRupiah(hargaLayanan)}</td>
-            <td>${qty}</td>
-            <td>${periode.length}</td>
-            <td>${formatRupiah(jumLayanan)}</td>
-        </tr>
-    `;
-    
-    for (const [i,diskon] of keuangan.diskon.entries()) {
-        countDiskon = jumLayanan * (diskon.diskon/100);
-        jumDiskon += countDiskon;
-        descInvoice += `
-            <tr>
-                <th class="text-start">${diskon.name}&nbsp${diskon.diskon}%</th>
-                <td></td>
-                <th colspan="2"></th>
-                <td>- ${formatRupiah(countDiskon)}</td>
-            </tr>
-        `;
-    }
-
-    let jumAfterDiskon = jumLayanan - jumDiskon;
-    
-    if(dataKeuangan.pph) {
-        let valPph = dataKeuangan.pph;
-        valPph = parseInt(valPph);
-        jumPph = jumAfterDiskon * (valPph/100);
-        descInvoice += `
-            <tr>
-                <th class="text-start">PPH 23 (${valPph}%)</th>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>- ${formatRupiah(jumPph)}</td>
-            </tr>
-        `;
-    }
-
-    let jumAfterPph = jumAfterDiskon - jumPph;
-
-    if(keuangan.ppn){
-        let valPpn = keuangan.ppn;
-        jumPpn = jumAfterPph * (valPpn/100);
-        descInvoice += `
-            <tr>
-                <th class="text-start">PPN ${valPpn}%</th>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td>${formatRupiah(jumPpn)}</td>
-            </tr>
-        `;
-    }
-
-    // total harga
-    jumTotal = jumAfterPph + jumPpn;
-    descInvoice += `
-        <tr>
-            <td></td>
-            <td></td>
-            <th colspan="2">Total Jumlah</th>
-            <td>${formatRupiah(jumTotal)}</td>
-        </tr>
-    `;
-    $('#deskripsiInvoice').html(descInvoice);
-    
 }

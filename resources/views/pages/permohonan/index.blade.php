@@ -262,6 +262,7 @@
                 }
             }).done(result => {
                 $('#txtNote').html(result.data.note);
+                $('#tmpSurat').empty();
                 $('#tmpSurat').html(printMedia(result.data.surat_terbit, "permohonan"));
                 if (result.data.status == 2) {
                     $('#txtStatusNote').html('rekomendasi');

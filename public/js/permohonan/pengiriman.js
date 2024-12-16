@@ -43,7 +43,7 @@ $(function () {
             }
         }, error => {
             const result = error.responseJSON;
-            if(result.meta?.code && result.meta.code == 500){
+            if(result?.meta?.code && result?.meta?.code == 500){
                 Swal.fire({
                     icon: "error",
                     text: 'Server error',
@@ -54,7 +54,7 @@ $(function () {
                     icon: "error",
                     text: 'Server error',
                 });
-                console.error(result.message);
+                console.error(error);
             }
         })
     });
@@ -162,7 +162,7 @@ function loadData(page = 1, menu) {
         $(`#list-container-${menu}`).show();
     }, error => {
         const result = error.responseJSON;
-        if(result.meta?.code && result.meta.code == 500){
+        if(result?.meta?.code && result?.meta?.code == 500){
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
@@ -173,7 +173,7 @@ function loadData(page = 1, menu) {
                 icon: "error",
                 text: 'Server error',
             });
-            console.error(result.message);
+            console.error(error);
         }
     });
 }
@@ -242,7 +242,7 @@ function showModalDiterima(obj){
         $('#modal-diterima').modal('show');
     }, error => {
         const result = error.responseJSON;
-        if(result.meta?.code && result.meta.code == 500){
+        if(result?.meta?.code && result?.meta?.code == 500){
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
@@ -253,7 +253,7 @@ function showModalDiterima(obj){
                 icon: "error",
                 text: 'Server error',
             });
-            console.error(result.message);
+            console.error(error);
         }
     });
 }

@@ -58,8 +58,6 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::post('/updatePenugasan', [JadwalAPI::class, 'confirm']);
     Route::delete('/deleteJadwal/{id}', [JadwalAPI::class, 'destroy']);
 
-    // Route::resource('permohonan', PermohonanAPI::class);
-
     Route::prefix("layananjasa")->controller(LayananjasaAPI::class)->group(function() {
         Route::get('/list', 'listLayananjasa');
         Route::get('/getLayanan/{id}', 'getLayananjasa');
@@ -84,6 +82,9 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
         Route::post('/action', 'keuanganAction');
         Route::get('/listKeuangan', 'listKeuangan');
+        Route::get('/getKeuangan/{idKeuangan}', 'getKeuangan');
+        Route::post('/uploadFaktur', 'uploadFaktur');
+        Route::delete('/destroyFaktur/{idKeuangan}/{idMedia}', 'destroyFaktur');
     });
 
     Route::prefix("pengiriman")->controller(PengirimanAPI::class)->group(function () {
@@ -98,6 +99,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', 'actionPenyelia');
         Route::get('/list', 'listPenyelia');
         Route::get('/listPetugas', 'getListPetugas');
+        Route::delete('/remove/{idPenyelia}', 'removeSuratTugas');
     });
 
     Route::prefix("manager")->controller(ManagerAPI::class)->group(function () {
@@ -114,6 +116,10 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     });
 
     Route::prefix('petugas')->controller(PetugasLayananAPI::class)->group(function () {
+        // NEW API
+        Route::get('/list', 'listPetugas');
+
+        // OLD API
         Route::get('/getPetugas', 'getPetugas');
         Route::get('/getJadwalPetugas/{jadwal_hash}', 'getJadwalPetugas');
         Route::get('/search', 'searchData');

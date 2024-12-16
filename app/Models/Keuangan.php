@@ -29,6 +29,11 @@ class Keuangan extends Model
         'created_by'
     ];
 
+    // Casting kolom sebagai array
+    protected $casts = [
+        'document_faktur' => 'array'
+    ];
+
     protected $hidden = [
         'id_keuangan',
         'id_permohonan',
@@ -62,16 +67,12 @@ class Keuangan extends Model
         return $this->hasMany(Keuangan_diskon::class, 'id_keuangan', 'id_keuangan');
     }
 
-    public function media(){
-        return $this->belongsTo(master_media::class, 'document_faktur', 'id');
-    }
-
     public function media_bayar(){
-        return $this->belongsTo(master_media::class, 'bukti_bayar', 'id');
+        return $this->belongsTo(Master_media::class, 'bukti_bayar', 'id');
     }
 
     public function media_bayar_pph(){
-        return $this->belongsTo(master_media::class, 'bukti_bayar_pph', 'id');
+        return $this->belongsTo(Master_media::class, 'bukti_bayar_pph', 'id');
     }
 
     public function usersig(){

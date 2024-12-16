@@ -1,27 +1,4 @@
 <style>
-    body {
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 12px;
-        line-height: 1.4;
-        margin: 0;
-    }
-    .main {
-        padding: 0px 30px 0px 30px;
-    }
-    .header {
-        max-width: 30%;
-        margin-bottom: 0px;
-    }
-    .header p {
-        margin: 3px 0;
-    }
-    .content {
-        margin-bottom: 0px;
-    }
-    .table {
-        width: 100%;
-        margin-bottom: 10px;
-    }
     .table tr td {
         padding: 5px 0;
     }

@@ -1,6 +1,6 @@
 @extends('report.template.main')
 @section('style')
-    @include('report.template.style')
+    @include('report.template.style-kwitansi')
 @endsection
 
 @section('content')

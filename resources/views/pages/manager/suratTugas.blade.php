@@ -33,14 +33,13 @@
         <div class="my-3">
             <div class="header px-3 fw-bolder d-none d-md-flex row">
                 <div class="col-md-3">Layanan</div>
-                <div class="col-md-3">Jenis</div>
-                <div class="col-md-2">Tipe</div>
-                <div class="col-md-2">Pelanggan</div>
+                <div class="col-md-3">Tipe</div>
+                <div class="col-md-4 text-center">Tanggal</div>
                 <div class="col-md-2 text-center">Action</div>
             </div>
             <hr>
-            <div class="body-placeholder my-3" id="list-placeholder">
-                @for ($i = 0; $i < 5; $i++)
+            <div class="body-placeholder my-3" id="list-placeholder-surat-tugas">
+                @for ($i = 0; $i < 3; $i++)
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
                         <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
@@ -52,11 +51,11 @@
                         <div class="placeholder-glow col-6 col-md-3">
                             <div class="placeholder w-50 mb-1"></div>
                         </div>
-                        <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
+                        <div class="placeholder-glow col-6 col-md-4 text-center">
                             <div class="placeholder w-50 mb-1"></div>
-                        </div>
-                        <div class="placeholder-glow col-6 col-md-2">
+                            <div class="placeholder w-75 mb-1"></div>
                             <div class="placeholder w-50 mb-1"></div>
+                            <div class="placeholder w-75 mb-1"></div>
                         </div>
                         <div class="placeholder-glow col-6 col-md-2 text-center">
                             <div class="placeholder w-50 mb-1"></div>
@@ -65,16 +64,17 @@
                 </div>
                 @endfor
             </div>
-            <div class="body my-3" id="list-container">
-                
+            <div class="body my-3" id="list-container-surat-tugas">
+
             </div>
-            <div aria-label="Page navigation example" id="list-pagination">
-                
+            <div aria-label="Page navigation example" id="list-pagination-surat-tugas">
+                    
             </div>
         </div>
     </div>
 </div>
 @endsection
+
 @push('scripts')
-    <script src="{{ asset('js/manager/pengajuan.js') }}"></script>
+    <script src="{{ asset('js/manager/suratTugas.js') }}"></script>
 @endpush

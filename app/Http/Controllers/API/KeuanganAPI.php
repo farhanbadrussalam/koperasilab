@@ -91,6 +91,49 @@ class KeuanganAPI extends Controller
         }
     }
 
+    public function getKeuangan($idKeuangan)
+    {
+        $idKeuangan = $idKeuangan ? decryptor($idKeuangan) : false;
+        DB::beginTransaction();
+        try {
+            $query = Keuangan::with(
+                'permohonan',
+                'diskon',
+                'media_bayar',
+                'media_bayar_pph',
+                'usersig',
+                'permohonan.layanan_jasa:id_layanan,nama_layanan',
+                'permohonan.jenisTld:id_jenisTld,name', 
+                'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
+                'permohonan.jenis_layanan_parent',
+                'permohonan.pelanggan',
+                'permohonan.pelanggan.perusahaan',
+                'permohonan.kontrak'
+            )->find($idKeuangan);
+
+            // get Document faktur
+            if(isset($query->document_faktur)){
+                $documentFaktur = $query->document_faktur;
+                $arrDoc = array();
+                foreach ($documentFaktur as $key => $idMedia) {
+                    array_push($arrDoc, $this->media->get($idMedia));
+                }
+                $query->media = $arrDoc;
+            }else{
+                $query->media = array();
+            }
+            
+            DB::commit();
+
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+
+    }
+
     public function keuanganAction(Request $request)
     {
         DB::beginTransaction();
@@ -201,6 +244,78 @@ class KeuanganAPI extends Controller
         
     }
 
+    public function uploadFaktur(Request $request)
+    {
+        $validate = $request->validate([
+            'idKeuangan' => 'required'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $idKeuangan = decryptor($request->idKeuangan);
+            $file = $request->file('faktur');
+
+            $fileUpload = $this->media->upload($file, 'keuangan');
+            $dataKeuangan = Keuangan::find($idKeuangan);
+            
+            if(isset($dataKeuangan)){
+                $documentFaktur = is_array($dataKeuangan->document_faktur) ? $dataKeuangan->document_faktur : [];
+                
+                array_push($documentFaktur, $fileUpload->getIdMedia());
+                $update = $dataKeuangan->update(array('document_faktur' => $documentFaktur));
+    
+                DB::commit();
+    
+                if($update){
+                    $fileUpload->store();
+                    return $this->output(array('msg' => 'Faktur berhasil diupload'));
+                }
+    
+                return $this->output(array('msg' => 'Faktur gagal diupload'), 'Fail', 400);
+            }
+
+            return $this->output(array('msg' => 'data not found'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+
+
+    }
+
+    public function destroyFaktur($idKeuangan, $idMedia){
+        $idMedia = decryptor($idMedia);
+        $idKeuangan = decryptor($idKeuangan);
+
+        DB::beginTransaction();
+        try {
+            $dataKeuangan = Keuangan::find($idKeuangan);
+            $documentFaktur = is_array($dataKeuangan->document_faktur) ? $dataKeuangan->document_faktur : [];
+            
+            if(($key = array_search($idMedia, $documentFaktur)) !== false) {
+                unset($documentFaktur[$key]);
+            }
+
+            $update = $dataKeuangan->update(array('document_faktur' => $documentFaktur));
+            $this->media->destroy($idMedia);
+
+            DB::commit();
+
+            if($update){
+                return $this->output(array('msg' => 'Faktur berhasil dihapus'));
+            }
+
+            return $this->output(array('msg' => 'Faktur gagal dihapus'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+
+    }
+
+    // PRIVATE FUNCTION
     private function generateNoInvoice($idPermohonan)
     {
         $permohonan = Permohonan::with('jenis_layanan')->where('id_permohonan', $idPermohonan)->first();

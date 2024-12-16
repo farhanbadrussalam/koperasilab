@@ -78,19 +78,34 @@ class LogController extends Controller
                     $note = 'Penyelia - Pengajuan berhasil dibuat';
                     break;
                 case 2:
-                    $note = 'Penyelia - Start '.($text != '' ? "($text)" : "");
+                    $note = 'Penyelia - Permohonan tanda tangan manager ';
                     break;
                 case 3:
-                    $note = 'Penyelia - Proses anealing '.($text != '' ? "($text)" : "");
+                    $note = 'Penyelia - Selesai';
                     break;
-                case 4:
-                    $note = 'Penyelia - Proses pembacaan '.($text != '' ? "($text)" : "");
+                case 11:
+                    $note = 'Penyelia - Proses Pendataan TLD '.($text != '' ? "($text)" : "");
                     break;
-                case 5:
-                    $note = 'Penyelia - Proses penerbitan LHU '.($text != '' ? "($text)" : "");
+                case 12:
+                    $note = 'Penyelia - Proses Pembacaan TLD '.($text != '' ? "($text)" : "");
                     break;
-                case 6:
-                    $note = 'Penyelia - Selesai '.($text != '' ? "($text)" : "");
+                case 13:
+                    $note = 'Penyelia - Proses Penyimpanan TLD '.($text != '' ? "($text)" : "");
+                    break;
+                case 14:
+                    $note = 'Penyelia - Proses Anealing '.($text != '' ? "($text)" : "");
+                    break;
+                case 15:
+                    $note = 'Penyelia - Proses Labeling '.($text != '' ? "($text)" : "");
+                    break;
+                case 16:
+                    $note = 'Penyelia - Proses Penyeliaan LHU '.($text != '' ? "($text)" : "");
+                    break;
+                case 17:
+                    $note = 'Penyelia - Proses Pendatanganan LHU '.($text != '' ? "($text)" : "");
+                    break;
+                case 18:
+                    $note = 'Penyelia - Proses Penerbitan LHU '.($text != '' ? "($text)" : "");
                     break;
                 
                 default:

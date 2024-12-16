@@ -1,32 +1,36 @@
-const invoice = new Invoice();
-
 $(function () {
     loadData();
-    invoice.on('invoice.simpan', () => {
-        loadData();
-    });
-    invoice.on('invoice.tolak', () => {
-        loadData();
-    });
 });
 
-
-function loadData(page = 1) {
+function loadData(page=1) {
     let params = {
         limit: 10,
         page: page,
-        status: [90]
-    };
+        menu: 'ttd-surat'
+    }
 
-    $('#list-placeholder').show();
-    $('#list-container').hide();
-    ajaxGet(`api/v1/manager/listManager`, params, result => {
+    $(`#list-placeholder-surat-tugas`).show();
+    $(`#list-container-surat-tugas`).hide();
+    ajaxGet(`api/v1/penyelia/list`, params, result => {
         let html = '';
-        for (const [i, keuangan] of result.data.entries()) {
-            const permohonan = keuangan.permohonan;
-            permohonan.idkeuangan = keuangan.keuangan_hash;
+        for (const [i, lhu] of result.data.entries()) {
+            const permohonan = lhu.permohonan;
             let periode = JSON.parse(permohonan.periode_pemakaian);
             let btnAction = '';
+
+            if(lhu.status == 2) {
+                btnAction = `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/manager/surat_tugas/v/${lhu.penyelia_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`
+            }else{
+                btnAction = `<a class="btn btn-outline-info btn-sm mb-1" href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}"><i class="bi bi-eye"></i> Show</a>`;
+            }
+
+            let divInfoTugas = `
+                <div class="col-md-12">
+                    <div class="rounded bg-secondary-subtle p-2 text-body-secondary d-flex justify-content-between">
+                        <span>Status : ${statusFormat('penyelia', lhu.status)}</span>
+                    </div>
+                </div>
+            `;
 
             html += `
                 <div class="card mb-2">
@@ -39,15 +43,20 @@ function loadData(page = 1) {
                                 <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                             </small>
                         </div>
-                        <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
                         <div class="col-6 col-md-3 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                         </div>
-                        <div class="col-6 col-md-2">${permohonan.pelanggan.name}</div>
-                        <div class="col-6 col-md-2 text-center" data-keuangan='${keuangan.keuangan_hash}'>
-                            <button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiInvoice(this)">verifikasi</button>
+                        <div class="col-6 col-md-4 text-center">
+                            <div class="fw-bolder">Start date</div>
+                            <div>${dateFormat(lhu.start_date, 4)}</div>
+                            <div class="fw-bolder">End date</div>
+                            <div>${dateFormat(lhu.end_date, 4)}</div>
                         </div>
+                        <div class="col-6 col-md-2 text-center" data-lhu='${JSON.stringify(lhu)}' data-surattugas='${lhu.no_surat_tugas}'>
+                            ${btnAction}
+                        </div>
+                        ${divInfoTugas}
                     </div>
                 </div>
             `;
@@ -62,36 +71,12 @@ function loadData(page = 1) {
             `;
         }
 
-        $('#list-container').html(html);
+        $(`#list-container-surat-tugas`).html(html);
 
-        $('#list-pagination').html(createPaginationHTML(result.pagination));
+        $(`#list-pagination-surat-tugas`).html(createPaginationHTML(result.pagination));
 
-        $('#list-placeholder').hide();
-        $('#list-container').show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }
-    })
-}
-
-$('#list-pagination').on('click', 'a', function (e) {
-    e.preventDefault();
-    const pageno = e.target.dataset.page;
-    
-    loadData(pageno);
-});
-
-function verifikasiInvoice(obj){
-    const keuangan = $(obj).parent().data("keuangan");
-    ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
-        invoice.addData(result.data);
-        invoice.open('verify');
+        $(`#list-placeholder-surat-tugas`).hide();
+        $(`#list-container-surat-tugas`).show();
     }, error => {
         const result = error.responseJSON;
         if(result?.meta?.code && result?.meta?.code == 500){
@@ -107,5 +92,5 @@ function verifikasiInvoice(obj){
             });
             console.error(error);
         }
-    })
+    });
 }

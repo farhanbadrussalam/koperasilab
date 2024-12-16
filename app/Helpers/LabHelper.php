@@ -256,19 +256,19 @@ if (!function_exists('convert_date')) {
         $format = '';
         switch ($type) {
             case 1:
-                # 11 Sep 2023 12:00
+                # 11 September 2023 12:00
                 $format = 'd M Y H:i';
                 break;
             case 2:
-                # 11 Sep 2023
+                # 11 September 2023
                 $format = 'd M Y';
                 break;
             case 3:
-                # 11 Sep 2023
+                # Sabtu, 14 Desember 2024 00:00
                 $format = 'l, d M Y H:i';
                 break;
             case 4:
-                # Monday, 11 Sep 2023
+                # Monday, 11 September 2023
                 $format = 'l, d M Y';
                 break;
             case 5:

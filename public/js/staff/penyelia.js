@@ -1,5 +1,6 @@
 let signaturePad = false;
 let tmpPetugas = [];
+let nowSelect = false;
 $(function () {
     switchLoadTab(1);
 
@@ -11,6 +12,14 @@ $(function () {
     setDropify("init", "#upload_document", {
         allowedFileExtensions: ["pdf"]
     })
+
+    $(`[name="statusProgress"]`).on('click', obj => {
+        if(obj.target.value == 'return') {
+            $('#prosesNext').val(nowSelect.prosesPrev.jobs.name);
+        } else {
+            $('#prosesNext').val('Finish');
+        }
+    });
 
     $('#inputStartDate').flatpickr({
         altInput: true,
@@ -125,6 +134,31 @@ function loadData(page = 1, menu) {
             let btnAction = '';
             switch (menu) {
                 case 'surattugas':
+                    if(penyelia.status == 1) {
+                        btnAction = `<a class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"><i class="bi bi-plus"></i> Buat Surat Tugas</a>`;
+                    }else if(penyelia.status == 2) {
+                        btnAction = `
+                            <a class="btn btn-outline-info btn-sm mb-1" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Show</a>
+                            <a class="btn btn-outline-warning btn-sm mb-1" href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"><i class="bi bi-pencil-square"></i> Edit</a>
+                            <button class="btn btn-outline-danger btn-sm mb-1" onclick="btnDelete(this)"><i class="bi bi-trash"></i> Delete</button>
+                        `;
+                    }else{
+                        btnAction = `
+                            <a class="btn btn-outline-info btn-sm mb-1" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Show</a>
+                        `;
+                    }
+
+                    let divInfoTugas = '';
+                    if(penyelia.start_date && penyelia.end_date){
+                        divInfoTugas = `
+                            <div class="col-md-12">
+                                <div class="rounded bg-secondary-subtle p-2 text-body-secondary d-flex justify-content-between">
+                                    <span>Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
+                                    <span>Status : ${statusFormat('penyelia', penyelia.status)}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
                     html += `
                         <div class="card mb-2">
                             <div class="card-body row align-items-center">
@@ -136,15 +170,16 @@ function loadData(page = 1, menu) {
                                         <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                                     </small>
                                 </div>
-                                <div class="col-6 col-md-3 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
+                                <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
                                 <div class="col-6 col-md-2 my-3 text-end text-md-start">
                                     <div>${permohonan.tipe_kontrak}</div>
                                     <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                                 </div>
                                 <div class="col-6 col-md-2">${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-                                <div class="col-6 col-md-2 text-center" data-penyelia='${JSON.stringify(penyelia)}' data-surattugas='${penyelia.no_surat_tugas}'>
-                                    <button class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" onclick="openSuratTugasModal(this, 'create')"><i class="bi bi-plus"></i> Buat Surat Tugas</button>
+                                <div class="col-6 col-md-3 text-center" data-idpenyelia='${penyelia.penyelia_hash}'>
+                                    ${btnAction}
                                 </div>
+                                ${divInfoTugas}
                             </div>
                         </div>
                     `;
@@ -161,12 +196,11 @@ function loadData(page = 1, menu) {
                                         <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                                     </small>
                                 </div>
-                                <div class="col-6 col-md-2 my-3">${penyelia.petugas.length} Petugas</div>
-                                <div class="col-6 col-md-2 my-3 text-end text-md-start">
+                                <div class="col-6 col-md-3 my-3 text-end text-md-start">
                                     <div>${permohonan.tipe_kontrak}</div>
                                     <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                                 </div>
-                                <div class="col-6 col-md-3 text-center">
+                                <div class="col-6 col-md-4 text-center">
                                     <div class="fw-bolder">Start date</div>
                                     <div>${dateFormat(penyelia.start_date, 4)}</div>
                                     <div class="fw-bolder">End date</div>
@@ -201,7 +235,7 @@ function loadData(page = 1, menu) {
         $(`#list-container-${menu}`).show();
     }, error => {
         const result = error.responseJSON;
-        if(result.meta?.code && result.meta.code == 500){
+        if(result?.meta?.code && result?.meta?.code == 500){
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
@@ -212,7 +246,7 @@ function loadData(page = 1, menu) {
                 icon: "error",
                 text: 'Server error',
             });
-            console.error(result.message);
+            console.error(error);
         }
     })
 }
@@ -228,8 +262,28 @@ function openSuratTugasModal(obj, mode) {
 
 function openProgressModal(obj) {
     const penyelia = $(obj).parent().data("penyelia");
+    $('#statusDone').prop('checked', true);
+    nowSelect = penyelia;
+
+    // Mengambil proses jobs 
+    const prosesNow = nowSelect.penyelia_map.find(d => d.jobs.status == nowSelect.status);
+    const prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
+    
+    $('#dateProgress').flatpickr({
+        altInput: true,
+        locale: "id",
+        dateFormat: "Y-m-d",
+        altFormat: "j F Y",
+        defaultDate: 'today'
+    });
+
+    nowSelect.prosesNow = prosesNow;
+    nowSelect.prosesPrev = prosesPrev;
+
+    $('#prosesNow').val(prosesNow.jobs.name);
+    $('#prosesNext').val('Finish');
+
     $('#updateProgressModal').modal('show');
-    $('#txtIdPenyelia').val(penyelia.penyelia_hash);
 }
 
 function tambahPetugas(){
@@ -336,14 +390,14 @@ function simpanSuratTugas(obj){
 }
 
 function simpanProgress(obj){
-    let progress = $('#inputProgress').val();
+    let sProgress = $(`[name="statusProgress"]:checked`).val();
     let note = $('#inputNote').val();
-    let idPenyelia = $('#txtIdPenyelia').val();
+    let status = sProgress == 'done' ? 3 : nowSelect?.prosesPrev?.jobs?.status;
     const document = $('#upload_document')[0].files[0];
 
     const form = new FormData();
-    form.append('idPenyelia', idPenyelia);
-    form.append('status', progress);
+    form.append('idPenyelia', nowSelect?.penyelia_hash);
+    form.append('status', status);
     form.append('note', note);
     form.append('document', document);
 
@@ -371,4 +425,35 @@ function simpanProgress(obj){
         spinner('hide', $(obj));
         console.error(error.responseJSON.data.msg);
     })
+}
+
+function btnDelete(obj) {
+    const id = $(obj).parent().data('idpenyelia');
+    ajaxDelete(`api/v1/penyelia/remove/${id}`, result => {
+        Swal.fire({
+            icon: 'success',
+            text: result.data.msg,
+            timer: 1200,
+            timerProgressBar: true,
+            showConfirmButton: false
+        }).then(() => {
+            switchLoadTab(1);
+        });
+    }, error => {
+        const result = error.responseJSON;
+        if(result?.meta?.code && result?.meta?.code == 500){
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(result.data.msg);
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(error);
+        }
+        spinner(`hide`, $(obj.target));
+    });
 }

@@ -11,8 +11,15 @@ body {
     border-radius: 10px;
 }
 
+.cursormove {
+    cursor: move;
+}
+
 .document:hover{
     background-color: #e2e2e2;
+}
+.hover-1:hover{
+    background-color: #eeeeee;
 }
 
 .dot {

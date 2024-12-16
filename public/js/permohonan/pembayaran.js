@@ -1,3 +1,4 @@
+const invoice = new Invoice();
 
 $(function() {
     loadData();
@@ -20,7 +21,7 @@ function loadData(page = 1) {
             if(keuangan.status == 3){
                 btnAction = `<a class="btn btn-outline-warning btn-sm" href="${base_url}/permohonan/pembayaran/bayar/${keuangan.keuangan_hash}" title="Bayar"><i class="bi bi-cash"></i> Bayar</a>`;
             }else{
-                btnAction = `<button class="btn btn-outline-info btn-sm" title="Show Invoice" onclick=""><i class="bi bi-eye-fill"></i> Detail</button>`;
+                btnAction = `<button class="btn btn-outline-info btn-sm" title="Show Invoice" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-eye-fill"></i> Detail</button>`;
             }
 
             html += `
@@ -37,10 +38,10 @@ function loadData(page = 1) {
                         <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
                         <div class="col-6 col-md-3 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.no_kontrak}</small>
+                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
                         </div>
                         <div class="col-6 col-md-2">${statusFormat('keuangan', keuangan.status)}</div>
-                        <div class="col-6 col-md-2 text-center" data-keuangan='${JSON.stringify(permohonan)}' data-invoice='${keuangan.no_invoice}'>
+                        <div class="col-6 col-md-2 text-center" data-keuangan='${keuangan.keuangan_hash}'>
                             ${btnAction}
                         </div>
                     </div>
@@ -71,6 +72,29 @@ function loadData(page = 1) {
                 text: 'Server error',
             });
             console.error(result.data.msg);
+        }
+    })
+}
+
+function openInvoiceModal(obj, mode) {
+    const keuangan = $(obj).parent().data("keuangan");
+    ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
+        invoice.addData(result.data);
+        invoice.open(mode);
+    }, error => {
+        const result = error.responseJSON;
+        if(result?.meta?.code && result?.meta?.code == 500){
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(result.data.msg);
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(error);
         }
     })
 }

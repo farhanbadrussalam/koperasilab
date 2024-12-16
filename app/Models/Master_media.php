@@ -30,6 +30,11 @@ class Master_media extends Model
 
     public function getMediaHashAttribute()
     {
-        return encryptor($this->id_media);
+        return encryptor($this->id);
+    }
+
+    public function keuangan()
+    {
+        return $this->belongsTo(Keuangan::class);
     }
 }

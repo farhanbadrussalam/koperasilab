@@ -32,6 +32,7 @@ use App\Http\Controllers\Manager\ManagerPengajuanController;
 use App\Http\Controllers\Report\SuratTugas;
 use App\Http\Controllers\Report\Kwitansi;
 use App\Http\Controllers\Report\Invoice;
+use App\Http\Controllers\Report\TandaTerima;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -74,6 +75,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/permohonan', 'indexPermohonan')->name('staff.permohonan');
             Route::get('/permohonan/verifikasi/{idPermohonan}', 'verifikasiPermohonan')->name('staff.permohonan.verifikasi');
             Route::get('/penyelia', 'indexPenyelia')->name('staff.penyelia');
+            Route::get('/penyelia/surat_tugas/c/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.create.surat_tugas');
+            Route::get('/penyelia/surat_tugas/e/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
+            Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
             Route::get('/lhu', 'indexLhu')->name('staff.lhu');
             Route::get('/pengiriman', 'indexPengiriman')->name('staff.pengiriman');
             Route::get('/pengiriman/tambah', 'tambahPengiriman')->name('staff.pengiriman.tambah');
@@ -83,6 +87,11 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::prefix('manager')->group(function () {
         Route::controller(ManagerPengajuanController::class)->group(function () {
             Route::get('/pengajuan', 'index')->name('manager.pengajuan');
+            Route::get('/surat_tugas', 'indexSuratTugas')->name('manager.surat_tugas');
+        });
+        Route::controller(StaffController::class)->group(function() {
+            Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
+            Route::get('/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
         });
     });
 
@@ -172,7 +181,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::prefix('laporan')->group(function() {
         Route::get('/suratTugas/{id}', [SuratTugas::class, 'index'])->name('laporan.suratTugas');
         Route::get('/kwitansi/{id}', [Kwitansi::class, 'index'])->name('laporan.kwitansi');
-        Route::get('/invoice/{id}', [Invoice::class, 'index'])->name('laporan.kwitansi');
+        Route::get('/invoice/{id}', [Invoice::class, 'index'])->name('laporan.invoice');
+        Route::get('/tandaterima/{id}', [TandaTerima::class, 'index'])->name('laporan.tandaterima');
     });
 });
 

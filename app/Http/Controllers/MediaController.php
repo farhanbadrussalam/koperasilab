@@ -40,6 +40,15 @@ class MediaController extends Controller
         return new FileUpload($file, $path, $filename, $idMedia);
     }
 
+    public function get($id_media){
+        // is array
+        if(is_array($id_media)){
+            return Master_media::whereIn('id', $id_media)->get();
+        }
+
+        return Master_media::findOrFail($id_media);
+    }
+
     public function update($file, $id_media){
         $media = Master_media::findOrFail($id_media);
 

@@ -92,7 +92,7 @@ function loadData(page = 1, menu) {
         $(`#list-container-${menu}`).show();
     }, error => {
         const result = error.responseJSON;
-        if(result.meta?.code && result.meta.code == 500){
+        if(result?.meta?.code && result?.meta?.code == 500){
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
@@ -103,7 +103,7 @@ function loadData(page = 1, menu) {
                 icon: "error",
                 text: 'Server error',
             });
-            console.error(result.message);
+            console.error(error);
         }
     });
 }

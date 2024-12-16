@@ -54,6 +54,7 @@
 
     {{-- PeriodeJs --}}
     <script src="{{ asset('js/periode.js') }}"></script>
+    <script src="{{ asset('js/invoice.js') }}"></script>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>

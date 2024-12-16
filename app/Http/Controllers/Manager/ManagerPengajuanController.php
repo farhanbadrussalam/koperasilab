@@ -11,9 +11,19 @@ class ManagerPengajuanController extends Controller
     public function index()
     {
         $data = [
-            'title' => 'Manager',
+            'title' => 'Permohonan',
             'module' => 'manager-pengajuan'
         ];
         return view('pages.manager.pengajuan.index', $data);
+    }
+
+    public function indexSuratTugas()
+    {
+        $data = [
+            'title' => 'Surat tugas',
+            'module' => 'manager-suratTugas'
+        ];
+
+        return view('pages.manager.suratTugas', $data);
     }
 }

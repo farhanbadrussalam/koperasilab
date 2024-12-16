@@ -46,10 +46,10 @@
                             <div class="my-3">
                                 <div class="header px-3 fw-bolder d-none d-md-flex row">
                                     <div class="col-md-3">Layanan</div>
-                                    <div class="col-md-3">Jenis</div>
+                                    <div class="col-md-2">Jenis</div>
                                     <div class="col-md-2">Tipe</div>
                                     <div class="col-md-2">Pelanggan</div>
-                                    <div class="col-md-2 text-center">Action</div>
+                                    <div class="col-md-3 text-center">Action</div>
                                 </div>
                                 <hr>
                                 <div class="body-placeholder my-3" id="list-placeholder-surattugas">
@@ -121,9 +121,8 @@
                             <div class="my-3">
                                 <div class="header px-3 fw-bolder d-none d-md-flex row">
                                     <div class="col-md-3">Layanan</div>
-                                    <div class="col-md-2">Petugas</div>
-                                    <div class="col-md-2">Tipe</div>
-                                    <div class="col-md-3 text-center">Tanggal</div>
+                                    <div class="col-md-3">Tipe</div>
+                                    <div class="col-md-4 text-center">Tanggal</div>
                                     <div class="col-md-2 text-center">Action</div>
                                 </div>
                                 <hr>
@@ -137,13 +136,10 @@
                                                 <div class="placeholder w-50 mb-1"></div>
                                                 <div class="placeholder w-75 mb-1"></div>
                                             </div>
-                                            <div class="placeholder-glow col-6 col-md-2">
+                                            <div class="placeholder-glow col-6 col-md-3 text-end text-md-start">
                                                 <div class="placeholder w-50 mb-1"></div>
                                             </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-3 text-center">
+                                            <div class="placeholder-glow col-6 col-md-4 text-center">
                                                 <div class="placeholder w-50 mb-1"></div>
                                                 <div class="placeholder w-75 mb-1"></div>
                                                 <div class="placeholder w-50 mb-1"></div>
@@ -219,13 +215,31 @@
                 <button type="button" class="btn-close" aria-label="Close" data-bs-dismiss="modal" onclick=""></button>
             </div>
             <div class="modal-body px-1">
-                <input type="hidden" name="txtIdPenyelia" id="txtIdPenyelia">
                 <div class="row mx-2">
-                    <div class="col-sm-12 mb-3">
-                        <label for="inputProgress">Progress</label>
-                        <select name="inputProgress" id="inputProgress" class="form-select">
-                            <option value="6">Selesai</option>
-                        </select>
+                    <div class="col-sm-12 mb-3 d-flex justify-content-between align-items-center">
+                        <label for="" class="fw-bold">Tanggal</label>
+                        <div>
+                            <input type="text" class="form-control" id="dateProgress">
+                        </div>
+                    </div>
+                    <div class="col-sm-12 mb-3 d-flex justify-content-between align-items-center">
+                        <label for="" class="fw-bold">Status</label>
+                        <div>
+                            <div class="form-check form-check-inline" id="divReturnProgress">
+                                <input class="form-check-input" type="radio" name="statusProgress" id="statusReturn" value="return">
+                                <label class="form-check-label text-danger" for="statusReturn">Return</label>
+                            </div>
+                            <div class="form-check form-check-inline" id="divDoneProgress">
+                                <input class="form-check-input" type="radio" name="statusProgress" id="statusDone" value="done" checked>
+                                <label class="form-check-label text-success" for="statusDone">Done</label>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="fw-bold">Progress</span>
+                    <div class="col-sm-12 mb-3 d-flex justify-content-between align-items-center">
+                        <input type="text" class="form-control bg-secondary-subtle" name="prosesNow" id="prosesNow" readonly>
+                        <span class="mx-2">To</span>
+                        <input type="text" class="form-control bg-secondary-subtle" name="prosesNext" id="prosesNext" readonly>
                     </div>
                     <div class="col-sm-12 mb-3">
                         <label for="inputNote">Note</label>

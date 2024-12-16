@@ -61,4 +61,12 @@ class Penyelia extends Model
     public function media(){
         return $this->belongsTo(Master_media::class, 'document', 'id');
     }
+
+    public function petugas(){
+        return $this->hasMany(Penyelia_petugas::class, 'id_penyelia', 'id_penyelia');
+    }
+
+    public function penyelia_map(){
+        return $this->hasMany(Penyelia_map::class, 'id_penyelia', 'id_penyelia')->orderBy('order', 'asc');
+    }
 }

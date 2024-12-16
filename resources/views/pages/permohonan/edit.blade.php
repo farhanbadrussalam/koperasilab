@@ -133,17 +133,6 @@
                 const value = media[i];
 
                 allDocument += printMedia(value, false, i);
-
-                // if(i != 0){
-                //     tambahDocument(i);
-                // }
-                // let upD = setDropify('init', `#uploadDokumen${i}`, {
-                //     allowedFileExtensions: ['pdf','doc', 'docx'],
-                //     maxSizeFile: '5M',
-                //     defaultFile: value ? "{{ asset('storage/dokumen/permohonan/') }}/"+value.file_hash : false,
-                //     fileNameOri: value ? value.file_ori : false
-                // });
-                // $(`#defaultDocumen${i}`).val(value.file_hash);
             }
         }
         $('#documentDefaut').html(allDocument);

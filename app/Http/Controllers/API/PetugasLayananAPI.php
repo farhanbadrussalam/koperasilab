@@ -10,12 +10,33 @@ use App\Models\jadwal;
 use App\Models\User;
 use App\Traits\RestApi;
 
+use DB;
+
 class PetugasLayananAPI extends Controller
 {
     use RestApi;
     /**
      * Display a listing of the resource.
      */
+    // NEW API
+    public function listPetugas(Request $request)
+    {
+        $idJobs = isset($request->idJobs) ? decryptor($request->idJobs) : false;
+        DB::beginTransaction();
+        try {
+            $query = User::select('id','name', 'email')->whereRaw('JSON_CONTAINS(jobs, ?)', [$idJobs])->get();
+            DB::commit();
+
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+        
+    }
+
+    // OLD API
     public function getPetugas(Request $request)
     {
         $idPetugas = $request->idPetugas ? decryptor($request->idPetugas) : null;

@@ -297,25 +297,55 @@ function statusFormat(feature, status) {
                 break;
             case 2:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Start</span>
+                    <span class="badge text-bg-primary rounded-pill">TTD manager</span>
                 `;
                 break;
             case 3:
                 htmlStatus = `
+                    <span class="badge text-bg-success rounded-pill">Selesai</span>
+                `;
+                break;
+            case 11:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Proses Pendataan TLD</span>
+                `;
+                break;
+            case 12:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Proses Pembacaan TLD</span>
+                `;
+                break;
+            case 13:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Proses Penyimpanan TLD</span>
+                `;
+                break;
+            case 14:
+                htmlStatus = `
                     <span class="badge text-bg-primary rounded-pill">Proses Anealing</span>
                 `;
                 break;
-            case 4:
+            case 15:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Pembacaan</span>
+                    <span class="badge text-bg-primary rounded-pill">Proses Labeling</span>
                 `;
                 break;
-            case 5:
+            case 16:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Proses Penyeliaan LHU</span>
+                `;
+                break;
+            case 17:
+                htmlStatus = `
+                    <span class="badge text-bg-primary rounded-pill">Proses Pendatanganan LHU</span>
+                `;
+                break;
+            case 18:
                 htmlStatus = `
                     <span class="badge text-bg-primary rounded-pill">Proses Penerbitan LHU</span>
                 `;
                 break;
-            case 6:
+            case 19:
                 htmlStatus = `
                     <span class="badge text-bg-success rounded-pill">Selesai</span>
                 `;
@@ -492,6 +522,7 @@ function unmask(data) {
 
 
 function ajaxPost(url, params, callback = () => {}, onError = () => {}) {
+    params.append('_token', csrf);
     $.ajax({
         url: `${base_url}/${url}`,
         method: 'POST',
@@ -552,12 +583,68 @@ function printMedia(media, folder=false, option = {}){
     const options = {
         download: option.download == undefined ? true : option.download,
         date: option.date == undefined ? true : option.date,
-        size:  option.size == undefined ? true : option.size
+        size:  option.size == undefined ? true : option.size,
+        onRemove: option.onRemove == undefined ? false : option.onRemove
     }
 
     const dateContent = options.date ? `<span class="text-submain caption text-secondary">${dateFormat(media.created_at, 1)}</span>` : '';
-    const downloadContent = options.download ? `<button class="btn btn-sm btn-link" title="Download file"><i class="bi bi-download"></i></button>` : '';
     const sizeContent = options.size ? `<small class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</small>` : '';
+
+    const downloadContent = document.createElement('button');
+    downloadContent.className = 'btn btn-sm btn-link';
+    downloadContent.title = 'Download file';
+    downloadContent.innerHTML = '<i class="bi bi-download"></i>';
+    downloadContent.onclick = () => {
+        console.log("click download");
+    }
+
+    const removeContent = document.createElement('button');
+    removeContent.className = 'btn btn-sm btn-outline-danger';
+    removeContent.title = 'Remove';
+    removeContent.innerHTML = '<i class="bi bi-trash"></i>';
+    removeContent.onclick = options.onRemove;
+
+    const div1 = document.createElement('div');
+    div1.className = `d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border mb-2`;
+
+    const linkMedia = document.createElement('a');
+    linkMedia.className = 'd-flex align-items-center w-100';
+    linkMedia.href = `${base_url}/storage/${folder ? folder : media.file_path}/${media.file_hash}`;
+    linkMedia.target = '_blank';
+
+    const divImg = document.createElement('div');
+    const img = document.createElement('img');
+    img.className = 'my-3';
+    img.src = `${base_url}/icons/${iconDocument(media.file_type)}`;
+    img.style = 'width: 24px; height: 24px;';
+    divImg.append(img);
+
+    const divDesc = document.createElement('div');
+    divDesc.className = 'flex-grow-1 ms-2 d-flex flex-column pe-3';
+    divDesc.innerHTML = `
+        <span class="caption text-main">${media.file_ori}</span>
+        ${dateContent}
+    `;
+
+    const divSize = document.createElement('div');
+    divSize.className = 'col-md-3';
+    divSize.innerHTML = sizeContent;
+
+    const divAction = document.createElement('div');
+    divAction.className = 'p-1';
+
+    // Action
+    options.download && divAction.append(downloadContent);
+    options.onRemove && divAction.append(removeContent);
+
+    linkMedia.append(divImg);
+    linkMedia.append(divDesc);
+    linkMedia.append(divSize);
+    
+    div1.append(linkMedia);
+    div1.append(divAction);
+
+    return div1;
 
     return `
         <div

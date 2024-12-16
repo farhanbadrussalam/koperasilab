@@ -114,7 +114,7 @@ function saveUpdateForm(obj, params, id){
         spinner('hide', obj);
     }, error => {
         const result = error.responseJSON;
-        if(result.meta?.code && result.meta.code == 500){
+        if(result?.meta?.code && result?.meta?.code == 500){
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
@@ -125,7 +125,7 @@ function saveUpdateForm(obj, params, id){
                 icon: "error",
                 text: 'Server error',
             });
-            console.error(result.message);
+            console.error(error);
         }
         spinner('hide', obj);
     })
@@ -211,7 +211,7 @@ function simpanEdit(obj, tab){
             $(`#${inputId}`).attr('disabled', true);
         }, error => {
             const result = error.responseJSON;
-            if(result.meta?.code && result.meta.code == 500){
+            if(result?.meta?.code && result?.meta?.code == 500){
                 Swal.fire({
                     icon: "error",
                     text: 'Server error',
@@ -222,7 +222,7 @@ function simpanEdit(obj, tab){
                     icon: "error",
                     text: 'Server error',
                 });
-                console.error(result.message);
+                console.error(error);
             }
             spinner('hide', $(spinObj));
         })

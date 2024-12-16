@@ -8,6 +8,8 @@ use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use App\Models\Penyelia;
+use App\Models\Penyelia_petugas;
+use App\Models\Penyelia_map;
 use App\Models\User;
 
 use App\Http\Controllers\LogController;
@@ -38,6 +40,7 @@ class PenyeliaAPI extends Controller
             $ttd = $request->ttd ?? false;
             $ttd_by = $request->ttd_by ? decryptor($request->ttd_by) : false;
             $petugas = $request->petugas ? $request->petugas : false;
+            $jobsMap = $request->jobsMap ? $request->jobsMap : false;
             $arrPetugas = array();
             $textNote = $request->note ? $request->note : '';
 
@@ -58,14 +61,49 @@ class PenyeliaAPI extends Controller
             $ttd_by && $params['ttd_by'] = $ttd_by;
             $file_document && $params['document'] = $file_document->getIdMedia();
             
+            // Menambahkan jobs ke penyelia
+            if($jobsMap){
+                $arrJobsMap = json_decode($jobsMap);
+                
+                foreach($arrJobsMap as $value){
+                    $data = array(
+                        'order' => $value->order,
+                        'created_by' => Auth::user()->id
+                    );
+                    
+                    Penyelia_map::updateOrCreate(
+                        [
+                            'id_jobs' => decryptor($value->jobs_hash),
+                            'id_penyelia' => $idPenyelia
+                        ],
+                        $data
+                    );
+                }
+            }
+
+            // Menambahkan petugas
             if($petugas){
                 $arr = json_decode($petugas);
-
+                
                 foreach ($arr as $value) {
-                    array_push($arrPetugas, decryptor($value));
-                }
+                    $findMap = Penyelia_map::where('id_jobs', decryptor($value->idJobs))->where('id_penyelia', $idPenyelia)->first();
+                    
+                    if($findMap){
+                        $data = array(
+                            'id_user' => decryptor($value->idPetugas),
+                            'status' => 1,
+                            'created_by' => Auth::user()->id
+                        );
 
-                $params['petugas'] = json_encode($arrPetugas);
+                        Penyelia_petugas::updateOrCreate(
+                            [
+                                'id_map' => decryptor($findMap->map_hash),
+                                'id_penyelia' => $idPenyelia
+                            ],
+                            $data
+                        );
+                    }
+                }
             }
 
             $params['status'] = $status;
@@ -117,7 +155,7 @@ class PenyeliaAPI extends Controller
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
-            return response()->json(array('msg' => $ex->getMessage()), "Fail", 500);
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
         }
     }
 
@@ -127,36 +165,50 @@ class PenyeliaAPI extends Controller
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
         $menu = $request->has('menu') ? $request->menu : '';
+        $userId = false;
+        $status = false;
+        $typePencarian = 'in';
         // $idPermohonan = $request->has('idPermohonan') ? decryptor($request->idPermohonan) : false;
 
         switch($menu) {
-            case 'surattugas':
+            // case 'surattugas':
+            //     $status = [2];
+            //     $typePencarian = 'not';
+                // break;
+            case 'ttd-surat':
                 $status = [1];
-                break;
-            case 'start':
-                $status = [2];
-                break;
-            case 'anealing':
-                $status = [3];
-                break;
-            case 'pembacaan':
-                $status = [4];
+                $typePencarian = 'not';
                 break;
             case 'penerbitanlhu':
-                $status = [5];
-                break;
-            case 'selesai':
-                $status = [6];
+                $status = [18];
                 break;
             default:
                 $status = false;
                 break;
         }
+
+        if(!$status){
+            $paramStatus = $request->has('status') ? $request->status : false;
+            
+            if($paramStatus){
+                $tmpArr = array();
+                foreach ($paramStatus as $key => $value) {
+                    array_push($tmpArr, decryptor($value));
+                }
+                $status = $tmpArr;
+                $userId = Auth::user()->id;
+            }
+        }
+
         
         DB::beginTransaction();
         try {
             $query = Penyelia::with(
                             'permohonan',
+                            'petugas',
+                            'petugas.jobs',
+                            'penyelia_map',
+                            'penyelia_map.jobs:id_jobs,status,name',
                             'usersig:id,name',
                             'permohonan.layanan_jasa:id_layanan,nama_layanan',
                             'permohonan.jenisTld:id_jenisTld,name', 
@@ -168,8 +220,16 @@ class PenyeliaAPI extends Controller
                         )
                         ->orderBy('created_at','DESC')
                         ->offset(($page - 1) * $limit)
-                        ->when($status, function($q, $status) {
+                        ->when($status, function($q, $status) use ($typePencarian) {
+                            if($typePencarian == 'not'){
+                                return $q->whereNotIn('status', $status);
+                            }
                             return $q->whereIn('status', $status);
+                        })
+                        ->when($userId, function($q, $userId) {
+                            return $q->whereHas('petugas', function ($query) use ($userId) {
+                                return $query->where('id_user', $userId);
+                            });
                         })
                         ->limit($limit)
                         ->paginate($limit);
@@ -177,19 +237,13 @@ class PenyeliaAPI extends Controller
             $arr = $query->toArray();
             $this->pagination = Arr::except($arr, 'data');
 
-            foreach ($query as $key => $value) {
-                if($value->petugas){
-                    $value->petugas = User::select('id','name','jobs')->whereIn("id", json_decode($value->petugas))->get();
-                }
-            }
-
             DB::commit();
 
             return response()->json($query, 200);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
-            return response()->json(array('msg' => $ex->getMessage()), 500);
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
         }
     }
 
@@ -222,19 +276,33 @@ class PenyeliaAPI extends Controller
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
-            return response()->json(array('msg' => $ex->getMessage()), 500);
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
         }
     }
 
-    public function destroy(Request $request)
+    public function removeSuratTugas($idPenyelia)
     {
-        $idPenyelia = $request->idPenyelia ? decryptor($request->idPenyelia) : false;
-
+        $idPenyelia = decryptor($idPenyelia);
+        
         DB::beginTransaction();
         try {
+            Penyelia_petugas::where('id_penyelia', $idPenyelia)->delete();
+            Penyelia_map::where('id_penyelia', $idPenyelia)->delete();
 
-        } catch (\Throwable $th) {
-            //throw $th;
+            // update penyelia
+            Penyelia::find($idPenyelia)->update(array(
+                'status' => 1,
+                'start_date' => null,
+                'end_date' => null
+            ));
+
+            DB::commit();
+
+            return $this->output(array('msg' => 'Surat tugas berhasil dihapus!'));
+        } catch (\Exception $th) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
         }
     }
 }

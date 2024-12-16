@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Staff;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use App\Models\Penyelia;
 use App\Models\Permohonan;
 use App\Models\Permohonan_pengguna;
 use App\Models\User;
 use App\Models\Master_pertanyaan;
+use App\Models\Master_jobs;
 
 use Auth;
 
@@ -34,9 +36,17 @@ class StaffController extends Controller
 
     public function indexLhu()
     {
+        $userJobs = Auth::user()->jobs;
+        $listJobs = array();
+        foreach ($userJobs as $key => $value) {
+            $dataJobs = Master_jobs::find($value);
+            array_push($listJobs, encryptor($dataJobs->status));
+        }
+
         $data = [
             'title' => 'LHU',
-            'module' => 'staff-lhu'
+            'module' => 'staff-lhu',
+            'listJobs' => $listJobs
         ];
         return view('pages.staff.lhu.index', $data);
     }
@@ -48,6 +58,75 @@ class StaffController extends Controller
             'module' => 'staff-penyelia'
         ];
         return view('pages.staff.penyelia.index', $data);
+    }
+
+    public function createSuratTugas($idPenyelia)
+    {
+        $idPenyelia = decryptor($idPenyelia);
+        
+        // Mendapatkan segmen terakhir dari URL
+        $segmenTerakhir = request()->segment(count(request()->segments()) - 1);
+        $typeSurat = '';
+        switch ($segmenTerakhir) {
+            case 'c':
+                # code...
+                $typeSurat = 'tambah';
+                break;
+            case 'e':
+                # code...
+                $typeSurat = 'update';
+                break;
+            case 'v':
+                # code...
+                $typeSurat = 'verif';
+                break;
+            case 's':
+                # code...
+                $typeSurat = 'show';
+                break;
+        }
+
+        $query = Penyelia::with(
+            'petugas',
+            'petugas.jobs',
+            'penyelia_map',
+            'petugas.user:id,name,email',
+            'permohonan',
+            'usersig:id,name',
+            'permohonan.layanan_jasa:id_layanan,nama_layanan,jobs',
+            'permohonan.jenisTld:id_jenisTld,name', 
+            'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
+            'permohonan.jenis_layanan_parent',
+            'permohonan.pelanggan',
+            'permohonan.pelanggan.perusahaan',
+            'permohonan.kontrak'
+        )->find($idPenyelia);
+
+        // mengambil data jobs
+        $listJobs = array();
+        if(count($query->penyelia_map) != 0){
+            foreach ($query->penyelia_map as $key => $value) {
+                $dataJobs = Master_jobs::find(decryptor($value->jobs_hash));
+                $dataJobs['order'] = $value->order;
+                array_push($listJobs, $dataJobs);
+            }
+        }else{
+            foreach ($query->permohonan->layanan_jasa->jobs as $key => $jobs) {
+                $dataJobs = Master_jobs::find($jobs);
+                $dataJobs['order'] = $key+1;
+                array_push($listJobs, $dataJobs);
+            }
+        }
+        
+        $data = [
+            'title' => 'Surat tugas',
+            'module' => 'staff-penyelia',
+            'penyelia' => $query,
+            'jobs' => $listJobs,
+            'type' => $typeSurat
+        ];
+
+        return view('pages.staff.penyelia.suratTugas', $data);
     }
 
     public function indexPengiriman()
