@@ -1,74 +1,64 @@
-let nowTab = 1;
+/**
+ * Initializes the page by loading the first tab.
+ */
 $(function () {
-    switchLoadTab(1);
+    loadData(1);
 });
 
-function switchLoadTab(menu){
-    nowTab = menu;
-    switch (menu) {
-        case 1:
-            menu = 'list';
-            break;
-    
-        case 2:
-            menu = 'selesai';
-            break;
-    }
-
-    loadData(1, menu);
-}
-
-function loadData(page = 1, menu) {
+/**
+ * Loads data for the specified page and menu.
+ * @param {number} [page=1] - The page number to load.
+ * @param {string} menu - The menu type to load data for.
+ */
+function loadData(page = 1) {
     let params = {
         limit: 10,
-        page: page,
-        menu: menu
+        page: page
     };
 
-    $(`#list-placeholder-${menu}`).show();
-    $(`#list-container-${menu}`).hide();
+    $(`#list-placeholder-pengiriman`).show();
+    $(`#list-container-pengiriman`).hide();
     ajaxGet(`api/v1/pengiriman/list`, params, result => {
         let html = '';
         for (const [i, data] of result.data.entries()) {
-            let periode = JSON.parse(data.periode);
-            let jenis = data.jenis_pengiriman.split(',');
-            
-            let htmlJenis = '';
-            for (const v of jenis) {
-                htmlJenis += `<div>${v}</div>`;
-            }
+            console.log(data);
 
             let htmlButton = '';
-            if(data.status == 1){
-                htmlButton = `<button class="btn btn-outline-danger btn-sm" onclick="removePengiriman(this)">Delete</button>`;
+            
+            if(data.status == 3){
+                htmlButton += `<button class="btn btn-outline-primary btn-sm me-1" onclick="showFormPengiriman(this)">Kirim</button>`;
+                htmlButton += `<button class="btn btn-outline-danger btn-sm" onclick="removePengiriman(this)">Delete</button>`;
+            } else if(data.status == 1) {
+                htmlButton += `<button class="btn btn-outline-danger btn-sm me-1" onclick="batalKirimDokumen(this)">Batal kirim</button>`;
             }
 
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center py-2">
                         <div class="col-12 col-md-3">
-                            <div class="fw-bolder">${data.no_resi}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
+                            <div class="fw-bolder">${data.id_pengiriman}</div>
+                            <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
+                            <small class="subdesc text-body-secondary fw-light lh-md">
                                 <div>${data.no_kontrak}</div>
-                                <div>Periode: </div>
-                                <div class="badge text-bg-secondary">${dateFormat(periode.start_date, 4)} s/d ${dateFormat(periode.end_date, 4)}</div>
+                                <div>created at ${dateFormat(data.created_at, 1)}</div>
                             </small>
                         </div>
                         <div class="col-6 col-md-2">
-                            ${htmlJenis}
+                            ${data.detail.length} Item
                         </div>
-                        <div class="col-6 col-md-3">
+                        <div class="col-6 col-md-2">
                             <span>${data.permohonan.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>Alamat: </div>
-                                <div>${data.alamat}</div>
+                                <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
+                                    Alamat ${data.alamat.jenis}
+                                </div>
                             </small>
                         </div>
                         <div class="col-6 col-md-2 text-center">
                             ${statusFormat('pengiriman', data.status)}
                         </div>
-                        <div class="col-6 col-md-2 text-center" data-id="${data.pengiriman_hash}">
-                            <button class="btn btn-outline-info btn-sm">Detail</button>
+                        <div class="col-6 col-md-3 text-center" data-id="${data.id_pengiriman}">
+                            <button class="btn btn-outline-info btn-sm" onclick="showDetailPengiriman()">Detail</button>
                             ${htmlButton}
                         </div>
                     </div>
@@ -84,12 +74,12 @@ function loadData(page = 1, menu) {
             `;
         }
 
-        $(`#list-container-${menu}`).html(html);
+        $(`#list-container-pengiriman`).html(html);
 
-        $(`#list-pagination-${menu}`).html(createPaginationHTML(result.pagination));
+        $(`#list-pagination-pengiriman`).html(createPaginationHTML(result.pagination));
 
-        $(`#list-placeholder-${menu}`).hide();
-        $(`#list-container-${menu}`).show();
+        $(`#list-placeholder-pengiriman`).hide();
+        $(`#list-container-pengiriman`).show();
     }, error => {
         const result = error.responseJSON;
         if(result?.meta?.code && result?.meta?.code == 500){
@@ -108,6 +98,10 @@ function loadData(page = 1, menu) {
     });
 }
 
+/**
+ * Removes a pengiriman (shipment) by its ID.
+ * @param {Object} obj - The DOM element that triggered the removal.
+ */
 function removePengiriman(obj){
     let idPengiriman = $(obj).parent().data('id');
     ajaxDelete(`api/v1/pengiriman/destroy/${idPengiriman}`, result => {
@@ -118,7 +112,7 @@ function removePengiriman(obj){
             timerProgressBar: true,
             showConfirmButton: false
         }).then(() => {
-            switchLoadTab(1);
+            loadData(1);
         });
     }, error => {
         const result = error.responseJSON;
@@ -136,4 +130,157 @@ function removePengiriman(obj){
             console.error(result.message);
         }
     })
+}
+
+/**
+ * Shows the detail modal for a pengiriman (shipment).
+ */
+function showDetailPengiriman(){
+    $('#modal-detail-pengiriman').modal('show');
+}
+
+/**
+ * Shows the form modal for sending a pengiriman (shipment).
+ * @param {Object} obj - The DOM element that triggered the form display.
+ */
+function showFormPengiriman(obj){
+    let idPengiriman = $(obj).parent().data('id');
+    $('#no_pengiriman').val(idPengiriman);
+    
+    $('#modal-kirim-dokumen').modal('show');
+}
+
+/**
+ * Sends a pengiriman (shipment) document.
+ * @param {Object} obj - The DOM element that triggered the send action.
+ */
+function kirimDokumen(obj){
+    let idPengiriman = $('#no_pengiriman').val();
+    let noResi = $('#noResi').val();
+
+    if(noResi == ''){
+        Swal.fire({
+            icon: 'warning',
+            text: 'No resi tidak boleh kosong',
+        });
+        return;
+    }
+
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Apakah Anda ingin mengirim dokumen ini?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, kirim!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let data = new FormData();
+            data.append('no_pengiriman', idPengiriman);
+            data.append('noResi', noResi);
+            data.append('status', 1);
+            data.append('sendAt', new Date().toISOString());
+
+            spinner('show', $(obj));
+            ajaxPost(`api/v1/pengiriman/action`, data, result => {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Dokumen berhasil dikirim',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    $('#modal-kirim-dokumen').modal('hide');
+                    spinner('hide', $(obj));
+                    loadData(1);
+                });
+            }, error => {
+                const result = error.responseJSON;
+                if(result?.meta?.code && result.meta.code == 500){
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan pada server',
+                    });
+                    console.error(result.data.msg);
+                }else{
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan pada server',
+                    });
+                    console.error(result.message);
+                }
+                spinner('hide', $(obj));
+            });
+        }
+    });
+}
+
+/**
+ * Handles the cancellation of document delivery.
+ * 
+ * This function triggers a confirmation dialog using Swal.fire to confirm the cancellation of a document delivery.
+ * If confirmed, it sends an AJAX POST request to update the delivery status to cancelled.
+ * 
+ * @param {Object} obj - The DOM element that triggered the function.
+ * 
+ * @example
+ * // Assuming `this` is the DOM element that triggered the function
+ * batalKirimDokumen(this);
+ * 
+ * @fires Swal.fire - To show confirmation and success/error messages.
+ * @fires ajaxPost - To send the cancellation request to the server.
+ */
+function batalKirimDokumen(obj){
+    let idPengiriman = $(obj).parent().data('id');
+
+    Swal.fire({
+        title: 'Apakah Anda yakin?',
+        text: "Apakah Anda ingin membatalkan pengiriman dokumen ini?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, batalkan!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let data = new FormData();
+            data.append('no_pengiriman', idPengiriman);
+            data.append('status', 3);
+            data.append('noResi', '');
+
+            spinner('show', $(obj));
+            ajaxPost(`api/v1/pengiriman/action`, data, result => {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Pengiriman berhasil dibatalkan',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    $('#modal-kirim-dokumen').modal('hide');
+                    spinner('hide', $(obj));
+                    loadData(1);
+                });
+            }, error => {
+                const result = error.responseJSON;
+                if(result?.meta?.code && result.meta.code == 500){
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan pada server',
+                    });
+                    console.error(result.data.msg);
+                }else{
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan pada server',
+                    });
+                    console.error(result?.message);
+                }
+                spinner('hide', $(obj));
+            });
+        }
+    });
 }

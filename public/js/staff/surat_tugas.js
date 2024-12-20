@@ -3,7 +3,7 @@ let arrJobs = [];
 let periodeJs = false;
 $(function () {
     // Mengambil periode
-    let arrPeriode = JSON.parse(dataPenyelia?.permohonan?.periode_pemakaian);
+    let arrPeriode = dataPenyelia?.permohonan?.periode_pemakaian;
     periodeJs = new Periode(arrPeriode, {
         preview: true,
         max: arrPeriode.length

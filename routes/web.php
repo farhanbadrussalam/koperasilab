@@ -80,7 +80,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
             Route::get('/lhu', 'indexLhu')->name('staff.lhu');
             Route::get('/pengiriman', 'indexPengiriman')->name('staff.pengiriman');
-            Route::get('/pengiriman/tambah', 'tambahPengiriman')->name('staff.pengiriman.tambah');
+            Route::get('/pengiriman/permohonan', 'indexPengirimanPermohonan')->name('staff.pengiriman.permohonan');
+            Route::get('/pengiriman/permohonan/kirim/{idPermohonan}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim');
+            Route::get('/pengiriman/tambah', 'buatCustomPengiriman')->name('staff.pengiriman.tambah');
         });
     });
 

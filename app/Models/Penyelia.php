@@ -69,4 +69,8 @@ class Penyelia extends Model
     public function penyelia_map(){
         return $this->hasMany(Penyelia_map::class, 'id_penyelia', 'id_penyelia')->orderBy('order', 'asc');
     }
+
+    public function pengiriman(){
+        return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
+    }
 }

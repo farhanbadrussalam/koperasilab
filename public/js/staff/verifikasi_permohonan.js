@@ -1,7 +1,7 @@
 let signaturePad = false;
 let periodeJs = false;
 $(function () {
-    const arrPeriode = JSON.parse(dataPermohonan.periode_pemakaian);
+    const arrPeriode = dataPermohonan.periode_pemakaian;
     $('#periode-pemakaian').val(arrPeriode.length + ' Periode');
     
     const conten_2 = document.getElementById("content-ttd-2");

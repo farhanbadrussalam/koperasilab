@@ -35,7 +35,7 @@ $(function (){
 
     $('#periode').on('change', obj => {
         if(dataPermohonan){
-            let arrPeriode = JSON.parse(dataPermohonan.periode_pemakaian);
+            let arrPeriode = dataPermohonan.periode_pemakaian;
             let val = arrPeriode[obj.target.value];
             
             if(val){
@@ -70,7 +70,7 @@ $(function (){
             let noKontrak = dataPermohonan.kontrak.no_kontrak;
             let alamat = dataPermohonan.pelanggan.perusahaan.alamat[$('#alamat').val()].alamat;
             let periode = $('#periode').val();
-            let arrPeriode = JSON.parse(dataPermohonan.periode_pemakaian);
+            let arrPeriode = dataPermohonan.periode_pemakaian;
 
             const formData = new FormData();
             formData.append('jenisPengiriman', jenisPengiriman);
@@ -128,7 +128,7 @@ $(function (){
             console.log(result);
 
             for (const value of result.data) {
-                let periode = JSON.parse(value.periode_pemakaian);
+                let periode = value.periode_pemakaian;
                 html += `
                     <div class="card mb-2">
                         <div class="card-body p-2 d-flex align-items-center">
@@ -175,7 +175,7 @@ function pilihPermohonan(obj) {
 }
 
 function loadForm(){
-    let periode = JSON.parse(dataPermohonan.periode_pemakaian);
+    let periode = dataPermohonan.periode_pemakaian;
     let jenisPengiriman = $('#jenis_pengiriman').val();
 
     const perusahaan = dataPermohonan.pelanggan.perusahaan;
@@ -334,7 +334,7 @@ function descInvoice(data){
     let hargaLayanan = dataPermohonan?.harga_layanan;
     let qty = dataPermohonan?.jumlah_kontrol+dataPermohonan?.jumlah_pengguna;
     let jumLayanan = dataPermohonan?.total_harga;
-    let periode = JSON.parse(dataPermohonan?.periode_pemakaian);
+    let periode = dataPermohonan?.periode_pemakaian;
     let jumPpn = 0;
     let jumPph = 0;
     let jumDiskon = 0;

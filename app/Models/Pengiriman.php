@@ -11,6 +11,7 @@ class Pengiriman extends Model
 
     protected $table = 'pengiriman';
     protected $primaryKey = 'id_pengiriman';
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id_pengiriman',
@@ -32,13 +33,16 @@ class Pengiriman extends Model
     ];
 
     protected $hidden = [
-        'id_pengiriman',
         'id_permohonan'
     ];
 
     protected $appends = [
-        'pengiriman_hash',
         'permohonan_hash'
+    ];
+
+    protected $casts = [
+        'bukti_pengiriman' => 'array',
+        'bukti_penerima' => 'array',
     ];
 
     public function getPermohonanHashAttribute()
@@ -46,13 +50,16 @@ class Pengiriman extends Model
         return encryptor($this->id_permohonan);
     }
 
-    public function getPengirimanHashAttribute()
-    {
-        return encryptor($this->id_pengiriman);
-    }
-
     public function permohonan()
     {
         return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function detail(){
+        return $this->hasMany(Pengiriman_detail::class, 'id_pengiriman', 'id_pengiriman');
+    }
+
+    public function alamat(){
+        return $this->belongsTo(Master_alamat::class, 'alamat', 'id_alamat');
     }
 }

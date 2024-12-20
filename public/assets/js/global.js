@@ -6,6 +6,12 @@ const role = $('#role')?.val();
 const permission = $('#permission')?.val() ? JSON.parse($('#permission').val()) : false;
 const permissionInRole = $('#permissionInRole').val() ? JSON.parse($('#permissionInRole').val()) : false;
 
+/**
+ * Formats a number into Indonesian Rupiah currency format.
+ *
+ * @param {number} angka - The number to be formatted.
+ * @returns {string} The formatted currency string in Rupiah.
+ */
 function formatRupiah(angka) {
     // Mengubah angka menjadi format mata uang Rupiah
     var format = new Intl.NumberFormat('id-ID', {
@@ -18,6 +24,22 @@ function formatRupiah(angka) {
     // Mengganti nilai input dengan format Rupiah
     return format;
 }
+
+/**
+ * Initializes input masks for various input fields.
+ * 
+ * This function applies different input masks to elements with specific classes:
+ * - `.rupiah`: Applies a numeric input mask formatted as currency with no prefix, 
+ *   comma as the radix point, dot as the group separator, no digits after the decimal, 
+ *   auto grouping enabled, right alignment disabled, and mask removed on form submit.
+ * - `.maskNumber`: Applies a numeric input mask with a minimum value of 0, maximum value of 100, 
+ *   no minus or plus signs allowed, integer values only, and right alignment disabled.
+ * - `.maskNPWP`: Applies an input mask for NPWP (Indonesian Tax Identification Number) 
+ *   with a specific pattern and placeholder.
+ * - `.maskNIK`: Applies an input mask for NIK (Indonesian National Identification Number) 
+ *   with a specific pattern and placeholder.
+ * - `.maskTelepon`: Applies an input mask for telephone numbers with a specific pattern and placeholder.
+ */
 function maskReload() {
     $('.rupiah').inputmask('numeric', {
         alias: 'currency',
@@ -45,6 +67,11 @@ function maskReload() {
 }
 maskReload();
 
+/**
+ * Displays a confirmation dialog using SweetAlert2 and executes a callback function if confirmed.
+ *
+ * @param {Function} [callback=() => {}] - The callback function to execute if the user confirms the action.
+ */
 function deleteGlobal(callback = () => { }) {
     Swal.fire({
         title: 'Are you sure?',
@@ -68,7 +95,12 @@ function deleteGlobal(callback = () => { }) {
 /**
  *
  * @param {date} tanggal
- * @param {integer} type 1,2,false
+ * @param {integer} type
+ * * 1 = 14 Okt 2023, 18:40
+ * * 2 = 14 Okt 2023
+ * * 3 = 2023-10-14 18:40
+ * * 4 = 14 August 2024
+ * * default = sabtu, 14 Okt 2023, 18:40
  * @returns
  */
 function dateFormat(tanggal, type = false) {
@@ -129,6 +161,12 @@ function dateFormat(tanggal, type = false) {
     return `${d.toLocaleString('id-ID', options)}`;
 }
 
+/**
+ * Converts a date string into a formatted date string.
+ *
+ * @param {string} tanggal - The date string to be converted.
+ * @returns {string} The formatted date string in 'en-US' locale.
+ */
 function convertDate(tanggal) {
     const options = {
         weekday: 'long',
@@ -280,82 +318,104 @@ function statusFormat(feature, status) {
         switch (status) {
             case 1:
                 htmlStatus = `
-                    <span class="badge text-bg-primary">Sedang dikirim</span>`;
+                    <span class="text-info ms-2"><i class="bi bi-arrow-up-circle-fill"></i> Sedang dikirim</span>`;
                 break;
-        
+
+            case 2:
+                htmlStatus = `
+                    <span class="text-success ms-2"><i class="bi bi-check-circle-fill"></i> Terkirim</span>`;
+                break;
+                
+            case 3:
+                htmlStatus = `
+                    <span class="text-primary ms-2"><i class="bi bi-info-circle-fill"></i> Proses Pengiriman</span>`;
+                break;
+
             default:
                 htmlStatus = `
-                    <span class="badge text-bg-success">Terkirim</span>`;
+                    <span class="text-secondary ms-2"><i class="bi bi-info-circle-fill"></i> Belum dikirim</span>`;
                 break;
         }
     } else if (feature == 'penyelia') {
         switch (status){
             case 1:
                 htmlStatus = `
-                    <span class="badge text-bg-secondary rounded-pill">Pengajuan</span>
+                    <span class="badge bg-secondary-subtle text-dark border border-secondary">Pengajuan</span>
                 `;
                 break;
             case 2:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">TTD manager</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">TTD manager</span>
                 `;
                 break;
             case 3:
                 htmlStatus = `
-                    <span class="badge text-bg-success rounded-pill">Selesai</span>
+                    <span class="badge bg-success-subtle text-dark border border-success">Selesai</span>
                 `;
                 break;
             case 11:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Pendataan TLD</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Pendataan TLD</span>
                 `;
                 break;
             case 12:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Pembacaan TLD</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Pembacaan TLD</span>
                 `;
                 break;
             case 13:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Penyimpanan TLD</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penyimpanan TLD</span>
                 `;
                 break;
             case 14:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Anealing</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Anealing</span>
                 `;
                 break;
             case 15:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Labeling</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Labeling</span>
                 `;
                 break;
             case 16:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Penyeliaan LHU</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penyeliaan LHU</span>
                 `;
                 break;
             case 17:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Pendatanganan LHU</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Pendatanganan LHU</span>
                 `;
                 break;
             case 18:
                 htmlStatus = `
-                    <span class="badge text-bg-primary rounded-pill">Proses Penerbitan LHU</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penerbitan LHU</span>
                 `;
                 break;
             case 19:
                 htmlStatus = `
-                    <span class="badge text-bg-success rounded-pill">Selesai</span>
+                    <span class="badge bg-success-subtle text-dark border border-success">Selesai</span>
                 `;
                 break;
+        }
+    } else if (feature == 'invoice') {
+        if(status == '5'){
+            htmlStatus = `<span class="badge bg-success-subtle text-dark border border-success">Sudah dibayar</span>`;
+        } else {
+            htmlStatus = `<span class="badge bg-danger-subtle text-dark border border-danger">Belum dibayar</span>`;
         }
     }
 
     return htmlStatus;
 }
 
+/**
+ * Returns the icon filename based on the document MIME type.
+ *
+ * @param {string} type - The MIME type of the document.
+ * @returns {string} The filename of the corresponding icon.
+ */
 function iconDocument(type) {
     let icon = '';
     switch (type) {
@@ -372,6 +432,13 @@ function iconDocument(type) {
     return icon;
 }
 
+/**
+ * Formats a given size in bytes into a more readable string with appropriate units.
+ *
+ * @param {number} size - The size in bytes to format.
+ * @param {number} [precision=2] - The number of decimal places to include in the formatted string.
+ * @returns {string} The formatted size string with appropriate units (B, KB, MB, GB, TB).
+ */
 function formatBytes(size, precision = 2) {
     const base = Math.log(size) / Math.log(1024);
     const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -479,7 +546,15 @@ function formatSelect2Staff(state) {
     return $content;
 }
 
-// Fungsi untuk membuat elemen pagination dari data pagination
+
+/**
+ * Generates HTML string for pagination controls.
+ *
+ * @param {Object} pagination - The pagination data.
+ * @param {number} pagination.current_page - The current page number.
+ * @param {number} pagination.last_page - The last page number.
+ * @returns {string} The HTML string for pagination controls.
+ */
 function createPaginationHTML(pagination) {
     // Periksa apakah data pagination ada
     if (!pagination) {
@@ -521,6 +596,14 @@ function unmask(data) {
 }
 
 
+/**
+ * Sends an AJAX POST request to the specified URL with the given parameters.
+ *
+ * @param {string} url - The endpoint URL to send the request to.
+ * @param {FormData} params - The parameters to include in the request body.
+ * @param {Function} [callback=() => {}] - The function to call if the request is successful.
+ * @param {Function} [onError=() => {}] - The function to call if the request fails.
+ */
 function ajaxPost(url, params, callback = () => {}, onError = () => {}) {
     params.append('_token', csrf);
     $.ajax({
@@ -536,6 +619,14 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}) {
     }).done(callback).fail(onError)
 }
 
+/**
+ * Makes an AJAX GET request.
+ *
+ * @param {string} url - The endpoint URL to send the request to.
+ * @param {Object} params - The parameters to include in the request.
+ * @param {Function} [callback=() => {}] - The function to call if the request is successful.
+ * @param {Function} [onError=() => {}] - The function to call if the request fails.
+ */
 function ajaxGet(url, params, callback = () => {}, onError = () => {}) {
     $.ajax({
         method: 'GET',
@@ -550,6 +641,13 @@ function ajaxGet(url, params, callback = () => {}, onError = () => {}) {
     }).done(callback).fail(onError)
 }
 
+/**
+ * Sends an AJAX DELETE request to the specified URL after user confirmation.
+ *
+ * @param {string} url - The URL to send the DELETE request to.
+ * @param {Function} [callback=() => {}] - The callback function to execute if the request is successful.
+ * @param {Function} [onError=() => {}] - The callback function to execute if the request fails.
+ */
 function ajaxDelete(url, callback = () => {}, onError = () => {}){
     Swal.fire({
         icon: 'warning',
@@ -672,6 +770,16 @@ function printMedia(media, folder=false, option = {}){
         `;
 }
 
+/**
+ * Toggles a spinner on a given element.
+ *
+ * @param {string} [status='show'] - The status of the spinner, either 'show' or 'hide'.
+ * @param {HTMLElement} obj - The target element to which the spinner will be added or removed.
+ * @param {Object} [options={}] - Additional options for the spinner.
+ * @param {string} [options.place='before'] - The position of the spinner relative to the target element, either 'before' or 'after'.
+ * @param {string|boolean} [options.width=false] - The width of the spinner.
+ * @param {string|boolean} [options.height=false] - The height of the spinner.
+ */
 function spinner(status = 'show', obj, options = {}){
     options = {
         place: options.place ? options.place : 'before', // after or before
@@ -708,6 +816,18 @@ function showPreviewKtp(obj) {
 }
 
 // Signature
+/**
+ * Creates a signature pad within a specified parent element.
+ *
+ * @param {HTMLElement} parent - The parent element to append the signature pad to.
+ * @param {Object} options - Configuration options for the signature pad.
+ * @param {string} [options.text=''] - Text to display below the signature pad.
+ * @param {string} [options.name=''] - Name to display below the text.
+ * @param {string|boolean} [options.defaultSig=false] - URL of the default signature image. If false, no default image is used.
+ * @param {number} [options.width=200] - Width of the signature pad.
+ * @param {number} [options.height=120] - Height of the signature pad.
+ * @returns {SignaturePad} - The created SignaturePad instance.
+ */
 function signature(parent, options){
     options = {
         text: options.text ? options.text : '',

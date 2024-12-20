@@ -9,8 +9,11 @@ use Illuminate\Support\Carbon;
 use App\Traits\RestApi;
 
 use App\Models\Pengiriman;
+use App\Models\Pengiriman_detail;
 use App\Models\Permohonan;
 use App\Models\User;
+use App\Models\Keuangan;
+use App\Models\Penyelia;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -25,6 +28,50 @@ class PengirimanAPI extends Controller
     public function __construct(){
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
+        date_default_timezone_set('Asia/Jakarta');
+    }
+
+    public function listPermohonan(Request $request)
+    {
+        $limit = $request->has('limit') ? $request->limit : 10;
+        $page = $request->has('page') ? $request->page : 1;
+        $search = $request->has('search') ? $request->search : '';
+
+        DB::beginTransaction();
+        try {
+            $query = Permohonan::with(
+                        'layanan_jasa:id_layanan,nama_layanan',
+                        'jenisTld:id_jenisTld,name', 
+                        'jenis_layanan:id_jenisLayanan,name,parent',
+                        'jenis_layanan_parent',
+                        'pelanggan:id,id_perusahaan,name',
+                        'pelanggan.perusahaan',
+                        'kontrak',
+                        'invoice',
+                        'invoice.pengiriman',
+                        'lhu',
+                        'lhu.media',
+                        'lhu.pengiriman',
+                    )->when($search, function($q, $search){
+                        return $q->where('no_kontrak', 'like', "%$search%");
+                    })
+                    ->where('status', 2)
+                    ->orderBy('created_at','DESC')
+                    ->offset(($page - 1) * $limit)
+                    ->limit($limit)
+                    ->paginate($limit);
+
+            $arr = $query->toArray();
+            DB::commit();
+            $this->pagination = Arr::except($arr, 'data');
+
+            return $this->output($query, 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return response()->json(array('msg' => $ex->getMessage()), 500);
+        }
+
     }
 
     public function listPengiriman(Request $request)
@@ -32,34 +79,21 @@ class PengirimanAPI extends Controller
         $limit = $request->has('limit') ? $request->limit : 10;
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
-        $menu = $request->has('menu') ? $request->menu : '';
         $idPelanggan = $request->has('idPelanggan') ? decryptor($request->idPelanggan) : '';
-
-        switch ($menu) {
-            case 'list':
-                $status = [1];
-                break;
-            
-            case 'selesai':
-                $status = [2];
-                break;
-
-            default:
-                $status = false;
-                break;
-        }
 
         DB::beginTransaction();
         try {
             $query = Pengiriman::with(
                         'permohonan:id_permohonan,periode_pemakaian,created_by',
                         'permohonan.pelanggan',
-                        'permohonan.pelanggan.perusahaan'
+                        'permohonan.pelanggan.perusahaan',
+                        'detail',
+                        'alamat'
                     )->orderBy('created_at', 'DESC')
                     ->offset(($page - 1) * $limit)
-                    ->when($status, function($q, $status) {
-                        return $q->whereIn('status', $status);
-                    })
+                    // ->when($status, function($q, $status) {
+                    //     return $q->whereIn('status', $status);
+                    // })
                     ->when($idPelanggan, function($q, $idPelanggan) {
                         return $q->where('tujuan', $idPelanggan);
                     })
@@ -71,7 +105,7 @@ class PengirimanAPI extends Controller
 
             DB::commit();
 
-            return response()->json($query, 200);
+            return $this->output($query, 200);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -81,7 +115,7 @@ class PengirimanAPI extends Controller
 
     public function getPengirimanById(string $idPengiriman)
     {
-        $id = decryptor($idPengiriman);
+        $id = $idPengiriman;
 
         DB::beginTransaction();
         try {
@@ -92,7 +126,8 @@ class PengirimanAPI extends Controller
                 'permohonan.lhu',
                 'permohonan.lhu.media',
                 'permohonan.pelanggan.perusahaan',
-                'permohonan.kontrak'
+                'permohonan.kontrak',
+                'detail',
             )->where('id_pengiriman', $id)->first();
             
             DB::commit();
@@ -168,22 +203,24 @@ class PengirimanAPI extends Controller
     {
         DB::beginTransaction();
         try {
-            $idPengiriman = $request->idPengiriman ? decryptor($request->idPengiriman) : false;
+            $idPengiriman = $request->idPengiriman ? (decryptor($request->idPengiriman) ? decryptor($request->idPengiriman) : $request->idPengiriman) : false;
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
-            $noResi = $request->noResi ? $request->noResi : false;
+            $noResi = $request->has('noResi') ? $request->noResi : false;
             $jenisPengiriman = $request->jenisPengiriman ? $request->jenisPengiriman : false;
             $noKontrak = $request->noKontrak ? $request->noKontrak : false;
-            $alamat = $request->alamat ? $request->alamat : false;
+            $alamat = $request->alamat ? decryptor($request->alamat) : false;
             $tujuan = $request->tujuan ? $request->tujuan : false;
             $periode = $request->periode ? $request->periode : false;
             $status = $request->status ? $request->status : false;
+            $detail = $request->detail ? $request->detail : false;
+            $sendAt = $request->sendAt ? $request->sendAt : false;
             $recivedAt = $request->dateRecived ? $request->dateRecived : false;
             $buktiPengiriman = $request->file('buktiPengiriman') ? $request->file('buktiPengiriman') : array();
             $buktiPenerima = $request->file('buktiPenerima') ? $request->file('buktiPenerima') : array();
             
             $params = array();
+            $request->has('noResi') && $params['no_resi'] = $noResi;
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
-            $noResi && $params['no_resi'] = $noResi;
             $jenisPengiriman && $params['jenis_pengiriman'] = $jenisPengiriman;
             $noKontrak && $params['no_kontrak'] = $noKontrak;
             $alamat && $params['alamat'] = $alamat;
@@ -191,6 +228,7 @@ class PengirimanAPI extends Controller
             $periode && $params['periode'] = $periode;
             $status && $params['status'] = $status;
             $recivedAt && $params['recived_at'] = $recivedAt;
+            $sendAt && $params['send_at'] = Carbon::parse($sendAt)->timezone('Asia/Jakarta')->format('Y-m-d H:i:s');
 
             // upload file
             $bukti = array();
@@ -202,7 +240,7 @@ class PengirimanAPI extends Controller
                     array_push($tmpFileBukti, $fileBukti);
                 }
 
-                $params['bukti_pengiriman'] = json_encode($bukti);
+                $params['bukti_pengiriman'] = $bukti;
             }
 
             $tmpBuktiPenerima = array();
@@ -214,14 +252,11 @@ class PengirimanAPI extends Controller
                     array_push($tmpFilePenerima, $fileBukti);
                 }
 
-                $params['bukti_penerima'] = json_encode($tmpBuktiPenerima);
+                $params['bukti_penerima'] = $tmpBuktiPenerima;
             }
 
             $pengiriman = Pengiriman::where('id_pengiriman', $idPengiriman)->first();
-            if($pengiriman){
-
-            }else{
-                $params['send_at'] = Carbon::now();
+            if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
 
@@ -229,6 +264,27 @@ class PengirimanAPI extends Controller
                 ["id_pengiriman" => $idPengiriman],
                 $params
             );
+
+            // Add to detail
+            if($detail){
+                // Remove all detail
+                Pengiriman_detail::where('id_pengiriman', $idPengiriman)->delete();
+
+                foreach (json_decode($detail) as $key => $value) {
+                    Pengiriman_detail::create(array(
+                        'id_pengiriman' => $idPengiriman,
+                        'jenis' => $value->jenis,
+                        'periode' => $value->periode
+                    ));
+                    
+                    // menambahkan id_pengiriman ke invoice
+                    if($value->jenis == 'invoice'){
+                        $invoice = Keuangan::where('id_keuangan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+                    } else if($value->jenis == 'lhu'){
+                        $lhu = Penyelia::where('id_penyelia', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+                    }
+                }
+            }
 
             $result['id_pengiriman'] = $query->pengiriman_hash;
 
@@ -267,12 +323,13 @@ class PengirimanAPI extends Controller
 
     public function destroy(string $idPengiriman)
     {
-        $id = decryptor($idPengiriman);
+        $id = $idPengiriman;
 
         DB::beginTransaction();
         try {
             $fileBukti = Pengiriman::select('bukti_pengiriman','bukti_penerima')->where('id_pengiriman', $id)->first();
             $delete = Pengiriman::where('id_pengiriman', $id)->delete();
+            $detail = Pengiriman_detail::where('id_pengiriman', $id)->delete();
             DB::commit();
 
             if($fileBukti && $delete){

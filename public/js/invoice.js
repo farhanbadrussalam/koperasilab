@@ -317,7 +317,7 @@ class Invoice {
         const hargaLayanan = permohonan.harga_layanan;
         const qty = permohonan.jumlah_kontrol + permohonan.jumlah_pengguna;
         const jumLayanan = permohonan.total_harga;
-        const periode = JSON.parse(permohonan.periode_pemakaian);
+        const periode = permohonan.periode_pemakaian;
         
         let jumDiskon = 0;
         let jumPph = 0;

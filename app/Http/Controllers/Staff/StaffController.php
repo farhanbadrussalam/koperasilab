@@ -138,6 +138,15 @@ class StaffController extends Controller
         return view('pages.staff.pengiriman.index', $data);
     }
 
+    public function indexPengirimanPermohonan()
+    {
+        $data = [
+            'title' => 'Permohonan',
+            'module' => 'staff-pengiriman-permohonan'
+        ];
+        return view('pages.staff.pengiriman.permohonan', $data);
+    }
+
     public function verifikasiPermohonan($idPermohonan)
     {
         $arrTandaTerima = [1];
@@ -169,12 +178,53 @@ class StaffController extends Controller
         return view('pages.staff.permohonan.verifikasi', $data);
     }
 
-    public function tambahPengiriman()
+    public function buatCustomPengiriman()
     {
         $data = [
             'title' => 'Buat Pengiriman',
             'module' => 'staff-pengiriman'
         ];
         return view('pages.staff.pengiriman.tambah', $data);
+    }
+
+    public function buatOrderPengiriman($idPermohonan)
+    {
+        $idPermohonan = decryptor($idPermohonan) ?? false;
+
+        $dataPermohonan = Permohonan::with(
+                'layanan_jasa:id_layanan,nama_layanan',
+                'jenisTld:id_jenisTld,name', 
+                'jenis_layanan:id_jenisLayanan,name,parent',
+                'jenis_layanan_parent',
+                'pelanggan:id,id_perusahaan,name',
+                'pelanggan.perusahaan',
+                'pelanggan.perusahaan.alamat',
+                'kontrak',
+                'invoice',
+                'lhu',
+                'lhu.media'
+            )->find($idPermohonan);
+
+        $data = [
+            'title' => 'Buat Pengiriman',
+            'module' => 'staff-pengiriman-permohonan',
+            'noPengiriman' => $this->generateNoPengiriman(),
+            'permohonan' => $dataPermohonan
+        ];
+
+        return view('pages.staff.pengiriman.kirim', $data);
+    }
+
+    private function generateNoPengiriman() {
+        // Format tanggal: milisecond (timestamp)
+        $milliseconds = round(microtime(true) * 1000);
+        
+        // Angka acak (3 digit)
+        $randomNumber = mt_rand(100, 999);
+    
+        // Kombinasi nomor pengiriman
+        $noPengiriman = "D-" . $milliseconds . $randomNumber;
+    
+        return $noPengiriman;
     }
 }

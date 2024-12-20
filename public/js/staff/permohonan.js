@@ -20,7 +20,7 @@ function loadData(page = 1) {
     ajaxGet(`api/v1/permohonan/listPengajuan`, params, result => {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
-            let periode = JSON.parse(pengajuan.periode_pemakaian);
+            let periode = pengajuan.periode_pemakaian;
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">

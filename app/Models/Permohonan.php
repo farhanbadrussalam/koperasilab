@@ -42,6 +42,10 @@ class Permohonan extends Model
         'permohonan_hash'
     ];
 
+    protected $casts = [
+        'periode_pemakaian' => 'array',
+    ];
+
     public function getPermohonanHashAttribute()
     {
         return encryptor($this->id_permohonan);

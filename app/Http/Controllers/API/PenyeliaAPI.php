@@ -239,7 +239,7 @@ class PenyeliaAPI extends Controller
 
             DB::commit();
 
-            return response()->json($query, 200);
+            return $this->output($query, 200);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

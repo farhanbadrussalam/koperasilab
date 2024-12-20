@@ -16,7 +16,7 @@ function loadData(page = 1) {
         for (const [i, keuangan] of result.data.entries()) {
             const permohonan = keuangan.permohonan;
             permohonan.idkeuangan = keuangan.keuangan_hash;
-            let periode = JSON.parse(permohonan.periode_pemakaian);
+            let periode = permohonan.periode_pemakaian;
             let btnAction = '';
             if(keuangan.status == 3){
                 btnAction = `<a class="btn btn-outline-warning btn-sm" href="${base_url}/permohonan/pembayaran/bayar/${keuangan.keuangan_hash}" title="Bayar"><i class="bi bi-cash"></i> Bayar</a>`;

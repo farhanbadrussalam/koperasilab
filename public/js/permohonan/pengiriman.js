@@ -1,7 +1,7 @@
 let nowTab = 1;
 const arrImgBukti = [];
 $(function () {
-    switchLoadTab(1);
+    loadData(1);
 
     $('#btnTambahBukti').on('click', obj => {
         let imgtmp = $('#uploadBuktiPenerima')[0].files[0];
@@ -20,82 +20,83 @@ $(function () {
         const dateRecived = $('#txt_date_diterima').val();
         const idPengiriman = $('#idPengiriman').val();
 
-        const formData = new FormData();
-        formData.append('dateRecived', dateRecived);
-        formData.append('idPengiriman', idPengiriman);
-        formData.append('status', 2);
-        arrImgBukti.forEach((file, index) => {
-            formData.append('buktiPenerima[]', file);
-        });
+        const arrSelectDocument = document.getElementsByName('selectDocument');
+        
+        let isComplete = true;
+        for (const selectDocument of arrSelectDocument) {
+            if(!selectDocument.checked){
+                isComplete = false;
+                break;
+            }
+        }
 
-        spinner('show', $(obj.target));
-        ajaxPost('api/v1/pengiriman/action', formData, result => {
-            spinner('hide', $(obj.target));
-            if(result.meta.code == 200) {
-                Swal.fire({
-                    icon: "success",
-                    text: "Document diterima"
-                }).then(() => {
-                    $('#modal-diterima').modal('hide');
-                    resetForm();
-                    switchLoadTab(1);
-                });
-            }
-        }, error => {
-            const result = error.responseJSON;
-            if(result?.meta?.code && result?.meta?.code == 500){
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(result.data.msg);
-            }else{
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(error);
-            }
-        })
+        if(arrImgBukti.length === 0){
+            Swal.fire({
+                icon: "error",
+                text: "Tambahkan bukti penerima"
+            });
+            return;
+        }
+
+        if(isComplete){
+            const formData = new FormData();
+            formData.append('dateRecived', dateRecived);
+            formData.append('idPengiriman', idPengiriman);
+            formData.append('status', 2);
+            arrImgBukti.forEach((file, index) => {
+                formData.append('buktiPenerima[]', file);
+            });
+
+            spinner('show', $(obj.target));
+            ajaxPost('api/v1/pengiriman/action', formData, result => {
+                spinner('hide', $(obj.target));
+                if(result.meta.code == 200) {
+                    Swal.fire({
+                        icon: "success",
+                        text: "Document diterima"
+                    }).then(() => {
+                        $('#modal-diterima').modal('hide');
+                        resetForm();
+                        loadData(1);
+                    });
+                }
+            }, error => {
+                const result = error.responseJSON;
+                if(result?.meta?.code && result?.meta?.code == 500){
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Server error',
+                    });
+                    console.error(result.data.msg);
+                }else{
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Server error',
+                    });
+                    console.error(error);
+                }
+            })
+        } else {
+            Swal.fire({
+                icon: "error",
+                text: "Dokumen belum lengkap"
+            });
+        }
     });
 });
 
-function switchLoadTab(menu){
-    nowTab = menu;
-    switch (menu) {
-        case 1:
-            menu = 'list';
-            break;
-    
-        case 2:
-            menu = 'selesai';
-            break;
-    }
-
-    loadData(1, menu);
-}
-
-function loadData(page = 1, menu) {
+function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
-        menu: menu,
         idPelanggan: idPelanggan ? idPelanggan : false
     };
 
-    $(`#list-placeholder-${menu}`).show();
-    $(`#list-container-${menu}`).hide();
+    $(`#list-placeholder-pengiriman`).show();
+    $(`#list-container-pengiriman`).hide();
     ajaxGet(`api/v1/pengiriman/list`, params, result => {
         let html = '';
         for (const [i, data] of result.data.entries()) {
-            let periode = JSON.parse(data.periode);
-            let jenis = data.jenis_pengiriman.split(',');
-            
-            let htmlJenis = '';
-            for (const v of jenis) {
-                htmlJenis += `<div>${v}</div>`;
-            }
-
             let htmlButton = '';
             if(data.status == 1){
                 htmlButton = `<button class="btn btn-outline-primary btn-sm mb-2" onclick="showModalDiterima(this)">Dokumen diterima</button>`;
@@ -105,21 +106,22 @@ function loadData(page = 1, menu) {
                 <div class="card mb-2">
                     <div class="card-body row align-items-center py-2">
                         <div class="col-12 col-md-3">
-                            <div class="fw-bolder">${data.no_resi}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
+                            <div class="fw-bolder">${data.id_pengiriman}</div>
+                            <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
+                            <small class="subdesc text-body-secondary fw-light lh-md">
                                 <div>${data.no_kontrak}</div>
-                                <div>Periode: </div>
-                                <div class="badge text-bg-secondary">${dateFormat(periode.start_date, 4)} s/d ${dateFormat(periode.end_date, 4)}</div>
+                                <div>created at ${dateFormat(data.created_at, 1)}</div>
                             </small>
                         </div>
                         <div class="col-6 col-md-1">
-                            ${htmlJenis}
+                            ${data.detail.length} Item
                         </div>
                         <div class="col-6 col-md-2">
                             <span>${data.permohonan.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>Alamat: </div>
-                                <div>${data.alamat}</div>
+                                <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
+                                    Alamat ${data.alamat.jenis}
+                                </div>
                             </small>
                         </div>
                         <div class="col-6 col-md-2 text-center">
@@ -129,7 +131,7 @@ function loadData(page = 1, menu) {
                             <div class="row">
                                 <span>Dikirim</span>
                                 <small class="subdesc text-body-secondary fw-light lh-sm">
-                                    ${data.created_at ? dateFormat(data.created_at, 4) : '-'}
+                                    ${data.send_at ? dateFormat(data.send_at, 4) : '-'}
                                 </small>
                                 <span>Diterima</span>
                                 <small class="subdesc text-body-secondary fw-light lh-sm">
@@ -137,7 +139,7 @@ function loadData(page = 1, menu) {
                                 </small>
                             </div>
                         </div>
-                        <div class="col-6 col-md-2 text-center" data-id="${data.pengiriman_hash}">
+                        <div class="col-6 col-md-2 text-center" data-id="${data.id_pengiriman}">
                             <button class="btn btn-outline-info btn-sm mb-2">Detail</button>
                             ${htmlButton}
                         </div>
@@ -154,12 +156,12 @@ function loadData(page = 1, menu) {
             `;
         }
 
-        $(`#list-container-${menu}`).html(html);
+        $(`#list-container-pengiriman`).html(html);
 
-        $(`#list-pagination-${menu}`).html(createPaginationHTML(result.pagination));
+        $(`#list-pagination-pengiriman`).html(createPaginationHTML(result.pagination));
 
-        $(`#list-placeholder-${menu}`).hide();
-        $(`#list-container-${menu}`).show();
+        $(`#list-placeholder-pengiriman`).hide();
+        $(`#list-container-pengiriman`).show();
     }, error => {
         const result = error.responseJSON;
         if(result?.meta?.code && result?.meta?.code == 500){
@@ -178,6 +180,11 @@ function loadData(page = 1, menu) {
     });
 }
 
+/**
+ * Displays a modal with details of a received shipment.
+ *
+ * @param {Object} obj - The DOM element that triggered the function.
+ */
 function showModalDiterima(obj){
     const id = $(obj).parent().data('id');
     ajaxGet(`api/v1/pengiriman/getById/${id}`, false, result => {
@@ -195,39 +202,34 @@ function showModalDiterima(obj){
         });
 
         // Cek kelengkapan
-        let jenisPengiriman = data.jenis_pengiriman.split(',');
         let htmlJenis = '';
-        for (const jenis of jenisPengiriman) {
-            switch (jenis) {
+        for (const detail of data.detail) {
+            switch (detail.jenis) {
                 case 'invoice':
-                    let badgeStatus = '';
-                    if(data.permohonan.invoice.status == 5){
-                        badgeStatus = `<span class="badge text-bg-primary rounded-pill">Status : Sudah bayar</span>`
-                    }else{
-                        badgeStatus = `<span class="badge text-bg-danger rounded-pill">Status : Belum bayar</span>`
-                    }
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">Invoice</div>
                                 ${data.permohonan.invoice.no_invoice}
                             </div>
-                            ${badgeStatus}
+                            <input type="checkbox" class="btn-check" name="selectDocument" id="selectDocumentInvoice" 
+                                data-jenis="${detail.jenis}" data-id="${data.permohonan.invoice.keuangan_hash}" 
+                                autocomplete="off" checked>
+                            <label class="btn btn-outline-success btn-sm" for="selectDocumentInvoice">Sesuai</label><br>
                         </li>
                     `;
                     break;
                 case 'lhu':
-                
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">LHU</div>
-                                <a class="p-2 rounded border cursoron document" target="_blank" href="${base_url}/storage/${data.permohonan.lhu.media.file_path}/${data.permohonan.lhu.media.file_hash}">
-                                    <img class="my-2" src="${base_url}/icons/${iconDocument(data.permohonan.lhu.media.file_type)}" style="width: 24px; height: 24px;">
-                                    <span class="caption text-main">${data.permohonan.lhu.media.file_ori}</span>
-                                </a>
+                                <div>Periode ${detail.periode}</div>
                             </div>
-                            ${statusFormat('penyelia',data.permohonan.lhu.status)}
+                            <input type="checkbox" class="btn-check" name="selectDocument" id="selectDocumentLhu" 
+                                data-jenis="${detail.jenis}" data-id="${data.permohonan.lhu.lhu_hash}" 
+                                autocomplete="off" checked>
+                            <label class="btn btn-outline-success btn-sm" for="selectDocumentLhu">Sesuai</label><br>
                         </li>
                     `;
 
@@ -238,7 +240,6 @@ function showModalDiterima(obj){
         }
 
         $('#list-kelengkapan').html(htmlJenis);
-        console.log(result);
         $('#modal-diterima').modal('show');
     }, error => {
         const result = error.responseJSON;
@@ -258,6 +259,11 @@ function showModalDiterima(obj){
     });
 }
 
+/**
+ * Loads and displays a preview of images in the `arrImgBukti` array.
+ * Each image is displayed as a thumbnail with a remove button.
+ * Clicking the remove button will remove the image from the array and reload the previews.
+ */
 function loadPreviewBukti(){
     $('#list-preview-bukti').html('');
     for (const [i,img] of arrImgBukti.entries()) {
@@ -295,7 +301,6 @@ function loadPreviewBukti(){
         };
         reader.readAsDataURL(img);
     }
-
 }
 
 function resetForm(){

@@ -174,10 +174,17 @@
 
                 @can('Staff/pengiriman')
                 <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-pengiriman-permohonan' ? 'active' : '' }}"
+                    href="{{ route('staff.pengiriman.permohonan') }}" aria-expanded="false">
+                    <span>&nbsp;</span>
+                    <span class="hide-menu">List Permohonan</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-pengiriman' ? 'active' : '' }}"
                     href="{{ route('staff.pengiriman') }}" aria-expanded="false">
                     <span>&nbsp;</span>
-                    <span class="hide-menu">Pengiriman</span>
+                    <span class="hide-menu">List Pengiriman</span>
                     </a>
                 </li>
                 @endcan

@@ -15,7 +15,7 @@ function loadData(page=1) {
         let html = '';
         for (const [i, lhu] of result.data.entries()) {
             const permohonan = lhu.permohonan;
-            let periode = JSON.parse(permohonan.periode_pemakaian);
+            let periode = permohonan.periode_pemakaian;
             let btnAction = '';
 
             if(lhu.status == 2) {

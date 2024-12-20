@@ -4,17 +4,25 @@ class Periode {
         this.listPeriode = [];
         this.canShow = options.preview || false;
         this.maxPeriode = options.max || false;
+        this.dataonly = options.dataonly || false;
         this.eventSimpan = new CustomEvent('periode.simpan', {});
+        this.eventHide = new CustomEvent('periode.hide.modal', {});
 
         // add element modal to body
         if(this.canShow){
             $('body').append(this.modalShow);
+        }else if(this.dataonly){
+
         }else{
             $('body').append(this.modalCreate);
         }
 
         $('#modal-pilih-periode').on('hide.bs.modal', () => {
             this.listPeriode = Array.from(this.masterData);
+        });
+
+        $('#modal-show-periode').on('hide.bs.modal', () => {
+            document.dispatchEvent(this.eventHide);
         });
 
         $('#btn-simpan-periode').on('click', () => {
@@ -76,11 +84,29 @@ class Periode {
         return this.masterData;
     }
 
+    getPeriodeNow(){
+        const now = new Date(); // Tanggal sekarang
+        let index = false; // Default jika tidak ditemukan
+
+        this.masterData.forEach((item, i) => {
+            const startDate = new Date(item.start_date);
+            const endDate = new Date(item.end_date);
+
+            if (now >= startDate && now < endDate) {
+                index = i; // Simpan indeks jika tanggal berada dalam rentang
+            }
+        });
+
+        return index !== false ? index + 1 : false;
+    }
+
     show(){
         this.listPeriode = Array.from(this.masterData);
         if(this.canShow){
             this.previewPeriode();
             $('#modal-show-periode').modal('show');
+        }else if(this.dataonly){
+
         }else{
             this.listPeriode.length == 0 ? this.addPeriode() : this.loadPeriode();
             $('#modal-pilih-periode').modal('show');
@@ -309,5 +335,15 @@ class Periode {
 
     on(eventName, callback = () => {}) {
         return document.addEventListener(eventName, callback);
+    }
+
+    destroy(){
+        if(this.canShow){
+            $('#modal-show-periode').remove();
+        }else if(this.dataonly){
+
+        }else{
+            $('#modal-pilih-periode').remove();
+        }
     }
 }

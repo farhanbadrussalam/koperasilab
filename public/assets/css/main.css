@@ -15,11 +15,18 @@ body {
     cursor: move;
 }
 
+.cursordisable {
+    cursor: not-allowed;
+}
+
 .document:hover{
-    background-color: #e2e2e2;
+    background-color: #e2e2e2 !important;
 }
 .hover-1:hover{
-    background-color: #eeeeee;
+    background-color: #eeeeee !important;
+}
+.hover-2:hover{
+    background-color: #858585 !important;
 }
 
 .dot {
@@ -102,4 +109,16 @@ a{
     border: 0;
     text-decoration: none;
     padding: 10px;
+}
+
+/* Animasi */
+.fade-out {
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    max-height: 500px; /* Sesuaikan dengan tinggi maksimum elemen */
+    opacity: 1;
+}
+.fade-out.hidden {
+    opacity: 0;
+    height: 0;
 }

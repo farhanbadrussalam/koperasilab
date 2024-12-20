@@ -78,4 +78,8 @@ class Keuangan extends Model
     public function usersig(){
         return $this->belongsTo(user::class, 'ttd_by', 'id');
     }
+
+    public function pengiriman(){
+        return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
+    }
 }

@@ -34,7 +34,7 @@ function loadData(page = 1) {
         dataPenyelia = result.data;
         for (const [i, lhu] of result.data.entries()) {
             const permohonan = lhu.permohonan;
-            let periode = JSON.parse(permohonan.periode_pemakaian);
+            let periode = permohonan.periode_pemakaian;
             let btnAction = '<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>';
 
             let divInfoTugas = `

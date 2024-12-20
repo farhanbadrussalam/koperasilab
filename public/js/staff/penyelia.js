@@ -130,7 +130,7 @@ function loadData(page = 1, menu) {
         let html = '';
         for (const [i, penyelia] of result.data.entries()) {
             const permohonan = penyelia.permohonan;
-            let periode = JSON.parse(permohonan.periode_pemakaian);
+            let periode = permohonan.periode_pemakaian;
             let btnAction = '';
             switch (menu) {
                 case 'surattugas':
