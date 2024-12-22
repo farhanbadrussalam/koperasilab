@@ -19,7 +19,6 @@ class Kontrak extends Model
         'tipe_kontrak',
         'no_kontrak',
         'jenis_tld',
-        'periode_pemakaian',
         'jumlah_pengguna',
         'jumlah_kontrol',
         'total_harga',
@@ -28,7 +27,7 @@ class Kontrak extends Model
         'ttd_by',
         'status',
         'note',
-        'pelanggan',
+        'id_pelanggan',
         'created_by',
         'created_at'
     ];
@@ -67,7 +66,7 @@ class Kontrak extends Model
     }
 
     public function pelanggan() {
-        return $this->belongsTo(User::class, 'pelanggan', 'id');
+        return $this->belongsTo(User::class, 'id_pelanggan', 'id');
     }
 
     public function tandaterima() {
@@ -80,5 +79,9 @@ class Kontrak extends Model
 
     public function lhu(){
         return $this->hasOne(Penyelia::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function periode(){
+        return $this->hasMany(Kontrak_periode::class, 'id_kontrak', 'id_kontrak');
     }
 }

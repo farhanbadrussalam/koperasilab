@@ -16,6 +16,7 @@ class Penyelia extends Model
         'id_permohonan',
         'start_date',
         'end_date',
+        'periode',
         'status',
         'ttd',
         'ttd_by',

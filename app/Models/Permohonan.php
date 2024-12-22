@@ -14,6 +14,7 @@ class Permohonan extends Model
 
     protected $fillable = [
         'id_kontrak',
+        'id_pengiriman',
         'tipe_kontrak',
         'no_kontrak',
         'jenis_tld',
@@ -89,5 +90,9 @@ class Permohonan extends Model
 
     public function lhu(){
         return $this->hasOne(Penyelia::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function pengiriman(){
+        return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
     }
 }

@@ -29,10 +29,7 @@ use App\Http\Controllers\Staff\PenyeliaController;
 
 use App\Http\Controllers\Manager\ManagerPengajuanController;
 
-use App\Http\Controllers\Report\SuratTugas;
-use App\Http\Controllers\Report\Kwitansi;
-use App\Http\Controllers\Report\Invoice;
-use App\Http\Controllers\Report\TandaTerima;
+use App\Http\Controllers\ReportController;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -100,6 +97,16 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::prefix('profile')->group(function () {
         Route::controller(ProfileController::class)->group(function () {
             Route::post('/update/{idAlamat}', 'updateAlamat')->name('profile.update');
+        });
+    });
+
+    Route::prefix('laporan')->group(function() {
+        Route::controller(ReportController::class)->group(function () {
+            Route::get('/suratTugas/{id}', 'suratTugas')->name('laporan.suratTugas');
+            Route::get('/kwitansi/{id}', 'kwitansi')->name('laporan.kwitansi');
+            Route::get('/invoice/{id}', 'invoice')->name('laporan.invoice');
+            Route::get('/tandaterima/{id}', 'tandaTerima')->name('laporan.tandaterima');
+            Route::get('/suratPengantar/{id}', 'suratPengantar')->name('laporan.suratPengantar');
         });
     });
 
@@ -180,12 +187,6 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
 
-    Route::prefix('laporan')->group(function() {
-        Route::get('/suratTugas/{id}', [SuratTugas::class, 'index'])->name('laporan.suratTugas');
-        Route::get('/kwitansi/{id}', [Kwitansi::class, 'index'])->name('laporan.kwitansi');
-        Route::get('/invoice/{id}', [Invoice::class, 'index'])->name('laporan.invoice');
-        Route::get('/tandaterima/{id}', [TandaTerima::class, 'index'])->name('laporan.tandaterima');
-    });
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');

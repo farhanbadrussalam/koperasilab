@@ -11,6 +11,7 @@ use App\Models\Penyelia;
 use App\Models\Penyelia_petugas;
 use App\Models\Penyelia_map;
 use App\Models\User;
+use App\Models\Permohonan;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
@@ -115,6 +116,12 @@ class PenyeliaAPI extends Controller
                 $params['created_by'] = Auth::user()->id;
             }
 
+            // menambahkan periode
+            $dataPemohonan = Permohonan::select('periode')->where('id_permohonan', $idPermohonan)->first();
+            if($dataPemohonan){
+                $params['periode'] = $dataPemohonan->periode ?? 1;
+            }
+
             $penyelia = Penyelia::updateOrCreate(
                 ["id_penyelia" => $idPenyelia],
                 $params
@@ -216,9 +223,10 @@ class PenyeliaAPI extends Controller
                             'permohonan.jenis_layanan_parent',
                             'permohonan.pelanggan',
                             'permohonan.pelanggan.perusahaan',
-                            'permohonan.kontrak'
+                            'permohonan.kontrak',
+                            'permohonan.kontrak.periode'
                         )
-                        ->orderBy('created_at','DESC')
+                        ->orderBy('id_penyelia','DESC')
                         ->offset(($page - 1) * $limit)
                         ->when($status, function($q, $status) use ($typePencarian) {
                             if($typePencarian == 'not'){

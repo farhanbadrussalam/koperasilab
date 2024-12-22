@@ -71,8 +71,8 @@
                             
                         </div>
                         <div class="d-flex justify-content-end mt-3">
-                            <button type="button" class="btn btn-secondary me-3" id="btnCetakSurat"><i
-                                    class="bi bi-printer-fill"></i> Cetak Surat Pengantar</button>
+                            <a type="button" class="btn btn-secondary me-3" id="btnCetakSurat" href="{{ route('laporan.suratPengantar', $permohonan->permohonan_hash) }}" target="_blank"><i
+                                    class="bi bi-printer-fill"></i> Cetak Surat Pengantar</a>
                             <button type="button" class="btn btn-primary" onclick="buatPengiriman(this)">Buat pengiriman</button>
                         </div>
                     </div>

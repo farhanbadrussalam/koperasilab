@@ -1,19 +1,35 @@
+let thisTab = 1;
+let thisStatus = false;
 $(function () {
-    loadPengajuan();
+    switchLoadTab(1);
 })
 
 $('#pagination_list').on('click', 'a', function (e) {
     e.preventDefault();
     const pageno = e.target.dataset.page;
     
-    loadPengajuan(pageno);
+    loadData(pageno, thisStatus);
 });
 
-function loadPengajuan(page = 1) {
+function switchLoadTab(menu){
+    thisTab = menu;
+    switch (menu) {
+        case 1:
+            thisStatus = [1,2];
+            break;
+
+        case 2:
+            thisStatus = [80];
+            break;
+    }
+    loadData(1, thisStatus);
+}
+
+function loadData(page = 1, status) {
     let params = {
         limit: 3,
         page: page,
-        status: [1,2]
+        status: status
     };
 
     $('#pengajuan-placeholder').show();
@@ -23,30 +39,52 @@ function loadPengajuan(page = 1) {
         for (const [i, pengajuan] of result.data.entries()) {
             let periode = pengajuan.periode_pemakaian;
 
-            let btnEdit = `<button class="btn btn-sm btn-outline-warning me-1" title="Edit"><i class="bi bi-pencil-square"></i></button>`;
-            let btnRemove = `<button class="btn btn-sm btn-outline-danger me-1" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i></button>`;
+            let btnEdit = `<a class="btn btn-sm btn-outline-warning me-1" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}"><i class="bi bi-pencil-square"></i> Edit</a>`;
+            let btnRemove = `<button class="btn btn-sm btn-outline-danger me-1 mt-1" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i> Remove</button>`;
 
-            html += `
-                <div class="card mb-2">
-                    <div class="card-body row align-items-center">
-                        <div class="col-12 col-md-3">
-                            <div class="title">Layanan ${pengajuan.layanan_jasa.nama_layanan}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>${pengajuan.jenis_tld.name}</div>
-                                <div>Periode : ${periode.length} Bulan</div>
-                                <div>Created : ${dateFormat(pengajuan.created_at, 4)}</div>
-                            </small>
+            if(thisTab == 2){
+                html += `
+                    <div class="card mb-2">
+                        <div class="card-body row align-items-center">
+                            <div class="col-12 col-md-3">
+                                <div class="title">Layanan ${pengajuan.layanan_jasa?.nama_layanan ?? 'Untitled'}</div>
+                                <small class="subdesc text-body-secondary fw-light lh-sm">
+                                    <div>created : ${dateFormat(pengajuan.created_at, 4)}</div>
+                                </small>
+                            </div>
+                            <div class="col-6 col-md-2 ms-auto">${statusFormat('permohonan', pengajuan.status)}</div>
+                            <div class="col-6 col-md-2 text-center" data-id="${pengajuan.permohonan_hash}">
+                                ${btnEdit}
+                                ${btnRemove}
+                            </div>
                         </div>
-                        <div class="col-6 col-md-3 my-3">${pengajuan.jenis_layanan_parent.name}-${pengajuan.jenis_layanan.name}</div>
-                        <div class="col-6 col-md-2 my-3 text-end text-md-start">${pengajuan.tipe_kontrak}</div>
-                        <div class="col-6 col-md-2">${statusFormat('permohonan', pengajuan.status)}</div>
-                        <div class="col-6 col-md-2 text-end" data-id="${pengajuan.permohonan_hash}">
-                            <button class="btn btn-sm btn-outline-secondary" title="Show detail"><i class="bi bi-info-circle"></i></button>
-                            ${pengajuan.status == 1 ? btnEdit + btnRemove : ''}
+                    </div>`;
+            } else {
+                html += `
+                    <div class="card mb-2">
+                        <div class="card-body row align-items-center">
+                            <div class="col-12 col-md-3">
+                                <div class="">
+                                    <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${pengajuan.tipe_kontrak}</span>
+                                    <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${pengajuan.jenis_layanan_parent.name} - ${pengajuan.jenis_layanan.name}</span>
+                                </div>
+                                <div class="title">Layanan ${pengajuan.layanan_jasa?.nama_layanan ?? 'Untitled'}</div>
+                                <small class="subdesc text-body-secondary fw-light lh-sm">
+                                    <div>${pengajuan.jenis_tld?.name ?? '-'}</div>
+                                    <div>Periode : ${periode?.length ?? '0'} Bulan</div>
+                                    <div>Created : ${dateFormat(pengajuan.created_at, 4)}</div>
+                                </small>
+                            </div>
+                            <div class="col-6 col-md-3 my-3 fw-semibold">${formatRupiah(pengajuan.total_harga)}</div>
+                            <div class="col-6 col-md-2 ms-auto">${statusFormat('permohonan', pengajuan.status)}</div>
+                            <div class="col-6 col-md-2 text-center" data-id="${pengajuan.permohonan_hash}">
+                                <button class="btn btn-sm btn-outline-secondary" title="Show detail"><i class="bi bi-info-circle"></i> Detail</button>
+                                ${pengajuan.status == 1 ? btnEdit + btnRemove : ''}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
 
         if(result.data.length == 0){
@@ -92,7 +130,7 @@ function remove(obj){
             timerProgressBar: true,
             showConfirmButton: false
         }).then(() => {
-            loadPengajuan()
+            switchLoadTab(thisTab);
         });
     }, error => {
         const result = error.responseJSON;

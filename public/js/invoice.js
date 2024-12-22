@@ -189,7 +189,7 @@ class Invoice {
             });
             $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
 
-            $('#invoiceActions').append(this.btnPrinter());
+            // $('#invoiceActions').append(this.btnPrinter());
         } else if (mode === 'detail') {
             if(this.dataKeuangan.ttd){
                 this.signaturePad = signature(document.getElementById("content-ttd-manager"), {

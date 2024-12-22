@@ -18,6 +18,7 @@ use App\Models\Master_price;
 use App\Models\Master_jenistld;
 use App\Models\Kontrak;
 use App\Models\Kontrak_pengguna;
+use App\Models\Kontrak_periode;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -452,6 +453,7 @@ class PermohonanAPI extends Controller
     
                     $arrayUpdate['ttd'] = $ttd;
                     $arrayUpdate['ttd_by'] = Auth::user()->id;
+                    $arrayUpdate['verify_at'] = date('Y-m-d H:i:s');
                     $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
                     $dataPermohonan->update($arrayUpdate);
 
@@ -467,7 +469,6 @@ class PermohonanAPI extends Controller
                                 'tipe_kontrak' => $dataPermohonan->tipe_kontrak,
                                 'no_kontrak' => $no_kontrak,
                                 'jenis_tld' => $dataPermohonan->jenis_tld,
-                                'periode_pemakaian' => $dataPermohonan->periode_pemakaian,
                                 'jumlah_pengguna' => $dataPermohonan->jumlah_pengguna,
                                 'jumlah_kontrol' => $dataPermohonan->jumlah_kontrol,
                                 'total_harga' => $dataPermohonan->total_harga,
@@ -476,7 +477,7 @@ class PermohonanAPI extends Controller
                                 'ttd_by' => $dataPermohonan->ttd_by,
                                 'status' => 1,
                                 'note' => $dataPermohonan->note,
-                                'pelanggan' => $dataPermohonan->created_by,
+                                'id_pelanggan' => $dataPermohonan->created_by,
                                 'created_by' => Auth::user()->id
                             );
                             $dataKontrak = Kontrak::create($params);
@@ -493,6 +494,22 @@ class PermohonanAPI extends Controller
                                 );
 
                                 Kontrak_pengguna::create($paramsPengguna);
+                            }
+
+                            // Tambah periode
+                            if($dataPermohonan->periode_pemakaian){
+                                foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
+                                    $paramsPeriode = array(
+                                        'id_kontrak' => $dataKontrak->id_kontrak,
+                                        'periode' => $key + 1,
+                                        'start_date' => $value['start_date'],
+                                        'end_date' => $value['end_date'],
+                                        'status' => 1,
+                                        'created_by' => Auth::user()->id,
+                                        'created_at' => date('Y-m-d H:i:s')
+                                    );
+                                    Kontrak_periode::create($paramsPeriode);
+                                }
                             }
 
                             // Menambahkan id_kontrak ke table permohonan 

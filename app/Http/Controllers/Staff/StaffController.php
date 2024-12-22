@@ -93,13 +93,14 @@ class StaffController extends Controller
             'petugas.user:id,name,email',
             'permohonan',
             'usersig:id,name',
+            'permohonan.kontrak',
+            'permohonan.kontrak.periode',
             'permohonan.layanan_jasa:id_layanan,nama_layanan,jobs',
             'permohonan.jenisTld:id_jenisTld,name', 
             'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
             'permohonan.jenis_layanan_parent',
             'permohonan.pelanggan',
             'permohonan.pelanggan.perusahaan',
-            'permohonan.kontrak'
         )->find($idPenyelia);
 
         // mengambil data jobs

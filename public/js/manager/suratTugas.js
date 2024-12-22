@@ -15,7 +15,7 @@ function loadData(page=1) {
         let html = '';
         for (const [i, lhu] of result.data.entries()) {
             const permohonan = lhu.permohonan;
-            let periode = permohonan.periode_pemakaian;
+            let tgl_periode = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode);
             let btnAction = '';
 
             if(lhu.status == 2) {
@@ -39,7 +39,8 @@ function loadData(page=1) {
                             <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>${permohonan.jenis_tld.name}</div>
-                                <div>Periode : ${periode.length} Bulan</div>
+                                <div>Periode ${lhu.periode} : </div>
+                                <div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>
                                 <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                             </small>
                         </div>

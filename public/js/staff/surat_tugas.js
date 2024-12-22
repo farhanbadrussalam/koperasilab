@@ -3,19 +3,8 @@ let arrJobs = [];
 let periodeJs = false;
 $(function () {
     // Mengambil periode
-    let arrPeriode = dataPenyelia?.permohonan?.periode_pemakaian;
-    periodeJs = new Periode(arrPeriode, {
-        preview: true,
-        max: arrPeriode.length
-    });
-    
-    let showPeriode = document.createElement('a');
-    showPeriode.className = 'text-decoration-none cursoron';
-    showPeriode.innerHTML = arrPeriode.length + ' Periode <i class="bi bi-eye-fill"></i>';
-    showPeriode.onclick = () => {
-        periodeJs.show();
-    };
-    $('#periodePermohonan').append(showPeriode);
+    let tgl_periode = dataPenyelia.permohonan.kontrak.periode.find(d => d.periode == dataPenyelia.periode);
+    $('#periodePermohonan').html(`${dateFormat(tgl_periode.start_date, 5)} - ${dateFormat(tgl_periode.end_date, 5)}`);
 
     if(!['verif', 'show'].includes(typeSurat)){
         $('#date_start').flatpickr({
@@ -50,12 +39,13 @@ $(function () {
         }
     }else{
         const conten_2 = document.getElementById("content-ttd-1");
-        console.log(typeSurat);
-        signaturePad = signature(conten_2, {
-            text: 'Manager',
-            defaultSig: dataPenyelia.ttd ?? false,
-            name: dataPenyelia?.usersig?.name ?? false
-        });
+        if(conten_2){
+            signaturePad = signature(conten_2, {
+                text: 'Manager',
+                defaultSig: dataPenyelia.ttd ?? false,
+                name: dataPenyelia?.usersig?.name ?? false
+            });
+        }
     }
 
     arrJobs = dataPenyelia.petugas.map(petugas => ({

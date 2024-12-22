@@ -16,7 +16,8 @@ class Pengiriman_detail extends Model
     protected $fillable = [
         'id_pengiriman',
         'jenis',
-        'periode'
+        'periode',
+        'list_tld'
     ];
 
     protected $hidden = [
@@ -27,6 +28,10 @@ class Pengiriman_detail extends Model
     protected $appends = [
         'pengiriman_detail_hash',
         'pengiriman_hash'
+    ];
+
+    protected $casts = [
+        'list_tld' => 'array'
     ];
 
     public function getPengirimanDetailHashAttribute()

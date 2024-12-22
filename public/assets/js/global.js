@@ -145,6 +145,13 @@ function dateFormat(tanggal, type = false) {
                 year: 'numeric'
             };
             break;
+        case 5:
+            // Okt 2023
+            options = {
+            month: 'long',
+            year: 'numeric'
+            };
+            break;
         default:
             // sabtu, 14 Okt 2023, 18:40
             options = {
@@ -250,6 +257,14 @@ function statusFormat(feature, status) {
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-success"></div></div>
                         <span class="subbody-medium text-submain text-truncate">Selesai</span>
+                    </div>
+                    `;
+                break;
+            case 80:
+                htmlStatus = `
+                    <div class="d-flex align-items-center">
+                        <div><div class="me-1 dot bg-secondary"></div></div>
+                        <span class="subbody-medium text-submain text-truncate">Draft</span>
                     </div>
                     `;
                 break;

@@ -130,7 +130,8 @@ function loadData(page = 1, menu) {
         let html = '';
         for (const [i, penyelia] of result.data.entries()) {
             const permohonan = penyelia.permohonan;
-            let periode = permohonan.periode_pemakaian;
+            let tgl_periode = permohonan.kontrak.periode.find(d => d.periode == penyelia.periode);
+            
             let btnAction = '';
             switch (menu) {
                 case 'surattugas':
@@ -166,7 +167,8 @@ function loadData(page = 1, menu) {
                                     <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                                     <small class="subdesc text-body-secondary fw-light lh-sm">
                                         <div>${permohonan.jenis_tld.name}</div>
-                                        <div>Periode : ${periode.length} Bulan</div>
+                                        <div>Periode ${penyelia.periode} : </div>
+                                        <div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>
                                         <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                                     </small>
                                 </div>
@@ -192,7 +194,8 @@ function loadData(page = 1, menu) {
                                     <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                                     <small class="subdesc text-body-secondary fw-light lh-sm">
                                         <div>${permohonan.jenis_tld.name}</div>
-                                        <div>Periode : ${periode.length} Bulan</div>
+                                        <div>Periode ${penyelia.periode} : </div>
+                                        <div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>
                                         <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                                     </small>
                                 </div>

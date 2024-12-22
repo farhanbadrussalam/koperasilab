@@ -265,7 +265,9 @@ function verif_kelengkapan(status, obj){
                         timerProgressBar: true,
                         showConfirmButton: false
                     }).then(() => {
-                        createInvoice(dataPermohonan.permohonan_hash);
+                        if(dataPermohonan.jenis_layanan_parent.id_jenisLayanan == 1) { // kontrak
+                            createInvoice(dataPermohonan.permohonan_hash);
+                        }
                         createPenyelia(dataPermohonan.permohonan_hash);
                         window.location.href = base_url+"/staff/permohonan";
                     });
@@ -298,7 +300,18 @@ function createPenyelia(idPermohonan){
     const formData = new FormData();
     formData.append('idPermohonan', idPermohonan);
     formData.append('status', 1);
-    ajaxPost(`api/v1/penyelia/action`, formData, result => {})
+    ajaxPost(`api/v1/penyelia/action`, formData, result => {
+
+    }, error => {
+        const result = error.responseJSON;
+        if(result.meta.code == 500){
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(result.data.msg);
+        }
+    })
 }
 
 

@@ -11,12 +11,12 @@ class Master_jenisLayanan extends Model
     protected $table = 'master_jenisLayanan';
 
     protected $fillable = [
+        'id_jenisLayanan',
         'name',
         'status'
     ];
 
     protected $hidden = [
-        'id_jenisLayanan',
         'parent'
     ];
 

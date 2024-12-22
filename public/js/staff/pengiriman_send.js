@@ -39,6 +39,34 @@ function load_form() {
     $('#select_alamat').html(htmlAlamat);
 
     $('#list-document').empty();
+    // list document TLD
+    let checkedTld = permohonan.pengiriman?.status == 2 ? 'disabled' : 'checked';
+    const jumlahTLD = permohonan.jumlah_pengguna + permohonan.jumlah_kontrol;
+    let tldDetail = ``;
+    for (let i = 1; i <= jumlahTLD; i++) {
+        tldDetail += `<div><input type="text" class="form-control form-control-sm" name="listTld[]" placeholder="TLD ${i}"></div>`;
+    }
+    htmlTld = `
+    <div class="border shadow-sm py-2 rounded mb-2">
+        <div
+            class="d-flex justify-content-between align-items-center px-2">
+            <div>
+                <input class="form-check-input me-2" type="checkbox"
+                    data-jenis="tld" data-id="${permohonan.permohonan_hash}"
+                    id="selectDocumentTld" name="selectDocument" onclick="updateSelectDocument()" ${checkedTld}>
+                <span class="fw-semibold fs-6">TLD</span>
+                <small class="text-body-tertiary"> - ${jumlahTLD} PCS</small>
+                <small>${statusFormat('pengiriman', permohonan.pengiriman?.status)}</small>
+            </div>
+            <div class="d-flex align-items-center gap-3 text-secondary">
+            </div>
+        </div>
+        <div class="p-3 flex-wrap d-flex gap-2" id="listTld">
+            ${tldDetail}
+        </div>
+    </div>
+    `;
+    $('#list-document').append(htmlTld);
 
     // list document invoice
     let htmlInvoice = '';
@@ -53,7 +81,7 @@ function load_form() {
                     id="selectDocumentInvoice" name="selectDocument" onclick="updateSelectDocument()" ${checkedInvoice}>
                 <span class="fw-semibold fs-6">Invoice</span>
                 <small class="text-body-tertiary"> - ${permohonan.invoice.no_invoice}</small>
-                <small>${statusFormat('pengiriman', 0)}</small>
+                <small>${statusFormat('pengiriman', permohonan.invoice.pengiriman?.status)}</small>
             </div>
             <div class="d-flex align-items-center gap-3 text-secondary">
                 <small><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.invoice.created_at, 4)}</small>
@@ -104,8 +132,9 @@ function load_form() {
                     <input class="form-check-input me-2" type="checkbox"
                         data-jenis="lhu" data-id="${permohonan.lhu.penyelia_hash}"
                         id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
-                    <span class="fw-semibold fs-6">${permohonan.layanan_jasa.nama_layanan}</span>
-                    <small class="text-body-tertiary"></small>
+                    <span class="fw-semibold fs-6">LHU</span>
+                    <small class="text-body-tertiary"> - Periode ${permohonan.lhu.periode}</small>
+                    <small>${statusFormat('pengiriman', permohonan.lhu.pengiriman?.status)}</small>
                 </div>
                 <div class="d-flex align-items-center gap-3 text-secondary">
                     <small><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.lhu.created_at, 4)}</small>
@@ -167,11 +196,12 @@ function loadPreviewBukti() {
 
 function updateSelectDocument(){
     let checkedDokumen = $('input[name="selectDocument"]');
-    let periode = false;
     
     for (const doc of checkedDokumen) {
         let jenis = doc.dataset.jenis;
         let id = doc.dataset.id;
+        let periode = false;
+        let listTld = false;
 
         switch (jenis) {
             case 'lhu':
@@ -185,13 +215,22 @@ function updateSelectDocument(){
     
                 periode = $('input[name="radioPeriodeLhu"]:checked').val();
                 break;
-        
+            case 'tld':
+                if(doc.checked){
+                    $('#listTld').addClass('d-flex').removeClass('d-none');
+                }else{
+                    $('#listTld').addClass('d-none').removeClass('d-flex');
+                }
+                listTld = $('input[name="listTld[]"]').map(function(index, element) {
+                    return $(element).val() || `TLD ${index + 1}`;
+                }).get();
+                break;
             default:
                 break;
         }
 
         let getIndex = arrSelectDocument.findIndex(d => d.jenis == jenis);
-        let tmp = {jenis: jenis, periode: periode, id: id};
+        let tmp = {jenis: jenis, periode: periode, id: id, listTld: listTld};
         if(doc.checked){
             if(getIndex != -1){
                 arrSelectDocument[getIndex] = tmp;
@@ -199,7 +238,9 @@ function updateSelectDocument(){
                 arrSelectDocument.push(tmp);
             }
         }else{
-            arrSelectDocument.splice(getIndex, 1);
+            if(getIndex != -1){
+                arrSelectDocument.splice(getIndex, 1);
+            }
         }
     }
     
@@ -212,52 +253,66 @@ function buatPengiriman(obj){
     if(alamat == '') {
         return Swal.fire({icon: 'warning',text: `Harap pilih alamat`});
     }
-
+    
     if(arrSelectDocument.length == 0){
         return Swal.fire({icon: 'warning',text: `Harap tambahkan document yang akan dikirim`});
     }
-
-    let dAlamat = permohonan.pelanggan.perusahaan.alamat[alamat];
     
-    const params = new FormData();
-    params.append('idPengiriman', $('#no_pengiriman').val());
-    params.append('idPermohonan', permohonan.permohonan_hash);
-    params.append('noResi', noResi);
-    params.append('noKontrak', permohonan.kontrak.no_kontrak);
-    params.append('alamat', dAlamat.alamat_hash);
-    params.append('tujuan', permohonan.pelanggan.id);
-    params.append('status', 3);
-    params.append('detail', JSON.stringify(arrSelectDocument));
-    arrImgBukti.forEach((file, index) => {
-        params.append('buktiPengiriman[]', file);
-    });
+    updateSelectDocument();
+    Swal.fire({
+        title: 'Konfirmasi Pengiriman',
+        text: "Apakah Anda yakin ingin menjadwalkan pengiriman ini?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Ya, jadwalkan!',
+        cancelButtonText: 'Batal'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let dAlamat = permohonan.pelanggan.perusahaan.alamat[alamat];
+            
+            const params = new FormData();
+            params.append('idPengiriman', $('#no_pengiriman').val());
+            params.append('idPermohonan', permohonan.permohonan_hash);
+            params.append('noResi', noResi);
+            params.append('noKontrak', permohonan.kontrak.no_kontrak);
+            params.append('alamat', dAlamat.alamat_hash);
+            params.append('tujuan', permohonan.pelanggan.id);
+            params.append('status', 3);
+            params.append('detail', JSON.stringify(arrSelectDocument));
+            arrImgBukti.forEach((file, index) => {
+                params.append('buktiPengiriman[]', file);
+            });
 
-    spinner('show', $(obj));
-    ajaxPost('api/v1/pengiriman/action', params, result => {
-        Swal.fire({
-            icon: 'success',
-            text: `Pengiriman di jadwalkan` ,
-            timer: 1200,
-            timerProgressBar: true,
-            showConfirmButton: false
-        }).then(() => {
-            window.location.href = `${base_url}/staff/pengiriman/permohonan`;
-        });
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
+            spinner('show', $(obj));
+            ajaxPost('api/v1/pengiriman/action', params, result => {
+                Swal.fire({
+                    icon: 'success',
+                    text: `Pengiriman di jadwalkan`,
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = `${base_url}/staff/pengiriman/permohonan`;
+                });
+            }, error => {
+                const result = error.responseJSON;
+                if(result?.meta?.code && result?.meta?.code == 500){
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Server error',
+                    });
+                    console.error(result.data.msg);
+                }else{
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Server error',
+                    });
+                    console.error(error);
+                }
+                spinner('hide', $(obj));
             });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
         }
-        spinner('hide', $(obj));
     });
 }

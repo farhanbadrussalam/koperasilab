@@ -82,7 +82,7 @@
                     </li>
                     @endforeach
                 </ul>
-                @if (in_array($type, ['verif', 'show']) || $penyelia->ttd)
+                @if (($type == 'show' && $penyelia->ttd) || ($type == 'verif'))
                 <div class="col-md-12 d-flex justify-content-center">
                     <div class="wrapper" id="content-ttd-1"></div>
                 </div>

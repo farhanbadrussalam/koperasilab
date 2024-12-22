@@ -47,6 +47,8 @@ class PengirimanAPI extends Controller
                         'pelanggan:id,id_perusahaan,name',
                         'pelanggan.perusahaan',
                         'kontrak',
+                        'kontrak.periode',
+                        'pengiriman',
                         'invoice',
                         'invoice.pengiriman',
                         'lhu',
@@ -56,7 +58,7 @@ class PengirimanAPI extends Controller
                         return $q->where('no_kontrak', 'like', "%$search%");
                     })
                     ->where('status', 2)
-                    ->orderBy('created_at','DESC')
+                    ->orderBy('verify_at','DESC')
                     ->offset(($page - 1) * $limit)
                     ->limit($limit)
                     ->paginate($limit);
@@ -274,7 +276,8 @@ class PengirimanAPI extends Controller
                     Pengiriman_detail::create(array(
                         'id_pengiriman' => $idPengiriman,
                         'jenis' => $value->jenis,
-                        'periode' => $value->periode
+                        'periode' => $value->periode ? $value->periode : null,
+                        'list_tld' => $value->listTld ? $value->listTld : null,
                     ));
                     
                     // menambahkan id_pengiriman ke invoice
@@ -282,6 +285,8 @@ class PengirimanAPI extends Controller
                         $invoice = Keuangan::where('id_keuangan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
                     } else if($value->jenis == 'lhu'){
                         $lhu = Penyelia::where('id_penyelia', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+                    } else if($value->jenis == 'tld'){
+                        $tld = Permohonan::where('id_permohonan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
                     }
                 }
             }
@@ -330,6 +335,12 @@ class PengirimanAPI extends Controller
             $fileBukti = Pengiriman::select('bukti_pengiriman','bukti_penerima')->where('id_pengiriman', $id)->first();
             $delete = Pengiriman::where('id_pengiriman', $id)->delete();
             $detail = Pengiriman_detail::where('id_pengiriman', $id)->delete();
+
+            // update id_pengiriman di invoice, lhu, dan tld
+            Keuangan::where('id_pengiriman', $id)->update(['id_pengiriman' => null]);
+            Penyelia::where('id_pengiriman', $id)->update(['id_pengiriman' => null]);
+            Permohonan::where('id_pengiriman', $id)->update(['id_pengiriman' => null]);
+
             DB::commit();
 
             if($fileBukti && $delete){

@@ -17,13 +17,11 @@ function loadData(page = 1, menu) {
         dataPermohonan = result.data;
         let html = '';
         for (const [i, data] of result.data.entries()) {
-            console.log(data);
-            let arrPeriode = data.periode_pemakaian;
-            let mPeriode = new Periode(arrPeriode, {dataonly: true});
+            let arrPeriode = data.kontrak.periode;
             let urlLaporanInvoice = data.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data.invoice.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
             let urlDocLhu = data.lhu?.status == 3 ? `<a href="${base_url}/storage/${data.lhu.media.file_path}/${data.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>` : '<i class="bi bi-printer-fill"></i> Cetak LHU';
-            let nowPeriode = mPeriode.getPeriodeNow();
 
+            // Data Invoice
             let htmlInvoice = '';
             data.invoice ? htmlInvoice = `
                 <div class="col-md-12 mt-2">
@@ -42,14 +40,29 @@ function loadData(page = 1, menu) {
                 </div>
             ` : false;
 
+            // Data layanan jasa (TLD)
+            let htmlTld = `
+                <div class="col-md-12 mt-2">
+                    <div class="border-top py-2 d-flex justify-content-between align-items-center">
+                        <div class="px-2">
+                            <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
+                            <small class="text-body-tertiary"> - ${data.jumlah_pengguna + data.jumlah_kontrol} PCS</small>
+                            <small>${statusFormat('pengiriman', data.pengiriman?.status)}</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 text-secondary">
+                        </div>
+                    </div>
+                </div>
+            `;
+
             // Data LHU
             let htmlLhu = '';
             data.lhu ? htmlLhu = `
                 <div class="col-md-12 mt-2">
                     <div class="border-top py-2 d-flex justify-content-between align-items-center">
                         <div class="px-2">
-                            <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
-                            <small class="text-body-tertiary"> - Periode ${nowPeriode ? nowPeriode+1 : '1'}</small>
+                            <span class="fw-semibold fs-6">LHU</span>
+                            <small class="text-body-tertiary"> - Periode ${data.lhu.periode}</small>
                             <small>${statusFormat('pengiriman', data.lhu.pengiriman?.status)}</small>
                         </div>
                         <div class="d-flex align-items-center gap-3 text-secondary">
@@ -83,6 +96,7 @@ function loadData(page = 1, menu) {
                         <div class="col-auto ms-auto">
                             ${htmlBtn}
                         </div>
+                        ${htmlTld}
                         ${htmlInvoice}
                         ${htmlLhu}
                     </div>
@@ -131,7 +145,7 @@ $('#list-pagination-list').on('click', 'a', function (e) {
 });
 
 function showPeriode(index) {
-    const arrPeriode = dataPermohonan[index].periode_pemakaian;
+    const arrPeriode = dataPermohonan[index].kontrak.periode;
     const periodeJs = new Periode(arrPeriode, {
         preview: true,
         max: arrPeriode.length
