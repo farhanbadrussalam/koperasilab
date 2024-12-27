@@ -126,16 +126,65 @@ class ProfileAPI extends Controller
         }
     }
 
+    public function actionPerusahaan(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $idPerusahaan = $request->idPerusahaan ? decryptor($request->idPerusahaan) : false;
+            $kodePerusahaan = $request->kodePerusahaan ? $request->kodePerusahaan : false;
+            $nama_perusahaan = $request->has('nama_perusahaan') ? $request->nama_perusahaan : false;
+            $npwp = $request->has('npwp_perusahaan') ? unmask($request->npwp) : false;
+            $email = $request->has('email') ? $request->email : false;
+
+            $perusahaan = Perusahaan::findOrFail($idPerusahaan);
+
+            $params = array();
+
+            $kodePerusahaan && $params['kode_perusahaan'] = $kodePerusahaan;
+            $nama_perusahaan && $params['nama_perusahaan'] = $nama_perusahaan;
+            $npwp && $params['npwp'] = $npwp;
+            $email && $params['email'] = $email;
+
+            $perusahaan->update($params);
+
+            DB::commit();
+
+            $result = array(
+                'status' => 'change'
+            );
+            return $this->output($result);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+
+    }
+
     public function getListPerusahaan(Request $request)
     {
         $search = $request->has('search') ? $request->search : '';
 
         DB::beginTransaction();
         try {
-            $query = Perusahaan::when($search, function($q, $search){
+            $query = Perusahaan::with('users')->when($search, function($q, $search){
                             return $q->where('nama_perusahaan', 'like', "%$search%");
                         })
                         ->get();
+
+            return $this->output($query, 200);
+
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function getPerusahaanByKode($kode){
+        DB::beginTransaction();
+        try {
+            $query = Perusahaan::where('kode_perusahaan', $kode)->first();
 
             return $this->output($query, 200);
 

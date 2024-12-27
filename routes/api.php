@@ -118,6 +118,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("profile")->controller(ProfileAPI::class)->group(function () {
         Route::post('/action', 'actionProfile');
         Route::post('/action/alamat', 'actionAlamat');
+        Route::post('/action/perusahaan', 'actionPerusahaan');
+        Route::get('/getPerusahaan/{kode}', 'getPerusahaanByKode');
     });
 
     Route::prefix('otorisasi')->group(function () {

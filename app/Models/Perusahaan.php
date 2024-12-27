@@ -42,4 +42,8 @@ class Perusahaan extends Model
     public function alamat(){
         return $this->hasMany(Master_alamat::class, 'id_perusahaan', 'id_perusahaan');
     }
+
+    public function users(){
+        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
+    }
 }

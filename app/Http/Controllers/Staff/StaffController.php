@@ -60,6 +60,16 @@ class StaffController extends Controller
         return view('pages.staff.penyelia.index', $data);
     }
 
+    public function indexPerusahaan()
+    {
+        $data = [
+            'title' => 'Perusahaan',
+            'module' => 'staff-perusahaan'
+        ];
+        return view('pages.staff.perusahaan.index', $data);
+    }
+
+
     public function createSuratTugas($idPenyelia)
     {
         $idPenyelia = decryptor($idPenyelia);

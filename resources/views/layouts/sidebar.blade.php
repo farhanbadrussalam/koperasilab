@@ -41,6 +41,18 @@
                 </li>
                 @endcan
 
+                @can('Staff/perusahaan')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-perusahaan' ? 'active' : '' }}"
+                        href="{{ route('staff.perusahaan') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi-building"></i>
+                        </span>
+                        <span class="hide-menu">Perusahaan</span>
+                    </a>
+                </li>
+                @endcan
+
                 @can('Penjadwalan')
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'jadwal' ? 'active' : '' }}"

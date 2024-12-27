@@ -83,6 +83,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/pengiriman/permohonan', 'indexPengirimanPermohonan')->name('staff.pengiriman.permohonan');
             Route::get('/pengiriman/permohonan/kirim/{idPermohonan}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim');
             Route::get('/pengiriman/tambah', 'buatCustomPengiriman')->name('staff.pengiriman.tambah');
+
+            Route::get('/perusahaan', 'indexPerusahaan')->name('staff.perusahaan');
         });
     });
 
