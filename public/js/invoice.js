@@ -76,16 +76,6 @@ class Invoice {
 
     // Error handler for faktur upload
     _onFakturUploadError($target, error) {
-        const result = error.responseJSON;
-        const errorMessage = result.meta?.code === 500 
-            ? result.data.msg 
-            : result.message;
-
-        Swal.fire({
-            icon: "error",
-            text: 'Server error',
-        });
-        console.error(errorMessage);
         spinner('hide', $target);
     }
 
@@ -523,21 +513,6 @@ class Invoice {
             $('#loading-document').hide();
             $('#list-document').show();
         }, error => {
-            const result = error.responseJSON;
-            if(result?.meta?.code && result?.meta?.code == 500){
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(result.data.msg);
-            }else{
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(error);
-            }
-    
             $('#loading-document').hide();
             $('#list-document').show();
         })
@@ -644,11 +619,6 @@ class Invoice {
                         });
                     }
                 }, error => {
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Server error',
-                    });
-                    console.error(error.responseJSON.data.msg);
                     spinner('hide', obj);
                 })
             }
@@ -714,7 +684,7 @@ class Invoice {
                                                 <th class="text-start" width="40%">Rincian</th>
                                                 <th>Harga</th>
                                                 <th>Qty</th>
-                                                <th>Periode (Bulan)</th>
+                                                <th>Periode</th>
                                                 <th>Jumlah</th>
                                             </tr>
                                         </thead>

@@ -41,19 +41,22 @@ function loadData(page = 1, menu) {
             ` : false;
 
             // Data layanan jasa (TLD)
-            let htmlTld = `
-                <div class="col-md-12 mt-2">
-                    <div class="border-top py-2 d-flex justify-content-between align-items-center">
-                        <div class="px-2">
-                            <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
-                            <small class="text-body-tertiary"> - ${data.jumlah_pengguna + data.jumlah_kontrol} PCS</small>
-                            <small>${statusFormat('pengiriman', data.pengiriman?.status)}</small>
-                        </div>
-                        <div class="d-flex align-items-center gap-3 text-secondary">
+            let htmlTld = '';
+            if(data.lhu.periode != 80){
+                htmlTld = `
+                    <div class="col-md-12 mt-2">
+                        <div class="border-top py-2 d-flex justify-content-between align-items-center">
+                            <div class="px-2">
+                                <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
+                                <small class="text-body-tertiary"> - ${data.jumlah_pengguna + data.jumlah_kontrol} PCS</small>
+                                <small>${statusFormat('pengiriman', data.pengiriman?.status)}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 text-secondary">
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
 
             // Data LHU
             let htmlLhu = '';
@@ -62,7 +65,7 @@ function loadData(page = 1, menu) {
                     <div class="border-top py-2 d-flex justify-content-between align-items-center">
                         <div class="px-2">
                             <span class="fw-semibold fs-6">LHU</span>
-                            <small class="text-body-tertiary"> - Periode ${data.lhu.periode}</small>
+                            <small class="text-body-tertiary"> - Periode ${data.lhu.periode == 80 ? 'Terakhir' : data.lhu.periode}</small>
                             <small>${statusFormat('pengiriman', data.lhu.pengiriman?.status)}</small>
                         </div>
                         <div class="d-flex align-items-center gap-3 text-secondary">
@@ -75,7 +78,17 @@ function loadData(page = 1, menu) {
             ` : false;
 
             let htmlBtn = '';
-            if(!data.invoice.pengiriman && !data.lhu.pengiriman){
+            let cekHtmlBtn = false;
+            switch (data.jenis_layanan_parent.id_jenisLayanan) {
+                case 4:
+                    cekHtmlBtn = !data.lhu?.pengiriman || !data.pengiriman;
+                    break;
+            
+                default:
+                    cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || !data.pengiriman;
+                    break;
+            }
+            if(cekHtmlBtn){
                 htmlBtn += `<a class="btn btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan_hash}"><i class="bi bi-send-fill"></i> Kirim document</a>`;
             }
             html += `
@@ -119,21 +132,6 @@ function loadData(page = 1, menu) {
 
         $(`#list-placeholder-list`).hide();
         $(`#list-container-list`).show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     });
 }
 

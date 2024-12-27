@@ -245,7 +245,7 @@
                         <label for="inputNote">Note</label>
                         <textarea name="inputNote" id="inputNote" cols="30" rows="5" class="form-control"></textarea>
                     </div>
-                    <div>
+                    <div id="divUploadDocLhu">
                         <label for="upload_document" class="col-form-label">Upload Document LHU</label>
                         <div class="card mb-0" style="height: 150px;">
                             <input type="file" name="dokumen" id="upload_document" class="form-control dropify">

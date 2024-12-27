@@ -44,7 +44,9 @@
                                         <label class="col-form-label" for="periode-pemakaian">Periode pemakaian</label>
                                         <div class="input-group mb-3">
                                             <input type="text" class="form-control bg-secondary-subtle" id="periode-pemakaian" aria-label="Periode pemakaian" value="" readonly>
+                                            @if($permohonan->periode_pemakaian)
                                             <button class="btn btn-outline-secondary" type="button" id="btn-periode">Show periode</button>
+                                            @endif
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -58,7 +60,9 @@
                                     <div class="col-12">
                                         <label for="jum-kontrol" class="col-form-label">Total harga</label>
                                         <input type="text" name="jum-kontrol" id="jum-kontrol" class="form-control bg-secondary-subtle" value="{{ formatCurrency($permohonan->total_harga) }}" readonly>
+                                        @if($permohonan->tipe_kontrak == 'kontrak baru')
                                         <small class="text-info">*Belum termasuk PPN</small>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

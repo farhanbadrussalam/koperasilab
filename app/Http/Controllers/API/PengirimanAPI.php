@@ -14,6 +14,7 @@ use App\Models\Permohonan;
 use App\Models\User;
 use App\Models\Keuangan;
 use App\Models\Penyelia;
+use App\Models\Kontrak;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -57,7 +58,7 @@ class PengirimanAPI extends Controller
                     )->when($search, function($q, $search){
                         return $q->where('no_kontrak', 'like', "%$search%");
                     })
-                    ->where('status', 2)
+                    ->whereIn('status', [2, 3, 4, 5])
                     ->orderBy('verify_at','DESC')
                     ->offset(($page - 1) * $limit)
                     ->limit($limit)
@@ -89,6 +90,7 @@ class PengirimanAPI extends Controller
                         'permohonan:id_permohonan,periode_pemakaian,created_by',
                         'permohonan.pelanggan',
                         'permohonan.pelanggan.perusahaan',
+                        'kontrak',
                         'detail',
                         'alamat'
                     )->orderBy('created_at', 'DESC')
@@ -205,11 +207,11 @@ class PengirimanAPI extends Controller
     {
         DB::beginTransaction();
         try {
-            $idPengiriman = $request->idPengiriman ? (decryptor($request->idPengiriman) ? decryptor($request->idPengiriman) : $request->idPengiriman) : false;
+            $idPengiriman = $request->idPengiriman ? $request->idPengiriman : false;
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
             $noResi = $request->has('noResi') ? $request->noResi : false;
             $jenisPengiriman = $request->jenisPengiriman ? $request->jenisPengiriman : false;
-            $noKontrak = $request->noKontrak ? $request->noKontrak : false;
+            $idKontrak = $request->idKontrak ? decryptor($request->idKontrak) : false;
             $alamat = $request->alamat ? decryptor($request->alamat) : false;
             $tujuan = $request->tujuan ? $request->tujuan : false;
             $periode = $request->periode ? $request->periode : false;
@@ -217,6 +219,7 @@ class PengirimanAPI extends Controller
             $detail = $request->detail ? $request->detail : false;
             $sendAt = $request->sendAt ? $request->sendAt : false;
             $recivedAt = $request->dateRecived ? $request->dateRecived : false;
+            $statusPermohonan = $request->statusPermohonan ? $request->statusPermohonan : false;
             $buktiPengiriman = $request->file('buktiPengiriman') ? $request->file('buktiPengiriman') : array();
             $buktiPenerima = $request->file('buktiPenerima') ? $request->file('buktiPenerima') : array();
             
@@ -224,7 +227,7 @@ class PengirimanAPI extends Controller
             $request->has('noResi') && $params['no_resi'] = $noResi;
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
             $jenisPengiriman && $params['jenis_pengiriman'] = $jenisPengiriman;
-            $noKontrak && $params['no_kontrak'] = $noKontrak;
+            $idKontrak && $params['id_kontrak'] = $idKontrak;
             $alamat && $params['alamat'] = $alamat;
             $tujuan && $params['tujuan'] = $tujuan;
             $periode && $params['periode'] = $periode;
@@ -257,7 +260,7 @@ class PengirimanAPI extends Controller
                 $params['bukti_penerima'] = $tmpBuktiPenerima;
             }
 
-            $pengiriman = Pengiriman::where('id_pengiriman', $idPengiriman)->first();
+            $pengiriman = Pengiriman::with('detail')->where('id_pengiriman', $idPengiriman)->first();
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
@@ -266,6 +269,28 @@ class PengirimanAPI extends Controller
                 ["id_pengiriman" => $idPengiriman],
                 $params
             );
+
+            // update status
+            if($statusPermohonan){
+                Permohonan::where('id_permohonan', $query->id_permohonan)
+                            ->update(array('status' => $statusPermohonan));
+            }
+
+            // jika status 2 = pengiriman selesai maka mengganti list_tld di tabel kontrak
+            if($status == 2){
+                // cari jenis tld pada detail pengiriman
+                $listTld = array();
+                $pengiriman->detail->each(function($item, $key) use (&$listTld){
+                    if($item->jenis == 'tld'){
+                        $listTld = $item->list_tld;
+                    }
+                });
+
+                // update list_tld di kontrak
+                if(count($listTld) != 0){
+                    $pengiriman->kontrak->update(['list_tld' => $listTld]);
+                }
+            }
 
             // Add to detail
             if($detail){
@@ -344,8 +369,8 @@ class PengirimanAPI extends Controller
             DB::commit();
 
             if($fileBukti && $delete){
-                $buktiPengiriman = json_decode($fileBukti->bukti_pengiriman);
-                $buktiPenerima = json_decode($fileBukti->bukti_penerima);
+                $buktiPengiriman = $fileBukti->bukti_pengiriman;
+                $buktiPenerima = $fileBukti->bukti_penerima;
 
                 if($buktiPengiriman){
                     foreach ($buktiPengiriman as $key => $value) {

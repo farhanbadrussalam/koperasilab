@@ -31,14 +31,17 @@ class Kontrak_pengguna extends Model
         'permohonan_pengguna_hash'
     ];
 
+    protected $casts = [
+        'id_radiasi' => 'array'
+    ];
+
     public function getPermohonanPenggunaHashAttribute()
     {
         return encryptor($this->id_pengguna);
     }
 
     public function radiasi(){
-        // return Master_radiasi::whereJsonContains('id_radiasi', $this->id_radiasi)->get();
-        return $this->belongsTo(Master_radiasi::class, 'id_radiasi', 'id_radiasi');
+        return $this->belongsTo(Master_radiasi::class, 'id_radiasi', 'id_radiasi')->withDefault();
     }
 
     public function media(){

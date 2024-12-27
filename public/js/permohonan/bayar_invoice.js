@@ -57,11 +57,6 @@ function uploadBukti(){
                     });
                 }
             }, error => {
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(error.responseJSON.data.msg);
                 spinner('hide', $('#btn-upload-bukti'));
             })
         }

@@ -21,7 +21,6 @@ function loadData(page = 1) {
     ajaxGet(`api/v1/pengiriman/list`, params, result => {
         let html = '';
         for (const [i, data] of result.data.entries()) {
-            console.log(data);
 
             let htmlButton = '';
             
@@ -39,7 +38,7 @@ function loadData(page = 1) {
                             <div class="fw-bolder">${data.id_pengiriman}</div>
                             <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
                             <small class="subdesc text-body-secondary fw-light lh-md">
-                                <div>${data.no_kontrak}</div>
+                                <div>${data.kontrak.no_kontrak}</div>
                                 <div>created at ${dateFormat(data.created_at, 1)}</div>
                             </small>
                         </div>
@@ -80,21 +79,6 @@ function loadData(page = 1) {
 
         $(`#list-placeholder-pengiriman`).hide();
         $(`#list-container-pengiriman`).show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     });
 }
 
@@ -146,6 +130,7 @@ function showDetailPengiriman(){
 function showFormPengiriman(obj){
     let idPengiriman = $(obj).parent().data('id');
     $('#no_pengiriman').val(idPengiriman);
+    $('#noResi').val('');
     
     $('#modal-kirim-dokumen').modal('show');
 }
@@ -178,7 +163,7 @@ function kirimDokumen(obj){
     }).then((result) => {
         if (result.isConfirmed) {
             let data = new FormData();
-            data.append('no_pengiriman', idPengiriman);
+            data.append('idPengiriman', idPengiriman);
             data.append('noResi', noResi);
             data.append('status', 1);
             data.append('sendAt', new Date().toISOString());
@@ -197,20 +182,6 @@ function kirimDokumen(obj){
                     loadData(1);
                 });
             }, error => {
-                const result = error.responseJSON;
-                if(result?.meta?.code && result.meta.code == 500){
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Terjadi kesalahan pada server',
-                    });
-                    console.error(result.data.msg);
-                }else{
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Terjadi kesalahan pada server',
-                    });
-                    console.error(result.message);
-                }
                 spinner('hide', $(obj));
             });
         }
@@ -247,7 +218,7 @@ function batalKirimDokumen(obj){
     }).then((result) => {
         if (result.isConfirmed) {
             let data = new FormData();
-            data.append('no_pengiriman', idPengiriman);
+            data.append('idPengiriman', idPengiriman);
             data.append('status', 3);
             data.append('noResi', '');
 
@@ -265,20 +236,6 @@ function batalKirimDokumen(obj){
                     loadData(1);
                 });
             }, error => {
-                const result = error.responseJSON;
-                if(result?.meta?.code && result.meta.code == 500){
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Terjadi kesalahan pada server',
-                    });
-                    console.error(result.data.msg);
-                }else{
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Terjadi kesalahan pada server',
-                    });
-                    console.error(result?.message);
-                }
                 spinner('hide', $(obj));
             });
         }

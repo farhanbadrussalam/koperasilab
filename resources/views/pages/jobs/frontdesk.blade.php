@@ -225,15 +225,7 @@
                         $('#noteModal').modal('hide');
                         reloadTable(1);
                     });
-                }, err => {
-                    Swal.fire({
-                        icon: 'error',
-                        text: 'Terjadi masalah !!',
-                        timer: 2000,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    })
-                })
+                }, err => {})
             } else {
                 $('#noteModal').modal('hide');
             }

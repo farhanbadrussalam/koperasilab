@@ -2,7 +2,14 @@ let signaturePad = false;
 let periodeJs = false;
 $(function () {
     const arrPeriode = dataPermohonan.periode_pemakaian;
-    $('#periode-pemakaian').val(arrPeriode.length + ' Periode');
+
+    let txtPeriode = '';
+    if(!dataPermohonan.periode_pemakaian){
+        txtPeriode = 'Periode ' + dataPermohonan.periode;
+    } else {
+        txtPeriode = arrPeriode.length + ' Periode';
+    }
+    $('#periode-pemakaian').val(txtPeriode);
     
     const conten_2 = document.getElementById("content-ttd-2");
     signaturePad = signature(conten_2, {
@@ -13,46 +20,33 @@ $(function () {
         loadPertanyaan();
     }
 
-    periodeJs = new Periode(arrPeriode, {
-        preview: false,
-        max: arrPeriode.length
-    });
-    
-    $('#btn-periode').on('click', () => {
-        periodeJs.show();
-    });
-
-    periodeJs.on('periode.simpan', () => {
-        const dataPeriode = periodeJs.getData();
-        const params = new FormData();
-        params.append('idPermohonan', dataPermohonan.permohonan_hash);
-        params.append('periodePemakaian', JSON.stringify(dataPeriode));
-
-        ajaxPost(`api/v1/permohonan/tambahPengajuan`, params, result => {
-            Swal.fire({
-                icon: 'success',
-                text: 'Update periode successfully',
-                timer: 1200,
-                timerProgressBar: true,
-                showConfirmButton: false
-            });
-        }, error => {
-            const result = error.responseJSON;
-            if(result?.meta?.code && result.meta.code == 500){
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(result.data.msg);
-            }else{
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(result.message);
-            }
+    if(arrPeriode){
+        periodeJs = new Periode(arrPeriode, {
+            preview: false,
+            max: arrPeriode.length
         });
-    });
+        
+        $('#btn-periode').on('click', () => {
+            periodeJs.show();
+        });
+    
+        periodeJs.on('periode.simpan', () => {
+            const dataPeriode = periodeJs.getData();
+            const params = new FormData();
+            params.append('idPermohonan', dataPermohonan.permohonan_hash);
+            params.append('periodePemakaian', JSON.stringify(dataPeriode));
+    
+            ajaxPost(`api/v1/permohonan/tambahPengajuan`, params, result => {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Update periode successfully',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                });
+            });
+        });
+    }
 
     loadPelanggan();
 });
@@ -182,15 +176,6 @@ function loadPengguna(){
         $('#pengguna-list-container').html(html);
         $('#pengguna-placeholder').hide();
         $('#pengguna-list-container').show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }
     })
 
 }
@@ -272,15 +257,7 @@ function verif_kelengkapan(status, obj){
                         window.location.href = base_url+"/staff/permohonan";
                     });
                 }, error => {
-                    const result = error.responseJSON;
-                    if(result.meta.code == 500){
-                        spinner('hide', obj);
-                        Swal.fire({
-                            icon: "error",
-                            text: 'Server error',
-                        });
-                        console.error(result.data.msg);
-                    }
+                    spinner('hide', obj);
                 });
             }
         })
@@ -302,15 +279,6 @@ function createPenyelia(idPermohonan){
     formData.append('status', 1);
     ajaxPost(`api/v1/penyelia/action`, formData, result => {
 
-    }, error => {
-        const result = error.responseJSON;
-        if(result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }
     })
 }
 
@@ -334,16 +302,6 @@ function return_permohonan(obj){
         }).then(() => {
             window.location.href = base_url+"/staff/permohonan";
         });
-    }, error => {
-        const result = error.responseJSON;
-        if(result.meta.code == 500){
-            spinner('hide', obj);
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }
     })
 }
 

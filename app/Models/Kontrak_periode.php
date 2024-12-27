@@ -15,6 +15,7 @@ class Kontrak_periode extends Model
     protected $fillable = [
         'id_kontrak',
         'periode',
+        'id_permohonan',
         'start_date',
         'end_date',
         'status',
@@ -23,11 +24,13 @@ class Kontrak_periode extends Model
     ];
 
     protected $hidden = [
-        'id_periode'
+        'id_periode',
+        'id_permohonan'
     ];
 
     protected $appends = [
-        'periode_hash'
+        'periode_hash',
+        'permohonan_hash'
     ];
 
     public function getPeriodeHashAttribute()
@@ -35,7 +38,16 @@ class Kontrak_periode extends Model
         return encryptor($this->id_periode);
     }
 
+    public function getPermohonanHashAttribute()
+    {
+        return encryptor($this->id_permohonan);
+    }
+
     public function kontrak(){
         return $this->belongsTo(Kontrak::class,'id_kontrak', 'id_kontrak');
+    }
+
+    public function permohonan(){
+        return $this->belongsTo(Permohonan::class,'id_permohonan', 'id_permohonan');
     }
 }

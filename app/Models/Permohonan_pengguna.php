@@ -31,6 +31,10 @@ class Permohonan_pengguna extends Model
         'permohonan_pengguna_hash'
     ];
 
+    protected $casts = [
+        'id_radiasi' => 'array'
+    ];
+
     public function getPermohonanPenggunaHashAttribute()
     {
         return encryptor($this->id_pengguna);

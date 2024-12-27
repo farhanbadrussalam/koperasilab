@@ -26,22 +26,18 @@
                                     value="{{ $permohonan->pelanggan->perusahaan->nama_perusahaan }} - {{ $permohonan->pelanggan->name }}"
                                     readonly>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="" class="form-label">No kontrak</label>
                                 <input type="text" name="txt_no_kontrak" id="txt_no_kontrak"
                                     class="form-control bg-secondary-subtle" value="{{ $permohonan->kontrak->no_kontrak }}"
                                     readonly>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="" class="form-label">Jenis</label>
                                 <input type="text" name="txt_jenis" id="txt_jenis"
                                     class="form-control bg-secondary-subtle"
                                     value="{{ $permohonan->jenis_layanan_parent->name }}-{{ $permohonan->jenis_layanan->name }}"
                                     readonly>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="" class="form-label">No resi</label>
-                                <input type="text" name="txt_resi" id="txt_resi" class="form-control">
                             </div>
                             <div class="col-md-6">
                                 <label for="" class="form-label">Alamat tujuan</label>

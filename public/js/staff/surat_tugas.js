@@ -3,8 +3,13 @@ let arrJobs = [];
 let periodeJs = false;
 $(function () {
     // Mengambil periode
-    let tgl_periode = dataPenyelia.permohonan.kontrak.periode.find(d => d.periode == dataPenyelia.periode);
-    $('#periodePermohonan').html(`${dateFormat(tgl_periode.start_date, 5)} - ${dateFormat(tgl_periode.end_date, 5)}`);
+    let findPeriode;
+    if (dataPenyelia.periode == 80) {
+        findPeriode = dataPenyelia.permohonan.kontrak.periode[dataPenyelia.permohonan.kontrak.periode.length - 1]; // Get the last element
+    } else {
+        findPeriode = dataPenyelia.permohonan.kontrak.periode.find(d => d.periode == dataPenyelia.periode);
+    }
+    $('#periodePermohonan').html(`${dateFormat(findPeriode.start_date, 5)} - ${dateFormat(findPeriode.end_date, 5)}`);
 
     if(!['verif', 'show'].includes(typeSurat)){
         $('#date_start').flatpickr({
@@ -93,21 +98,6 @@ function tambahPetugas(idJobs, index, name){
         $('#modal-list-petugas').html(html);
 
         $('#modalAddPetugas').modal('show');
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     });
 }
 
@@ -241,6 +231,7 @@ function saveSuratTugas(obj){
                 params.append('status', listJobs[0].status); // Pendataan TLD
                 params.append('ttd', signaturePad.toDataURL());
                 params.append('ttd_by', userActive.user_hash);
+                params.append('statusPermohonan', 3); // Status untuk proses pelaksana lab
             }
 
             spinner('show', $(obj));
@@ -258,20 +249,6 @@ function saveSuratTugas(obj){
                 }
         
             }, error => {
-                const result = error.responseJSON;
-                if(result?.meta?.code && result?.meta?.code == 500){
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Server error',
-                    });
-                    console.error(result.data.msg);
-                }else{
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Server error',
-                    });
-                    console.error(error);
-                }
                 spinner('hide', $(obj));
             });
         }

@@ -96,12 +96,7 @@ $(function (){
                     });
                 }
             }, error => {
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
                 spinner('hide', $(obj));
-                console.error(error.responseJSON.data.msg);
             });
 
         }else{

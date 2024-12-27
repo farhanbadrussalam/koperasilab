@@ -68,15 +68,6 @@ function loadData(page = 1) {
 
         $('#list-placeholder').hide();
         $('#list-container').show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }
     })
 }
 
@@ -92,20 +83,5 @@ function verifikasiInvoice(obj){
     ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
         invoice.addData(result.data);
         invoice.open('verify');
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     })
 }

@@ -15,7 +15,7 @@ function switchLoadTab(menu){
     thisTab = menu;
     switch (menu) {
         case 1:
-            thisStatus = [1,2];
+            thisStatus = [1,2,3,4,5];
             break;
 
         case 2:
@@ -42,11 +42,23 @@ function loadData(page = 1, status) {
             let btnEdit = `<a class="btn btn-sm btn-outline-warning me-1" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}"><i class="bi bi-pencil-square"></i> Edit</a>`;
             let btnRemove = `<button class="btn btn-sm btn-outline-danger me-1 mt-1" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i> Remove</button>`;
 
+            let htmlPeriode = `
+                <div>${periode?.length ?? '0'} Periode</div>
+            `;
+            if(pengajuan.periode){
+                htmlPeriode = `<div>Periode ${pengajuan.periode == 80 ? "Terakhir" : pengajuan.periode}</div>`;
+            }
+
+            let badgeClass = 'bg-primary-subtle';
+            if(pengajuan.tipe_kontrak == 'kontrak lama') {
+                badgeClass = 'bg-success-subtle';
+            }
+
             if(thisTab == 2){
                 html += `
                     <div class="card mb-2">
                         <div class="card-body row align-items-center">
-                            <div class="col-12 col-md-3">
+                            <div class="col-12 col-md-4">
                                 <div class="title">Layanan ${pengajuan.layanan_jasa?.nama_layanan ?? 'Untitled'}</div>
                                 <small class="subdesc text-body-secondary fw-light lh-sm">
                                     <div>created : ${dateFormat(pengajuan.created_at, 4)}</div>
@@ -63,15 +75,15 @@ function loadData(page = 1, status) {
                 html += `
                     <div class="card mb-2">
                         <div class="card-body row align-items-center">
-                            <div class="col-12 col-md-3">
+                            <div class="col-12 col-md-4">
                                 <div class="">
-                                    <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${pengajuan.tipe_kontrak}</span>
+                                    <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${pengajuan.tipe_kontrak}</span>
                                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${pengajuan.jenis_layanan_parent.name} - ${pengajuan.jenis_layanan.name}</span>
                                 </div>
                                 <div class="title">Layanan ${pengajuan.layanan_jasa?.nama_layanan ?? 'Untitled'}</div>
                                 <small class="subdesc text-body-secondary fw-light lh-sm">
                                     <div>${pengajuan.jenis_tld?.name ?? '-'}</div>
-                                    <div>Periode : ${periode?.length ?? '0'} Bulan</div>
+                                    ${htmlPeriode}
                                     <div>Created : ${dateFormat(pengajuan.created_at, 4)}</div>
                                 </small>
                             </div>
@@ -102,21 +114,6 @@ function loadData(page = 1, status) {
 
         $('#pengajuan-placeholder').hide();
         $('#pengajuan-list-container').show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.message);
-        }
     });
 }
 

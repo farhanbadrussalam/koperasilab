@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use App\Models\Permohonan;
+use App\Models\Kontrak;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
 
@@ -57,6 +58,12 @@ class KeuanganAPI extends Controller
 
         DB::beginTransaction();
         try {
+            // Menampilkan data keuangan berdasarkan created_by jika rolenya pelanggan
+            $createBy = false;
+            if(Auth::user()->hasRole('Pelanggan')){
+                $createBy = Auth::user()->id;
+            }
+            
             $query = Keuangan::with(
                             'permohonan',
                             'diskon',
@@ -75,6 +82,11 @@ class KeuanganAPI extends Controller
                         ->offset(($page - 1) * $limit)
                         ->when($status, function($q, $status) {
                             return $q->whereIn('status', $status);
+                        })
+                        ->when($createBy, function($q, $createBy) {
+                            return $q->whereHas('permohonan', function($q) use ($createBy) {
+                                $q->where('created_by', $createBy);
+                            })->whereNotIn('status', [1, 2, 91]);
                         })
                         ->limit($limit)
                         ->paginate($limit);
@@ -214,6 +226,11 @@ class KeuanganAPI extends Controller
                     'note' => $note,
                     'created_by' => Auth::user()->id
                 ));
+
+                // menambahkan id keuangan ke kontrak
+                $idKontrak = Permohonan::find($idPermohonan)->id_kontrak;
+                $kontrak = Kontrak::find($idKontrak);
+                $kontrak->update(array('id_keuangan' => $keuangan->id_keuangan));
 
             } elseif ($keuangan->wasChanged()) {
                 $file_buktiBayar && $file_buktiBayar->store();

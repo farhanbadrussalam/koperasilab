@@ -21,6 +21,12 @@ function loadData(page = 1) {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
             let periode = pengajuan.periode_pemakaian;
+            let htmlPeriode = `
+                <div>${periode?.length ?? '0'} Periode</div>
+            `;
+            if(pengajuan.periode){
+                htmlPeriode = `<div>Periode ${pengajuan.periode == 80 ? "Terakhir" : pengajuan.periode}</div>`;
+            }
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
@@ -28,7 +34,7 @@ function loadData(page = 1) {
                             <div class="title">Layanan ${pengajuan.layanan_jasa.nama_layanan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>${pengajuan.jenis_tld.name}</div>
-                                <div>Periode : ${periode.length} Bulan</div>
+                                ${htmlPeriode}
                                 <div>Created : ${dateFormat(pengajuan.created_at, 4)}</div>
                             </small>
                         </div>
@@ -58,14 +64,5 @@ function loadData(page = 1) {
 
         $('#list-placeholder').hide();
         $('#list-container').show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }
     })
 }

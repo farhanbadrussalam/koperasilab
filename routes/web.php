@@ -63,6 +63,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/pembayaran/bayar/{idKeuangan}', 'bayarInvoicePembayaran')->name('permohonan.pembayaran.bayar');
             
             Route::get('/pengiriman', 'indexPengiriman')->name('permohonan.pengiriman');
+
+            Route::get('/kontrak', 'indexKontrak')->name('permohonan.kontrak');
+            Route::get('/kontrak/e/{idKontrak}/{idPeriode}', 'evaluasiKontrak')->name('permohonan.kontrak.evaluasi');
         });
     });
 

@@ -112,11 +112,13 @@ a{
 }
 
 /* Animasi */
+.smooth-height {
+    transition-duration: 2s;
+    transition-property: height;
+}
+
 .fade-out {
-    overflow: hidden;
-    transition: max-height 0.3s ease, opacity 0.3s ease;
-    max-height: 500px; /* Sesuaikan dengan tinggi maksimum elemen */
-    opacity: 1;
+    transition: all 0.3s ease;
 }
 .fade-out.hidden {
     opacity: 0;

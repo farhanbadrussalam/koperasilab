@@ -116,6 +116,13 @@
 
                 {{-- PERMOHONAN --}}
                 @role('Pelanggan')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'permohonan-kontrak' ? 'active' : '' }}"
+                        href="{{ route('permohonan.kontrak') }}" aria-expanded="false">
+                        <span><i class="bi bi-card-list"></i></span>
+                        <span class="hide-menu">Kontrak</span>
+                    </a>
+                </li>
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Permohonan</span>

@@ -15,6 +15,7 @@ use App\Http\Controllers\API\ManagerAPI;
 use App\Http\Controllers\API\PenyeliaAPI;
 use App\Http\Controllers\API\PengirimanAPI;
 use App\Http\Controllers\API\ProfileAPI;
+use App\Http\Controllers\API\KontrakAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -94,6 +95,13 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getById/{pengiriman_hash}', 'getPengirimanById');
         Route::get('/getPermohonan', 'getPermohonan');
         Route::delete('/destroy/{pengiriman_hash}', 'destroy');
+    });
+    
+    Route::prefix("kontrak")->controller(KontrakAPI::class)->group(function () {
+        Route::post('/action', 'actionKontrak');
+        Route::get('/list', 'listKontrak');
+        // Route::get('/getById/{kontrak_hash}', 'getKontrakById');
+        // Route::delete('/destroy/{kontrak_hash}', 'destroy');
     });
 
     Route::prefix("penyelia")->controller(PenyeliaAPI::class)->group(function () {

@@ -14,6 +14,7 @@ class Kontrak extends Model
 
     protected $fillable = [
         'id_layanan',
+        'id_keuangan',
         'jenis_layanan_2',
         'jenis_layanan_1',
         'tipe_kontrak',
@@ -23,6 +24,7 @@ class Kontrak extends Model
         'jumlah_kontrol',
         'total_harga',
         'harga_layanan',
+        'list_tld',
         'ttd',
         'ttd_by',
         'status',
@@ -38,6 +40,10 @@ class Kontrak extends Model
 
     protected $appends = [
         'kontrak_hash'
+    ];
+
+    protected $casts = [
+        'list_tld' => 'array',
     ];
 
     public function getKontrakHashAttribute()
@@ -69,19 +75,15 @@ class Kontrak extends Model
         return $this->belongsTo(User::class, 'id_pelanggan', 'id');
     }
 
-    public function tandaterima() {
-        return $this->hasMany(Permohonan_tandaterima::class, 'id_permohonan', 'id_permohonan');
-    }
-
-    public function invoice(){
-        return $this->hasOne(Keuangan::class, 'id_permohonan', 'id_permohonan');
-    }
-
-    public function lhu(){
-        return $this->hasOne(Penyelia::class, 'id_permohonan', 'id_permohonan');
-    }
-
     public function periode(){
         return $this->hasMany(Kontrak_periode::class, 'id_kontrak', 'id_kontrak');
+    }
+
+    public function pengiriman(){
+        return $this->hasMany(Pengiriman::class, 'id_kontrak', 'id_kontrak');
+    }
+
+    public function invoice() {
+        return $this->belongsTo(Keuangan::class, 'id_keuangan', 'id_keuangan');
     }
 }

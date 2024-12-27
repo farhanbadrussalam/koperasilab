@@ -34,26 +34,6 @@ class PermohonanAPI extends Controller
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
     }
-    /**
-     * Display a listing of the resource.
-     */
-    // public function listPermohonan(Request $request)
-    // {
-    //     $limit = $request->has('limit') ? $request->limit : 10;
-    //     $page = $request->has('page') ? $request->page : 1;
-    //     $search = $request->has('search') ? $request->search : '';
-    //     $status = $request->has('status') ? $request->status : 1;
-
-    //     $query = Permohonan::with(['layananjasa', 'tbl_lhu', 'tbl_kip'])
-    //                 ->where('status', $status)
-    //                 ->where('created_by', Auth::user()->id)
-    //                 ->offset(($page - 1) * $limit)
-    //                 ->limit($limit)
-    //                 ->paginate($limit);
-    //     $arr = $query->toArray();
-    //     $this->pagination = Arr::except($arr, 'data');
-    //     return $this->output($query);
-    // }
 
     /**
      * Store a newly created resource in storage.
@@ -68,13 +48,29 @@ class PermohonanAPI extends Controller
             $jenisLayanan2 = $request->jenisLayanan2 ? decryptor($request->jenisLayanan2) : false;
 
             $tipeKontrak = $request->tipeKontrak ? $request->tipeKontrak : false;
-            $noKontrak = $request->noKontrak ? $request->noKontrak : null;
+            $idKontrak = $request->idKontrak ? decryptor($request->idKontrak) : null;
             $jenisTld = $request->jenisTld ? decryptor($request->jenisTld) : null;
-            $periodePemakaian = $request->periodePemakaian ? $request->periodePemakaian : false;
+            $periode = $request->periode ? $request->periode : false;
             $jumlahPengguna = $request->jumlahPengguna ? $request->jumlahPengguna : false;
             $jumlahKontrol = $request->jumlahKontrol ? $request->jumlahKontrol : false;
             $totalHarga = $request->totalHarga ? $request->totalHarga : false;
             $hargaLayanan = $request->hargaLayanan ? $request->hargaLayanan : false;
+            $dataTld = $request->dataTld ? json_decode($request->dataTld) : false;
+            $createBy = $request->createBy ? decryptor($request->createBy) : false;
+            $periodePemakaian = $request->periodePemakaian;
+            
+            if ($periodePemakaian) {
+                if (is_string($periodePemakaian)) {
+                    $periodePemakaian = json_decode($periodePemakaian, true); // Use true for associative array
+                }
+                // Add validation to ensure $periodePemakaian is now an array after decoding if needed
+                if (!is_array($periodePemakaian) && $periodePemakaian != false) {
+                  throw new \Exception("Invalid periodePemakaian format. Must be a JSON string or an array.");
+                }
+            } else {
+                $periodePemakaian = false;
+            }
+            
 
             $data = array();
 
@@ -83,18 +79,45 @@ class PermohonanAPI extends Controller
             $jenisLayanan2 && $data['jenis_layanan_2'] = $jenisLayanan2;
 
             $tipeKontrak && $data['tipe_kontrak'] = $tipeKontrak;
-            $noKontrak && $data['no_kontrak'] = $noKontrak;
+            $idKontrak && $data['id_kontrak'] = $idKontrak;
             $periodePemakaian && $data['periode_pemakaian'] = $periodePemakaian;
+            $periode && $data['periode'] = $periode;
             $jenisTld && $data['jenis_tld'] = $jenisTld;
             $jumlahPengguna && $data['jumlah_pengguna'] = $jumlahPengguna;
             $jumlahKontrol && $data['jumlah_kontrol'] = $jumlahKontrol;
             $totalHarga && $data['total_harga'] = unmask($totalHarga);
             $hargaLayanan && $data['harga_layanan'] = $hargaLayanan;
+            $dataTld && $data['list_tld'] = $dataTld;
+            $createBy && $data['created_by'] = $createBy;
+
             $data['status'] = 1;
             $data['flag_read'] = 0;
 
+            // jika tipe kontraknya adalah "kontrak lama" akan mengambil data dari kontrak sebelumnya
+            if($tipeKontrak == 'kontrak lama'){
+                $kontrak = Kontrak::with('pengguna','periode')->find($idKontrak);
+                if($kontrak){
+                    $data['id_layanan'] = $kontrak->id_layanan;
+                    $data['jenis_tld'] = $kontrak->jenis_tld;
+                    $data['jumlah_pengguna'] = $kontrak->jumlah_pengguna;
+                    $data['jumlah_kontrol'] = $kontrak->jumlah_kontrol;
+                    $data['total_harga'] = $kontrak->total_harga;
+                    $data['harga_layanan'] = $kontrak->harga_layanan;
+                }
+            }
+            // dd($data);
             // Save to db
-            $permohonan = Permohonan::where('id_permohonan', $idPermohonan)->update($data);
+            $permohonan = Permohonan::updateOrCreate(
+                ['id_permohonan' => $idPermohonan],
+                $data
+            );
+
+            if($tipeKontrak == 'kontrak lama'){
+                Kontrak_periode::where('id_kontrak', $idKontrak)
+                    ->where('periode', $periode)
+                    ->update(array('id_permohonan' => $permohonan->id_permohonan));
+            }
+
             DB::commit();
 
             if($permohonan) {
@@ -146,7 +169,7 @@ class PermohonanAPI extends Controller
                 'id_permohonan' => $idPermohonan,
                 'nama' => $nama,
                 'posisi' => $divisi,
-                'id_radiasi' => json_encode($radiasi),
+                'id_radiasi' => $radiasi,
                 'file_ktp' => $file_ktp->getIdMedia(),
                 'status' => 2,
                 'created_by' => Auth::user()->id
@@ -194,6 +217,8 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
+            // menghilangkan id_permohonan yang ada di tabel kontrak periode
+            Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null));
             
             $dataPengguna = Permohonan_pengguna::where('id_permohonan', $id)->get();
             
@@ -234,18 +259,30 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Permohonan_pengguna::with('media:id,file_hash,file_path')
-                        ->where('id_permohonan', $idPermohonan)
+            // mengambil tipe_kontrak yang ada di tabel permohonan untuk di kondisikan
+            // jika kontrak baru akan menggunakan permohonan_pengguna jika kontrak lama akan menggunakan kontrak_pengguna
+            $permohonan = Permohonan::select('tipe_kontrak','id_kontrak')->where('id_permohonan', $idPermohonan)->first();
+
+            if($permohonan->tipe_kontrak == 'kontrak lama'){
+                $query = Kontrak_pengguna::with('media:id,file_hash,file_path')
+                        ->where('id_kontrak', $permohonan->id_kontrak)
                         ->offset(($page - 1) * $limit)
                         ->limit($limit)
                         ->paginate($limit);
+            }else{
+                $query = Permohonan_pengguna::with('media:id,file_hash,file_path')
+                            ->where('id_permohonan', $idPermohonan)
+                            ->offset(($page - 1) * $limit)
+                            ->limit($limit)
+                            ->paginate($limit);
+            }
             $arr = $query->toArray();
-            // dd($arr);
+            
             $this->pagination = Arr::except($arr, 'data');
             DB::commit();
 
             foreach ($query as $item) {
-                $id_radiasi_array = json_decode($item->id_radiasi, true); // Decode JSON jadi array
+                $id_radiasi_array = $item->id_radiasi; // Decode JSON jadi array
 
                 // Cek apakah ada array yang valid dari JSON
                 if (!empty($id_radiasi_array)) {
@@ -290,11 +327,17 @@ class PermohonanAPI extends Controller
             $role = $user->getRoleNames()[0];
 
             $query = Permohonan::with(
-                            'layanan_jasa:id_layanan,nama_layanan',
-                            'jenisTld:id_jenisTld,name', 
-                            'jenis_layanan:id_jenisLayanan,name,parent',
-                            'jenis_layanan_parent',
-                            'pelanggan:id,name')
+                        'layanan_jasa:id_layanan,nama_layanan',
+                        'jenisTld:id_jenisTld,name', 
+                        'jenis_layanan:id_jenisLayanan,name,parent',
+                        'jenis_layanan_parent',
+                        'pelanggan:id,name',
+                        'kontrak',
+                        'kontrak.layanan_jasa:id_layanan,nama_layanan',
+                        'kontrak.jenisTld:id_jenisTld,name', 
+                        'kontrak.jenis_layanan:id_jenisLayanan,name,parent',
+                        'kontrak.jenis_layanan_parent',
+                    )
                     ->when($role, function($q, $role) use ($status) {
                         // Pengecekan role
                         switch ($role) {
@@ -306,7 +349,7 @@ class PermohonanAPI extends Controller
                                 $q->where('status', 1);
                                 break;
                             case 'Staff keuangan':
-                                $q->where('status', 2);
+                                $q->whereIn('status', [2]);
                                 break;
                             default:
                                 # code...
@@ -450,6 +493,17 @@ class PermohonanAPI extends Controller
     
                         Permohonan_tandaterima::create($params);
                     }
+
+                    // menambahkan tld
+                    if($dataPermohonan->tipe_kontrak== 'kontrak baru'){
+                        $jmlTld = $dataPermohonan->jumlah_pengguna + $dataPermohonan->jumlah_kontrol;
+                        $listTld = array();
+                        for ($i=0; $i < $jmlTld; $i++) { 
+                            $listTld[] = "TLD ".$i + 1;
+                        }
+                        
+                        $arrayUpdate['list_tld'] = $listTld;
+                    }
     
                     $arrayUpdate['ttd'] = $ttd;
                     $arrayUpdate['ttd_by'] = Auth::user()->id;
@@ -460,7 +514,6 @@ class PermohonanAPI extends Controller
                     // Memindahkan Permohonan ke tabel kontrak
                     switch ($dataPermohonan->jenis_layanan_1) {
                         case 1: // Kontrak
-                        case 4: // Evaluasi
                         case 7: // Zero cek
                             $params = array(
                                 'id_layanan' => $dataPermohonan->id_layanan,
@@ -473,6 +526,7 @@ class PermohonanAPI extends Controller
                                 'jumlah_kontrol' => $dataPermohonan->jumlah_kontrol,
                                 'total_harga' => $dataPermohonan->total_harga,
                                 'harga_layanan' => $dataPermohonan->harga_layanan,
+                                'list_tld' => $dataPermohonan->list_tld,
                                 'ttd' => $dataPermohonan->ttd,
                                 'ttd_by' => $dataPermohonan->ttd_by,
                                 'status' => 1,
@@ -499,12 +553,15 @@ class PermohonanAPI extends Controller
                             // Tambah periode
                             if($dataPermohonan->periode_pemakaian){
                                 foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
+                                    $periode = $key + 1;
+
                                     $paramsPeriode = array(
                                         'id_kontrak' => $dataKontrak->id_kontrak,
-                                        'periode' => $key + 1,
+                                        'periode' => $periode,
                                         'start_date' => $value['start_date'],
                                         'end_date' => $value['end_date'],
                                         'status' => 1,
+                                        'id_permohonan' => $dataPermohonan->periode == $periode ? $dataPermohonan->id_permohonan : null,
                                         'created_by' => Auth::user()->id,
                                         'created_at' => date('Y-m-d H:i:s')
                                     );
@@ -569,323 +626,4 @@ class PermohonanAPI extends Controller
     private function cekUpdateKontrak(){
 
     }
-    // public function addPermohonan(Request $request)
-    // {
-    //     DB::beginTransaction();
-    //     try {
-    //         $layanan_id = $request->layanan_hash ? decryptor($request->layanan_hash) : false;
-    //         $desc_biaya = $request->desc_biaya ? $request->desc_biaya : false;
-    //         $biaya = $request->biaya ? unmask($request->biaya) : false;
-    //         $no_bapeten = $request->no_bapeten ? $request->no_bapeten : false;
-    //         $jenis_limbah = $request->jenis_limbah ? $request->jenis_limbah : false;
-    //         $sumber_radioaktif = $request->sumber_radioaktif ? $request->sumber_radioaktif : false;
-    //         $jumlah = $request->jumlah ? $request->jumlah : false;
-    //         $documents = $request->file('documents');
-
-    //         $dokumen_pendukung = "";
-    //         if($documents){
-    //             $arrMedia = array();
-    //             foreach ($documents as $key => $document) {
-    //                 $idMedia = $this->media->upload($document, 'permohonan');
-    //                 array_push($arrMedia, $idMedia);
-    //             }
-
-    //             $dokumen_pendukung = json_encode($arrMedia);
-    //         }
-    //         $data = array(
-    //             'layananjasa_id' => $layanan_id,
-    //             'jenis_layanan' => $desc_biaya,
-    //             'tarif' => $biaya,
-    //             'no_bapeten' => $no_bapeten,
-    //             'jenis_limbah' => $jenis_limbah,
-    //             'sumber_radioaktif' => $sumber_radioaktif,
-    //             'jumlah' => $jumlah,
-    //             'dokumen' => $dokumen_pendukung,
-    //             'status' => 1,
-    //             'flag' => 1,
-    //             'tag' => 'pengajuan',
-    //             'created_by' => Auth::user()->id
-    //         );
-
-    //         $permohonan = Permohonan::create($data);
-
-    //         // save to detail permohonan
-    //         if(isset($permohonan)){
-    //             // reset status detail to 99
-    //             $reset = Detail_permohonan::where('permohonan_id', $permohonan->id)->update(['status' => '99']);
-
-    //             Detail_permohonan::create(array(
-    //                 'permohonan_id' => $permohonan->id,
-    //                 'status' => 1,
-    //                 'flag' => 1,
-    //                 'created_by' => Auth::user()->id
-    //             ));
-    //         }
-    //         DB::commit();
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Data berhasil disimpan!'
-    //         ], 200);
-
-    //     } catch (\Exception $ex) {
-    //         info($ex);
-    //         DB::rollBack();
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $ex->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-    /**
-     * Display the specified resource.
-     */
-    // public function show(string $id)
-    // {
-    //     $idHash = decryptor($id);
-    //     $dataPermohonan = Permohonan::with(
-    //                         'layananjasa:id,nama_layanan',
-    //                         'jadwal:id,permohonan_id,date_mulai,date_selesai',
-    //                         'user:id,email,name',
-    //                         'jadwal.tbl_lhu', 'jadwal.tbl_lhu.jawaban', 'jadwal.tbl_lhu.jawaban.pertanyaan:id,title',
-    //                         'tbl_kip', 'tbl_kip.bukti',
-    //                         'signature_1:id,name', 'signature_2:id,name')
-    //                     ->where('id', $idHash)
-    //                     ->orWhere('no_kontrak', $idHash)
-    //                     ->first();
-
-    //     // Mengambil data media
-    //     $dokumen = isset($dataPermohonan->dokumen) ? json_decode($dataPermohonan->dokumen) : array();
-    //     $media = tbl_media::select('id','file_hash','file_ori','file_size','file_type','file_path','created_at')
-    //                         ->whereIn('id', $dokumen)
-    //                         ->get();
-    //     $dataPermohonan->media = count($media) != 0 ? $media : false;
-
-    //     // Mengambil data media petugas
-    //     $detailPermohonan = Detail_permohonan::with('media')->where('permohonan_id', $idHash)->where('status', 1)->first();
-    //     $dataPermohonan->detailPermohonan = $detailPermohonan;
-
-    //     return $this->output($dataPermohonan);
-    // }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, string $idHash)
-    // {
-    //     $idPermohonan = decryptor($idHash);
-    //     $status = isset($request->status) ? $request->status : null;
-    //     $tag = isset($request->tag) ? $request->tag : null;
-    //     $flag = isset($request->flag) ? $request->flag : null;
-    //     $jenis_limbah = isset($request->jenis_limbah) ? $request->jenis_limbah : null;
-    //     $sumber_radioaktif = isset($request->sumber_radioaktif) ? $request->sumber_radioaktif : null;
-    //     $jumlah = isset($request->jumlah) ? $request->jumlah : null;
-    //     $nomor_antrian = isset($request->nomor_antrian) ? $request->nomor_antrian : null;
-    //     $jadwal_id = isset($request->jadwal_id) ? decryptor($request->jadwal_id) : null;
-    //     $no_bapeten = isset($request->no_bapeten) ? $request->no_bapeten : null;
-    //     $desc_biaya = isset($request->desc_biaya) ? $request->desc_biaya : null;
-    //     $biaya = isset($request->biaya) ? unmask($request->biaya) : null;
-    //     $ttd_1 = isset($request->ttd_1) ? $request->ttd_1 : null;
-    //     $ttd_1_by = isset($request->ttd_1_by) ? $request->ttd_1_by : null;
-    //     $ttd_2 = isset($request->ttd_2) ? $request->ttd_2 : null;
-    //     $ttd_2_by = isset($request->ttd_2_by) ? $request->ttd_2_by : null;
-    //     $note = isset($request->note) ? $request->note : null;
-
-    //     DB::beginTransaction();
-    //     try {
-    //         $permohonan = Permohonan::findOrFail($idPermohonan);
-
-    //         $status && $permohonan->status = $status;
-    //         $tag && $permohonan->tag = $tag;
-    //         $flag && $permohonan->flag = $flag;
-    //         $jenis_limbah && $permohonan->jenis_limbah = $jenis_limbah;
-    //         $sumber_radioaktif && $permohonan->sumber_radioaktif = $sumber_radioaktif;
-    //         $jumlah && $permohonan->jumlah = $jumlah;
-    //         $nomor_antrian && $permohonan->nomor_antrian = $nomor_antrian;
-    //         $jadwal_id && $permohonan->jadwal_id = $jadwal_id;
-    //         $no_bapeten && $permohonan->no_bapeten = $no_bapeten;
-    //         $desc_biaya && $permohonan->jenis_layanan = $desc_biaya;
-    //         $biaya && $permohonan->tarif = $biaya;
-    //         isset($ttd_1) && ($ttd_1 == 'false' ? $permohonan->ttd_1 = null : $permohonan->ttd_1 = $ttd_1);
-    //         isset($ttd_1_by) && ($ttd_1_by == 'false' ? $permohonan->ttd_1_by = null : $permohonan->ttd_1_by = decryptor($ttd_1_by));
-    //         isset($ttd_2) && ($ttd_2 == 'false' ? $permohonan->ttd_2 = null : $permohonan->ttd_2 = $ttd_2);
-    //         isset($ttd_2_by) && ($ttd_2_by == 'false' ? $permohonan->ttd_2_by = null : $permohonan->ttd_2_by = decryptor($ttd_2_by));
-
-    //         $permohonan->update();
-
-    //         // Add log permohonan Front desk
-    //         if($ttd_1 && $ttd_1 != 'false') {
-    //             $tmp_log = array(
-    //                 'permohonan_id' => $idPermohonan,
-    //                 'note' => 'Berkas permohonan lengkap',
-    //                 'status' => 1,
-    //                 'flag' => 1, // Front desk
-    //                 'created_by' => Auth::user()->id
-    //             );
-
-    //             Detail_permohonan::create($tmp_log);
-    //         } else if($note){
-    //             $tmp_log = array(
-    //                 'permohonan_id' => $idPermohonan,
-    //                 'note' => $note,
-    //                 'status' => $status ? $status : $permohonan->status,
-    //                 'flag' => $permohonan->flag,
-    //                 'created_by' => Auth::user()->id
-    //             );
-
-    //             Detail_permohonan::create($tmp_log);
-    //         }
-
-
-    //         DB::commit();
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Data berhasil diupdate!'
-    //         ], 200);
-    //     } catch (\Exception $ex) {
-    //         info($ex);
-    //         DB::rollBack();
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $ex->getMessage()
-    //         ], 500);
-    //     }
-    // }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    // public function destroy(string $id)
-    // {
-    //     $idHash = decryptor($id);
-
-    //     Detail_permohonan::where('permohonan_id', $idHash)->update([
-    //         'status' => '99'
-    //     ]);
-
-    //     $delete = Permohonan::findOrFail($idHash);
-    //     $delete->status = '99';
-    //     $delete->update();
-
-    //     return response()->json(['message' => 'Berhasil di hapus'], 200);
-    // }
-
-    // public function verifikasi_kontrak(Request $request)
-    // {
-    //     $validator = $request->validate([
-    //         'file' => 'required',
-    //         'id' => 'required',
-    //         'note' => 'required',
-    //         'status' => 'required'
-    //     ]);
-
-    //     $idPermohonan = decryptor($request->id);
-
-    //     $this->detail->reset($idPermohonan);
-
-    //     $tmp_arr = array(
-    //         'permohonan_id' => $idPermohonan,
-    //         'note' => $request->note,
-    //         'status' => 1,
-    //         'flag' => $request->status == 3 ? 3 : 2,
-    //         'created_by' => Auth::user()->id
-    //     );
-
-    //     // upload Surat
-    //     $dokumen = $request->file('file');
-    //     if($dokumen){
-    //         $tmp_arr['surat_terbitan'] = $this->media->upload($dokumen, 'pelaksana');
-    //     }
-
-    //     $noKontrak = 'K'.generate();
-
-    //     $data_permohonan = Permohonan::findOrFail($idPermohonan);
-    //     $data_permohonan->flag = $request->status == 3 ? 3 : 2;
-
-    //     $data_permohonan->status = $request->status;
-
-    //     $request->status != 9 ? $data_permohonan->no_kontrak = $noKontrak : false;
-
-    //     $data_permohonan->update();
-
-    //     Detail_permohonan::create($tmp_arr);
-
-    //     return response()->json(['message' => 'success'], 200);
-    // }
-
-
-    // public function verifikasi_fd(Request $request){
-    //     $validator = $request->validate([
-    //         'id' => 'required',
-    //         'status' => 'required'
-    //     ]);
-
-    //     $idPermohonan = decryptor($request->id);
-    //     $type = isset($request->type) ? $request->type : null;
-
-    //     $data_permohonan = Permohonan::findOrFail($idPermohonan);
-    //     $data_permohonan->flag = $request->status == 2 ? 2 : 1;
-    //     if($request->status == 9) {
-    //         $data_permohonan->status = 9;
-    //     }
-    //     $data_permohonan->update();
-
-    //     // add to log
-    //     $tmp_log = array(
-    //         'permohonan_id' => $idPermohonan,
-    //         'note' => $request->note,
-    //         'status' => 9,
-    //         'flag' => 1, // Front desk
-    //         'created_by' => Auth::user()->id
-    //     );
-
-    //     Detail_permohonan::create($tmp_log);
-
-    //     // // Notifikasi
-    //     // $notif = notifikasi(array(
-    //     //     'to_user' => $data_permohonan->created_by,
-    //     //     'type' => 'Permohonan'
-    //     // ), "Permohonan ".$data_permohonan->layananjasa->nama_layanan." di $text");
-
-    //     return response()->json(['message' => 'success'], 200);
-    // }
-
-    // public function sendSuratTugas(Request $request)
-    // {
-    //     $validator = $request->validate([
-    //         'file' => 'required',
-    //         'no_kontrak' => 'required'
-    //     ]);
-
-    //     $lampiran = $request->file('file');
-    //     $surat_tugas = null;
-    //     if($lampiran){
-    //         $surat_tugas = $this->media->upload($lampiran, 'surat_tugas');
-    //     }
-
-    //     $data_permohonan = Permohonan::where('no_kontrak', $request->no_kontrak)->first();
-
-    //     $arr = array(
-    //         'no_kontrak' => $request->no_kontrak,
-    //         'level' => 1,
-    //         'active' => 9,
-    //         'surat_tugas' => $surat_tugas,
-    //         'created_by' => Auth::user()->id
-    //     );
-
-    //     $create = tbl_lhu::create($arr);
-
-    //     if($create){
-    //         $payload = array(
-    //             'message' => 'Berhasil di kirim'
-    //         );
-
-    //         return $this->output($payload);
-    //     }else{
-    //         return response()->json([
-    //             'message' => 'Gagal mengirim surat tugas'
-    //         ], 400);
-    //     }
-
-    // }
 }

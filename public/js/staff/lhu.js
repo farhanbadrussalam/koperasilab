@@ -45,6 +45,13 @@ function loadData(page = 1) {
                 </div>
             `;
 
+            let htmlPeriode = `
+                <div>${periode?.length ?? '0'} Periode</div>
+            `;
+            if(permohonan.periode){
+                htmlPeriode = `<div>Periode ${permohonan.periode}</div>`;
+            }
+
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
@@ -52,7 +59,7 @@ function loadData(page = 1) {
                             <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>${permohonan.jenis_tld.name}</div>
-                                <div>Periode : ${periode.length} Bulan</div>
+                                ${htmlPeriode}
                                 <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                             </small>
                         </div>
@@ -90,21 +97,6 @@ function loadData(page = 1) {
 
         $(`#list-placeholder-lhu`).hide();
         $(`#list-container-lhu`).show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     })
 }
 
@@ -127,8 +119,7 @@ function openProgressModal(obj){
         altFormat: "j F Y",
         defaultDate: 'today'
     });
-
-    !prosesNext ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
+    prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
 
     nowSelect.prosesNow = prosesNow;
     nowSelect.prosesPrev = prosesPrev;
@@ -136,6 +127,10 @@ function openProgressModal(obj){
 
     $('#prosesNow').val(prosesNow.jobs.name);
     $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
+    $('#inputNote').val('');
+    setDropify('reset', "#upload_document", {
+        allowedFileExtensions: ["pdf"]
+    });
     
     $('#updateProgressModal').modal('show');
 }
@@ -156,7 +151,8 @@ function simpanProgress(obj){
     form.append('idPenyelia', nowSelect?.penyelia_hash);
     form.append('status', status);
     form.append('note', note);
-    !nowSelect?.prosesNext ? form.append('document', document) : false;
+    nowSelect?.prosesNow.jobs.upload_doc ? form.append('document', document) : false;
+    !nowSelect?.prosesNext && form.append('statusPermohonan', 4); // status permohonan untuk proses pengiriman
 
     spinner('show', $(obj));
     ajaxPost(`api/v1/penyelia/action`, form, result => {
@@ -175,11 +171,6 @@ function simpanProgress(obj){
             });
         }
     }, error => {
-        Swal.fire({
-            icon: "error",
-            text: 'Server error',
-        });
         spinner('hide', $(obj));
-        console.error(error.responseJSON.data.msg);
     });
 }

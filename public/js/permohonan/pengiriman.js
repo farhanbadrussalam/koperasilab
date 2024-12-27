@@ -39,6 +39,7 @@ $(function () {
         }
 
         if(isComplete){
+            const isLhuSend = $('#isLhuSend').val();
             const formData = new FormData();
             formData.append('dateRecived', dateRecived);
             formData.append('idPengiriman', idPengiriman);
@@ -46,6 +47,8 @@ $(function () {
             arrImgBukti.forEach((file, index) => {
                 formData.append('buktiPenerima[]', file);
             });
+            isLhuSend == 'true' ? formData.append('statusPermohonan', 5) : false;
+
 
             spinner('show', $(obj.target));
             ajaxPost('api/v1/pengiriman/action', formData, result => {
@@ -61,20 +64,7 @@ $(function () {
                     });
                 }
             }, error => {
-                const result = error.responseJSON;
-                if(result?.meta?.code && result?.meta?.code == 500){
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Server error',
-                    });
-                    console.error(result.data.msg);
-                }else{
-                    Swal.fire({
-                        icon: "error",
-                        text: 'Server error',
-                    });
-                    console.error(error);
-                }
+                spinner('hide', $(obj.target));
             })
         } else {
             Swal.fire({
@@ -109,7 +99,7 @@ function loadData(page = 1) {
                             <div class="fw-bolder">${data.id_pengiriman}</div>
                             <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
                             <small class="subdesc text-body-secondary fw-light lh-md">
-                                <div>${data.no_kontrak}</div>
+                                <div>${data.kontrak.no_kontrak}</div>
                                 <div>created at ${dateFormat(data.created_at, 1)}</div>
                             </small>
                         </div>
@@ -162,21 +152,6 @@ function loadData(page = 1) {
 
         $(`#list-placeholder-pengiriman`).hide();
         $(`#list-container-pengiriman`).show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     });
 }
 
@@ -201,6 +176,8 @@ function showModalDiterima(obj){
             defaultDate: 'today'
         });
 
+        $('#isLhuSend').val(false);
+
         // Cek kelengkapan
         let htmlJenis = '';
         for (const detail of data.detail) {
@@ -220,6 +197,7 @@ function showModalDiterima(obj){
                     `;
                     break;
                 case 'lhu':
+                    $('#isLhuSend').val(true);
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
@@ -232,8 +210,21 @@ function showModalDiterima(obj){
                             <label class="btn btn-outline-success btn-sm" for="selectDocumentLhu">Sesuai</label><br>
                         </li>
                     `;
-
                     break;
+                case 'tld':
+                    htmlJenis += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">TLD <span class="text-secondary fw-normal">- ${detail.list_tld.length} Pcs</span></div>
+                                <div>${detail.list_tld.map(tld => tld).join(', ')}</div>
+                            </div>
+                            <input type="checkbox" class="btn-check" name="selectDocument" id="selectDocumentTld" 
+                                data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}" 
+                                autocomplete="off" checked>
+                            <label class="btn btn-outline-success btn-sm" for="selectDocumentTld">Sesuai</label><br>
+                        </li>
+                    `;
+                    break
                 default:
                     break;
             }
@@ -241,21 +232,6 @@ function showModalDiterima(obj){
 
         $('#list-kelengkapan').html(htmlJenis);
         $('#modal-diterima').modal('show');
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     });
 }
 

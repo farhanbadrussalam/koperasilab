@@ -376,7 +376,24 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}) {
             'Authorization': `Bearer ${bearer}`
         },
         data: params
-    }).done(callback).fail(onError)
+    }).done(callback).fail(error => {
+        const result = error.responseJSON;
+        if(result?.meta?.code && result.meta.code == 500){
+            Swal.fire({
+                icon: "error",
+                text: 'Terjadi kesalahan. Silakan coba lagi.',
+            });
+            console.error(result.data.msg);
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: 'Terjadi kesalahan. Silakan coba lagi.',
+            });
+            console.error(error);
+        }
+
+        onError(error);
+    })
 }
 
 function ajaxGet(url, params, callback = () => {}, onError = () => {}) {
@@ -390,7 +407,24 @@ function ajaxGet(url, params, callback = () => {}, onError = () => {}) {
             'Content-Type': 'application/json'
         },
         data: params
-    }).done(callback).fail(onError)
+    }).done(callback).fail(error => {
+        const result = error.responseJSON;
+        if(result?.meta?.code && result.meta.code == 500){
+            Swal.fire({
+                icon: "error",
+                text: 'Terjadi kesalahan. Silakan coba lagi.',
+            });
+            console.error(result.data.msg);
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: 'Terjadi kesalahan. Silakan coba lagi.',
+            });
+            console.error(error);
+        }
+
+        onError(error);
+    })
 }
 
 function ajaxDelete(url, callback = () => {}, onError = () => {}){

@@ -18,7 +18,7 @@ class Pengiriman extends Model
         'no_resi',
         'jenis_pengiriman',
         'id_permohonan',
-        'no_kontrak',
+        'id_kontrak',
         'alamat',
         'detail_alamat',
         'status',
@@ -61,5 +61,9 @@ class Pengiriman extends Model
 
     public function alamat(){
         return $this->belongsTo(Master_alamat::class, 'alamat', 'id_alamat');
+    }
+
+    public function kontrak(){
+        return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }
 }

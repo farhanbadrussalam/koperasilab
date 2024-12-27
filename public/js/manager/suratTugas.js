@@ -78,20 +78,5 @@ function loadData(page=1) {
 
         $(`#list-placeholder-surat-tugas`).hide();
         $(`#list-container-surat-tugas`).show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     });
 }

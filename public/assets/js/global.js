@@ -238,27 +238,27 @@ function statusFormat(feature, status) {
         switch (status) {
             case 1:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-secondary"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Pengajuan</span>
-                    </div>
+                    <span class="text-secondary ms-2"><i class="bi bi-file-earmark-plus"></i> Pengajuan</span>
                     `;
                 break;
             case 2:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-info"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Terverifikasi</span>
-                    </div>
+                    <span class="text-primary ms-2"><i class="bi bi-shield-check"></i> Terverifikasi</span>
                     `;
                 break;
             case 3:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-success"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Selesai</span>
-                    </div>
-                    `;
+                    <span class="text-info ms-2"><i class="bi bi-hourglass-split"></i> Proses pelaksana LAB</span>
+                `;
+                break;
+            case 4:
+                htmlStatus = `
+                    <span class="text-info ms-2"><i class="bi bi-hourglass-split"></i> Proses Pengiriman</span>
+                `;
+            case 5:
+                htmlStatus = `
+                    <span class="text-success ms-2"><i class="bi bi-check-circle-fill"></i> Selesai</span>
+                `;
                 break;
             case 80:
                 htmlStatus = `
@@ -333,7 +333,7 @@ function statusFormat(feature, status) {
         switch (status) {
             case 1:
                 htmlStatus = `
-                    <span class="text-info ms-2"><i class="bi bi-arrow-up-circle-fill"></i> Sedang dikirim</span>`;
+                    <span class="text-info ms-2"><i class="bi bi-arrow-repeat"></i> Sedang dikirim</span>`;
                 break;
 
             case 2:
@@ -348,7 +348,7 @@ function statusFormat(feature, status) {
 
             default:
                 htmlStatus = `
-                    <span class="text-secondary ms-2"><i class="bi bi-info-circle-fill"></i> Belum dikirim</span>`;
+                    <span class="text-secondary ms-2"><i class="bi bi-dash-circle"></i> Belum dikirim</span>`;
                 break;
         }
     } else if (feature == 'penyelia') {
@@ -380,37 +380,27 @@ function statusFormat(feature, status) {
                 break;
             case 13:
                 htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penyimpanan TLD</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penerbitan LHU</span>
                 `;
                 break;
             case 14:
                 htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Anealing</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penyeliaan LHU</span>
                 `;
                 break;
             case 15:
                 htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Labeling</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Pendatanganan LHU</span>
                 `;
                 break;
             case 16:
                 htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penyeliaan LHU</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Anealing & Labeling</span>
                 `;
                 break;
             case 17:
                 htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Pendatanganan LHU</span>
-                `;
-                break;
-            case 18:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penerbitan LHU</span>
-                `;
-                break;
-            case 19:
-                htmlStatus = `
-                    <span class="badge bg-success-subtle text-dark border border-success">Selesai</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penyimpanan</span>
                 `;
                 break;
         }
@@ -631,7 +621,24 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}) {
             'Authorization': `Bearer ${bearer}`
         },
         data: params
-    }).done(callback).fail(onError)
+    }).done(callback).fail(error => {
+        const result = error.responseJSON;
+        if(result?.meta?.code && result.meta.code == 500){
+            Swal.fire({
+                icon: "error",
+                text: 'Terjadi kesalahan. Silakan coba lagi.',
+            });
+            console.error(result.data.msg);
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: 'Terjadi kesalahan. Silakan coba lagi.',
+            });
+            console.error(error);
+        }
+
+        onError(error);
+    })
 }
 
 /**
@@ -653,7 +660,24 @@ function ajaxGet(url, params, callback = () => {}, onError = () => {}) {
             'Content-Type': 'application/json'
         },
         data: params
-    }).done(callback).fail(onError)
+    }).done(callback).fail(error => {
+        const result = error.responseJSON;
+        if(result?.meta?.code && result.meta.code == 500){
+            Swal.fire({
+                icon: "error",
+                text: 'Terjadi kesalahan. Silakan coba lagi.',
+            });
+            console.error(result.data.msg);
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: 'Terjadi kesalahan. Silakan coba lagi.',
+            });
+            console.error(error);
+        }
+
+        onError(error);
+    })
 }
 
 /**

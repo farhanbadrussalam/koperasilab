@@ -13,23 +13,29 @@ class Permohonan extends Model
     protected $primaryKey = 'id_permohonan';
 
     protected $fillable = [
+        'id_layanan',
+        'jenis_layanan_2',
+        'jenis_layanan_1',
         'id_kontrak',
         'id_pengiriman',
         'tipe_kontrak',
         'no_kontrak',
         'jenis_tld',
         'periode_pemakaian',
+        'periode',
         'jumlah_pengguna',
         'jumlah_kontrol',
         'total_harga',
         'harga_layanan',
+        'list_tld',
         'ttd',
         'ttd_by',
         'status',
         'note',
         'flag_read',
         'created_by',
-        'created_at'
+        'created_at',
+        'verify_at'
     ];
 
     protected $hidden = [
@@ -45,6 +51,7 @@ class Permohonan extends Model
 
     protected $casts = [
         'periode_pemakaian' => 'array',
+        'list_tld' => 'array',
     ];
 
     public function getPermohonanHashAttribute()

@@ -44,6 +44,7 @@ class PenyeliaAPI extends Controller
             $jobsMap = $request->jobsMap ? $request->jobsMap : false;
             $arrPetugas = array();
             $textNote = $request->note ? $request->note : '';
+            $statusPermohonan = $request->statusPermohonan ? $request->statusPermohonan : '';
 
             $document = $request->file("document");
             $file_document = false;
@@ -119,9 +120,9 @@ class PenyeliaAPI extends Controller
             // menambahkan periode
             $dataPemohonan = Permohonan::select('periode')->where('id_permohonan', $idPermohonan)->first();
             if($dataPemohonan){
-                $params['periode'] = $dataPemohonan->periode ?? 1;
+                $params['periode'] = $dataPemohonan->periode ? $dataPemohonan->periode : 1;
             }
-
+            
             $penyelia = Penyelia::updateOrCreate(
                 ["id_penyelia" => $idPenyelia],
                 $params
@@ -138,6 +139,12 @@ class PenyeliaAPI extends Controller
             } else {
                 $result['status'] = "none";
                 $result['msg'] = "Nothing has changed.";
+            }
+
+            // update status
+            if($statusPermohonan){
+                Permohonan::where('id_permohonan', $penyelia->id_permohonan)
+                            ->update(array('status' => $statusPermohonan));
             }
 
             // log penyelia
@@ -187,7 +194,7 @@ class PenyeliaAPI extends Controller
                 $typePencarian = 'not';
                 break;
             case 'penerbitanlhu':
-                $status = [18];
+                $status = [13];
                 break;
             default:
                 $status = false;
@@ -215,7 +222,7 @@ class PenyeliaAPI extends Controller
                             'petugas',
                             'petugas.jobs',
                             'penyelia_map',
-                            'penyelia_map.jobs:id_jobs,status,name',
+                            'penyelia_map.jobs:id_jobs,status,name,upload_doc',
                             'usersig:id,name',
                             'permohonan.layanan_jasa:id_layanan,nama_layanan',
                             'permohonan.jenisTld:id_jenisTld,name', 

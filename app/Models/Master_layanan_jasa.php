@@ -34,4 +34,8 @@ class Master_layanan_jasa extends Model
     {
         return encryptor($this->id_layanan);
     }
+
+    public function jobs_pelaksana(){
+        return $this->hasMany(Master_jobs::class, 'id_layanan', 'id_layanan');
+    }
 }

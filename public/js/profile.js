@@ -113,20 +113,6 @@ function saveUpdateForm(obj, params, id){
     ajaxPost(`api/v1/profile/action/alamat`, params, result => {
         spinner('hide', obj);
     }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
         spinner('hide', obj);
     })
 }
@@ -210,20 +196,6 @@ function simpanEdit(obj, tab){
             // change form to canedit
             $(`#${inputId}`).attr('disabled', true);
         }, error => {
-            const result = error.responseJSON;
-            if(result?.meta?.code && result?.meta?.code == 500){
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(result.data.msg);
-            }else{
-                Swal.fire({
-                    icon: "error",
-                    text: 'Server error',
-                });
-                console.error(error);
-            }
             spinner('hide', $(spinObj));
         })
     }

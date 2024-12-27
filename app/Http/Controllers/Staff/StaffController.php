@@ -95,7 +95,8 @@ class StaffController extends Controller
             'usersig:id,name',
             'permohonan.kontrak',
             'permohonan.kontrak.periode',
-            'permohonan.layanan_jasa:id_layanan,nama_layanan,jobs',
+            'permohonan.layanan_jasa:id_layanan,nama_layanan',
+            'permohonan.layanan_jasa.jobs_pelaksana',
             'permohonan.jenisTld:id_jenisTld,name', 
             'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
             'permohonan.jenis_layanan_parent',
@@ -112,11 +113,7 @@ class StaffController extends Controller
                 array_push($listJobs, $dataJobs);
             }
         }else{
-            foreach ($query->permohonan->layanan_jasa->jobs as $key => $jobs) {
-                $dataJobs = Master_jobs::find($jobs);
-                $dataJobs['order'] = $key+1;
-                array_push($listJobs, $dataJobs);
-            }
+            $listJobs = $query->permohonan->layanan_jasa->jobs_pelaksana;
         }
         
         $data = [
@@ -150,7 +147,7 @@ class StaffController extends Controller
 
     public function verifikasiPermohonan($idPermohonan)
     {
-        $arrTandaTerima = [1];
+        $arrTandaTerima = [1,4];
         $id = decryptor($idPermohonan);
         $pertanyaan_tr = false;
         $dataPermohonan = Permohonan::with(
@@ -163,9 +160,8 @@ class StaffController extends Controller
                             'pelanggan.perusahaan',
                             'pelanggan.perusahaan.alamat',
                         )->where('id_permohonan', $id)->first();
-        
         if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){
-            $pertanyaan_tr = Master_pertanyaan::where('id_jenisLayanan', $dataPermohonan->jenis_layanan_parent->id_jenisLayanan)->get();
+            $pertanyaan_tr = Master_pertanyaan::where('id_layananjasa', $dataPermohonan->layanan_jasa->id_layanan)->get();
         }
 
         $dataPengguna = Permohonan_pengguna::where('id_permohonan', $id)->first();
@@ -201,9 +197,12 @@ class StaffController extends Controller
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
                 'kontrak',
+                'kontrak.periode',
                 'invoice',
+                'invoice.pengiriman',
                 'lhu',
-                'lhu.media'
+                'lhu.media',
+                'pengiriman',
             )->find($idPermohonan);
 
         $data = [

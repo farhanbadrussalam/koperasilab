@@ -13,7 +13,7 @@ class Master_pertanyaan extends Model
     protected $primaryKey = 'id_pertanyaan';
 
     protected $fillable = [
-        'id_jenisLayanan',
+        'id_layananjasa',
         'pertanyaan',
         'type'
     ];

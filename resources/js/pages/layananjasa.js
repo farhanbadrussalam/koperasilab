@@ -433,18 +433,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     })
                 }
             }, err => {
-                Swal.fire({
-                    icon: 'error',
-                    text: 'Server error',
-                    timer: 2000,
-                    timerProgressBar: true,
-                    showConfirmButton: false
-                }).then(() => {
-                    savePermohonan.attr('disabled', false).html(`
-                        <i class="bi bi-floppy2-fill"></i> Create
-                    `)
-                })
-                console.error(err)
+                savePermohonan.attr('disabled', false).html(`
+                    <i class="bi bi-floppy2-fill"></i> Create
+                `)
             })
         }
     })

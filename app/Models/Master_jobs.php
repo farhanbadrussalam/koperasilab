@@ -14,7 +14,8 @@ class Master_jobs extends Model
 
     protected $fillable = [
         'name',
-        'status'
+        'status',
+        'upload_doc'
     ];
 
     protected $hidden = [

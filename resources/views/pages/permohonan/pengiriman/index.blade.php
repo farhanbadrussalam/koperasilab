@@ -65,6 +65,7 @@
             <div class="mb-2 col-md-12">
                 <label for="" class="form-label">Tanggal diterima</label>
                 <input type="hidden" name="idPengiriman" id="idPengiriman">
+                <input type="hidden" name="isLhuSend" id="isLhuSend">
                 <input type="text" class="form-control" name="txt_date_diterima" id="txt_date_diterima">
             </div>
             <div class="mb-2 col-md-12">

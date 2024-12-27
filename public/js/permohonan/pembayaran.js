@@ -31,7 +31,7 @@ function loadData(page = 1) {
                             <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>${permohonan.jenis_tld.name}</div>
-                                <div>Periode : ${periode.length} Bulan</div>
+                                <div>${periode.length} Periode</div>
                                 <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                             </small>
                         </div>
@@ -64,16 +64,7 @@ function loadData(page = 1) {
 
         $(`#list-placeholder`).hide();
         $(`#list-container`).show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }
-    })
+    });
 }
 
 function openInvoiceModal(obj, mode) {
@@ -81,20 +72,5 @@ function openInvoiceModal(obj, mode) {
     ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
         invoice.addData(result.data);
         invoice.open(mode);
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     })
 }

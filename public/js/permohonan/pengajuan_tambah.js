@@ -53,15 +53,6 @@ function loadPengguna(){
             $('#pengguna-placeholder').hide();
             $('#pengguna-list-container').show();
         }
-    }, error => {
-        const result = error.responseJSON;
-        if(result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }
     })
 }
 
@@ -333,39 +324,48 @@ $(function () {
         let valtotalHarga = $('#total_harga').val();
         let valHargaLayanan = window.price;
 
-        const formData = new FormData();
-        formData.append('idPermohonan', idPermohonan);
-        formData.append('idLayanan', vallayananJasa);
-        formData.append('jenisLayanan1', valjenisLayanan1);
-        formData.append('jenisLayanan2', valjenisLayanan2);
-
-        formData.append('tipeKontrak', valtipeKontrak);
-        formData.append('jenisTld', valjenisTld);
-        formData.append('periodePemakaian', valperiodePemakaian);
-        formData.append('jumlahPengguna', valjumPengguna);
-        formData.append('jumlahKontrol', valjumKontrol);
-        formData.append('hargaLayanan', valHargaLayanan);
-        formData.append('totalHarga', valtotalHarga);
-
-        spinner('show', obj.target);
-        ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
-            Swal.fire({
-                icon: 'success',
-                text: 'Pengajuan berhasil dibuat',
-                timer: 1200,
-                timerProgressBar: true,
-                showConfirmButton: false
-            }).then(() => {
-                window.location.href = base_url+"/permohonan/pengajuan";
+    Swal.fire({
+        title: 'Apa kamu yakin?',
+        text: "Apakah Anda ingin melanjutkan tindakan ini?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, proceed!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Proceed with the action
+            const formData = new FormData();
+            formData.append('idPermohonan', idPermohonan);
+            formData.append('idLayanan', vallayananJasa);
+            formData.append('jenisLayanan1', valjenisLayanan1);
+            formData.append('jenisLayanan2', valjenisLayanan2);
+    
+            formData.append('tipeKontrak', valtipeKontrak);
+            formData.append('jenisTld', valjenisTld);
+            formData.append('periodePemakaian', valperiodePemakaian);
+            formData.append('jumlahPengguna', valjumPengguna);
+            formData.append('jumlahKontrol', valjumKontrol);
+            formData.append('hargaLayanan', valHargaLayanan);
+            formData.append('totalHarga', valtotalHarga);
+            formData.append('periode', 1);
+    
+            spinner('show', obj.target);
+            ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Pengajuan berhasil dibuat',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = base_url+"/permohonan/pengajuan";
+                });
+            }, error => {
+                spinner('hide', obj.target);
             });
-        }, error => {
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            spinner('hide', obj.target);
-            console.error(error.responseJSON.data.msg);
-        });
+        }
+    });
     });
 
     $('#btn-clear-periode').on('click', obj => {
@@ -407,11 +407,6 @@ $(function () {
                 });
             }
         }, error => {
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error.responseJSON.data.msg);
             spinner('hide', obj.target);
         });
     });

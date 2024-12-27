@@ -107,15 +107,7 @@
                         $('#noteModal').modal('hide');
                         dt_layanan?.ajax.reload();
                     });
-                }, err => {
-                    Swal.fire({
-                        icon: 'error',
-                        text: 'Terjadi masalah !!',
-                        timer: 2000,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    })
-                })
+                }, err => {})
             } else {
                 $('#noteModal').modal('hide');
             }

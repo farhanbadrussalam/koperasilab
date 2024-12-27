@@ -236,21 +236,6 @@ function loadData(page = 1, menu) {
 
         $(`#list-placeholder-${menu}`).hide();
         $(`#list-container-${menu}`).show();
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result?.meta?.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(error);
-        }
     })
 }
 
@@ -271,6 +256,7 @@ function openProgressModal(obj) {
     // Mengambil proses jobs 
     const prosesNow = nowSelect.penyelia_map.find(d => d.jobs.status == nowSelect.status);
     const prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
+    const prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
     
     $('#dateProgress').flatpickr({
         altInput: true,
@@ -280,11 +266,14 @@ function openProgressModal(obj) {
         defaultDate: 'today'
     });
 
+    prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
+
     nowSelect.prosesNow = prosesNow;
     nowSelect.prosesPrev = prosesPrev;
+    nowSelect.prosesNext = prosesNext;
 
     $('#prosesNow').val(prosesNow.jobs.name);
-    $('#prosesNext').val('Finish');
+    $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
 
     $('#updateProgressModal').modal('show');
 }
@@ -383,26 +372,22 @@ function simpanSuratTugas(obj){
             });
         }
     }, error => {
-        Swal.fire({
-            icon: "error",
-            text: 'Server error',
-        });
         spinner('hide', $(obj));
-        console.error(error.responseJSON.data.msg);
     });
 }
 
 function simpanProgress(obj){
     let sProgress = $(`[name="statusProgress"]:checked`).val();
     let note = $('#inputNote').val();
-    let status = sProgress == 'done' ? 3 : nowSelect?.prosesPrev?.jobs?.status;
+    let status = sProgress == 'done' ? (nowSelect?.prosesNext?.jobs?.status ?? 3) : nowSelect?.prosesPrev?.jobs?.status;
     const document = $('#upload_document')[0].files[0];
 
     const form = new FormData();
     form.append('idPenyelia', nowSelect?.penyelia_hash);
     form.append('status', status);
     form.append('note', note);
-    form.append('document', document);
+    form.append('document', document)
+    !nowSelect?.prosesNext && form.append('statusPermohonan', 4); // status permohonan untuk proses pengiriman
 
     spinner('show', $(obj));
     ajaxPost(`api/v1/penyelia/action`, form, result => {
@@ -421,12 +406,7 @@ function simpanProgress(obj){
             });
         }
     }, error => {
-        Swal.fire({
-            icon: "error",
-            text: 'Server error',
-        });
         spinner('hide', $(obj));
-        console.error(error.responseJSON.data.msg);
     })
 }
 
