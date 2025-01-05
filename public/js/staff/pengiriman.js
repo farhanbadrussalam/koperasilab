@@ -142,12 +142,15 @@ function showFormPengiriman(obj){
 function kirimDokumen(obj){
     let idPengiriman = $('#no_pengiriman').val();
     let noResi = $('#noResi').val();
+    let idEkspedisi = $('#jasa_kurir').val();
 
-    if(noResi == ''){
-        Swal.fire({
-            icon: 'warning',
-            text: 'No resi tidak boleh kosong',
-        });
+    // Check for empty fields and show warning if any
+    if (!idEkspedisi) {
+        Swal.fire({ icon: 'warning', text: 'Ekspedisi tidak boleh kosong' });
+        return;
+    }
+    if (!noResi) {
+        Swal.fire({ icon: 'warning', text: 'No resi tidak boleh kosong' });
         return;
     }
 
@@ -165,6 +168,7 @@ function kirimDokumen(obj){
             let data = new FormData();
             data.append('idPengiriman', idPengiriman);
             data.append('noResi', noResi);
+            data.append('idEkspedisi', idEkspedisi);
             data.append('status', 1);
             data.append('sendAt', new Date().toISOString());
 
@@ -221,6 +225,7 @@ function batalKirimDokumen(obj){
             data.append('idPengiriman', idPengiriman);
             data.append('status', 3);
             data.append('noResi', '');
+            data.append('idEkspedisi', '');
 
             spinner('show', $(obj));
             ajaxPost(`api/v1/pengiriman/action`, data, result => {
@@ -241,3 +246,14 @@ function batalKirimDokumen(obj){
         }
     });
 }
+
+function reload(){
+    loadData(1);
+}
+
+// pagination
+$('#list-pagination-pengiriman').on('click', 'a', function (e) {
+    e.preventDefault();
+    const pageno = e.target.dataset.page;
+    loadData(pageno);
+});

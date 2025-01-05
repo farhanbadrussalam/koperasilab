@@ -76,14 +76,8 @@
             </div>
             <div class="mb-2 col-md-12">
                 <label for="" class="form-label">Upload bukti penerima</label>
-                <div class="input-group">
-                    <input type="file" class="form-control" id="uploadBuktiPenerima" accept="image/*" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-                    <button class="btn btn-outline-primary" id="btnTambahBukti">Tambah</button>
-                    <button class="btn btn-outline-secondary" type="button" id="fotoBuktiPenerima"><i class="bi bi-camera"></i></button>
+                <div id="uploadBuktiPenerima">
                 </div>
-            </div>
-            <div class="mb-3 col-md-12 d-flex flex-wrap" id="list-preview-bukti">
-
             </div>
           </div>
         </div>

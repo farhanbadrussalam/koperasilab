@@ -124,18 +124,6 @@
     </div>
   </div>
 </div>
-<div class="modal fade" id="modal-preview" tabindex="-1" aria-labelledby="modal-searchLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-center">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <img src="#" alt="preview" class="img-fluid rounded" id="modal-preview-image">
-            </div>
-        </div>
-    </div>
-</div>
 
 <div class="modal fade" id="modal-detail-invoice" data-bs-backdrop="static" tabindex="-1" aria-labelledby="modal-detail-invoiceLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">

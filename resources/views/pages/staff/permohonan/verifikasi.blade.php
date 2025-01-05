@@ -107,16 +107,6 @@
                             <form class="row mt-2" id="content-pertanyaan"></form>
                         </div>
                     </div>
-                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
-                        <div class="card-body row">
-                            {{-- <div class="col-md-6 d-flex justify-content-center">
-                                <div class="wrapper" id="content-ttd-1"></div>
-                            </div> --}}
-                            <div class="col-md-12 d-flex justify-content-center">
-                                <div class="wrapper" id="content-ttd-2"></div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="tab-pane fade" id="detailPelanggan-tab-pane" role="tabpanel" aria-labelledby="detailPelanggan-tab" tabindex="0">
                     <div class="card card-default border-0 color-palette-box shadow py-3">
@@ -186,6 +176,26 @@
                         </div>
                     </div>
                 </div>
+                @if($permohonan->jenis_layanan->name == 'Sewa')
+                <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
+                    <div class="card-body row">
+                        <div class="mb-3 col-md-12">
+                            <label class="form-label">Upload Document LHU Zero cek</label>
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="uploadDocumentLhu"
+                                    aria-describedby="inputGroupFileAddon04" aria-label="Upload">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
+                    <div class="card-body row">
+                        <div class="col-md-12 d-flex justify-content-center">
+                            <div class="wrapper" id="content-ttd-2"></div>
+                        </div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-6">
                         <button class="btn btn-danger" onclick="verif_kelengkapan('tidak_lengkap', this)">Data tidak lengkap</button>
@@ -220,6 +230,31 @@
         </div>
     </div>
 </div>
+
+{{-- Modal select tld --}}
+<div class="modal fade" id="modal-select-tld" tabindex="-1" aria-labelledby="modal-select-tldLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="modal-select-tldLabel">List TLD</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <button class="btn btn-outline-secondary btn-sm mb-2" id="btnSelectAllTld">
+                    <input class="form-check-input" type="checkbox" id="selectAllTld" checked>
+                    Pilih semua
+                </button>
+                <ul class="list-group shadow-sm" id="listTldSelect">
+                    
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="simpanTldPermohonan(this)" id="btnPilihTld">Pilih</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 @push('scripts')
     <script>

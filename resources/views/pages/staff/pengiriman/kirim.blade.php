@@ -49,15 +49,7 @@
                             </div>
                             <div class="mb-3 col-md-6">
                                 <label for="" class="form-label">Upload bukti pengiriman</label>
-                                <div class="input-group">
-                                    <input type="file" class="form-control" id="uploadBuktiPengiriman" accept="image/*"
-                                        aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-                                    <button class="btn btn-outline-primary" id="btnTambahBukti">Tambah</button>
-                                    <button class="btn btn-outline-secondary" type="button" id="fotoBuktiPengiriman"><i
-                                            class="bi bi-camera"></i></button>
-                                </div>
-                                <div id="list-preview-bukti" class="mt-2 d-flex column-gap-2">
-
+                                <div id="uploadBuktiPengiriman">
                                 </div>
                             </div>
                         </div>
@@ -67,7 +59,7 @@
                             
                         </div>
                         <div class="d-flex justify-content-end mt-3">
-                            <a type="button" class="btn btn-secondary me-3" id="btnCetakSurat" href="{{ route('laporan.suratPengantar', $permohonan->permohonan_hash) }}" target="_blank"><i
+                            <a type="button" class="btn btn-secondary me-3 d-none" id="btnCetakSurat" href="{{ route('laporan.suratPengantar', $permohonan->permohonan_hash) }}" target="_blank"><i
                                     class="bi bi-printer-fill"></i> Cetak Surat Pengantar</a>
                             <button type="button" class="btn btn-primary" onclick="buatPengiriman(this)">Buat pengiriman</button>
                         </div>

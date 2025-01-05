@@ -12,9 +12,8 @@
 <div class="card shadow-sm m-4">
     <div class="card-body">
         <div class="d-flex">
-            <h3 class="card-title flex-grow-1">
-                
-            </h3>
+            {{-- <h3 class="card-title flex-grow-1"></h3> --}}
+            <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
             <a href="{{ route('permohonan.pengajuan.tambah') }}" class="btn btn-primary btn-sm">Buat pengajuan</a>
         </div>
         <div class="d-flex my-4">

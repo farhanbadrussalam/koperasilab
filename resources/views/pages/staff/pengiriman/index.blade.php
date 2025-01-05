@@ -6,6 +6,9 @@
 </div>
 <div class="card shadow-sm m-4 mt-2">
     <div class="card-body">
+        <div class="d-flex">
+            <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
+        </div>
         <div class="d-flex pb-4">
             <div class="w-100 d-flex">
                 {{-- <div class="mx-2">
@@ -136,6 +139,15 @@
                 <div class="mb-3">
                     <label for="no_pengiriman" class="form-label">No pengiriman</label>
                     <input type="text" class="form-control bg-secondary-subtle" id="no_pengiriman" name="no_pengiriman" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="jasa_kurir" class="form-label">Jasa Kurir</label>
+                    <select class="form-select" id="jasa_kurir" name="jasa_kurir" required>
+                        <option value="" selected disabled>Pilih Jasa Kurir</option>
+                        @foreach ($ekspedisi as $value)
+                            <option value="{{ $value->ekspedisi_hash }}">{{ $value->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="mb-3">
                     <label for="noResi" class="form-label">No Resi</label>

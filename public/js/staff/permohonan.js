@@ -66,3 +66,7 @@ function loadData(page = 1) {
         $('#list-container').show();
     })
 }
+
+function reload(){
+    loadData();
+}

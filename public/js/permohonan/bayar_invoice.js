@@ -1,32 +1,59 @@
 const invoice = new Invoice({modal : false});
+let buktiBayar = false;
+let buktiBayarPph = false;
 
 $(function() {
     invoice.addData(dataKeuangan);
 
     $('#deskripsiInvoice').empty().html(invoice.updateInvoiceDescription());
 
-    setDropify('init', '#uploadBuktiBayar', {
-        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
+    // signaturePadManager = signature(document.getElementById("content-ttd-manager"), {
+    //     text: 'Manager',
+    //     name: dataKeuangan.usersig.name,
+    //     defaultSig: dataKeuangan.ttd
+    // });
+
+    // Inisialisasi upload component
+    buktiBayar = new UploadComponent('uploadBuktiBayar', {
+        modal: true,
+        camera: false,
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
+        urlUpload: {
+            url: `api/v1/keuangan/uploadBuktiBayar`,
+            urlDestroy: `api/v1/keuangan/destroyBuktiBayar`,
+            idHash: dataKeuangan.keuangan_hash
+        }
     });
 
-    setDropify('init', '#uploadBuktiPph', {
-        allowedFileExtensions: ['pdf']
+    buktiBayarPph = new UploadComponent('uploadBuktiBayarPph', {
+        modal: true,
+        camera: false,
+        allowedFileExtensions: ['pdf'],
+        urlUpload: {
+            url: `api/v1/keuangan/uploadBuktiPph`,
+            urlDestroy: `api/v1/keuangan/destroyBuktiPph`,
+            idHash: dataKeuangan.keuangan_hash
+        }
     });
 
-    signaturePadManager = signature(document.getElementById("content-ttd-manager"), {
-        text: 'Manager',
-        name: dataKeuangan.usersig.name,
-        defaultSig: dataKeuangan.ttd
-    });
-
+    buktiBayar.addData(dataKeuangan.media_bukti_bayar);
+    buktiBayarPph.addData(dataKeuangan.media_bukti_bayar_pph);
 })
 
-function uploadBukti(){
+function btnSimpan(){
+    let dataBuktiBayar = buktiBayar.getData();
+    let dataBuktiBayarPph = buktiBayarPph.getData();
+
+    if(dataBuktiBayar.length === 0 || dataBuktiBayarPph.length === 0){
+        Swal.fire({
+            icon: 'error',
+            text: 'Upload bukti bayar dan bukti pph'
+        });
+        return;
+    }
+
     const formData = new FormData();
-    formData.append('_token', csrf);
     formData.append('idKeuangan', dataKeuangan.keuangan_hash);
-    formData.append('buktiBayar', $('#uploadBuktiBayar')[0].files[0]);
-    formData.append('buktiPph', $('#uploadBuktiPph')[0].files[0]);
     formData.append('status', 4);
 
     Swal.fire({
@@ -43,6 +70,7 @@ function uploadBukti(){
         reverseButtons: true
     }).then(result => {
         if(result.isConfirmed){
+            console.log(formData);
             spinner('show', $('#btn-upload-bukti'));
             ajaxPost(`api/v1/keuangan/action`, formData, result => {
                 if(result.meta.code == 200){

@@ -111,6 +111,55 @@ a{
     padding: 10px;
 }
 
+/* Kumpulan font size */
+.fs-7 {
+    font-size: 15px;
+}
+.fs-8 {
+    font-size: 13px !important;
+}
+.fs-9 {
+    font-size: 11px;
+}
+.fs-10 {
+    font-size: 9px;
+}
+
+/* Tooltip container */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* Tooltip text */
+.tooltip-text {
+    display: none;
+    text-align: center;
+    padding: 5px 10px;
+    white-space: nowrap;
+    width: auto;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #232323;
+
+    /* Positioning */
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+.tooltip-container:hover .tooltip-text {
+    display: block;
+}
+
+.custom-offcanvas {
+    width: 500px !important;
+}
+
 /* Animasi */
 .smooth-height {
     transition-duration: 2s;

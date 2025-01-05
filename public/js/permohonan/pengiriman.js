@@ -1,26 +1,19 @@
 let nowTab = 1;
-const arrImgBukti = [];
+let buktiPenerima = false;
 $(function () {
     loadData(1);
 
-    $('#btnTambahBukti').on('click', obj => {
-        let imgtmp = $('#uploadBuktiPenerima')[0].files[0];
-
-        if(imgtmp && arrImgBukti.length < 5){
-            spinner('show', $(obj.target));
-            
-            arrImgBukti.push(imgtmp);
-            loadPreviewBukti()
-            spinner('hide', $(obj.target));
-            $('#uploadBuktiPenerima').val('');
-        }
+    buktiPenerima = new UploadComponent('uploadBuktiPenerima', {
+        modal: true,
+        camera: false,
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
     });
 
     $('#btnSendDocument').on('click', obj => {
         const dateRecived = $('#txt_date_diterima').val();
         const idPengiriman = $('#idPengiriman').val();
-
         const arrSelectDocument = document.getElementsByName('selectDocument');
+        const arrImgBukti = buktiPenerima.getData();
         
         let isComplete = true;
         for (const selectDocument of arrSelectDocument) {
@@ -32,7 +25,7 @@ $(function () {
 
         if(arrImgBukti.length === 0){
             Swal.fire({
-                icon: "error",
+                icon: "warning",
                 text: "Tambahkan bukti penerima"
             });
             return;
@@ -40,31 +33,44 @@ $(function () {
 
         if(isComplete){
             const isLhuSend = $('#isLhuSend').val();
-            const formData = new FormData();
-            formData.append('dateRecived', dateRecived);
-            formData.append('idPengiriman', idPengiriman);
-            formData.append('status', 2);
-            arrImgBukti.forEach((file, index) => {
-                formData.append('buktiPenerima[]', file);
-            });
-            isLhuSend == 'true' ? formData.append('statusPermohonan', 5) : false;
-
-
-            spinner('show', $(obj.target));
-            ajaxPost('api/v1/pengiriman/action', formData, result => {
-                spinner('hide', $(obj.target));
-                if(result.meta.code == 200) {
-                    Swal.fire({
-                        icon: "success",
-                        text: "Document diterima"
-                    }).then(() => {
-                        $('#modal-diterima').modal('hide');
-                        resetForm();
-                        loadData(1);
+            Swal.fire({
+                title: 'Konfirmasi Penerimaan Dokumen',
+                text: "Apakah Anda yakin ingin menandai dokumen ini sebagai diterima?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, terima!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('dateRecived', dateRecived);
+                    formData.append('idPengiriman', idPengiriman);
+                    formData.append('status', 2);
+                    arrImgBukti.forEach((d) => {
+                        formData.append('buktiPenerima[]', d.file);
                     });
+                    isLhuSend == 'true' ? formData.append('statusPermohonan', 5) : false;
+
+
+                    spinner('show', $(obj.target));
+                    ajaxPost('api/v1/pengiriman/action', formData, result => {
+                        spinner('hide', $(obj.target));
+                        if(result.meta.code == 200) {
+                            Swal.fire({
+                                icon: "success",
+                                text: "Document diterima"
+                            }).then(() => {
+                                $('#modal-diterima').modal('hide');
+                                resetForm();
+                                loadData(1);
+                            });
+                        }
+                    }, error => {
+                        spinner('hide', $(obj.target));
+                    })
                 }
-            }, error => {
-                spinner('hide', $(obj.target));
             })
         } else {
             Swal.fire({
@@ -189,10 +195,9 @@ function showModalDiterima(obj){
                                 <div class="fw-bold">Invoice</div>
                                 ${data.permohonan.invoice.no_invoice}
                             </div>
-                            <input type="checkbox" class="btn-check" name="selectDocument" id="selectDocumentInvoice" 
+                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentInvoice" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.invoice.keuangan_hash}" 
                                 autocomplete="off" checked>
-                            <label class="btn btn-outline-success btn-sm" for="selectDocumentInvoice">Sesuai</label><br>
                         </li>
                     `;
                     break;
@@ -204,10 +209,9 @@ function showModalDiterima(obj){
                                 <div class="fw-bold">LHU</div>
                                 <div>Periode ${detail.periode}</div>
                             </div>
-                            <input type="checkbox" class="btn-check" name="selectDocument" id="selectDocumentLhu" 
+                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentLhu" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.lhu.lhu_hash}" 
                                 autocomplete="off" checked>
-                            <label class="btn btn-outline-success btn-sm" for="selectDocumentLhu">Sesuai</label><br>
                         </li>
                     `;
                     break;
@@ -215,17 +219,26 @@ function showModalDiterima(obj){
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold">TLD <span class="text-secondary fw-normal">- ${detail.list_tld.length} Pcs</span></div>
+                                <div class="fw-bold">TLD <span class="text-secondary fw-normal">- ${data.permohonan.jumlah_pengguna} Pengguna + ${data.permohonan.jumlah_kontrol} Kontrol</span></div>
                                 <div>${detail.list_tld.map(tld => tld).join(', ')}</div>
                             </div>
-                            <input type="checkbox" class="btn-check" name="selectDocument" id="selectDocumentTld" 
+                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentTld" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}" 
                                 autocomplete="off" checked>
-                            <label class="btn btn-outline-success btn-sm" for="selectDocumentTld">Sesuai</label><br>
                         </li>
                     `;
                     break
                 default:
+                    htmlJenis += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-2">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">${detail.jenis[0].toUpperCase() + detail.jenis.substring(1)} <span class="text-secondary fw-normal"></div>
+                            </div>
+                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentCustom" 
+                                data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}" 
+                                autocomplete="off" checked>
+                        </li>
+                    `;
                     break;
             }
         }
@@ -235,52 +248,7 @@ function showModalDiterima(obj){
     });
 }
 
-/**
- * Loads and displays a preview of images in the `arrImgBukti` array.
- * Each image is displayed as a thumbnail with a remove button.
- * Clicking the remove button will remove the image from the array and reload the previews.
- */
-function loadPreviewBukti(){
-    $('#list-preview-bukti').html('');
-    for (const [i,img] of arrImgBukti.entries()) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            let divMain = document.createElement('div');
-            divMain.className = '';
-            divMain.style.width = '100px';
-            divMain.style.height = '100px';
-
-            const preview = document.createElement('img');
-            preview.src = e.target.result;
-            preview.className = 'img-thumbnail';
-            preview.style.width = '100px';
-            preview.style.height = '100px';
-            preview.style.cursor = 'pointer';
-            preview.onclick = () => {
-                // $('#modal-preview-image').attr('src', e.target.result);
-
-                // $('#modal-preview').modal('show');
-            }
-
-            const btnRemove = document.createElement('button');
-            btnRemove.className = 'btn btn-danger btn-sm position-absolute mt-2 ms-2';
-            btnRemove.innerHTML = '<i class="bi bi-trash"></i>';
-            btnRemove.onclick = () => {
-                arrImgBukti.splice(i, 1);
-                loadPreviewBukti();
-            }
-
-            divMain.append(btnRemove);
-            divMain.append(preview);
-
-            document.getElementById('list-preview-bukti').appendChild(divMain);
-        };
-        reader.readAsDataURL(img);
-    }
-}
-
 function resetForm(){
-    arrImgBukti.splice(0, arrImgBukti.length);
-    loadPreviewBukti();
+    buktiPenerima.addData([]);
     $('#list-kelengkapan').html('');
 }

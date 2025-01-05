@@ -29,6 +29,7 @@ class Kontrak extends Model
         'ttd_by',
         'status',
         'note',
+        'file_lhu',
         'id_pelanggan',
         'created_by',
         'created_at'

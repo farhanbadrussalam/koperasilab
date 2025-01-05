@@ -39,6 +39,7 @@ class Invoice {
         $('#btnInvoiceClose').on('click', this.closeInvoiceModal.bind(this));
         $('#btnTambahDiskon').on('click', this.tambahDiskon.bind(this));
         $('#btnTolakInvoice').on('click', this.tolakInvoice.bind(this));
+        $('#invoiceModal').one('show.bs.modal', showPopupReload);
     }
 
     // Handle faktur document upload
@@ -89,7 +90,6 @@ class Invoice {
         $('#content-ttd-manager').empty();
         $('#ttd-div-manager').addClass('d-none').removeClass('d-block');
         $('#divUploadDocumentFaktur').hide();
-        $('#paymentProofSection').hide();
 
         // Populate invoice details
         const detailsHTML = `
@@ -154,7 +154,6 @@ class Invoice {
                     <button class="btn btn-outline-secondary me-3" data-bs-toggle="modal" data-bs-target="#diskonModal"><i class="bi bi-plus"></i> Tambah Diskon</button>
                 </div>
             `;
-            $('#paymentProofSection').hide();
             $('#invoiceActions').html(actionsHTML);
 
             $('#checkPpn').on('change', (obj) => {
@@ -172,13 +171,14 @@ class Invoice {
             $('#inputPph').on('input', () => {
                 $('#deskripsiInvoice').empty().append(this.updateInvoiceDescription);
             });
-
+            $('#rincianInvoice-tab').click();
         } else if (mode === 'verify') {
             this.signaturePad = signature(document.getElementById("content-ttd-manager"), {
                 text: 'Manager'
             });
             $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
 
+            $('#rincianInvoice-tab').click();
             // $('#invoiceActions').append(this.btnPrinter());
         } else if (mode === 'detail') {
             if(this.dataKeuangan.ttd){
@@ -190,6 +190,7 @@ class Invoice {
                 $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
             }
             
+            $('#rincianInvoice-tab').click();
             this.showPaymentProof();
             $('#invoiceActions').append(this.btnPrinter());
         } else if (mode === 'verifStaff'){
@@ -202,6 +203,7 @@ class Invoice {
                 $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
             }
             
+            $('#buktiPayment-tab').click();
             this.showPaymentProof();
             $('#invoiceActions').append(this.btnPrinter());
         }
@@ -269,35 +271,42 @@ class Invoice {
     }
 
     removeDiskon(index) {
-        console.log(index);
         this.arrDiskon.splice(index, 1);
         $('#deskripsiInvoice').empty().append(this.updateInvoiceDescription());
     }
 
     showPaymentProof() {
-        if (this.dataKeuangan.media_bayar) {
-            let media = this.dataKeuangan.media_bayar;
-            let mediaPph = this.dataKeuangan.media_bayar_pph;
-            $('#paymentProofImage').html(`
-                <li class="w-50">
-                    <img src="${base_url}/storage/${ media.file_path}/${media.file_hash}" alt="Bukti Pembayaran" class="img-fluid rounded img-thumbnail">
-                </li>
-            `);
+        if (this.dataKeuangan.media_bukti_bayar) {
+            let media = this.dataKeuangan.media_bukti_bayar;
+            let mediaPph = this.dataKeuangan.media_bukti_bayar_pph;
+    
+            $('#paymentProofImage').empty();
+            let htmlBukti = '';
+            for (const bukti of media) {
+                htmlBukti = `
+                    <li class="w-50">
+                        <a class="show-popup-image" href="${base_url}/storage/${bukti.file_path}/${bukti.file_hash}">
+                        <img src="${base_url}/storage/${bukti.file_path}/${bukti.file_hash}" alt="Bukti Pembayaran" class="img-fluid rounded img-thumbnail">
+                        </a>
+                    </li>
+                `;
+            }
+            $('#paymentProofImage').html(htmlBukti);
     
             $('#paymentPphProof').empty();
+
             let option = {
                 download: true,
                 date: true
             }
-
-            let med = printMedia(mediaPph, false, option)
-            let divLi = document.createElement('li');
-            divLi.className = 'w-100 mb-2';
-            divLi.append(med);
-            $('#paymentPphProof').append(divLi);
-            $('#paymentProofSection').show();
-        } else {
-            $('#paymentProofSection').hide();
+            for (const buktiPph of mediaPph) {
+                let med = printMedia(buktiPph, false, option)
+                let divLi = document.createElement('li');
+                divLi.className = 'w-100 mb-2';
+                divLi.append(med);
+                $('#paymentPphProof').append(divLi);
+            }
+            showPopupReload();
         }
     }
 
@@ -648,6 +657,8 @@ class Invoice {
         $('#checkPph').off('change');
         $('#inputPph').off('input');
         $('#content-ttd-manager').empty();
+        $('#paymentPphProof').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
+        $('#paymentProofImage').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
     }
 
     modalCreate() {
@@ -666,10 +677,13 @@ class Invoice {
                         <hr class="my-2">
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="rincianInvoice-tab" onclick="" data-bs-toggle="tab" data-bs-target="#rincianInvoice-tab-pane" type="button" role="tab" aria-controls="rincianInvoice-tab-pane" aria-selected="true">Rincian</button>
+                                <button class="nav-link active" id="rincianInvoice-tab" data-bs-toggle="tab" data-bs-target="#rincianInvoice-tab-pane" type="button" role="tab" aria-controls="rincianInvoice-tab-pane" aria-selected="true">Rincian</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="docFaktur-tab" onclick="" data-bs-toggle="tab" data-bs-target="#docFaktur-tab-pane" type="button" role="tab" aria-controls="docFaktur-tab-pane" aria-selected="true">Dokumen Faktur</button>
+                                <button class="nav-link" id="docFaktur-tab" data-bs-toggle="tab" data-bs-target="#docFaktur-tab-pane" type="button" role="tab" aria-controls="docFaktur-tab-pane" aria-selected="true">Dokumen Faktur</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="buktiPayment-tab" data-bs-toggle="tab" data-bs-target="#buktiPayment-tab-pane" type="button" role="tab" aria-controls="buktiPayment-tab-pane" aria-selected="true">Bukti pembayaran</button>
                             </li>
                         </ul>
                         <div class="tab-content" id="myTabContent">
@@ -697,20 +711,6 @@ class Invoice {
                                         <div class="wrapper" id="content-ttd-manager"></div>
                                     </div>
                                 </div>
-                                <div id="paymentProofSection" class="mt-3 row" style="display: none;">
-                                    <div class="col-6">
-                                        <h5>Bukti Pembayaran</h5>
-                                        <ul id="paymentProofImage" class="list-group list-group-horizontal">
-                                            <!-- Payment proof image will be inserted here -->
-                                        </ul>
-                                    </div>
-                                    <div class="col-6">
-                                        <h5>Bukti PPH</h5>
-                                        <ul id="paymentPphProof" class="list-group list-group-horizontal">
-                                            <!-- Payment proof image will be inserted here -->
-                                        </ul>
-                                    </div>
-                                </div>
                             </div>
                             <div class="tab-pane fade" id="docFaktur-tab-pane" role="tabpanel" aria-labelledby="docFaktur-tab" tabindex="0">
                                 <div class="p-3 row">
@@ -723,6 +723,24 @@ class Invoice {
                                     <div id="loading-document" class="text-center mt-2"></div>
                                     <div class="col-md-12 mt-3" id="list-document">
                                         
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="buktiPayment-tab-pane" role="tabpanel" aria-labelledby="buktiPayment-tab" tabindex="0">
+                                <div id="paymentProofSection" class="mt-3 row">
+                                    <div class="col-6 text-center">
+                                        <h5>Bukti Pembayaran</h5>
+                                        <ul id="paymentProofImage" class="list-group list-group-horizontal">
+                                            <!-- Payment proof image will be inserted here -->
+                                            <div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>
+                                        </ul>
+                                    </div>
+                                    <div class="col-6 text-center">
+                                        <h5>Bukti PPH</h5>
+                                        <ul id="paymentPphProof" class="list-group">
+                                            <!-- Payment proof image will be inserted here -->
+                                            <div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>
+                                        </ul>
                                     </div>
                                 </div>
                             </div>

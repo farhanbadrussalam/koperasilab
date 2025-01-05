@@ -1,7 +1,10 @@
+const listDocumenLHU = [];
 let signaturePad = false;
 let periodeJs = false;
+let jenisLayanan = false;
 $(function () {
     const arrPeriode = dataPermohonan.periode_pemakaian;
+    jenisLayanan = dataPermohonan.jenis_layanan;
 
     let txtPeriode = '';
     if(!dataPermohonan.periode_pemakaian){
@@ -48,6 +51,12 @@ $(function () {
         });
     }
 
+    $('#btnSelectAllTld').on('click', function() {
+        const isChecked = $('#selectAllTld').is(':checked');
+        $('#selectAllTld').prop('checked', !isChecked);
+        $('input[name="selectTld"]').prop('checked', !isChecked);
+    });
+
     loadPelanggan();
 });
 
@@ -92,6 +101,7 @@ function loadPertanyaan(){
     $('#content-pertanyaan').html('');
     for (const [i, value] of tandaterima.entries()) {
         let htmlAnswer = ``;
+        let btnSelectTld = ``;
         if(value.type == 1){
             htmlAnswer = `<textarea name="answer_${i}" id="answer_${i}" cols="30" rows="3" class="form-control"></textarea>`;
         }else if(value.type == 2){
@@ -110,11 +120,14 @@ function loadPertanyaan(){
                     </div>
                 </div>
             `;
+        }else if(value.type == 3){
+            htmlAnswer = `<textarea name="answer_${i}" id="answer_${i}" cols="30" rows="3" class="form-control" readonly></textarea>`;
+            btnSelectTld = `<button class="btn btn-outline-primary btn-sm" type="button" onclick="selectTLDPermohonan(${i})">Pilih TLD</button>`;
         }
 
         html += `
             <div class="col-sm-6 mt-2">
-                <label for="">${value.pertanyaan} :</label>
+                <label for="" class="mb-2">${value.pertanyaan} : ${btnSelectTld}</label>
                 ${htmlAnswer}
             </div>
         `;
@@ -189,7 +202,7 @@ function verif_kelengkapan(status, obj){
         if(tandaterima){
             for (const [i, value] of tandaterima.entries()) {
                 let elementAnswer = false;
-                if(value.type == 1){
+                if(value.type == 1 || value.type == 3){
                     elementAnswer = $(`#answer_${i}`).val();
                     answerTandaterima.push({
                         id: value.pertanyaan_hash,
@@ -210,6 +223,13 @@ function verif_kelengkapan(status, obj){
                 }
             }
         }
+
+        if(jenisLayanan.name == 'Sewa' && !$('#uploadDocumentLhu')[0].files[0]){
+            return Swal.fire({
+                icon: "warning",
+                text: "Harap unggah dokumen LHU terlebih dahulu.",
+            });
+        }
         
         if(signaturePad.isEmpty()){
             return Swal.fire({
@@ -217,6 +237,7 @@ function verif_kelengkapan(status, obj){
                 text: "Harap berikan tanda tangan terlebih dahulu.",
             });
         }
+
 
         Swal.fire({
             icon: 'warning',
@@ -240,6 +261,7 @@ function verif_kelengkapan(status, obj){
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
                 formData.append('tandaterima', JSON.stringify(answerTandaterima));
+                jenisLayanan.name == 'Sewa' ? formData.append('fileLhu', $('#uploadDocumentLhu')[0].files[0]) : false;
 
                 spinner('show', obj);
                 ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
@@ -250,10 +272,6 @@ function verif_kelengkapan(status, obj){
                         timerProgressBar: true,
                         showConfirmButton: false
                     }).then(() => {
-                        if(dataPermohonan.jenis_layanan_parent.id_jenisLayanan == 1) { // kontrak
-                            createInvoice(dataPermohonan.permohonan_hash);
-                        }
-                        createPenyelia(dataPermohonan.permohonan_hash);
                         window.location.href = base_url+"/staff/permohonan";
                     });
                 }, error => {
@@ -282,7 +300,6 @@ function createPenyelia(idPermohonan){
     })
 }
 
-
 function return_permohonan(obj){
     let note = $('#txt_note').val();
     spinner('show', obj);
@@ -303,6 +320,46 @@ function return_permohonan(obj){
             window.location.href = base_url+"/staff/permohonan";
         });
     })
+}
+
+function selectTLDPermohonan(index){
+    let jsonTld = [];
+    if(dataPermohonan.list_tld){
+        jsonTld = dataPermohonan.list_tld;
+    }else{
+        let jumTld = dataPermohonan.jumlah_pengguna + dataPermohonan.jumlah_kontrol;
+        for (let i = 0; i < jumTld; i++) {
+            jsonTld.push('TLD '+ (i+1));
+        }
+    }
+
+    let htmlList = '';
+    for (const [i, tld] of jsonTld.entries()) {
+        htmlList += `
+            <li class="list-group-item">
+                <input class="form-check-input me-1" type="checkbox" value="${tld}" id="tld_${i}" name="selectTld" checked>
+                <label class="form-check-label" for="tld_${i}">${tld}</label>
+            </li>
+        `;
+    }
+    $('#btnPilihTld').data('index', index);
+    $('#listTldSelect').html(htmlList);
+    $('#modal-select-tld').modal('show');
+}
+
+function simpanTldPermohonan(obj){
+    let checkedTldValues = [];
+    $('input[name="selectTld"]:checked').each(function() {
+        checkedTldValues.push($(this).val());
+    });
+
+    let index = $(obj).data('index');
+
+    // tambahkan ke textarea answer
+    $(`#answer_${index}`).html(checkedTldValues.map(tld => tld).join(', '));
+
+    $('#listTldSelect').html('');
+    $('#modal-select-tld').modal('hide');
 }
 
 function areThereEmptyFields(formElements) {

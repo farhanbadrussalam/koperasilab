@@ -133,6 +133,7 @@ function buatPermohonan(obj){
             params.append('dataTld', JSON.stringify(checkedTldValues));
             params.append('createBy', userActive.user_hash);
             params.append('tipeKontrak', 'kontrak lama');
+            permohonanHash ? params.append('idPermohonan', permohonanHash.permohonan_hash) : false;
 
             // params.append('dataPengguna', JSON.stringify(checkedPenggunaValues));
             params.append('status', 1);

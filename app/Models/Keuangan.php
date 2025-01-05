@@ -31,7 +31,9 @@ class Keuangan extends Model
 
     // Casting kolom sebagai array
     protected $casts = [
-        'document_faktur' => 'array'
+        'document_faktur' => 'array',
+        'bukti_bayar' => 'array',
+        'bukti_bayar_pph' => 'array'
     ];
 
     protected $hidden = [
@@ -67,13 +69,13 @@ class Keuangan extends Model
         return $this->hasMany(Keuangan_diskon::class, 'id_keuangan', 'id_keuangan');
     }
 
-    public function media_bayar(){
-        return $this->belongsTo(Master_media::class, 'bukti_bayar', 'id');
-    }
+    // public function media_bayar(){
+    //     return $this->belongsTo(Master_media::class, 'bukti_bayar', 'id');
+    // }
 
-    public function media_bayar_pph(){
-        return $this->belongsTo(Master_media::class, 'bukti_bayar_pph', 'id');
-    }
+    // public function media_bayar_pph(){
+    //     return $this->belongsTo(Master_media::class, 'bukti_bayar_pph', 'id');
+    // }
 
     public function usersig(){
         return $this->belongsTo(user::class, 'ttd_by', 'id');

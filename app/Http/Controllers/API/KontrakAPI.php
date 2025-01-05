@@ -31,13 +31,22 @@ class KontrakAPI extends Controller
         $page = $request->page ?? 1;
         $filter = $request->filter ?? [];
 
+        // cek role
+        $role = Auth::user()->getRoleNames();
+        $idPelanggan = false;
+        if(in_array('Pelanggan', $role->toArray())){
+            $idPelanggan = Auth::user()->id; 
+        }
+        
         DB::beginTransaction();
         try {
             $query = Kontrak::with(
                         'pengguna',
                         'periode',
                         'periode.permohonan',
+                        'periode.permohonan.jenis_layanan',
                         'periode.permohonan.jenis_layanan_parent',
+                        'periode.permohonan.file_lhu',
                         'invoice',
                         'layanan_jasa:id_layanan,nama_layanan',
                         'jenisTld:id_jenisTld,name', 
@@ -49,6 +58,9 @@ class KontrakAPI extends Controller
                         'pengiriman.detail',
                         'pengiriman.permohonan:id_permohonan,periode'
                     )
+                    ->when($idPelanggan, function($q, $idPelanggan){
+                        return $q->where('id_pelanggan', $idPelanggan);
+                    })
                     ->orderBy('created_at', 'desc')
                     ->offset(($page - 1) * $limit)
                     ->limit($limit)

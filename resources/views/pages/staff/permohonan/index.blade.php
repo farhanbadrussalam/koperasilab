@@ -3,6 +3,9 @@
 @section('content')
 <div class="card shadow-sm m-4">
     <div class="card-body">
+        <div class="d-flex">
+            <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
+        </div>
         <div class="d-flex pb-4">
             <div class="w-100 d-flex">
                 {{-- <div class="mx-2">

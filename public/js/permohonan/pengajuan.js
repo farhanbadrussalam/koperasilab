@@ -1,7 +1,10 @@
 let thisTab = 1;
 let thisStatus = false;
+let detail = false;
 $(function () {
     switchLoadTab(1);
+
+    detail = new Detail();
 })
 
 $('#pagination_list').on('click', 'a', function (e) {
@@ -87,10 +90,13 @@ function loadData(page = 1, status) {
                                     <div>Created : ${dateFormat(pengajuan.created_at, 4)}</div>
                                 </small>
                             </div>
-                            <div class="col-6 col-md-3 my-3 fw-semibold">${formatRupiah(pengajuan.total_harga)}</div>
+                            <div class="col-6 col-md-3 my-3 fw-semibold">
+                                ${formatRupiah(pengajuan.total_harga)}
+                                <div><small class="text-info">*Tidak termasuk PPN</small></div>
+                            </div>
                             <div class="col-6 col-md-2 ms-auto">${statusFormat('permohonan', pengajuan.status)}</div>
                             <div class="col-6 col-md-2 text-center" data-id="${pengajuan.permohonan_hash}">
-                                <button class="btn btn-sm btn-outline-secondary" title="Show detail"><i class="bi bi-info-circle"></i> Detail</button>
+                                <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
                                 ${pengajuan.status == 1 ? btnEdit + btnRemove : ''}
                             </div>
                         </div>
@@ -145,4 +151,13 @@ function remove(obj){
             console.error(result.message);
         }
     });
+}
+
+function showDetail(obj){
+    const idPermohonan = $(obj).parent().data("id");
+    detail.show();
+}
+
+function reload(){
+    switchLoadTab(thisTab);
 }

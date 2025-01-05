@@ -11,8 +11,12 @@ use App\Models\Permohonan_pengguna;
 use App\Models\User;
 use App\Models\Master_pertanyaan;
 use App\Models\Master_jobs;
+use App\Models\Master_ekspedisi;
+use App\Models\Kontrak;
+use App\Models\Kontrak_periode;
 
 use Auth;
+use Log;
 
 class StaffController extends Controller
 {
@@ -139,9 +143,13 @@ class StaffController extends Controller
 
     public function indexPengiriman()
     {
+        // Mengambil data dari master_ekspedisi
+        $ekspedisi = Master_ekspedisi::all();
+
         $data = [
             'title' => 'Pengiriman',
-            'module' => 'staff-pengiriman'
+            'module' => 'staff-pengiriman',
+            'ekspedisi' => $ekspedisi
         ];
         return view('pages.staff.pengiriman.index', $data);
     }
@@ -194,10 +202,27 @@ class StaffController extends Controller
         return view('pages.staff.pengiriman.tambah', $data);
     }
 
-    public function buatOrderPengiriman($idPermohonan)
+    public function buatOrderPengiriman($idHash, $periode = false)
     {
-        $idPermohonan = decryptor($idPermohonan) ?? false;
+        if($periode){
+            $idKontrak = decryptor($idHash) ?? false;
+            $idPeriode = decryptor($periode) ?? false;
 
+            // mengambil periode sekarang
+            $periodeNow = Kontrak_periode::find($idPeriode);
+            // mencari apakah ada permohonan di periode sekarang
+            $permohonan = Permohonan::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode)->first();
+
+            if($permohonan){
+                $idPermohonan = $permohonan->id_permohonan;
+            } else {
+                $create = $this->createPermohonan($idKontrak, $periodeNow->periode);
+                $idPermohonan = decryptor($create['data']['id']);
+            }
+        } else {
+            $idPermohonan = decryptor($idHash) ?? false;
+        }
+        
         $dataPermohonan = Permohonan::with(
                 'layanan_jasa:id_layanan,nama_layanan',
                 'jenisTld:id_jenisTld,name', 
@@ -213,6 +238,7 @@ class StaffController extends Controller
                 'lhu',
                 'lhu.media',
                 'pengiriman',
+                'file_lhu'
             )->find($idPermohonan);
 
         $data = [
@@ -236,5 +262,36 @@ class StaffController extends Controller
         $noPengiriman = "D-" . $milliseconds . $randomNumber;
     
         return $noPengiriman;
+    }
+
+    private function createPermohonan($idKontrak, $periode){
+        $dataKontrak = Kontrak::find($idKontrak);
+
+        $params = [
+            'idKontrak' => encryptor($idKontrak),
+            'periode' => $periode,
+            'tipeKontrak' => 'kontrak lama',
+            'jenisLayanan2' => encryptor($dataKontrak->jenis_layanan_2),
+            'jenisLayanan1' => encryptor($dataKontrak->jenis_layanan_1),
+            'dataTld' => json_encode($dataKontrak->list_tld),
+            'createBy' => encryptor($dataKontrak->id_pelanggan),
+            'status' => 11 // sewa
+        ];
+
+        // Make a request to your permohonanAction endpoint
+        $permohonanResponse = app()->handle(Request::create(url('api/v1/permohonan/tambahPengajuan'), 'POST', $params));
+
+        // Check the response for success/failure
+        if ($permohonanResponse->getStatusCode() == 200) {
+            // permohonan creation successful - you can log or further process if needed
+            $permohonanData = json_decode($permohonanResponse->getContent(), true);
+            // ... process $permohonanData
+            return $permohonanData;
+        } else {
+            // Handle permohonan creation failure appropriately (log, rollback, etc.)
+            Log::error("permohonan creation failed: " . $permohonanResponse->getContent());
+            // ... consider throwing an exception or other error handling
+        }
+    
     }
 }

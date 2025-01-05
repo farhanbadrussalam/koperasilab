@@ -17,6 +17,7 @@ class Pengiriman extends Model
         'id_pengiriman',
         'no_resi',
         'jenis_pengiriman',
+        'id_ekspedisi',
         'id_permohonan',
         'id_kontrak',
         'alamat',

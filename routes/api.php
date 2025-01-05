@@ -85,7 +85,11 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/listKeuangan', 'listKeuangan');
         Route::get('/getKeuangan/{idKeuangan}', 'getKeuangan');
         Route::post('/uploadFaktur', 'uploadFaktur');
+        Route::post('/uploadBuktiBayar', 'uploadBuktiBayar');
+        Route::post('/uploadBuktiPph', 'uploadBuktiBayarPph');
         Route::delete('/destroyFaktur/{idKeuangan}/{idMedia}', 'destroyFaktur');
+        Route::delete('/destroyBuktiBayar/{idKeuangan}/{idMedia}', 'destroyBuktiBayar');
+        Route::delete('/destroyBuktiPph/{idKeuangan}/{idMedia}', 'destroyBuktiBayarPph');
     });
 
     Route::prefix("pengiriman")->controller(PengirimanAPI::class)->group(function () {

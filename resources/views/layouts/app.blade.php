@@ -26,6 +26,10 @@
     <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
 
+    {{-- Magnific Popup --}}
+    <link rel="stylesheet" href="{{ asset('vendor/magnific/magnific-popup.css') }}">
+    <script src="{{ asset('vendor/magnific/jquery.magnific-popup.min.js') }}"></script>
+
     {{-- Select 2 --}}
     <script src="{{ asset('vendor/select2/js/select2.full.js') }}"></script>
 

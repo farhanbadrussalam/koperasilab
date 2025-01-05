@@ -20,6 +20,8 @@ function loadData(page = 1, menu) {
             let arrPeriode = data.kontrak.periode;
             let urlLaporanInvoice = data.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data.invoice.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
             let urlDocLhu = data.lhu?.status == 3 ? `<a href="${base_url}/storage/${data.lhu.media.file_path}/${data.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>` : '<i class="bi bi-printer-fill"></i> Cetak LHU';
+            let arrDocCustom = [];
+            let statusDocument = true;
 
             // Data Invoice
             let htmlInvoice = '';
@@ -42,21 +44,19 @@ function loadData(page = 1, menu) {
 
             // Data layanan jasa (TLD)
             let htmlTld = '';
-            if(data.lhu.periode != 80){
-                htmlTld = `
-                    <div class="col-md-12 mt-2">
-                        <div class="border-top py-2 d-flex justify-content-between align-items-center">
-                            <div class="px-2">
-                                <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
-                                <small class="text-body-tertiary"> - ${data.jumlah_pengguna + data.jumlah_kontrol} PCS</small>
-                                <small>${statusFormat('pengiriman', data.pengiriman?.status)}</small>
-                            </div>
-                            <div class="d-flex align-items-center gap-3 text-secondary">
-                            </div>
+            htmlTld = `
+                <div class="col-md-12 mt-2">
+                    <div class="border-top py-2 d-flex justify-content-between align-items-center">
+                        <div class="px-2">
+                            <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
+                            <small class="text-body-tertiary"> - ${data.jumlah_pengguna} Pengguna + ${data.jumlah_kontrol} Kontrol</small>
+                            <small>${statusFormat('pengiriman', data.pengiriman?.status)}</small>
+                        </div>
+                        <div class="d-flex align-items-center gap-3 text-secondary">
                         </div>
                     </div>
-                `;
-            }
+                </div>
+            `;
 
             // Data LHU
             let htmlLhu = '';
@@ -65,7 +65,7 @@ function loadData(page = 1, menu) {
                     <div class="border-top py-2 d-flex justify-content-between align-items-center">
                         <div class="px-2">
                             <span class="fw-semibold fs-6">LHU</span>
-                            <small class="text-body-tertiary"> - Periode ${data.lhu.periode == 80 ? 'Terakhir' : data.lhu.periode}</small>
+                            <small class="text-body-tertiary"> - Periode ${data.lhu.periode}</small>
                             <small>${statusFormat('pengiriman', data.lhu.pengiriman?.status)}</small>
                         </div>
                         <div class="d-flex align-items-center gap-3 text-secondary">
@@ -77,6 +77,29 @@ function loadData(page = 1, menu) {
                 </div>
             ` : false;
 
+            // Data custom
+            let htmlCustom = '';
+            if(data.file_lhu){
+                arrDocCustom.push({jenis: "lhu zero cek", media: data.file_lhu});
+            }
+            for (const custom of arrDocCustom) {
+                let urlDocCustom = custom.media ? `<a href="${base_url}/storage/${custom.media.file_path}/${custom.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Document</a>` : false;
+                htmlCustom += `
+                    <div class="col-md-12 mt-2">
+                        <div class="border-top py-2 d-flex justify-content-between align-items-center">
+                            <div class="px-2">
+                                <span class="fw-semibold fs-6">${custom.jenis}</span>
+                                <small class="text-body-tertiary"></small>
+                                <small>${statusFormat('pengiriman', data.pengiriman?.status)}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 text-secondary">
+                                ${urlDocCustom ? '<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2">'+urlDocCustom+'</small>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             let htmlBtn = '';
             let cekHtmlBtn = false;
             switch (data.jenis_layanan_parent.id_jenisLayanan) {
@@ -85,7 +108,11 @@ function loadData(page = 1, menu) {
                     break;
             
                 default:
-                    cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || !data.pengiriman;
+                    if(data.jenis_layanan.id_jenisLayanan == 2){
+                        cekHtmlBtn = !data.invoice?.pengiriman || !data.pengiriman;
+                    }else{
+                        cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || !data.pengiriman;
+                    }
                     break;
             }
             if(cekHtmlBtn){
@@ -112,6 +139,7 @@ function loadData(page = 1, menu) {
                         ${htmlTld}
                         ${htmlInvoice}
                         ${htmlLhu}
+                        ${htmlCustom}
                     </div>
                 </div>
             `;
@@ -153,4 +181,8 @@ function showPeriode(index) {
     periodeJs.on('periode.hide.modal', () => {
         periodeJs.destroy();
     });
+}
+
+function reload(){
+    loadData();
 }

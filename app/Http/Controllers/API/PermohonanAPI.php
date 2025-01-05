@@ -57,6 +57,7 @@ class PermohonanAPI extends Controller
             $hargaLayanan = $request->hargaLayanan ? $request->hargaLayanan : false;
             $dataTld = $request->dataTld ? json_decode($request->dataTld) : false;
             $createBy = $request->createBy ? decryptor($request->createBy) : false;
+            $status = $request->status ? $request->status : 1;
             $periodePemakaian = $request->periodePemakaian;
             
             if ($periodePemakaian) {
@@ -90,7 +91,7 @@ class PermohonanAPI extends Controller
             $dataTld && $data['list_tld'] = $dataTld;
             $createBy && $data['created_by'] = $createBy;
 
-            $data['status'] = 1;
+            $status && $data['status'] = $status;
             $data['flag_read'] = 0;
 
             // jika tipe kontraknya adalah "kontrak lama" akan mengambil data dari kontrak sebelumnya
@@ -130,7 +131,7 @@ class PermohonanAPI extends Controller
                     'created_by' => Auth::user()->id
                 ));
 
-                return $this->output(array('msg' => 'Data berhasil disimpan!'));
+                return $this->output(array('msg' => 'Data berhasil disimpan!', 'id' => $permohonan->permohonan_hash));
             }
         } catch (\Exception $ex) {
             info($ex);
@@ -358,6 +359,7 @@ class PermohonanAPI extends Controller
 
                         return $q;
                     })
+                    ->where('status', '!=', 11)
                     ->orderBy('created_at','DESC')
                     ->offset(($page - 1) * $limit)
                     ->limit($limit)
@@ -468,6 +470,8 @@ class PermohonanAPI extends Controller
             if($dataPermohonan){
                 if($status == 'lengkap'){
                     $ttd = $request->ttd ? $request->ttd : null;
+                    $fileLhu = $request->file('fileLhu') ?? false;
+                    $fileLhu && $fileLhu = $this->media->upload($fileLhu, 'permohonan');
                     $no_kontrak = null;
     
                     // mengecek apakah harus generate kontrak atau tidak
@@ -488,7 +492,8 @@ class PermohonanAPI extends Controller
                             'id_permohonan' => $idPermohonan,
                             'id_pertanyaan' => decryptor($value->id),
                             'jawaban' => $value->answer,
-                            'note' => $value->note
+                            'note' => $value->note,
+                            'created_by' => Auth::user()->id
                         );
     
                         Permohonan_tandaterima::create($params);
@@ -509,6 +514,9 @@ class PermohonanAPI extends Controller
                     $arrayUpdate['ttd_by'] = Auth::user()->id;
                     $arrayUpdate['verify_at'] = date('Y-m-d H:i:s');
                     $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
+
+                    $fileLhu && $arrayUpdate['file_lhu'] = $fileLhu->getIdMedia();
+
                     $dataPermohonan->update($arrayUpdate);
 
                     // Memindahkan Permohonan ke tabel kontrak
@@ -531,6 +539,7 @@ class PermohonanAPI extends Controller
                                 'ttd_by' => $dataPermohonan->ttd_by,
                                 'status' => 1,
                                 'note' => $dataPermohonan->note,
+                                'file_lhu' => $dataPermohonan->file_lhu,
                                 'id_pelanggan' => $dataPermohonan->created_by,
                                 'created_by' => Auth::user()->id
                             );
@@ -573,6 +582,30 @@ class PermohonanAPI extends Controller
                             $dataPermohonan->update(array('id_kontrak' => $dataKontrak->id_kontrak));
                             break;
                     }
+
+                    /* 
+                        JENIS LAYANAN
+
+                        2 Kontrak - Sewa (upload document lhu zero cek dan disimpan ke file_lhu)
+                        3 Kontrak - Evaluasi
+                        5 Evaluasi - Dengan kontrak
+                        6 Evaluasi - Tanpa kontrak
+                        8 Zero cek - Dengan kontrak
+                        9 Zero cek - Tanpa kontrak
+                    */
+
+                    // proses ke invoice 
+                    $arrValidInvoice = [2, 3, 6];
+                    if(in_array($dataPermohonan->jenis_layanan_2, $arrValidInvoice)){
+                        $invoiceData = $this->createInvoice($dataPermohonan->permohonan_hash);
+                    }
+
+                    // Proses ke penyelia
+                    $arrValidPenyelia = [3, 5, 6];
+                    if(in_array($dataPermohonan->jenis_layanan_2, $arrValidPenyelia)){
+                        $penyeliaData = $this->createPenyelia($dataPermohonan->permohonan_hash);
+                    }
+
                 } else {
                     $note = $request->note ? $request->note : '';
                     $arrayUpdate['note'] = $note;
@@ -583,6 +616,7 @@ class PermohonanAPI extends Controller
                 DB::commit();
             }
 
+            $fileLhu && $fileLhu->store();
             return $this->output(array('msg' => 'Success'));
         } catch (\Exception $ex) {
             info($ex);
@@ -623,7 +657,48 @@ class PermohonanAPI extends Controller
         }
     }
 
-    private function cekUpdateKontrak(){
+    private function createInvoice($idPermohonan){
+        $params = [
+            'idPermohonan' => $idPermohonan,
+            'status' => 1
+        ];
 
+        // Make a request to your keuanganAction endpoint
+        $keuanganResponse = app()->handle(Request::create(url('api/v1/keuangan/action'), 'POST', $params));
+
+        // Check the response for success/failure
+        if ($keuanganResponse->getStatusCode() == 200) {
+            // Invoice creation successful - you can log or further process if needed
+            $invoiceData = json_decode($keuanganResponse->getContent(), true);
+            // ... process $invoiceData
+            return $invoiceData;
+        } else {
+            // Handle invoice creation failure appropriately (log, rollback, etc.)
+            Log::error("Invoice creation failed: " . $keuanganResponse->getContent());
+            // ... consider throwing an exception or other error handling
+        }
+    }
+
+    private function createPenyelia($idPermohonan){
+        $params = [
+            'idPermohonan' => $idPermohonan,
+            'status' => 1
+        ];
+
+        // Make a request to your keuanganAction endpoint
+        $penyeliaResponse = app()->handle(Request::create(url('api/v1/penyelia/action'), 'POST', $params));
+
+        // Check the response for success/failure
+        if ($penyeliaResponse->getStatusCode() == 200) {
+            // Invoice creation successful - you can log or further process if needed
+            $penyeliaData = json_decode($penyeliaResponse->getContent(), true);
+            // ... process $penyeliaData
+            return $penyeliaData;
+        } else {
+            // Handle invoice creation failure appropriately (log, rollback, etc.)
+            Log::error("Penyelia creation failed: " . $penyeliaResponse->getContent());
+            // ... consider throwing an exception or other error handling
+        }
+    
     }
 }

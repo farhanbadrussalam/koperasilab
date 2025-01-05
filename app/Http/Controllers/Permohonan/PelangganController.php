@@ -13,11 +13,20 @@ use App\Models\Keuangan;
 use App\Models\Kontrak;
 use App\Models\Kontrak_periode;
 
+use App\Http\Controllers\MediaController;
+use App\Http\Controllers\LogController;
+
 use Auth;
 use DataTables;
 
 class PelangganController extends Controller
 {
+    public function __construct()
+    {
+        $this->media = resolve(MediaController::class);
+        $this->log = resolve(LogController::class);
+    }
+
     // FEATURE KONTRAK
     public function indexKontrak()
     {
@@ -56,6 +65,12 @@ class PelangganController extends Controller
         // Mengambil jenis layanan Evaluasi - Dengan kontrak
         $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
 
+        // cek apakah permohonan sudah ada atau belum
+        $permohonan = Permohonan::select('id_permohonan')->where('status', 11)
+            ->where('id_kontrak', decryptor($idKontrak))
+            ->where('periode', $periodeNow->periode)
+            ->first();
+
         $data = [
             'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
             'module' => 'permohonan-kontrak',
@@ -63,6 +78,7 @@ class PelangganController extends Controller
             'periodeNow' => $periodeNow,
             'periodeNext' => $periodeNext,
             'jenisLayanan' => $jenisLayanan,
+            'permohonan' => $permohonan
         ];
 
         return view('pages.permohonan.kontrak.evaluasi', $data);
@@ -135,8 +151,6 @@ class PelangganController extends Controller
         $keuangan = Keuangan::with(
                        'diskon',
                        'usersig:id,name',
-                       'media_bayar',
-                       'media_bayar_pph',
                        'permohonan',
                        'permohonan.layanan_jasa:id_layanan,nama_layanan',
                        'permohonan.jenisTld:id_jenisTld,name', 
@@ -146,8 +160,30 @@ class PelangganController extends Controller
                        'permohonan.pelanggan.perusahaan',
                        'permohonan.kontrak'
                    )->where('id_keuangan', $idKeuangan)->first();
-        $data['keuangan'] = $keuangan;
+        // get bukti bayar
+        if(isset($keuangan->bukti_bayar)){
+            $buktiBayar = $keuangan->bukti_bayar;
+            $arrBukti = array();
+            foreach ($buktiBayar as $key => $idMedia) {
+                array_push($arrBukti, $this->media->get($idMedia));
+            }
+            $keuangan->media_bukti_bayar = $arrBukti;
+        }else{
+            $keuangan->media_bukti_bayar = array();
+        }
 
+        // get bukti bayar pph
+        if(isset($keuangan->bukti_bayar_pph)){
+            $buktiBayarPph = $keuangan->bukti_bayar_pph;
+            $arrBuktiPph = array();
+            foreach ($buktiBayarPph as $key => $idMedia) {
+                array_push($arrBuktiPph, $this->media->get($idMedia));
+            }
+            $keuangan->media_bukti_bayar_pph = $arrBuktiPph;
+        }else{
+            $keuangan->media_bukti_bayar_pph = array();
+        }
+        $data['keuangan'] = $keuangan;
         
         return view('pages.permohonan.pembayaran.bayar', $data);
     }

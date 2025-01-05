@@ -124,17 +124,20 @@
                     </a>
                 </li>
                 @endcan
+
+                @can('Kontrak')
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'permohonan-kontrak' ? 'active' : '' }}"
+                            href="{{ route('permohonan.kontrak') }}" aria-expanded="false">
+                            <span><i class="bi bi-card-list"></i></span>
+                            <span class="hide-menu">Kontrak</span>
+                        </a>
+                    </li>
+                @endcan
                 <!-- END MAIN MENU -->
 
                 {{-- PERMOHONAN --}}
                 @role('Pelanggan')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'permohonan-kontrak' ? 'active' : '' }}"
-                        href="{{ route('permohonan.kontrak') }}" aria-expanded="false">
-                        <span><i class="bi bi-card-list"></i></span>
-                        <span class="hide-menu">Kontrak</span>
-                    </a>
-                </li>
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Permohonan</span>
@@ -144,28 +147,28 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'permohonan-pengajuan' ? 'active' : '' }}"
                         href="{{ route('permohonan.pengajuan') }}" aria-expanded="false">
-                        <span>&nbsp;</span>
+                        <span><i class="bi bi-file-earmark-text"></i></span>
                         <span class="hide-menu">Pengajuan</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'permohonan-dikembalikan' ? 'active' : '' }}"
                         href="{{ route('permohonan.dikembalikan') }}" aria-expanded="false">
-                        <span>&nbsp;</span>
+                        <span><i class="bi bi-arrow-counterclockwise"></i></span>
                         <span class="hide-menu">Dikembalikan</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'permohonan-pembayaran' ? 'active' : '' }}"
                         href="{{ route('permohonan.pembayaran') }}" aria-expanded="false">
-                        <span>&nbsp;</span>
+                        <span><i class="bi bi-cash"></i></span>
                         <span class="hide-menu">Pembayaran</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'permohonan-pengiriman' ? 'active' : '' }}"
                         href="{{ route('permohonan.pengiriman') }}" aria-expanded="false">
-                        <span>&nbsp;</span>
+                        <span><i class="bi bi-send"></i></span>
                         <span class="hide-menu">Pengiriman</span>
                     </a>
                 </li>
@@ -185,7 +188,7 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-permohonan' ? 'active' : '' }}"
                     href="{{ route('staff.permohonan') }}" aria-expanded="false">
-                    <span>&nbsp;</span>
+                    <span><i class="bi bi-file-earmark-text"></i></span>
                     <span class="hide-menu">Permohonan</span>
                     </a>
                 </li>
@@ -195,14 +198,14 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-pengiriman-permohonan' ? 'active' : '' }}"
                     href="{{ route('staff.pengiriman.permohonan') }}" aria-expanded="false">
-                    <span>&nbsp;</span>
+                    <span><i class="bi bi-file-earmark-text"></i></span>
                     <span class="hide-menu">List Permohonan</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-pengiriman' ? 'active' : '' }}"
                     href="{{ route('staff.pengiriman') }}" aria-expanded="false">
-                    <span>&nbsp;</span>
+                    <span><i class="bi bi-send"></i></span>
                     <span class="hide-menu">List Pengiriman</span>
                     </a>
                 </li>
@@ -252,7 +255,7 @@
                     <a class="sidebar-link {{ $module == 'manager-pengajuan' ? 'active' : '' }}"
                     href="{{ route('manager.pengajuan') }}" aria-expanded="false">
                     <span>&nbsp;</span>
-                    <span class="hide-menu">Pengajuan permohonan</span>
+                    <span class="hide-menu">Pengajuan</span>
                     </a>
                 </li>
                 <li class="sidebar-item">

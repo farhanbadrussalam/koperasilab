@@ -36,7 +36,7 @@ class ManagerAPI extends Controller
                 'permohonan.kontrak',
                 'diskon'
             )
-            ->where('status', 2)
+            ->where('status', '!=', 1)
             ->orderBy('created_at','DESC')
             ->offset(($page - 1) * $limit)
             ->limit($limit)

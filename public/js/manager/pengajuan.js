@@ -28,6 +28,12 @@ function loadData(page = 1) {
             let periode = permohonan.periode_pemakaian;
             let btnAction = '';
 
+            if(keuangan.status == 2){
+                btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiInvoice(this)">verifikasi</button>`;
+            }else{
+                btnAction = statusFormat('keuangan', keuangan.status);
+            }
+
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
@@ -46,7 +52,7 @@ function loadData(page = 1) {
                         </div>
                         <div class="col-6 col-md-2">${permohonan.pelanggan.name}</div>
                         <div class="col-6 col-md-2 text-center" data-keuangan='${keuangan.keuangan_hash}'>
-                            <button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiInvoice(this)">verifikasi</button>
+                            ${btnAction}
                         </div>
                     </div>
                 </div>
@@ -84,4 +90,8 @@ function verifikasiInvoice(obj){
         invoice.addData(result.data);
         invoice.open('verify');
     })
+}
+
+function reload() {
+    loadData();
 }

@@ -67,6 +67,24 @@ function maskReload() {
 }
 maskReload();
 
+function showPopupReload(){
+    $('.show-popup-image').magnificPopup({
+        type: 'image',
+        closeOnContentClick: true,
+        closeBtnInside: false,
+        callbacks: {
+            open: function() {
+                $('body').addClass('mfp-open');
+            },
+            close: function() {
+                $('body').removeClass('mfp-open');
+            }
+        },
+        modal: false
+    });
+}
+showPopupReload();
+
 /**
  * Displays a confirmation dialog using SweetAlert2 and executes a callback function if confirmed.
  *
@@ -299,7 +317,7 @@ function statusFormat(feature, status) {
                 htmlStatus = `
                     <div class="d-flex align-items-center">
                         <div><div class="me-1 dot bg-warning"></div></div>
-                        <span class="subbody-medium text-submain text-wrap">Belum bayar</span>
+                        <span class="subbody-medium text-submain text-wrap">Perlu dibayar</span>
                     </div>
                     `;
                 break;
@@ -333,17 +351,17 @@ function statusFormat(feature, status) {
         switch (status) {
             case 1:
                 htmlStatus = `
-                    <span class="text-info ms-2"><i class="bi bi-arrow-repeat"></i> Sedang dikirim</span>`;
+                    <span class="text-info ms-2"><i class="bi bi-truck"></i> Sedang dikirim</span>`;
                 break;
 
             case 2:
                 htmlStatus = `
-                    <span class="text-success ms-2"><i class="bi bi-check-circle-fill"></i> Terkirim</span>`;
+                    <span class="text-success ms-2"><i class="bi bi-check-circle-fill"></i> Sudah diterima</span>`;
                 break;
                 
             case 3:
                 htmlStatus = `
-                    <span class="text-primary ms-2"><i class="bi bi-info-circle-fill"></i> Proses Pengiriman</span>`;
+                    <span class="text-primary ms-2"><i class="bi bi-arrow-repeat"></i> Proses Pengiriman</span>`;
                 break;
 
             default:
@@ -407,6 +425,10 @@ function statusFormat(feature, status) {
     } else if (feature == 'invoice') {
         if(status == '5'){
             htmlStatus = `<span class="badge bg-success-subtle text-dark border border-success">Sudah dibayar</span>`;
+        } else if(status == 4) {
+            htmlStatus = `<span class="badge bg-info-subtle text-dark border border-info">Sedang dikonfirmasi</span>`;
+        } else if(status == 3) {
+            htmlStatus = `<span class="badge bg-warning-subtle text-dark border border-warning">Perlu dibayar</span>`;
         } else {
             htmlStatus = `<span class="badge bg-danger-subtle text-dark border border-danger">Belum dibayar</span>`;
         }
@@ -609,8 +631,9 @@ function unmask(data) {
  * @param {Function} [callback=() => {}] - The function to call if the request is successful.
  * @param {Function} [onError=() => {}] - The function to call if the request fails.
  */
-function ajaxPost(url, params, callback = () => {}, onError = () => {}) {
+function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgress = false) {
     params.append('_token', csrf);
+    let xhr = onProgress ? {xhr: onProgress} : false;
     $.ajax({
         url: `${base_url}/${url}`,
         method: 'POST',
@@ -620,7 +643,8 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}) {
         headers: {
             'Authorization': `Bearer ${bearer}`
         },
-        data: params
+        data: params,
+        ...xhr
     }).done(callback).fail(error => {
         const result = error.responseJSON;
         if(result?.meta?.code && result.meta.code == 500){
@@ -711,7 +735,24 @@ function ajaxDelete(url, callback = () => {}, onError = () => {}){
                     'Authorization': `Bearer ${bearer}`,
                     'Content-Type': 'application/json'
                 }
-            }).done(callback).fail(onError);
+            }).done(callback).fail(error => {
+                const result = error.responseJSON;
+                if(result?.meta?.code && result.meta.code == 500){
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan. Silakan coba lagi.',
+                    });
+                    console.error(result.data.msg);
+                }else{
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan. Silakan coba lagi.',
+                    });
+                    console.error(error);
+                }
+        
+                onError(error);
+            });
         }
     })
 }
@@ -926,4 +967,39 @@ function signature(parent, options){
 
 
     return signaturePad;
+}
+
+function getCurrentPeriod(periods) {
+    const today = new Date(); // Tanggal hari ini
+    let currentPeriod = null;
+
+    periods.forEach(period => {
+        const startDate = new Date(period.start_date);
+        const endDate = new Date(period.end_date);
+
+        if (today >= startDate && today < endDate) {
+            currentPeriod = {
+                name: `Periode ${period.periode}`,
+                endDate: endDate
+            };
+        }
+    });
+
+    // Jika hari ini sebelum semua periode dimulai
+    if (today < new Date(periods[0].start_date)) {
+        return "notstarted";
+    }
+
+    // Jika hari ini setelah semua periode selesai
+    if (today >= new Date(periods[periods.length - 1].end_date)) {
+        return "ended";
+    }
+
+    return currentPeriod;
+}
+
+function getDaysRemaining(endDate) {
+    const today = new Date();
+    const timeDiff = endDate - today;
+    return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Konversi ms ke hari
 }

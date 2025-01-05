@@ -32,6 +32,7 @@ class Permohonan extends Model
         'ttd_by',
         'status',
         'note',
+        'file_lhu',
         'flag_read',
         'created_by',
         'created_at',
@@ -101,5 +102,9 @@ class Permohonan extends Model
 
     public function pengiriman(){
         return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
+    }
+
+    public function file_lhu(){
+        return $this->hasOne(Master_media::class, 'id', 'file_lhu');
     }
 }

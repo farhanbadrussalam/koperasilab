@@ -55,6 +55,7 @@ class PengirimanAPI extends Controller
                         'lhu',
                         'lhu.media',
                         'lhu.pengiriman',
+                        'file_lhu'
                     )->when($search, function($q, $search){
                         return $q->where('no_kontrak', 'like', "%$search%");
                     })
@@ -124,7 +125,7 @@ class PengirimanAPI extends Controller
         DB::beginTransaction();
         try {
             $query = Pengiriman::with(
-                'permohonan:id_permohonan,periode_pemakaian,created_by',
+                'permohonan:id_permohonan,periode_pemakaian,jumlah_pengguna,jumlah_kontrol,created_by',
                 'permohonan.pelanggan',
                 'permohonan.invoice',
                 'permohonan.lhu',
@@ -209,6 +210,7 @@ class PengirimanAPI extends Controller
         try {
             $idPengiriman = $request->idPengiriman ? $request->idPengiriman : false;
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            $idEkspedisi = $request->has('idEkspedisi') ? decryptor($request->idEkspedisi) : false;
             $noResi = $request->has('noResi') ? $request->noResi : false;
             $jenisPengiriman = $request->jenisPengiriman ? $request->jenisPengiriman : false;
             $idKontrak = $request->idKontrak ? decryptor($request->idKontrak) : false;
@@ -225,6 +227,7 @@ class PengirimanAPI extends Controller
             
             $params = array();
             $request->has('noResi') && $params['no_resi'] = $noResi;
+            $request->has('idEkspedisi') && $params['id_ekspedisi'] = $idEkspedisi;
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
             $jenisPengiriman && $params['jenis_pengiriman'] = $jenisPengiriman;
             $idKontrak && $params['id_kontrak'] = $idKontrak;
