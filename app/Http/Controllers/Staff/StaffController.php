@@ -169,6 +169,7 @@ class StaffController extends Controller
         $id = decryptor($idPermohonan);
         $pertanyaan_tr = false;
         $dataPermohonan = Permohonan::with(
+                            'file_lhu',
                             'layanan_jasa:id_layanan,nama_layanan',
                             'jenisTld:id_jenisTld,name', 
                             'jenis_layanan:id_jenisLayanan,name,parent',

@@ -1,8 +1,18 @@
 /**
  * Initializes the page by loading the first tab.
  */
+let detail = false;
 $(function () {
     loadData(1);
+    detail = new Detail({
+        jenis: 'permohonan',
+        tab: {
+            pengguna: true,
+            activitas: false,
+            dokumen: false,
+            log: false
+        }
+    })
 });
 
 /**
@@ -21,7 +31,6 @@ function loadData(page = 1) {
     ajaxGet(`api/v1/pengiriman/list`, params, result => {
         let html = '';
         for (const [i, data] of result.data.entries()) {
-
             let htmlButton = '';
             
             if(data.status == 3){
@@ -38,7 +47,7 @@ function loadData(page = 1) {
                             <div class="fw-bolder">${data.id_pengiriman}</div>
                             <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
                             <small class="subdesc text-body-secondary fw-light lh-md">
-                                <div>${data.kontrak.no_kontrak}</div>
+                                <div>${data.kontrak?.no_kontrak ?? ''}</div>
                                 <div>created at ${dateFormat(data.created_at, 1)}</div>
                             </small>
                         </div>
@@ -56,8 +65,8 @@ function loadData(page = 1) {
                         <div class="col-6 col-md-2 text-center">
                             ${statusFormat('pengiriman', data.status)}
                         </div>
-                        <div class="col-6 col-md-3 text-center" data-id="${data.id_pengiriman}">
-                            <button class="btn btn-outline-info btn-sm" onclick="showDetailPengiriman()">Detail</button>
+                        <div class="col-6 col-md-3 text-center" data-id="${data.id_pengiriman}" data-idpermohonan="${data.permohonan.permohonan_hash}">
+                            <button class="btn btn-outline-info btn-sm" onclick="showDetail(this)">Detail</button>
                             ${htmlButton}
                         </div>
                     </div>
@@ -257,3 +266,8 @@ $('#list-pagination-pengiriman').on('click', 'a', function (e) {
     const pageno = e.target.dataset.page;
     loadData(pageno);
 });
+
+function showDetail(obj){
+    const idPermohonan = $(obj).parent().data("idpermohonan");
+    detail.show(`api/v1/permohonan/getPengajuanById/${idPermohonan}`);
+}

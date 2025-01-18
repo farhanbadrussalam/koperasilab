@@ -46,7 +46,7 @@ function btnSimpan(){
 
     if(dataBuktiBayar.length === 0 || dataBuktiBayarPph.length === 0){
         Swal.fire({
-            icon: 'error',
+            icon: 'warning',
             text: 'Upload bukti bayar dan bukti pph'
         });
         return;

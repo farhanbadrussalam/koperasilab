@@ -280,7 +280,7 @@ class PengirimanAPI extends Controller
             }
 
             // jika status 2 = pengiriman selesai maka mengganti list_tld di tabel kontrak
-            if($status == 2){
+            if($status == 2 && $pengiriman->kontrak){
                 // cari jenis tld pada detail pengiriman
                 $listTld = array();
                 $pengiriman->detail->each(function($item, $key) use (&$listTld){

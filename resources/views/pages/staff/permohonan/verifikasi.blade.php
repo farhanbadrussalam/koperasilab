@@ -6,7 +6,7 @@
         <div class="container">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item px-3">
-                    <a href="{{ route('staff.permohonan') }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
+                    <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
                 </li>
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="detailPermohonan-tab" onclick="" data-bs-toggle="tab" data-bs-target="#detailPermohonan-tab-pane" type="button" role="tab" aria-controls="detailPermohonan-tab-pane" aria-selected="true">Detail Permohonan</button>
@@ -180,11 +180,8 @@
                 <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
                     <div class="card-body row">
                         <div class="mb-3 col-md-12">
-                            <label class="form-label">Upload Document LHU Zero cek</label>
-                            <div class="input-group">
-                                <input type="file" class="form-control" id="uploadDocumentLhu"
-                                    aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-                            </div>
+                            <label class="form-label">Upload Document LHU Zero cek<span class="text-danger ml-2">*</span></label>
+                            <div id="uploadDocLHU"></div>
                         </div>
                     </div>
                 </div>

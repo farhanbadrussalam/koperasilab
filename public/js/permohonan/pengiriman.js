@@ -105,7 +105,7 @@ function loadData(page = 1) {
                             <div class="fw-bolder">${data.id_pengiriman}</div>
                             <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
                             <small class="subdesc text-body-secondary fw-light lh-md">
-                                <div>${data.kontrak.no_kontrak}</div>
+                                <div>${data.kontrak?.no_kontrak ?? ''}</div>
                                 <div>created at ${dateFormat(data.created_at, 1)}</div>
                             </small>
                         </div>
@@ -197,7 +197,7 @@ function showModalDiterima(obj){
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentInvoice" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.invoice.keuangan_hash}" 
-                                autocomplete="off" checked>
+                                autocomplete="off" >
                         </li>
                     `;
                     break;
@@ -211,7 +211,7 @@ function showModalDiterima(obj){
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentLhu" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.lhu.lhu_hash}" 
-                                autocomplete="off" checked>
+                                autocomplete="off" >
                         </li>
                     `;
                     break;
@@ -224,7 +224,7 @@ function showModalDiterima(obj){
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentTld" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}" 
-                                autocomplete="off" checked>
+                                autocomplete="off" >
                         </li>
                     `;
                     break
@@ -236,7 +236,7 @@ function showModalDiterima(obj){
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentCustom" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}" 
-                                autocomplete="off" checked>
+                                autocomplete="off" >
                         </li>
                     `;
                     break;
@@ -251,4 +251,8 @@ function showModalDiterima(obj){
 function resetForm(){
     buktiPenerima.addData([]);
     $('#list-kelengkapan').html('');
+}
+
+function reload(){
+    loadData();
 }

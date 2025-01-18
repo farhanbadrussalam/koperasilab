@@ -15,7 +15,8 @@ class Master_pertanyaan extends Model
     protected $fillable = [
         'id_layananjasa',
         'pertanyaan',
-        'type'
+        'type',
+        'mandatory'
     ];
     protected $hidden = [
         'id_pertanyaan',

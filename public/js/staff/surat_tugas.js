@@ -3,12 +3,8 @@ let arrJobs = [];
 let periodeJs = false;
 $(function () {
     // Mengambil periode
-    let findPeriode;
-    if (dataPenyelia.periode == 80) {
-        findPeriode = dataPenyelia.permohonan.kontrak.periode[dataPenyelia.permohonan.kontrak.periode.length - 1]; // Get the last element
-    } else {
-        findPeriode = dataPenyelia.permohonan.kontrak.periode.find(d => d.periode == dataPenyelia.periode);
-    }
+    let arrPeriode = dataPenyelia.permohonan.kontrak?.periode ?? dataPenyelia.permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
+    let findPeriode = arrPeriode.find(d => d.periode == dataPenyelia.periode);
     $('#periodePermohonan').html(`${dateFormat(findPeriode.start_date, 5)} - ${dateFormat(findPeriode.end_date, 5)}`);
 
     if(!['verif', 'show'].includes(typeSurat)){

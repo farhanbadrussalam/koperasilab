@@ -2,6 +2,9 @@ const listDocumenLHU = [];
 let signaturePad = false;
 let periodeJs = false;
 let jenisLayanan = false;
+let checkedTldValues = [];
+let uploadDocLhu = false;
+
 $(function () {
     const arrPeriode = dataPermohonan.periode_pemakaian;
     jenisLayanan = dataPermohonan.jenis_layanan;
@@ -57,6 +60,21 @@ $(function () {
         $('input[name="selectTld"]').prop('checked', !isChecked);
     });
 
+    uploadDocLhu = new UploadComponent('uploadDocLHU', {
+        camera: false,
+        allowedFileExtensions: ['pdf'],
+        urlUpload: {
+            url: `api/v1/permohonan/uploadLhuZeroCek`,
+            urlDestroy: `api/v1/permohonan/destroyLhuZero`,
+            idHash: dataPermohonan.permohonan_hash
+        },
+        multiple: false
+    });
+
+    if(dataPermohonan.file_lhu){
+        uploadDocLhu.addData([dataPermohonan.file_lhu]);
+    }
+
     loadPelanggan();
 });
 
@@ -102,6 +120,8 @@ function loadPertanyaan(){
     for (const [i, value] of tandaterima.entries()) {
         let htmlAnswer = ``;
         let btnSelectTld = ``;
+        let htmlMandatory = value.mandatory ? '<span class="text-danger ml-2">*</span>' : '';
+
         if(value.type == 1){
             htmlAnswer = `<textarea name="answer_${i}" id="answer_${i}" cols="30" rows="3" class="form-control"></textarea>`;
         }else if(value.type == 2){
@@ -127,7 +147,7 @@ function loadPertanyaan(){
 
         html += `
             <div class="col-sm-6 mt-2">
-                <label for="" class="mb-2">${value.pertanyaan} : ${btnSelectTld}</label>
+                <label for="" class="mb-2">${value.pertanyaan+htmlMandatory} : ${btnSelectTld}</label>
                 ${htmlAnswer}
             </div>
         `;
@@ -195,8 +215,6 @@ function loadPengguna(){
 
 function verif_kelengkapan(status, obj){
     if(status == 'lengkap'){
-        const formQuestion = $('#content-pertanyaan'); // You already have this
-        
         // Get all form elements within #content-pertanyaan
         const answerTandaterima = [];
         if(tandaterima){
@@ -221,10 +239,17 @@ function verif_kelengkapan(status, obj){
                         note: note
                     });
                 }
+
+                if(value.mandatory && elementAnswer == ''){
+                    return Swal.fire({
+                        icon: "warning",
+                        text: `Harap lengkapi pertanyaan yang wajib diisi.`
+                    });
+                }
             }
         }
 
-        if(jenisLayanan.name == 'Sewa' && !$('#uploadDocumentLhu')[0].files[0]){
+        if(jenisLayanan.name == 'Sewa' && uploadDocLhu.getData().length == 0){
             return Swal.fire({
                 icon: "warning",
                 text: "Harap unggah dokumen LHU terlebih dahulu.",
@@ -237,7 +262,6 @@ function verif_kelengkapan(status, obj){
                 text: "Harap berikan tanda tangan terlebih dahulu.",
             });
         }
-
 
         Swal.fire({
             icon: 'warning',
@@ -253,7 +277,6 @@ function verif_kelengkapan(status, obj){
             reverseButtons: true
         }).then(result => {
             if(result.isConfirmed){
-
                 let ttd = signaturePad.toDataURL();
                 let formData = new FormData();
                 formData.append('_token', csrf);
@@ -261,7 +284,7 @@ function verif_kelengkapan(status, obj){
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
                 formData.append('tandaterima', JSON.stringify(answerTandaterima));
-                jenisLayanan.name == 'Sewa' ? formData.append('fileLhu', $('#uploadDocumentLhu')[0].files[0]) : false;
+                formData.append('listTld', JSON.stringify(checkedTldValues))
 
                 spinner('show', obj);
                 ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
@@ -333,12 +356,18 @@ function selectTLDPermohonan(index){
         }
     }
 
+    if(checkedTldValues.length != 0){
+        jsonTld = checkedTldValues;
+    }
+
     let htmlList = '';
     for (const [i, tld] of jsonTld.entries()) {
         htmlList += `
             <li class="list-group-item">
-                <input class="form-check-input me-1" type="checkbox" value="${tld}" id="tld_${i}" name="selectTld" checked>
-                <label class="form-check-label" for="tld_${i}">${tld}</label>
+                <input class="form-check-input me-1" type="checkbox" value="${tld}" data-index="${i}" name="selectTld" checked>
+                <label class="form-check-label">
+                    <input type="text" class="form-control form-control-sm" name="listTld[]" id="tld_${i}" placeholder="${tld}" value="${tld}" autocomplete="off">
+                </label>
             </li>
         `;
     }
@@ -348,9 +377,11 @@ function selectTLDPermohonan(index){
 }
 
 function simpanTldPermohonan(obj){
-    let checkedTldValues = [];
+    checkedTldValues = [];
     $('input[name="selectTld"]:checked').each(function() {
-        checkedTldValues.push($(this).val());
+        let indexTld = $(this).data('index');
+        let value = $(`#tld_${indexTld}`).val();
+        checkedTldValues.push(value);
     });
 
     let index = $(obj).data('index');

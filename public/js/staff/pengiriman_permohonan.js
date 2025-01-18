@@ -17,7 +17,7 @@ function loadData(page = 1, menu) {
         dataPermohonan = result.data;
         let html = '';
         for (const [i, data] of result.data.entries()) {
-            let arrPeriode = data.kontrak.periode;
+            let arrPeriode = data.kontrak?.periode ?? data.periode_pemakaian;
             let urlLaporanInvoice = data.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data.invoice.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
             let urlDocLhu = data.lhu?.status == 3 ? `<a href="${base_url}/storage/${data.lhu.media.file_path}/${data.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>` : '<i class="bi bi-printer-fill"></i> Cetak LHU';
             let arrDocCustom = [];
@@ -109,9 +109,17 @@ function loadData(page = 1, menu) {
             
                 default:
                     if(data.jenis_layanan.id_jenisLayanan == 2){
-                        cekHtmlBtn = !data.invoice?.pengiriman || !data.pengiriman;
+                        if(htmlInvoice){
+                            cekHtmlBtn = !data.invoice?.pengiriman || !data.pengiriman;
+                        }else{
+                            cekHtmlBtn = !data.pengiriman;
+                        }
                     }else{
-                        cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || !data.pengiriman;
+                        if(htmlInvoice){
+                            cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || !data.pengiriman;
+                        }else{
+                            cekHtmlBtn = !data.lhu?.pengiriman || !data.pengiriman;
+                        }
                     }
                     break;
             }
@@ -171,7 +179,7 @@ $('#list-pagination-list').on('click', 'a', function (e) {
 });
 
 function showPeriode(index) {
-    const arrPeriode = dataPermohonan[index].kontrak.periode;
+    const arrPeriode = dataPermohonan[index].kontrak?.periode ?? dataPermohonan[index].periode_pemakaian;
     const periodeJs = new Periode(arrPeriode, {
         preview: true,
         max: arrPeriode.length

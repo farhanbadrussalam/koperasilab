@@ -70,7 +70,6 @@ maskReload();
 function showPopupReload(){
     $('.show-popup-image').magnificPopup({
         type: 'image',
-        closeOnContentClick: true,
         closeBtnInside: false,
         callbacks: {
             open: function() {
@@ -798,7 +797,7 @@ function printMedia(media, folder=false, option = {}){
     divImg.append(img);
 
     const divDesc = document.createElement('div');
-    divDesc.className = 'flex-grow-1 ms-2 d-flex flex-column pe-3';
+    divDesc.className = 'flex-grow-1 ms-2 d-flex flex-column pe-3 text-start';
     divDesc.innerHTML = `
         <span class="caption text-main">${media.file_ori}</span>
         ${dateContent}
@@ -1002,4 +1001,13 @@ function getDaysRemaining(endDate) {
     const today = new Date();
     const timeDiff = endDate - today;
     return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Konversi ms ke hari
+}
+
+function htmlNoData(){
+    return `
+        <div class="d-flex flex-column align-items-center py-3">
+            <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
+            <span class="fw-bold mt-3 text-muted">No Data Available</span>
+        </div>
+    `;
 }

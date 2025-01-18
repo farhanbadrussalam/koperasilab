@@ -15,7 +15,8 @@ function loadData(page=1) {
         let html = '';
         for (const [i, lhu] of result.data.entries()) {
             const permohonan = lhu.permohonan;
-            let tgl_periode = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode);
+            let arrPeriode = permohonan.kontrak?.periode ?? permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
+            let tgl_periode = arrPeriode.find(d => d.periode == lhu.periode);
             let btnAction = '';
 
             if(lhu.status == 2) {
@@ -46,7 +47,7 @@ function loadData(page=1) {
                         </div>
                         <div class="col-6 col-md-3 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
+                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
                         </div>
                         <div class="col-6 col-md-4 text-center">
                             <div class="fw-bolder">Start date</div>
@@ -79,4 +80,8 @@ function loadData(page=1) {
         $(`#list-placeholder-surat-tugas`).hide();
         $(`#list-container-surat-tugas`).show();
     });
+}
+
+function reload() {
+    loadData();
 }

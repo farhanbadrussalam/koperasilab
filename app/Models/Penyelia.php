@@ -33,7 +33,8 @@ class Penyelia extends Model
 
     protected $appends = [
         'penyelia_hash',
-        'permohonan_hash'
+        'permohonan_hash',
+        'status_hash'
     ];
 
     public function getPermohonanHashAttribute()
@@ -44,6 +45,11 @@ class Penyelia extends Model
     public function getPenyeliaHashAttribute()
     {
         return encryptor($this->id_penyelia);
+    }
+
+    public function getStatusHashAttribute()
+    {
+        return encryptor($this->status);
     }
 
     public function permohonan()

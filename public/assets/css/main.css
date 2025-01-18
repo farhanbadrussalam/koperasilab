@@ -113,16 +113,40 @@ a{
 
 /* Kumpulan font size */
 .fs-7 {
-    font-size: 15px;
+    font-size: 15px !important;
 }
 .fs-8 {
     font-size: 13px !important;
 }
 .fs-9 {
-    font-size: 11px;
+    font-size: 11px !important;
 }
 .fs-10 {
-    font-size: 9px;
+    font-size: 9px !important;
+}
+
+/* tab */
+.custom-nav-link.active {
+    border-bottom: 2px solid #55c57a !important;
+}
+
+.custom-nav-link {
+    color: rgb(110, 110, 110) !important;
+    font-weight: 500 !important;
+}
+.custom-nav-link:hover {
+    color: #55c57a !important;
+}
+
+.custom-nav-pills .custom-nav-link.active {
+    color: black !important;
+    background-color: white !important;
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+    font-weight: 600 !important;
+}
+
+.custom-tab-content {
+    padding-bottom: 1.3rem !important;
 }
 
 /* Tooltip container */

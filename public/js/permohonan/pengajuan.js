@@ -4,7 +4,15 @@ let detail = false;
 $(function () {
     switchLoadTab(1);
 
-    detail = new Detail();
+    detail = new Detail({
+        jenis: 'permohonan',
+        tab: {
+            pengguna: true,
+            activitas: false,
+            dokumen: false,
+            log: false
+        }
+    });
 })
 
 $('#pagination_list').on('click', 'a', function (e) {
@@ -30,7 +38,7 @@ function switchLoadTab(menu){
 
 function loadData(page = 1, status) {
     let params = {
-        limit: 3,
+        limit: 10,
         page: page,
         status: status
     };
@@ -40,17 +48,8 @@ function loadData(page = 1, status) {
     ajaxGet(`api/v1/permohonan/listPengajuan`, params, result => {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
-            let periode = pengajuan.periode_pemakaian;
-
-            let btnEdit = `<a class="btn btn-sm btn-outline-warning me-1" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}"><i class="bi bi-pencil-square"></i> Edit</a>`;
-            let btnRemove = `<button class="btn btn-sm btn-outline-danger me-1 mt-1" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i> Remove</button>`;
-
-            let htmlPeriode = `
-                <div>${periode?.length ?? '0'} Periode</div>
-            `;
-            if(pengajuan.periode){
-                htmlPeriode = `<div>Periode ${pengajuan.periode == 80 ? "Terakhir" : pengajuan.periode}</div>`;
-            }
+            let btnEdit = `<a class="btn btn-sm btn-outline-warning" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}"><i class="bi bi-pencil-square"></i> Edit</a>`;
+            let btnRemove = `<button class="btn btn-sm btn-outline-danger" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i> Remove</button>`;
 
             let badgeClass = 'bg-primary-subtle';
             if(pengajuan.tipe_kontrak == 'kontrak lama') {
@@ -76,29 +75,32 @@ function loadData(page = 1, status) {
                     </div>`;
             } else {
                 html += `
-                    <div class="card mb-2">
-                        <div class="card-body row align-items-center">
-                            <div class="col-12 col-md-4">
+                    <div class="card mb-2 smooth-height">
+                        <div class="card-body row align-items-center py-2">
+                            <div class="col-auto">
                                 <div class="">
                                     <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${pengajuan.tipe_kontrak}</span>
                                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${pengajuan.jenis_layanan_parent.name} - ${pengajuan.jenis_layanan.name}</span>
                                 </div>
-                                <div class="title">Layanan ${pengajuan.layanan_jasa?.nama_layanan ?? 'Untitled'}</div>
-                                <small class="subdesc text-body-secondary fw-light lh-sm">
-                                    <div>${pengajuan.jenis_tld?.name ?? '-'}</div>
-                                    ${htmlPeriode}
-                                    <div>Created : ${dateFormat(pengajuan.created_at, 4)}</div>
-                                </small>
+                                <div class="fs-5 my-2">
+                                    <span class="fw-bold">${pengajuan.jenis_tld?.name ?? '-'} - Layanan ${pengajuan.layanan_jasa?.nama_layanan}</span>
+                                </div>
+                                <div class="d-flex gap-3 text-body-tertiary fs-7">
+                                    <span><i class="bi bi-calendar-range"></i> Periode ${pengajuan.periode}</span>
+                                    <div><i class="bi bi-calendar-fill"></i> ${dateFormat(pengajuan.created_at, 4)}</div>
+                                    <div><i class="bi bi-cash-stack"></i> ${formatRupiah(pengajuan.total_harga)}</div>
+                                </div>
                             </div>
-                            <div class="col-6 col-md-3 my-3 fw-semibold">
-                                ${formatRupiah(pengajuan.total_harga)}
-                                <div><small class="text-info">*Tidak termasuk PPN</small></div>
+                            <div class="col-auto mx-auto">
+                                <div>${statusFormat('permohonan', pengajuan.status)}</div>
                             </div>
-                            <div class="col-6 col-md-2 ms-auto">${statusFormat('permohonan', pengajuan.status)}</div>
-                            <div class="col-6 col-md-2 text-center" data-id="${pengajuan.permohonan_hash}">
-                                <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
-                                ${pengajuan.status == 1 ? btnEdit + btnRemove : ''}
+                            <div class="col-md-2 ms-auto">
+                                <div class="d-flex gap-1 flex-wrap justify-content-center" data-id="${pengajuan.permohonan_hash}">
+                                    <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
+                                    ${pengajuan.status == 1 ? btnEdit + btnRemove : ''}
+                                </div>
                             </div>
+                            <div class="p-3" id="listPeriode" style="display:none"></div>
                         </div>
                     </div>
                 `;
@@ -106,12 +108,7 @@ function loadData(page = 1, status) {
         }
 
         if(result.data.length == 0){
-            html = `
-                <div class="d-flex flex-column align-items-center py-3">
-                    <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
-                    <span class="fw-bold mt-3 text-muted">No Data Available</span>
-                </div>
-            `;
+            html = htmlNoData();
         }
 
         $('#pengajuan-list-container').html(html);
@@ -155,7 +152,7 @@ function remove(obj){
 
 function showDetail(obj){
     const idPermohonan = $(obj).parent().data("id");
-    detail.show();
+    detail.show(`api/v1/permohonan/getPengajuanById/${idPermohonan}`);
 }
 
 function reload(){

@@ -5,7 +5,8 @@ class UploadComponent {
             camera: options.camera ?? true,
             allowedFileExtensions: options.allowedFileExtensions ?? [],
             type: options.type ?? 'image',
-            urlUpload: options.urlUpload ?? false
+            urlUpload: options.urlUpload ?? false,
+            multiple: options.multiple ?? true
         }
         
         this.listFile = [];
@@ -72,6 +73,12 @@ class UploadComponent {
     // buatkan preview untuk pdf
     loadListFile(){
         $(`#listPreview_${this.id}`).html('');
+
+        // cek apakah multiple atau tidak, jika multiple = false button tambah disable dan tambah class cursordisable
+        if (!this.options.multiple) {
+            $(`#btnTambahFile_${this.id}`).attr('disabled', this.listFile.length > 0);
+        }
+        
         if(this.listFile.length === 0){
             $(`#listPreview_${this.id}`).html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
             return;
@@ -115,9 +122,10 @@ class UploadComponent {
             
             if(this.options.urlUpload){
                 const params = new FormData();
-                params.append('idKeuangan', this.options.urlUpload.idHash);
+                params.append('idHash', this.options.urlUpload.idHash);
                 params.append('file', inputFile);
                 ajaxPost(this.options.urlUpload.url, params, result => {
+                    console.log(result);
                     this.listFile.push(result.data);
                     spinner('hide', $(`#btnTambahFile_${this.id}`));
                     $(`#uploadFile_${this.id}`).val('');

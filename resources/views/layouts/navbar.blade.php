@@ -12,7 +12,7 @@
     <div class="navbar-collapse justify-content-end px-0 w-100" id="navbarNav">
         <ul class="navbar-nav flex-row ms-0 align-items-center justify-content-end">
             <li class="nav-item">
-                {{ Auth::user()->name }}
+                {{ Auth::user()->name }} - {{ Auth::user()->getRoleNames()[0] }}
             </li>
             <li class="nav-item dropdown">
                 <a id="navbarNotif" class="nav-link" data-bs-toggle="dropdown" role="button" href="#" data-bs-auto-close="outside">

@@ -25,6 +25,7 @@ use App\Http\Controllers\LogController;
 
 use Auth;
 use DB;
+use Log;
 
 class PermohonanAPI extends Controller
 {
@@ -58,7 +59,10 @@ class PermohonanAPI extends Controller
             $dataTld = $request->dataTld ? json_decode($request->dataTld) : false;
             $createBy = $request->createBy ? decryptor($request->createBy) : false;
             $status = $request->status ? $request->status : 1;
-            $periodePemakaian = $request->periodePemakaian;
+            $periodePemakaian = $request->periodePemakaian ? $request->periodePemakaian : false;
+            $pic = $request->pic ? $request->pic : false;
+            $noHp = $request->noHp ? unmask($request->noHp) : false;
+            $alamat = $request->alamat ? decryptor($request->alamat) : false;
             
             if ($periodePemakaian) {
                 if (is_string($periodePemakaian)) {
@@ -90,6 +94,9 @@ class PermohonanAPI extends Controller
             $hargaLayanan && $data['harga_layanan'] = $hargaLayanan;
             $dataTld && $data['list_tld'] = $dataTld;
             $createBy && $data['created_by'] = $createBy;
+            $pic && $data['pic'] = $pic;
+            $noHp && $data['no_hp'] = $noHp;
+            $alamat && $data['id_alamat'] = $alamat;
 
             $status && $data['status'] = $status;
             $data['flag_read'] = 0;
@@ -347,10 +354,10 @@ class PermohonanAPI extends Controller
                                 $q->whereIn('status', $status);
                                 break;
                             case 'Staff Admin':
-                                $q->where('status', 1);
+                                // $q->where('status', 1);
                                 break;
                             case 'Staff keuangan':
-                                $q->whereIn('status', [2]);
+                                // $q->whereIn('status', [2]);
                                 break;
                             default:
                                 # code...
@@ -377,6 +384,58 @@ class PermohonanAPI extends Controller
         }
     }
 
+    public function getPengajuanById($id)
+    {
+        DB::beginTransaction();
+        try {
+            $id = decryptor($id);
+            $query = Permohonan::with(
+                'layanan_jasa:id_layanan,nama_layanan',
+                'jenisTld:id_jenisTld,name', 
+                'jenis_layanan:id_jenisLayanan,name,parent',
+                'jenis_layanan_parent',
+                'pelanggan:id,name,id_perusahaan',
+                'pelanggan.perusahaan',
+                'kontrak',
+                'kontrak.periode',
+                'pengguna',
+                'pengguna.media',
+                'tandaterima',
+            )->where('id_permohonan', $id)->first();
+            DB::commit();
+
+            foreach ($query->pengguna as $item) {
+                $id_radiasi_array = $item->id_radiasi; // Decode JSON jadi array
+
+                // Cek apakah ada array yang valid dari JSON
+                if (!empty($id_radiasi_array)) {
+                    // Ambil data dari tabel radiasi berdasarkan array 'id_radiasi'
+                    $arrDataRadiasi = array();
+                    foreach ($id_radiasi_array as $key => $value) {
+                        $nama_radiasi = "";
+                        $radiasi_data = Master_radiasi::select('nama_radiasi')->where('id_radiasi', $value)->first();
+                        if($radiasi_data){
+                            $nama_radiasi = $radiasi_data->nama_radiasi;
+                        }else{
+                            $nama_radiasi = $value;
+                        }
+                        array_push($arrDataRadiasi, $nama_radiasi);
+                    }
+
+                    // Tambahkan hasil radiasi ke dalam response
+                    $item->radiasi = $arrDataRadiasi;
+                }
+            }
+
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+
     public function getChildJenisLayanan($idParent)
     {
         DB::beginTransaction();
@@ -384,7 +443,13 @@ class PermohonanAPI extends Controller
 
         try {
             // dd($parent);
-            $data = Master_jenisLayanan::with('child')->select('id_jenisLayanan','name')->where('id_jenisLayanan', $parent)->first();
+            $data = Master_jenisLayanan::with(['child' => function ($query) {
+                $query->where('status', 1);
+            }])
+            ->select('id_jenisLayanan','name')
+            ->where('id_jenisLayanan', $parent)
+            ->first();
+            
             DB::commit();
 
             if($data){
@@ -500,13 +565,13 @@ class PermohonanAPI extends Controller
                     }
 
                     // menambahkan tld
-                    if($dataPermohonan->tipe_kontrak== 'kontrak baru'){
-                        $jmlTld = $dataPermohonan->jumlah_pengguna + $dataPermohonan->jumlah_kontrol;
-                        $listTld = array();
-                        for ($i=0; $i < $jmlTld; $i++) { 
-                            $listTld[] = "TLD ".$i + 1;
-                        }
-                        
+                    if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
+                        $listTld = $request->listTld ? json_decode($request->listTld) : [];
+                        // $jmlTld = $dataPermohonan->jumlah_pengguna + $dataPermohonan->jumlah_kontrol;
+                        // $listTld = array();
+                        // for ($i=0; $i < $jmlTld; $i++) { 
+                        //     $listTld[] = "TLD ".$i + 1;
+                        // }
                         $arrayUpdate['list_tld'] = $listTld;
                     }
     
@@ -598,12 +663,20 @@ class PermohonanAPI extends Controller
                     $arrValidInvoice = [2, 3, 6];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidInvoice)){
                         $invoiceData = $this->createInvoice($dataPermohonan->permohonan_hash);
+
+                        if(!$invoiceData){
+                            throw new \Exception('Gagal membuat invoice');
+                        }
                     }
 
                     // Proses ke penyelia
                     $arrValidPenyelia = [3, 5, 6];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidPenyelia)){
                         $penyeliaData = $this->createPenyelia($dataPermohonan->permohonan_hash);
+
+                        if(!$penyeliaData){
+                            throw new \Exception('Gagal membuat penyelia');
+                        }
                     }
 
                 } else {
@@ -623,6 +696,72 @@ class PermohonanAPI extends Controller
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
+    }
+
+    public function uploadLhuZeroCek(Request $request)
+    {
+        $validator = $request->validate([
+            'idHash' => 'required',
+            'file' => 'required|file'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $idPermohonan = decryptor($request->idHash);
+            $file = $request->file('file');
+
+            $fileUpload = $this->media->upload($file, 'permohonan');
+            $dataPermohonan = Permohonan::find($idPermohonan);
+
+            if(isset($dataPermohonan)){
+                $dataPermohonan->update(array('file_lhu' => $fileUpload->getIdMedia()));
+                DB::commit();
+
+                if($dataPermohonan){
+                    $fileUpload->store();
+                    // ambil media Document Lhu
+                    $mediaDocLhu = $this->media->get($fileUpload->getIdMedia());
+                    return $this->output(array('msg' => 'LHU berhasil diupload', 'data' => $mediaDocLhu));
+                }
+
+                return $this->output(array('msg' => 'LHU gagal diupload'), 'Fail', 400);
+            }
+
+            return $this->output(array('msg' => 'data not found'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroyLhuZero($idPermohonan, $idMedia){
+        $idMedia = decryptor($idMedia);
+        $idPermohonan = decryptor($idPermohonan);
+
+        DB::beginTransaction();
+        try {
+            $dataPermohonan = Permohonan::find($idPermohonan);
+            if(isset($dataPermohonan)){
+                $update = $dataPermohonan->update(array('file_lhu' => null));
+                $this->media->destroy($idMedia);
+
+                DB::commit();
+
+                if($update){
+                    return $this->output(array('msg' => 'LHU berhasil dihapus'));
+                }
+
+                return $this->output(array('msg' => 'LHU gagal dihapus'), 'Fail', 400);
+            }
+
+            return $this->output(array('msg' => 'data not found'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+
     }
 
     private function generateNoKontrak($idPermohonan)

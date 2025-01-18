@@ -30,7 +30,7 @@ function loadPengguna(){
                                 ${txtRadiasi}
                             </div>
                             <div class="col-md-2 text-end">
-                                <button class="btn btn-sm btn-outline-secondary" data-path="${pengguna.media.file_path}" data-file="${pengguna.media.file_hash}" onclick="showPreviewKtp(this)" title="Show ktp"><i class="bi bi-file-person-fill"></i></button>
+                                <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
                                 <button class="btn btn-sm btn-outline-danger" data-idpengguna="${pengguna.permohonan_pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
                             </div>
                         </div>
@@ -52,6 +52,7 @@ function loadPengguna(){
             $('#pengguna-list-container').html(html);
             $('#pengguna-placeholder').hide();
             $('#pengguna-list-container').show();
+            showPopupReload();
         }
     })
 }
@@ -79,10 +80,8 @@ function deletePengguna(obj){
 }
 
 $(function () {
-
     const formInputan = $('#form-inputan');
     const formTipeKontrak = $('#form-tipe-kontrak');
-    const formNoKontrak = $('#form-no-kontrak');
     const formPeriode = $('#form-periode');
     const formJenisTld = $('#form-jenis-tld');
     const formJumPengguna = $('#form-jum-pengguna');
@@ -125,9 +124,27 @@ $(function () {
     resetForm();
     loadPengguna();
 
+    let htmlAlamat = '<option value="">Pilih alamat</option>';
+    for (const [i,value] of dataPermohonan.pelanggan.perusahaan.alamat.entries()) {
+        htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+    }
+
+    $('#selectAlamat').html(htmlAlamat);
+
+    $('#selectAlamat').on('change', obj => {
+        if(dataPermohonan){
+            const perusahaan = dataPermohonan.pelanggan.perusahaan;
+
+            if(perusahaan.alamat[obj.target.value]){
+                $('#txt_alamat').val(perusahaan.alamat[obj.target.value].alamat + ", "+ perusahaan.alamat[obj.target.value].kode_pos);
+            }else{
+                $('#txt_alamat').val('');                
+            }
+        }
+    });
+
     function resetForm(){
         formTipeKontrak.hide();
-        formNoKontrak.hide();
         formPic.hide();
         formNoHp.hide();
         formAlamat.hide();
@@ -141,14 +158,12 @@ $(function () {
         formPeriode2.hide();
         formZeroCek.hide();
     
-        $('#tipe_kontrak').val('kontrak baru');
         $('#no_kontrak').val('');
         $('#durasi').val('');
         $('#jenis_tld').val('');
         $('#jum_kontrol').val('');
         $('#pic').val('');
         $('#nohp').val('');
-        $('#alamat').val('');
         $('#periode_next').val('');
         $('#periode_1').val('');
         $('#periode_2').val('');
@@ -195,8 +210,8 @@ $(function () {
                         formTotalHarga.show();
                         break;
                     case 'evaluasi':
-                        btnAddPengguna.addClass('d-none').removeClass('d-block');
-                        btnPilihPengguna.addClass('d-block').removeClass('d-none');
+                        // btnAddPengguna.addClass('d-none').removeClass('d-block');
+                        // btnPilihPengguna.addClass('d-block').removeClass('d-none');
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
@@ -271,18 +286,6 @@ $(function () {
         return;
     });
 
-    $('#tipe_kontrak').on('change', obj => {
-        let tipeKontrak = obj.target.value;
-        switch (tipeKontrak) {
-            case 'kontrak baru':
-                formNoKontrak.hide();
-                break;
-            case 'perpanjangan':
-                formNoKontrak.show();
-                break;
-        }
-    });
-
     $('#jenis_tld').on('change', obj => {
         const idJenisLayanan = $('#jenis_layanan_2').val();
         const idJenisTld = obj.target.value;
@@ -311,7 +314,6 @@ $(function () {
         let vallayananJasa = $('#layanan_jasa').val();
         let valjenisLayanan1 = $('#jenis_layanan').val();
         let valjenisLayanan2 = $('#jenis_layanan_2').val();
-        let valtipeKontrak = $('#tipe_kontrak').val();
         let valnoKontrak = $('#no_kontrak').val();
         let valzerocek = $('#zero_cek').val();
         let valjenisTld = $('#jenis_tld').val();
@@ -320,52 +322,58 @@ $(function () {
         let valjumKontrol = $('#jum_kontrol').val();
         let valpic = $('#pic').val();
         let valnoHp = $('#nohp').val();
-        let valalamat = $('#alamat').val();
+        let valAlamat = $('#selectAlamat').val();
         let valtotalHarga = $('#total_harga').val();
         let valHargaLayanan = window.price;
 
-    Swal.fire({
-        title: 'Apa kamu yakin?',
-        text: "Apakah Anda ingin melanjutkan tindakan ini?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, proceed!'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Proceed with the action
-            const formData = new FormData();
-            formData.append('idPermohonan', idPermohonan);
-            formData.append('idLayanan', vallayananJasa);
-            formData.append('jenisLayanan1', valjenisLayanan1);
-            formData.append('jenisLayanan2', valjenisLayanan2);
-    
-            formData.append('tipeKontrak', valtipeKontrak);
-            formData.append('jenisTld', valjenisTld);
-            formData.append('periodePemakaian', valperiodePemakaian);
-            formData.append('jumlahPengguna', valjumPengguna);
-            formData.append('jumlahKontrol', valjumKontrol);
-            formData.append('hargaLayanan', valHargaLayanan);
-            formData.append('totalHarga', valtotalHarga);
-            formData.append('periode', 1);
-    
-            spinner('show', obj.target);
-            ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
-                Swal.fire({
-                    icon: 'success',
-                    text: 'Pengajuan berhasil dibuat',
-                    timer: 1200,
-                    timerProgressBar: true,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = base_url+"/permohonan/pengajuan";
+        dataPermohonan.pelanggan.perusahaan.alamat[valAlamat] ? valAlamat = dataPermohonan.pelanggan.perusahaan.alamat[valAlamat].alamat_hash : false;
+
+        Swal.fire({
+            title: 'Apa kamu yakin?',
+            text: "Apakah Anda ingin melanjutkan tindakan ini?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, proceed!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Proceed with the action
+                const formData = new FormData();
+                formData.append('idPermohonan', idPermohonan);
+                formData.append('idLayanan', vallayananJasa);
+                formData.append('jenisLayanan1', valjenisLayanan1);
+                formData.append('jenisLayanan2', valjenisLayanan2);
+        
+                formData.append('pic', valpic);
+                formData.append('noHp', valnoHp);
+                formData.append('alamat', valAlamat);
+                
+                formData.append('tipeKontrak', 'kontrak baru');
+                formData.append('jenisTld', valjenisTld);
+                formData.append('periodePemakaian', valperiodePemakaian);
+                formData.append('jumlahPengguna', valjumPengguna);
+                formData.append('jumlahKontrol', valjumKontrol);
+                formData.append('hargaLayanan', valHargaLayanan);
+                formData.append('totalHarga', valtotalHarga);
+                formData.append('periode', 1);
+        
+                spinner('show', obj.target);
+                ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
+                    Swal.fire({
+                        icon: 'success',
+                        text: 'Pengajuan berhasil dibuat',
+                        timer: 1200,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = base_url+"/permohonan/pengajuan";
+                    });
+                }, error => {
+                    spinner('hide', obj.target);
                 });
-            }, error => {
-                spinner('hide', obj.target);
-            });
-        }
-    });
+            }
+        });
     });
 
     $('#btn-clear-periode').on('click', obj => {

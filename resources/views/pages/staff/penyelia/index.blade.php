@@ -9,7 +9,7 @@
                   <button class="nav-link active" id="surattugas-tab" onclick="switchLoadTab(1)" data-bs-toggle="tab" data-bs-target="#surattugas-tab-pane" type="button" role="tab" aria-controls="surattugas-tab-pane" aria-selected="true">Penerbitan surat tugas</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="penerbitanlhu-tab" onclick="switchLoadTab(2)" data-bs-toggle="tab" data-bs-target="#penerbitanlhu-tab-pane" type="button" role="tab" aria-controls="penerbitanlhu-tab-pane" aria-selected="true">Penerbitan LHU</button>
+                  <button class="nav-link" id="penerbitanlhu-tab" onclick="switchLoadTab(2)" data-bs-toggle="tab" data-bs-target="#penerbitanlhu-tab-pane" type="button" role="tab" aria-controls="penerbitanlhu-tab-pane" aria-selected="true">Penyeliaan LHU</button>
                 </li>
             </ul>
             <div class="tab-content" id="myTabContent">

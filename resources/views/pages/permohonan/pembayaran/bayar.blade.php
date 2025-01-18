@@ -3,7 +3,7 @@
 @section('content')
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item px-3">
-            <a href="{{ route('permohonan.pembayaran') }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
+            <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
         </li>
     </ul>
 
@@ -16,7 +16,7 @@
                 </div>
                 <div class="col-md-6 col-12">
                     <label class="fw-bolder">No Kontrak</label>
-                    <div id="txtNoKontrakInvoice">{{ $keuangan->permohonan->kontrak->no_kontrak }}</div>
+                    <div id="txtNoKontrakInvoice">{{ $keuangan->permohonan->kontrak?->no_kontrak ?? '' }}</div>
                 </div>
                 <div class="col-md-6 col-12">
                     <label class="fw-bolder">Jenis</label>
@@ -63,21 +63,33 @@
                 <p>
                     Note : Kwitansi asli dan TLD akan kami kirimkan setelah menerima bukti pembayaran. <br>
                     (Mohon Bukti Potong PPh 23 dikirimkan kepada kami apabila memotongnya)<br>
-                    Pembayaran dapat dilakukan secara Tunai atau melalui <br>
-                    Virtual Account Bank Mandiri dengan No : 89029120231337
+                    Pembayaran dilakukan melalui <b>Virtual Account</b> Bank Mandiri <b>atas nama Koperasi JKRL</b> dengan nomor <b>89029220241750</b> atau transfer melalui rekening : <br>
+                    <div class="container fw-semibold">
+                        <div class="row">
+                            <div class="col-md-2">Nama Bank</div>
+                            <div class="col-auto">: Mandiri cabang Pondok Indah Jakarta Selatan</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">Nomor rekening</div>
+                            <div class="col-auto">: 101-000011370-2</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">Atas nama</div>
+                            <div class="col-auto">: Koperasi Jasa Keselamatan Radiasi dan Lingkungan</div>
+                        </div>
+                    </div>
                 </p>
                 <p>
-                    Apabila telah melakukan pembayaran, kami mohon bukti teransfer dikirim melalui e-mail ke tld@kop-jkrl.co.id dan diberi keterangan untuk pembayaran dimaksud berdasarkan invoice/kwitansi tersebut diatas. <br>
                     Atas perhatian dan kerjasamanya, diucapkan terima kasih
                 </p>
             </div>
             <div class="row my-4">
                 <div class="col-md-6">
-                    <label for="" class="form-label">Upload bukti bayar</label>
+                    <label for="" class="form-label">Upload bukti bayar<span class="text-danger ms-1">*</span></label>
                     <div id="uploadBuktiBayar"></div>
                 </div>
                 <div class="col-md-6">
-                    <label for="" class="form-label">Upload bukti bayar PPH</label>
+                    <label for="" class="form-label">Upload bukti bayar PPH<span class="text-danger ms-1">*</span></label>
                     <div id="uploadBuktiBayarPph"></div>
                 </div>
             </div>

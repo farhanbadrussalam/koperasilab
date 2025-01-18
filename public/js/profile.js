@@ -10,7 +10,6 @@ function loadForm(data) {
     $('#telepon').val(data.telepon ? data.telepon : '-');
     $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
 
-    console.log(data);
     let html = '';
 
     if(data.perusahaan){

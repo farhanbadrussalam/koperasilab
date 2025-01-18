@@ -254,8 +254,10 @@ class KeuanganAPI extends Controller
 
                 // menambahkan id keuangan ke kontrak
                 $idKontrak = Permohonan::find($idPermohonan)->id_kontrak;
-                $kontrak = Kontrak::find($idKontrak);
-                $kontrak->update(array('id_keuangan' => $keuangan->id_keuangan));
+                if($idKontrak){
+                    $kontrak = Kontrak::find($idKontrak);
+                    $kontrak->update(array('id_keuangan' => $keuangan->id_keuangan));
+                }
 
             } elseif ($keuangan->wasChanged()) {
                 // $file_buktiBayar && $file_buktiBayar->store();
@@ -290,12 +292,12 @@ class KeuanganAPI extends Controller
     public function uploadBuktiBayar(Request $request)
     {
         $validate = $request->validate([
-            'idKeuangan' => 'required'
+            'idHash' => 'required'
         ]);
 
         DB::beginTransaction();
         try {
-            $idKeuangan = decryptor($request->idKeuangan);
+            $idKeuangan = decryptor($request->idHash);
             $file = $request->file('file');
 
             $fileUpload = $this->media->upload($file, 'keuangan');
@@ -326,15 +328,16 @@ class KeuanganAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
+
     public function uploadBuktiBayarPph(Request $request)
     {
         $validate = $request->validate([
-            'idKeuangan' => 'required'
+            'idHash' => 'required'
         ]);
 
         DB::beginTransaction();
         try {
-            $idKeuangan = decryptor($request->idKeuangan);
+            $idKeuangan = decryptor($request->idHash);
             $file = $request->file('file');
             
             $fileUpload = $this->media->upload($file, 'keuangan');
@@ -369,12 +372,12 @@ class KeuanganAPI extends Controller
     public function uploadFaktur(Request $request)
     {
         $validate = $request->validate([
-            'idKeuangan' => 'required'
+            'idHash' => 'required'
         ]);
 
         DB::beginTransaction();
         try {
-            $idKeuangan = decryptor($request->idKeuangan);
+            $idKeuangan = decryptor($request->idHash);
             $file = $request->file('faktur');
 
             $fileUpload = $this->media->upload($file, 'keuangan');
@@ -390,7 +393,9 @@ class KeuanganAPI extends Controller
     
                 if($update){
                     $fileUpload->store();
-                    return $this->output(array('msg' => 'Faktur berhasil diupload'));
+                    // ambil media faktur
+                    $mediaFaktur = $this->media->get($fileUpload->getIdMedia());
+                    return $this->output(array('msg' => 'Faktur berhasil diupload', 'data' => $mediaFaktur));
                 }
     
                 return $this->output(array('msg' => 'Faktur gagal diupload'), 'Fail', 400);

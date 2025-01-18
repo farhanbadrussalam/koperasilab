@@ -5,7 +5,7 @@
     <input type="hidden" name="id_permohonan" id="id_permohonan" value="{{ $permohonan->permohonan_hash }}">
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item px-3">
-            <a href="{{ route('permohonan.pengajuan') }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
+            <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
         </li>
     </ul>
     <div class="m-0 row">
@@ -28,7 +28,7 @@
             <div class="card-body">
                 <div class="row g-2 g-md-3">
                     <div class="col-md-6">
-                        <label for="jenis_layana" class="col-form-label">Jenis layanan</label>
+                        <label for="jenis_layana" class="col-form-label">Jenis layanan<span class="text-danger ms-1">*</span></label>
                         <select name="jenis_layanan" id="jenis_layanan" class="form-select">
                             <option value="">Pilih</option>
                             @foreach ($jenisLayanan as $value)
@@ -53,22 +53,6 @@
                 <form action="#" method="post" id="form-simpan-pengajuan">
                     @csrf
                     <div class="row g-0 g-md-3">
-                        <div class="col-md-6" id="form-tipe-kontrak">
-                            <label class="col-form-label" for="tipe_kontrak">Tipe kontrak</label>
-                            <select name="tipe_kontrak" id="tipe_kontrak" class="form-select">
-                                <option value="kontrak baru">Kontrak Baru</option>
-                                <option value="perpanjangan">Perpanjangan</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <div id="form-no-kontrak">
-                                <label class="col-form-label" for="no_kontrak">No kontrak</label>
-                                <div class="input-group mb-3">
-                                    <input type="text" class="form-control bg-secondary-subtle" name="no_kontrak" id="no_kontrak" readonly>
-                                    <button class="btn btn-outline-secondary" type="button" id="btn-kontrak">Select kontrak</button>
-                                </div>
-                            </div>
-                        </div>
                         <div class="col-md-6" id="form-zero-cek">
                             <label class="col-form-label" for="zero_cek">Pilih zero cek</label>
                             <select name="zero_cek" id="zero_cek" class="form-select">
@@ -84,7 +68,7 @@
                             </select>
                         </div>
                         <div class="col-md-6" id="form-periode">
-                            <label class="col-form-label" for="periode">Periode pemakaian</label>
+                            <label class="col-form-label" for="periode">Periode pemakaian<span class="text-danger ms-1">*</span></label>
                             <div class="input-group mb-3">
                                 <input type="text" class="form-control bg-secondary-subtle" id="periode-pemakaian" aria-label="Periode pemakaian" readonly>
                                 <button class="btn btn-outline-danger d-none" type="button" id="btn-clear-periode">Clear</button>
@@ -92,24 +76,29 @@
                             </div>
                         </div>
                         <div class="col-md-6" id="form-jum-pengguna">
-                            <label class="col-form-label" for="jum_pengguna">Jumlah Pengguna</label>
+                            <label class="col-form-label" for="jum_pengguna">Jumlah Pengguna<span class="text-danger ms-1">*</span></label>
                             <input type="number" name="jum_pengguna" id="jum_pengguna" class="form-control bg-secondary-subtle" readonly>
                         </div>
                         <div class="col-md-6" id="form-jum-kontrol">
-                            <label class="col-form-label" for="jum_kontrol">Jumlah Kontrol</label>
+                            <label class="col-form-label" for="jum_kontrol">Jumlah Kontrol<span class="text-danger ms-1">*</span></label>
                             <input type="number" name="jum_kontrol" id="jum_kontrol" class="form-control" oninput="calcPrice()">
                         </div>
                         <div class="col-md-6" id="form-pic">
-                            <label class="col-form-label" for="pic">PIC</label>
+                            <label class="col-form-label" for="pic">PIC<span class="text-danger ms-1">*</span></label>
                             <input type="text" name="pic" id="pic" class="form-control">
                         </div>
                         <div class="col-md-6" id="form-nohp">
-                            <label class="col-form-label" for="nohp">No HP</label>
-                            <input type="text" name="nohp" id="nohp" class="form-control">
+                            <label class="col-form-label" for="nohp">No HP<span class="text-danger ms-1">*</span></label>
+                            <input type="text" name="nohp" id="nohp" class="form-control maskTelepon">
                         </div>
                         <div class="col-md-6" id="form-alamat">
-                            <label class="col-form-label" for="alamat">Alamat</label>
-                            <input type="text" name="alamat" id="alamat" class="form-control">
+                            <label for="" class="form-label col-md-3">Alamat</label>
+                            <div>
+                                <select name="selectAlamat" id="selectAlamat" class="form-select">
+                                    <option value="">Pilih alamat</option>
+                                </select>
+                                <textarea name="txt_alamat" id="txt_alamat" cols="30" rows="2" class="form-control mt-1 bg-secondary-subtle" readonly></textarea>
+                            </div>
                         </div>
                         <div class="col-md-6" id="form-periode-next">
                             <label class="col-form-label" for="periode_next">Periode pemakaian selanjutnya</label>
@@ -246,5 +235,8 @@
     </div>
 @endsection
 @push('scripts')
+    <script>
+        const dataPermohonan = @json($permohonan);
+    </script>
     <script src="{{ asset('js/permohonan/pengajuan_tambah.js') }}"></script>
 @endpush

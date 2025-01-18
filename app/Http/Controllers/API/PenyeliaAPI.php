@@ -194,7 +194,7 @@ class PenyeliaAPI extends Controller
                 $typePencarian = 'not';
                 break;
             case 'penerbitanlhu':
-                $status = [13];
+                $status = [14];
                 break;
             default:
                 $status = false;
@@ -203,13 +203,12 @@ class PenyeliaAPI extends Controller
 
         if(!$status){
             $paramStatus = $request->has('status') ? $request->status : false;
-            
             if($paramStatus){
-                $tmpArr = array();
-                foreach ($paramStatus as $key => $value) {
-                    array_push($tmpArr, decryptor($value));
-                }
-                $status = $tmpArr;
+            //     $tmpArr = array();
+            //     foreach ($paramStatus as $key => $value) {
+            //         array_push($tmpArr, decryptor($value));
+            //     }
+            //     $status = $tmpArr;
                 $userId = Auth::user()->id;
             }
         }

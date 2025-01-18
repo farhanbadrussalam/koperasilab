@@ -35,7 +35,13 @@ function loadData(page = 1) {
         for (const [i, lhu] of result.data.entries()) {
             const permohonan = lhu.permohonan;
             let periode = permohonan.periode_pemakaian;
-            let btnAction = '<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>';
+            let btnAction = '';
+            
+            if(listJobs.includes(lhu.status_hash)) {
+                btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
+            } else {
+                btnAction = `<button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
+            }
 
             let divInfoTugas = `
                 <div class="col-md-12">
@@ -65,7 +71,7 @@ function loadData(page = 1) {
                         </div>
                         <div class="col-6 col-md-3 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
+                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
                         </div>
                         <div class="col-6 col-md-4 text-center">
                             <div class="fw-bolder">Start date</div>
@@ -147,6 +153,14 @@ function simpanProgress(obj){
             text: 'Tolong masukan note!',
         });
     }
+    if(nowSelect?.prosesNow.jobs.upload_doc){
+        if(!document){
+            return Swal.fire({
+                icon: "warning",
+                text: 'Tolong upload dokumen!',
+            });
+        }
+    }
     const form = new FormData();
     form.append('idPenyelia', nowSelect?.penyelia_hash);
     form.append('status', status);
@@ -173,4 +187,8 @@ function simpanProgress(obj){
     }, error => {
         spinner('hide', $(obj));
     });
+}
+
+function reload(){
+    loadData();
 }

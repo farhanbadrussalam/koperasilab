@@ -38,7 +38,7 @@ function loadData(page = 1) {
                         <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
                         <div class="col-6 col-md-3 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak.no_kontrak}</small>
+                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
                         </div>
                         <div class="col-6 col-md-2">${statusFormat('keuangan', keuangan.status)}</div>
                         <div class="col-6 col-md-2 text-center" data-keuangan='${keuangan.keuangan_hash}'>
@@ -73,4 +73,8 @@ function openInvoiceModal(obj, mode) {
         invoice.addData(result.data);
         invoice.open(mode);
     })
+}
+
+function reload() {
+    loadData();
 }

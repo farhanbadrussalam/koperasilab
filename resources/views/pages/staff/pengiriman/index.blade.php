@@ -141,7 +141,7 @@
                     <input type="text" class="form-control bg-secondary-subtle" id="no_pengiriman" name="no_pengiriman" readonly>
                 </div>
                 <div class="mb-3">
-                    <label for="jasa_kurir" class="form-label">Jasa Kurir</label>
+                    <label for="jasa_kurir" class="form-label">Jasa Kurir<span class="text-danger ms-1">*</span></label>
                     <select class="form-select" id="jasa_kurir" name="jasa_kurir" required>
                         <option value="" selected disabled>Pilih Jasa Kurir</option>
                         @foreach ($ekspedisi as $value)
@@ -150,7 +150,7 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label for="noResi" class="form-label">No Resi</label>
+                    <label for="noResi" class="form-label">No Resi<span class="text-danger ms-1">*</span></label>
                     <input type="text" class="form-control" id="noResi" name="noResi" required>
                 </div>
             </div>

@@ -3,6 +3,9 @@
 @section('content')
 <div class="card shadow-sm m-4 mt-2">
     <div class="card-body">
+        <div class="d-flex">
+            <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
+        </div>
         <div class="d-flex pb-4">
             <div class="w-100 d-flex">
                 {{-- <div class="mx-2">
@@ -69,13 +72,13 @@
                 <input type="text" class="form-control" name="txt_date_diterima" id="txt_date_diterima">
             </div>
             <div class="mb-2 col-md-12">
-                <label for="" class="form-label">Kelengkapan dokumen</label>
+                <label for="" class="form-label">Kelengkapan dokumen<span class="text-danger ms-1">*</span></label>
                 <ul class="list-group w-100" id="list-kelengkapan">
 
                 </ul>
             </div>
             <div class="mb-2 col-md-12">
-                <label for="" class="form-label">Upload bukti penerima</label>
+                <label for="" class="form-label">Upload bukti penerima<span class="text-danger ms-1">*</span></label>
                 <div id="uploadBuktiPenerima">
                 </div>
             </div>

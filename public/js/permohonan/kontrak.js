@@ -57,7 +57,7 @@ function loadData(page = 1) {
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${data.jenis_tld.name} - ${data.pelanggan.perusahaan.nama_perusahaan}</span> <span class="text-body-tertiary">#${data.no_kontrak}</span>
                             </div>
-                            <div class="d-flex gap-3 text-body-tertiary">
+                            <div class="d-flex gap-3 text-body-tertiary fs-7">
                                 <div><i class="bi bi-person-check-fill"></i> ${data.pelanggan.name}</div>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
                                 <div><i class="bi bi-cash-stack"></i> ${formatRupiah(data.total_harga)}</div>
@@ -179,7 +179,7 @@ function showPeriode(index) {
                 htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
             } else {
                 if (isPelanggan && [3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && !statusKirimTld) {
-                    htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`;
+                    evaluasiActive && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);
                 }
             }
             isComplete ? evaluasiActive = true : evaluasiActive = false;

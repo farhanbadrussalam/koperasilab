@@ -16,7 +16,7 @@
             <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
             <a href="{{ route('permohonan.pengajuan.tambah') }}" class="btn btn-primary btn-sm">Buat pengajuan</a>
         </div>
-        <div class="d-flex my-4">
+        <div class="d-flex pb-4">
             <div class="w-100 d-flex">
                 {{-- <div class="mx-2">
                     <label for="filterStatusVerif" class="form-label">Status</label>
@@ -45,12 +45,6 @@
             </div>
         </div>
         <div class="my-3">
-            <div class="header px-3 fw-bolder d-none d-md-flex row">
-                <div class="col-md-3">Layanan</div>
-                <div class="col-md-2 ms-auto">Status</div>
-                <div class="col-md-2 text-center">Action</div>
-            </div>
-            <hr>
             <div class="body-placeholder my-3" id="pengajuan-placeholder">
                 @for ($i = 0; $i < 5; $i++)
                 <div class="card mb-2">
@@ -77,7 +71,6 @@
             <div class="body my-3" id="pengajuan-list-container">
                 
             </div>
-            <hr>
             <div aria-label="Page navigation example" id="pagination_list">
                 
             </div>

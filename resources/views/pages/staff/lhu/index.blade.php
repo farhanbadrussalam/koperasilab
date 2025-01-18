@@ -3,6 +3,9 @@
 @section('content')
 <div class="card shadow-sm m-4">
     <div class="card-body">
+        <div class="d-flex">
+            <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
+        </div>
         <div class="d-flex pb-4">
             <div class="w-100 d-flex">
                 {{-- <div class="mx-2">
@@ -108,11 +111,11 @@
                         <input type="text" class="form-control bg-secondary-subtle" name="prosesNext" id="prosesNext" readonly>
                     </div>
                     <div class="col-sm-12 mb-3">
-                        <label for="inputNote">Note</label>
+                        <label for="inputNote">Note<span class="text-danger ms-1">*</span></label>
                         <textarea name="inputNote" id="inputNote" cols="30" rows="5" class="form-control"></textarea>
                     </div>
                     <div id="divUploadDocLhu">
-                        <label for="upload_document" class="col-form-label">Upload Document LHU</label>
+                        <label for="upload_document" class="col-form-label">Upload Document LHU<span class="text-danger ms-1">*</span></label>
                         <div class="card mb-0" style="height: 150px;">
                             <input type="file" name="dokumen" id="upload_document" class="form-control dropify">
                         </div>

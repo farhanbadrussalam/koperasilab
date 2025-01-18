@@ -77,7 +77,10 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getChildJenisLayanan/{idParent}', 'getChildJenisLayanan');
         Route::get('/getJenisTld/{idJenisLayanan}', 'getJenisTld');
         Route::get('/getPrice', 'getPrice');
+        Route::get('/getPengajuanById/{id}', 'getPengajuanById');
         Route::post('/verifikasi/cek', 'verifPermohonan');
+        Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');
+        Route::delete('/destroyLhuZero/{idPermohonan}/{idMedia}', 'destroyLhuZero');
     });
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {

@@ -3,7 +3,7 @@
 @section('content')
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item px-3">
-            <a href="{{ $type != 'verif' ? route('staff.penyelia') : route('manager.surat_tugas') }}" class="icon-link text-danger"><i
+            <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="icon-link text-danger"><i
                     class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
         </li>
     </ul>
@@ -48,11 +48,11 @@
                 </div>
                 <hr>
                 <div class="col-md-6 col-12 mb-4">
-                    <label for="" class="fw-bolder">Tanggal Mulai</label>
+                    <label for="" class="fw-bolder">Tanggal Mulai<span class="text-danger ms-1">*</span></label>
                     <input type="text" name="date_start" id="date_start" class="form-control datepicker {{ in_array($type, ['verif', 'show']) ? "bg-secondary-subtle" : '' }}" value="{{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? convert_date($penyelia->start_date, 2) : $penyelia->start_date) : '' }}" {{ in_array($type, ['verif', 'show']) ? "readonly" : '' }}>
                 </div>
                 <div class="col-md-6 col-12 mb-4">
-                    <label for="" class="fw-bolder">Tanggal Selesai</label>
+                    <label for="" class="fw-bolder">Tanggal Selesai<span class="text-danger ms-1">*</span></label>
                     <input type="text" name="date_end" id="date_end" 
                         class="form-control {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? "bg-secondary-subtle" : '') : "bg-secondary-subtle" }}" 
                         value="{{ $penyelia->end_date ? (in_array($type, ['verif', 'show']) ? convert_date($penyelia->end_date, 2) : $penyelia->end_date) : '' }}" {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? "readonly" : '') : "readonly" }} >

@@ -241,11 +241,11 @@ function buatPengiriman(obj){
             const params = new FormData();
             params.append('idPengiriman', $('#no_pengiriman').val());
             params.append('idPermohonan', permohonan.permohonan_hash);
-            params.append('idKontrak', permohonan.kontrak.kontrak_hash);
             params.append('alamat', dAlamat.alamat_hash);
             params.append('tujuan', permohonan.pelanggan.id);
             params.append('status', 3);
             params.append('detail', JSON.stringify(arrSelectDocument));
+            permohonan.kontrak ? params.append('idKontrak', permohonan.kontrak.kontrak_hash) : false;
             arrImgBukti.forEach((d) => {
                 params.append('buktiPengiriman[]', d.file);
             });

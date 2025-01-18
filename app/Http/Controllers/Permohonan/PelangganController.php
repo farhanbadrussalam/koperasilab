@@ -107,7 +107,12 @@ class PelangganController extends Controller
     public function editPengajuan($id_permohonan)
     {
         $idPermohonan = decryptor($id_permohonan);
-        $dataPermohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
+        $dataPermohonan = Permohonan::with(
+                            'pelanggan',
+                            'pelanggan.perusahaan',
+                            'pelanggan.perusahaan.alamat'
+                        )
+                        ->where('id_permohonan', $idPermohonan)->first();
         $data = [
             'title' => 'Buat pengajuan',
             'module' => 'permohonan-pengajuan',

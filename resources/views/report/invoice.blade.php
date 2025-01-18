@@ -11,7 +11,7 @@
                     <tr>
                         <td>Nomor</td>
                         <td>:</td>
-                        <td class="text-left">{{ $data->permohonan->kontrak->no_kontrak }}</td>
+                        <td class="text-left">{{ $data->permohonan->kontrak?->no_kontrak ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>Lampiran</td>
@@ -40,7 +40,7 @@
     <div class="content" style="line-height: 1.3em">
         <p>Sehubungan dengan {{ $data->permohonan->jenis_layanan_parent->name }}
             {{ $data->permohonan->layanan_jasa->nama_layanan }} {{ $data->permohonan->jenisTld->name }} periode pemakaian bulan Maret 2023 s.d. Februari 2024, sesuai dengan Surat
-            Perjanjian No. {{ $data->permohonan->kontrak->no_kontrak }}, dengan ini kami mohon penyelesaian pembayaran dengan rincian sebagai berikut
+            Perjanjian No. {{ $data->permohonan->kontrak?->no_kontrak ?? '-' }}, dengan ini kami mohon penyelesaian pembayaran dengan rincian sebagai berikut
             :</p>
     </div>
 

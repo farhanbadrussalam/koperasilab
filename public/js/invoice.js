@@ -56,7 +56,7 @@ class Invoice {
 
         const params = new FormData();
         params.append('faktur', imgTmp);
-        params.append('idKeuangan', this.dataKeuangan?.keuangan_hash);
+        params.append('idHash', this.dataKeuangan?.keuangan_hash);
 
         ajaxPost(
             'api/v1/keuangan/uploadFaktur', 
@@ -99,7 +99,7 @@ class Invoice {
             </div>
             <div class="col-md-6 col-12">
                 <label class="fw-bolder">No Kontrak</label>
-                <div>${this.dataKeuangan.permohonan.kontrak.no_kontrak || '-'}</div>
+                <div>${this.dataKeuangan.permohonan.kontrak?.no_kontrak || '-'}</div>
             </div>
             <div class="col-md-6 col-12">
                 <label class="fw-bolder">Jenis</label>
