@@ -5,9 +5,7 @@ $(function () {
         jenis: 'permohonan',
         tab: {
             pengguna: true,
-            activitas: false,
-            dokumen: false,
-            log: false
+            periode: true
         }
     });
 });
@@ -39,7 +37,6 @@ function loadData(page = 1) {
             if(pengajuan.status == 1){
                 htmlAction = `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/staff/permohonan/verifikasi/${pengajuan.permohonan_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`;
             }
-            console.log(pengajuan);
 
             html += `
                 <div class="card mb-2 smooth-height">

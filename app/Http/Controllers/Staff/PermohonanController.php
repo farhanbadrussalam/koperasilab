@@ -50,9 +50,10 @@ class PermohonanController extends Controller
                             'jenis_layanan:id_jenisLayanan,name,parent',
                             'jenis_layanan_parent',
                             'pengguna',
-                            'pelanggan:id,name'
+                            'pelanggan:id,name',
+                            'tandaterima',
                         )->where('id_permohonan', $id)->first();
-        
+                        
         if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){
             $pertanyaan_tr = Master_pertanyaan::where('id_layananjasa', $dataPermohonan->jenis_layanan_parent->id_jenisLayanan)->get();
         }

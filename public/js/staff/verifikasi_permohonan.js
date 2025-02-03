@@ -3,7 +3,9 @@ let signaturePad = false;
 let periodeJs = false;
 let jenisLayanan = false;
 let checkedTldValues = [];
+let listTldKontrol = [];
 let uploadDocLhu = false;
+let modalDoc = false;
 
 $(function () {
     const arrPeriode = dataPermohonan.periode_pemakaian;
@@ -22,9 +24,13 @@ $(function () {
         text: 'Front desk'
     });
     loadPengguna();
-    if(tandaterima){
-        loadPertanyaan();
-    }
+    loadTldKontrol();
+    $('#btn-tandaterima').on('click', () => {
+        if(tandaterima){
+            loadPertanyaan();
+        }
+        $('#modal-tandaterima').modal('show');
+    })
 
     if(arrPeriode){
         periodeJs = new Periode(arrPeriode, {
@@ -75,7 +81,31 @@ $(function () {
         uploadDocLhu.addData([dataPermohonan.file_lhu]);
     }
 
+    modalDoc = new ModalDocument({
+        title: 'Tanda Terima Pengujian',
+    });
+    
+    $('#btn-show-tandaterima').on('click', () => {
+        modalDoc.show(`laporan/tandaterima/${dataPermohonan.permohonan_hash}`);
+    });
+
+    $('#btn-delete-tandaterima').on('click', () => {
+        ajaxDelete(`api/v1/permohonan/destroyTandaterima/${dataPermohonan.permohonan_hash}`, (result) => {
+           Swal.fire({
+               icon: 'success',
+               text: 'Delete tandaterima successfully',
+               timer: 1200,
+               timerProgressBar: true,
+               showConfirmButton: false
+           }).then(() => {
+                dataPermohonan.tandaterima = false;
+                loadTandaterima();
+           })
+        });
+    })
+
     loadPelanggan();
+    loadTandaterima();
 });
 
 function loadPelanggan() {
@@ -123,7 +153,13 @@ function loadPertanyaan(){
         let htmlMandatory = value.mandatory ? '<span class="text-danger ml-2">*</span>' : '';
 
         if(value.type == 1){
-            htmlAnswer = `<textarea name="answer_${i}" id="answer_${i}" cols="30" rows="3" class="form-control"></textarea>`;
+            let jenisTld = '';
+            let readonly = '';
+            if(value.pertanyaan == 'TLD'){
+                jenisTld = dataPermohonan.jenis_tld?.name ?? '';
+                readonly = ' readonly';
+            }
+            htmlAnswer = `<textarea name="answer_${i}" id="answer_${i}" cols="30" rows="3" class="form-control" ${readonly}>${jenisTld}</textarea>`;
         }else if(value.type == 2){
             htmlAnswer = `
                 <div class="my-3">
@@ -154,46 +190,135 @@ function loadPertanyaan(){
     }
 
     $('#content-pertanyaan').html(html);
+}
 
+function loadTandaterima(){
+    const data = dataPermohonan.tandaterima;
+    if(data && data.length > 0){
+        $('#status_tandaterima').val('true');
+        $('#tambah-tandaterima').addClass('d-none');
+        $('#show-tandaterima').removeClass('d-none');
+    }else{
+        $('#status_tandaterima').val('false');
+        $('#tambah-tandaterima').removeClass('d-none');
+        $('#show-tandaterima').addClass('d-none');
+    }
 }
 
 function toggleReason(index, enable) {
     $(`#reason_${index}`).prop('disabled', !enable);
 }
 
+function loadTldKontrol(){
+    ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
+        let html = '';
+        for(let i = 0; i < dataPermohonan.jumlah_kontrol; i++){
+            let options = '';
+            if(result.data[i]){
+                options = `<option value="${result.data[i].tld_hash}" selected>${result.data[i].kode_lencana}</option>`;
+            }else{
+                options = `<option value="">Pilih Kode lencana</option>`;
+            }
+            html += `
+                <div class="col-sm-6 mt-2">
+                    <label for="" class="mb-2">Kode Lencana Kontrol ${i+1}</label>
+                    <select class="form-select kodeTldKontrol" name="tld_kontrol[]">
+                        ${options}
+                    </select>
+                </div>
+            `;
+        }
+        
+        $('#tld-kontrol-content').html(html);
+
+        $('.kodeTldKontrol').select2({
+            theme: "bootstrap-5",
+            tags: true,
+            placeholder: "Pilih Kode lencana",
+            createTag: (params) => {
+                return {
+                    id: params.term,
+                    text: params.term,
+                    newTag: true
+                };
+            },
+            maximumSelectionLength: 2,
+            ajax: {
+                url: `${base_url}/api/v1/tld/searchTld`,
+                type: "GET",
+                dataType: "json",
+                processing: true,
+                serverSide: true,
+                delay: 250,
+                headers: {
+                    'Authorization': `Bearer ${bearer}`,
+                    'Content-Type': 'application/json'
+                },
+                data: function(params) {
+                    let queryParams = {
+                        kode_lencana: params.term,
+                        jenis: 'kontrol'
+                    }
+                    return queryParams;
+                },
+                processResults: function(response, params){
+                    let items = [];
+                    for (const data of response.data) {
+                        items.push({
+                            id : data.tld_hash,
+                            text : data.kode_lencana,
+                            status : data.status,
+                            disabled : data.status == 1 ? true : false
+                        });
+                    }
+                    return {
+                        results: items
+                    };
+                }
+            },
+            templateResult: templateTld
+        })
+    });
+}
 function loadPengguna(){
     let params = {
         idPermohonan: dataPermohonan.permohonan_hash
     }
-    $('#pengguna-placeholder').show();
-    $('#pengguna-list-container').hide();
+    $('#pengguna-placeholder').removeClass('d-none');
+    $('#pengguna-table').addClass('d-none');
 
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
+        console.log(result);
         let html = '';
         for (const [i,pengguna] of result.data.entries()) {
             let txtRadiasi = '';
+            let options = '';
             pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
+            if(pengguna.tld){
+                options = `<option value="${pengguna.tld.tld_hash}">${pengguna.tld.kode_lencana}</option>`;
+            } else {
+                options = `<option value="">Pilih Kode lencana</option>`;
+            }
+            
             html += `
-                <div class="card mb-2 border-dark">
-                    <div class="card-body row align-items-center">
-                        <div class="col-md-5 lh-sm d-flex align-items-center">
-                            <span class="col-form-label me-2">${i + 1}</span>
-                            <div class="mx-2">
-                                <div class="fw-bolder">${pengguna.nama}</div>
-                                <small class="text-body-secondary fw-light">${pengguna.posisi}</small>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                        ${[1,2].includes(pengguna.status) ? '<span class="badge text-bg-success">Active</span>' : '<span class="badge text-bg-danger">Inactive</span>'}
-                        </div>
-                        <div class="col-md-3 d-flex flex-wrap justify-content-center">${txtRadiasi}</div>
-                        <div class="col-md-2 text-end">
-                            <button class="btn btn-sm btn-outline-secondary" data-path="${pengguna.media.file_path}" data-file="${pengguna.media.file_hash}" onclick="showPreviewKtp(this)" title="Show ktp">
-                                <i class="bi bi-file-person-fill"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>
+                        <div>${pengguna.nama}</div>
+                        <small class="text-body-secondary fw-light">${pengguna.posisi}</small>
+                    </td>
+                    <td>${txtRadiasi}</td>
+                    <td>
+                        <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${pengguna.permohonan_pengguna_hash}" data-id="${pengguna.permohonan_pengguna_hash}">
+                            ${options}
+                        </select>
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp">
+                            <i class="bi bi-file-person-fill"></i>
+                        </a>
+                    </td>
+                </tr>
             `;
         }
 
@@ -207,54 +332,69 @@ function loadPengguna(){
         }
 
         $('#pengguna-list-container').html(html);
-        $('#pengguna-placeholder').hide();
-        $('#pengguna-list-container').show();
+
+        $('.kodeTldPengguna').select2({
+            theme: "bootstrap-5",
+            tags: true,
+            placeholder: "Pilih Kode lencana",
+            createTag: (params) => {
+                return {
+                    id: params.term,
+                    text: params.term,
+                    newTag: true
+                };
+            },
+            maximumSelectionLength: 2,
+            ajax: {
+                url: `${base_url}/api/v1/tld/searchTld`,
+                type: "GET",
+                dataType: "json",
+                processing: true,
+                serverSide: true,
+                delay: 250,
+                headers: {
+                    'Authorization': `Bearer ${bearer}`,
+                    'Content-Type': 'application/json'
+                },
+                data: function(params) {
+                    let queryParams = {
+                        kode_lencana: params.term,
+                        jenis: 'pengguna'
+                    }
+                    return queryParams;
+                },
+                processResults: function(response, params){
+                    let items = [];
+                    for (const data of response.data) {
+                        items.push({
+                            id : data.tld_hash,
+                            text : data.kode_lencana,
+                            status : data.status,
+                            disabled : data.status == 1 ? true : false
+                        });
+                    }
+                    return {
+                        results: items
+                    };
+                }
+            },
+            templateResult: templateTld
+        })
+        $('#pengguna-placeholder').addClass('d-none');
+        $('#pengguna-table').removeClass('d-none');
+        showPopupReload();
     })
 
 }
 
 function verif_kelengkapan(status, obj){
     if(status == 'lengkap'){
-        // Get all form elements within #content-pertanyaan
-        const answerTandaterima = [];
-        if(tandaterima){
-            for (const [i, value] of tandaterima.entries()) {
-                let elementAnswer = false;
-                if(value.type == 1 || value.type == 3){
-                    elementAnswer = $(`#answer_${i}`).val();
-                    answerTandaterima.push({
-                        id: value.pertanyaan_hash,
-                        answer: elementAnswer,
-                        note: ''
-                    });
-                } else if(value.type == 2) {
-                    elementAnswer = $(`[name="answer_${i}"]:checked`).val();
-                    let note = '';
-                    if(elementAnswer == 'cacat'){
-                        note = $(`#reason_${i}`).val();
-                    }
-                    answerTandaterima.push({
-                        id: value.pertanyaan_hash,
-                        answer: elementAnswer,
-                        note: note
-                    });
-                }
-
-                if(value.mandatory && elementAnswer == ''){
-                    return Swal.fire({
-                        icon: "warning",
-                        text: `Harap lengkapi pertanyaan yang wajib diisi.`
-                    });
-                }
-            }
-        }
-
-        if(jenisLayanan.name == 'Sewa' && uploadDocLhu.getData().length == 0){
-            return Swal.fire({
-                icon: "warning",
-                text: "Harap unggah dokumen LHU terlebih dahulu.",
-            });
-        }
+        // if(jenisLayanan.name == 'Sewa'){
+        //     return Swal.fire({
+        //         icon: "warning",
+        //         text: "Harap unggah dokumen LHU terlebih dahulu.",
+        //     });
+        // }
         
         if(signaturePad.isEmpty()){
             return Swal.fire({
@@ -263,6 +403,19 @@ function verif_kelengkapan(status, obj){
             });
         }
 
+        let checkedTldValues = $('select[name="kodeTldPengguna"]').map(function() {
+            return {
+                id: $(this).data('id'),
+                tld: $(this).val()
+            };
+        }).get();
+
+        let listTldKontrol = $('select[name="tld_kontrol[]"]').map(function() {
+            return {
+                tld: $(this).val()
+            };
+        }).get();
+        
         Swal.fire({
             icon: 'warning',
             title: 'Apakah data sudah lengkap?',
@@ -283,8 +436,9 @@ function verif_kelengkapan(status, obj){
                 formData.append('ttd', ttd);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
-                formData.append('tandaterima', JSON.stringify(answerTandaterima));
+                // formData.append('tandaterima', JSON.stringify(answerTandaterima));
                 formData.append('listTld', JSON.stringify(checkedTldValues))
+                formData.append('tldKontrol', JSON.stringify(listTldKontrol));
 
                 spinner('show', obj);
                 ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
@@ -321,6 +475,70 @@ function createPenyelia(idPermohonan){
     ajaxPost(`api/v1/penyelia/action`, formData, result => {
 
     })
+}
+
+function simpanTandaTerimaPermohonan(obj){
+    // Get all form elements within #content-pertanyaan
+    const answerTandaterima = [];
+    if(tandaterima){
+        for (const [i, value] of tandaterima.entries()) {
+            let elementAnswer = false;
+            if(value.type == 1 || value.type == 3){
+                elementAnswer = $(`#answer_${i}`).val();
+                answerTandaterima.push({
+                    id: value.pertanyaan_hash,
+                    answer: elementAnswer,
+                    note: ''
+                });
+            } else if(value.type == 2) {
+                elementAnswer = $(`[name="answer_${i}"]:checked`).val();
+                let note = '';
+                if(elementAnswer == 'cacat'){
+                    note = $(`#reason_${i}`).val();
+                }
+                answerTandaterima.push({
+                    id: value.pertanyaan_hash,
+                    answer: elementAnswer,
+                    note: note
+                });
+            }
+
+            if(value.mandatory && elementAnswer == ''){
+                return Swal.fire({
+                    icon: "warning",
+                    text: `Harap lengkapi pertanyaan yang wajib diisi.`
+                });
+            }
+        }
+
+        let formData = new FormData();
+        formData.append('tandaterima', JSON.stringify(answerTandaterima));
+        formData.append('idPermohonan', dataPermohonan.permohonan_hash);
+        spinner('show', $(obj));
+        ajaxPost(`api/v1/permohonan/verifikasi/tambahTandaterima`, formData, result => {
+            spinner('hide', $(obj));
+            if(result.meta.code == 200){
+                Swal.fire({
+                    icon: "success",
+                    text: result.data.msg,
+                }).then(() => {
+                    dataPermohonan.tandaterima = result.data.information;
+                    $('#status_tandaterima').val('true');
+                    $('#modal-tandaterima').modal('hide');
+
+                    loadTandaterima();
+                });
+            }else{
+                Swal.fire({
+                    icon: "error",
+                    text: result.data.msg,
+                });
+            }
+            spinner('hide', $(obj));
+        }, error => {
+            spinner('hide', $(obj));
+        });
+    }
 }
 
 function return_permohonan(obj){
@@ -418,4 +636,18 @@ function areThereEmptyFields(formElements) {
     });
   
     return isEmpty;
+}
+
+function templateTld(state){
+    if(!state.id){
+        return state.text;
+    }
+
+    let content = $(`
+        <div class="d-flex justify-content-between">
+            <div>${state.text}</div>
+            <div>${state.status == 1 ? '<span class="badge rounded-pill text-bg-success">Digunakan</span>' : ''}</div>
+        </div>
+    `);
+    return content;
 }

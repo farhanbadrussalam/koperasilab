@@ -12,6 +12,9 @@
                         <button class="nav-link" id="alamat-tab" data-bs-toggle="tab" data-bs-target="#alamat-tab-pane" type="button" role="tab" aria-controls="alamat-tab-pane" aria-selected="true">Alamat</button>
                     </li>
                     <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ttd-tab" data-bs-toggle="tab" data-bs-target="#ttd-tab-pane" type="button" role="tab" aria-controls="ttd-tab-pane" aria-selected="true">Tanda Tangan</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
                         <button class="nav-link" id="changepassword-tab" data-bs-toggle="tab" data-bs-target="#changepassword-tab-pane" type="button" role="tab" aria-controls="changepassword-tab-pane" aria-selected="true">Change Password</button>
                     </li>
                 </ul>
@@ -122,6 +125,23 @@
                                     </div>
                                     <div class="col-md-6" id="list-alamat">
                                         
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade show pt-3" id="ttd-tab-pane" role="tabpanel" aria-labelledby="ttd-tab" tabindex="0">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 fw-bolder mb-3 text-center">
+                                        <div id="show-ttd"></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-4 text-start d-flex flex-column gap-2">
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="btn-upload-ttd"><i class="bi bi-upload"></i> Upload Tanda Tangan</button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm" id="btn-hapus-ttd"><i class="bi bi-trash"></i> Hapus Tanda Tangan</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

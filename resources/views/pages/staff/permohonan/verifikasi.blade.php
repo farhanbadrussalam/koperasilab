@@ -70,12 +70,22 @@
                     </div>
                     <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
                         <div class="card-body row">
-                            <div class="col-md-4 col-12">
-                                <h2>Data Pengguna</h2>
+                            <div class="col-12">
+                                <h2 class="text-center">TLD Kontrol</h2>
                             </div>
-                            <div class="col-md-8 col-12" style="max-height: 25rem;">
+                            <div class="col-12 overflow-auto" style="max-height: 25rem;">
+                                <div id="tld-kontrol-content" class="row"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
+                        <div class="card-body row">
+                            <div class="col-12">
+                                <h2 class="text-center">Daftar nama pemakai TLD</h2>
+                            </div>
+                            <div class="col-12 overflow-auto" style="max-height: 25rem;">
                                 <div class="body-placeholder my-3" id="pengguna-placeholder">
-                                    @for ($i = 1; $i < 6; $i++)
+                                    @for ($i = 1; $i < 4; $i++)
                                     <div class="card mb-2 shadow-sm border-dark">
                                         <div class="card-body row align-items-center">
                                             <div class="placeholder-glow col-md-4 lh-sm d-flex flex-column">
@@ -95,16 +105,50 @@
                                     </div>
                                     @endfor
                                 </div>
-                                <div class="body my-3" id="pengguna-list-container">
-
-                                </div>
+                                <table class="table w-100 d-none" id="pengguna-table">
+                                    <thead>
+                                        <tr>
+                                            <th width="1%">No</th>
+                                            <th width="20%">Nama</th>
+                                            <th width="40%">Radiasi</th>
+                                            <th width="20%">Kode Lencana TLD</th>
+                                            <th width="10%">ktp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="pengguna-list-container" class="align-middle"></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                     <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
-                        <div class="card-body mx-5">
-                            <h2 class="text-center">TANDA TERIMA</h2>
-                            <form class="row mt-2" id="content-pertanyaan"></form>
+                        <div class="card-body">
+                            <input type="hidden" id="status_tandaterima" value="false">
+                            <h2 class="text-center">TANDA TERIMA <span class="text-danger">*</span></h2>
+                            <div id="tambah-tandaterima">
+                                <button type="button" class="btn btn-outline-secondary w-100 border-dashed" id="btn-tandaterima"><i class="bi bi-plus"></i> Tambah Tanda Terima</button>
+                            </div>
+                            <div id="show-tandaterima" class="d-none">
+                                <table class="table w-100 table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th width="1%">No</th>
+                                            <th>Nama</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tandaterima-list-container" class="align-middle">
+                                        <tr>
+                                            <td>1</td>
+                                            <td>Tanda Terima Pengujian</td>
+                                            <td class="text-end">
+                                                <button type="button" class="btn btn-outline-success btn-sm" id="btn-show-tandaterima"><i class="bi bi-eye"></i></button>
+                                                <button type="button" class="btn btn-outline-warning btn-sm" id="btn-edit-tandaterima"><i class="bi bi-pencil"></i></button>
+                                                <button type="button" class="btn btn-outline-danger btn-sm" id="btn-delete-tandaterima"><i class="bi bi-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -176,7 +220,7 @@
                         </div>
                     </div>
                 </div>
-                @if($permohonan->jenis_layanan->name == 'Sewa')
+                {{-- @if($permohonan->jenis_layanan->name == 'Sewa')
                 <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
                     <div class="card-body row">
                         <div class="mb-3 col-md-12">
@@ -185,7 +229,7 @@
                         </div>
                     </div>
                 </div>
-                @endif
+                @endif --}}
                 <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
                     <div class="card-body row">
                         <div class="col-md-12 d-flex justify-content-center">
@@ -206,6 +250,8 @@
         </div>
     </section>
 </div>
+
+{{-- Modal select tld --}}
 <div class="modal fade" id="modal-verif-invalid" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -227,8 +273,6 @@
         </div>
     </div>
 </div>
-
-{{-- Modal select tld --}}
 <div class="modal fade" id="modal-select-tld" tabindex="-1" aria-labelledby="modal-select-tldLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -247,6 +291,22 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary" onclick="simpanTldPermohonan(this)" id="btnPilihTld">Pilih</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal-tandaterima" tabindex="-1" aria-labelledby="modal-tandaterimaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="modal-tandaterimaLabel">List Tanda Terima</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form class="row mt-2" id="content-pertanyaan"></form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="simpanTandaTerimaPermohonan(this)" id="btnPilihTandaTerima">Simpan</button>
             </div>
         </div>
     </div>

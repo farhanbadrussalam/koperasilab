@@ -178,6 +178,7 @@ class StaffController extends Controller
                             'pelanggan',
                             'pelanggan.perusahaan',
                             'pelanggan.perusahaan.alamat',
+                            'tandaterima',
                         )->where('id_permohonan', $id)->first();
         if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){
             $pertanyaan_tr = Master_pertanyaan::where('id_layananjasa', $dataPermohonan->layanan_jasa->id_layanan)->get();

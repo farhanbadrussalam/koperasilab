@@ -16,6 +16,7 @@ use App\Http\Controllers\API\PenyeliaAPI;
 use App\Http\Controllers\API\PengirimanAPI;
 use App\Http\Controllers\API\ProfileAPI;
 use App\Http\Controllers\API\KontrakAPI;
+use App\Http\Controllers\API\TldAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -79,6 +80,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPrice', 'getPrice');
         Route::get('/getPengajuanById/{id}', 'getPengajuanById');
         Route::post('/verifikasi/cek', 'verifPermohonan');
+        Route::post('/verifikasi/tambahTandaterima', 'tambahTandaterima');
+        Route::delete('/destroyTandaterima/{idPermohonan}', 'destroyTandaterima');
         Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');
         Route::delete('/destroyLhuZero/{idPermohonan}/{idMedia}', 'destroyLhuZero');
     });
@@ -162,6 +165,12 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix('email')->group(function(){
         Route::post('/verifikasiPetugas', [SendMailAPI::class, 'verifikasiPetugas']);
+    });
+
+    Route::prefix('tld')->group(function(){
+        Route::get('/searchTldNotUsed', [TldApi::class, 'searchTldNotUsed']);
+        Route::get('/searchTld', [TldApi::class, 'searchTld']);
+        Route::post('/action', [TldApi::class, 'action']);
     });
 
 });

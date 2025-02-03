@@ -38,6 +38,7 @@ class ProfileAPI extends Controller
             $email = $request->email ? $request->email : false;
             $telepon = $request->telepon ? unmask($request->telepon) : false;
             $npwp = $request->npwp ? unmask($request->npwp) : false;
+            $ttd = $request->has('ttd') ? $request->ttd : false;
 
             // $ktp = $request->file('ktp');
             // $npwp = $request->file('npwp');
@@ -60,6 +61,7 @@ class ProfileAPI extends Controller
             $email && $params['email'] = $email;
             $telepon && $params['telepon'] = $telepon;
             $npwp && $params['npwp'] = $npwp;
+            $request->has('ttd') && $params['ttd'] = $ttd;
             // $file_ktp && $params['ktp'] = $file_ktp->getIdMedia();
             // $file_npwp && $params['npwp'] = $file_npwp->getIdMedia();
 

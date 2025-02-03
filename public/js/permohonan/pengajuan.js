@@ -8,9 +8,7 @@ $(function () {
         jenis: 'permohonan',
         tab: {
             pengguna: true,
-            activitas: false,
-            dokumen: false,
-            log: false
+            periode: true
         }
     });
 })
@@ -152,7 +150,8 @@ function remove(obj){
 
 function showDetail(obj){
     const idPermohonan = $(obj).parent().data("id");
-    detail.show(`api/v1/permohonan/getPengajuanById/${idPermohonan}`);
+    let url = `api/v1/permohonan/getPengajuanById/${idPermohonan}`;
+    detail.show(url);
 }
 
 function reload(){

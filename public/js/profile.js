@@ -1,5 +1,44 @@
+let signaturePad;
 $(function() {
     loadForm(user);
+
+    $('#btn-upload-ttd').click(function() {
+        if(signaturePad.isEmpty()){
+            return Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Tanda tangan tidak boleh kosong' 
+            });
+        }
+        spinner('show', $(this));
+        
+        let ttd = signaturePad.toDataURL();
+        const formData = new FormData();
+        formData.append('ttd', ttd);
+        formData.append('idProfile', user.user_hash);
+        ajaxPost(`api/v1/profile/action`, formData, result => {
+            if(result.meta.code == 200){
+                document.getElementById('show-ttd').innerHTML = '';
+                user.ttd = ttd;
+                loadForm(user);
+                spinner('hide', $(this));
+            }
+        })
+    });
+    $(`#btn-hapus-ttd`).click(function() {
+        spinner('show', $(this));
+        const formData = new FormData();
+        formData.append('idProfile', user.user_hash);
+        formData.append('ttd', '');
+        ajaxPost(`api/v1/profile/action`, formData, result => {
+            if(result.meta.code == 200){
+                document.getElementById('show-ttd').innerHTML = '';
+                user.ttd = '';
+                loadForm(user);
+                spinner('hide', $(this));
+            }
+        })
+    });
 })
 
 function loadForm(data) {
@@ -10,8 +49,21 @@ function loadForm(data) {
     $('#telepon').val(data.telepon ? data.telepon : '-');
     $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
 
-    let html = '';
+    signaturePad = signature(document.getElementById('show-ttd'), {
+        width: 300,
+        height: 220,
+        defaultSig: data.ttd ? data.ttd : false
+    });
 
+    if(data.ttd){
+        $('#btn-upload-ttd').addClass('d-none');
+        $('#btn-hapus-ttd').removeClass('d-none');
+    }else{
+        $('#btn-upload-ttd').removeClass('d-none');
+        $('#btn-hapus-ttd').addClass('d-none');
+    }
+
+    let html = '';
     if(data.perusahaan){
         for (const alamat of data.perusahaan.alamat) {
             let jenis = '';

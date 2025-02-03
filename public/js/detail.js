@@ -5,10 +5,11 @@ class Detail {
             information: options.information ?? true,
             jenis: options.jenis ?? 'permohonan',
             tab: {
-                pengguna: options.tab.pengguna ?? true,
-                activitas: options.tab.activitas ?? true,
-                dokumen: options.tab.dokumen ?? true,
-                log: options.tab.log ?? true
+                pengguna: options.tab.pengguna ?? false,
+                activitas: options.tab.activitas ?? false,
+                dokumen: options.tab.dokumen ?? false,
+                log: options.tab.log ?? false,
+                periode: options.tab.periode ?? false
             }
         }
 
@@ -74,7 +75,6 @@ class Detail {
             height: '100px'
         });
         ajaxGet(url, false, result => {
-            console.log(result.data);
             this.addData(result.data);
             this.loadData();
             spinner('hide', $('#loadingDetail'));
@@ -108,17 +108,7 @@ class Detail {
         let layananJasa = data.layanan_jasa?.nama_layanan ?? '';
         let jenisTld = data.jenis_tld?.name ?? '';
 
-        let htmlPeriode = '';
-        if(tipeKontrak == 'kontrak lama'){
-            let findPeriode = data.kontrak?.periode.find(periode => periode.periode == periodeNow);
-            htmlPeriode = `
-                Periode ${periodeNow} (${dateFormat(findPeriode.start_date, 4)} - ${dateFormat(findPeriode.end_date, 4)})
-            `;
-        }else{
-            for (const periode of periodePemakaian) {
-                htmlPeriode += `<li class="list-group-item ps-0">${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)}</li>`;
-            }
-        }
+        
 
         $('#titleDetail').text(`${layananJasa} - ${jenisTld}`);
 
@@ -172,14 +162,6 @@ class Detail {
                     ${dateFormat(created_at, 0)}
                 </div>
             </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Periode</label>
-                <div class="col-auto">
-                    <ul class="list-group list-group-flush">
-                        ${htmlPeriode}
-                    </ul>
-                </div>
-            </div>
         `;
 
         return container;
@@ -191,7 +173,8 @@ class Detail {
           pengguna: { title: 'Pengguna', content: this.createPenggunaContent(), badge: this.data?.pengguna?.length ?? 0 },
           activitas: { title: 'Aktivitas', content: this.createAktivitasContent() },
           dokumen: { title: 'Dokumen', content: this.createDokumenContent() },
-          log: { title: 'Log', content: this.createLogContent() }
+          log: { title: 'Log', content: this.createLogContent() },
+          periode: { title: 'Periode', content: this.createPeriodeContent() }
         };
       
         let htmlTabNav = '';
@@ -240,7 +223,7 @@ class Detail {
                 pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
                 
                 html += `
-                    <div class="card mb-2 shadow-sm border-dark-subtle fs-8">
+                    <div class="card mb-2 shadow-sm fs-8">
                         <div class="card-body row align-items-center py-1">
                             <div class="col-auto lh-sm d-flex align-items-center">
                                 <span class="col-form-label me-2">${i + 1}</span>
@@ -275,6 +258,39 @@ class Detail {
     }
     createLogContent() { 
         return '<p>Log content</p>'; 
+    }
+    createPeriodeContent(){
+        let htmlPeriode = '';
+        let data = this.data;
+        if(this.data.tipeKontrak == 'kontrak lama'){
+            let findPeriode = data.kontrak?.periode.find(periode => periode.periode == data.periode);
+            htmlPeriode = `
+                <div class="card mb-1">
+                    <div class="card-body p-1 px-3">
+                        <div>Periode ${data.periode}</div>
+                        <div class="text-body-secondary">
+                            <small>${dateFormat(findPeriode.start_date, 4)} - ${dateFormat(findPeriode.end_date, 4)}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }else{
+            for (const [i,periode] of data.periode_pemakaian.entries()) {
+                htmlPeriode += `
+                    <div class="card mb-1">
+                        <div class="card-body p-1 px-3">
+                            <div>Periode ${i + 1}</div>
+                            <div class="text-body-secondary">
+                                <small>${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        return `
+            ${htmlPeriode}
+        `;
     }
 
     modalCreate() {

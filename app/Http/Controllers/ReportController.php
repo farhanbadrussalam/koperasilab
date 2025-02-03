@@ -90,17 +90,15 @@ class ReportController extends Controller
         return $pdf->stream();
     }
 
-    public function tandaTerima($idPenyelia)
+    public function tandaTerima($idPermohonan)
     {
-        $idPenyelia = decryptor($idPenyelia);
-        $query = Penyelia::with(
-            'permohonan',
-            'usersig:id,name',
-            'permohonan.jenisTld:id_jenisTld,name', 
-            'permohonan.pelanggan',
-            'permohonan.pelanggan.perusahaan',
-            'permohonan.kontrak'
-        )->find($idPenyelia);
+        $idPermohonan = decryptor($idPermohonan);
+        $query = Permohonan::with(
+            'jenisTld:id_jenisTld,name', 
+            'pelanggan',
+            'pelanggan.perusahaan',
+            'kontrak'
+        )->find($idPermohonan);
 
         $data['data'] = $query;
         $data['date'] = Carbon::now();

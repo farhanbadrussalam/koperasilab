@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+use App\Models\Master_tld;
+use App\Traits\RestApi;
+
+use DB;
+use Auth;
+
+class TldAPI extends Controller
+{
+    use RestApi;
+
+    public function action(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $id = $request->id ? decryptor($request->id) : false;
+            $kode = $request->has('kode') ? $request->kode : false;
+            $jenis = $request->has('jenis') ? $request->jenis : false;
+            $status = $request->has('status') ? $request->status : false;
+
+            $data = array();
+            
+            $kode ? $data['kode'] = $kode : false;
+            $jenis ? $data['jenis'] = $jenis : false;
+            $status ? $data['status'] = $status : false;
+
+            $id && $data['id'] = $id;
+
+            //save to db
+            $tld = Master_tld::updateOrCreate(
+                ['id_tld' => $id], 
+                $data
+            );
+
+            DB::commit();
+            return $this->output(array('msg' => 'Data berhasil disimpan!', 'id' => $tld->tld_hash));
+        } catch (\Exception $ex ) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function searchTld(Request $request){
+        DB::beginTransaction();
+        try {
+            $jenis = $request->has('jenis') ? $request->jenis : false;
+            $kode_lencana = $request->has('kode_lencana') ? $request->kode_lencana : false;
+            $data = array();
+
+            if(!empty($kode_lencana)){
+                $data = Master_tld::where('jenis', $jenis)->where('kode_lencana', 'like', '%'.$kode_lencana.'%')->get();
+            }
+
+            DB::commit();
+            return $this->output($data, 200);
+        } catch (\Exception $ex ) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function searchTldNotUsed(Request $request)
+    {
+        $request->validate([
+            'jenis' => 'required'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $jenis = $request->has('jenis') ? $request->jenis : false;
+
+            $data = Master_tld::where('status', '!=', 1)->where('jenis', $jenis)->get();
+
+            DB::commit();
+            return $this->output($data, 200);
+        } catch (\Exception $ex ) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+}

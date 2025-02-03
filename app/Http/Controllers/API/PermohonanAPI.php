@@ -16,6 +16,7 @@ use App\Models\Master_media;
 use App\Models\Master_radiasi;
 use App\Models\Master_price;
 use App\Models\Master_jenistld;
+use App\Models\Master_tld;
 use App\Models\Kontrak;
 use App\Models\Kontrak_pengguna;
 use App\Models\Kontrak_periode;
@@ -196,6 +197,39 @@ class PermohonanAPI extends Controller
         }
     }
 
+    public function tambahTandaterima(Request $request)
+    {
+        $validator = $request->validate([
+            'idPermohonan' => 'required'
+        ]);
+        
+        $tandaterima = $request->tandaterima ? json_decode($request->tandaterima) : [];
+        $idPermohonan = decryptor($request->idPermohonan);
+        DB::beginTransaction();
+        try {
+            foreach ($tandaterima as $value) {
+                $params = array(
+                    'id_permohonan' => $idPermohonan,
+                    'id_pertanyaan' => decryptor($value->id),
+                    'jawaban' => $value->answer,
+                    'note' => $value->note,
+                    'created_by' => Auth::user()->id
+                );
+    
+                Permohonan_tandaterima::create($params);
+            }
+            $dataTandaterima = Permohonan_tandaterima::where('id_permohonan', $idPermohonan)->get();
+            DB::commit();
+
+            return $this->output(array('msg' => 'Data berhasil disimpan', 'information' => $dataTandaterima));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+
+    }
+
     public function destroyPengguna(string $idPengguna)
     {
         $id = decryptor($idPengguna);
@@ -253,6 +287,27 @@ class PermohonanAPI extends Controller
         }
     }
 
+    public function destroyTandaterima(string $id)
+    {
+        $id = decryptor($id);
+
+        DB::beginTransaction();
+        try {
+            $delete = Permohonan_tandaterima::where('id_permohonan', $id)->delete();
+            DB::commit();
+
+            if($delete){
+                return $this->output(array('msg' => 'Data berhasil dihapus'));
+            }
+
+            return $this->output(array('msg' => 'Data gagal dihapus'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function listPengguna(Request $request)
     {
         $validator = $request->validate([
@@ -287,9 +342,21 @@ class PermohonanAPI extends Controller
             $arr = $query->toArray();
             
             $this->pagination = Arr::except($arr, 'data');
-            DB::commit();
+            $resTld = $this->searchTldNotUsed('pengguna');
+            $noTld = 0;
 
             foreach ($query as $item) {
+                // mengecek informasi tld
+                if(!$item->id_tld){
+                    if($resTld['data'][$noTld]){
+                        $item->tld = $resTld['data'][$noTld];
+                    }else{
+                        $item->tld = false;
+                    }
+                    $noTld++;
+                }
+
+                // mengambil data radiasi
                 $id_radiasi_array = $item->id_radiasi; // Decode JSON jadi array
 
                 // Cek apakah ada array yang valid dari JSON
@@ -313,6 +380,7 @@ class PermohonanAPI extends Controller
 
                 }
             }
+            DB::commit();
             
             return $this->output($query);
         } catch (\Exception $ex) {
@@ -537,6 +605,7 @@ class PermohonanAPI extends Controller
                     $ttd = $request->ttd ? $request->ttd : null;
                     $fileLhu = $request->file('fileLhu') ?? false;
                     $fileLhu && $fileLhu = $this->media->upload($fileLhu, 'permohonan');
+                    $tldKontrol = $request->tldKontrol ? json_decode($request->tldKontrol) : [];
                     $no_kontrak = null;
     
                     // mengecek apakah harus generate kontrak atau tidak
@@ -550,29 +619,30 @@ class PermohonanAPI extends Controller
                             }
                             break;
                     }
-    
-                    $tandaterima = $request->tandaterima ? json_decode($request->tandaterima) : [];
-                    foreach ($tandaterima as $value) {
-                        $params = array(
-                            'id_permohonan' => $idPermohonan,
-                            'id_pertanyaan' => decryptor($value->id),
-                            'jawaban' => $value->answer,
-                            'note' => $value->note,
-                            'created_by' => Auth::user()->id
-                        );
-    
-                        Permohonan_tandaterima::create($params);
-                    }
 
                     // menambahkan tld
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
                         $listTld = $request->listTld ? json_decode($request->listTld) : [];
-                        // $jmlTld = $dataPermohonan->jumlah_pengguna + $dataPermohonan->jumlah_kontrol;
-                        // $listTld = array();
-                        // for ($i=0; $i < $jmlTld; $i++) { 
-                        //     $listTld[] = "TLD ".$i + 1;
-                        // }
-                        $arrayUpdate['list_tld'] = $listTld;
+                        foreach ($listTld as $item) {
+                            $id = decryptor($item->tld) ? (['id_tld' => decryptor($item->tld)]) : ['kode_lencana' => $item->tld];
+                            // dd($id);
+                            $tldData = Master_tld::updateOrCreate($id, [
+                                'status' => 1,
+                                'jenis' => 'pengguna',
+                            ]);
+                            Permohonan_pengguna::where('id_pengguna', decryptor($item->id))->update(['id_tld' => $tldData->id_tld]);
+                        }
+                    }
+
+                    $arrayUpdate['list_tld'] = array();
+                    foreach ($tldKontrol as $key => $value) {
+                        $id = decryptor($value->tld) ? (['id_tld' => decryptor($value->tld)]) : ['kode_lencana' => $value->tld];
+                        
+                        $kontrol = Master_tld::updateOrCreate($id, [
+                            'status' => 1,
+                            'jenis' => 'kontrol',
+                        ]);
+                        $arrayUpdate['list_tld'][$key] = (int) decryptor($kontrol->tld_hash);
                     }
     
                     $arrayUpdate['ttd'] = $ttd;
@@ -584,6 +654,7 @@ class PermohonanAPI extends Controller
 
                     $dataPermohonan->update($arrayUpdate);
 
+                    $dataPermohonan = Permohonan::with('kontrak')->find($idPermohonan);
                     // Memindahkan Permohonan ke tabel kontrak
                     switch ($dataPermohonan->jenis_layanan_1) {
                         case 1: // Kontrak
@@ -613,6 +684,7 @@ class PermohonanAPI extends Controller
                             foreach ($dataPermohonan->pengguna as $key => $value) {
                                 $paramsPengguna = array(
                                     'id_kontrak' => $dataKontrak->id_kontrak,
+                                    'id_tld' => $value->id_tld,
                                     'nama' => $value->nama,
                                     'posisi' => $value->posisi,
                                     'id_radiasi' => $value->id_radiasi,
@@ -670,7 +742,7 @@ class PermohonanAPI extends Controller
                     }
 
                     // Proses ke penyelia
-                    $arrValidPenyelia = [3, 5, 6];
+                    $arrValidPenyelia = [2, 3, 5, 6];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidPenyelia)){
                         $penyeliaData = $this->createPenyelia($dataPermohonan->permohonan_hash);
 
@@ -839,5 +911,25 @@ class PermohonanAPI extends Controller
             // ... consider throwing an exception or other error handling
         }
     
+    }
+
+    private function searchTldNotUsed($jenis){
+        $params = [
+            'jenis' => $jenis
+        ];
+        // Make a request to your keuanganAction endpoint
+        $TldResponse = app()->handle(Request::create(url('api/v1/tld/searchTldNotUsed'), 'GET', $params));
+
+        // Check the Tldresponse for success/failure
+        if ($TldResponse->getStatusCode() == 200) {
+            // Invoice creation successful - you can log or further process if needed
+            $TldData = json_decode($TldResponse->getContent(), true);
+            // ... process $TldData
+            return $TldData;
+        } else {
+            // Handle invoice creation failure appropriately (log, rollback, etc.)
+            Log::error("failed: " . $TldResponse->getContent());
+            // ... consider throwing an exception or other error handling
+        }
     }
 }

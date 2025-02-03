@@ -61,6 +61,7 @@
     <script src="{{ asset('js/invoice.js') }}"></script>
     <script src="{{ asset('js/detail.js') }}"></script>
     <script src="{{ asset('js/upload.js') }}"></script>
+    <script src="{{ asset('js/document.js') }}"></script>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
