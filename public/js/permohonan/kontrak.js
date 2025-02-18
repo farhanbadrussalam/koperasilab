@@ -2,6 +2,13 @@ let dataKontrak = false;
 $(function () {
     loadData();
 
+    detail = new Detail({
+        jenis: 'kontrak',
+        tab: {
+            pengguna: true
+        }
+    });
+
     $(`#list-pagination`).on('click', 'a', function(e){
         e.preventDefault();
         const pageno = e.target.dataset.page;
@@ -38,11 +45,15 @@ function loadData(page = 1) {
                     htmlLastPeriod = `<span>Periode Selesai</span>`;
                     break;
                 default:
-                    let remaining = getDaysRemaining(periodeNow.endDate);
-                    htmlLastPeriod = `
-                        <span>${periodeNow.name}</span>
-                        <span>Sisa ${remaining} hari</span>
-                    `;
+                    if(periodeNow?.endDate){
+                        let remaining = getDaysRemaining(periodeNow.endDate);
+                        htmlLastPeriod = `
+                            <span>${periodeNow.name}</span>
+                            <span>Sisa ${remaining} hari</span>
+                        `;
+                    }else{
+                        htmlLastPeriod = ``;
+                    }
                     break;
             }
             
@@ -68,9 +79,9 @@ function loadData(page = 1) {
                             <div class="mb-2 text-end fs-8">
                                 ${htmlLastPeriod}
                             </div>
-                            <div class=" d-flex gap-1">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})"><i class="bi bi-clock-fill"></i> ${arrPeriode.length} Periode</div>
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPengguna(${i})"><i class="bi bi-people-fill"></i> ${data.pengguna?.length ?? 0} Pengguna</div>
+                            <div class="d-flex gap-1" data-id="${data.kontrak_hash}">
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})"><i class="bi bi-clock-fill"></i> ${arrPeriode.length - 1} Periode</div>
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</div>
                             </div>
                         </div>
                         <div class="p-3" id="listPeriode${i}" style="display:none"></div>
@@ -116,7 +127,7 @@ function showPeriode(index) {
         if(detail.length > 0){
             detail.map(d => cekStatusPeriode.push({
                 jenis: d.jenis,
-                periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 1),
+                periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
                 status: pengiriman.status,
                 no_resi: pengiriman.no_resi ?? false
             }));
@@ -125,6 +136,7 @@ function showPeriode(index) {
 
     let html = '';
     let evaluasiActive = false;
+    console.log(arrPeriode);
     for (const [i, data] of arrPeriode.entries()) {
         const isPelanggan = role === 'Pelanggan';
         let htmlAction = ``;
@@ -164,13 +176,13 @@ function showPeriode(index) {
             params.append('idPermohonan', data.permohonan.permohonan_hash);
             params.append('status', 5);
 
-            ajaxPost('api/v1/permohonan/tambahPengajuan', params, result => {
-            });
+            ajaxPost('api/v1/permohonan/tambahPengajuan', params, result => {}, error => {});
             data.permohonan.status = 5;
         }
 
         if(data.permohonan){
             const showEvaluasi = isPelanggan && data.permohonan.status == 11 && [3, 5].includes(Number(dataKontrak[index].jenis_layanan_2));
+            console.log(data.permohonan);
             htmlAction = showEvaluasi ?
                 `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>` :
                 `<div class="d-flex flex-column justify-content-center align-items-center"><div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div><div>${statusFormat('permohonan', data.permohonan.status)}</div></div>`;
@@ -195,8 +207,8 @@ function showPeriode(index) {
         html += `
             <div class="border-top py-2 d-flex justify-content-between align-items-center">
                 <div class="px-2">
-                    <span class="fw-semibold fs-6">Periode ${data.periode}</span>
-                    <small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>
+                    <span class="fw-semibold fs-6">${data.periode == 0 ? 'Zero cek' : `Periode ${data.periode}`}</span>
+                    ${data.periode == 0 ? '' : `<small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>`}
                     <div class="d-flex gap-3 flex-wrap">
                         ${htmlDoc}
                     </div>
@@ -219,4 +231,10 @@ function showModalEvaluasi(index) {
 
 function reload() {
     loadData();
+}
+
+function showDetail(obj){
+    const id = $(obj).parent().data("id");
+    let url = `api/v1/kontrak/getById/${id}`;
+    detail.show(url);
 }

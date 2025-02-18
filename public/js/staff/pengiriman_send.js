@@ -38,9 +38,26 @@ function load_form() {
     $('#list-document').empty();
     // list document TLD
     let checkedTld = permohonan.pengiriman ? 'disabled' : 'checked';
-    let tldDetail = ``;
-    for (const list of permohonan.list_tld) {
-        tldDetail += `<div><input type="text" class="form-control form-control-sm" name="listTld[]" placeholder="${list}"></div>`;
+    let tldKontrol = ``;
+    for (const list of permohonan.tldKontrol) {
+        tldKontrol += `
+            <div class="w-50 pe-1">
+                <select class="form-select kodeTldKontrol" name="kodeTldKontrol">
+                    <option value="${list.tld_hash}" selected>${list.kode_lencana}</option>
+                </select>
+            </div>
+        `;
+    }
+
+    let tldPengguna = ``;
+    for (const list of permohonan.pengguna){
+        tldPengguna += `
+            <div class="w-50 pe-1">
+                <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-id="${list.permohonan_pengguna_hash}">
+                    <option value="${list.tld_pengguna.tld_hash}" selected>${list.tld_pengguna.kode_lencana}</option>
+                </select>
+            </div>
+        `;
     }
 
     htmlTld = `
@@ -58,15 +75,29 @@ function load_form() {
             <div class="d-flex align-items-center gap-3 text-secondary">
             </div>
         </div>
-        <div id="listTld" class="d-flex flex-column">
-            <div class="px-4 text-info"><small>Di isi dengan nomer seri TLD yang sesuai</small></div>
-            <div class="p-3 pt-0 flex-wrap d-flex gap-2">
-            ${tldDetail}
+        <div id="listTld" class="row">
+            <div class="ps-5 text-info"><small>Di isi dengan nomer seri TLD yang sesuai</small></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="px-4">TLD Pengguna</label>
+                    <div class="px-4 pt-2 flex-wrap d-flex row-gap-2">
+                        ${tldPengguna}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="px-4">TLD kontrol</label>
+                    <div class="px-4 pt-2 flex-wrap d-flex row-gap-2">
+                        ${tldKontrol}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     `;
     $('#list-document').append(htmlTld);
+
+    _tldKontrol();
+    _tldPengguna();
 
     // list document invoice
     let htmlInvoice = '';
@@ -111,13 +142,13 @@ function load_form() {
                         data-jenis="lhu" data-id="${permohonan.lhu.penyelia_hash}"
                         id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
                     <span class="fw-semibold fs-6">LHU</span>
-                    <small class="text-body-tertiary"> - Periode ${permohonan.lhu.periode} (${findPeriode.start_date ? dateFormat(findPeriode.start_date, 4) : '-'} - ${findPeriode.end_date ? dateFormat(findPeriode.end_date, 4) : '-'})</small>
+                    <small class="text-body-tertiary"> - ${permohonan.lhu.periode == 0 ? 'Zero Cek' : `Periode ${permohonan.lhu.periode} (${findPeriode?.start_date ? dateFormat(findPeriode.start_date, 4) : '-'} - ${findPeriode?.end_date ? dateFormat(findPeriode.end_date, 4) : '-'})`}</small>
                     <small>${statusFormat('pengiriman', permohonan.lhu.pengiriman?.status)}</small>
                 </div>
                 <div class="d-flex align-items-center gap-3 text-secondary">
                     <small><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.lhu.created_at, 4)}</small>
                     <small>${statusFormat('penyelia', permohonan.lhu.status)}</small>
-                    <small class="bg-body-tertiary rounded-pill ${permohonan.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small>
+                    <!-- <small class="bg-body-tertiary rounded-pill ${permohonan.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
                 </div>
             </div>
         </div>
@@ -164,7 +195,8 @@ function updateSelectDocument(){
         let jenis = doc.dataset.jenis;
         let id = doc.dataset.id;
         let periode = false;
-        let listTld = false;
+        let tldPengguna = false;
+        let tldKontrol = false;
 
         switch (jenis) {
             case 'lhu':
@@ -179,16 +211,28 @@ function updateSelectDocument(){
                 if(permohonan.tipe_kontrak == 'kontrak lama'){
                     periode = permohonan.periode;
                 }else{
-                    periode = 1;
+                    periode = 0;
                 }
+
                 if(doc.checked){
                     $('#listTld').addClass('d-flex').removeClass('d-none');
                 }else{
                     $('#listTld').addClass('d-none').removeClass('d-flex');
                 }
-                listTld = $('input[name="listTld[]"]').map(function(index, element) {
-                    return $(element).val() || `TLD ${index + 1}`;
+
+                tldPengguna = $('select[name="kodeTldPengguna"]').map(function() {
+                    return {
+                        id: $(this).data('id'),
+                        tld: $(this).val()
+                    };
                 }).get();
+
+                tldKontrol = $('select[name="kodeTldKontrol"]').map(function() {
+                    return {
+                        tld: $(this).val()
+                    };
+                }).get();
+
                 break;
             default:
                 periode = permohonan.periode;
@@ -196,7 +240,7 @@ function updateSelectDocument(){
         }
 
         let getIndex = arrSelectDocument.findIndex(d => d.jenis == jenis);
-        let tmp = {jenis: jenis, periode: periode, id: id, listTld: listTld};
+        let tmp = {jenis: jenis, periode: periode, id: id, tldPengguna: tldPengguna, tldKontrol: tldKontrol};
         if(doc.checked){
             if(getIndex != -1){
                 arrSelectDocument[getIndex] = tmp;
@@ -266,4 +310,118 @@ function buatPengiriman(obj){
             });
         }
     });
+}
+
+function _tldKontrol() {
+    $('.kodeTldKontrol').select2({
+        theme: "bootstrap-5",
+        tags: true,
+        placeholder: "Pilih Kode lencana",
+        createTag: (params) => {
+            return {
+                id: params.term,
+                text: params.term,
+                newTag: true
+            };
+        },
+        maximumSelectionLength: 2,
+        ajax: {
+            url: `${base_url}/api/v1/tld/searchTld`,
+            type: "GET",
+            dataType: "json",
+            processing: true,
+            serverSide: true,
+            delay: 250,
+            headers: {
+                'Authorization': `Bearer ${bearer}`,
+                'Content-Type': 'application/json'
+            },
+            data: function(params) {
+                let queryParams = {
+                    kode_lencana: params.term,
+                    jenis: 'kontrol'
+                }
+                return queryParams;
+            },
+            processResults: function(response, params){
+                let items = [];
+                for (const data of response.data) {
+                    items.push({
+                        id : data.tld_hash,
+                        text : data.kode_lencana,
+                        status : data.status,
+                        disabled : data.status == 1 ? true : false
+                    });
+                }
+                return {
+                    results: items
+                };
+            }
+        },
+        templateResult: _templateTld
+    })
+}
+
+function _tldPengguna() {
+    $('.kodeTldPengguna').select2({
+        theme: "bootstrap-5",
+        tags: true,
+        placeholder: "Pilih Kode lencana",
+        createTag: (params) => {
+            return {
+                id: params.term,
+                text: params.term,
+                newTag: true
+            };
+        },
+        maximumSelectionLength: 2,
+        ajax: {
+            url: `${base_url}/api/v1/tld/searchTld`,
+            type: "GET",
+            dataType: "json",
+            processing: true,
+            serverSide: true,
+            delay: 250,
+            headers: {
+                'Authorization': `Bearer ${bearer}`,
+                'Content-Type': 'application/json'
+            },
+            data: function(params) {
+                let queryParams = {
+                    kode_lencana: params.term,
+                    jenis: 'pengguna'
+                }
+                return queryParams;
+            },
+            processResults: function(response, params){
+                let items = [];
+                for (const data of response.data) {
+                    items.push({
+                        id : data.tld_hash,
+                        text : data.kode_lencana,
+                        status : data.status,
+                        disabled : data.status == 1 ? true : false
+                    });
+                }
+                return {
+                    results: items
+                };
+            }
+        },
+        templateResult: _templateTld
+    })
+}
+
+function _templateTld(state){
+    if(!state.id){
+        return state.text;
+    }
+
+    let content = $(`
+        <div class="d-flex justify-content-between">
+            <div>${state.text}</div>
+            <div>${state.status == 1 ? '<span class="badge rounded-pill text-bg-success">Digunakan</span>' : ''}</div>
+        </div>
+    `);
+    return content;
 }

@@ -65,13 +65,13 @@ function loadData(page = 1, menu) {
                     <div class="border-top py-2 d-flex justify-content-between align-items-center">
                         <div class="px-2">
                             <span class="fw-semibold fs-6">LHU</span>
-                            <small class="text-body-tertiary"> - Periode ${data.lhu.periode}</small>
+                            <small class="text-body-tertiary"> - ${data.lhu.periode == 0 ? "Zero cek" : `Periode ${data.lhu.periode}`}</small>
                             <small>${statusFormat('pengiriman', data.lhu.pengiriman?.status)}</small>
                         </div>
                         <div class="d-flex align-items-center gap-3 text-secondary">
                             <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data.lhu.created_at, 4)}</small>
                             <small>${statusFormat('penyelia', data.lhu.status)}</small>
-                            <small class="bg-body-tertiary rounded-pill ${data.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small>
+                            <!-- <small class="bg-body-tertiary rounded-pill ${data.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
                         </div>
                     </div>
                 </div>
@@ -136,7 +136,7 @@ function loadData(page = 1, menu) {
                             </div>
                             <div class="fs-5 my-2"><span class="fw-bold">${data.jenis_tld.name} - ${data.pelanggan.perusahaan.nama_perusahaan}</span> <span class="text-body-tertiary">${data.kontrak ? "#"+data.kontrak.no_kontrak : ''}</span></div>
                             <div class="d-flex gap-3 text-body-tertiary">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})">${arrPeriode.length} Periode</div>
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})">${arrPeriode.length-1} Periode</div>
                                 <div><i class="bi bi-person-check-fill"></i> ${data.pelanggan.name}</div>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
                             </div>

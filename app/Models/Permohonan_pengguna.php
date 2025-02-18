@@ -11,6 +11,8 @@ class Permohonan_pengguna extends Model
 
     protected $table = "permohonan_pengguna";
 
+    protected $primaryKey = "id_pengguna";
+
     protected $fillable = [
         'id_permohonan',
         'id_tld',
@@ -19,6 +21,7 @@ class Permohonan_pengguna extends Model
         'id_radiasi',
         'file_ktp',
         'status',
+        'keterangan',
         'created_by',
         'created_at'
     ];
@@ -48,5 +51,9 @@ class Permohonan_pengguna extends Model
 
     public function media(){
         return $this->belongsTo(Master_media::class, 'file_ktp', 'id');
+    }
+
+    public function tldPengguna(){
+        return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
     }
 }

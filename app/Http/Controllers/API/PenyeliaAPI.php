@@ -12,6 +12,9 @@ use App\Models\Penyelia_petugas;
 use App\Models\Penyelia_map;
 use App\Models\User;
 use App\Models\Permohonan;
+use App\Models\Permohonan_dokumen;
+
+use App\Models\Master_jobs;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
@@ -45,6 +48,7 @@ class PenyeliaAPI extends Controller
             $arrPetugas = array();
             $textNote = $request->note ? $request->note : '';
             $statusPermohonan = $request->statusPermohonan ? $request->statusPermohonan : '';
+            $sProgress = $request->sProgress ? $request->sProgress : '';
 
             $document = $request->file("document");
             $file_document = false;
@@ -89,7 +93,6 @@ class PenyeliaAPI extends Controller
                 
                 foreach ($arr as $value) {
                     $findMap = Penyelia_map::where('id_jobs', decryptor($value->idJobs))->where('id_penyelia', $idPenyelia)->first();
-                    
                     if($findMap){
                         $data = array(
                             'id_user' => decryptor($value->idPetugas),
@@ -106,6 +109,19 @@ class PenyeliaAPI extends Controller
                         );
                     }
                 }
+                
+                // menambahkan dokumen perjanjian 
+                $penyeliaData = Penyelia::select('id_permohonan','id_penyelia')->find($idPenyelia);
+                $dataParams = array(
+                    'id_permohonan' => $penyeliaData->id_permohonan,
+                    'created_by' => Auth::user()->id,
+                    'nama' => 'Surat Tugas Uji',
+                    'jenis' => 'surattugas',
+                    'status' => 1,
+                    'nomer' => generateNoDokumen('surattugas', $penyeliaData->id_penyelia)
+                );
+                
+                $document = Permohonan_dokumen::create($dataParams);
             }
 
             $params['status'] = $status;
@@ -117,10 +133,26 @@ class PenyeliaAPI extends Controller
                 $params['created_by'] = Auth::user()->id;
             }
 
+            // cek penyelia map
+            if($sProgress){
+                if($sProgress == 'done') {
+                    $idJobs = Master_jobs::select('id_jobs')->where('status', $penyelia->status)->first();
+                    if($idJobs) {
+                        Penyelia_map::where('id_jobs', $idJobs->id_jobs)->where('id_penyelia', $idPenyelia)->update(array('status' => 1));
+                    }
+                }else{
+                    $idJobs = Master_jobs::select('id_jobs')->where('status', $status)->first();    
+                    if($idJobs) {
+                        Penyelia_map::where('id_jobs', $idJobs->id_jobs)->where('id_penyelia', $idPenyelia)->update(array('status' => 0));
+                    }
+                }
+
+            }
+
             // menambahkan periode
             $dataPemohonan = Permohonan::select('periode')->where('id_permohonan', $idPermohonan)->first();
             if($dataPemohonan){
-                $params['periode'] = $dataPemohonan->periode ? $dataPemohonan->periode : 1;
+                $params['periode'] = $dataPemohonan->periode ? $dataPemohonan->periode : 0;
             }
             
             $penyelia = Penyelia::updateOrCreate(
@@ -145,6 +177,19 @@ class PenyeliaAPI extends Controller
             if($statusPermohonan){
                 Permohonan::where('id_permohonan', $penyelia->id_permohonan)
                             ->update(array('status' => $statusPermohonan));
+
+                if($statusPermohonan == 3){ // ketika proses pelaksana lab
+                    // menambahkan dokumen surat pengantar 
+                    $data = array(
+                        'id_permohonan' => $penyelia->id_permohonan,
+                        'created_by' => Auth::user()->id,
+                        'nama' => 'SURAT PENGANTAR',
+                        'jenis' => 'surpeng',
+                        'status' => 1,
+                        'nomer' => generateNoDokumen('surpeng')
+                    );
+                    $document = Permohonan_dokumen::create($data);
+                }
             }
 
             // log penyelia
@@ -291,6 +336,40 @@ class PenyeliaAPI extends Controller
             info($ex);
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function getPenyeliaById($idPenyelia)
+    {
+        DB::beginTransaction();
+        try {
+            $idPenyelia = decryptor($idPenyelia);
+    
+            $query = Penyelia::with(
+                'permohonan',
+                'petugas',
+                'petugas.jobs',
+                'penyelia_map',
+                'penyelia_map.jobs:id_jobs,status,name,upload_doc',
+                'usersig:id,name',
+                'permohonan.layanan_jasa:id_layanan,nama_layanan',
+                'permohonan.jenisTld:id_jenisTld,name', 
+                'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
+                'permohonan.jenis_layanan_parent',
+                'permohonan.pelanggan',
+                'permohonan.pelanggan.perusahaan',
+                'permohonan.kontrak',
+                'permohonan.kontrak.periode',
+                'permohonan.dokumen',
+                'permohonan.invoice'
+            )->find($idPenyelia);
+            DB::commit();
+    
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
 

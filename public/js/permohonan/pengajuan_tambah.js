@@ -356,7 +356,7 @@ $(function () {
                 formData.append('jumlahKontrol', valjumKontrol);
                 formData.append('hargaLayanan', valHargaLayanan);
                 formData.append('totalHarga', valtotalHarga);
-                formData.append('periode', 1);
+                formData.append('periode', 0);
         
                 spinner('show', obj.target);
                 ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {

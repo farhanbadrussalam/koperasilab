@@ -142,7 +142,7 @@
                                             <td>Tanda Terima Pengujian</td>
                                             <td class="text-end">
                                                 <button type="button" class="btn btn-outline-success btn-sm" id="btn-show-tandaterima"><i class="bi bi-eye"></i></button>
-                                                <button type="button" class="btn btn-outline-warning btn-sm" id="btn-edit-tandaterima"><i class="bi bi-pencil"></i></button>
+                                                {{-- <button type="button" class="btn btn-outline-warning btn-sm" id="btn-edit-tandaterima"><i class="bi bi-pencil"></i></button> --}}
                                                 <button type="button" class="btn btn-outline-danger btn-sm" id="btn-delete-tandaterima"><i class="bi bi-trash"></i></button>
                                             </td>
                                         </tr>

@@ -21,6 +21,10 @@ class ReportController extends Controller
     {
         $idKeuangan = decryptor($id);
 
+        if($idKeuangan == null){
+            return redirect()->back();
+        }
+
         $query = Keuangan::with(
             'diskon',
             'usersig',
@@ -38,6 +42,7 @@ class ReportController extends Controller
         $data['data'] = $query;
         $data['date'] = Carbon::now();
         $data['title'] = "Invoice";
+        $data['ttd_default'] = public_path('icons/default/white.png');
 
         $pdf = PDF::loadView('report.invoice', $data);
 
@@ -49,6 +54,10 @@ class ReportController extends Controller
     public function kwitansi($id)
     {
         $idKeuangan = decryptor($id);
+
+        if($idKeuangan == null){
+            return redirect()->back();
+        }
 
         $query = keuangan::with(
             'permohonan',
@@ -68,41 +77,32 @@ class ReportController extends Controller
         return $pdf->stream();
     }
 
-    public function suratTugas($id)
-    {
-        $idJadwal = decryptor($id);
-        $Rjadwal = jadwal::with(
-            'petugas',
-            'signature_1',
-            'petugas.petugas',
-            'permohonan',
-            'permohonan.layananjasa.satuanKerja',
-            'permohonan.user.perusahaan'
-            )->where('id', $idJadwal)->first();
-
-        $data['date'] = Carbon::now()->year;
-        $data['data'] = $Rjadwal;
-
-        $pdf = PDF::loadView('report.suratTugas', $data);
-
-        $pdf->render();
-
-        return $pdf->stream();
-    }
-
     public function tandaTerima($idPermohonan)
     {
         $idPermohonan = decryptor($idPermohonan);
-        $query = Permohonan::with(
+
+        if($idPermohonan == null){
+            return redirect()->back();
+        }
+
+        $query = Permohonan::with([
             'jenisTld:id_jenisTld,name', 
             'pelanggan',
             'pelanggan.perusahaan',
-            'kontrak'
-        )->find($idPermohonan);
+            'kontrak',
+            'tandaterima',
+            'tandaterima.pertanyaan',
+            'dokumen' => function($query) {
+                return $query->where('jenis', 'tandaterima');
+            },
+            'lhu',
+            'signature:id,name',
+        ])->find($idPermohonan);
 
         $data['data'] = $query;
         $data['date'] = Carbon::now();
         $data['title'] = "Tanda Terima";
+        $data['ttd_default'] = public_path('icons/default/white.png');
 
         $pdf = PDF::loadView('report.tandaTerima', $data);
 
@@ -110,6 +110,58 @@ class ReportController extends Controller
 
         return $pdf->stream();;
     }
+
+    public function suratTugas($id = null)
+    {
+        $id = decryptor($id);
+
+        if($id == null){
+            return redirect()->back();
+        }
+
+        $query = Permohonan::with([
+            'jenisTld:id_jenisTld,name', 
+            'pelanggan',
+            'pelanggan.perusahaan',
+            'layanan_jasa',
+            'jenis_layanan',
+            'kontrak',
+            'dokumen' => function($query) {
+                return $query->where('jenis', 'surattugas');
+            },
+            'lhu',
+            'lhu.petugas',
+            'lhu.petugas.user:id,name',
+            'lhu.petugas.jobs:id_map,id_jobs',
+            'lhu.petugas.jobs.jobs:id_jobs,name',
+            'lhu.createBy',
+            'lhu.createBy.satuankerja',
+            'lhu.usersig:id,name',
+        ])->find($id);
+
+        $data['date'] = Carbon::now()->year;
+        $data['title'] = 'SURAT TUGAS UJI';
+        $data['ttd_default'] = public_path('icons/default/white.png');
+        $data['data'] = $query;
+        
+        $pdf = PDF::loadView('report.suratTugas', $data);
+
+        $pdf->render();
+
+        return $pdf->stream();
+    }
+
+/**
+ * Generates a PDF stream of the "Surat Pengantar" report.
+ *
+ * This function retrieves the report data based on the provided ID, 
+ * sets the necessary title and date information, and then loads 
+ * the 'suratPengantar' view to generate a PDF document. The PDF 
+ * is then rendered and streamed back to the user.
+ *
+ * @param string|null $id Encrypted report identifier.
+ * @return \Illuminate\Http\Response The PDF stream response.
+ */
 
     public function suratPengantar($id  = null)
     {
@@ -119,9 +171,30 @@ class ReportController extends Controller
             return redirect()->back();
         }
 
+        $query = Permohonan::with([
+            'jenisTld:id_jenisTld,name', 
+            'pelanggan',
+            'pelanggan.perusahaan',
+            'layanan_jasa',
+            'jenis_layanan',
+            'kontrak',
+            'dokumen' => function($query) {
+                return $query->where('jenis', 'surpeng');
+            },
+            'pengguna',
+            'lhu',
+            'lhu.petugas',
+            'lhu.petugas.user:id,name',
+            'lhu.petugas.jobs:id_map,id_jobs',
+            'lhu.petugas.jobs.jobs:id_jobs,name',
+            'lhu.createBy',
+            'lhu.createBy.satuankerja',
+            'lhu.usersig:id,name',
+        ])->find($id);
+
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Surat Pengantar';
-        $data['data'] = false;
+        $data['data'] = $query;
 
         $pdf = PDF::loadView('report.suratPengantar', $data);
 

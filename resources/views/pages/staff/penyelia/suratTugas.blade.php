@@ -42,10 +42,10 @@
                     <label class="fw-bolder">Periode</label>
                     <div id="periodePermohonan"></div>
                 </div>
-                <div class="col-md-12 my-2 d-flex justify-content-end">
+                {{-- <div class="col-md-12 my-2 d-flex justify-content-end">
                     <a class="btn btn-secondary" href="{{ url('laporan/tandaterima/' . $penyelia->penyelia_hash) }}"
                         target="_blank">Document tanda terima</a>
-                </div>
+                </div> --}}
                 <hr>
                 <div class="col-md-6 col-12 mb-4">
                     <label for="" class="fw-bolder">Tanggal Mulai<span class="text-danger ms-1">*</span></label>

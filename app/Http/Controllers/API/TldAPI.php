@@ -55,7 +55,7 @@ class TldAPI extends Controller
             $data = array();
 
             if(!empty($kode_lencana)){
-                $data = Master_tld::where('jenis', $jenis)->where('kode_lencana', 'like', '%'.$kode_lencana.'%')->get();
+                $data = Master_tld::where('jenis', $jenis)->where('kode_lencana', 'like', '%'.$kode_lencana.'%')->orderBy('status', 'desc')->get();
             }
 
             DB::commit();

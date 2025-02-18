@@ -31,7 +31,13 @@
     }
 
     .w-100 {
-        width: 100vw !important;
+        width: 100% !important;
+    }
+    .w-50 {
+        width: 50% !important;
+    }
+    .w-40 {
+        width: 40% !important;
     }
     .w-25 {
         width: 25% !important;
@@ -40,12 +46,93 @@
         width: 200px !important;
     }
 
+    .fw-bold {
+        font-weight: bold !important;
+    }
+
     .text-underline {
         text-decoration: underline;
+    }
+    .text-end {
+        text-align: right !important;
+    }
+    .text-wrap {
+        word-wrap: break-word;
+    }
+
+    .text-indent {
+        text-indent: 30px;
     }
 
     label {
         font-weight: bold;
     }
 
+    .text-center {
+        text-align: center !important;
+    }
+
+    .align-item-end {
+        align-items: flex-end !important;
+    }
+
+    .d-flex {
+        display: flex !important;
+    }
+
+    .justify-content-end {
+        justify-content: flex-end !important;
+    }
+
+    .flex-1{
+        flex: 1 !important;
+    }
+
+    .flex-2{
+        flex: 2 !important;
+    }
+
+    .fw-normal {
+        font-weight: normal !important;
+    }
+
+    .fs-1{
+        font-size: 10px !important;
+    }
+    
+    .fs-2 {
+        font-size: 12px !important;
+    }
+
+    .fs-3{
+        font-size: 14px !important;
+    }
+
+    .fs-3 {
+        font-size: 16px !important;
+    }
+
+    .fs-4 {
+        font-size: 18px !important;
+    }
+
+    .fs-5 {
+        font-size: 20px !important;
+    }
+
+    .lh-1 {
+        line-height: 1 !important;
+    }
+
+    .lh-2 {
+        line-height: 1.2 !important;
+    }
+
+    .lh-3 {
+        line-height: 1.4 !important;
+    }
+
+    .lh-4 {
+        line-height: 1.6 !important;
+    }
 </style>

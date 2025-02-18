@@ -110,7 +110,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("kontrak")->controller(KontrakAPI::class)->group(function () {
         Route::post('/action', 'actionKontrak');
         Route::get('/list', 'listKontrak');
-        // Route::get('/getById/{kontrak_hash}', 'getKontrakById');
+        Route::get('/getById/{kontrak_hash}', 'getKontrakById');
         // Route::delete('/destroy/{kontrak_hash}', 'destroy');
     });
 
@@ -118,6 +118,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', 'actionPenyelia');
         Route::get('/list', 'listPenyelia');
         Route::get('/listPetugas', 'getListPetugas');
+        Route::get('/getById/{idPenyelia}', 'getPenyeliaById');
         Route::delete('/remove/{idPenyelia}', 'removeSuratTugas');
     });
 

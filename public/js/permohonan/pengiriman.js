@@ -3,6 +3,14 @@ let buktiPenerima = false;
 $(function () {
     loadData(1);
 
+    detail = new Detail({
+        jenis: 'pengiriman',
+        tab: {
+            items: true,
+            bukti: true
+        }
+    });
+
     buktiPenerima = new UploadComponent('uploadBuktiPenerima', {
         modal: true,
         camera: false,
@@ -52,7 +60,6 @@ $(function () {
                         formData.append('buktiPenerima[]', d.file);
                     });
                     isLhuSend == 'true' ? formData.append('statusPermohonan', 5) : false;
-
 
                     spinner('show', $(obj.target));
                     ajaxPost('api/v1/pengiriman/action', formData, result => {
@@ -136,7 +143,7 @@ function loadData(page = 1) {
                             </div>
                         </div>
                         <div class="col-6 col-md-2 text-center" data-id="${data.id_pengiriman}">
-                            <button class="btn btn-outline-info btn-sm mb-2">Detail</button>
+                            <button class="btn btn-outline-info btn-sm mb-2" onclick="showDetail(this)">Detail</button>
                             ${htmlButton}
                         </div>
                     </div>
@@ -171,6 +178,29 @@ function showModalDiterima(obj){
     ajaxGet(`api/v1/pengiriman/getById/${id}`, false, result => {
         const data = result.data;
         $('#idPengiriman').val(id);
+        console.log(data);
+        let htmlSurpeng = '';
+        for (const dok of data.permohonan.dokumen) {
+            htmlSurpeng += `
+                <div
+                    class="d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border">
+                        <a class="d-flex align-items-center w-100" href="${base_url}/laporan/${dok.jenis}/${dok.permohonan_hash}" target="_blank">
+                            <div>
+                                <img class="my-3" src="${base_url}/icons/${iconDocument('application/pdf')}" alt=""
+                                    style="width: 24px; height: 24px;">
+                            </div>
+                            <div class="flex-grow-1 ms-2">
+                                <div class="d-flex flex-column">
+                                    <span class="caption text-main">${dok.nama}</span>
+                                    <span class="text-submain caption text-secondary">${dateFormat(dok.created_at, 1)}</span>
+                                </div>
+                            </div>
+                        </a>
+                    <div class="d-flex align-items-center"></div>
+                </div>
+            `;
+        }
+        $('#surpengDiv').html(htmlSurpeng);
 
         // Inisialiasi Date
         $('#txt_date_diterima').flatpickr({
@@ -183,6 +213,7 @@ function showModalDiterima(obj){
         });
 
         $('#isLhuSend').val(false);
+        resetForm();
 
         // Cek kelengkapan
         let htmlJenis = '';
@@ -207,7 +238,7 @@ function showModalDiterima(obj){
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">LHU</div>
-                                <div>Periode ${detail.periode}</div>
+                                <div>${detail.periode == 0 ? 'Zero cek' : `Periode ${detail.periode}`}</div>
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentLhu" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.lhu.lhu_hash}" 
@@ -220,7 +251,7 @@ function showModalDiterima(obj){
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">TLD <span class="text-secondary fw-normal">- ${data.permohonan.jumlah_pengguna} Pengguna + ${data.permohonan.jumlah_kontrol} Kontrol</span></div>
-                                <div>${detail.list_tld.map(tld => tld).join(', ')}</div>
+                                <div></div>
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentTld" 
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}" 
@@ -255,4 +286,9 @@ function resetForm(){
 
 function reload(){
     loadData();
+}
+
+function showDetail(obj){
+    const id = $(obj).parent().data("id");
+    detail.show(`api/v1/pengiriman/getById/${id}`);
 }

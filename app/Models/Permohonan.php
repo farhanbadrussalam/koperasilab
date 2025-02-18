@@ -110,4 +110,12 @@ class Permohonan extends Model
     public function file_lhu(){
         return $this->hasOne(Master_media::class, 'id', 'file_lhu');
     }
+
+    public function dokumen(){
+        return $this->hasMany(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function signature(){
+        return $this->belongsTo(User::class, 'ttd_by', 'id');
+    }
 }

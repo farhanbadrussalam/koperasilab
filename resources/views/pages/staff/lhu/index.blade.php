@@ -35,9 +35,8 @@
         </div>
         <div class="my-3">
             <div class="header px-3 fw-bolder d-none d-md-flex row">
-                <div class="col-md-3">Layanan</div>
-                <div class="col-md-3">Tipe</div>
-                <div class="col-md-4 text-center">Tanggal</div>
+                <div class="col-md-4">Layanan</div>
+                <div class="col-md-6">Tipe</div>
                 <div class="col-md-2 text-center">Action</div>
             </div>
             <hr>
@@ -45,20 +44,14 @@
                 @for ($i = 0; $i < 3; $i++)
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
-                        <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
+                        <div class="placeholder-glow col-12 col-md-4 d-flex flex-column">
                             <div class="placeholder w-50 mb-1"></div>
                             <div class="placeholder w-50 mb-1"></div>
                             <div class="placeholder w-50 mb-1"></div>
                             <div class="placeholder w-75 mb-1"></div>
                         </div>
-                        <div class="placeholder-glow col-6 col-md-3">
+                        <div class="placeholder-glow col-6 col-md-6">
                             <div class="placeholder w-50 mb-1"></div>
-                        </div>
-                        <div class="placeholder-glow col-6 col-md-4 text-center">
-                            <div class="placeholder w-50 mb-1"></div>
-                            <div class="placeholder w-75 mb-1"></div>
-                            <div class="placeholder w-50 mb-1"></div>
-                            <div class="placeholder w-75 mb-1"></div>
                         </div>
                         <div class="placeholder-glow col-6 col-md-2 text-center">
                             <div class="placeholder w-50 mb-1"></div>

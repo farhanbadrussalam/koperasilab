@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use App\Models\Permohonan;
+use App\Models\Permohonan_dokumen;
 use App\Models\Kontrak;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
@@ -179,8 +180,6 @@ class KeuanganAPI extends Controller
             $pph = $request->pph ?? false;
             $ttd = $request->ttd ?? false;
             $ttd_by = $request->ttd_by ? decryptor($request->ttd_by) : false;
-            // $buktiBayar = $request->file('buktiBayar') ?? false;
-            // $buktiBayarPph = $request->file('buktiPph') ?? false;
             $textNote = $request->note ?? '';
 
             $result = array();
@@ -203,24 +202,6 @@ class KeuanganAPI extends Controller
                 $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
                 $data['created_by'] = Auth::user()->id;
             }
-            // Upload bukti
-            // $file_buktiBayar = false;
-            // $file_buktiBayarPph = false;
-            // if($buktiBayar){
-            //     $invoice->bukti_bayar ? $data['bukti_bayar'] = $invoice->bukti_bayar : $data['bukti_bayar'] = array();
-            //     foreach($buktiBayar as $key => $file) {
-            //         $file_buktiBayar = $this->media->upload($file, 'keuangan');
-            //         array_push($data['bukti_bayar'], $file_buktiBayar->getIdMedia());
-            //     }
-            // }
-
-            // if($buktiBayarPph){
-            //     $invoice->bukti_bayar_pph ? $data['bukti_bayar_pph'] = $invoice->bukti_bayar_pph : $data['bukti_bayar_pph'] = array();
-            //     foreach($buktiBayarPph as $key => $file) {
-            //         $file_buktiBayarPph = $this->media->upload($file, 'keuangan');
-            //         array_push($data['bukti_bayar_pph'], $file_buktiBayarPph->getIdMedia());
-            //     }
-            // }
 
             $keuangan = Keuangan::updateOrCreate(
                 ["id_keuangan" => $idKeuangan],
@@ -232,6 +213,18 @@ class KeuanganAPI extends Controller
                     'id_keuangan' => decryptor($keuangan->keuangan_hash),
                     'name' => $value->name,
                     'diskon' => $value->diskon
+                ));
+            }
+
+            if($status == 2){
+                // Simpan dokumen Invoice
+                $document = Permohonan_dokumen::create(array(
+                    'id_permohonan' => $keuangan->id_permohonan,
+                    'created_by' => Auth::user()->id,
+                    'nama' => 'Invoice',
+                    'jenis' => 'invoice',
+                    'status' => 1,
+                    'nomer' => $keuangan->no_invoice
                 ));
             }
 
@@ -260,10 +253,6 @@ class KeuanganAPI extends Controller
                 }
 
             } elseif ($keuangan->wasChanged()) {
-                // $file_buktiBayar && $file_buktiBayar->store();
-                // $file_buktiBayarPph && $file_buktiBayarPph->store();
-                
-
                 $result['status'] = "updated";
                 $result['msg'] = "Invoice berhasil diedit.";
 

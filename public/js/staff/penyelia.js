@@ -1,8 +1,16 @@
 let signaturePad = false;
 let tmpPetugas = [];
 let nowSelect = false;
+let detail = false;
 $(function () {
     switchLoadTab(1);
+
+    detail = new Detail({
+        jenis: 'penyelia',
+        tab: {
+            dokumen: true
+        }
+    });
 
     const content = document.getElementById("content-ttd");
     signaturePad = signature(content, {
@@ -132,32 +140,63 @@ function loadData(page = 1, menu) {
             const permohonan = penyelia.permohonan;
             let arrPeriode = permohonan.kontrak?.periode ?? permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
             let tgl_periode = arrPeriode.find(d => d.periode == penyelia.periode);
+            let badgeClass = 'bg-primary-subtle';
+            if(permohonan.tipe_kontrak == 'kontrak lama') {
+                badgeClass = 'bg-success-subtle';
+            }
             
             let btnAction = '';
             switch (menu) {
                 case 'surattugas':
+                    btnAction += '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
                     if(penyelia.status == 1) {
-                        btnAction = `<a class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"><i class="bi bi-plus"></i> Buat Surat Tugas</a>`;
+                        btnAction += `<a class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"><i class="bi bi-plus"></i> Buat Surat Tugas</a>`;
                     }else if(penyelia.status == 2) {
-                        btnAction = `
-                            <a class="btn btn-outline-info btn-sm mb-1" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Show</a>
-                            <a class="btn btn-outline-warning btn-sm mb-1" href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"><i class="bi bi-pencil-square"></i> Edit</a>
-                            <button class="btn btn-outline-danger btn-sm mb-1" onclick="btnDelete(this)"><i class="bi bi-trash"></i> Delete</button>
+                        btnAction += `
+                            <a class="btn btn-outline-info btn-sm" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Lihat</a>
+                            <a class="btn btn-outline-warning btn-sm" href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"><i class="bi bi-pencil-square"></i> Edit</a>
+                            <button class="btn btn-outline-danger btn-sm mt-1" onclick="btnDelete(this)"><i class="bi bi-trash"></i> Hapus</button>
                         `;
                     }else{
-                        btnAction = `
-                            <a class="btn btn-outline-info btn-sm mb-1" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Show</a>
+                        btnAction += `
+                            <a class="btn btn-outline-info btn-sm" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Lihat</a>
                         `;
                     }
 
                     let divInfoTugas = '';
+                    let divTimelineTugas = '';
                     if(penyelia.start_date && penyelia.end_date){
                         divInfoTugas = `
-                            <div class="col-md-12">
-                                <div class="rounded bg-secondary-subtle p-2 text-body-secondary d-flex justify-content-between">
-                                    <span>Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
+                            <div class="col-md-12 mt-2">
+                                <div class="rounded bg-secondary-subtle p-1 text-body-secondary d-flex justify-content-between">
+                                    <span class="fs-7">Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
                                     <span>Status : ${statusFormat('penyelia', penyelia.status)}</span>
                                 </div>
+                            </div>
+                        `;
+
+                        let jobsPenyeliaLength = penyelia.penyelia_map.length;
+                        let widthCalc = (100 / jobsPenyeliaLength);
+
+                        let timeline = '';
+                        for (const tugas of penyelia.penyelia_map) {
+                            let jobActive = '';
+                            if(tugas.status == 1) { // proses penyelia selesai
+                                jobActive = 'active';
+                            }
+
+                            if(penyelia.status == tugas.jobs.status) {
+                                jobActive = 'onprogress';
+                            }
+
+                            timeline += `<li class="${jobActive} step0" style="width: ${widthCalc}%;"><span class="px-1">${tugas.jobs.name}</span></li>`;
+                        }
+
+                        divTimelineTugas = `
+                            <div class="col-md-12 mt-2 pt-4 pb-0">
+                                <ul id="progressbar" class="text-center">
+                                    ${timeline}
+                                </ul>
                             </div>
                         `;
                     }
@@ -165,23 +204,27 @@ function loadData(page = 1, menu) {
                         <div class="card mb-2">
                             <div class="card-body row align-items-center">
                                 <div class="col-12 col-md-3">
+                                    <div class="">
+                                        <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
+                                        <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
+                                    </div>
                                     <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                                     <small class="subdesc text-body-secondary fw-light lh-sm">
                                         <div>${permohonan.jenis_tld.name}</div>
-                                        <div>Periode ${penyelia.periode} : </div>
-                                        <div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>
+                                        <div>${penyelia.periode == 0 ? 'Zero cek' : `Periode ${penyelia.periode} :`}</div>
+                                        ${penyelia.periode == 0 ? `` : `<div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>`}
                                         <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                                     </small>
                                 </div>
-                                <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
-                                <div class="col-6 col-md-2 my-3 text-end text-md-start">
+                                <div class="col-6 col-md-3 my-3 text-end text-md-start">
                                     <div>${permohonan.tipe_kontrak}</div>
                                     <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
                                 </div>
-                                <div class="col-6 col-md-2">${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
+                                <div class="col-6 col-md-3">${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
                                 <div class="col-6 col-md-3 text-center" data-idpenyelia='${penyelia.penyelia_hash}'>
                                     ${btnAction}
                                 </div>
+                                ${divTimelineTugas}
                                 ${divInfoTugas}
                             </div>
                         </div>
@@ -387,7 +430,8 @@ function simpanProgress(obj){
     form.append('idPenyelia', nowSelect?.penyelia_hash);
     form.append('status', status);
     form.append('note', note);
-    form.append('document', document)
+    form.append('document', document);
+    form.append('sProgress', sProgress);
     !nowSelect?.prosesNext && form.append('statusPermohonan', 4); // status permohonan untuk proses pengiriman
 
     spinner('show', $(obj));
@@ -440,4 +484,13 @@ function btnDelete(obj) {
         }
         spinner(`hide`, $(obj.target));
     });
+}
+
+function showDetail(obj){
+    const idPenyelia = $(obj).parent().data("idpenyelia");
+    detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
+}
+
+function reload(tab){
+    switchLoadTab(tab);
 }

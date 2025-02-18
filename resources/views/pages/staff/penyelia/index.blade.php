@@ -16,6 +16,9 @@
                 <div class="tab-pane fade show active" id="surattugas-tab-pane" role="tabpanel" aria-labelledby="surattugas-tab" tabindex="0">
                     <div class="card shadow-sm m-4">
                         <div class="card-body">
+                            <div class="d-flex">
+                                <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload(1)"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
+                            </div>
                             <div class="d-flex pb-4">
                                 <div class="w-100 d-flex">
                                     {{-- <div class="mx-2">
@@ -46,9 +49,8 @@
                             <div class="my-3">
                                 <div class="header px-3 fw-bolder d-none d-md-flex row">
                                     <div class="col-md-3">Layanan</div>
-                                    <div class="col-md-2">Jenis</div>
-                                    <div class="col-md-2">Tipe</div>
-                                    <div class="col-md-2">Pelanggan</div>
+                                    <div class="col-md-3">Tipe</div>
+                                    <div class="col-md-3">Pelanggan</div>
                                     <div class="col-md-3 text-center">Action</div>
                                 </div>
                                 <hr>
@@ -62,16 +64,13 @@
                                                 <div class="placeholder w-50 mb-1"></div>
                                                 <div class="placeholder w-75 mb-1"></div>
                                             </div>
+                                            <div class="placeholder-glow col-6 col-md-3 text-end text-md-start">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                            </div>
                                             <div class="placeholder-glow col-6 col-md-3">
                                                 <div class="placeholder w-50 mb-1"></div>
                                             </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-center">
+                                            <div class="placeholder-glow col-6 col-md-3 text-center">
                                                 <div class="placeholder w-50 mb-1"></div>
                                             </div>
                                         </div>
@@ -91,6 +90,9 @@
                 <div class="tab-pane fade" id="penerbitanlhu-tab-pane" role="tabpanel" aria-labelledby="penerbitanlhu-tab" tabindex="0">
                     <div class="card shadow-sm m-4">
                         <div class="card-body">
+                            <div class="d-flex">
+                                <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload(2)"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
+                            </div>
                             <div class="d-flex pb-4">
                                 <div class="w-100 d-flex">
                                     {{-- <div class="mx-2">

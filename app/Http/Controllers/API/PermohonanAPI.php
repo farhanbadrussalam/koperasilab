@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use App\Models\Permohonan;
+use App\Models\Permohonan_dokumen;
 use App\Models\Permohonan_pengguna;
 use App\Models\Permohonan_tandaterima;
 use App\Models\Master_layanan_jasa;
@@ -219,6 +220,16 @@ class PermohonanAPI extends Controller
                 Permohonan_tandaterima::create($params);
             }
             $dataTandaterima = Permohonan_tandaterima::where('id_permohonan', $idPermohonan)->get();
+
+            // Simpan dokumen tandaterima
+            $document = Permohonan_dokumen::create(array(
+                'id_permohonan' => $idPermohonan,
+                'created_by' => Auth::user()->id,
+                'nama' => 'Tanda Terima Pengujian',
+                'jenis' => 'tandaterima',
+                'status' => 1,
+                'nomer' => generateNoDokumen('tandaterima')
+            ));
             DB::commit();
 
             return $this->output(array('msg' => 'Data berhasil disimpan', 'information' => $dataTandaterima));
@@ -293,6 +304,7 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
+            Permohonan_dokumen::where('id_permohonan', $id)->where('jenis', 'tandaterima')->delete();
             $delete = Permohonan_tandaterima::where('id_permohonan', $id)->delete();
             DB::commit();
 
@@ -466,9 +478,14 @@ class PermohonanAPI extends Controller
                 'pelanggan.perusahaan',
                 'kontrak',
                 'kontrak.periode',
+                'kontrak.jenis_layanan',
+                'kontrak.layanan_jasa:id_layanan,nama_layanan',
+                'kontrak.jenisTld:id_jenisTld,name',
                 'pengguna',
                 'pengguna.media',
                 'tandaterima',
+                'dokumen',
+                'invoice'
             )->where('id_permohonan', $id)->first();
             DB::commit();
 
@@ -654,7 +671,12 @@ class PermohonanAPI extends Controller
 
                     $dataPermohonan->update($arrayUpdate);
 
-                    $dataPermohonan = Permohonan::with('kontrak')->find($idPermohonan);
+                    $dataPermohonan = Permohonan::with(
+                        'kontrak',
+                        'jenis_layanan_parent',
+                        'jenisTld',
+                        'layanan_jasa',
+                    )->find($idPermohonan);
                     // Memindahkan Permohonan ke tabel kontrak
                     switch ($dataPermohonan->jenis_layanan_1) {
                         case 1: // Kontrak
@@ -698,6 +720,18 @@ class PermohonanAPI extends Controller
 
                             // Tambah periode
                             if($dataPermohonan->periode_pemakaian){
+                                // zero cek
+                                Kontrak_periode::create(array(
+                                    'id_kontrak' => $dataKontrak->id_kontrak,
+                                    'periode' => 0,
+                                    'start_date' => null,
+                                    'end_date' => null,
+                                    'status' => 1,
+                                    'id_permohonan' => $dataPermohonan->id_permohonan,
+                                    'created_by' => Auth::user()->id,
+                                    'created_at' => date('Y-m-d H:i:s')
+                                ));
+
                                 foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
                                     $periode = $key + 1;
 
@@ -707,7 +741,7 @@ class PermohonanAPI extends Controller
                                         'start_date' => $value['start_date'],
                                         'end_date' => $value['end_date'],
                                         'status' => 1,
-                                        'id_permohonan' => $dataPermohonan->periode == $periode ? $dataPermohonan->id_permohonan : null,
+                                        'id_permohonan' => null,
                                         'created_by' => Auth::user()->id,
                                         'created_at' => date('Y-m-d H:i:s')
                                     );
@@ -717,6 +751,17 @@ class PermohonanAPI extends Controller
 
                             // Menambahkan id_kontrak ke table permohonan 
                             $dataPermohonan->update(array('id_kontrak' => $dataKontrak->id_kontrak));
+
+                            // menambahkan dokumen perjanjian 
+                            $data = array(
+                                'id_permohonan' => $idPermohonan,
+                                'created_by' => Auth::user()->id,
+                                'nama' => 'Perjanjian-'.$dataPermohonan->jenis_layanan_parent->name.'-'.$dataPermohonan->layanan_jasa->nama_layanan.'-'.$dataPermohonan->jenisTld->name.'-'.convert_date($arrayUpdate['verify_at'], 6),
+                                'jenis' => 'perjanjian',
+                                'status' => 1,
+                                'nomer' => $no_kontrak
+                            );
+                            $document = Permohonan_dokumen::create($data);
                             break;
                     }
 

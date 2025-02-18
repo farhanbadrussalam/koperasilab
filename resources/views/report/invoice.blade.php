@@ -97,8 +97,8 @@
             </td>
             <td width="50%" style="text-align: center">
                 <div>
-                    <div class="p-2"><img src="{{ $data->ttd }}" alt="TTD_keuangan" class="img-fluid"></div>
-                    <div>{{ $data->usersig->name }}</div>
+                    <div class="p-2"><img src="{{ $data->ttd ? $data->ttd : $ttd_default }}" alt="TTD_keuangan" class="img-fluid"></div>
+                    <div>{{ $data->usersig ? $data->usersig->name : '................................' }}</div>
                 </div>
             </td>
         </tr>

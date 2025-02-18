@@ -1,5 +1,13 @@
 $(function () {
     loadData();
+
+    detail = new Detail({
+        jenis: 'surattugas',
+        tab: {
+            proses: true
+        },
+        activeTab: 'proses'
+    });
 });
 
 function loadData(page=1) {
@@ -17,12 +25,12 @@ function loadData(page=1) {
             const permohonan = lhu.permohonan;
             let arrPeriode = permohonan.kontrak?.periode ?? permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
             let tgl_periode = arrPeriode.find(d => d.periode == lhu.periode);
-            let btnAction = '';
+            let btnAction = '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
 
             if(lhu.status == 2) {
-                btnAction = `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/manager/surat_tugas/v/${lhu.penyelia_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`
+                btnAction += `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/manager/surat_tugas/v/${lhu.penyelia_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`
             }else{
-                btnAction = `<a class="btn btn-outline-info btn-sm mb-1" href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}"><i class="bi bi-eye"></i> Show</a>`;
+                btnAction += `<a class="btn btn-outline-info btn-sm" href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}"><i class="bi bi-eye"></i> Show</a>`;
             }
 
             let divInfoTugas = `
@@ -40,8 +48,8 @@ function loadData(page=1) {
                             <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>${permohonan.jenis_tld.name}</div>
-                                <div>Periode ${lhu.periode} : </div>
-                                <div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>
+                                <div>${lhu.periode == 0 ? 'Zero cek' : `Periode ${lhu.periode} :`} </div>
+                                ${lhu.periode == 0 ? '' : `<div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>`}
                                 <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                             </small>
                         </div>
@@ -55,7 +63,7 @@ function loadData(page=1) {
                             <div class="fw-bolder">End date</div>
                             <div>${dateFormat(lhu.end_date, 4)}</div>
                         </div>
-                        <div class="col-6 col-md-2 text-center" data-lhu='${JSON.stringify(lhu)}' data-surattugas='${lhu.no_surat_tugas}'>
+                        <div class="col-6 col-md-2 text-center" data-idpenyelia='${lhu.penyelia_hash}' data-surattugas='${lhu.no_surat_tugas}'>
                             ${btnAction}
                         </div>
                         ${divInfoTugas}
@@ -84,4 +92,8 @@ function loadData(page=1) {
 
 function reload() {
     loadData();
+}
+function showDetail(obj){
+    const idPenyelia = $(obj).parent().data("idpenyelia");
+    detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }

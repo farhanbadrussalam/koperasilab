@@ -13,6 +13,7 @@ class Master_jenisLayanan extends Model
     protected $fillable = [
         'id_jenisLayanan',
         'name',
+        'jobs',
         'status'
     ];
 
@@ -23,6 +24,10 @@ class Master_jenisLayanan extends Model
     protected $appends = [
         'jenis_layanan_hash',
         'parent_hash'
+    ];
+
+    protected $casts = [
+        'jobs' => 'array'
     ];
 
     public function getJenisLayananHashAttribute()

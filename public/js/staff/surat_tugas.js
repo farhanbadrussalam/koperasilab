@@ -5,7 +5,12 @@ $(function () {
     // Mengambil periode
     let arrPeriode = dataPenyelia.permohonan.kontrak?.periode ?? dataPenyelia.permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
     let findPeriode = arrPeriode.find(d => d.periode == dataPenyelia.periode);
-    $('#periodePermohonan').html(`${dateFormat(findPeriode.start_date, 5)} - ${dateFormat(findPeriode.end_date, 5)}`);
+    
+    if(findPeriode.periode == 0){
+        $('#periodePermohonan').html(`Zero cek`);
+    }else{
+        $('#periodePermohonan').html(`${dateFormat(findPeriode.start_date, 5)} - ${dateFormat(findPeriode.end_date, 5)}`);
+    }
 
     if(!['verif', 'show'].includes(typeSurat)){
         $('#date_start').flatpickr({
@@ -57,6 +62,10 @@ $(function () {
     }));
 
     loadPetugas();
+    
+    listJobs.forEach((d, i) => {
+        d.order = i + 1;
+    });
 
     if(!['verif', 'show'].includes(typeSurat)){
         $('#sortJobs').sortable({

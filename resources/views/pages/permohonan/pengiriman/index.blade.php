@@ -72,6 +72,9 @@
                 <input type="text" class="form-control" name="txt_date_diterima" id="txt_date_diterima">
             </div>
             <div class="mb-2 col-md-12">
+                <div id="surpengDiv"></div>
+            </div>
+            <div class="mb-2 col-md-12">
                 <label for="" class="form-label">Kelengkapan dokumen<span class="text-danger ms-1">*</span></label>
                 <ul class="list-group w-100" id="list-kelengkapan">
 

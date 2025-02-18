@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Session;
 use App\Events\NotifikasiEvent;
 use App\Models\notifikasi;
 use App\Models\User;
+use App\Models\Penyelia;
+use App\Models\Permohonan_dokumen;
 use Illuminate\Support\Facades\Crypt;
 
 if (!function_exists('formatCurrency')) {
@@ -275,6 +277,10 @@ if (!function_exists('convert_date')) {
                 # 2024-03-24
                 $format = 'Y-m-d';
                 break;
+            case 6:
+                # September 2023
+                $format = 'M Y';
+                break;
         }
 
         // Mengganti nama hari dalam bahasa Inggris dengan bahasa Indonesia
@@ -369,6 +375,51 @@ if (!function_exists('angkaKeHuruf')) {
             }
             return $result;
         }
+    }
+}
+
+if (!function_exists('generateNoDokumen')) {
+    function generateNoDokumen($jenis, $id = false)
+    {
+        // Mengambil bulan sekarang dan mengubah ke dalam format Romawi
+        $bulanSekarang = date('n'); // n = format angka bulan tanpa nol
+        $romawiBulan = getRomawiBulan($bulanSekarang);
+
+        // Tahun saat ini
+        $tahunSekarang = date('Y');
+        $lastContractNumber = 1;
+
+        // Incremental number
+        $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
+                                ->whereMonth('created_at', $bulanSekarang)
+                                ->whereYear('created_at', $tahunSekarang)
+                                ->count(); // Ubah dengan pengambilan nomor terakhir dari database
+        $increment = str_pad($lastContractNumber + 1, 4, '0', STR_PAD_LEFT);
+
+        switch ($jenis) {
+            case 'tandaterima':
+                // Format nomor kontrak
+                $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'surattugas':
+                // mengambil satuan kerja
+                $satuankerja = Penyelia::select('satuankerja.alias')
+                ->join('users', 'users.id', '=', 'penyelia.created_by')
+                ->join('satuankerja', 'satuankerja.id', '=', 'users.satuankerja_id')
+                ->where('penyelia.id_penyelia', $id)
+                ->first();
+
+                $noKontrak = "{$increment}/NL-{$satuankerja->alias}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'surpeng':
+                // Format nomor kontrak
+                $noKontrak = "{$increment}/JKRL-B/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            
+        }
+        
+
+        return $noKontrak;
     }
 }
 ?>

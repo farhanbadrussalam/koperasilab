@@ -1,7 +1,15 @@
 let dataPenyelia = [];
 let nowSelect = false;
+let detail = false;
 $(function () {
     loadData();
+
+    detail = new Detail({
+        jenis: 'penyelia',
+        tab: {
+            dokumen: true
+        }
+    });
 
     $('#updateProgressModal').on('hide.bs.modal', () => {
         nowSelect = false;
@@ -46,8 +54,33 @@ function loadData(page = 1) {
             let divInfoTugas = `
                 <div class="col-md-12">
                     <div class="rounded bg-secondary-subtle p-2 text-body-secondary d-flex justify-content-between">
+                        <span class="fs-7">Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
                         <span>Status : ${statusFormat('penyelia', lhu.status)}</span>
                     </div>
+                </div>
+            `;
+
+            let jobsPenyeliaLength = lhu.penyelia_map.length;
+            let widthCalc = (100 / jobsPenyeliaLength);
+
+            let timeline = '';
+            for (const tugas of lhu.penyelia_map) {
+                let jobActive = '';
+                if(tugas.status == 1) { // proses penyelia selesai
+                    jobActive = 'active';
+                }
+
+                if(lhu.status == tugas.jobs.status) {
+                    jobActive = 'onprogress';
+                }
+                timeline += `<li class="${jobActive} step0" style="width: ${widthCalc}%;"><span class="px-1">${tugas.jobs.name}</span></li>`;
+            }
+
+            let divTimelineTugas = `
+                <div class="col-md-12 mt-2 pt-4 pb-0">
+                    <ul id="progressbar" class="text-center">
+                        ${timeline}
+                    </ul>
                 </div>
             `;
 
@@ -61,7 +94,7 @@ function loadData(page = 1) {
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md-4">
                             <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>${permohonan.jenis_tld.name}</div>
@@ -69,19 +102,14 @@ function loadData(page = 1) {
                                 <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
                             </small>
                         </div>
-                        <div class="col-6 col-md-3 my-3 text-end text-md-start">
+                        <div class="col-6 col-md-6 my-3 text-end text-md-start">
                             <div>${permohonan.tipe_kontrak}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
-                        </div>
-                        <div class="col-6 col-md-4 text-center">
-                            <div class="fw-bolder">Start date</div>
-                            <div>${dateFormat(lhu.start_date, 4)}</div>
-                            <div class="fw-bolder">End date</div>
-                            <div>${dateFormat(lhu.end_date, 4)}</div>
                         </div>
                         <div class="col-6 col-md-2 text-center" data-id='${lhu.penyelia_hash}' data-index='${i}' data-surattugas='${lhu.no_surat_tugas}'>
                             ${btnAction}
                         </div>
+                        ${divTimelineTugas}
                         ${divInfoTugas}
                     </div>
                 </div>
@@ -123,6 +151,8 @@ function openProgressModal(obj){
         locale: "id",
         dateFormat: "Y-m-d",
         altFormat: "j F Y",
+        minDate: nowSelect.start_date,
+        maxDate: nowSelect.end_date,
         defaultDate: 'today'
     });
     prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
@@ -165,6 +195,7 @@ function simpanProgress(obj){
     form.append('idPenyelia', nowSelect?.penyelia_hash);
     form.append('status', status);
     form.append('note', note);
+    form.append('sProgress', sProgress);
     nowSelect?.prosesNow.jobs.upload_doc ? form.append('document', document) : false;
     !nowSelect?.prosesNext && form.append('statusPermohonan', 4); // status permohonan untuk proses pengiriman
 
@@ -191,4 +222,9 @@ function simpanProgress(obj){
 
 function reload(){
     loadData();
+}
+
+function showDetail(obj){
+    const id = $(obj).parent().data("id");
+    detail.show(`api/v1/penyelia/getById/${id}`);
 }

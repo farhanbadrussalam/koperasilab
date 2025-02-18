@@ -67,4 +67,12 @@ class Pengiriman extends Model
     public function kontrak(){
         return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }
+
+    public function ekspedisi(){
+        return $this->belongsTo(Master_ekspedisi::class, 'id_ekspedisi', 'id_ekspedisi');
+    }
+
+    public function tujuan(){
+        return $this->belongsTo(User::class, 'tujuan', 'id');
+    }
 }

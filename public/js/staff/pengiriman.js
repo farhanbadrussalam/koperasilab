@@ -5,12 +5,10 @@ let detail = false;
 $(function () {
     loadData(1);
     detail = new Detail({
-        jenis: 'permohonan',
+        jenis: 'pengiriman',
         tab: {
-            pengguna: true,
-            activitas: false,
-            dokumen: false,
-            log: false
+            items: true,
+            bukti: true
         }
     })
 });
@@ -268,6 +266,6 @@ $('#list-pagination-pengiriman').on('click', 'a', function (e) {
 });
 
 function showDetail(obj){
-    const idPermohonan = $(obj).parent().data("idpermohonan");
-    detail.show(`api/v1/permohonan/getPengajuanById/${idPermohonan}`);
+    const id = $(obj).parent().data("id");
+    detail.show(`api/v1/pengiriman/getById/${id}`);
 }

@@ -17,7 +17,8 @@ class Pengiriman_detail extends Model
         'id_pengiriman',
         'jenis',
         'periode',
-        'list_tld'
+        'tld_kontrol',
+        'tld_pengguna'
     ];
 
     protected $hidden = [
@@ -31,7 +32,8 @@ class Pengiriman_detail extends Model
     ];
 
     protected $casts = [
-        'list_tld' => 'array'
+        'tld_kontrol' => 'array',
+        'tld_pengguna' => 'array'
     ];
 
     public function getPengirimanDetailHashAttribute()

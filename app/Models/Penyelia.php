@@ -80,4 +80,8 @@ class Penyelia extends Model
     public function pengiriman(){
         return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
     }
+
+    public function createBy(){
+        return $this->belongsTo(User::class, 'created_by', 'id');
+    }
 }

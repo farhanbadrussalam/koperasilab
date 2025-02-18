@@ -108,11 +108,11 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::prefix('laporan')->group(function() {
         Route::controller(ReportController::class)->group(function () {
-            Route::get('/suratTugas/{id}', 'suratTugas')->name('laporan.suratTugas');
+            Route::get('/surattugas/{id}', 'suratTugas')->name('laporan.surattugas');
             Route::get('/kwitansi/{id}', 'kwitansi')->name('laporan.kwitansi');
             Route::get('/invoice/{id}', 'invoice')->name('laporan.invoice');
             Route::get('/tandaterima/{id}', 'tandaTerima')->name('laporan.tandaterima');
-            Route::get('/suratPengantar/{id}', 'suratPengantar')->name('laporan.suratPengantar');
+            Route::get('/surpeng/{id}', 'suratPengantar')->name('laporan.surpeng');
         });
     });
 

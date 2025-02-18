@@ -5,7 +5,8 @@ $(function () {
         jenis: 'permohonan',
         tab: {
             pengguna: true,
-            periode: true
+            periode: true,
+            dokumen: true
         }
     });
 });
@@ -37,7 +38,7 @@ function loadData(page = 1) {
             if(pengajuan.status == 1){
                 htmlAction = `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/staff/permohonan/verifikasi/${pengajuan.permohonan_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`;
             }
-
+            console.log(pengajuan);
             html += `
                 <div class="card mb-2 smooth-height">
                     <div class="card-body row align-items-center py-2">
@@ -51,7 +52,7 @@ function loadData(page = 1) {
                             </div>
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
                                 <div><i class="bi bi-person-check-fill"></i> ${pengajuan.pelanggan.name}</div>
-                                <span><i class="bi bi-calendar-range"></i> Periode ${pengajuan.periode}</span>
+                                ${pengajuan.periode ? `<span><i class="bi bi-calendar-range"></i> Periode ${pengajuan.periode}</span>` : ''}
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(pengajuan.created_at, 4)}</div>
                                 <div><i class="bi bi-cash-stack"></i> ${formatRupiah(pengajuan.total_harga)}</div>
                             </div>

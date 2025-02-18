@@ -298,51 +298,33 @@ function statusFormat(feature, status) {
         switch (status) {
             case 1:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-secondary"></div></div>
-                        <span class="subbody-medium text-submain text-wrap">Pengajuan</span>
-                    </div>
+                    <span class="badge bg-secondary-subtle text-dark border border-secondary">Pengajuan</span>
                     `;
                 break;
             case 2:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-secondary"></div></div>
-                        <span class="subbody-medium text-submain text-wrap">TTD manager</span>
-                    </div>
+                    <span class="badge bg-secondary-subtle text-dark border border-secondary">TTD manager</span>
                     `;
                 break;
             case 3:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-warning"></div></div>
-                        <span class="subbody-medium text-submain text-wrap">Perlu dibayar</span>
-                    </div>
+                    <span class="badge bg-warning-subtle text-dark border border-warning">Perlu dibayar</span>
                     `;
                 break;
             case 4:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-primary"></div></div>
-                        <span class="subbody-medium text-submain text-wrap">Menunggu konfirmasi</span>
-                    </div>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Menunggu konfirmasi</span>
                     `;
                 break;
             case 5:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-success"></div></div>
-                        <span class="subbody-medium text-submain text-wrap">Pembayaran diterima</span>
-                    </div>
+                    <span class="badge bg-success-subtle text-dark border border-success">Pembayaran diterima</span>
                     `;
                 break;
                 
             default:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-danger"></div></div>
-                        <span class="subbody-medium text-submain text-wrap">Pembayaran ditolak</span>
-                    </div>
+                    <span class="badge bg-danger-subtle text-dark border border-danger">Pembayaran ditolak</span>
                     `;
                 break;
         }
@@ -412,12 +394,27 @@ function statusFormat(feature, status) {
                 break;
             case 16:
                 htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Anealing & Labeling</span>
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Anealing</span>
                 `;
                 break;
             case 17:
                 htmlStatus = `
                     <span class="badge bg-primary-subtle text-dark border border-primary">Proses Penyimpanan</span>
+                `;
+                break;
+            case 18:
+                htmlStatus = `
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Pembuatan Label</span>
+                `;
+                break;
+            case 19:
+                htmlStatus = `
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Scan LHU</span>
+                `;
+                break;
+            case 20:
+                htmlStatus = `
+                    <span class="badge bg-primary-subtle text-dark border border-primary">Proses Pelabelan</span>
                 `;
                 break;
         }
@@ -430,6 +427,13 @@ function statusFormat(feature, status) {
             htmlStatus = `<span class="badge bg-warning-subtle text-dark border border-warning">Perlu dibayar</span>`;
         } else {
             htmlStatus = `<span class="badge bg-danger-subtle text-dark border border-danger">Belum dibayar</span>`;
+        }
+    } else if (feature == 'kontrak') {
+        switch (status) {
+            case 1:
+                htmlStatus = `
+                    <span class="badge bg-primary-subtle text-dark border border-primary">On Progress</span>
+                    `;
         }
     }
 

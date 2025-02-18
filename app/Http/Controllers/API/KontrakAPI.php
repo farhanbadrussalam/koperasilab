@@ -103,4 +103,40 @@ class KontrakAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
         }
     }
+
+    public function getKontrakById($id){
+        $id = decryptor($id);
+
+        DB::beginTransaction();
+        try {
+            $query = Kontrak::with(
+                        'pengguna',
+                        'periode',
+                        'periode.permohonan',
+                        'periode.permohonan.jenis_layanan',
+                        'periode.permohonan.jenis_layanan_parent',
+                        'periode.permohonan.file_lhu',
+                        'invoice',
+                        'layanan_jasa:id_layanan,nama_layanan',
+                        'jenisTld:id_jenisTld,name', 
+                        'jenis_layanan:id_jenisLayanan,name,parent',
+                        'jenis_layanan_parent',
+                        'pelanggan:id,id_perusahaan,name',
+                        'pelanggan.perusahaan','pengguna.media',
+                        'pengiriman:id_pengiriman,id_kontrak,no_resi,status',
+                        'pengiriman.detail',
+                        'pengiriman.permohonan:id_permohonan,periode',
+                    )
+                    ->where('id_kontrak', $id)
+                    ->first();
+
+            DB::commit();
+            
+            return $this->output($query, 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
 }

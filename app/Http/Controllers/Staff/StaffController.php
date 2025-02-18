@@ -14,6 +14,7 @@ use App\Models\Master_jobs;
 use App\Models\Master_ekspedisi;
 use App\Models\Kontrak;
 use App\Models\Kontrak_periode;
+use App\Models\Master_tld;
 
 use Auth;
 use Log;
@@ -127,9 +128,13 @@ class StaffController extends Controller
                 array_push($listJobs, $dataJobs);
             }
         }else{
-            $listJobs = $query->permohonan->layanan_jasa->jobs_pelaksana;
+            // Mengambil jobs dari layanan jasa
+            $list = $query->permohonan->jenis_layanan_parent->jobs;
+            foreach ($list as $key => $value) {
+                $dataJobs = Master_jobs::find($value);
+                array_push($listJobs, $dataJobs);
+            }
         }
-        
         $data = [
             'title' => 'Surat tugas',
             'module' => 'staff-penyelia',
@@ -240,8 +245,14 @@ class StaffController extends Controller
                 'lhu',
                 'lhu.media',
                 'pengiriman',
-                'file_lhu'
+                'file_lhu',
+                'pengguna',
+                'pengguna.tldPengguna'
             )->find($idPermohonan);
+            
+        if(count($dataPermohonan->list_tld) > 0) {
+            $dataPermohonan->tldKontrol = Master_tld::whereIn('id_tld', $dataPermohonan->list_tld)->get();
+        }
 
         $data = [
             'title' => 'Buat Pengiriman',

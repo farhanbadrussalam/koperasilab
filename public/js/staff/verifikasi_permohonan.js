@@ -98,7 +98,7 @@ $(function () {
                timerProgressBar: true,
                showConfirmButton: false
            }).then(() => {
-                dataPermohonan.tandaterima = false;
+                dataPermohonan.tandaterima = [];
                 loadTandaterima();
            })
         });
@@ -288,7 +288,6 @@ function loadPengguna(){
     $('#pengguna-table').addClass('d-none');
 
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
-        console.log(result);
         let html = '';
         for (const [i,pengguna] of result.data.entries()) {
             let txtRadiasi = '';
@@ -389,6 +388,12 @@ function loadPengguna(){
 
 function verif_kelengkapan(status, obj){
     if(status == 'lengkap'){
+        if(dataPermohonan.tandaterima.length == 0){
+            return Swal.fire({
+                icon: "warning",
+                text: "Harap tambah tandaterima terlebih dahulu.",
+            });
+        }
         // if(jenisLayanan.name == 'Sewa'){
         //     return Swal.fire({
         //         icon: "warning",
@@ -436,7 +441,6 @@ function verif_kelengkapan(status, obj){
                 formData.append('ttd', ttd);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
-                // formData.append('tandaterima', JSON.stringify(answerTandaterima));
                 formData.append('listTld', JSON.stringify(checkedTldValues))
                 formData.append('tldKontrol', JSON.stringify(listTldKontrol));
 
