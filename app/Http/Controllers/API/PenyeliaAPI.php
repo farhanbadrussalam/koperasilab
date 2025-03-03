@@ -49,9 +49,11 @@ class PenyeliaAPI extends Controller
             $textNote = $request->note ? $request->note : '';
             $statusPermohonan = $request->statusPermohonan ? $request->statusPermohonan : '';
             $sProgress = $request->sProgress ? $request->sProgress : '';
+            $jenisLog = $request->jenisLog ? $request->jenisLog : '';
 
             $document = $request->file("document");
             $file_document = false;
+            $flagSkipLog = false;
 
             if($document){
                 $file_document = $this->media->upload($document, 'penyelia');
@@ -95,7 +97,6 @@ class PenyeliaAPI extends Controller
                     $findMap = Penyelia_map::where('id_jobs', decryptor($value->idJobs))->where('id_penyelia', $idPenyelia)->first();
                     if($findMap){
                         $data = array(
-                            'id_user' => decryptor($value->idPetugas),
                             'status' => 1,
                             'created_by' => Auth::user()->id
                         );
@@ -103,7 +104,8 @@ class PenyeliaAPI extends Controller
                         Penyelia_petugas::updateOrCreate(
                             [
                                 'id_map' => decryptor($findMap->map_hash),
-                                'id_penyelia' => $idPenyelia
+                                'id_penyelia' => $idPenyelia,
+                                'id_user' => decryptor($value->idPetugas),
                             ],
                             $data
                         );
@@ -135,18 +137,44 @@ class PenyeliaAPI extends Controller
 
             // cek penyelia map
             if($sProgress){
+                $idJobs = false;
                 if($sProgress == 'done') {
-                    $idJobs = Master_jobs::select('id_jobs')->where('status', $penyelia->status)->first();
+                    $idJobs = Master_jobs::select('id_jobs','status')->where('status', $penyelia->status)->first();
                     if($idJobs) {
-                        Penyelia_map::where('id_jobs', $idJobs->id_jobs)->where('id_penyelia', $idPenyelia)->update(array('status' => 1));
+                        Penyelia_map::where('id_jobs', $idJobs->id_jobs)
+                            ->where('id_penyelia', $idPenyelia)
+                            ->update(array(
+                                'status' => 1,
+                                'done_by' => Auth::user()->id,
+                                'done_at' => date('Y-m-d H:i:s')
+                            ));
                     }
                 }else{
-                    $idJobs = Master_jobs::select('id_jobs')->where('status', $status)->first();    
+                    $idJobs = Master_jobs::select('id_jobs','status')->where('status', $status)->first();    
                     if($idJobs) {
-                        Penyelia_map::where('id_jobs', $idJobs->id_jobs)->where('id_penyelia', $idPenyelia)->update(array('status' => 0));
+                        Penyelia_map::where('id_jobs', $idJobs->id_jobs)
+                            ->where('id_penyelia', $idPenyelia)
+                            ->update(array(
+                                'status' => 0,
+                                'done_by' => null,
+                                'done_at' => null
+                            ));
                     }
+                    // remove dokument LHU saat dikembalikan
+                    $this->destroyDokumenLhu($penyelia->penyelia_hash, encryptor($penyelia->document));
                 }
 
+                // menambahkan log penyelia
+                if($idJobs){
+                    $this->log->addLog('penyelia', array(
+                        'id_penyelia' => $penyelia->id_penyelia,
+                        'status' => $sProgress == 'done' ? $idJobs->status : $penyelia->status,
+                        'message' => $this->log->noteLog('penyelia', $sProgress == 'done' ? $idJobs->status : $penyelia->status, $jenisLog),
+                        'note' => $textNote,
+                        'created_by' => Auth::user()->id
+                    ));
+                    $flagSkipLog = true;
+                }
             }
 
             // menambahkan periode
@@ -168,6 +196,16 @@ class PenyeliaAPI extends Controller
             } elseif ($penyelia->wasChanged()) {
                 $result['status'] = "updated";
                 $result['msg'] = "Penyelia berhasil diedit.";
+
+                // Menyimpan perubahan yang terjadi
+                $result['changed_columns'] = $penyelia->getChanges();
+                // remove updated_at
+                unset($result['changed_columns']['updated_at']);
+
+                if(empty($result['changed_columns'])){
+                    $result['status'] = "none";
+                    $result['msg'] = "Nothing has changed.";
+                }
             } else {
                 $result['status'] = "none";
                 $result['msg'] = "Nothing has changed.";
@@ -189,16 +227,27 @@ class PenyeliaAPI extends Controller
                         'nomer' => generateNoDokumen('surpeng')
                     );
                     $document = Permohonan_dokumen::create($data);
+
+                    // log surat tugas
+                    $this->log->addLog('penyelia', array(
+                        'id_penyelia' => $penyelia->id_penyelia,
+                        'message' => 'Surat tugas ditandatangani',
+                        'created_by' => Auth::user()->id
+                    ));
+                    $flagSkipLog = true;
+                } else if($statusPermohonan == 4){ // ketika proses LHU selesai
+                    $flagSkipLog = false;
                 }
             }
 
             // log penyelia
-            if($result['status'] != "none"){
-                $note = $this->log->noteLog('penyelia', $status, $textNote);
+            if($result['status'] != "none" && !$flagSkipLog){
+                $message = $this->log->noteLog('penyelia', $status, $jenisLog);
                 $this->log->addLog('penyelia', array(
                     'id_penyelia' => $penyelia->id_penyelia,
                     'status' => $status,
-                    'note' => $note,
+                    'message' => $message,
+                    'note' => $textNote,
                     'document' => $file_document ? $file_document->getIdMedia() : null,
                     'created_by' => Auth::user()->id
                 ));
@@ -361,11 +410,103 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak',
                 'permohonan.kontrak.periode',
                 'permohonan.dokumen',
-                'permohonan.invoice'
+                'permohonan.invoice',
+                'log',
+                'media'
             )->find($idPenyelia);
             DB::commit();
     
             return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+    
+    public function getPenyeliaMapById($idPenyeliaMap)
+    {
+        DB::beginTransaction();
+        try {
+            $idPenyeliaMap = decryptor($idPenyeliaMap);
+    
+            $query = Penyelia_map::with(
+                'jobs:id_jobs,status,name,upload_doc',
+                'petugas',
+                'petugas.user',
+                'doneBy:id,name',
+                'penyelia:id_penyelia,status'
+            )->find($idPenyeliaMap);
+            DB::commit();
+    
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function uploadDokumenLhu(Request $request)
+    {
+        $validate = $request->validate([
+            'idHash' => 'required'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $idPenyelia = decryptor($request->idHash);
+            $file = $request->file('file');
+
+            $fileUpload = $this->media->upload($file, 'penyelia');
+            $dataPenyelia = Penyelia::find($idPenyelia);
+            
+            if(isset($dataPenyelia)){
+                $update = $dataPenyelia->update(array('document' => $fileUpload->getIdMedia()));
+    
+                DB::commit();
+    
+                if($update){
+                    $fileUpload->store();
+                    // ambil media dokumen lhu
+                    $mediaDokumenLhu = $this->media->get($fileUpload->getIdMedia());
+                    return $this->output(array('msg' => 'Dokumen lhu berhasil diupload', 'data' => $mediaDokumenLhu));
+                }
+    
+                return $this->output(array('msg' => 'Dokumen lhu gagal diupload'), 'Fail', 400);
+            }
+
+            return $this->output(array('msg' => 'Penyelia tidak ditemukan'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroyDokumenLhu($idPenyelia, $idMedia)
+    {
+        $idPenyelia = decryptor($idPenyelia);
+        $idMedia = decryptor($idMedia);
+
+        DB::beginTransaction();
+        try {
+            $dataPenyelia = Penyelia::find($idPenyelia);
+            
+            if(isset($dataPenyelia)){
+                $update = $dataPenyelia->update(array('document' => null));
+    
+                DB::commit();
+    
+                if($update){
+                    $this->media->destroy($idMedia);
+                    return $this->output(array('msg' => 'Dokumen lhu berhasil dihapus'));
+                }
+    
+                return $this->output(array('msg' => 'Dokumen lhu gagal dihapus'), 'Fail', 400);
+            }
+
+            return $this->output(array('msg' => 'Penyelia tidak ditemukan'), 'Fail', 400);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -387,6 +528,15 @@ class PenyeliaAPI extends Controller
                 'status' => 1,
                 'start_date' => null,
                 'end_date' => null
+            ));
+
+            // Log penyelia
+            $this->log->addLog('penyelia', array(
+                'id_penyelia' => $idPenyelia,
+                'status' => 1,
+                'message' => 'Surat tugas dihapus',
+                'note' => '',
+                'created_by' => Auth::user()->id
             ));
 
             DB::commit();

@@ -7,6 +7,8 @@ use App\Models\Log_permohonan;
 use App\Models\Log_keuangan;
 use App\Models\Log_penyelia;
 
+use App\Models\Master_jobs;
+
 class LogController extends Controller
 {
     public function addLog($mode, $params = array()){
@@ -29,7 +31,18 @@ class LogController extends Controller
         return $query;
     }
 
-    public function noteLog($mode, $status, $text = '')
+    public function getLog($mode, $where = array()){
+        $query = false;
+        switch ($mode) {
+            case 'penyelia':
+                $query = Log_penyelia::where($where)->first();
+                break;
+        }
+
+        return $query;
+    }
+
+    public function noteLog($mode, $status, $jenis = '', $text = '')
     {
         $note = '';
         if($mode == 'keuangan'){
@@ -75,41 +88,24 @@ class LogController extends Controller
         } else if ($mode == 'penyelia'){
             switch ($status) {
                 case 1:
-                    $note = 'Penyelia - Pengajuan berhasil dibuat';
+                    $note = 'Pengajuan dibuat';
                     break;
                 case 2:
-                    $note = 'Penyelia - Permohonan tanda tangan manager ';
+                    if($jenis == 'updated'){
+                        $note = 'Surat tugas di perbaharui';
+                    }else{
+                        $note = 'Surat tugas di buat';
+                    }
                     break;
                 case 3:
-                    $note = 'Penyelia - Selesai';
-                    break;
-                case 11:
-                    $note = 'Penyelia - Proses Pendataan TLD '.($text != '' ? "($text)" : "");
-                    break;
-                case 12:
-                    $note = 'Penyelia - Proses Pembacaan TLD '.($text != '' ? "($text)" : "");
-                    break;
-                case 13:
-                    $note = 'Penyelia - Proses Penyimpanan TLD '.($text != '' ? "($text)" : "");
-                    break;
-                case 14:
-                    $note = 'Penyelia - Proses Anealing '.($text != '' ? "($text)" : "");
-                    break;
-                case 15:
-                    $note = 'Penyelia - Proses Labeling '.($text != '' ? "($text)" : "");
-                    break;
-                case 16:
-                    $note = 'Penyelia - Proses Penyeliaan LHU '.($text != '' ? "($text)" : "");
-                    break;
-                case 17:
-                    $note = 'Penyelia - Proses Pendatanganan LHU '.($text != '' ? "($text)" : "");
-                    break;
-                case 18:
-                    $note = 'Penyelia - Proses Penerbitan LHU '.($text != '' ? "($text)" : "");
+                    $note = 'Proses Selesai';
                     break;
                 
                 default:
-                    $note = $text;
+                    $jobs = Master_jobs::where('status',$status)->first();
+                    if($jobs){
+                        $note = "Proses ".$jobs->name;
+                    }
                     break;
             }
         }

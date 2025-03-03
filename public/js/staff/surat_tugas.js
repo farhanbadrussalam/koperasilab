@@ -145,22 +145,25 @@ function loadPetugas() {
     $('[id^="list-petugas-"]').each(function () {
         const idElement = $(this).attr('id'); // Mendapatkan ID elemen
         const idJobs = idElement.replace('list-petugas-', ''); // Mendapatkan angka ID
-        const petugas = arrJobs.find(job => job.idJobs == idJobs); // Mencari data sesuai ID
+        const arrPetugas = arrJobs.filter(job => job.idJobs == idJobs); // Mencari data sesuai ID
         
-        if (petugas) {
+        if (arrPetugas.length > 0) {
             // Jika ada data untuk elemen ini
-            let btnRemove = !['verif', 'show'].includes(typeSurat) 
-                ? `<div class="text-danger cursoron" onclick="removePetugas(${arrJobs.indexOf(petugas)})"><i class="bi bi-person-fill-dash"></i> Hapus</div>` 
-                : '';
-            let html = `
-                <div class="border-bottom py-1 d-flex justify-content-between px-1">
-                    <div>
-                        <span class="fw-medium">${petugas.name}</span>
-                        <span class="text-secondary"> - ${petugas.email}</span>
+            let html = '';
+            for (const petugas of arrPetugas) {
+                let btnRemove = !['verif', 'show'].includes(typeSurat) 
+                    ? `<div class="text-danger cursoron" onclick="removePetugas(${arrJobs.indexOf(petugas)})"><i class="bi bi-person-fill-dash"></i> Hapus</div>` 
+                    : '';
+                html += `
+                    <div class="border-bottom py-1 d-flex justify-content-between px-1">
+                        <div>
+                            <span class="fw-medium">${petugas.name}</span>
+                            <span class="text-secondary"> - ${petugas.email}</span>
+                        </div>
+                        ${btnRemove}
                     </div>
-                    ${btnRemove}
-                </div>
-            `;
+                `;
+            }
             $(this).html(html);
         } else {
             // Jika tidak ada data untuk elemen ini
@@ -232,8 +235,9 @@ function saveSuratTugas(obj){
                 params.append('endDate', dateEnd);
                 params.append('petugas', JSON.stringify(arrJobs));
                 params.append('jobsMap', JSON.stringify(listJobs));
+                params.append('jenisLog', typeSurat == 'tambah' ? 'created' : 'updated');
             }else{
-                params.append('status', listJobs[0].status); // Pendataan TLD
+                params.append('status', listJobs[0].status);
                 params.append('ttd', signaturePad.toDataURL());
                 params.append('ttd_by', userActive.user_hash);
                 params.append('statusPermohonan', 3); // Status untuk proses pelaksana lab

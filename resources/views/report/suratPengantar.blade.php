@@ -9,9 +9,11 @@
     $layanan = $data->layanan_jasa->nama_layanan;
     $jenisTld = $data->jenisTld->name;
     $kontrak = $data->kontrak?->no_kontrak ?? '-';
-    $startDate = $data->lhu->start_date;
-    $endDate = $data->lhu->end_date;
+    $startDate = $data->periodenow->start_date;
+    $endDate = $data->periodenow->end_date;
     $created = $data->dokumen[0]->created_at;
+
+    $periode = "bulan ". convert_date($startDate, 6) ." s.d ". convert_date($endDate, 6) ." periode $data->periode";
 @endphp
 
 @section('content')
@@ -46,8 +48,7 @@
     <div class="fs-3 lh-2" style="margin-top: 15px;">
         <p class="text-indent">
             Dengan ini kami kirimkan <span class="fw-bold">sebanyak {{ $data->jumlah_pengguna }} buah {{ $layanan }} {{ $jenisTld }} monitor</span>
-            beserta <span class="fw-bold">{{ $data->jumlah_kontrol }} buah TLD Kontrol</span> untuk pemakaian <span class="fw-bold">bulan {{ convert_date($startDate, 6) }} s.d {{ convert_date($endDate, 6) }} periode
-            Terakhir,</span> Kontrak No. ({{ $kontrak }}) daftar nama terlampir.
+            beserta <span class="fw-bold">{{ $data->jumlah_kontrol }} buah TLD Kontrol</span> untuk pemakaian <span class="fw-bold">{{ $data->periode ? $periode : 'Zero cek' }},</span> Kontrak No. ({{ $kontrak }}) daftar nama terlampir.
         </p>
         <p class="text-indent">
             Demikian, atas perhatian dan kerjasamanya kami ucapkan terima kasih.

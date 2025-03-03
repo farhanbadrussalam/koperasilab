@@ -66,7 +66,6 @@ function loadData(page = 1, status) {
                             </div>
                             <div class="col-6 col-md-2 ms-auto">${statusFormat('permohonan', pengajuan.status)}</div>
                             <div class="col-6 col-md-2 text-center" data-id="${pengajuan.permohonan_hash}">
-                                ${btnEdit}
                                 ${btnRemove}
                             </div>
                         </div>
@@ -84,18 +83,18 @@ function loadData(page = 1, status) {
                                     <span class="fw-bold">${pengajuan.jenis_tld?.name ?? '-'} - Layanan ${pengajuan.layanan_jasa?.nama_layanan}</span>
                                 </div>
                                 <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                    <span><i class="bi bi-calendar-range"></i> Periode ${pengajuan.periode}</span>
+                                    <span><i class="bi bi-calendar-range"></i> ${pengajuan.periode ? `Periode ${pengajuan.periode}` : `Zero cek`}</span>
                                     <div><i class="bi bi-calendar-fill"></i> ${dateFormat(pengajuan.created_at, 4)}</div>
-                                    <div><i class="bi bi-cash-stack"></i> ${formatRupiah(pengajuan.total_harga)}</div>
+                                    ${pengajuan.kontrak ? `<div><i class="bi bi-file-text"></i> ${pengajuan.kontrak.no_kontrak}</div>` : ''}
                                 </div>
                             </div>
-                            <div class="col-auto mx-auto">
+                            <div class="col-auto ms-auto">
                                 <div>${statusFormat('permohonan', pengajuan.status)}</div>
                             </div>
-                            <div class="col-md-2 ms-auto">
+                            <div class="col-md-2">
                                 <div class="d-flex gap-1 flex-wrap justify-content-center" data-id="${pengajuan.permohonan_hash}">
                                     <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
-                                    ${pengajuan.status == 1 ? btnEdit + btnRemove : ''}
+                                    ${pengajuan.status == 1 ? btnRemove : ''}
                                 </div>
                             </div>
                             <div class="p-3" id="listPeriode" style="display:none"></div>

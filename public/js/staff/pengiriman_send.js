@@ -1,7 +1,6 @@
 const arrSelectDocument = [];
 const arrDocCustom = [];
 let arrPeriode = permohonan.periode_pemakaian;
-let buktiPengiriman = false;
 
 if(permohonan.tipe_kontrak == 'kontrak lama') {
     arrPeriode = permohonan.kontrak.periode;
@@ -19,12 +18,6 @@ $(function () {
         }
     });
 
-    buktiPengiriman = new UploadComponent('uploadBuktiPengiriman', {
-        modal: true,
-        camera: false,
-        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
-    });
-
 })
 
 function load_form() {
@@ -36,13 +29,17 @@ function load_form() {
     $('#select_alamat').html(htmlAlamat);
 
     $('#list-document').empty();
+    let htmlDisabled = '';
+    if(permohonan.tipe_kontrak == 'kontrak lama'){
+        // htmlDisabled = 'disabled';
+    }
     // list document TLD
     let checkedTld = permohonan.pengiriman ? 'disabled' : 'checked';
     let tldKontrol = ``;
     for (const list of permohonan.tldKontrol) {
         tldKontrol += `
             <div class="w-50 pe-1">
-                <select class="form-select kodeTldKontrol" name="kodeTldKontrol">
+                <select class="form-select kodeTldKontrol" name="kodeTldKontrol" ${htmlDisabled}>
                     <option value="${list.tld_hash}" selected>${list.kode_lencana}</option>
                 </select>
             </div>
@@ -53,7 +50,7 @@ function load_form() {
     for (const list of permohonan.pengguna){
         tldPengguna += `
             <div class="w-50 pe-1">
-                <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-id="${list.permohonan_pengguna_hash}">
+                <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-id="${list.permohonan_pengguna_hash}" ${htmlDisabled}>
                     <option value="${list.tld_pengguna.tld_hash}" selected>${list.tld_pengguna.kode_lencana}</option>
                 </select>
             </div>
@@ -127,7 +124,7 @@ function load_form() {
     let htmlLhu = '';
     let checkedLhu = 'disabled';
     let urlDocLhu = '<i class="bi bi-printer-fill"></i> Cetak LHU';
-    let findPeriode = arrPeriode[permohonan.lhu?.periode - 1];
+    let findPeriode = arrPeriode[permohonan.lhu?.periode];
 
     if(permohonan.lhu?.status == 3){
         checkedLhu = 'checked';
@@ -280,7 +277,6 @@ function buatPengiriman(obj){
     }).then((result) => {
         if (result.isConfirmed) {
             let dAlamat = permohonan.pelanggan.perusahaan.alamat[alamat];
-            let arrImgBukti = buktiPengiriman.getData();
             
             const params = new FormData();
             params.append('idPengiriman', $('#no_pengiriman').val());
@@ -290,9 +286,6 @@ function buatPengiriman(obj){
             params.append('status', 3);
             params.append('detail', JSON.stringify(arrSelectDocument));
             permohonan.kontrak ? params.append('idKontrak', permohonan.kontrak.kontrak_hash) : false;
-            arrImgBukti.forEach((d) => {
-                params.append('buktiPengiriman[]', d.file);
-            });
 
             spinner('show', $(obj));
             ajaxPost('api/v1/pengiriman/action', params, result => {

@@ -115,6 +115,8 @@ class Periode {
 
     previewPeriode() {
         let html = '';
+        // menghapus this.listPeriode yang periode == 0
+        this.listPeriode = this.listPeriode.filter(item => item.periode != 0);
         for (const [index, data] of this.listPeriode.entries()) {
             html += `
                 <div>

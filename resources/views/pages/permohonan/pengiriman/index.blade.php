@@ -57,7 +57,7 @@
 
 <!-- Modal -->
 <div class="modal fade" id="modal-diterima" tabindex="-1" aria-labelledby="modal-diterimaLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h1 class="modal-title fs-5" id="modal-diterimaLabel">Dokumen diterima</h1>
@@ -73,6 +73,16 @@
             </div>
             <div class="mb-2 col-md-12">
                 <div id="surpengDiv"></div>
+            </div>
+            <p class="d-inline-flex gap-1 mb-2 col-md-12">
+                <button class="btn btn-outline-info btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBuktiPengiriman" aria-expanded="false" aria-controls="collapseBuktiPengiriman">
+                    Lihat Bukti Pengiriman
+                </button>
+            </p>
+            <div class="collapse" id="collapseBuktiPengiriman">
+                <div class="card card-body mb-2">
+                    <div id="showBuktiPengiriman"></div>
+                </div>
             </div>
             <div class="mb-2 col-md-12">
                 <label for="" class="form-label">Kelengkapan dokumen<span class="text-danger ms-1">*</span></label>

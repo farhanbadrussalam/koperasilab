@@ -16,7 +16,9 @@ class Penyelia_map extends Model
         'id_jobs',
         'id_penyelia',
         'order',
-        'created_by'
+        'created_by',
+        'done_by',
+        'done_at',
     ];
 
     protected $hidden = [
@@ -42,5 +44,20 @@ class Penyelia_map extends Model
     public function jobs()
     {
         return $this->belongsTo(Master_jobs::class, 'id_jobs', 'id_jobs');
+    }
+
+    public function petugas()
+    {
+        return $this->hasMany(Penyelia_petugas::class, 'id_map', 'id_map');
+    }
+    
+    public function doneBy()
+    {
+        return $this->belongsTo(User::class, 'done_by', 'id');
+    }
+
+    public function penyelia()
+    {
+        return $this->belongsTo(Penyelia::class, 'id_penyelia', 'id_penyelia');
     }
 }

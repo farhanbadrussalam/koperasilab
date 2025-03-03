@@ -62,6 +62,7 @@
     <script src="{{ asset('js/detail.js') }}"></script>
     <script src="{{ asset('js/upload.js') }}"></script>
     <script src="{{ asset('js/document.js') }}"></script>
+    <script src="{{ asset('js/timeline.js') }}"></script>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
@@ -116,9 +117,21 @@
     @stack('scripts')
     <script>
         @if (session('success'))
-            toastr.success('{{ session('success') }}');
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+                showConfirmButton: false,
+                timer: 1500
+            })
         @elseif (session('error'))
-            toastr.error('{{ session('error') }}');
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+                showConfirmButton: false,
+                timer: 1500
+            })
         @endif
 
         $(function () {

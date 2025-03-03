@@ -74,6 +74,15 @@ class StaffController extends Controller
         return view('pages.staff.perusahaan.index', $data);
     }
 
+    public function indexPetugas()
+    {
+        $data = [
+            'title' => 'Petugas',
+            'module' => 'staff-petugas-lhu'
+        ];
+        return view('pages.staff.petugas.index', $data);
+    }
+
 
     public function createSuratTugas($idPenyelia)
     {
@@ -185,8 +194,12 @@ class StaffController extends Controller
                             'pelanggan.perusahaan.alamat',
                             'tandaterima',
                         )->where('id_permohonan', $id)->first();
+
         if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){
             $pertanyaan_tr = Master_pertanyaan::where('id_layananjasa', $dataPermohonan->layanan_jasa->id_layanan)->get();
+        }
+        if(isset($dataPermohonan->list_tld) && count($dataPermohonan->list_tld) > 0){
+            $dataPermohonan->tldKontrol = Master_tld::whereIn('id_tld', $dataPermohonan->list_tld)->get();
         }
 
         $dataPengguna = Permohonan_pengguna::where('id_permohonan', $id)->first();
@@ -219,7 +232,7 @@ class StaffController extends Controller
             $periodeNow = Kontrak_periode::find($idPeriode);
             // mencari apakah ada permohonan di periode sekarang
             $permohonan = Permohonan::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode)->first();
-
+            
             if($permohonan){
                 $idPermohonan = $permohonan->id_permohonan;
             } else {
@@ -247,7 +260,7 @@ class StaffController extends Controller
                 'pengiriman',
                 'file_lhu',
                 'pengguna',
-                'pengguna.tldPengguna'
+                'pengguna.tld_pengguna'
             )->find($idPermohonan);
             
         if(count($dataPermohonan->list_tld) > 0) {

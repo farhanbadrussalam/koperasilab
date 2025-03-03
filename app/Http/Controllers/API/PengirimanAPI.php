@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 use App\Traits\RestApi;
 
 use App\Models\Master_tld;
+use App\Models\Master_media;
 use App\Models\Pengiriman;
 use App\Models\Pengiriman_detail;
 use App\Models\Permohonan;
@@ -141,8 +142,18 @@ class PengirimanAPI extends Controller
                 'permohonan.lhu.media',
                 'permohonan.dokumen' => function ($q) {
                     $q->where('jenis', 'surpeng');
-                }
+                },
             ])->where('id_pengiriman', $id)->first();
+
+            // mengambil media pengiriman
+            if($query->bukti_pengiriman){
+                $query->media_pengiriman = Master_media::whereIn('id', $query->bukti_pengiriman)->get();
+            }
+
+            // mengambil media penerima
+            if($query->bukti_penerima){
+                $query->media_penerima = Master_media::whereIn('id', $query->bukti_penerima)->get();
+            }
             
             DB::commit();
 
@@ -316,6 +327,12 @@ class PengirimanAPI extends Controller
                         }
                     }
                 }
+            } else if ($status == 3 && isset($pengiriman->kontrak)) {
+                // menghapus bukti pengiriman
+                foreach ($pengiriman->bukti_pengiriman as $item) {
+                    $this->media->destroy($item);
+                }
+                $pengiriman->update(['bukti_pengiriman' => null]);
             }
 
             // Add to detail

@@ -28,13 +28,19 @@ class Penyelia extends Model
 
     protected $hidden = [
         'id_penyelia',
-        'id_permohonan'
+        'id_permohonan',
+        'document'
     ];
 
     protected $appends = [
         'penyelia_hash',
         'permohonan_hash',
         'status_hash'
+    ];
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime'
     ];
 
     public function getPermohonanHashAttribute()
@@ -62,7 +68,7 @@ class Penyelia extends Model
     }
 
     public function log(){
-        return $this->hasMany(Log_penyelia::class, 'id_penyelia', 'id_penyelia');
+        return $this->hasMany(Log_penyelia::class, 'id_penyelia', 'id_penyelia')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
     }
 
     public function media(){

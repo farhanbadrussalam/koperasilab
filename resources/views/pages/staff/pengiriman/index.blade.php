@@ -153,6 +153,10 @@
                     <label for="noResi" class="form-label">No Resi<span class="text-danger ms-1">*</span></label>
                     <input type="text" class="form-control" id="noResi" name="noResi" required>
                 </div>
+                <div class="mb-3">
+                    <label for="" class="form-label">Upload bukti pengiriman</label>
+                    <div id="uploadBuktiPengiriman"></div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

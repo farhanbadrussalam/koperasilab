@@ -87,4 +87,18 @@ class TldAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
+
+    public function getById($id) {
+        DB::beginTransaction();
+        try {
+            // $id = decryptor($id);
+            $data = Master_tld::find($id);
+            DB::commit();
+            return $this->output($data, 200);
+        } catch (\Exception $ex ) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
 }

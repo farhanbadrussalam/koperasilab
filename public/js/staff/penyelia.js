@@ -8,7 +8,8 @@ $(function () {
     detail = new Detail({
         jenis: 'penyelia',
         tab: {
-            dokumen: true
+            dokumen: true,
+            log: true
         }
     });
 
@@ -136,6 +137,7 @@ function loadData(page = 1, menu) {
     $(`#list-container-${menu}`).hide();
     ajaxGet(`api/v1/penyelia/list`, params, result => {
         let html = '';
+        let divTimelineTugas = [];
         for (const [i, penyelia] of result.data.entries()) {
             const permohonan = penyelia.permohonan;
             let arrPeriode = permohonan.kontrak?.periode ?? permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
@@ -150,7 +152,7 @@ function loadData(page = 1, menu) {
                 case 'surattugas':
                     btnAction += '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
                     if(penyelia.status == 1) {
-                        btnAction += `<a class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"><i class="bi bi-plus"></i> Buat Surat Tugas</a>`;
+                        btnAction += `<a class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"><i class="bi bi-plus"></i> Surat Tugas</a>`;
                     }else if(penyelia.status == 2) {
                         btnAction += `
                             <a class="btn btn-outline-info btn-sm" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Lihat</a>
@@ -164,7 +166,7 @@ function loadData(page = 1, menu) {
                     }
 
                     let divInfoTugas = '';
-                    let divTimelineTugas = '';
+                    let timeLine = false;
                     if(penyelia.start_date && penyelia.end_date){
                         divInfoTugas = `
                             <div class="col-md-12 mt-2">
@@ -175,35 +177,17 @@ function loadData(page = 1, menu) {
                             </div>
                         `;
 
-                        let jobsPenyeliaLength = penyelia.penyelia_map.length;
-                        let widthCalc = (100 / jobsPenyeliaLength);
-
-                        let timeline = '';
-                        for (const tugas of penyelia.penyelia_map) {
-                            let jobActive = '';
-                            if(tugas.status == 1) { // proses penyelia selesai
-                                jobActive = 'active';
-                            }
-
-                            if(penyelia.status == tugas.jobs.status) {
-                                jobActive = 'onprogress';
-                            }
-
-                            timeline += `<li class="${jobActive} step0" style="width: ${widthCalc}%;"><span class="px-1">${tugas.jobs.name}</span></li>`;
-                        }
-
-                        divTimelineTugas = `
-                            <div class="col-md-12 mt-2 pt-4 pb-0">
-                                <ul id="progressbar" class="text-center">
-                                    ${timeline}
-                                </ul>
-                            </div>
-                        `;
+                        timeLine = new Timeline({
+                            timeline: penyelia.penyelia_map,
+                            status: penyelia.status,
+                            id: penyelia.penyelia_hash
+                        });
+                        divTimelineTugas.push(timeLine);
                     }
                     html += `
                         <div class="card mb-2">
                             <div class="card-body row align-items-center">
-                                <div class="col-12 col-md-3">
+                                <div class="col-12 col-md-4">
                                     <div class="">
                                         <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
                                         <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
@@ -220,11 +204,11 @@ function loadData(page = 1, menu) {
                                     <div>${permohonan.tipe_kontrak}</div>
                                     <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
                                 </div>
-                                <div class="col-6 col-md-3">${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
+                                <div class="col-6 col-md-2">${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
                                 <div class="col-6 col-md-3 text-center" data-idpenyelia='${penyelia.penyelia_hash}'>
                                     ${btnAction}
                                 </div>
-                                ${divTimelineTugas}
+                                ${timeLine ? timeLine.elementCreate() : ''}
                                 ${divInfoTugas}
                             </div>
                         </div>
@@ -275,6 +259,8 @@ function loadData(page = 1, menu) {
         }
 
         $(`#list-container-${menu}`).html(html);
+
+        divTimelineTugas.map(d => d.render());
 
         $(`#list-pagination-${menu}`).html(createPaginationHTML(result.pagination));
 

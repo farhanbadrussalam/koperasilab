@@ -10,19 +10,19 @@
             @csrf
             @method('PUT')
             <div class="modal-body">
-                <div class="mb-3 row">
+                <div class="mb-3">
                     <label for="inputEditNameRole" class="form-label">Name role</label>
                     <input type="text" name="name" id="inputEditNameRole" class="form-control" autocomplete="false" required>
                     <input type="text" name="id_role" id="inputEditIdRole" class="form-control d-none">
                 </div>
-                <div class="mb-3 row">
+                <div class="mb-3">
                     <label for="inputEditPermission" class="form-label">Permissions</label>
-                    <div class="d-flex flex-wrap">
+                    <div class="d-flex flex-wrap gap-2">
                         @foreach ($permissions as $permission)
                         <div class="form-group mx-1">
                             <div class="custom-control custom-switch">
-                              <input type="checkbox" class="custom-control-input permissionEdit" name="permission[]" value="{{ $permission->name }}" id="checkPermission{{$permission->id}}">
-                              <label class="custom-control-label" for="checkPermission{{$permission->id}}">{{ $permission->name }}</label>
+                              <input type="checkbox" class="custom-control-input" name="permissionEdit[]" value="{{ $permission->name }}" id="checkPermission{{$permission->id}}">
+                              <label class="custom-control-label cursor-pointer" for="checkPermission{{$permission->id}}">{{ $permission->name }}</label>
                             </div>
                         </div>
                         @endforeach
@@ -30,7 +30,7 @@
                 </div>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="submit" class="btn btn-primary">Save changes</button>
+              <button type="submit" class="btn btn-primary" id="btn-edit">Save changes</button>
             </div>
         </form>
       </div>

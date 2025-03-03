@@ -34,7 +34,9 @@ class Pengiriman extends Model
     ];
 
     protected $hidden = [
-        'id_permohonan'
+        'id_permohonan',
+        'bukti_pengiriman',
+        'bukti_penerima'
     ];
 
     protected $appends = [

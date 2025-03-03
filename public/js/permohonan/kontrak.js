@@ -1,11 +1,11 @@
 let dataKontrak = false;
 $(function () {
     loadData();
-
     detail = new Detail({
         jenis: 'kontrak',
         tab: {
-            pengguna: true
+            pengguna: true,
+            dokumen: false
         }
     });
 
@@ -56,6 +56,34 @@ function loadData(page = 1) {
                     }
                     break;
             }
+
+            let cekStatusPeriode = [];
+            let arrFind = ['invoice','tld'];
+
+            if([2,3,5,6].includes(Number(dataKontrak[i].jenis_layanan_2))){
+                arrFind.push('lhu');
+            }
+
+            for (const pengiriman of dataKontrak[i].pengiriman) {
+                let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
+                if(detail.length > 0){
+                    detail.map(d => cekStatusPeriode.push({
+                        jenis: d.jenis,
+                        periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
+                        status: pengiriman.status,
+                        no_resi: pengiriman.no_resi ?? false
+                    }));
+                }
+            }
+
+            let activePeriode = '';
+            for (const periode of dataKontrak[i].periode) {
+                const isComplete = isPeriodeComplete(periode, i, cekStatusPeriode, arrFind);
+                if(!isComplete){
+                    activePeriode = periode;
+                    break;
+                }
+            }
             
             html += `
                 <div class="card mb-2 smooth-height">
@@ -84,7 +112,21 @@ function loadData(page = 1) {
                                 <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</div>
                             </div>
                         </div>
-                        <div class="p-3" id="listPeriode${i}" style="display:none"></div>
+                        <div class="p-3 pb-0" id="listPeriodeNow${i}">
+                            ${(() => {
+                                return htmlPeriode(activePeriode, i, cekStatusPeriode, arrFind, { active: true });
+                            })()}
+                        </div>
+                        <div class="p-3 pb-0" id="listPeriode${i}" style="display:none">
+                            ${(() => {
+                                let html = '';
+                                let evaluasiState = { active: false }; // Objek referensi
+                                for (const [index, data] of dataKontrak[i].periode.entries()) {
+                                    html += htmlPeriode(data, i, cekStatusPeriode, arrFind, evaluasiState);
+                                }
+                                return html;
+                            })()}
+                        </div>
                     </div>
                 </div>
             `;
@@ -109,120 +151,122 @@ function loadData(page = 1) {
 }
 
 function showPeriode(index) {
-    const arrPeriode = dataKontrak[index].periode;
+    
     if ($(`#listPeriode${index}`).is(':visible')) {
+        $(`#listPeriodeNow${index}`).show();        
         $(`#listPeriode${index}`).hide();
         return;
     }
 
-    let cekStatusPeriode = [];
-    let arrFind = ['invoice','tld'];
+    $(`#listPeriode${index}`).show();
+    $(`#listPeriodeNow${index}`).hide();
+}
 
-    if([3,5,6].includes(Number(dataKontrak[index].jenis_layanan_2))){
-        arrFind.push('lhu');
-    }
+function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
+    const isPelanggan = role === 'Pelanggan';
+    let htmlAction = ``;
+    let htmlDoc = ``;
+    // Gunakan fungsi isPeriodeComplete untuk mengecek status
+    let isComplete = isPeriodeComplete(data, index, cekStatusPeriode, arrFind);
 
-    for (const pengiriman of dataKontrak[index].pengiriman) {
-        let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
-        if(detail.length > 0){
-            detail.map(d => cekStatusPeriode.push({
-                jenis: d.jenis,
-                periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
-                status: pengiriman.status,
-                no_resi: pengiriman.no_resi ?? false
-            }));
+    // cek apakah sudah bayar atau belum
+    let lastPeriode = dataKontrak[index].periode[dataKontrak[index].periode.length - 1].periode == data.periode;
+    let statusKirimTld = false;
+
+    for (const doc of arrFind) {
+        let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
+        if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
+        if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
+        if (doc === 'tld' && lastPeriode) continue;
+
+        if (doc === 'tld') {
+            statusKirimTld = findPeriode?.status;
         }
-    }
+        let htmlTooltip = findPeriode?.no_resi ? `<div class="tooltip-text border border-dark-subtle">No resi : ${findPeriode?.no_resi ?? 'Belum ada'}</div>` : '';
 
-    let html = '';
-    let evaluasiActive = false;
-    console.log(arrPeriode);
-    for (const [i, data] of arrPeriode.entries()) {
-        const isPelanggan = role === 'Pelanggan';
-        let htmlAction = ``;
-        let htmlDoc = ``;
-        let isComplete = true;
-
-        // cek apakah sudah bayar atau belum
-        isComplete = dataKontrak[index].invoice.status == 5;
-        let statusKirimTld = false;
-
-        for (const doc of arrFind) {
-            let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
-            if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
-            if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
-
-            if (doc === 'tld') {
-                statusKirimTld = findPeriode?.status;
-            }
-            let htmlTooltip = findPeriode?.no_resi ? `<div class="tooltip-text border border-dark-subtle">No resi : ${findPeriode?.no_resi ?? 'Belum ada'}</div>` : '';
-
-            htmlDoc += `
-                <div>
-                    <span class="fw-normal">• ${doc[0].toUpperCase() + doc.substring(1)}</span>
-                    <small class="cursoron hover-1 pe-2 ${findPeriode?.no_resi ? 'tooltip-container' : ''}">
-                        ${statusFormat('pengiriman', findPeriode?.status)}
-                        ${htmlTooltip}
-                    </small>
-                </div>
-            `;
-            isComplete = isComplete && findPeriode?.status == 2;
-
-        }
-
-        // update status permohonan jika isComplete true
-        if(isComplete && data.permohonan.status != 5){
-            const params = new FormData();
-            params.append('idPermohonan', data.permohonan.permohonan_hash);
-            params.append('status', 5);
-
-            ajaxPost('api/v1/permohonan/tambahPengajuan', params, result => {}, error => {});
-            data.permohonan.status = 5;
-        }
-
-        if(data.permohonan){
-            const showEvaluasi = isPelanggan && data.permohonan.status == 11 && [3, 5].includes(Number(dataKontrak[index].jenis_layanan_2));
-            console.log(data.permohonan);
-            htmlAction = showEvaluasi ?
-                `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>` :
-                `<div class="d-flex flex-column justify-content-center align-items-center"><div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div><div>${statusFormat('permohonan', data.permohonan.status)}</div></div>`;
-
-            if (!statusKirimTld && role == 'Staff Pengiriman') {
-                htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
-            } else {
-                if (isPelanggan && [3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && !statusKirimTld) {
-                    evaluasiActive && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);
-                }
-            }
-            isComplete ? evaluasiActive = true : evaluasiActive = false;
-        }else{
-            if(role == 'Staff Pengiriman') {
-                evaluasiActive && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
-            } else if(role == 'Pelanggan' && [3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
-                evaluasiActive && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);
-            }
-            evaluasiActive = false;
-        }
-        
-        html += `
-            <div class="border-top py-2 d-flex justify-content-between align-items-center">
-                <div class="px-2">
-                    <span class="fw-semibold fs-6">${data.periode == 0 ? 'Zero cek' : `Periode ${data.periode}`}</span>
-                    ${data.periode == 0 ? '' : `<small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>`}
-                    <div class="d-flex gap-3 flex-wrap">
-                        ${htmlDoc}
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-3 text-secondary">
-                    ${htmlAction}
-                </div>
+        htmlDoc += `
+            <div>
+                <span class="fw-normal">• ${doc[0].toUpperCase() + doc.substring(1)}</span>
+                <small class="cursoron hover-1 pe-2 ${findPeriode?.no_resi ? 'tooltip-container' : ''}">
+                    ${statusFormat('pengiriman', findPeriode?.status)}
+                    ${htmlTooltip}
+                </small>
             </div>
         `;
-    }
-    $(`#listPeriode${index}`).html(html);
+        // isComplete = isComplete && findPeriode?.status == 2;
 
-    $(`#listPeriode${index}`).show();
+    }
+
+    // update status permohonan jika isComplete true
+    if(isComplete && data.permohonan.status != 5){
+        const params = new FormData();
+        params.append('idPermohonan', data.permohonan.permohonan_hash);
+        params.append('status', 5);
+
+        ajaxPost('api/v1/permohonan/tambahPengajuan', params, result => {}, error => {});
+        data.permohonan.status = 5;
+    }
+
+    if(data.permohonan){
+        const showEvaluasi = isPelanggan && data.permohonan.status == 11 && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && data.permohonan.id_kontrak;
+        htmlAction = showEvaluasi ?
+            `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>` :
+            `<div class="d-flex flex-column justify-content-center align-items-end"><div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div><div>${statusFormat('permohonan', data.permohonan.status)}</div></div>`;
+
+        if (!statusKirimTld && role == 'Staff Pengiriman') {
+            !lastPeriode && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
+        } else {
+            if (isPelanggan && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && !statusKirimTld && !data.permohonan.id_kontrak) {
+                evaluasiState.active && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);
+            }
+        }
+        evaluasiState.active = isComplete;
+    }else{
+        if(role == 'Staff Pengiriman') {
+            (evaluasiState.active && !lastPeriode) && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
+        } else if(role == 'Pelanggan' && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
+            // 2 = Sewa, 3 = Evaluasi, 5 = Evaluasi - dengan kontrak
+            evaluasiState.active && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);
+        }
+        evaluasiState.active = false;
+    }
+    
+    return `
+        <div class="border-top py-2 d-flex justify-content-between align-items-center">
+            <div class="px-2">
+                <span class="fw-semibold fs-6">${data.periode == 0 ? 'Zero cek' : `Periode ${data.periode}`}</span>
+                ${data.periode == 0 ? '' : `<small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>`}
+                <div class="d-flex gap-3 flex-wrap">
+                    ${htmlDoc}
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3 text-secondary">
+                ${htmlAction}
+            </div>
+        </div>
+    `;
 }
+
+function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
+    // Jika invoice belum status 5, maka langsung false
+    if (dataKontrak[index].invoice.status != 5) return false;
+
+    // Cek apakah semua dokumen dalam arrFind sudah selesai
+    for (const doc of arrFind) {
+        let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
+
+        if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
+        if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
+
+        // Jika ada dokumen yang statusnya bukan 2 (selesai), maka periode belum complete
+        if (!findPeriode || findPeriode.status != 2) {
+            return false;
+        }
+    }
+
+    return true; // Semua dokumen sudah complete
+}
+
 
 function showModalEvaluasi(index) {
     const data = dataKontrak[index];

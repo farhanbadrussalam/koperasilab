@@ -4,20 +4,18 @@ use App\Http\Controllers\auth\GoogleController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\UserController;
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\userPerusahaanController;
-use App\Http\Controllers\RolesController;
 use App\Http\Controllers\LayananJasaController;
 use App\Http\Controllers\JadwalController;
 use App\Http\Controllers\NotifController;
-use App\Http\Controllers\PermissionController;
+
 use App\Http\Controllers\LabController;
 use App\Http\Controllers\OtorisasiController;
 use App\Http\Controllers\PetugasLayananController;
 use App\Http\Controllers\JobsController;
 use App\Http\Controllers\PelaksanaKontrakController;
-// use App\Http\Controllers\KeuanganController;
 use App\Http\Controllers\ManagerController;
 
 use App\Http\Controllers\Permohonan\PelangganController;
@@ -28,6 +26,13 @@ use App\Http\Controllers\Staff\StaffController;
 use App\Http\Controllers\Staff\PenyeliaController;
 
 use App\Http\Controllers\Manager\ManagerPengajuanController;
+
+// Management
+use App\Http\Controllers\Management\UserController;
+use App\Http\Controllers\Management\PermissionController;
+use App\Http\Controllers\Management\RolesController;
+use App\Http\Controllers\Management\TldController;
+use App\Http\Controllers\Management\RadiasiController;
 
 use App\Http\Controllers\ReportController;
 
@@ -78,11 +83,14 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/penyelia/surat_tugas/c/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.create.surat_tugas');
             Route::get('/penyelia/surat_tugas/e/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
             Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
+
             Route::get('/lhu', 'indexLhu')->name('staff.lhu');
+            Route::get('/lhu/petugas', 'indexPetugas')->name('staff.lhu.petugas');
+
             Route::get('/pengiriman', 'indexPengiriman')->name('staff.pengiriman');
             Route::get('/pengiriman/permohonan', 'indexPengirimanPermohonan')->name('staff.pengiriman.permohonan');
             Route::get('/pengiriman/permohonan/kirim/{idPermohonan}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim');
-            Route::get('/pengiriman/permohonan/kirim/{idKontrak}/{jenis}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim.kontrak');
+            Route::get('/pengiriman/permohonan/kirim/{idKontrak}/{periode}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim.kontrak');
             Route::get('/pengiriman/tambah', 'buatCustomPengiriman')->name('staff.pengiriman.tambah');
 
             Route::get('/perusahaan', 'indexPerusahaan')->name('staff.perusahaan');
@@ -119,14 +127,23 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     // Route::middleware(['permission:User.management'])->group(function () {
     // Route::group(function () {
+    Route::prefix('management')->group(function () {
         Route::resource('users', UserController::class);
         Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
+        Route::get('getById/{id}', [UserController::class, 'getById'])->name('users.getById');
 
         Route::resource('permission', PermissionController::class);
         Route::get('getDataPermission', [PermissionController::class, 'getData'])->name('permission.getData');
 
         Route::resource('roles', RolesController::class);
         Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');
+
+        Route::resource('tld', TldController::class);
+        Route::get('getDataTld', [TldController::class, 'getData'])->name('tld.getData');
+
+        Route::resource('radiasi', RadiasiController::class);
+        Route::get('getDataRadiasi', [RadiasiController::class, 'getData'])->name('radiasi.getData');
+    });
     // });
 
     // Route::middleware(['permission:Layananjasa'])->group(function () {
@@ -167,8 +184,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     // Route::middleware(['permission:Keuangan'])->group(function () {
     // Route::group(function () {
-        Route::get('keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
-        Route::post('sendKIP', [KeuanganController::class, 'sendKIP'])->name('keuangan.send');
+        // Route::get('keuangan', [KeuanganController::class, 'index'])->name('keuangan.index');
+        // Route::post('sendKIP', [KeuanganController::class, 'sendKIP'])->name('keuangan.send');
     // });
 
     // Route::middleware(['permission:kiplhu'])->group(function () {

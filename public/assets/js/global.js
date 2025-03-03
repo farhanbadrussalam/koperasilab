@@ -650,18 +650,29 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgre
         ...xhr
     }).done(callback).fail(error => {
         const result = error.responseJSON;
-        if(result?.meta?.code && result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Terjadi kesalahan. Silakan coba lagi.',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Terjadi kesalahan. Silakan coba lagi.',
-            });
-            console.error(error);
+        switch (result?.meta?.code) {
+            case 500:
+                Swal.fire({
+                    icon: "error",
+                    text: 'Terjadi kesalahan. Silakan coba lagi.',
+                });
+                console.error(result.data.msg);
+                break;
+            case 422:
+            case 400:
+                Swal.fire({
+                    icon: "warning",
+                    text: result.data.msg,
+                });
+                console.info(result.data.msg);
+                break;
+            default:
+                Swal.fire({
+                    icon: "error",
+                    text: 'Terjadi kesalahan. Silakan coba lagi.',
+                });
+                console.error(error.responseText);
+                break;
         }
 
         onError(error);
@@ -736,7 +747,8 @@ function ajaxDelete(url, callback = () => {}, onError = () => {}){
                 processData: true,
                 headers: {
                     'Authorization': `Bearer ${bearer}`,
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf
                 }
             }).done(callback).fail(error => {
                 const result = error.responseJSON;
@@ -1001,11 +1013,42 @@ function getCurrentPeriod(periods) {
     return currentPeriod;
 }
 
-function getDaysRemaining(endDate) {
+function getDaysRemaining(tanggal, status) {
     const today = new Date();
-    const timeDiff = endDate - today;
+    const value = new Date(tanggal);
+    const timeDiff = value - today;
     return Math.ceil(timeDiff / (1000 * 60 * 60 * 24)); // Konversi ms ke hari
 }
+
+function diffToday(date) {
+    const now = new Date();
+    const targetDate = new Date(date);
+    const diff = now - targetDate;
+
+    if (diff >= 0) {
+        const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const diffHours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const diffMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+        if (diffDays > 7) {
+            // Mengembalikan format tanggal jika sudah lebih dari 1 minggu
+            return dateFormat(targetDate, 1);
+        } else if (diffDays > 0) {
+            return diffDays !== 1 ? `${diffDays} days ago` : `${diffDays} day ago`;
+        } else {
+            if (diffHours > 1) {
+                return `${diffHours} hours ago`;
+            } else if (diffHours > 0) {
+                return `${diffHours} hour ago`;
+            } else {
+                return `${diffMinutes} min ago`;
+            }
+        }
+    } else {
+        return 'In the future';
+    }
+}
+
 
 function htmlNoData(){
     return `

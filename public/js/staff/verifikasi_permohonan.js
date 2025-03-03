@@ -212,9 +212,16 @@ function toggleReason(index, enable) {
 function loadTldKontrol(){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
+        let htmlDisabled = '';
+
+        if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
+            htmlDisabled = 'disabled';
+        }
         for(let i = 0; i < dataPermohonan.jumlah_kontrol; i++){
             let options = '';
-            if(result.data[i]){
+            if(dataPermohonan.tldKontrol && dataPermohonan.tldKontrol[i]){
+                options = `<option value="${dataPermohonan.tldKontrol[i].tld_hash}" selected>${dataPermohonan.tldKontrol[i].kode_lencana}</option>`
+            }else if(result.data[i]){
                 options = `<option value="${result.data[i].tld_hash}" selected>${result.data[i].kode_lencana}</option>`;
             }else{
                 options = `<option value="">Pilih Kode lencana</option>`;
@@ -222,7 +229,7 @@ function loadTldKontrol(){
             html += `
                 <div class="col-sm-6 mt-2">
                     <label for="" class="mb-2">Kode Lencana Kontrol ${i+1}</label>
-                    <select class="form-select kodeTldKontrol" name="tld_kontrol[]">
+                    <select class="form-select kodeTldKontrol" name="tld_kontrol[]" ${htmlDisabled}>
                         ${options}
                     </select>
                 </div>
@@ -289,12 +296,16 @@ function loadPengguna(){
 
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         let html = '';
+        let htmlDisabled = '';
+        if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
+            htmlDisabled = 'disabled';
+        }
         for (const [i,pengguna] of result.data.entries()) {
             let txtRadiasi = '';
             let options = '';
             pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
-            if(pengguna.tld){
-                options = `<option value="${pengguna.tld.tld_hash}">${pengguna.tld.kode_lencana}</option>`;
+            if(pengguna.tld_pengguna){
+                options = `<option value="${pengguna.tld_pengguna.tld_hash}">${pengguna.tld_pengguna.kode_lencana}</option>`;
             } else {
                 options = `<option value="">Pilih Kode lencana</option>`;
             }
@@ -308,7 +319,7 @@ function loadPengguna(){
                     </td>
                     <td>${txtRadiasi}</td>
                     <td>
-                        <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${pengguna.permohonan_pengguna_hash}" data-id="${pengguna.permohonan_pengguna_hash}">
+                        <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${pengguna.permohonan_pengguna_hash}" data-id="${pengguna.permohonan_pengguna_hash}" ${htmlDisabled}>
                             ${options}
                         </select>
                     </td>

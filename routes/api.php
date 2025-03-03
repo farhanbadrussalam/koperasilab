@@ -119,6 +119,9 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/list', 'listPenyelia');
         Route::get('/listPetugas', 'getListPetugas');
         Route::get('/getById/{idPenyelia}', 'getPenyeliaById');
+        Route::get('/getPenyeliaMapById/{idPenyeliaMap}', 'getPenyeliaMapById');
+        Route::post('/uploadDokumenLhu', 'uploadDokumenLhu');
+        Route::delete('/destroyDokumenLhu/{idPenyelia}/{idMedia}', 'destroyDokumenLhu');
         Route::delete('/remove/{idPenyelia}', 'removeSuratTugas');
     });
 

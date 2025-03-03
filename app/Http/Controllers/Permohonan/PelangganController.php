@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Master_radiasi;
 use App\Models\Master_jenisLayanan;
+use App\Models\Master_tld;
 use App\Models\Permohonan;
 use App\Models\Master_layanan_jasa;
 use App\Models\Keuangan;
@@ -42,46 +43,54 @@ class PelangganController extends Controller
         $periodeNow = Kontrak_periode::where('id_periode', decryptor($idPeriode))->first();
         if($periodeNow){
             $periodeNext = Kontrak_periode::where('id_kontrak', decryptor($idKontrak))->where('periode', $periodeNow->periode+1)->first();
-        }
-        $queryKontrak = Kontrak::with(
-                            'layanan_jasa',
-                            'jenisTld:id_jenisTld,name',
-                            'jenis_layanan:id_jenisLayanan,name,parent',
-                            'jenis_layanan_parent:id_jenisLayanan,name,parent',
-                            'periode',
-                            'pengguna',
-                            'pengguna.media',
-                            'pelanggan',
-                            'pelanggan.perusahaan',
-                            'pelanggan.perusahaan.alamat',
-                        )->where('id_kontrak', decryptor($idKontrak))->first();
-
-        if($queryKontrak && $queryKontrak->pengguna){
-            foreach($queryKontrak->pengguna as $key => $value){
-                $queryKontrak->pengguna[$key]->radiasi = Master_radiasi::whereIn('id_radiasi', $value->id_radiasi)->get();
+    
+            // Mengambil Kontrak
+            $queryKontrak = Kontrak::with(
+                                'layanan_jasa',
+                                'jenisTld:id_jenisTld,name',
+                                'jenis_layanan:id_jenisLayanan,name,parent',
+                                'jenis_layanan_parent:id_jenisLayanan,name,parent',
+                                'periode',
+                                'pengguna',
+                                'pengguna.media',
+                                'pelanggan',
+                                'pelanggan.perusahaan',
+                                'pelanggan.perusahaan.alamat',
+                                'pengguna',
+                                'pengguna.tldPengguna'
+                            )->where('id_kontrak', decryptor($idKontrak))->first();
+    
+            if($queryKontrak && $queryKontrak->pengguna){
+                foreach($queryKontrak->pengguna as $key => $value){
+                    $queryKontrak->pengguna[$key]->radiasi = Master_radiasi::whereIn('id_radiasi', $value->id_radiasi)->get();
+                }
             }
+
+            if(count($queryKontrak->list_tld) > 0){
+                $queryKontrak->tldKontrol = Master_tld::whereIn('id_tld', $queryKontrak->list_tld)->get();
+            }
+    
+            // Mengambil jenis layanan Evaluasi - Dengan kontrak
+            $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
+    
+            // cek apakah permohonan sudah ada atau belum
+            $permohonan = Permohonan::select('id_permohonan')->where('status', 11)
+                ->where('id_kontrak', decryptor($idKontrak))
+                ->where('periode', $periodeNow->periode)
+                ->first();
+    
+            $data = [
+                'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
+                'module' => 'permohonan-kontrak',
+                'kontrak' => $queryKontrak,
+                'periodeNow' => $periodeNow,
+                'periodeNext' => $periodeNext,
+                'jenisLayanan' => $jenisLayanan,
+                'permohonan' => $permohonan
+            ];
+
+            return view('pages.permohonan.kontrak.evaluasi', $data);
         }
-
-        // Mengambil jenis layanan Evaluasi - Dengan kontrak
-        $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
-
-        // cek apakah permohonan sudah ada atau belum
-        $permohonan = Permohonan::select('id_permohonan')->where('status', 11)
-            ->where('id_kontrak', decryptor($idKontrak))
-            ->where('periode', $periodeNow->periode)
-            ->first();
-
-        $data = [
-            'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
-            'module' => 'permohonan-kontrak',
-            'kontrak' => $queryKontrak,
-            'periodeNow' => $periodeNow,
-            'periodeNext' => $periodeNext,
-            'jenisLayanan' => $jenisLayanan,
-            'permohonan' => $permohonan
-        ];
-
-        return view('pages.permohonan.kontrak.evaluasi', $data);
     }
     
     // FEATURE PENGAJUAN

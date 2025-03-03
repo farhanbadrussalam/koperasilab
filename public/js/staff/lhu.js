@@ -1,13 +1,15 @@
 let dataPenyelia = [];
 let nowSelect = false;
 let detail = false;
+let documentLhu = false;
 $(function () {
     loadData();
 
     detail = new Detail({
         jenis: 'penyelia',
         tab: {
-            dokumen: true
+            dokumen: true,
+            log: true
         }
     });
 
@@ -17,15 +19,13 @@ $(function () {
 
     $(`[name="statusProgress"]`).on('click', obj => {
         if(obj.target.value == 'return') {
+            $('#divUploadDocLhu').hide();
             $('#prosesNext').val(nowSelect.prosesPrev.jobs.name);
         } else {
+            $('#divUploadDocLhu').show();
             $('#prosesNext').val(nowSelect.prosesNext.jobs.name);
         }
     });
-
-    setDropify("init", "#upload_document", {
-        allowedFileExtensions: ["pdf"]
-    })
 });
 
 function loadData(page = 1) {
@@ -40,6 +40,7 @@ function loadData(page = 1) {
     ajaxGet(`api/v1/penyelia/list`, params, result => {
         let html = '';
         dataPenyelia = result.data;
+        let divTimelineTugas = [];
         for (const [i, lhu] of result.data.entries()) {
             const permohonan = lhu.permohonan;
             let periode = permohonan.periode_pemakaian;
@@ -60,30 +61,13 @@ function loadData(page = 1) {
                 </div>
             `;
 
-            let jobsPenyeliaLength = lhu.penyelia_map.length;
-            let widthCalc = (100 / jobsPenyeliaLength);
-
-            let timeline = '';
-            for (const tugas of lhu.penyelia_map) {
-                let jobActive = '';
-                if(tugas.status == 1) { // proses penyelia selesai
-                    jobActive = 'active';
-                }
-
-                if(lhu.status == tugas.jobs.status) {
-                    jobActive = 'onprogress';
-                }
-                timeline += `<li class="${jobActive} step0" style="width: ${widthCalc}%;"><span class="px-1">${tugas.jobs.name}</span></li>`;
-            }
-
-            let divTimelineTugas = `
-                <div class="col-md-12 mt-2 pt-4 pb-0">
-                    <ul id="progressbar" class="text-center">
-                        ${timeline}
-                    </ul>
-                </div>
-            `;
-
+            const timeline = new Timeline({
+                timeline: lhu.penyelia_map,
+                status: lhu.status,
+                id: lhu.penyelia_hash
+            });
+            divTimelineTugas.push(timeline);
+            
             let htmlPeriode = `
                 <div>${periode?.length ?? '0'} Periode</div>
             `;
@@ -109,7 +93,7 @@ function loadData(page = 1) {
                         <div class="col-6 col-md-2 text-center" data-id='${lhu.penyelia_hash}' data-index='${i}' data-surattugas='${lhu.no_surat_tugas}'>
                             ${btnAction}
                         </div>
-                        ${divTimelineTugas}
+                        ${timeline.elementCreate()}
                         ${divInfoTugas}
                     </div>
                 </div>
@@ -129,6 +113,7 @@ function loadData(page = 1) {
 
         $(`#list-pagination-lhu`).html(createPaginationHTML(result.pagination));
 
+        divTimelineTugas.map(d => d.render());
         $(`#list-placeholder-lhu`).hide();
         $(`#list-container-lhu`).show();
     })
@@ -136,46 +121,64 @@ function loadData(page = 1) {
 
 function openProgressModal(obj){
     const index = $(obj).parent().data("index");
-    nowSelect = dataPenyelia[index] ?? false;
-
-    $('#statusDone').prop('checked', true);
-    // Mengambil proses jobs 
-    const prosesNow = nowSelect.penyelia_map.find(d => d.jobs.status == nowSelect.status);
-    const prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
-    const prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
-
-    !prosesPrev ? $('#divReturnProgress').hide() : null;
-
-    $('#dateProgress').flatpickr({
-        altInput: true,
-        locale: "id",
-        dateFormat: "Y-m-d",
-        altFormat: "j F Y",
-        minDate: nowSelect.start_date,
-        maxDate: nowSelect.end_date,
-        defaultDate: 'today'
-    });
-    prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
-
-    nowSelect.prosesNow = prosesNow;
-    nowSelect.prosesPrev = prosesPrev;
-    nowSelect.prosesNext = prosesNext;
-
-    $('#prosesNow').val(prosesNow.jobs.name);
-    $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
-    $('#inputNote').val('');
-    setDropify('reset', "#upload_document", {
-        allowedFileExtensions: ["pdf"]
-    });
+    ajaxGet(`api/v1/penyelia/getById/${dataPenyelia[index].penyelia_hash}`, false, result => {
+        nowSelect = result.data ?? false;
+        
+        $('#statusDone').prop('checked', true);
+        // Mengambil proses jobs 
+        const prosesNow = nowSelect.penyelia_map.find(d => d.jobs.status == nowSelect.status);
+        const prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
+        const prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
     
-    $('#updateProgressModal').modal('show');
+        !prosesPrev ? $('#divReturnProgress').hide() : null;
+    
+        $('#dateProgress').flatpickr({
+            altInput: true,
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altFormat: "j F Y",
+            minDate: nowSelect.start_date,
+            maxDate: nowSelect.end_date,
+            defaultDate: 'today'
+        });
+        prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
+    
+        nowSelect.prosesNow = prosesNow;
+        nowSelect.prosesPrev = prosesPrev;
+        nowSelect.prosesNext = prosesNext;
+    
+        if(documentLhu){
+            documentLhu.destroy();
+            documentLhu = false;
+        }
+    
+        documentLhu = new UploadComponent('upload_document', {
+            camera: false,
+            allowedFileExtensions: ['pdf'],
+            multiple: false,
+            urlUpload: {
+                url: `api/v1/penyelia/uploadDokumenLhu`,
+                urlDestroy: `api/v1/penyelia/destroyDokumenLhu`,
+                idHash: nowSelect.penyelia_hash
+            }
+        });
+
+        if(nowSelect.media) {
+            documentLhu.setData(nowSelect.media);
+        }
+    
+        $('#prosesNow').val(prosesNow.jobs.name);
+        $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
+        $('#inputNote').val('');
+        
+        $('#updateProgressModal').modal('show');
+    })
 }
 
 function simpanProgress(obj){
     let note = $('#inputNote').val();
     let sProgress = $(`[name="statusProgress"]:checked`).val();
     let status = sProgress == 'done' ? (nowSelect?.prosesNext?.jobs?.status ?? 3) : nowSelect?.prosesPrev?.jobs?.status;
-    const document = $('#upload_document')[0].files[0];
 
     if(note == ''){
         return Swal.fire({
@@ -184,7 +187,8 @@ function simpanProgress(obj){
         });
     }
     if(nowSelect?.prosesNow.jobs.upload_doc){
-        if(!document){
+        const document = documentLhu.getData();
+        if(document.length == 0){
             return Swal.fire({
                 icon: "warning",
                 text: 'Tolong upload dokumen!',
@@ -196,7 +200,6 @@ function simpanProgress(obj){
     form.append('status', status);
     form.append('note', note);
     form.append('sProgress', sProgress);
-    nowSelect?.prosesNow.jobs.upload_doc ? form.append('document', document) : false;
     !nowSelect?.prosesNext && form.append('statusPermohonan', 4); // status permohonan untuk proses pengiriman
 
     spinner('show', $(obj));

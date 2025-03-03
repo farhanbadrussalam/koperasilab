@@ -1,19 +1,26 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Management;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Satuan_kerja;
 use App\Models\profile;
 use App\Models\Perusahaan;
+use App\Models\Master_jobs;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Arr;
+use App\Traits\RestApi;
+
 use DataTables;
+use DB;
 
 class UserController extends Controller
 {
+    use RestApi;
     /**
      * Display a listing of the resource.
      */
@@ -21,26 +28,76 @@ class UserController extends Controller
     {
         $data = [
             'title' => 'Management',
-            'module' => 'users'
+            'module' => 'users',
+            'role' => Role::all(),
+            'satuankerja' => Satuan_kerja::all()
         ];
-        return view('pages.users.index', $data);
+
+        return view('pages.management.users.index', $data);
     }
 
     public function getData(){
-        $query = User::orderBy('id');
+        $query = User::with('satuankerja')->orderBy('id');
+
+        if(request()->has('satuan_kerja') && request()->satuan_kerja != null){
+            $query->where('satuankerja_id', (int) decryptor(request()->satuan_kerja));
+        }
+        
+        if(request()->has('role') && request()->role != null){
+            $query->whereHas('roles', function($q) {
+                $q->where('name', request()->role);
+            });
+        }
 
         return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <a href="'.route('users.edit', encryptor($data->id)).'" class="btn btn-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i></a>
+                        <a href="'.route('users.edit', encryptor($data->id)).'" class="btn btn-outline-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i> Edit</a>
                     ';
                 })
                 ->addColumn('role', function($data){
-                    return (count($data->getRoleNames()) != 0)  ? $data->getRoleNames()[0] : '-';
+                    if(count($data->getRoleNames()) != 0){
+                        if($data->getRoleNames()[0] == 'Staff LHU'){
+                            $countJobs = $data->jobs ? count($data->jobs) : 0;
+                            return $data->getRoleNames()[0] . ' <span class="text-primary cursor-pointer" data-id="'.$data->user_hash.'" onclick="showTugas(this)">('.$countJobs.' Tugas)</span>';
+                        }else{
+                            return $data->getRoleNames()[0];
+                        }
+                    }else{
+                        return '-';
+                    }
                 })
-                ->rawColumns(['action'])
+                ->addColumn('satuankerja', function($data){
+                    return $data->satuankerja ? $data->satuankerja->name : '-';
+                })
+                ->addColumn('tugas', function($data){
+                    $tugas = $data->jobs ? array_map(function($item) {
+                        $name = Master_jobs::find($item)->name;
+                        return '<span class="badge text-bg-secondary">'.$name.'</span>';
+                    }, $data->jobs) : [];
+                    return "<div class='d-flex flex-wrap align-items-center gap-1'>".implode('', $tugas)."</div>";
+                })
+                ->rawColumns(['action', 'role', 'satuankerja', 'tugas'])
                 ->make(true);
+    }
+
+    public function getById($id) {
+        DB::beginTransaction();
+        try {
+            $user = User::with('satuankerja')->find(decryptor($id));
+            if($user->jobs){
+                $user->jobs = array_map(function($item) {
+                    return Master_jobs::find($item);
+                }, $user->jobs);
+            }
+    
+            return $this->output($user);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
     }
 
     /**
@@ -52,9 +109,11 @@ class UserController extends Controller
             'title' => 'Management',
             'module' => 'users',
             'satuankerja' => Satuan_kerja::all(),
-            'role' => Role::all()
+            'role' => Role::all(),
+            'jobs' => Master_jobs::all()
         ];
-        return view('pages.users.create', $data);
+        
+        return view('pages.management.users.create', $data);
     }
 
     /**
@@ -69,17 +128,25 @@ class UserController extends Controller
             'jenis_kelamin' => ['required'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'avatar' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            // 'avatar' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'satuanKerja' => ['required'],
             'role' => ['required']
         ]);
 
-        $user = User::factory()->create([
+        $paramsUser = [
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'satuankerja_id' => $request->satuanKerja
-        ])->assignRole($request->role);
+            'satuankerja_id' => $request->satuanKerja,
+        ];
+
+        if($request->role == 'Staff LHU'){
+            $paramsUser['jobs'] = array_map(function($item) {
+                return (int) decryptor($item);
+            }, $request->tugas_lhu);
+        }
+        
+        $user = User::factory()->create($paramsUser)->assignRole($request->role);
 
         if($user){
             if($request->file('avatar')){
@@ -124,14 +191,23 @@ class UserController extends Controller
      */
     public function edit(string $id)
     {
+        $d_user = User::with('profile')->find(decryptor($id));
+        if($d_user->jobs){
+            $d_user->jobs = array_map(function($item) {
+                return encryptor($item);
+            }, $d_user->jobs);
+        }
+
         $data = [
             'title' => 'Management',
             'module' => 'users',
             'satuankerja' => Satuan_kerja::all(),
             'role' => Role::all(),
-            'd_user' => User::findOrFail(decryptor($id))
+            'd_user' => $d_user,
+            'jobs' => Master_jobs::all()
         ];
-        return view('pages.users.edit', $data);
+
+        return view('pages.management.users.edit', $data);
     }
 
     /**
@@ -146,6 +222,12 @@ class UserController extends Controller
         $d_user->name = $request->name;
         (count($d_user->getRoleNames()) != 0) ? $d_user->removeRole($d_user->getRoleNames()[0]) : false;
         $d_user->assignRole($request->role);
+        if($request->tugas_lhu) {
+            $d_user->jobs = array_map(function($item) {
+                return (int) decryptor($item);
+            }, $request->tugas_lhu);
+        }
+        $d_user->satuankerja_id = $request->satuanKerja;
         $d_user->update();
 
         $avatar = "";

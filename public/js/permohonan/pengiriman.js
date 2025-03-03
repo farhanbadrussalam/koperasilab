@@ -1,5 +1,6 @@
 let nowTab = 1;
 let buktiPenerima = false;
+let buktiPengiriman = false;
 $(function () {
     loadData(1);
 
@@ -11,8 +12,12 @@ $(function () {
         }
     });
 
+    buktiPengiriman = new UploadComponent('showBuktiPengiriman', {
+        mode: 'preview',
+        camera: false
+    });
+
     buktiPenerima = new UploadComponent('uploadBuktiPenerima', {
-        modal: true,
         camera: false,
         allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
     });
@@ -179,6 +184,7 @@ function showModalDiterima(obj){
         const data = result.data;
         $('#idPengiriman').val(id);
         console.log(data);
+        buktiPengiriman.addData(data.media_pengiriman);
         let htmlSurpeng = '';
         for (const dok of data.permohonan.dokumen) {
             htmlSurpeng += `

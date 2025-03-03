@@ -1,6 +1,19 @@
 class UploadComponent {
+    /**
+     * Constructor untuk membuat komponen upload
+     * @param {String} idElement - id element yang akan digunakan sebagai wrapper
+     * @param {Object} options - object yang berisi konfigurasi
+     * @property {String} mode - mode upload atau preview, default 'upload'
+     * @property {Boolean} modal - boolean untuk menentukan apakah akan menampilkan modal atau tidak, default true
+     * @property {Boolean} camera - boolean untuk menentukan apakah akan menampilkan tombol camera atau tidak, default true
+     * @property {Array} allowedFileExtensions - array yang berisi ekstensi file yang diizinkan, default []
+     * @property {String} type - type file yang diizinkan, default 'image'
+     * @property {String} urlUpload - url untuk mengupload file, default false
+     * @property {Boolean} multiple - boolean untuk menentukan apakah akan mengizinkan upload file multiple atau tidak, default true
+     */
     constructor(idElement, options = {}) {
         this.options = {
+            mode : options.mode ?? 'upload', // upload atau preview
             modal: options.modal ?? true,
             camera: options.camera ?? true,
             allowedFileExtensions: options.allowedFileExtensions ?? [],
@@ -8,7 +21,7 @@ class UploadComponent {
             urlUpload: options.urlUpload ?? false,
             multiple: options.multiple ?? true
         }
-        
+        this.idElement = idElement;
         this.listFile = [];
 
         // random id number
@@ -57,6 +70,11 @@ class UploadComponent {
         this.loadListFile();
     }
 
+    setData(data){
+        this.listFile.push(data);
+        this.loadListFile();
+    }
+
     show() {
         // $('#offcanvasDelivery').offcanvas('show');
     }
@@ -83,7 +101,7 @@ class UploadComponent {
             $(`#listPreview_${this.id}`).html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
             return;
         }
-        
+
         this.listFile.forEach((file, index) => {
             if(file.file){
                 const reader = new FileReader();
@@ -92,12 +110,18 @@ class UploadComponent {
                     let htmlPreview = '';
                     if (file.file_type == 'image/jpeg' || file.file_type == 'image/png' || file.file_type == 'image/gif') {
                         htmlPreview = main.previewImage(e.target.result, index);
+                    }else{
+                        let objFile = {
+                            file_size: file.file.size,
+                            file_type: file.file.type,
+                            file_ori: file.file.name,
+                            file_result: e.target.result
+                        }
+                        htmlPreview = main.previewDocument(objFile, index);
                     }
                     document.getElementById(`listPreview_${main.id}`).appendChild(htmlPreview);
                 };
                 reader.readAsDataURL(file.file);
-
-
             }else{
                 let htmlPreview = '';
                 if (file.file_type == 'image/jpeg' || file.file_type == 'image/png' || file.file_type == 'image/gif') {
@@ -125,7 +149,6 @@ class UploadComponent {
                 params.append('idHash', this.options.urlUpload.idHash);
                 params.append('file', inputFile);
                 ajaxPost(this.options.urlUpload.url, params, result => {
-                    console.log(result);
                     this.listFile.push(result.data);
                     spinner('hide', $(`#btnTambahFile_${this.id}`));
                     $(`#uploadFile_${this.id}`).val('');
@@ -199,7 +222,7 @@ class UploadComponent {
         btnRemove.innerHTML = '<i class="bi bi-trash"></i>';
         btnRemove.onclick = this.removeFile.bind(this, index);
 
-        divMain.append(btnRemove);
+        this.options.mode == 'upload' && divMain.append(btnRemove);
         divMain.append(preview);
 
         return divMain;
@@ -218,7 +241,13 @@ class UploadComponent {
 
         const linkMedia = document.createElement('a');
         linkMedia.className = 'd-flex align-items-center w-100';
-        linkMedia.href = `${base_url}/storage/${file.file_path}/${file.file_hash}`;
+        if(file.file_result){
+            const url = window.URL.createObjectURL(new Blob([file.file_result], {type: 'application/pdf'}));
+            linkMedia.href = url;
+            linkMedia.setAttribute('download', file.file_ori);
+        }else{
+            linkMedia.href = `${base_url}/storage/${file.file_path}/${file.file_hash}`;
+        }
         linkMedia.target = '_blank';
 
         const divImg = document.createElement('div');
@@ -258,55 +287,57 @@ class UploadComponent {
         // Buat elemen div container
         const container = document.createElement('div');
     
-        // Elemen input file
-        const inputGroup = document.createElement('div');
-        inputGroup.classList.add('input-group');
-    
-        const inputFile = document.createElement('input');
-        inputFile.type = 'file';
-        inputFile.classList.add('form-control');
-        inputFile.id = `uploadFile_${this.id}`;
-        inputFile.accept = this.allowedFileExtensions();
-        inputFile.setAttribute('aria-label', 'Upload');
-        inputGroup.appendChild(inputFile);
-    
-        // Tombol Tambah
-        const btnTambah = document.createElement('button');
-        btnTambah.classList.add('btn', 'btn-outline-primary');
-        btnTambah.id = `btnTambahFile_${this.id}`;
-        btnTambah.textContent = 'Tambah';
-        btnTambah.onclick = this.tambah.bind(this);
-        inputGroup.appendChild(btnTambah);
-    
-        // Tombol Kamera
-        const btnKamera = document.createElement('button');
-        btnKamera.classList.add('btn', 'btn-outline-secondary');
-        btnKamera.type = 'button';
-        btnKamera.id = `activeFoto_${this.id}`;
-    
-        const iconKamera = document.createElement('i');
-        iconKamera.classList.add('bi', 'bi-camera');
-        btnKamera.appendChild(iconKamera);
-        this.options.camera && inputGroup.appendChild(btnKamera);
-
-        // Progress bar
-        /*
-        <div class="progress" role="progressbar" aria-label="Example with label" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-bar" style="width: 25%">25%</div>
-        </div>
-        */
-        const progressBar = document.createElement('div');
-        progressBar.classList.add('progress', 'w-100', 'mt-2');
-        progressBar.id = `progress_${this.id}`;
-        progressBar.max = 100;
-        progressBar.value = 0;
-        progressBar.ariaValueMin = 0;
-        progressBar.ariaValueMax = 100;
-        progressBar.innerHTML = '<div class="progress-bar" style="width: 0%">0%</div>';
-        progressBar.style.display = 'none';
+        if(this.options.mode === 'upload'){
+            // Elemen input file
+            const inputGroup = document.createElement('div');
+            inputGroup.classList.add('input-group');
         
-        container.appendChild(inputGroup);
-        container.appendChild(progressBar);
+            const inputFile = document.createElement('input');
+            inputFile.type = 'file';
+            inputFile.classList.add('form-control');
+            inputFile.id = `uploadFile_${this.id}`;
+            inputFile.accept = this.allowedFileExtensions();
+            inputFile.setAttribute('aria-label', 'Upload');
+            inputGroup.appendChild(inputFile);
+        
+            // Tombol Tambah
+            const btnTambah = document.createElement('button');
+            btnTambah.classList.add('btn', 'btn-outline-primary');
+            btnTambah.id = `btnTambahFile_${this.id}`;
+            btnTambah.textContent = 'Tambah';
+            btnTambah.onclick = this.tambah.bind(this);
+            inputGroup.appendChild(btnTambah);
+        
+            // Tombol Kamera
+            const btnKamera = document.createElement('button');
+            btnKamera.classList.add('btn', 'btn-outline-secondary');
+            btnKamera.type = 'button';
+            btnKamera.id = `activeFoto_${this.id}`;
+        
+            const iconKamera = document.createElement('i');
+            iconKamera.classList.add('bi', 'bi-camera');
+            btnKamera.appendChild(iconKamera);
+            this.options.camera && inputGroup.appendChild(btnKamera);
+    
+            // Progress bar
+            /*
+            <div class="progress" role="progressbar" aria-label="Example with label" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width: 25%">25%</div>
+            </div>
+            */
+            const progressBar = document.createElement('div');
+            progressBar.classList.add('progress', 'w-100', 'mt-2');
+            progressBar.id = `progress_${this.id}`;
+            progressBar.max = 100;
+            progressBar.value = 0;
+            progressBar.ariaValueMin = 0;
+            progressBar.ariaValueMax = 100;
+            progressBar.innerHTML = '<div class="progress-bar" style="width: 0%">0%</div>';
+            progressBar.style.display = 'none';
+            
+            container.appendChild(inputGroup);
+            container.appendChild(progressBar);
+        }
     
         // Elemen untuk daftar preview
         const listPreview = document.createElement('div');
@@ -356,7 +387,7 @@ class UploadComponent {
 
     destroy(){
         if(this.options.modal){
-            $('#offcanvasDetail').remove();
+            $(`#${this.idElement}`).children().remove();
         }
     }
 }

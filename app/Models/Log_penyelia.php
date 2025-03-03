@@ -12,7 +12,9 @@ class Log_penyelia extends Model
 
     protected $fillable = [
         'id_penyelia',
+        'id_map',
         'status',
+        'message',
         'note',
         'document',
         'created_by'

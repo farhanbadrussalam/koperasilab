@@ -4,7 +4,8 @@ $(function () {
     detail = new Detail({
         jenis: 'surattugas',
         tab: {
-            proses: true
+            proses: true,
+            log: true
         },
         activeTab: 'proses'
     });
@@ -21,6 +22,7 @@ function loadData(page=1) {
     $(`#list-container-surat-tugas`).hide();
     ajaxGet(`api/v1/penyelia/list`, params, result => {
         let html = '';
+        const divTimelineTugas = [];
         for (const [i, lhu] of result.data.entries()) {
             const permohonan = lhu.permohonan;
             let arrPeriode = permohonan.kontrak?.periode ?? permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
@@ -40,6 +42,13 @@ function loadData(page=1) {
                     </div>
                 </div>
             `;
+
+            const timeline = new Timeline({
+                timeline: lhu.penyelia_map,
+                status: lhu.status,
+                id: lhu.penyelia_hash
+            });
+            divTimelineTugas.push(timeline);
 
             html += `
                 <div class="card mb-2">
@@ -66,6 +75,7 @@ function loadData(page=1) {
                         <div class="col-6 col-md-2 text-center" data-idpenyelia='${lhu.penyelia_hash}' data-surattugas='${lhu.no_surat_tugas}'>
                             ${btnAction}
                         </div>
+                        ${timeline.elementCreate()}
                         ${divInfoTugas}
                     </div>
                 </div>
@@ -84,7 +94,7 @@ function loadData(page=1) {
         $(`#list-container-surat-tugas`).html(html);
 
         $(`#list-pagination-surat-tugas`).html(createPaginationHTML(result.pagination));
-
+        divTimelineTugas.map(d => d.render());
         $(`#list-placeholder-surat-tugas`).hide();
         $(`#list-container-surat-tugas`).show();
     });

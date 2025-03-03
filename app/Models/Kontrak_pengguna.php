@@ -48,4 +48,8 @@ class Kontrak_pengguna extends Model
     public function media(){
         return $this->belongsTo(Master_media::class, 'file_ktp', 'id');
     }
+
+    public function tldPengguna(){
+        return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
+    }
 }

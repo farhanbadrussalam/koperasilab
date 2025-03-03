@@ -18,16 +18,12 @@ $(function () {
         }
     });
 
-    loadTld();
+    loadTldKontrol();
     loadPengguna();
 
-    $('#flexCheckTldAll').on('change', function() {
+    $('#checkAllTldPengguna').on('change', function() {
         const isChecked = $(this).is(':checked');
-        $('input[name="flexCheckTld"]').prop('checked', isChecked);
-    });
-    $('#flexCheckPenggunaAll').on('change', function() {
-        const isChecked = $(this).is(':checked');
-        $('input[name="flexCheckPengguna"]').prop('checked', isChecked);
+        $('input[name="checkTldPengguna"]').prop('checked', isChecked);
     });
 })
 
@@ -47,42 +43,66 @@ function loadTld() {
     $('#listTld').html(html);
 }
 
-function loadPengguna(){
-    let pengguna = dataKontrak.pengguna;
-
-    let html = '';
-    for (const [i, value] of pengguna.entries()) {
-        let txtRadiasi = '';
-        value.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
-
-        html += `
-            <li class="list-group-item">
-                <div class="row align-items-center">
-                    <div class="col-md-7 lh-sm d-flex align-items-center p-0">
-                        <div class="me-2">
-                            <input class="form-check-input form-check-lg" type="checkbox" value="" id="flexCheckPengguna${i}" name="flexCheckPengguna" checked>
-                        </div>
-                        <span class="col-form-label me-2">${i + 1}</span>
-                        <div class="mx-2 d-flex flex-column gap-1">
-                            <div>${value.nama}</div>
-                            <small class="text-body-secondary fw-light">${value.posisi}</small>
-                            <div class="d-flex flex-wrap">
-                                ${txtRadiasi}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-2 ms-auto">
-                        ${[1,2].includes(value.status) ? '<span class="badge text-bg-success">Active</span>' : '<span class="badge text-bg-danger">Inactive</span>'}
-                    </div>
-                    <div class="col-md-2 text-end">
-                        <button class="btn btn-sm btn-outline-secondary"  data-path="${value.media.file_path}" data-file="${value.media.file_hash}" onclick="showPreviewKtp(this)" title="Show ktp"><i class="bi bi-file-person-fill"></i></button>
-                    </div>
+function loadTldKontrol() {
+    let kontrak = dataKontrak;
+    let htmlTldKontrol = ``;
+    for (const [i, list] of kontrak.tldKontrol.entries()) {
+        htmlTldKontrol += `
+            <div class="w-50 pe-1 mb-1 input-group">
+                <div class="input-group-text">
+                    <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.tld_hash}" aria-label="Checkbox for following text input">
                 </div>
-            </li>
+                <select class="form-select kodeTldKontrol" name="kodeTldKontrol">
+                    <option value="${list.tld_hash}" selected>${list.kode_lencana}</option>
+                </select>
+            </div>
         `;
     }
 
-    $('#listPengguna').html(html);
+    $('#tld-kontrol-content').html(htmlTldKontrol);
+}
+
+function loadPengguna(){
+    let pengguna = dataKontrak.pengguna;
+
+    let htmlPengguna = '';
+    for (const [i, value] of pengguna.entries()) {
+        let txtRadiasi = '';
+            let options = '';
+            value.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
+            if(value.tld_pengguna){
+                options = `<option value="${value.tld_pengguna.tld_hash}">${value.tld_pengguna.kode_lencana}</option>`;
+            } else {
+                options = `<option value="">Pilih Kode lencana</option>`;
+            }
+            
+            htmlPengguna += `
+                <tr>
+                    <td>
+                        <input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${value.permohonan_pengguna_hash}" aria-label="" id="checkTldPengguna${i}">
+                    </td>
+                    <td>${i + 1}</td>
+                    <td>
+                        <div>${value.nama}</div>
+                        <small class="text-body-secondary fw-light">${value.posisi}</small>
+                    </td>
+                    <td>${txtRadiasi}</td>
+                    <td>
+                        <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${value.permohonan_pengguna_hash}" data-id="${value.permohonan_pengguna_hash}">
+                            ${options}
+                        </select>
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.media.file_path}/${value.media.file_hash}" title="Show ktp">
+                            <i class="bi bi-file-person-fill"></i>
+                        </a>
+                    </td>
+                </tr>
+            `;
+    }
+
+    $('#pengguna-list-container').html(htmlPengguna);
+    showPopupReload();
 }
 
 function buatPermohonan(obj){
@@ -92,15 +112,15 @@ function buatPermohonan(obj){
     let periode = dataPeriodeNow;
     let alamatIndex = $('#selectAlamat').val();
 
-    let checkedTldValues = [];
-    $('input[name="flexCheckTld"]:checked').each(function() {
-        checkedTldValues.push($(this).val());
+    let checkTldPengguna = [];
+    let checkTldKontrol = [];
+    $('input[name="checkTldPengguna"]:checked').each(function() {
+        checkTldPengguna.push($(this).val());
     });
-
-    // let checkedPenggunaValues = [];
-    // $('input[name="flexCheckPengguna"]:checked').each(function() {
-    //     checkedPenggunaValues.push($(this).val());
-    // });
+    $('input[name="checkTldKontrol"]:checked').each(function() {
+        checkTldKontrol.push($(this).val());
+    });
+    // return;
 
     if(!alamatIndex){
         Swal.fire({
@@ -130,7 +150,8 @@ function buatPermohonan(obj){
             params.append('idKontrak', idKontrak);
             params.append('periode', periode?.periode);
             params.append('alamat', alamatData.alamat_hash); // Send the address hash
-            params.append('dataTld', JSON.stringify(checkedTldValues));
+            params.append('dataTld', JSON.stringify(checkTldKontrol));
+            params.append('tldPengguna', JSON.stringify(checkTldPengguna));
             params.append('createBy', userActive.user_hash);
             params.append('tipeKontrak', 'kontrak lama');
             permohonanHash ? params.append('idPermohonan', permohonanHash.permohonan_hash) : false;
@@ -141,8 +162,6 @@ function buatPermohonan(obj){
             spinner('show', $(obj)); // Show the spinner on the clicked button
 
             ajaxPost('api/v1/permohonan/tambahPengajuan', params, result => {
-                spinner('hide', $(obj)); // Hide the spinner *after* the AJAX call completes
-
                 // Show success message and handle any further actions (like redirecting):
                 Swal.fire({
                     icon: 'success',

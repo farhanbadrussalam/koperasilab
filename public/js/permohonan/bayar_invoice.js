@@ -15,7 +15,6 @@ $(function() {
 
     // Inisialisasi upload component
     buktiBayar = new UploadComponent('uploadBuktiBayar', {
-        modal: true,
         camera: false,
         allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
         urlUpload: {
@@ -26,7 +25,6 @@ $(function() {
     });
 
     buktiBayarPph = new UploadComponent('uploadBuktiBayarPph', {
-        modal: true,
         camera: false,
         allowedFileExtensions: ['pdf'],
         urlUpload: {

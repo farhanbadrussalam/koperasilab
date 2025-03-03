@@ -184,6 +184,18 @@
                 </li>
                 @endif
 
+                @can('Staff/lhu/petugas')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-petugas-lhu' ? 'active' : '' }}"
+                        href="{{ route('staff.lhu.petugas') }}" aria-expanded="false">
+                        <span>
+                            <i class="bi bi-person-fill"></i>
+                        </span>
+                        <span class="hide-menu">Data Petugas</span>
+                    </a>
+                </li>    
+                @endcan
+
                 @can('Staff/permohonan')
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-permohonan' ? 'active' : '' }}"
@@ -215,8 +227,8 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-penyelia' ? 'active' : '' }}"
                     href="{{ route('staff.penyelia') }}" aria-expanded="false">
-                    <span>&nbsp;</span>
-                    <span class="hide-menu">Penyelia</span>
+                    <span><i class="bi bi-eyedropper"></i></span>
+                    <span class="hide-menu">Penyeliaan</span>
                     </a>
                 </li>
                 @endcan
@@ -225,7 +237,7 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-lhu' ? 'active' : '' }}"
                     href="{{ route('staff.lhu') }}" aria-expanded="false">
-                    <span>&nbsp;</span>
+                    <span><i class="bi bi-eyedropper"></i></span>
                     <span class="hide-menu">LHU</span>
                     </a>
                 </li>
@@ -341,6 +353,24 @@
                         </a>
                     </li>
                     <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'tld' ? 'active' : '' }}"
+                            href="{{ route('tld.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="bi bi-circle"></i>
+                            </span>
+                            <span class="hide-menu">TLD</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'radiasi' ? 'active' : '' }}"
+                            href="{{ route('radiasi.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="bi bi-circle"></i>
+                            </span>
+                            <span class="hide-menu">Radiasi</span>
+                        </a>
+                    </li>
+                    {{-- <li class="sidebar-item">
                         <a class="sidebar-link {{ $module == 'lab' ? 'active' : '' }}"
                             href="{{ route('lab.index') }}" aria-expanded="false">
                             <span>
@@ -348,7 +378,7 @@
                             </span>
                             <span class="hide-menu">Lab</span>
                         </a>
-                    </li>
+                    </li> --}}
                 </div>
                 <!-- END MANAGEMENT MENU -->
                 @endcan

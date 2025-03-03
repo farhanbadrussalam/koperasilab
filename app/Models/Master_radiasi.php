@@ -10,6 +10,8 @@ class Master_radiasi extends Model
     use HasFactory;
 
     protected $table = 'master_radiasi';
+    protected $primaryKey = 'id_radiasi';
+    public $timestamps = false;
 
     protected $fillable = [
         'nama_radiasi',

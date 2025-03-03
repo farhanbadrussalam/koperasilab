@@ -47,11 +47,6 @@
                                 <textarea name="alamatTujuan" id="alamatTujuan" cols="30" rows="4"
                                     class="form-control bg-secondary-subtle mt-2" readonly></textarea>
                             </div>
-                            <div class="mb-3 col-md-6">
-                                <label for="" class="form-label">Upload bukti pengiriman</label>
-                                <div id="uploadBuktiPengiriman">
-                                </div>
-                            </div>
                         </div>
                         <hr>
                         <div class="fw-semibold fs-5">List document</div>

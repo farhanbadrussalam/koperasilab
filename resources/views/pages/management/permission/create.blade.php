@@ -5,7 +5,7 @@
           <h4 class="modal-title">Create Permission</h4>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <form action="{{ route('permission.store') }}" method="post">
+        <form id="form-create" method="post">
             @csrf
             <div class="modal-body">
                 <div class="mb-3">
@@ -13,8 +13,8 @@
                     <input type="text" name="name" id="inputNamePermission" class="form-control" autocomplete="false" required>
                 </div>
             </div>
-            <div class="modal-footer justify-content-between">
-              <button type="submit" class="btn btn-primary">Save</button>
+            <div class="modal-footer justify-content-between text-end">
+              <button type="submit" class="btn btn-primary" id="btn-create">Save</button>
             </div>
         </form>
       </div>

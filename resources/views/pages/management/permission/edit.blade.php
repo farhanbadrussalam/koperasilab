@@ -16,7 +16,7 @@
                 </div>
             </div>
             <div class="modal-footer justify-content-between">
-              <button type="submit" class="btn btn-primary">Save changes</button>
+              <button type="submit" class="btn btn-primary" id="btn-edit">Save changes</button>
             </div>
         </form>
       </div>

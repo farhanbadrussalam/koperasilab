@@ -118,4 +118,8 @@ class Permohonan extends Model
     public function signature(){
         return $this->belongsTo(User::class, 'ttd_by', 'id');
     }
+
+    public function periodenow(){
+        return $this->belongsTo(Kontrak_periode::class, 'id_permohonan', 'id_permohonan');
+    }
 }

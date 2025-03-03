@@ -10,22 +10,23 @@ class Detail {
                 dokumen: options.tab.dokumen ?? false,
                 log: options.tab.log ?? false,
                 periode: options.tab.periode ?? false,
+                tld: options.tab.tld ?? false,
                 // Pengiriman
                 items: options.tab.items ?? false,
                 bukti: options.tab.bukti ?? false,
                 // Penyelia
                 proses: options.tab.proses ?? false,
             },
-            activeTab: options.activeTab ?? 'pengguna'
+            activeTab: options.activeTab ?? false
         }
 
         this._initializeProperties();
         this._createCustomEvents();
 
-        if(this.options.modal){
+        if (this.options.modal) {
             $('body').append(this.modalCreate());
         }
-        
+
         this._bindEventListeners();
     }
 
@@ -42,40 +43,39 @@ class Detail {
         // $('#btnSimpanDetail').on('click', this.simpanDetail.bind(this));
     }
 
-    _actionAccordion(){
-        let Accordion = function(el, multiple) {
+    _actionAccordion() {
+        let Accordion = function (el, multiple) {
             this.el = el || {};
             this.multiple = multiple || false;
-             
+
             let links = this.el.find('.link');
-      
-            links.on('click', {el: this.el, multiple: this.multiple}, this.dropdown)
-         }
-      
-         Accordion.prototype.dropdown = function(e) {
+
+            links.on('click', { el: this.el, multiple: this.multiple }, this.dropdown)
+        }
+
+        Accordion.prototype.dropdown = function (e) {
             let $el = e.data.el;
             let $this = $(this);
             let $next = $this.next();
-            
+
             $next.slideToggle();
             $this.parent().toggleClass('open');
-      
+
             if (!e.data.multiple) {
-               $el.find('.submenu').not($next).slideUp().parent().removeClass('open');
+                $el.find('.submenu').not($next).slideUp().parent().removeClass('open');
             };
-         }  
-      
-         let accordion = new Accordion($('#pills-tab'), false);
-         if(this.options.activeTab){
+        }
+
+        let accordion = new Accordion($('#pills-tab'), false);
+        if (this.options.activeTab) {
             $(`#pills-${this.options.activeTab}`).click();
-         }
+        }
         //  new Accordion($('#pills-tab'), false);
     }
-    
-    _initInformasi(){
+
+    _initInformasi() {
         switch (this.options.jenis) {
             case 'surattugas':
-                console.log(this.data);
                 this.info = {
                     no_kontrak: this.data.permohonan.kontrak?.no_kontrak ?? '-',
                     tipe_kontrak: this.data.permohonan.tipe_kontrak ?? '-',
@@ -87,82 +87,82 @@ class Detail {
                     start_date: this.data.start_date ?? '-',
                     end_date: this.data.end_date ?? '-',
                     created_at: this.data.created_at ?? '-',
-                    jenisStatus : 'surattugas'
+                    jenisStatus: 'surattugas'
                 };
                 break;
 
             case 'pengiriman':
                 const dataPengiriman = this.data;
                 this.info = {
-                    no_pengiriman : dataPengiriman.id_pengiriman ?? '-',
-                    no_resi : dataPengiriman.no_resi ?? 'Belum ada',
-                    ekspedisi : dataPengiriman.ekspedisi?.name ?? '-',
-                    no_kontrak : dataPengiriman.kontrak?.no_kontrak ?? '-',
-                    tujuan : dataPengiriman.tujuan?.name ?? '-',
-                    alamat : dataPengiriman.alamat?.alamat ?? '-',
-                    created_at : dataPengiriman.created_at ?? '-',
-                    status : dataPengiriman.status,
-                    jenisStatus : 'pengiriman'
+                    no_pengiriman: dataPengiriman.id_pengiriman ?? '-',
+                    no_resi: dataPengiriman.no_resi ?? 'Belum ada',
+                    ekspedisi: dataPengiriman.ekspedisi?.name ?? '-',
+                    no_kontrak: dataPengiriman.kontrak?.no_kontrak ?? '-',
+                    tujuan: dataPengiriman.tujuan?.name ?? '-',
+                    alamat: dataPengiriman.alamat?.alamat ?? '-',
+                    created_at: dataPengiriman.created_at ?? '-',
+                    status: dataPengiriman.status,
+                    jenisStatus: 'pengiriman'
                 };
                 break;
 
             case 'permohonan':
                 this.info = {
-                    no_kontrak : this.data.kontrak?.no_kontrak ?? '-',
-                    tipe_kontrak : this.data.tipe_kontrak ?? '-',
-                    jenis_layanan : this.data.jenis_layanan.name ?? '-',
-                    jenis_layanan_parent : this.data.jenis_layanan_parent?.name ?? '-',
-                    pelanggan : this.data.pelanggan?.name ?? '-',
-                    perusahaan : this.data.pelanggan.perusahaan?.nama_perusahaan ?? '-',
-                    status : this.data.status ?? '-',
-                    jmlKontrol : this.data.jumlah_kontrol ?? 0,
-                    total_harga : this.data.total_harga ?? 0,
-                    created_at : this.data.created_at ?? '-',
-                    periodePemakaian : this.data.periode_pemakaian ?? [],
-                    periodeNow : this.data.periode ?? '',
-                    layananJasa : this.data.layanan_jasa?.nama_layanan ?? '',
-                    jenisTld : this.data.jenis_tld?.name ?? '',
-                    jenisStatus : 'permohonan'
+                    no_kontrak: this.data.kontrak?.no_kontrak ?? '-',
+                    tipe_kontrak: this.data.tipe_kontrak ?? '-',
+                    jenis_layanan: this.data.jenis_layanan.name ?? '-',
+                    jenis_layanan_parent: this.data.jenis_layanan_parent?.name ?? '-',
+                    pelanggan: this.data.pelanggan?.name ?? '-',
+                    perusahaan: this.data.pelanggan.perusahaan?.nama_perusahaan ?? '-',
+                    status: this.data.status ?? '-',
+                    jmlKontrol: this.data.jumlah_kontrol ?? 0,
+                    total_harga: this.data.total_harga ?? 0,
+                    created_at: this.data.created_at ?? '-',
+                    periodePemakaian: this.data.periode_pemakaian ?? [],
+                    periodeNow: this.data.periode ?? '',
+                    layananJasa: this.data.layanan_jasa?.nama_layanan ?? '',
+                    jenisTld: this.data.jenis_tld?.name ?? '',
+                    jenisStatus: 'permohonan'
                 }
                 break;
-                
+
             case 'penyelia':
                 this.info = {
-                    no_kontrak : this.data.permohonan.kontrak?.no_kontrak ?? '-',
-                    tipe_kontrak : this.data.permohonan.tipe_kontrak ?? '-',
-                    jenis_layanan : this.data.permohonan.jenis_layanan.name ?? '-',
-                    jenis_layanan_parent : this.data.permohonan.jenis_layanan_parent?.name ?? '-',
-                    pelanggan : this.data.permohonan.pelanggan?.name ?? '-',
-                    perusahaan : this.data.permohonan.pelanggan.perusahaan?.nama_perusahaan ?? '-',
-                    status : this.data.status ?? '-',
-                    jmlKontrol : this.data.permohonan.jumlah_kontrol ?? 0,
-                    total_harga : this.data.permohonan.total_harga ?? 0,
-                    created_at : this.data.permohonan.created_at ?? '-',
-                    periodePemakaian : this.data.permohonan.periode_pemakaian ?? [],
-                    periodeNow : this.data.permohonan.periode ?? '',
-                    layananJasa : this.data.permohonan.layanan_jasa?.nama_layanan ?? '',
-                    jenisTld : this.data.permohonan.jenis_tld?.name ?? '',
-                    jenisStatus : 'penyelia'
+                    no_kontrak: this.data.permohonan.kontrak?.no_kontrak ?? '-',
+                    tipe_kontrak: this.data.permohonan.tipe_kontrak ?? '-',
+                    jenis_layanan: this.data.permohonan.jenis_layanan.name ?? '-',
+                    jenis_layanan_parent: this.data.permohonan.jenis_layanan_parent?.name ?? '-',
+                    pelanggan: this.data.permohonan.pelanggan?.name ?? '-',
+                    perusahaan: this.data.permohonan.pelanggan.perusahaan?.nama_perusahaan ?? '-',
+                    status: this.data.status ?? '-',
+                    jmlKontrol: this.data.permohonan.jumlah_kontrol ?? 0,
+                    total_harga: this.data.permohonan.total_harga ?? 0,
+                    created_at: this.data.permohonan.created_at ?? '-',
+                    periodePemakaian: this.data.permohonan.periode_pemakaian ?? [],
+                    periodeNow: this.data.permohonan.periode ?? '',
+                    layananJasa: this.data.permohonan.layanan_jasa?.nama_layanan ?? '',
+                    jenisTld: this.data.permohonan.jenis_tld?.name ?? '',
+                    jenisStatus: 'penyelia'
                 }
                 break;
 
             case 'kontrak':
                 this.info = {
-                    no_kontrak : this.data.no_kontrak ?? '-',
-                    tipe_kontrak : this.data.tipe_kontrak ?? '-',
-                    jenis_layanan : this.data.jenis_layanan.name ?? '-',
-                    jenis_layanan_parent : this.data.jenis_layanan_parent?.name ?? '-',
-                    pelanggan : this.data.pelanggan?.name ?? '-',
-                    perusahaan : this.data.pelanggan.perusahaan?.nama_perusahaan ?? '-',
-                    status : this.data.status ?? '-',
-                    jmlKontrol : this.data.jumlah_kontrol ?? 0,
-                    total_harga : this.data.total_harga ?? 0,
-                    created_at : this.data.created_at ?? '-',
-                    periodePemakaian : this.data.periode_pemakaian ?? [],
-                    periodeNow : this.data.periode ?? '',
-                    layananJasa : this.data.layanan_jasa?.nama_layanan ?? '',
-                    jenisTld : this.data.jenis_tld?.name ?? '',
-                    jenisStatus : 'kontrak'
+                    no_kontrak: this.data.no_kontrak ?? '-',
+                    tipe_kontrak: this.data.tipe_kontrak ?? '-',
+                    jenis_layanan: this.data.jenis_layanan.name ?? '-',
+                    jenis_layanan_parent: this.data.jenis_layanan_parent?.name ?? '-',
+                    pelanggan: this.data.pelanggan?.name ?? '-',
+                    perusahaan: this.data.pelanggan.perusahaan?.nama_perusahaan ?? '-',
+                    status: this.data.status ?? '-',
+                    jmlKontrol: this.data.jumlah_kontrol ?? 0,
+                    total_harga: this.data.total_harga ?? 0,
+                    created_at: this.data.created_at ?? '-',
+                    periodePemakaian: this.data.periode_pemakaian ?? [],
+                    periodeNow: this.data.periode ?? '',
+                    layananJasa: this.data.layanan_jasa?.nama_layanan ?? '',
+                    jenisTld: this.data.jenis_tld?.name ?? '',
+                    jenisStatus: 'kontrak'
                 }
                 break;
             default:
@@ -209,7 +209,7 @@ class Detail {
         this.loadDataAjax(url);
     }
 
-    loadDataAjax(url){
+    loadDataAjax(url) {
         $('#titleDetail').text('Detail');
         $('#mainContent').hide();
         $('#loadingDetail').show();
@@ -233,7 +233,6 @@ class Detail {
     createInformationPermohonan() {
         const container = document.createElement('div');
         container.className = 'container fs-7';
-        console.log(this.info)
 
         $('#titleDetail').text(`${this.info.layananJasa} - ${this.info.jenisTld}`);
 
@@ -247,7 +246,7 @@ class Detail {
             <div class="row mb-2">
                 <label class="text-body-tertiary mb-1 col-md-4">Jenis layanan</label>
                 <div class="col-auto gap-1">
-                    <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama'?'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama'?'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
+                    <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
                 </div>
             </div>
@@ -294,7 +293,7 @@ class Detail {
     createInformationPengiriman() {
         const container = document.createElement('div');
         container.className = 'container fs-7';
-        
+
         $('#titleDetail').text('Detail Pengiriman');
 
         container.innerHTML = `
@@ -353,7 +352,7 @@ class Detail {
     createInformationSuratTugas() {
         const container = document.createElement('div');
         container.className = 'container fs-7';
-        
+
         $('#titleDetail').text('Detail Surat Tugas');
 
         container.innerHTML = `
@@ -366,7 +365,7 @@ class Detail {
             <div class="row mb-2">
                 <label class="text-body-tertiary mb-1 col-md-4">Jenis layanan</label>
                 <div class="col-auto gap-1">
-                    <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama'?'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama'?'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
+                    <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
                 </div>
             </div>
@@ -421,43 +420,44 @@ class Detail {
         this.options.tab.periode && (tabs.periode = { title: 'Periode', content: this.createPeriodeContent() });
         this.options.tab.dokumen && (tabs.dokumen = { title: 'Dokumen', content: this.createDokumenContent() });
         this.options.tab.log && (tabs.log = { title: 'Log', content: this.createLogContent() });
+        this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent() });
 
         this.options.tab.items && (tabs.items = { title: 'Items', content: this.createItemsContent() });
         this.options.tab.bukti && (tabs.bukti = { title: 'Bukti', content: this.createBuktiContent() });
 
         this.options.tab.proses && (tabs.proses = { title: 'Proses Penyelia', content: this.createProsesContent() });
-      
+
         let htmlTabNav = '';
-      
+
         for (const tabId in tabs) {
-          if (this.options.tab[tabId]) {
-            const tab = tabs[tabId];
-            const badge = tab.badge ? `<span class="badge text-bg-secondary">${tab.badge}</span>` : '';
-      
-            htmlTabNav += `
+            if (this.options.tab[tabId]) {
+                const tab = tabs[tabId];
+                const badge = tab.badge ? `<span class="badge text-bg-secondary">${tab.badge}</span>` : '';
+
+                htmlTabNav += `
               <li role="presentation" class="bg-secondary-subtle rounded-3 mb-1 shadow-sm">
                 <div class="link d-flex justify-content-between align-items-center py-2 px-3" id="pills-${tabId}">
                     <span>${tab.title} ${badge}</span> 
                     <i class="bi bi-chevron-down"></i>
                 </div>
-                <div class="submenu bg-body-secondary p-2 rounded-bottom-3">
+                <div class="submenu bg-body-secondary p-2 rounded-bottom-3 overflow-auto overflow-x-hidden" style="max-height: 30vh">
                     ${tab.content}
                 </div>
               </li>
             `;
-          }
+            }
         }
-      
+
         if (htmlTabNav === '') {
-          return `<div class="text-center text-muted mt-3 w-100">Tidak ada tab yang ditampilkan</div>`;
+            return `<div class="text-center text-muted mt-3 w-100">Tidak ada tab yang ditampilkan</div>`;
         }
-      
+
         container.innerHTML = `
           <ul class="accordion-custom px-0 m-0" id="pills-tab" role="tablist">
             ${htmlTabNav}
           </ul>
         `;
-      
+
         return container;
     }
 
@@ -465,14 +465,13 @@ class Detail {
     createItemsContent() {
         return '<p>Items content</p>';
     }
-    createPenggunaContent() { 
-        console.log(this.data) ;
-        if(this.data.pengguna && this.data.pengguna.length > 0){
+    createPenggunaContent() {
+        if (this.data.pengguna && this.data.pengguna.length > 0) {
             let html = '';
-            for (const [i,pengguna] of this.data.pengguna.entries()) {
+            for (const [i, pengguna] of this.data.pengguna.entries()) {
                 let txtRadiasi = '';
                 pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
-                
+
                 html += `
                     <div class="card mb-2 shadow-sm fs-8">
                         <div class="card-body row align-items-center py-1">
@@ -494,14 +493,14 @@ class Detail {
                 `;
             }
             return html;
-        }else {
-            return '<p>Tidak ada data pengguna</p>'; 
+        } else {
+            return '<p>Tidak ada data pengguna</p>';
         }
     }
-    createAktivitasContent() { 
-        return '<p>Aktivitas content</p>'; 
+    createAktivitasContent() {
+        return '<p>Aktivitas content</p>';
     }
-    createDokumenContent() { 
+    createDokumenContent() {
         let doc = ``;
         let dataDokumen = [];
         let invoiceData = false;
@@ -518,11 +517,11 @@ class Detail {
                 break;
         }
 
-        for (const [i,dokumen] of dataDokumen.entries()) {
+        for (const [i, dokumen] of dataDokumen.entries()) {
             let idHash = false;
-            if(dokumen.jenis == 'invoice'){
+            if (dokumen.jenis == 'invoice') {
                 idHash = invoiceData?.permohonan_hash;
-            }else{
+            } else {
                 idHash = this.data.permohonan_hash;
             }
             doc += `
@@ -544,19 +543,50 @@ class Detail {
             `;
         }
 
-        if(doc == ``){
+        if (doc == ``) {
             doc = '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada dokumen</p>';
         }
 
         return doc;
     }
-    createLogContent() { 
-        return '<p>Log content</p>'; 
+    createLogContent() {
+        const dataLog = [];
+        switch (this.options.jenis) {
+            case 'penyelia':
+                this.data.log?.map(log => {
+                    let objLog = {
+                        id: log.log_penyelia_hash,
+                        message: log.message,
+                        note: log.note,
+                        created_at: log.created_at
+                    }
+                    dataLog.push(objLog);
+                })
+                break;
+        }
+        let htmlPointLog = ``;
+        dataLog.map((log, i) => {
+            htmlPointLog += `
+                <div class="tl-item ${i == 0 ? 'active' : ''}">
+                    <div class="tl-dot border-primary"></div>
+                    <div class="tl-content">
+                        <div class="">${log.message}</div>
+                        ${log.note ? `<small class="text-muted mt-1">Note : ${log.note}</small>` : ''}
+                        <div class="tl-date text-muted mt-1">${diffToday(log.created_at)}</div>
+                    </div>
+                </div>
+            `
+        })
+        return `
+            <div class="timeline">
+                ${htmlPointLog}
+            </div>
+        `;
     }
-    createPeriodeContent(){
+    createPeriodeContent() {
         let htmlPeriode = '';
         let data = this.data;
-        if(this.data.tipeKontrak == 'kontrak lama'){
+        if (this.data.tipe_kontrak == 'kontrak lama') {
             let findPeriode = data.kontrak?.periode.find(periode => periode.periode == data.periode);
             htmlPeriode = `
                 <div class="card mb-1">
@@ -568,8 +598,8 @@ class Detail {
                     </div>
                 </div>
             `;
-        }else{
-            for (const [i,periode] of data.periode_pemakaian.entries()) {
+        } else {
+            for (const [i, periode] of data.periode_pemakaian.entries()) {
                 htmlPeriode += `
                     <div class="card mb-1">
                         <div class="card-body p-1 px-3">
@@ -595,6 +625,9 @@ class Detail {
     createProsesContent() {
         return '<p>Proses content</p>';
     }
+    createTldContent() {
+        return '<p>Tld content</p>';
+    }
     modalCreate() {
         return `
             <div class="offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="offcanvasDetail" aria-labelledby="offcanvasDetail">
@@ -614,12 +647,12 @@ class Detail {
         `;
     }
 
-    on(eventName, callback = () => {}) {
+    on(eventName, callback = () => { }) {
         return document.addEventListener(eventName, callback);
     }
 
-    destroy(){
-        if(this.options.modal){
+    destroy() {
+        if (this.options.modal) {
             $('#offcanvasDetail').remove();
         }
     }

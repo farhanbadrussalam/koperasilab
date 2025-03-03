@@ -109,9 +109,7 @@
                     </div>
                     <div id="divUploadDocLhu">
                         <label for="upload_document" class="col-form-label">Upload Document LHU<span class="text-danger ms-1">*</span></label>
-                        <div class="card mb-0" style="height: 150px;">
-                            <input type="file" name="dokumen" id="upload_document" class="form-control dropify">
-                        </div>
+                        <div id="upload_document"></div>
                     </div>
                 </div>
             </div>

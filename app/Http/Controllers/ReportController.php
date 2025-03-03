@@ -178,10 +178,12 @@ class ReportController extends Controller
             'layanan_jasa',
             'jenis_layanan',
             'kontrak',
+            'kontrak.periode',
             'dokumen' => function($query) {
                 return $query->where('jenis', 'surpeng');
             },
             'pengguna',
+            'periodenow',
             'lhu',
             'lhu.petugas',
             'lhu.petugas.user:id,name',

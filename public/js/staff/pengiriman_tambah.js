@@ -120,7 +120,6 @@ $(function (){
             search: search
         }, result => {
             let html = '';
-            console.log(result);
 
             for (const value of result.data) {
                 let periode = value.periode_pemakaian;

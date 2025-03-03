@@ -2,6 +2,7 @@
  * Initializes the page by loading the first tab.
  */
 let detail = false;
+let buktiPengiriman = false;
 $(function () {
     loadData(1);
     detail = new Detail({
@@ -11,6 +12,11 @@ $(function () {
             bukti: true
         }
     })
+
+    buktiPengiriman = new UploadComponent('uploadBuktiPengiriman', {
+        camera: false,
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
+    });
 });
 
 /**
@@ -172,12 +178,17 @@ function kirimDokumen(obj){
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
+            let arrImgBukti = buktiPengiriman.getData();
+
             let data = new FormData();
             data.append('idPengiriman', idPengiriman);
             data.append('noResi', noResi);
             data.append('idEkspedisi', idEkspedisi);
             data.append('status', 1);
             data.append('sendAt', new Date().toISOString());
+            arrImgBukti.forEach((d) => {
+                data.append('buktiPengiriman[]', d.file);
+            });
 
             spinner('show', $(obj));
             ajaxPost(`api/v1/pengiriman/action`, data, result => {
