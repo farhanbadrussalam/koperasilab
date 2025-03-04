@@ -269,12 +269,6 @@ class Detail {
                 </div>
             </div>
             <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Jumlah kontrol</label>
-                <div class="col-auto">
-                    ${this.info.jmlKontrol}
-                </div>
-            </div>
-            <div class="row mb-2">
                 <label class="text-body-tertiary mb-1 col-md-4">Harga</label>
                 <div class="col-auto">
                     ${formatRupiah(this.info.total_harga)}
@@ -626,7 +620,39 @@ class Detail {
         return '<p>Proses content</p>';
     }
     createTldContent() {
-        return '<p>Tld content</p>';
+        let listTld = [];
+
+        switch (this.options.jenis) {
+            case 'permohonan':
+                let tldKontrol = this.data.tld_kontrol ?? false;
+                let tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
+
+                if(tldKontrol && tldPengguna){
+                    listTld = [...tldPengguna, ...tldKontrol];
+                }
+                break;
+        
+            default:
+                break;
+        }
+
+        if (listTld.length > 0) {
+            return `
+                <ul class="list-group list-group-flush">
+                    ${listTld.map((pengguna, i) => 
+                        `<li class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <span>${i + 1}. </span>
+                                <span>${pengguna.name ?? 'TLD Kontrol'}</span>
+                            </div>
+                            <span>${pengguna.kode_lencana}</span>
+                        </li>`
+                    ).join('')}
+                </ul>
+            `;
+        }
+
+        return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada TLD</p>';
     }
     modalCreate() {
         return `

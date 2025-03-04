@@ -28,7 +28,8 @@ class Permohonan_pengguna extends Model
 
     protected $hidden = [
         'id_pengguna',
-        'id_radiasi'
+        'id_radiasi',
+        'id_tld'
     ];
 
     protected $appends = [

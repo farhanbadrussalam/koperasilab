@@ -53,78 +53,6 @@
                 </li>
                 @endcan
 
-                @can('Penjadwalan')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'jadwal' ? 'active' : '' }}"
-                        href="{{ route('jadwal.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-calendar2-event-fill"></i>
-                        </span>
-                        <span class="hide-menu">Penjadwalan</span>
-                    </a>
-                </li>
-                @endcan
-
-                @can('Permohonan.create')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'Layananjasa' ? 'active' : '' }}"
-                        href="{{ route('layananJasa.listLayanan') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi- bi-briefcase-fill"></i>
-                        </span>
-                        <span class="hide-menu">Layanan jasa</span>
-                    </a>
-                </li>
-                @endcan
-
-                @can('Permohonan')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'permohonan' ? 'active' : '' }}"
-                        href="{{ route('permohonan.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi- bi-box-seam-fill"></i>
-                        </span>
-                        <span class="hide-menu">Permohonan Layanan</span>
-                    </a>
-                </li>
-                @endcan
-
-                @can('Petugas')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'petugas' ? 'active' : '' }}"
-                        href="{{ route('petugasLayanan.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-postcard-fill"></i>
-                        </span>
-                        <span class="hide-menu">Petugas Layanan</span>
-                    </a>
-                </li>
-                @endcan
-
-                @can('Keuangan')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'keuangan' ? 'active' : '' }}"
-                        href="{{ route('keuangan.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-postcard-fill"></i>
-                        </span>
-                        <span class="hide-menu">Keuangan</span>
-                    </a>
-                </li>
-                @endcan
-
-                @can('lhukip')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'lhukip' ? 'active' : '' }}"
-                        href="{{ route('manager.lhukip.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-box-seam-fill"></i>
-                        </span>
-                        <span class="hide-menu">LHU / KIP</span>
-                    </a>
-                </li>
-                @endcan
-
                 @can('Kontrak')
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ $module == 'permohonan-kontrak' ? 'active' : '' }}"
@@ -280,42 +208,6 @@
                 @endcan
 
                 @can('Management')
-                {{-- <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'frontdesk' ? 'active' : '' }}"
-                        href="{{ route('jobs.frontdesk.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-box-seam-fill"></i>
-                        </span>
-                        <span class="hide-menu">Front desk</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'pelaksanakontrak' ? 'active' : '' }}"
-                        href="{{ route('jobs.pelaksana.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-box-seam-fill"></i>
-                        </span>
-                        <span class="hide-menu">Pelaksana kontrak</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'penyelialab' ? 'active' : '' }}"
-                        href="{{ route('jobs.penyelia.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-box-seam-fill"></i>
-                        </span>
-                        <span class="hide-menu">Penyelia LAB</span>
-                    </a>
-                </li>
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'pelaksanalab' ? 'active' : '' }}"
-                        href="{{ route('jobs.pelaksanaLab.index') }}" aria-expanded="false">
-                        <span>
-                            <i class="bi bi-box-seam-fill"></i>
-                        </span>
-                        <span class="hide-menu">Pelaksana LAB</span>
-                    </a>
-                </li> --}}
                 <!-- MANAGEMENT MENU -->
                 <li class="nav-small-cap cursoron" data-bs-toggle="collapse" data-bs-target="#collapseManagement" aria-expanded="false" aria-controls="collapseManagement">
                     <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
@@ -359,6 +251,15 @@
                                 <i class="bi bi-circle"></i>
                             </span>
                             <span class="hide-menu">TLD</span>
+                        </a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'radiasi' ? 'active' : '' }}"
+                            href="{{ route('radiasi.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="bi bi-circle"></i>
+                            </span>
+                            <span class="hide-menu">Radiasi</span>
                         </a>
                     </li>
                     <li class="sidebar-item">

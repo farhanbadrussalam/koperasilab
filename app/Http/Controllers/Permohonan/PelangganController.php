@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\Master_radiasi;
 use App\Models\Master_jenisLayanan;
 use App\Models\Master_tld;
+use App\Models\Master_jenisTLD;
 use App\Models\Permohonan;
 use App\Models\Master_layanan_jasa;
 use App\Models\Keuangan;
@@ -99,7 +100,9 @@ class PelangganController extends Controller
         $data = [
             'title' => 'Pengajuan',
             'module' => 'permohonan-pengajuan',
-            'type' => 'list'
+            'type' => 'list',
+            'jenisLayanan' => Master_jenisLayanan::where('status', 1)->whereNull('parent')->get(),
+            'jenisTld' => Master_jenisTld::where('status', 1)->get()
         ];
         return view('pages.permohonan.pengajuan.index', $data);
     }

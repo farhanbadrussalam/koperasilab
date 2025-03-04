@@ -46,7 +46,9 @@ class Permohonan extends Model
         'jenis_layanan_2',
         'jenis_layanan_1',
         'id_layanan',
-        'id_permohonan'
+        'id_permohonan',
+        'list_tld',
+        'id_kontrak',
     ];
 
     protected $appends = [

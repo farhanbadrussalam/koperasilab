@@ -587,7 +587,7 @@ function formatSelect2Staff(state) {
  */
 function createPaginationHTML(pagination) {
     // Periksa apakah data pagination ada
-    if (!pagination) {
+    if (pagination.last_page == 1) {
         return '';
     }
 

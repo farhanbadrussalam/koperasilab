@@ -432,8 +432,9 @@ class PermohonanAPI extends Controller
     {
         $limit = $request->has('limit') ? $request->limit : 10;
         $page = $request->has('page') ? $request->page : 1;
-        $search = $request->has('search') ? $request->search : '';
         $status = $request->has('status') ? $request->status : 1;
+
+        $filter = $request->has('filter') ? $request->filter : [];
         
         DB::beginTransaction();
         try {
@@ -445,7 +446,8 @@ class PermohonanAPI extends Controller
                         'jenisTld:id_jenisTld,name', 
                         'jenis_layanan:id_jenisLayanan,name,parent',
                         'jenis_layanan_parent',
-                        'pelanggan:id,name',
+                        'pelanggan:id,name,id_perusahaan',
+                        'pelanggan.perusahaan:id_perusahaan,nama_perusahaan',
                         'kontrak',
                         'kontrak.layanan_jasa:id_layanan,nama_layanan',
                         'kontrak.jenisTld:id_jenisTld,name', 
@@ -465,6 +467,11 @@ class PermohonanAPI extends Controller
                         }
 
                         return $q;
+                    })
+                    ->when($filter, function($q, $filter) {
+                        foreach ($filter as $key => $value) {
+                            $q->where($key, decryptor($value));
+                        }
                     })
                     ->where('status', '!=', 11)
                     ->orderBy('created_at','DESC')
@@ -503,11 +510,17 @@ class PermohonanAPI extends Controller
                 'kontrak.jenisTld:id_jenisTld,name',
                 'pengguna',
                 'pengguna.media',
+                'pengguna.tld_pengguna',
                 'tandaterima',
                 'dokumen',
                 'invoice'
             )->where('id_permohonan', $id)->first();
             DB::commit();
+
+            if(isset($query->list_tld) && count($query->list_tld) > 0){
+                $tldKontrol = Master_tld::whereIn('id_tld', $query->list_tld)->get();
+                $query->tld_kontrol = $tldKontrol;
+            }
 
             foreach ($query->pengguna as $item) {
                 $id_radiasi_array = $item->id_radiasi; // Decode JSON jadi array
@@ -541,15 +554,17 @@ class PermohonanAPI extends Controller
     }
 
 
-    public function getChildJenisLayanan($idParent)
+    public function getChildJenisLayanan($idParent, Request $request)
     {
         DB::beginTransaction();
         $parent = decryptor($idParent);
+        $isFilter = $request->has('isFilter') ? $request->isFilter : false;
 
         try {
-            // dd($parent);
-            $data = Master_jenisLayanan::with(['child' => function ($query) {
-                $query->where('status', 1);
+            $data = Master_jenisLayanan::with(['child' => function ($query) use ($isFilter) {
+                if(!$isFilter){
+                    $query->where('status', 1);
+                }
             }])
             ->select('id_jenisLayanan','name')
             ->where('id_jenisLayanan', $parent)

@@ -139,4 +139,23 @@ class KontrakAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
         }
     }
+
+    public function searchKontrak(Request $request){
+        DB::beginTransaction();
+        try {
+            $no_kontrak = $request->has('no_kontrak') ? $request->no_kontrak : false;
+            $data = array();
+
+            if(!empty($no_kontrak)){
+                $data = Kontrak::where('no_kontrak', 'like', '%'.$no_kontrak.'%')->get();
+            }
+            
+            DB::commit();
+            return $this->output($data, 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
 }

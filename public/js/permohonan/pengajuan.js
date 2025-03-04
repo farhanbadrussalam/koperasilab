@@ -1,6 +1,7 @@
 let thisTab = 1;
 let thisStatus = false;
 let detail = false;
+let filterComp = false;
 $(function () {
     switchLoadTab(1);
 
@@ -8,9 +9,22 @@ $(function () {
         jenis: 'permohonan',
         tab: {
             pengguna: true,
-            periode: true
+            periode: true,
+            tld: true
         }
     });
+
+    filterComp = new FilterComponent('pengajuan-filter', {
+        filter : {
+            jenis_tld : true,
+            status : true,
+            jenis_layanan : true,
+            no_kontrak : true
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => switchLoadTab(thisTab));
 })
 
 $('#pagination_list').on('click', 'a', function (e) {
@@ -35,11 +49,31 @@ function switchLoadTab(menu){
 }
 
 function loadData(page = 1, status) {
+    let filterStatus = filterComp && filterComp.getValue('status');
+    let filterJenisLayanan = filterComp && filterComp.getValue('jenis_layanan');
+    let filterJenisLayananChild = filterComp && filterComp.getValue('jenis_layanan_child');
+    let filterSearchKontrak = filterComp && filterComp.getValue('no_kontrak');
+    let filterJenisTld = filterComp && filterComp.getValue('jenis_tld');
+
     let params = {
-        limit: 10,
+        limit: 4,
         page: page,
-        status: status
+        status: status,
+        filter: {}
     };
+
+    filterStatus && (params.filter.status = filterStatus);
+    filterJenisLayanan && (params.filter.jenis_layanan_1 = filterJenisLayanan);
+    filterJenisLayananChild && (params.filter.jenis_layanan_2 = filterJenisLayananChild);
+    filterSearchKontrak && (params.filter.id_kontrak = filterSearchKontrak);
+    filterJenisTld && (params.filter.jenis_tld = filterJenisTld);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $('#pengajuan-placeholder').show();
     $('#pengajuan-list-container').hide();
@@ -154,5 +188,15 @@ function showDetail(obj){
 }
 
 function reload(){
+    switchLoadTab(thisTab);
+}
+
+function clearFilter(){
+    filterComp.clearFilter('status');
+    filterComp.clearFilter('jenis_tld');
+    filterComp.clearFilter('jenis_layanan');
+    filterComp.clearFilter('jenis_layanan_child');
+    filterComp.clearFilter('no_kontrak');
+
     switchLoadTab(thisTab);
 }
