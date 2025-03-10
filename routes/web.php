@@ -106,6 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/invoice/{id}', 'invoice')->name('laporan.invoice');
             Route::get('/tandaterima/{id}', 'tandaTerima')->name('laporan.tandaterima');
             Route::get('/surpeng/{id}', 'suratPengantar')->name('laporan.surpeng');
+            Route::get('/perjanjian/{id}', 'perjanjian')->name('laporan.perjanjian');
         });
     });
 

@@ -23,6 +23,7 @@ class Invoice {
         this.pph = false;
         this.jumTotal = 0;
         this.signaturePad = null;
+        this.uploadFaktur = false;
     }
 
     // Create custom events for invoice actions
@@ -33,7 +34,7 @@ class Invoice {
 
     // Centralize event binding
     _bindEventListeners() {
-        $('#btnTambahFaktur').on('click', this._handleFakturUpload.bind(this));
+        // $('#btnTambahFaktur').on('click', this._handleFakturUpload.bind(this));
         $('#diskonModal').on('hide.bs.modal', () => $('#invoiceModal').modal('show'));
         $('#modal-verif-invalid').on('hide.bs.modal', () => $('#modal-verif-invoice').modal('show'));
         $('#btnInvoiceClose').on('click', this.closeInvoiceModal.bind(this));
@@ -89,7 +90,6 @@ class Invoice {
         let invoiceClass = this;
         $('#content-ttd-manager').empty();
         $('#ttd-div-manager').addClass('d-none').removeClass('d-block');
-        $('#divUploadDocumentFaktur').hide();
 
         // Populate invoice details
         const detailsHTML = `
@@ -208,13 +208,36 @@ class Invoice {
             $('#invoiceActions').append(this.btnPrinter());
         }
 
+        // Set Up upload document
+        if(mode === 'create') {
+            if(!this.uploadFaktur) {
+                this.uploadFaktur = new UploadComponent('uploadDocumentFaktur', {
+                    allowedFileExtensions: ['pdf'],
+                    camera: false,
+                    data: this.dataKeuangan.media,
+                    urlUpload: {
+                        url: `api/v1/keuangan/uploadFaktur`,
+                        urlDestroy: `api/v1/keuangan/destroyFaktur`,
+                        idHash: this.dataKeuangan.keuangan_hash
+                    }
+                })
+            }
+        }else{
+            if(!this.uploadFaktur) {
+                this.uploadFaktur = new UploadComponent('uploadDocumentFaktur', {
+                    mode: 'preview',
+                    camera: false,
+                    data: this.dataKeuangan.media
+                });
+            }
+        }
+
         // Set up footer buttons
         let footerHTML = '';
         if (mode === 'create') {
             footerHTML = `
                 <button type="button" class="btn btn-primary" id="btnSimpanInvoice">Simpan</button>
             `;
-            $('#divUploadDocumentFaktur').show();
         } else if (mode === 'verify' || mode === 'verifStaff') {
             footerHTML = `
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-verif-invalid">Tolak</button>
@@ -425,7 +448,7 @@ class Invoice {
             
             const ppnNameTh = document.createElement('th');
             ppnNameTh.classList.add('text-start');
-            ppnNameTh.textContent = `PPN ${ppnRate}%`;
+            ppnNameTh.textContent = `PPN`;
             
             const emptyTd1 = document.createElement('td');
             const emptyTd2 = document.createElement('td');
@@ -659,6 +682,9 @@ class Invoice {
         $('#content-ttd-manager').empty();
         $('#paymentPphProof').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
         $('#paymentProofImage').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
+        
+        this.uploadFaktur ? this.uploadFaktur.destroy() : '';
+        this.uploadFaktur = false;
     }
 
     modalCreate() {
@@ -713,18 +739,7 @@ class Invoice {
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="docFaktur-tab-pane" role="tabpanel" aria-labelledby="docFaktur-tab" tabindex="0">
-                                <div class="p-3 row">
-                                    <div class="col-md 12" id="divUploadDocumentFaktur">
-                                        <div class="input-group">
-                                            <input type="file" class="form-control" id="uploadDocumentFaktur" accept="application/msword, application/vnd.ms-excel, application/vnd.ms-powerpoint,text/plain, application/pdf" aria-describedby="inputGroupFileAddon04" aria-label="Upload">
-                                            <button class="btn btn-outline-primary" id="btnTambahFaktur">Tambah</button>
-                                        </div>
-                                    </div>
-                                    <div id="loading-document" class="text-center mt-2"></div>
-                                    <div class="col-md-12 mt-3" id="list-document">
-                                        
-                                    </div>
-                                </div>
+                                <div id="uploadDocumentFaktur" class="p-3"></div>
                             </div>
                             <div class="tab-pane fade" id="buktiPayment-tab-pane" role="tabpanel" aria-labelledby="buktiPayment-tab" tabindex="0">
                                 <div id="paymentProofSection" class="mt-3 row">

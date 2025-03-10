@@ -44,7 +44,7 @@ function loadTld() {
 }
 
 function loadTldKontrol() {
-    let kontrak = dataKontrak;
+    let kontrak = dataPermohonan ? dataPermohonan : dataKontrak;
     let htmlTldKontrol = ``;
     for (const [i, list] of kontrak.tldKontrol.entries()) {
         htmlTldKontrol += `
@@ -63,7 +63,7 @@ function loadTldKontrol() {
 }
 
 function loadPengguna(){
-    let pengguna = dataKontrak.pengguna;
+    let pengguna = dataPermohonan ? dataPermohonan.pengguna : dataKontrak.pengguna;
 
     let htmlPengguna = '';
     for (const [i, value] of pengguna.entries()) {
@@ -154,7 +154,7 @@ function buatPermohonan(obj){
             params.append('tldPengguna', JSON.stringify(checkTldPengguna));
             params.append('createBy', userActive.user_hash);
             params.append('tipeKontrak', 'kontrak lama');
-            permohonanHash ? params.append('idPermohonan', permohonanHash.permohonan_hash) : false;
+            dataPermohonan ? params.append('idPermohonan', dataPermohonan.permohonan_hash) : false;
 
             // params.append('dataPengguna', JSON.stringify(checkedPenggunaValues));
             params.append('status', 1);

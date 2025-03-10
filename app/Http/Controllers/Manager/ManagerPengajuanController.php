@@ -11,7 +11,7 @@ class ManagerPengajuanController extends Controller
     public function index()
     {
         $data = [
-            'title' => 'Permohonan',
+            'title' => 'Invoice',
             'module' => 'manager-pengajuan'
         ];
         return view('pages.manager.pengajuan.index', $data);

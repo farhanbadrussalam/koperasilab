@@ -9,6 +9,7 @@ use App\Traits\RestApi;
 
 use App\Models\Master_jenisTld;
 use App\Models\Master_jenisLayanan;
+use App\Models\Perusahaan;
 
 use Auth;
 use DB;
@@ -47,20 +48,84 @@ class FilterAPI extends Controller
         }
     }
 
+    public function getPerusahaan(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $perusahaan = $request->has('perusahaan') ? $request->perusahaan : false;
+            $data = array();
+
+            if(!empty($perusahaan)){
+                $data = Perusahaan::where('status', 1)
+                        ->where('nama_perusahaan', 'like', '%'.$perusahaan.'%')
+                        ->get();
+            }
+
+            DB::commit();
+            return $this->output($data, 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function getStatus(Request $request)
     {
         DB::beginTransaction();
         try {
-            $status = [
-                array(
-                    'id' => encryptor(1),
-                    'name' => 'Pengajuan',
-                ),
-                array(
-                    'id' => encryptor(5),
-                    'name' => 'Selesai',
-                )
-            ];
+            $jenis = $request->has('jenis') ? $request->jenis : false;
+            switch ($jenis) {
+                case 'kontrak':
+                    $status = [
+                        array(
+                            'id' => encryptor(1),
+                            'name' => 'Aktif',
+                        )
+                    ];
+                    break;
+                case 'manager-invoice':
+                    $status = [
+                        array(
+                            'id' => encryptor(2),
+                            'name' => 'Verifikasi',
+                        ),
+                        array(
+                            'id' => encryptor(3),
+                            'name' => 'Perlu dibayar',
+                        ),
+                        array(
+                            'id' => encryptor(4),
+                            'name' => 'Menunggu konfirmasi',
+                        ),
+                        array(
+                            'id' => encryptor(5),
+                            'name' => 'Pembayaran diterima',
+                        )
+                    ];
+                    break;
+                
+                default:
+                    $status = [
+                        array(
+                            'id' => encryptor(1),
+                            'name' => 'Pengajuan',
+                        ),
+                        array(
+                            'id' => encryptor(2),
+                            'name' => 'Terverifikasi',
+                        ),
+                        array(
+                            'id' => encryptor(3),
+                            'name' => 'Proses LAB',
+                        ),
+                        array(
+                            'id' => encryptor(5),
+                            'name' => 'Selesai',
+                        )
+                    ];
+                    break;
+            }
 
             DB::commit();
             return $this->output($status, 200);

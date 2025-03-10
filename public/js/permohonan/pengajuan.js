@@ -16,8 +16,8 @@ $(function () {
 
     filterComp = new FilterComponent('pengajuan-filter', {
         filter : {
-            jenis_tld : true,
             status : true,
+            jenis_tld : true,
             jenis_layanan : true,
             no_kontrak : true
         }
@@ -49,12 +49,6 @@ function switchLoadTab(menu){
 }
 
 function loadData(page = 1, status) {
-    let filterStatus = filterComp && filterComp.getValue('status');
-    let filterJenisLayanan = filterComp && filterComp.getValue('jenis_layanan');
-    let filterJenisLayananChild = filterComp && filterComp.getValue('jenis_layanan_child');
-    let filterSearchKontrak = filterComp && filterComp.getValue('no_kontrak');
-    let filterJenisTld = filterComp && filterComp.getValue('jenis_tld');
-
     let params = {
         limit: 4,
         page: page,
@@ -62,11 +56,13 @@ function loadData(page = 1, status) {
         filter: {}
     };
 
-    filterStatus && (params.filter.status = filterStatus);
-    filterJenisLayanan && (params.filter.jenis_layanan_1 = filterJenisLayanan);
-    filterJenisLayananChild && (params.filter.jenis_layanan_2 = filterJenisLayananChild);
-    filterSearchKontrak && (params.filter.id_kontrak = filterSearchKontrak);
-    filterJenisTld && (params.filter.jenis_tld = filterJenisTld);
+    let filterValue = filterComp && filterComp.getAllValue();
+    
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.status && (params.filter.status = filterValue.status);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
 
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
@@ -192,11 +188,7 @@ function reload(){
 }
 
 function clearFilter(){
-    filterComp.clearFilter('status');
-    filterComp.clearFilter('jenis_tld');
-    filterComp.clearFilter('jenis_layanan');
-    filterComp.clearFilter('jenis_layanan_child');
-    filterComp.clearFilter('no_kontrak');
+    filterComp.clear();
 
     switchLoadTab(thisTab);
 }

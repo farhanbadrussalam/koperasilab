@@ -8,6 +8,7 @@ class Detail {
                 pengguna: options.tab.pengguna ?? false,
                 activitas: options.tab.activitas ?? false,
                 dokumen: options.tab.dokumen ?? false,
+                dokumen_lhu: options.tab.dokumen_lhu ?? false,
                 log: options.tab.log ?? false,
                 periode: options.tab.periode ?? false,
                 tld: options.tab.tld ?? false,
@@ -413,6 +414,7 @@ class Detail {
         this.options.tab.activitas && (tabs.activitas = { title: 'Aktivitas', content: this.createAktivitasContent() });
         this.options.tab.periode && (tabs.periode = { title: 'Periode', content: this.createPeriodeContent() });
         this.options.tab.dokumen && (tabs.dokumen = { title: 'Dokumen', content: this.createDokumenContent() });
+        this.options.tab.dokumen_lhu && (tabs.dokumen_lhu = { title: 'Dokumen LHU', content: this.createDokumenLhuContent() });
         this.options.tab.log && (tabs.log = { title: 'Log', content: this.createLogContent() });
         this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent() });
 
@@ -498,14 +500,17 @@ class Detail {
         let doc = ``;
         let dataDokumen = [];
         let invoiceData = false;
+        let dataPermohonan = false;
         switch (this.options.jenis) {
             case 'permohonan':
                 dataDokumen = this.data.dokumen;
                 invoiceData = this.data.invoice;
+                dataPermohonan = this.data;
                 break;
             case 'penyelia':
                 dataDokumen = this.data.permohonan.dokumen;
                 invoiceData = this.data.permohonan.invoice;
+                dataPermohonan = this.data.permohonan;
                 break;
             default:
                 break;
@@ -513,11 +518,18 @@ class Detail {
 
         for (const [i, dokumen] of dataDokumen.entries()) {
             let idHash = false;
-            if (dokumen.jenis == 'invoice') {
-                idHash = invoiceData?.permohonan_hash;
-            } else {
-                idHash = this.data.permohonan_hash;
+            switch (dokumen.jenis) {
+                case 'invoice':
+                    idHash = invoiceData?.permohonan_hash;
+                    break;
+                case 'perjanjian':
+                    idHash = dataPermohonan.kontrak.kontrak_hash;
+                    break;
+                default:
+                    idHash = dataPermohonan.permohonan_hash;
+                    break;
             }
+            
             doc += `
                 <div class="card mb-1">
                     <div class="card-body p-1 px-3 d-flex justify-content-between align-items-center">
@@ -542,6 +554,12 @@ class Detail {
         }
 
         return doc;
+    }
+
+    createDokumenLhuContent() {
+        if(!this.data.media) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada dokumen</p>';
+        
+        return printMedia(this.data.media, false, { size: true, date: true, isHtml: true });
     }
     createLogContent() {
         const dataLog = [];
@@ -621,11 +639,14 @@ class Detail {
     }
     createTldContent() {
         let listTld = [];
+        let tldKontrol = false;
+        let tldPengguna = false;
 
         switch (this.options.jenis) {
             case 'permohonan':
-                let tldKontrol = this.data.tld_kontrol ?? false;
-                let tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
+            case 'kontrak':
+                tldKontrol = this.data.tld_kontrol ?? false;
+                tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
 
                 if(tldKontrol && tldPengguna){
                     listTld = [...tldPengguna, ...tldKontrol];

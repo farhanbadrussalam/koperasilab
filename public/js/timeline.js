@@ -78,11 +78,11 @@ class Timeline {
                                     data.status == 1 ? `
                                     <div class="mt-2 d-flex justify-content-between">
                                         <label class="fw-normal">Tanggal selesai</label>
-                                        <div class="text-body-secondary small">${dateFormat(data.done_at, 4)}</div>
+                                        <div class="text-body-secondary small">${data.done_at ? dateFormat(data.done_at, 4) : '-'}</div>
                                     </div>
                                     <div class="mt-2 d-flex justify-content-between">
                                         <label class="fw-normal">Dikerjakan oleh</label>
-                                        <div class="text-body-secondary small">${data.done_by.name}</div>
+                                        <div class="text-body-secondary small">${data.done_by?.name ?? '-'}</div>
                                     </div>` : ''
                                 }
                                 <div class="mt-3">

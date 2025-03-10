@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\Keuangan;
 use App\Models\Penyelia;
 use App\Models\Kontrak;
+use App\Models\Kontrak_pengguna;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -310,9 +311,12 @@ class PengirimanAPI extends Controller
                         $tldPengguna = $item->tld_pengguna;
                     }
                 }
+
             
                 if (!empty($tldKontrol)) {
-                    Master_tld::whereIn('id_tld', $pengiriman->kontrak->list_tld)->update(['status' => 2]);
+                    if($pengiriman->kontrak->list_tld){
+                        Master_tld::whereIn('id_tld', $pengiriman->kontrak->list_tld)->update(['status' => 2]);
+                    }
                     $pengiriman->kontrak->update(['list_tld' => $tldKontrol]);
                     Master_tld::whereIn('id_tld', $tldKontrol)->update(['status' => 1]);
                 }
@@ -350,19 +354,26 @@ class PengirimanAPI extends Controller
                     if($value->tldKontrol){
                         $params['tld_kontrol'] = [];
                         foreach ($value->tldKontrol as $tld) {
-                            $params['tld_kontrol'][] = decryptor($tld->tld);
+                            $params['tld_kontrol'][] = (int) decryptor($tld->tld);
+                            $kontrol = Master_tld::updateOrCreate(['id_tld' => decryptor($tld->tld)], [
+                                'status' => 1,
+                                'jenis' => 'kontrol',
+                            ]);
                         }
                     }
-
                     if($value->tldPengguna){
                         $params['tld_pengguna'] = [];
                         foreach ($value->tldPengguna as $tld) {
                             // mengambil id ktp dari permohonan_pengguna
-                            $idKtp = Permohonan_pengguna::select('file_ktp')->find(decryptor($tld->id));
+                            $idKtp = Kontrak_pengguna::select('file_ktp')->find(decryptor($tld->id));
                             $params['tld_pengguna'][] = array(
                                 "id_ktp" => $idKtp->file_ktp,
                                 "tld" => decryptor($tld->tld)
                             );
+                            $tldData = Master_tld::updateOrCreate(['id_tld' => decryptor($tld->tld)], [
+                                'status' => 1,
+                                'jenis' => 'pengguna',
+                            ]);
                         }
                     }
                     

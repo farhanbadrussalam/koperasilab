@@ -23,6 +23,8 @@ class ManagerAPI extends Controller
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
 
+        $filter = $request->has('filter') ? $request->filter : [];
+
         DB::beginTransaction();
         try {
             $query = Keuangan::with(
@@ -36,6 +38,17 @@ class ManagerAPI extends Controller
                 'permohonan.kontrak',
                 'diskon'
             )
+            ->when($filter, function($q, $filter) {
+                return $q->whereHas('permohonan', function($p) use ($filter, $q) {
+                    foreach ($filter as $key => $value) {
+                        if($key == 'status') {
+                            $q->where($key, decryptor($value));
+                        }else{
+                            $p->where($key, decryptor($value));
+                        }
+                    }
+                });
+            })
             ->where('status', '!=', 1)
             ->orderBy('created_at','DESC')
             ->offset(($page - 1) * $limit)

@@ -21,379 +21,56 @@
                   <button class="nav-link" id="ditolak-tab" onclick="switchLoadTab(5)" data-bs-toggle="tab" data-bs-target="#ditolak-tab-pane" type="button" role="tab" aria-controls="ditolak-tab-pane" aria-selected="true">Ditolak</button>
                 </li>
             </ul>
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="pengajuan-tab-pane" role="tabpanel" aria-labelledby="pengajuan-tab" tabindex="0">
-                    <div class="card shadow-sm m-4">
-                        <div class="card-body">
-                            <div class="d-flex pb-4">
-                                <div class="w-100 d-flex">
-                                    {{-- <div class="mx-2">
-                                        <label for="filterStatusVerif" class="form-label">Status</label>
-                                        <select name="statusVerif" id="filterStatusVerif" class="form-select">
-                                            <option value="" selected>All</option>
-                                            <option value="1">Not verif</option>
-                                            <option value="2">Verifikasi</option>
-                                        </select>
-                                    </div>
-                                    <div class="mx-2">
-                                        <label for="filterLab" class="form-label">Lab</label>
-                                        <select name="filterLab" id="filterLab" class="form-select">
-                                            <option value="" selected>All</option>
-                                        </select>
-                                    </div> --}}
-                                </div>
-                                
-                                <div class="flex-shrink-1">
-                                    <div class="col-12">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Search" aria-label="Name petugas" id="inputSearch" aria-describedby="btnSearch">
-                                            <button class="btn btn-outline-secondary" type="button" id="btnSearch"><i class="bi bi-search"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="my-3">
-                                <div class="header px-3 fw-bolder d-none d-md-flex row">
-                                    <div class="col-md-3">Layanan</div>
-                                    <div class="col-md-2">Jenis</div>
-                                    <div class="col-md-3">Tipe</div>
-                                    <div class="col-md-2">Status</div>
-                                    <div class="col-md-2 text-center">Action</div>
-                                </div>
-                                <hr>
-                                <div class="body-placeholder my-3" id="list-placeholder-pengajuan">
-                                    @for ($i = 0; $i < 3; $i++)
-                                    <div class="card mb-2">
-                                        <div class="card-body row align-items-center">
-                                            <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-75 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-3">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-center">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endfor
-                                </div>
-                                <div class="body my-3" id="list-container-pengajuan">
-
-                                </div>
-                                <div aria-label="Page navigation example" id="list-pagination-pengajuan">
-                                        
-                                </div>
-                            </div>
+            <div class="card shadow-sm m-4">
+                <div class="card-body">
+                    <div class="d-flex">
+                        <div class="flex-grow-1">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilter()">
+                                <i class="bi bi-funnel"></i> Clear Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span></button>
                         </div>
                     </div>
-                </div>
-                <div class="tab-pane fade" id="pembayaran-tab-pane" role="tabpanel" aria-labelledby="pembayaran-tab" tabindex="0">
-                    <div class="card shadow-sm m-4">
-                        <div class="card-body">
-                            <div class="d-flex pb-4">
-                                <div class="w-100 d-flex">
-                                    {{-- <div class="mx-2">
-                                        <label for="filterStatusVerif" class="form-label">Status</label>
-                                        <select name="statusVerif" id="filterStatusVerif" class="form-select">
-                                            <option value="" selected>All</option>
-                                            <option value="1">Not verif</option>
-                                            <option value="2">Verifikasi</option>
-                                        </select>
-                                    </div>
-                                    <div class="mx-2">
-                                        <label for="filterLab" class="form-label">Lab</label>
-                                        <select name="filterLab" id="filterLab" class="form-select">
-                                            <option value="" selected>All</option>
-                                        </select>
-                                    </div> --}}
-                                </div>
-                                
-                                <div class="flex-shrink-1">
-                                    <div class="col-12">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Search" aria-label="Name petugas" id="inputSearch" aria-describedby="btnSearch">
-                                            <button class="btn btn-outline-secondary" type="button" id="btnSearch"><i class="bi bi-search"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="my-3">
-                                <div class="header px-3 fw-bolder d-none d-md-flex row">
-                                    <div class="col-md-3">Layanan</div>
-                                    <div class="col-md-2">Jenis</div>
-                                    <div class="col-md-3">Tipe</div>
-                                    <div class="col-md-2">Status</div>
-                                    <div class="col-md-2 text-center">Action</div>
-                                </div>
-                                <hr>
-                                <div class="body-placeholder my-3" id="list-placeholder-pembayaran">
-                                    @for ($i = 0; $i < 3; $i++)
-                                    <div class="card mb-2">
-                                        <div class="card-body row align-items-center">
-                                            <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-75 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-3">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-center">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endfor
-                                </div>
-                                <div class="body my-3" id="list-container-pembayaran">
-
-                                </div>
-                                <div aria-label="Page navigation example" id="list-pagination-pembayaran">
-                                        
-                                </div>
-                            </div>
+                    <div id="list-filter"></div>
+                    <div class="my-3">
+                        <div class="header px-3 fw-bolder d-none d-md-flex row">
+                            <div class="col-md-3">Layanan</div>
+                            <div class="col-md-2">Jenis</div>
+                            <div class="col-md-3">Tipe</div>
+                            <div class="col-md-2">Status</div>
+                            <div class="col-md-2 text-center">Action</div>
                         </div>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="verifikasi-tab-pane" role="tabpanel" aria-labelledby="verifikasi-tab" tabindex="0">
-                    <div class="card shadow-sm m-4">
-                        <div class="card-body">
-                            <div class="d-flex pb-4">
-                                <div class="w-100 d-flex">
-                                    {{-- <div class="mx-2">
-                                        <label for="filterStatusVerif" class="form-label">Status</label>
-                                        <select name="statusVerif" id="filterStatusVerif" class="form-select">
-                                            <option value="" selected>All</option>
-                                            <option value="1">Not verif</option>
-                                            <option value="2">Verifikasi</option>
-                                        </select>
+                        <hr>
+                        <div class="body-placeholder my-3" id="list-placeholder">
+                            @for ($i = 0; $i < 3; $i++)
+                            <div class="card mb-2">
+                                <div class="card-body row align-items-center">
+                                    <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
+                                        <div class="placeholder w-50 mb-1"></div>
+                                        <div class="placeholder w-50 mb-1"></div>
+                                        <div class="placeholder w-50 mb-1"></div>
+                                        <div class="placeholder w-75 mb-1"></div>
                                     </div>
-                                    <div class="mx-2">
-                                        <label for="filterLab" class="form-label">Lab</label>
-                                        <select name="filterLab" id="filterLab" class="form-select">
-                                            <option value="" selected>All</option>
-                                        </select>
-                                    </div> --}}
-                                </div>
-                                
-                                <div class="flex-shrink-1">
-                                    <div class="col-12">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Search" aria-label="Name petugas" id="inputSearch" aria-describedby="btnSearch">
-                                            <button class="btn btn-outline-secondary" type="button" id="btnSearch"><i class="bi bi-search"></i></button>
-                                        </div>
+                                    <div class="placeholder-glow col-6 col-md-3">
+                                        <div class="placeholder w-50 mb-1"></div>
+                                    </div>
+                                    <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
+                                        <div class="placeholder w-50 mb-1"></div>
+                                    </div>
+                                    <div class="placeholder-glow col-6 col-md-2">
+                                        <div class="placeholder w-50 mb-1"></div>
+                                    </div>
+                                    <div class="placeholder-glow col-6 col-md-2 text-center">
+                                        <div class="placeholder w-50 mb-1"></div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="my-3">
-                                <div class="header px-3 fw-bolder d-none d-md-flex row">
-                                    <div class="col-md-3">Layanan</div>
-                                    <div class="col-md-2">Jenis</div>
-                                    <div class="col-md-3">Tipe</div>
-                                    <div class="col-md-2">Status</div>
-                                    <div class="col-md-2 text-center">Action</div>
-                                </div>
-                                <hr>
-                                <div class="body-placeholder my-3" id="list-placeholder-verifikasi">
-                                    @for ($i = 0; $i < 3; $i++)
-                                    <div class="card mb-2">
-                                        <div class="card-body row align-items-center">
-                                            <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-75 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-3">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-center">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endfor
-                                </div>
-                                <div class="body my-3" id="list-container-verifikasi">
-
-                                </div>
-                                <div aria-label="Page navigation example" id="list-pagination-verifikasi">
-                                        
-                                </div>
-                            </div>
+                            @endfor
                         </div>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="diterima-tab-pane" role="tabpanel" aria-labelledby="diterima-tab" tabindex="0">
-                    <div class="card shadow-sm m-4">
-                        <div class="card-body">
-                            <div class="d-flex pb-4">
-                                <div class="w-100 d-flex">
-                                    {{-- <div class="mx-2">
-                                        <label for="filterStatusVerif" class="form-label">Status</label>
-                                        <select name="statusVerif" id="filterStatusVerif" class="form-select">
-                                            <option value="" selected>All</option>
-                                            <option value="1">Not verif</option>
-                                            <option value="2">Verifikasi</option>
-                                        </select>
-                                    </div>
-                                    <div class="mx-2">
-                                        <label for="filterLab" class="form-label">Lab</label>
-                                        <select name="filterLab" id="filterLab" class="form-select">
-                                            <option value="" selected>All</option>
-                                        </select>
-                                    </div> --}}
-                                </div>
-                                
-                                <div class="flex-shrink-1">
-                                    <div class="col-12">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Search" aria-label="Name petugas" id="inputSearch" aria-describedby="btnSearch">
-                                            <button class="btn btn-outline-secondary" type="button" id="btnSearch"><i class="bi bi-search"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="my-3">
-                                <div class="header px-3 fw-bolder d-none d-md-flex row">
-                                    <div class="col-md-3">Layanan</div>
-                                    <div class="col-md-2">Jenis</div>
-                                    <div class="col-md-3">Tipe</div>
-                                    <div class="col-md-2">Status</div>
-                                    <div class="col-md-2 text-center">Action</div>
-                                </div>
-                                <hr>
-                                <div class="body-placeholder my-3" id="list-placeholder-diterima">
-                                    @for ($i = 0; $i < 3; $i++)
-                                    <div class="card mb-2">
-                                        <div class="card-body row align-items-center">
-                                            <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-75 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-3">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-center">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endfor
-                                </div>
-                                <div class="body my-3" id="list-container-diterima">
+                        <div class="body my-3" id="list-container">
 
-                                </div>
-                                <div aria-label="Page navigation example" id="list-pagination-diterima">
-                                        
-                                </div>
-                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="ditolak-tab-pane" role="tabpanel" aria-labelledby="ditolak-tab" tabindex="0">
-                    <div class="card shadow-sm m-4">
-                        <div class="card-body">
-                            <div class="d-flex pb-4">
-                                <div class="w-100 d-flex">
-                                    {{-- <div class="mx-2">
-                                        <label for="filterStatusVerif" class="form-label">Status</label>
-                                        <select name="statusVerif" id="filterStatusVerif" class="form-select">
-                                            <option value="" selected>All</option>
-                                            <option value="1">Not verif</option>
-                                            <option value="2">Verifikasi</option>
-                                        </select>
-                                    </div>
-                                    <div class="mx-2">
-                                        <label for="filterLab" class="form-label">Lab</label>
-                                        <select name="filterLab" id="filterLab" class="form-select">
-                                            <option value="" selected>All</option>
-                                        </select>
-                                    </div> --}}
-                                </div>
+                        <div aria-label="Page navigation example" id="list-pagination">
                                 
-                                <div class="flex-shrink-1">
-                                    <div class="col-12">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" placeholder="Search" aria-label="Name petugas" id="inputSearch" aria-describedby="btnSearch">
-                                            <button class="btn btn-outline-secondary" type="button" id="btnSearch"><i class="bi bi-search"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="my-3">
-                                <div class="header px-3 fw-bolder d-none d-md-flex row">
-                                    <div class="col-md-3">Layanan</div>
-                                    <div class="col-md-2">Jenis</div>
-                                    <div class="col-md-3">Tipe</div>
-                                    <div class="col-md-2">Status</div>
-                                    <div class="col-md-2 text-center">Action</div>
-                                </div>
-                                <hr>
-                                <div class="body-placeholder my-3" id="list-placeholder-ditolak">
-                                    @for ($i = 0; $i < 3; $i++)
-                                    <div class="card mb-2">
-                                        <div class="card-body row align-items-center">
-                                            <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-75 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-3">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-end text-md-start">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-6 col-md-2 text-center">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endfor
-                                </div>
-                                <div class="body my-3" id="list-container-ditolak">
-
-                                </div>
-                                <div aria-label="Page navigation example" id="list-pagination-ditolak">
-                                        
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -101,7 +101,7 @@
         const dataPeriodeNow = @json($periodeNow);
         const dataPeriodeNext = @json($periodeNext);
         const dataJenisLayanan = @json($jenisLayanan);
-        const permohonanHash = @json($permohonan);
+        const dataPermohonan = @json($permohonan);
     </script>
     <script src="{{ asset('js/permohonan/kontrak_evaluasi.js') }}"></script>
 @endpush

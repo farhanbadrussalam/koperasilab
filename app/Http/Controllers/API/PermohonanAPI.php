@@ -139,16 +139,18 @@ class PermohonanAPI extends Controller
                 if ($tldPengguna) {
                     foreach ($tldPengguna as $value) {
                         $kontrakPengguna = Kontrak_pengguna::where('id_pengguna', decryptor($value))->first();
-                        Permohonan_pengguna::create([
-                            'id_permohonan' => $permohonan->id_permohonan,
-                            'file_ktp' => $kontrakPengguna->file_ktp,
-                            'id_tld' => $kontrakPengguna->id_tld,
-                            'id_radiasi' => $kontrakPengguna->id_radiasi,
-                            'nama' => $kontrakPengguna->nama,
-                            'posisi' => $kontrakPengguna->posisi,
-                            'status' => 3,
-                            'created_by' => Auth::user()->id
-                        ]);
+                        if($kontrakPengguna){
+                            Permohonan_pengguna::create([
+                                'id_permohonan' => $permohonan->id_permohonan,
+                                'file_ktp' => $kontrakPengguna->file_ktp,
+                                'id_tld' => $kontrakPengguna->id_tld,
+                                'id_radiasi' => $kontrakPengguna->id_radiasi,
+                                'nama' => $kontrakPengguna->nama,
+                                'posisi' => $kontrakPengguna->posisi,
+                                'status' => 3,
+                                'created_by' => Auth::user()->id
+                            ]);
+                        }
                     }
                 }
             }
@@ -470,7 +472,13 @@ class PermohonanAPI extends Controller
                     })
                     ->when($filter, function($q, $filter) {
                         foreach ($filter as $key => $value) {
-                            $q->where($key, decryptor($value));
+                            if($key == 'id_perusahaan'){
+                                $q->whereHas('pelanggan.perusahaan', function ($v) use ($value) {
+                                    $v->where('id_perusahaan', decryptor($value));
+                                });
+                            }else{
+                                $q->where($key, decryptor($value));
+                            }
                         }
                     })
                     ->where('status', '!=', 11)
@@ -791,7 +799,7 @@ class PermohonanAPI extends Controller
                             $data = array(
                                 'id_permohonan' => $idPermohonan,
                                 'created_by' => Auth::user()->id,
-                                'nama' => 'Perjanjian-'.$dataPermohonan->jenis_layanan_parent->name.'-'.$dataPermohonan->layanan_jasa->nama_layanan.'-'.$dataPermohonan->jenisTld->name.'-'.convert_date($arrayUpdate['verify_at'], 6),
+                                'nama' => 'Surat kontrak ('.convert_date($arrayUpdate['verify_at'], 6).')',
                                 'jenis' => 'perjanjian',
                                 'status' => 1,
                                 'nomer' => $no_kontrak

@@ -35,6 +35,7 @@ class KeuanganAPI extends Controller
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
         $menu = $request->has('menu') ? $request->menu : '';
+        $filter = $request->has('filter') ? $request->filter : [];
 
         switch ($menu) {
             case 'pengajuan':
@@ -86,6 +87,17 @@ class KeuanganAPI extends Controller
                             return $q->whereHas('permohonan', function($q) use ($createBy) {
                                 $q->where('created_by', $createBy);
                             })->whereNotIn('status', [1, 2, 91]);
+                        })
+                        ->when($filter, function($q, $filter) {
+                            return $q->whereHas('permohonan', function($p) use ($filter, $q) {
+                                foreach ($filter as $key => $value) {
+                                    if($key == 'status') {
+                                        $q->where($key, decryptor($value));
+                                    }else{
+                                        $p->where($key, decryptor($value));
+                                    }
+                                }
+                            });
                         })
                         ->limit($limit)
                         ->paginate($limit);
@@ -358,6 +370,46 @@ class KeuanganAPI extends Controller
         }
     }
 
+    public function uploadDocumentFaktur(Request $request)
+    {
+        $validate = $request->validate([
+            'idHash' => 'required'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $idKeuangan = decryptor($request->idHash);
+            $file = $request->file('file');
+
+            $fileUpload = $this->media->upload($file, 'keuangan');
+            $dataKeuangan = Keuangan::find($idKeuangan);
+            
+            if(isset($dataKeuangan)){
+                $documentFaktur = is_array($dataKeuangan->document_faktur) ? $dataKeuangan->document_faktur : [];
+                
+                array_push($documentFaktur, $fileUpload->getIdMedia());
+                $update = $dataKeuangan->update(array('document_faktur' => $documentFaktur));
+    
+                DB::commit();
+    
+                if($update){
+                    $fileUpload->store();
+                    // ambil media faktur
+                    $mediaFaktur = $this->media->get($fileUpload->getIdMedia());
+                    return $this->output(array('msg' => 'Faktur berhasil diupload', 'data' => $mediaFaktur));
+                } 
+    
+                return $this->output(array('msg' => 'Faktur gagal diupload'), 'Fail', 400);
+            }
+
+            return $this->output(array('msg' => 'data not found'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function uploadFaktur(Request $request)
     {
         $validate = $request->validate([
@@ -367,7 +419,7 @@ class KeuanganAPI extends Controller
         DB::beginTransaction();
         try {
             $idKeuangan = decryptor($request->idHash);
-            $file = $request->file('faktur');
+            $file = $request->file('file');
 
             $fileUpload = $this->media->upload($file, 'keuangan');
             $dataKeuangan = Keuangan::find($idKeuangan);
@@ -396,8 +448,6 @@ class KeuanganAPI extends Controller
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
-
-
     }
 
     public function destroyBuktiBayar($idKeuangan, $idMedia){

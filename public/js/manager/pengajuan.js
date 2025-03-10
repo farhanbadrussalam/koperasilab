@@ -1,5 +1,5 @@
 const invoice = new Invoice();
-
+let filterComp = false;
 $(function () {
     loadData();
     invoice.on('invoice.simpan', () => {
@@ -8,6 +8,19 @@ $(function () {
     invoice.on('invoice.tolak', () => {
         loadData();
     });
+
+    filterComp = new FilterComponent('list-filter', {
+        jenis: 'manager-invoice',
+        filter : {
+            status: true,
+            jenis_tld : true,
+            jenis_layanan : true,
+            no_kontrak : true,
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 });
 
 
@@ -15,8 +28,23 @@ function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
-        status: [90]
+        filter: {}
     };
+
+    let filterValue = filterComp && filterComp.getAllValue();
+    
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.status && (params.filter.status = filterValue.status);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $('#list-placeholder').show();
     $('#list-container').hide();
@@ -93,5 +121,10 @@ function verifikasiInvoice(obj){
 }
 
 function reload() {
+    loadData();
+}
+
+function clearFilter(){
+    filterComp.clear();
     loadData();
 }

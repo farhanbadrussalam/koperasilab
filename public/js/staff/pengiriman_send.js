@@ -36,22 +36,23 @@ function load_form() {
     // list document TLD
     let checkedTld = permohonan.pengiriman ? 'disabled' : 'checked';
     let tldKontrol = ``;
-    for (const list of permohonan.tldKontrol) {
+    for (const list of permohonan.kontrak.tldKontrol) {
         tldKontrol += `
             <div class="w-50 pe-1">
                 <select class="form-select kodeTldKontrol" name="kodeTldKontrol" ${htmlDisabled}>
-                    <option value="${list.tld_hash}" selected>${list.kode_lencana}</option>
+                    <option value="${list?.tld_hash ?? ''}" selected>${list?.kode_lencana ?? ''}</option>
                 </select>
             </div>
         `;
     }
 
+    // Menambil tld Pengguna dari kontrak
     let tldPengguna = ``;
-    for (const list of permohonan.pengguna){
+    for (const list of permohonan.kontrak.pengguna){
         tldPengguna += `
             <div class="w-50 pe-1">
                 <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-id="${list.permohonan_pengguna_hash}" ${htmlDisabled}>
-                    <option value="${list.tld_pengguna.tld_hash}" selected>${list.tld_pengguna.kode_lencana}</option>
+                    <option value="${list.tld_pengguna?.tld_hash ?? ''}" selected>${list.tld_pengguna?.kode_lencana ?? ''}</option>
                 </select>
             </div>
         `;
@@ -360,6 +361,7 @@ function _tldPengguna() {
         theme: "bootstrap-5",
         tags: true,
         placeholder: "Pilih Kode lencana",
+        allowClear: true,
         createTag: (params) => {
             return {
                 id: params.term,

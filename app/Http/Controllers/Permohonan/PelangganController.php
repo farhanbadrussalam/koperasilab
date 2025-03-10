@@ -44,7 +44,6 @@ class PelangganController extends Controller
         $periodeNow = Kontrak_periode::where('id_periode', decryptor($idPeriode))->first();
         if($periodeNow){
             $periodeNext = Kontrak_periode::where('id_kontrak', decryptor($idKontrak))->where('periode', $periodeNow->periode+1)->first();
-    
             // Mengambil Kontrak
             $queryKontrak = Kontrak::with(
                                 'layanan_jasa',
@@ -58,7 +57,7 @@ class PelangganController extends Controller
                                 'pelanggan.perusahaan',
                                 'pelanggan.perusahaan.alamat',
                                 'pengguna',
-                                'pengguna.tldPengguna'
+                                'pengguna.tld_pengguna'
                             )->where('id_kontrak', decryptor($idKontrak))->first();
     
             if($queryKontrak && $queryKontrak->pengguna){
@@ -67,7 +66,7 @@ class PelangganController extends Controller
                 }
             }
 
-            if(count($queryKontrak->list_tld) > 0){
+            if($queryKontrak->list_tld && count($queryKontrak->list_tld) > 0){
                 $queryKontrak->tldKontrol = Master_tld::whereIn('id_tld', $queryKontrak->list_tld)->get();
             }
     
@@ -75,10 +74,19 @@ class PelangganController extends Controller
             $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
     
             // cek apakah permohonan sudah ada atau belum
-            $permohonan = Permohonan::select('id_permohonan')->where('status', 11)
+            $permohonan = Permohonan::select('id_permohonan', 'list_tld')
+                ->with(
+                    'pengguna',
+                    'pengguna.media',
+                    'pengguna.tld_pengguna',
+                    )
+                ->where('status', 11)
                 ->where('id_kontrak', decryptor($idKontrak))
                 ->where('periode', $periodeNow->periode)
                 ->first();
+            if(isset($permohonan->list_tld) && count($permohonan->list_tld) > 0){
+                $permohonan->tldKontrol = Master_tld::whereIn('id_tld', $permohonan->list_tld)->get();
+            }
     
             $data = [
                 'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
@@ -90,6 +98,7 @@ class PelangganController extends Controller
                 'permohonan' => $permohonan
             ];
 
+
             return view('pages.permohonan.kontrak.evaluasi', $data);
         }
     }
@@ -100,9 +109,7 @@ class PelangganController extends Controller
         $data = [
             'title' => 'Pengajuan',
             'module' => 'permohonan-pengajuan',
-            'type' => 'list',
-            'jenisLayanan' => Master_jenisLayanan::where('status', 1)->whereNull('parent')->get(),
-            'jenisTld' => Master_jenisTld::where('status', 1)->get()
+            'type' => 'list'
         ];
         return view('pages.permohonan.pengajuan.index', $data);
     }

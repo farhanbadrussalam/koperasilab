@@ -1,11 +1,23 @@
 const invoice = new Invoice();
 let thisTab = 1;
+let filterComp = false;
 
 $(function () {
     switchLoadTab(1);
     invoice.on('invoice.simpan', () => {
         switchLoadTab(thisTab);
     });
+
+    filterComp = new FilterComponent('list-filter', {
+        filter : {
+            jenis_tld : true,
+            jenis_layanan : true,
+            no_kontrak : true,
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => switchLoadTab(thisTab));
 });
 
 function switchLoadTab(menu){
@@ -38,11 +50,26 @@ function loadData(page = 1, menu) {
     let params = {
         limit: 10,
         page: page,
-        menu: menu
+        menu: menu,
+        filter: {}
     };
 
-    $(`#list-placeholder-${menu}`).show();
-    $(`#list-container-${menu}`).hide();
+    let filterValue = filterComp && filterComp.getAllValue();
+
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
+
+    $(`#list-placeholder`).show();
+    $(`#list-container`).hide();
     ajaxGet(`api/v1/keuangan/listKeuangan`, params, result => {
         let html = '';
         for (const [i, keuangan] of result.data.entries()) {
@@ -99,12 +126,12 @@ function loadData(page = 1, menu) {
             `;
         }
 
-        $(`#list-container-${menu}`).html(html);
+        $(`#list-container`).html(html);
 
-        $(`#list-pagination-${menu}`).html(createPaginationHTML(result.pagination));
+        $(`#list-pagination`).html(createPaginationHTML(result.pagination));
 
-        $(`#list-placeholder-${menu}`).hide();
-        $(`#list-container-${menu}`).show();
+        $(`#list-placeholder`).hide();
+        $(`#list-container`).show();
     })
 }
 
@@ -114,4 +141,13 @@ function openInvoiceModal(obj, mode) {
         invoice.addData(result.data);
         invoice.open(mode);
     })
+}
+
+function reload() {
+    switchLoadTab(thisTab);
+}
+
+function clearFilter() {
+    filterComp.clear();
+    switchLoadTab(thisTab);
 }

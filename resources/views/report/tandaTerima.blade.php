@@ -64,6 +64,8 @@
                 }
             $tdContent .= '</tr>';
         }
+
+        $jenisPengujian = $data->periode ? $data->jenis_layanan->name : 'Zero cek';
     ?>
     <h1 class="center w-100 text-underline lh-2">TANDA TERIMA PENGUJIAN/KALIBRASI</h1>
     <div class="w-100 center lh-1">
@@ -82,7 +84,7 @@
 
     <table class="table table-content" border="1">
         <tr>
-            <td colspan="4">Jenis Pengujian/Kalibrasi:</td>
+            <td colspan="4">Jenis Pengujian/Kalibrasi: <span class="text-secondary">{{ $jenisPengujian }}</span></td>
         </tr>
         <?php echo $tdContent; ?>
     </table>

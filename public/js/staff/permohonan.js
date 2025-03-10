@@ -1,14 +1,29 @@
 let detail = false;
+let filterComp = false;
 $(function () {
     loadData();
     detail = new Detail({
         jenis: 'permohonan',
         tab: {
+            tld: true,
             pengguna: true,
             periode: true,
             dokumen: true
         }
     });
+
+    filterComp = new FilterComponent('list-filter', {
+        filter : {
+            status : true,
+            jenis_tld : true,
+            jenis_layanan : true,
+            no_kontrak : true,
+            perusahaan: true
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 });
 
 $('#list-pagination').on('click', 'a', function (e) {
@@ -19,10 +34,26 @@ $('#list-pagination').on('click', 'a', function (e) {
 });
 
 function loadData(page = 1) {
+    let filterValue = filterComp && filterComp.getAllValue();
     let params = {
-        limit: 10,
-        page: page
+        limit: 5,
+        page: page,
+        filter: {}
     };
+
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.status && (params.filter.status = filterValue.status);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $('#list-placeholder').show();
     $('#list-container').hide();
@@ -48,6 +79,9 @@ function loadData(page = 1) {
                             </div>
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${pengajuan.jenis_tld?.name ?? '-'} - Layanan ${pengajuan.layanan_jasa?.nama_layanan}</span>
+                                <div class="text-body-tertiary fs-7">
+                                    <div><i class="bi bi-building-fill"></i> ${pengajuan.pelanggan.perusahaan.nama_perusahaan}</div>
+                                </div>
                             </div>
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
                                 <div><i class="bi bi-person-check-fill"></i> ${pengajuan.pelanggan.name}</div>
@@ -90,5 +124,10 @@ function showDetail(obj){
 }
 
 function reload(){
+    loadData();
+}
+
+function clearFilter(){
+    filterComp.clear();
     loadData();
 }

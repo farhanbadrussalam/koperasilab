@@ -10,6 +10,7 @@ class Kontrak_pengguna extends Model
     use HasFactory;
 
     protected $table = "kontrak_pengguna";
+    protected $primaryKey = "id_pengguna";
 
     protected $fillable = [
         'id_kontrak',
@@ -49,7 +50,7 @@ class Kontrak_pengguna extends Model
         return $this->belongsTo(Master_media::class, 'file_ktp', 'id');
     }
 
-    public function tldPengguna(){
+    public function tld_pengguna(){
         return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
     }
 }

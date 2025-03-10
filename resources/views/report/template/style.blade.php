@@ -63,6 +63,9 @@
     .text-indent {
         text-indent: 30px;
     }
+    .text-secondary {
+        color: #8d8c8c;
+    }
 
     label {
         font-weight: bold;
@@ -134,5 +137,50 @@
 
     .lh-4 {
         line-height: 1.6 !important;
+    }
+
+    .mx-1 {
+        margin-left: 5px !important;
+        margin-right: 5px !important;
+    }
+
+    .mx-2 {
+        margin-left: 10px !important;
+        margin-right: 10px !important;
+    }
+
+    .mx-3 {
+        margin-left: 15px !important;
+        margin-right: 15px !important;
+    }
+
+    .mx-4 {
+        margin-left: 20px !important;
+        margin-right: 20px !important;
+    }
+
+    .mx-5 {
+        margin-left: 25px !important;
+        margin-right: 25px !important;
+    }
+
+    .my-1 {
+        margin-top: 5px !important;
+        margin-bottom: 5px !important;
+    }
+
+    .my-2 {
+        margin-top: 10px !important;
+        margin-bottom: 10px !important;
+    }
+
+    .my-3 {
+        margin-top: 15px !important;
+        margin-bottom: 15px !important;
+    }
+
+    .my-4 {
+        margin-top: 20px !important;
+        margin-bottom: 20px !important;
     }
 </style>

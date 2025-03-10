@@ -175,7 +175,7 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-keuangan' ? 'active' : '' }}"
                     href="{{ route('staff.keuangan') }}" aria-expanded="false">
-                    <span>&nbsp;</span>
+                    <i class="bi bi-wallet"></i>
                     <span class="hide-menu">Keuangan</span>
                     </a>
                 </li>
@@ -194,14 +194,14 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'manager-pengajuan' ? 'active' : '' }}"
                     href="{{ route('manager.pengajuan') }}" aria-expanded="false">
-                    <span>&nbsp;</span>
-                    <span class="hide-menu">Pengajuan</span>
+                    <i class="bi bi-file-earmark-ruled"></i>
+                    <span class="hide-menu">Invoice</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'manager-suratTugas' ? 'active' : '' }}"
                     href="{{ route('manager.surat_tugas') }}" aria-expanded="false">
-                    <span>&nbsp;</span>
+                    <i class="bi bi-journal-text"></i>
                     <span class="hide-menu">Surat Tugas</span>
                     </a>
                 </li>

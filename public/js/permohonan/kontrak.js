@@ -1,13 +1,26 @@
 let dataKontrak = false;
+let filterComp = false;
 $(function () {
     loadData();
     detail = new Detail({
         jenis: 'kontrak',
         tab: {
             pengguna: true,
-            dokumen: false
+            tld: true
         }
     });
+
+    filterComp = new FilterComponent('list-filter', {
+        jenis: 'kontrak',
+        filter : {
+            status : true,
+            jenis_tld : true,
+            no_kontrak : true,
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 
     $(`#list-pagination`).on('click', 'a', function(e){
         e.preventDefault();
@@ -19,8 +32,24 @@ $(function () {
 function loadData(page = 1) {
     let params = {
         limit: 5,
-        page: page
+        page: page,
+        filter: {}
     };
+
+    let filterValue = filterComp && filterComp.getAllValue();
+
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.status && (params.filter.status = filterValue.status);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $(`#list-placeholder`).show();
     $(`#list-container`).hide();
@@ -84,6 +113,8 @@ function loadData(page = 1) {
                     break;
                 }
             }
+
+            let hidden = role === 'Pelanggan' ? 'd-none' : '';
             
             html += `
                 <div class="card mb-2 smooth-height">
@@ -94,10 +125,12 @@ function loadData(page = 1) {
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
                             </div>
                             <div class="fs-5 my-2">
-                                <span class="fw-bold">${data.jenis_tld.name} - ${data.pelanggan.perusahaan.nama_perusahaan}</span> <span class="text-body-tertiary">#${data.no_kontrak}</span>
+                                <span class="fw-bold">${data.jenis_tld.name} - Layanan ${data.layanan_jasa.nama_layanan}</span> <span class="text-body-tertiary">#${data.no_kontrak}</span>
+                                <div class="text-body-tertiary fs-7 ${hidden}">
+                                    <div><i class="bi bi-building-fill"></i> ${data.pelanggan.perusahaan.nama_perusahaan}</div>
+                                </div>
                             </div>
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                <div><i class="bi bi-person-check-fill"></i> ${data.pelanggan.name}</div>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
                                 <div><i class="bi bi-cash-stack"></i> ${formatRupiah(data.total_harga)}</div>
                                 <div>${htmlStatusInvoice}</div>
@@ -105,7 +138,7 @@ function loadData(page = 1) {
                         </div>
                         <div class="col-auto ms-auto align-self-end">
                             <div class="mb-2 text-end fs-8">
-                                ${htmlLastPeriod}
+                                ${statusFormat('kontrak',data.status)}
                             </div>
                             <div class="d-flex gap-1" data-id="${data.kontrak_hash}">
                                 <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})"><i class="bi bi-clock-fill"></i> ${arrPeriode.length - 1} Periode</div>
@@ -121,7 +154,7 @@ function loadData(page = 1) {
                             ${(() => {
                                 let html = '';
                                 let evaluasiState = { active: false }; // Objek referensi
-                                for (const [index, data] of dataKontrak[i].periode.entries()) {
+                                for (const data of dataKontrak[i].periode) {
                                     html += htmlPeriode(data, i, cekStatusPeriode, arrFind, evaluasiState);
                                 }
                                 return html;
@@ -193,8 +226,6 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                 </small>
             </div>
         `;
-        // isComplete = isComplete && findPeriode?.status == 2;
-
     }
 
     // update status permohonan jika isComplete true
@@ -208,7 +239,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     }
 
     if(data.permohonan){
-        const showEvaluasi = isPelanggan && data.permohonan.status == 11 && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && data.permohonan.id_kontrak;
+        const showEvaluasi = isPelanggan && data.permohonan.status == 11 && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && data.permohonan.kontrak_hash;
         htmlAction = showEvaluasi ?
             `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>` :
             `<div class="d-flex flex-column justify-content-center align-items-end"><div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div><div>${statusFormat('permohonan', data.permohonan.status)}</div></div>`;
@@ -216,7 +247,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         if (!statusKirimTld && role == 'Staff Pengiriman') {
             !lastPeriode && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
         } else {
-            if (isPelanggan && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && !statusKirimTld && !data.permohonan.id_kontrak) {
+            if (isPelanggan && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && !statusKirimTld && !data.permohonan.kontrak_hash) {
                 evaluasiState.active && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);
             }
         }
@@ -267,13 +298,12 @@ function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
     return true; // Semua dokumen sudah complete
 }
 
-
-function showModalEvaluasi(index) {
-    const data = dataKontrak[index];
-    $('#permohonanEvaluasiModal').modal('show');
+function reload() {
+    loadData();
 }
 
-function reload() {
+function clearFilter(){
+    filterComp.clear();
     loadData();
 }
 

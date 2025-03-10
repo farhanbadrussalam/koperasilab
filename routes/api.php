@@ -128,6 +128,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getJenisTld', 'getJenisTld');
         Route::get('/getStatus', 'getStatus');
         Route::get('/getJenisLayanan', 'getJenisLayanan');
+        Route::get('/getPerusahaan', 'getPerusahaan');
     });
 
     Route::prefix('petugas')->controller(PetugasLayananAPI::class)->group(function () {

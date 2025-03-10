@@ -2,6 +2,7 @@ let dataPenyelia = [];
 let nowSelect = false;
 let detail = false;
 let documentLhu = false;
+let filterComp = false;
 $(function () {
     loadData();
 
@@ -9,6 +10,7 @@ $(function () {
         jenis: 'penyelia',
         tab: {
             dokumen: true,
+            dokumen_lhu: true,
             log: true
         }
     });
@@ -26,14 +28,42 @@ $(function () {
             $('#prosesNext').val(nowSelect.prosesNext.jobs.name);
         }
     });
+
+    filterComp = new FilterComponent('list-filter', {
+        filter : {
+            jenis_tld : true,
+            jenis_layanan : true,
+            no_kontrak : true,
+            perusahaan : true
+        }
+    });
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 });
 
 function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
-        status: listJobs
+        status: listJobs,
+        filter: {}
     };
+
+    let filterValue = filterComp && filterComp.getAllValue();
+    
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $(`#list-placeholder-lhu`).show();
     $(`#list-container-lhu`).hide();
@@ -46,10 +76,9 @@ function loadData(page = 1) {
             let periode = permohonan.periode_pemakaian;
             let btnAction = '';
             
+            btnAction += `<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
             if(listJobs.includes(lhu.status_hash)) {
-                btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
-            } else {
-                btnAction = `<button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
+                btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
             }
 
             let divInfoTugas = `
@@ -77,20 +106,25 @@ function loadData(page = 1) {
 
             html += `
                 <div class="card mb-2">
-                    <div class="card-body row align-items-center">
-                        <div class="col-12 col-md-4">
-                            <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>${permohonan.jenis_tld.name}</div>
-                                ${htmlPeriode}
-                                <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
-                            </small>
+                    <div class="card-body row align-items-center py-2">
+                        <div class="col-auto">
+                            <div class="">
+                                <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
+                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
+                            </div>
+                            <div class="fs-5 my-2">
+                                <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
+                                <div class="text-body-tertiary fs-7">
+                                    <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-3 text-body-tertiary fs-7">
+                                <span><i class="bi bi-calendar-range"></i> ${permohonan.periode ? `Periode ${permohonan.periode}` : `Zero cek`}</span>
+                                <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
+                                ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
+                            </div>
                         </div>
-                        <div class="col-6 col-md-6 my-3 text-end text-md-start">
-                            <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
-                        </div>
-                        <div class="col-6 col-md-2 text-center" data-id='${lhu.penyelia_hash}' data-index='${i}' data-surattugas='${lhu.no_surat_tugas}'>
+                        <div class="ms-auto col-auto text-center" data-id='${lhu.penyelia_hash}' data-index='${i}'>
                             ${btnAction}
                         </div>
                         ${timeline.elementCreate()}
@@ -230,4 +264,9 @@ function reload(){
 function showDetail(obj){
     const id = $(obj).parent().data("id");
     detail.show(`api/v1/penyelia/getById/${id}`);
+}
+
+function clearFilter(){
+    filterComp.clear();
+    loadData();
 }

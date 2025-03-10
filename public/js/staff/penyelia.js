@@ -9,7 +9,8 @@ $(function () {
         jenis: 'penyelia',
         tab: {
             dokumen: true,
-            log: true
+            log: true,
+            dokumen_lhu: true,
         }
     });
 
@@ -128,7 +129,7 @@ function switchLoadTab(menu){
 
 function loadData(page = 1, menu) {
     let params = {
-        limit: 10,
+        limit: 5,
         page: page,
         menu: menu
     };

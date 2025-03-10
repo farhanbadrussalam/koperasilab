@@ -22,7 +22,7 @@ class UploadComponent {
             multiple: options.multiple ?? true
         }
         this.idElement = idElement;
-        this.listFile = [];
+        this.listFile = options.data ?? [];
 
         // random id number
         // timestamp tanggal sekarang
@@ -271,7 +271,7 @@ class UploadComponent {
         divAction.className = 'p-1';
 
         // Action
-        divAction.append(removeContent);
+        this.options.mode == 'upload' && divAction.append(removeContent);
 
         linkMedia.append(divImg);
         linkMedia.append(divDesc);

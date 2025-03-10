@@ -183,7 +183,6 @@ function showModalDiterima(obj){
     ajaxGet(`api/v1/pengiriman/getById/${id}`, false, result => {
         const data = result.data;
         $('#idPengiriman').val(id);
-        console.log(data);
         buktiPengiriman.addData(data.media_pengiriman);
         let htmlSurpeng = '';
         for (const dok of data.permohonan.dokumen) {

@@ -431,9 +431,8 @@ function statusFormat(feature, status) {
     } else if (feature == 'kontrak') {
         switch (status) {
             case 1:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border border-primary">On Progress</span>
-                    `;
+                htmlStatus = `<span class="badge bg-primary-subtle text-dark border border-primary">Kontrak sedang berjalan</span>`;
+                break;
         }
     }
 
@@ -777,11 +776,36 @@ function printMedia(media, folder=false, option = {}){
         download: option.download == undefined ? true : option.download,
         date: option.date == undefined ? true : option.date,
         size:  option.size == undefined ? true : option.size,
-        onRemove: option.onRemove == undefined ? false : option.onRemove
+        onRemove: option.onRemove == undefined ? false : option.onRemove,
+        isHtml: option.isHtml == undefined ? false : option.isHtml
     }
 
     const dateContent = options.date ? `<span class="text-submain caption text-secondary">${dateFormat(media.created_at, 1)}</span>` : '';
     const sizeContent = options.size ? `<small class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</small>` : '';
+    
+    if(options.isHtml){
+        return `
+            <div
+                class="d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border">
+                    <a class="d-flex align-items-center w-100" href="${base_url}/storage/${folder ? folder : media.file_path}/${media.file_hash}" target="_blank">
+                        <div>
+                            <img class="my-3" src="${base_url}/icons/${iconDocument(media.file_type)}" alt=""
+                                style="width: 24px; height: 24px;">
+                        </div>
+                        <div class="flex-grow-1 ms-2">
+                            <div class="d-flex flex-column">
+                                <span class="caption text-main">${media.file_ori}</span>
+                                ${dateContent}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            ${sizeContent}
+                        </div>
+                    </a>
+                <div class="d-flex align-items-center"></div>
+            </div>
+        `;
+    }
 
     const downloadContent = document.createElement('button');
     downloadContent.className = 'btn btn-sm btn-link';
@@ -839,30 +863,7 @@ function printMedia(media, folder=false, option = {}){
 
     return div1;
 
-    return `
-        <div
-            class="d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border">
-                <a class="d-flex align-items-center w-100" href="${base_url}/storage/${folder ? folder : media.file_path}/${media.file_hash}" target="_blank">
-                    <div>
-                        <img class="my-3" src="${base_url}/icons/${iconDocument(media.file_type)}" alt=""
-                            style="width: 24px; height: 24px;">
-                    </div>
-                    <div class="flex-grow-1 ms-2">
-                        <div class="d-flex flex-column">
-                            <span class="caption text-main">${media.file_ori}</span>
-                            ${dateContent}
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        ${sizeContent}
-                    </div>
-                    <div class="p-1">
-                        ${downloadContent}
-                    </div>
-                </a>
-            <div class="d-flex align-items-center"></div>
-        </div>
-        `;
+    
 }
 
 /**

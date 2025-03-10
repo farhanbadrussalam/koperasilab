@@ -12,7 +12,6 @@
 <div class="card shadow-sm m-4">
     <div class="card-body">
         <div class="d-flex">
-            {{-- <h3 class="card-title flex-grow-1"></h3> --}}
             <div class="flex-grow-1">
                 <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
                 <button class="btn btn-outline-secondary btn-sm" onclick="clearFilter()">
@@ -45,12 +44,8 @@
                 </div>
                 @endfor
             </div>
-            <div class="body my-3" id="pengajuan-list-container">
-                
-            </div>
-            <div aria-label="Page navigation example" id="pagination_list">
-                
-            </div>
+            <div class="body my-3" id="pengajuan-list-container"></div>
+            <div aria-label="Page navigation example" id="pagination_list"></div>
         </div>
     </div>
 </div>

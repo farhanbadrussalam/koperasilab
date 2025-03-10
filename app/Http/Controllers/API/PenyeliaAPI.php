@@ -273,6 +273,7 @@ class PenyeliaAPI extends Controller
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
         $menu = $request->has('menu') ? $request->menu : '';
+        $filter = $request->has('filter') ? $request->filter : [];
         $userId = false;
         $status = false;
         $typePencarian = 'in';
@@ -307,7 +308,6 @@ class PenyeliaAPI extends Controller
             }
         }
 
-        
         DB::beginTransaction();
         try {
             $query = Penyelia::with(
@@ -333,6 +333,19 @@ class PenyeliaAPI extends Controller
                                 return $q->whereNotIn('status', $status);
                             }
                             return $q->whereIn('status', $status);
+                        })
+                        ->when($filter, function($q, $filter) {
+                            foreach ($filter as $key => $value) {
+                                if ($key === 'id_perusahaan') {
+                                    $q->whereHas('permohonan.pelanggan.perusahaan', function ($v) use ($value) {
+                                        $v->where('id_perusahaan', decryptor($value));
+                                    });
+                                } else {
+                                    $q->whereHas('permohonan', function ($p) use ($key, $value) {
+                                        $p->where($key, decryptor($value));
+                                    });
+                                }
+                            }
                         })
                         ->when($userId, function($q, $userId) {
                             return $q->whereHas('petugas', function ($query) use ($userId) {

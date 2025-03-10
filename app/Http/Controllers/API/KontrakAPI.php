@@ -10,6 +10,7 @@ use App\Traits\RestApi;
 use App\Models\Kontrak;
 use App\Models\Kontrak_pengguna;
 use App\Models\Kontrak_periode;
+use App\Models\Master_tld;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -61,6 +62,11 @@ class KontrakAPI extends Controller
                     ->when($idPelanggan, function($q, $idPelanggan){
                         return $q->where('id_pelanggan', $idPelanggan);
                     })
+                    ->when($filter, function($q, $filter) {
+                        foreach ($filter as $key => $value) {
+                            $q->where($key, decryptor($value));
+                        }
+                    })
                     ->orderBy('created_at', 'desc')
                     ->offset(($page - 1) * $limit)
                     ->limit($limit)
@@ -111,6 +117,7 @@ class KontrakAPI extends Controller
         try {
             $query = Kontrak::with(
                         'pengguna',
+                        'pengguna.tld_pengguna',
                         'periode',
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',
@@ -130,6 +137,10 @@ class KontrakAPI extends Controller
                     ->where('id_kontrak', $id)
                     ->first();
 
+            if(isset($query->list_tld) && count($query->list_tld) > 0){
+                $tldKontrol = Master_tld::whereIn('id_tld', $query->list_tld)->get();
+                $query->tld_kontrol = $tldKontrol;
+            }
             DB::commit();
             
             return $this->output($query, 200);
@@ -147,7 +158,10 @@ class KontrakAPI extends Controller
             $data = array();
 
             if(!empty($no_kontrak)){
-                $data = Kontrak::where('no_kontrak', 'like', '%'.$no_kontrak.'%')->get();
+                $idPelanggan = Auth::user()->hasRole('Pelanggan') ? Auth::user()->id : false;
+                $data = Kontrak::when($idPelanggan, fn($q) => $q->where('id_pelanggan', $idPelanggan))
+                        ->where('no_kontrak', 'like', '%'.$no_kontrak.'%')
+                        ->get();
             }
             
             DB::commit();

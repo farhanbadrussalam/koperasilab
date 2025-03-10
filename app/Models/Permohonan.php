@@ -52,7 +52,8 @@ class Permohonan extends Model
     ];
 
     protected $appends = [
-        'permohonan_hash'
+        'permohonan_hash',
+        'kontrak_hash'
     ];
 
     protected $casts = [
@@ -63,6 +64,11 @@ class Permohonan extends Model
     public function getPermohonanHashAttribute()
     {
         return encryptor($this->id_permohonan);
+    }
+
+    public function getKontrakHashAttribute()
+    {
+        return encryptor($this->id_kontrak);
     }
 
     public function jenisTld(){

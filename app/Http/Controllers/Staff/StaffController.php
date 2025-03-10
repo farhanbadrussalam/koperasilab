@@ -14,13 +14,19 @@ use App\Models\Master_jobs;
 use App\Models\Master_ekspedisi;
 use App\Models\Kontrak;
 use App\Models\Kontrak_periode;
+use App\Models\Kontrak_pengguna;
 use App\Models\Master_tld;
+
+use App\Http\Controllers\API\PermohonanAPI;
 
 use Auth;
 use Log;
 
 class StaffController extends Controller
 {
+    public function __construct(){
+        $this->permohonan = resolve(PermohonanAPI::class);
+    }
     public function indexKeuangan()
     {
         $data = [
@@ -236,8 +242,41 @@ class StaffController extends Controller
             if($permohonan){
                 $idPermohonan = $permohonan->id_permohonan;
             } else {
-                $create = $this->createPermohonan($idKontrak, $periodeNow->periode);
-                $idPermohonan = decryptor($create['data']['id']);
+                // membuat permohonan
+                $dataKontrak = Kontrak::with('pengguna')->find($idKontrak);
+
+                $encrypTld = array_map(function ($item) {
+                    return encryptor($item);
+                }, $dataKontrak->list_tld);
+
+                $tldPengguna = array();
+                foreach ($dataKontrak->pengguna as $key => $value) {
+                    array_push($tldPengguna, $value->permohonan_pengguna_hash);
+                }
+                
+                $params = array(
+                    'idKontrak' => encryptor($idKontrak),
+                    'periode' => $periodeNow->periode,
+                    'tipeKontrak' => 'kontrak lama',
+                    'jenisLayanan2' => encryptor($dataKontrak->jenis_layanan_2),
+                    'jenisLayanan1' => encryptor($dataKontrak->jenis_layanan_1),
+                    'dataTld' => json_encode($encrypTld),
+                    'tldPengguna' => json_encode($tldPengguna),
+                    'createBy' => encryptor($dataKontrak->id_pelanggan),
+                    'status' => 11 // sewa
+                );
+                $create = $this->permohonan->tambahPengajuan(new Request($params));
+                $responsePermohonan = json_decode($create->getContent(), true);
+                if($responsePermohonan['meta']['code'] == 200){
+                    $idPermohonan = decryptor($responsePermohonan['data']['id']);
+                    
+                    // remove list_tld di kontrak dan id_tld pada kontrak_pengguna
+                    $dataKontrak->list_tld = null;
+                    $dataKontrak->save();
+                    foreach ($dataKontrak->pengguna as $key => $value) {
+                        Kontrak_pengguna::where('id_pengguna', $value->id_pengguna)->update(['id_tld' => null]);
+                    }
+                }
             }
         } else {
             $idPermohonan = decryptor($idHash) ?? false;
@@ -253,6 +292,8 @@ class StaffController extends Controller
                 'pelanggan.perusahaan.alamat',
                 'kontrak',
                 'kontrak.periode',
+                'kontrak.pengguna',
+                'kontrak.pengguna.tld_pengguna',
                 'invoice',
                 'invoice.pengiriman',
                 'lhu',
@@ -263,8 +304,14 @@ class StaffController extends Controller
                 'pengguna.tld_pengguna'
             )->find($idPermohonan);
             
-        if(count($dataPermohonan->list_tld) > 0) {
-            $dataPermohonan->tldKontrol = Master_tld::whereIn('id_tld', $dataPermohonan->list_tld)->get();
+        if(isset($dataPermohonan->kontrak->list_tld) && count($dataPermohonan->kontrak->list_tld) > 0) {
+            $dataPermohonan->kontrak->tldKontrol = Master_tld::whereIn('id_tld', $dataPermohonan->kontrak->list_tld)->get();
+        } else {
+            $arrTldKontrol = array();
+            for($i = 0; $i < $dataPermohonan->kontrak->jumlah_kontrol; $i++){
+                array_push($arrTldKontrol, null);
+            }
+            $dataPermohonan->kontrak->tldKontrol = $arrTldKontrol;
         }
 
         $data = [
@@ -301,6 +348,7 @@ class StaffController extends Controller
             'jenisLayanan1' => encryptor($dataKontrak->jenis_layanan_1),
             'dataTld' => json_encode($dataKontrak->list_tld),
             'createBy' => encryptor($dataKontrak->id_pelanggan),
+            'list_tld' => null,
             'status' => 11 // sewa
         ];
 

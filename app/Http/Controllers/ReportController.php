@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
+use App\Models\Kontrak;
 use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
@@ -92,6 +93,7 @@ class ReportController extends Controller
             'kontrak',
             'tandaterima',
             'tandaterima.pertanyaan',
+            'jenis_layanan:id_jenisLayanan,name',
             'dokumen' => function($query) {
                 return $query->where('jenis', 'tandaterima');
             },
@@ -199,6 +201,32 @@ class ReportController extends Controller
         $data['data'] = $query;
 
         $pdf = PDF::loadView('report.suratPengantar', $data);
+
+        $pdf->render();
+
+        return $pdf->stream();
+    }
+
+    public function perjanjian($id = null){
+        $id = decryptor($id);
+
+        if($id == null){
+            return redirect()->back();
+        }
+
+        $query = Kontrak::with(
+            'jenisTld:id_jenisTld,name',
+            'jenis_layanan:id_jenisLayanan,name',
+            'jenis_layanan_parent:id_jenisLayanan,name',
+            'layanan_jasa:id_layanan,nama_layanan',
+        )->find($id);
+
+        $data['date'] = Carbon::now()->year;
+        $data['title'] = 'Surat Kontrak';
+        $data['data'] = $query;
+        // dd($query);
+
+        $pdf = PDF::loadView('report.perjanjian', $data);
 
         $pdf->render();
 
