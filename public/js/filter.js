@@ -220,7 +220,10 @@ class FilterComponent {
 
     createStatusContent(callback, index) {
         const self = this;
-        ajaxGet(`api/v1/filter/getStatus`, {jenis: this.jenis}, result => {
+        let params  = {
+            jenis: this.jenis
+        };
+        ajaxGet(`api/v1/filter/getStatus`, params, result => {
             let html = `
                 <div class="col-3 order-${index+1}">
                     <select name="filterStatus" id="filterStatus" class="form-select form-select-sm">

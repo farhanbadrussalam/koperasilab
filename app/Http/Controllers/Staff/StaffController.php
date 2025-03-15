@@ -206,6 +206,8 @@ class StaffController extends Controller
         }
         if(isset($dataPermohonan->list_tld) && count($dataPermohonan->list_tld) > 0){
             $dataPermohonan->tldKontrol = Master_tld::whereIn('id_tld', $dataPermohonan->list_tld)->get();
+        } else if($dataPermohonan->tld_kontrol){
+            $dataPermohonan->tldKontrol = $dataPermohonan->tld_kontrol;
         }
 
         $dataPengguna = Permohonan_pengguna::where('id_permohonan', $id)->first();

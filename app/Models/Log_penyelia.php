@@ -28,4 +28,8 @@ class Log_penyelia extends Model
     {
         return encryptor($this->id);
     }
+
+    public function user(){
+        return $this->belongsTo(User::class, 'created_by', 'id');
+    }
 }

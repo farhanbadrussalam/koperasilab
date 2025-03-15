@@ -565,12 +565,14 @@ class Detail {
         const dataLog = [];
         switch (this.options.jenis) {
             case 'penyelia':
+            case 'surattugas':
                 this.data.log?.map(log => {
                     let objLog = {
                         id: log.log_penyelia_hash,
                         message: log.message,
                         note: log.note,
-                        created_at: log.created_at
+                        created_at: log.created_at,
+                        user: log.user.name
                     }
                     dataLog.push(objLog);
                 })
@@ -581,10 +583,13 @@ class Detail {
             htmlPointLog += `
                 <div class="tl-item ${i == 0 ? 'active' : ''}">
                     <div class="tl-dot border-primary"></div>
-                    <div class="tl-content">
-                        <div class="">${log.message}</div>
-                        ${log.note ? `<small class="text-muted mt-1">Note : ${log.note}</small>` : ''}
-                        <div class="tl-date text-muted mt-1">${diffToday(log.created_at)}</div>
+                    <div class="tl-content lh-1 w-100">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="me-2">${log.message}</div>
+                            <div class="text-muted">${diffToday(log.created_at)}</div>
+                        </div>
+                        <div class="fw-bold mt-1">${log.user}</div>
+                        ${log.note ? `<div class="text-muted mt-1">Note : ${log.note}</div>` : ''}
                     </div>
                 </div>
             `
@@ -647,14 +652,17 @@ class Detail {
             case 'kontrak':
                 tldKontrol = this.data.tld_kontrol ?? false;
                 tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
-
-                if(tldKontrol && tldPengguna){
-                    listTld = [...tldPengguna, ...tldKontrol];
-                }
+                break;
+            case 'penyelia':
+                tldKontrol = this.data.permohonan.tld_kontrol ?? false;
+                tldPengguna = this.data.permohonan.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.permohonan.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
                 break;
         
             default:
                 break;
+        }
+        if(tldKontrol && tldPengguna){
+            listTld = [...tldPengguna, ...tldKontrol];
         }
 
         if (listTld.length > 0) {

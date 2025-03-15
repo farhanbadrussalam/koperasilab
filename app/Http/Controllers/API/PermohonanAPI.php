@@ -61,6 +61,7 @@ class PermohonanAPI extends Controller
             $totalHarga = $request->totalHarga ? $request->totalHarga : false;
             $hargaLayanan = $request->hargaLayanan ? $request->hargaLayanan : false;
             $dataTld = $request->dataTld ? json_decode($request->dataTld) : false;
+            $tldKontrol = $request->tldKontrol ? json_decode($request->tldKontrol) : false;
             $createBy = $request->createBy ? decryptor($request->createBy) : false;
             $status = $request->status ? $request->status : 1;
             $periodePemakaian = $request->periodePemakaian ? $request->periodePemakaian : false;
@@ -111,6 +112,12 @@ class PermohonanAPI extends Controller
                 }, $dataTld);
             }
 
+            if ($tldKontrol) {
+                $data['tld_kontrol'] = array_map(function ($item) {
+                    return $item->kode_lencana;
+                }, $tldKontrol);
+            }
+
             // jika tipe kontraknya adalah "kontrak lama" akan mengambil data dari kontrak sebelumnya
             if($tipeKontrak == 'kontrak lama'){
                 $kontrak = Kontrak::with('pengguna','periode')->find($idKontrak);
@@ -153,6 +160,18 @@ class PermohonanAPI extends Controller
                         }
                     }
                 }
+            }
+
+            if($tipeKontrak == 'kontrak baru' && $jenisLayanan2 == 3){ // Evaluasi
+                // Simpan dokumen Permohonan
+                $document = Permohonan_dokumen::create(array(
+                    'id_permohonan' => $idPermohonan,
+                    'created_by' => Auth::user()->id,
+                    'nama' => 'Permohonan Evaluasi TLD',
+                    'jenis' => 'permohonan',
+                    'status' => 1,
+                    'nomer' => null
+                ));
             }
 
             DB::commit();
@@ -201,8 +220,8 @@ class PermohonanAPI extends Controller
             $ktp = $request->file('ktp');
     
             $file_ktp = $this->media->upload($ktp, 'permohonan');
-            
-            $create = Permohonan_pengguna::create(array(
+
+            $paramsCreate = array(
                 'id_permohonan' => $idPermohonan,
                 'nama' => $nama,
                 'posisi' => $divisi,
@@ -210,7 +229,11 @@ class PermohonanAPI extends Controller
                 'file_ktp' => $file_ktp->getIdMedia(),
                 'status' => 2,
                 'created_by' => Auth::user()->id
-            ));
+            );
+
+            $request->has('kode_lencana') ? $paramsCreate['tld'] = $request->kode_lencana : null;
+
+            $create = Permohonan_pengguna::create($paramsCreate);
             DB::commit();
 
             if($create){
@@ -389,10 +412,12 @@ class PermohonanAPI extends Controller
             foreach ($query as $item) {
                 // mengecek informasi tld
                 if(!$item->id_tld){
-                    if($resTld['data'][$noTld]){
+                    if(isset($resTld['data'][$noTld]) && !$item->tld){
                         $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
+                        $noTld++;
+                    }else{
+                        $item->tld_pengguna = $item->tld ?? null;
                     }
-                    $noTld++;
                 }else{
                     $tld_1 = $this->tld->getById($item->id_tld);
                     $resTld_1 = json_decode($tld_1->getContent(), true);

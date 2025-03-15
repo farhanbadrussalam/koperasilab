@@ -77,7 +77,7 @@ class TldAPI extends Controller
         try {
             $jenis = $request->has('jenis') ? $request->jenis : false;
 
-            $data = Master_tld::where('status', '!=', 1)->where('jenis', $jenis)->get();
+            $data = Master_tld::where('status', 0)->where('jenis', $jenis)->get();
 
             DB::commit();
             return $this->output($data, 200);

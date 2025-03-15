@@ -1,7 +1,8 @@
-let signaturePad = false;
 let tmpPetugas = [];
 let nowSelect = false;
 let detail = false;
+let filterComp = false;
+let thisTab = 1;
 $(function () {
     switchLoadTab(1);
 
@@ -11,12 +12,8 @@ $(function () {
             dokumen: true,
             log: true,
             dokumen_lhu: true,
+            tld: true
         }
-    });
-
-    const content = document.getElementById("content-ttd");
-    signaturePad = signature(content, {
-        text: 'Penyelia'
     });
 
     setDropify("init", "#upload_document", {
@@ -31,89 +28,23 @@ $(function () {
         }
     });
 
-    $('#inputStartDate').flatpickr({
-        altInput: true,
-        locale: "id",
-        minDate: 'today',
-        dateFormat: "Y-m-d",
-        altFormat: "j F Y",
-        onChange: (selectedDates, dateStr, instance) => {
-            $('#inputEndDate').val('');
-            $('#inputEndDate').removeClass('bg-secondary-subtle');
-            $('#inputEndDate').attr('readonly', false);
-
-            $('#inputEndDate').flatpickr({
-                altInput: true,
-                locale: "id",
-                minDate: dateStr,
-                dateFormat: "Y-m-d",
-                altFormat: "j F Y",
-            })
+    filterComp = new FilterComponent('list-filter', {
+        jenis: 'penyelia',
+        filter : {
+            status : true,
+            jenis_tld : true,
+            jenis_layanan : true,
+            no_kontrak : true,
+            perusahaan: true
         }
-    });
+    })
 
-    $('#inputPetugas').select2({
-        theme: "bootstrap-5",
-        placeholder: "Pilih petugas",
-        dropdownParent: $('#suratTugasModal'),
-        minimumInputLength: 1,
-        allowClear: true,
-        ajax: {
-          url: `${base_url}/api/v1/penyelia/listPetugas`,
-          dataType: 'json',
-          type: 'GET',
-          delay: 250,
-          headers: {
-            'Authorization': `Bearer ${bearer}`,
-            'Content-Type': 'application/json'
-        },
-          data: function(params) {
-            let queryParams = {
-                text: params.term
-            }
-            return queryParams;
-          },
-          processResults: function (data) {
-            let items = [];
-            for (const d of data) {
-                let cek = tmpPetugas.find(v => v.id === d.user_hash);
-                if(!cek){
-                    items.push({
-                        'id': d.user_hash,
-                        'text': d.name,
-                        'jobs': JSON.parse(d.jobs)
-                    })
-                }
-            }
-            
-            return {
-                results: items
-            };
-          }
-        },
-        cache: true,
-        templateResult : (state) => {
-            if (!state.id) return state.text;
-            let $content = $(
-                `
-                    <div class="d-flex flex-column">
-                        <div class="row">
-                            <div>${state.text}</div>
-                        </div>
-                        <div class="text-body-secondary fs-6">${state.jobs.length > 0 ? state.jobs.join(', ') : ''}</div>
-                    </div>
-                `
-            )
-
-            return $content;
-        },
-    }).on('select2:select', function (e) {
-        // Bersihkan input pencarian setelah pemilihan
-        $(this).data('petugas', e.params.data)
-    });
+    // SETUP FILTER
+    filterComp.on('filter.change', () => switchLoadTab(thisTab));
 });
 
 function switchLoadTab(menu){
+    thisTab = menu;
     switch (menu) {
         case 1:
             menu = 'surattugas';
@@ -131,11 +62,28 @@ function loadData(page = 1, menu) {
     let params = {
         limit: 5,
         page: page,
-        menu: menu
+        menu: menu,
+        filter: {}
     };
+
+    let filterValue = filterComp && filterComp.getAllValue();
+
+    filterValue.status && (params.filter.status = filterValue.status);
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
     
-    $(`#list-placeholder-${menu}`).show();
-    $(`#list-container-${menu}`).hide();
+    $(`#list-placeholder`).show();
+    $(`#list-container`).hide();
     ajaxGet(`api/v1/penyelia/list`, params, result => {
         let html = '';
         let divTimelineTugas = [];
@@ -170,10 +118,11 @@ function loadData(page = 1, menu) {
                     let timeLine = false;
                     if(penyelia.start_date && penyelia.end_date){
                         divInfoTugas = `
-                            <div class="col-md-12 mt-2">
-                                <div class="rounded bg-secondary-subtle p-1 text-body-secondary d-flex justify-content-between">
-                                    <span class="fs-7">Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
-                                    <span>Status : ${statusFormat('penyelia', penyelia.status)}</span>
+                            <div class="col-md-12 mt-2 fs-7">
+                                <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
+                                    <span>Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
+                                    <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${penyelia.penyelia_hash}" data-bs-toggle="collapse"
+                                    onclick="showHideProgress(this)">Lihat Progress LAB</a>
                                 </div>
                             </div>
                         `;
@@ -187,30 +136,34 @@ function loadData(page = 1, menu) {
                     }
                     html += `
                         <div class="card mb-2">
-                            <div class="card-body row align-items-center">
-                                <div class="col-12 col-md-4">
+                            <div class="card-body row align-items-center py-2 position-relative">
+                                <div class="position-absolute top-0 end-0 w-auto"></div>
+                                <div class="col-auto">
                                     <div class="">
                                         <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
                                         <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
+                                        <span> | ${statusFormat('penyelia', penyelia.status)}</span>
                                     </div>
-                                    <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
-                                    <small class="subdesc text-body-secondary fw-light lh-sm">
-                                        <div>${permohonan.jenis_tld.name}</div>
-                                        <div>${penyelia.periode == 0 ? 'Zero cek' : `Periode ${penyelia.periode} :`}</div>
-                                        ${penyelia.periode == 0 ? `` : `<div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>`}
-                                        <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
-                                    </small>
+                                    <div class="fs-5 my-2">
+                                        <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
+                                        <div class="text-body-tertiary fs-7">
+                                            <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3 text-body-tertiary fs-7">
+                                        <div><i class="bi bi-person-check-fill"></i> ${permohonan.pelanggan.name}</div>
+                                        <span><i class="bi bi-calendar-range"></i> ${permohonan.periode ? `Periode ${permohonan.periode}` : 'Zero cek'}</span>
+                                        <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
+                                        ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
+                                    </div>
                                 </div>
-                                <div class="col-6 col-md-3 my-3 text-end text-md-start">
-                                    <div>${permohonan.tipe_kontrak}</div>
-                                    <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
-                                </div>
-                                <div class="col-6 col-md-2">${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-                                <div class="col-6 col-md-3 text-center" data-idpenyelia='${penyelia.penyelia_hash}'>
+                                <div class="col-6 col-md-3 text-end ms-auto" data-idpenyelia='${penyelia.penyelia_hash}'>
                                     ${btnAction}
                                 </div>
-                                ${timeLine ? timeLine.elementCreate() : ''}
                                 ${divInfoTugas}
+                                <div class="col-md-12 collapse" id="timeline-progress-${penyelia.penyelia_hash}">
+                                    ${timeLine ? timeLine.elementCreate() : ''}
+                                </div>
                             </div>
                         </div>
                     `;
@@ -238,7 +191,7 @@ function loadData(page = 1, menu) {
                                     <div class="fw-bolder">End date</div>
                                     <div>${dateFormat(penyelia.end_date, 4)}</div>
                                 </div>
-                                <div class="col-6 col-md-2 text-center" data-penyelia='${JSON.stringify(penyelia)}' data-surattugas='${penyelia.no_surat_tugas}'>
+                                <div class="col-6 col-md-2 text-end" data-penyelia='${JSON.stringify(penyelia)}' data-surattugas='${penyelia.no_surat_tugas}'>
                                     <button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> Update progress</button>
                                 </div>
                             </div>
@@ -259,24 +212,15 @@ function loadData(page = 1, menu) {
             `;
         }
 
-        $(`#list-container-${menu}`).html(html);
+        $(`#list-container`).html(html);
 
         divTimelineTugas.map(d => d.render());
 
-        $(`#list-pagination-${menu}`).html(createPaginationHTML(result.pagination));
+        $(`#list-pagination`).html(createPaginationHTML(result.pagination));
 
-        $(`#list-placeholder-${menu}`).hide();
-        $(`#list-container-${menu}`).show();
+        $(`#list-placeholder`).hide();
+        $(`#list-container`).show();
     })
-}
-
-let suratTugasMode = 'create'; // 'create' or 'verify'
-
-function openSuratTugasModal(obj, mode) {
-    const penyelia = $(obj).parent().data("penyelia");
-    $('#txtIdPenyelia').val(penyelia.penyelia_hash);
-    loadListPetugas();
-    $('#suratTugasModal').modal('show');
 }
 
 function openProgressModal(obj) {
@@ -307,104 +251,6 @@ function openProgressModal(obj) {
     $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
 
     $('#updateProgressModal').modal('show');
-}
-
-function tambahPetugas(){
-    let petugas = $('#inputPetugas').data('petugas');
-
-    if(petugas){
-        tmpPetugas.push(petugas);
-        tmpPetugas = tmpPetugas.filter((value, index, self) =>
-            index === self.findIndex((t) => t.id === value.id)
-        );
-        loadListPetugas();
-        $('#inputPetugas').val(null).trigger('change');
-    }
-}
-
-function closeModal() {
-    signaturePad.clear();
-    tmpPetugas = [];
-    $('#inputStartDate').val('');
-    $('#inputStartDate')[0]._flatpickr?.setDate('');
-
-    $('#inputEndDate').val('');
-    $('#inputEndDate')[0]._flatpickr?.destroy();
-    $('#inputEndDate').addClass('bg-secondary-subtle');
-    $('#inputEndDate').attr('readonly', true);
-    $('#inputPetugas').val(null).trigger('change');
-    $('#txtIdPenyelia').val('');
-}
-
-function loadListPetugas(){
-    let html = '';
-    tmpPetugas.forEach((data, index) => {
-        html += `
-            <div class="card mb-2 border-dark">
-                <div class="card-body align-items-center d-flex p-2 px-2">
-                    <span class="me-2">${index+1}</span>
-                    <div class="d-flex flex-column me-auto">
-                        <span class="subbody-medium text-submain text-truncate fw-bolder">${data.text}</span>
-                        <small class="text-body-secondary fw-light">${data.jobs.length > 0 ? data.jobs.join(', ') : ''}</small>
-                    </div>
-                    <button class="btn btn-sm btn-outline-danger" onclick="removePetugas(${index})"><i class="bi bi-trash"></i></button>
-                </div>
-            </div>
-        `;
-    });
-
-    if(tmpPetugas.length == 0){
-        html = `
-            <div class="d-flex flex-column align-items-center py-3">
-                <img src="${base_url}/images/no_data2_color.svg" style="width:100px" alt="">
-                <small class="fw-bold mt-3 text-muted">No Data Available</small>
-            </div>
-        `;
-    }
-
-    $('#list-petugas').html(html);
-}
-
-function removePetugas(index){
-    tmpPetugas.splice(index, 1);
-    loadListPetugas();
-}
-
-function simpanSuratTugas(obj){
-    const idPenyelia = $('#txtIdPenyelia').val();
-    const startDate = $('#inputStartDate').val();
-    const endDate = $('#inputEndDate').val();
-    const petugas = tmpPetugas.map(v => v.id);
-    const signature = signaturePad.toDataURL();
-
-    const formData = new FormData();
-    formData.append('idPenyelia', idPenyelia);
-    formData.append('startDate', startDate);
-    formData.append('endDate', endDate);
-    formData.append('status', 2);
-    formData.append('petugas', JSON.stringify(petugas));
-    formData.append('ttd', signature);
-    formData.append('ttd_by', userActive.user_hash);
-
-    spinner('show', $(obj));
-    ajaxPost(`api/v1/penyelia/action`, formData, result => {
-        spinner('hide', $(obj));
-        if(result.meta.code == 200){
-            Swal.fire({
-                icon: "success",
-                text: 'Surat tugas berhasil dibuat',
-            });
-            $('#suratTugasModal').modal('hide');
-            loadData(1, 'surattugas');
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: result.data.msg,
-            });
-        }
-    }, error => {
-        spinner('hide', $(obj));
-    });
 }
 
 function simpanProgress(obj){
@@ -480,4 +326,19 @@ function showDetail(obj){
 
 function reload(tab){
     switchLoadTab(tab);
+}
+
+function clearFilter(){
+    filterComp.clear();
+    switchLoadTab(thisTab);
+}
+
+function showHideProgress(obj){
+    const collapse = obj;
+    if(!collapse.classList.contains('show')) { 
+        collapse.innerText = 'Lebih sedikit';
+    } else { 
+        collapse.innerText = 'Lihat Progress LAB'; 
+    } 
+    collapse.classList.toggle('show');
 }

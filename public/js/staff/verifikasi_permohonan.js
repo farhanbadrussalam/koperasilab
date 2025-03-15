@@ -220,7 +220,7 @@ function loadTldKontrol(){
         for(let i = 0; i < dataPermohonan.jumlah_kontrol; i++){
             let options = '';
             if(dataPermohonan.tldKontrol && dataPermohonan.tldKontrol[i]){
-                options = `<option value="${dataPermohonan.tldKontrol[i].tld_hash}" selected>${dataPermohonan.tldKontrol[i].kode_lencana}</option>`
+                options = `<option value="${dataPermohonan.tldKontrol[i].tld_hash ?? dataPermohonan.tldKontrol}" selected>${dataPermohonan.tldKontrol[i].kode_lencana ?? dataPermohonan.tldKontrol}</option>`
             }else if(result.data[i]){
                 options = `<option value="${result.data[i].tld_hash}" selected>${result.data[i].kode_lencana}</option>`;
             }else{
@@ -305,7 +305,7 @@ function loadPengguna(){
             let options = '';
             pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
             if(pengguna.tld_pengguna){
-                options = `<option value="${pengguna.tld_pengguna.tld_hash}">${pengguna.tld_pengguna.kode_lencana}</option>`;
+                options = `<option value="${pengguna.tld_pengguna.tld_hash ?? pengguna.tld_pengguna}">${pengguna.tld_pengguna.kode_lencana ?? pengguna.tld_pengguna}</option>`;
             } else {
                 options = `<option value="">Pilih Kode lencana</option>`;
             }

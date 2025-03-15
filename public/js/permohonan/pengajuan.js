@@ -94,43 +94,33 @@ function loadData(page = 1, status) {
                                     <div>created : ${dateFormat(pengajuan.created_at, 4)}</div>
                                 </small>
                             </div>
-                            <div class="col-6 col-md-2 ms-auto">${statusFormat('permohonan', pengajuan.status)}</div>
-                            <div class="col-6 col-md-2 text-center" data-id="${pengajuan.permohonan_hash}">
+                            <div class="col-auto ms-auto">${statusFormat('permohonan', pengajuan.status)}</div>
+                            <div class="col-auto text-end" data-id="${pengajuan.permohonan_hash}">
+                                ${btnEdit}
                                 ${btnRemove}
                             </div>
                         </div>
                     </div>`;
             } else {
-                html += `
-                    <div class="card mb-2 smooth-height">
-                        <div class="card-body row align-items-center py-2">
-                            <div class="col-auto">
-                                <div class="">
-                                    <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${pengajuan.tipe_kontrak}</span>
-                                    <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${pengajuan.jenis_layanan_parent.name} - ${pengajuan.jenis_layanan.name}</span>
-                                </div>
-                                <div class="fs-5 my-2">
-                                    <span class="fw-bold">${pengajuan.jenis_tld?.name ?? '-'} - Layanan ${pengajuan.layanan_jasa?.nama_layanan}</span>
-                                </div>
-                                <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                    <span><i class="bi bi-calendar-range"></i> ${pengajuan.periode ? `Periode ${pengajuan.periode}` : `Zero cek`}</span>
-                                    <div><i class="bi bi-calendar-fill"></i> ${dateFormat(pengajuan.created_at, 4)}</div>
-                                    ${pengajuan.kontrak ? `<div><i class="bi bi-file-text"></i> ${pengajuan.kontrak.no_kontrak}</div>` : ''}
-                                </div>
-                            </div>
-                            <div class="col-auto ms-auto">
-                                <div>${statusFormat('permohonan', pengajuan.status)}</div>
-                            </div>
-                            <div class="col-md-2">
-                                <div class="d-flex gap-1 flex-wrap justify-content-center" data-id="${pengajuan.permohonan_hash}">
-                                    <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
-                                    ${pengajuan.status == 1 ? btnRemove : ''}
-                                </div>
-                            </div>
-                            <div class="p-3" id="listPeriode" style="display:none"></div>
-                        </div>
-                    </div>
+                const params = {
+                    tipeKontrak: pengajuan.tipe_kontrak,
+                    jenisLayananParent: pengajuan.jenis_layanan_parent.name,
+                    jenisLayanan: pengajuan.jenis_layanan.name,
+                    format: 'permohonan',
+                    status: pengajuan.status,
+                    jenisTld: pengajuan.jenis_tld?.name ?? '-',
+                    namaLayanan: pengajuan.layanan_jasa?.nama_layanan,
+                    periode: pengajuan.periode,
+                    created_at: pengajuan.created_at,
+                    kontrak: pengajuan.kontrak?.no_kontrak,
+                    id: pengajuan.permohonan_hash
+                };
+                const btnAction = `
+                    <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
+                    ${pengajuan.status == 1 ? btnRemove : ''}
                 `;
+
+                html += cardComponent(params, {btnAction: btnAction});
             }
         }
 

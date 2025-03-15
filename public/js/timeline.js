@@ -52,6 +52,10 @@ class Timeline {
 
         ajaxGet(`api/v1/penyelia/getPenyeliaMapById/${idmap}`, false, (result) => {
             const data = result.data;
+            if(!data.petugas){
+                console.log(data);
+                console.log(idmap);
+            }
             let htmlModal = `
                 <div class="modal fade" id="progresLhuModal" tabindex="-1" aria-labelledby="progresLhuModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -88,7 +92,7 @@ class Timeline {
                                 <div class="mt-3">
                                     <span class="fw-normal">Petugas :</span>
                                     <ul class="list-group mt-2">
-                                        ${data.petugas.map(d => 
+                                        ${data.petugas?.map(d => 
                                             `<li class="list-group-item small p-1">
                                                 <div class="d-flex align-items-center">
                                                     <span>${d.user.name} -</span>

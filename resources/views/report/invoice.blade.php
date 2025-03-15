@@ -58,7 +58,7 @@
             <td>Rp. 7.312.500</td>
         </tr>
         <tr>
-            <td>PPN 11%</td>
+            <td>PPN</td>
             <td>Rp. 804.375</td>
         </tr>
         <tr>

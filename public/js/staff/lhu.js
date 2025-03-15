@@ -82,10 +82,11 @@ function loadData(page = 1) {
             }
 
             let divInfoTugas = `
-                <div class="col-md-12">
-                    <div class="rounded bg-secondary-subtle p-2 text-body-secondary d-flex justify-content-between">
-                        <span class="fs-7">Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
-                        <span>Status : ${statusFormat('penyelia', lhu.status)}</span>
+                <div class="col-md-12 mt-2 fs-7">
+                    <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
+                        <span>Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
+                        <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
+                        onclick="showHideProgress(this)">Lihat Progress LAB</a>
                     </div>
                 </div>
             `;
@@ -111,6 +112,7 @@ function loadData(page = 1) {
                             <div class="">
                                 <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
+                                <span> | ${statusFormat('penyelia', lhu.status)}</span>
                             </div>
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
@@ -127,8 +129,10 @@ function loadData(page = 1) {
                         <div class="ms-auto col-auto text-center" data-id='${lhu.penyelia_hash}' data-index='${i}'>
                             ${btnAction}
                         </div>
-                        ${timeline.elementCreate()}
                         ${divInfoTugas}
+                        <div class="col-md-12 collapse" id="timeline-progress-${lhu.penyelia_hash}">
+                            ${timeline.elementCreate()}
+                        </div>
                     </div>
                 </div>
             `;
@@ -269,4 +273,13 @@ function showDetail(obj){
 function clearFilter(){
     filterComp.clear();
     loadData();
+}
+function showHideProgress(obj){
+    const collapse = obj;
+    if(!collapse.classList.contains('show')) { 
+        collapse.innerText = 'Lebih sedikit';
+    } else { 
+        collapse.innerText = 'Lihat Progress LAB'; 
+    } 
+    collapse.classList.toggle('show');
 }

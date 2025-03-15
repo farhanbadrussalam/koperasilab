@@ -9,6 +9,7 @@ use App\Traits\RestApi;
 
 use App\Models\Master_jenisTld;
 use App\Models\Master_jenisLayanan;
+use App\Models\Master_jobs;
 use App\Models\Perusahaan;
 
 use Auth;
@@ -84,6 +85,30 @@ class FilterAPI extends Controller
                         )
                     ];
                     break;
+                case 'penyelia':
+                    $jobs = Master_jobs::all();
+                    $arrJobs = $jobs->map(function($item) {
+                        return [
+                            'id' => $item->jobs_hash,
+                            'name' => $item->name
+                        ];
+                    })->toArray();
+                    $status = array_merge([
+                        [
+                            'id' => encryptor(1),
+                            'name' => 'Pengajuan',
+                        ],
+                        [
+                            'id' => encryptor(2),
+                            'name' => 'TTD Manager',
+                        ],
+                    ], $arrJobs, [
+                        [
+                            'id' => encryptor(3),
+                            'name' => 'Selesai',
+                        ]
+                    ]);
+                    break;
                 case 'manager-invoice':
                     $status = [
                         array(
@@ -104,7 +129,22 @@ class FilterAPI extends Controller
                         )
                     ];
                     break;
-                
+                case 'pembayaran':
+                    $status = [
+                        array(
+                            'id' => encryptor(3),
+                            'name' => 'Perlu dibayar',
+                        ),
+                        array(
+                            'id' => encryptor(4),
+                            'name' => 'Menunggu konfirmasi',
+                        ),
+                        array(
+                            'id' => encryptor(5),
+                            'name' => 'Pembayaran diterima',
+                        )
+                    ];
+                    break;
                 default:
                     $status = [
                         array(

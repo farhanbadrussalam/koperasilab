@@ -64,6 +64,7 @@
     <script src="{{ asset('js/document.js') }}"></script>
     <script src="{{ asset('js/timeline.js') }}"></script>
     <script src="{{ asset('js/filter.js') }}"></script>
+    <script src="{{ asset('js/cardList.js') }}"></script>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>

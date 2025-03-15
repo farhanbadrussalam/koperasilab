@@ -1,83 +1,7 @@
 const periode = [];
 const idPermohonan = $('#id_permohonan').val();
-function loadPengguna(){
-    let params = {
-        idPermohonan: idPermohonan
-    }
-    $('#pengguna-placeholder').show();
-    $('#pengguna-list-container').hide();
-    ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
-        if(result.meta.code == 200){
-            let html = '';
-            for (const [i,pengguna] of result.data.entries()) {
-                let txtRadiasi = '';
-                pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
-                
-                html += `
-                    <div class="card mb-2 shadow-sm border-dark">
-                        <div class="card-body row align-items-center">
-                            <div class="col-md-4 lh-sm d-flex align-items-center">
-                                <span class="col-form-label me-2">${i + 1}</span>
-                                <div class="mx-2">
-                                    <div>${pengguna.nama}</div>
-                                    <small class="text-body-secondary fw-light">${pengguna.posisi}</small>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                ${[1,2].includes(pengguna.status) ? '<span class="badge text-bg-success">Active</span>' : '<span class="badge text-bg-danger">Inactive</span>'}
-                            </div>
-                            <div class="col-md-3 d-flex flex-wrap justify-content-center">
-                                ${txtRadiasi}
-                            </div>
-                            <div class="col-md-2 text-end">
-                                <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
-                                <button class="btn btn-sm btn-outline-danger" data-idpengguna="${pengguna.permohonan_pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            if(result.data.length == 0){
-                html = `
-                    <div class="d-flex flex-column align-items-center py-3">
-                        <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
-                        <span class="fw-bold mt-3 text-muted">No Data Available</span>
-                    </div>
-                `;
-            }
-            $('#jum_pengguna').val(result.data.length);
-
-            calcPrice();
-            $('#pengguna-list-container').html(html);
-            $('#pengguna-placeholder').hide();
-            $('#pengguna-list-container').show();
-            showPopupReload();
-        }
-    })
-}
-
-function deletePengguna(obj){
-    let idPengguna = $(obj).data('idpengguna');
-
-    ajaxDelete(`api/v1/permohonan/destroyPengguna/${idPengguna}`, result => {
-        Swal.fire({
-            icon: 'success',
-            text: result.data.msg,
-            timer: 1200,
-            timerProgressBar: true,
-            showConfirmButton: false
-        }).then(() => {
-            loadPengguna()
-        });
-    }, error => {
-        Swal.fire({
-            icon: "error",
-            text: 'Server error',
-        });
-        console.error(error.responseJSON.data.msg);
-    })
-}
+let arrKontrolTmp = [];
+let typeLayanan = '';
 
 $(function () {
     const formInputan = $('#form-inputan');
@@ -177,6 +101,9 @@ $(function () {
     $('#btn-pilih-pengguna').on('click', () => {
         $('#modal-pilih-pengguna').modal('show');
     })
+    $('#btn-add-kontrol').on('click', () => {
+        $('#modal-add-kontrol').modal('show');
+    });
 
     $('#jenis_layanan').on('change', obj => {
         let jenisLayanan = obj.target.value;
@@ -266,13 +193,25 @@ $(function () {
 
     $('#jenis_layanan_2').on('change', obj => {
         const layanan = obj.target.value;
+        typeLayanan = obj.target.selectedOptions[0].innerHTML;
         let html = '<option value="">Pilih</option>';
+        $('#divKontrolEvaluasi').hide();
+        $('#btnTambahKontrol').hide();
+        $('#form-kode-lencana-pengguna').hide();
+        $('#jum_kontrol').attr('readonly', false).removeClass('bg-secondary-subtle');
+        arrKontrolTmp = [];
         if(layanan == ''){
             formInputan.addClass('d-none').removeClass('d-block');
         }else{
             ajaxGet(`api/v1/permohonan/getJenisTld/${layanan}`, false, result => {
                 if(result.meta.code == 200){
                     let list = result.data;
+                    if(typeLayanan == 'Evaluasi') {
+                        $('#divKontrolEvaluasi').show();
+                        $('#btnTambahKontrol').show();
+                        $('#form-kode-lencana-pengguna').show();
+                        $('#jum_kontrol').attr('readonly', true).addClass('bg-secondary-subtle');
+                    }
                     formInputan.addClass('d-block').removeClass('d-none');
     
                     list.forEach(value => {
@@ -283,6 +222,7 @@ $(function () {
                 }
             });
         }
+        loadKontrol();
         return;
     });
 
@@ -314,8 +254,6 @@ $(function () {
         let vallayananJasa = $('#layanan_jasa').val();
         let valjenisLayanan1 = $('#jenis_layanan').val();
         let valjenisLayanan2 = $('#jenis_layanan_2').val();
-        let valnoKontrak = $('#no_kontrak').val();
-        let valzerocek = $('#zero_cek').val();
         let valjenisTld = $('#jenis_tld').val();
         let valperiodePemakaian = $('#periode-pemakaian').attr('data-periode');
         let valjumPengguna = $('#jum_pengguna').val();
@@ -327,6 +265,29 @@ $(function () {
         let valHargaLayanan = window.price;
 
         dataPermohonan.pelanggan.perusahaan.alamat[valAlamat] ? valAlamat = dataPermohonan.pelanggan.perusahaan.alamat[valAlamat].alamat_hash : false;
+
+        const sanityCek = [];
+        if (!valjenisTld) sanityCek.push('Jenis TLD');
+        if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
+        if (valjumPengguna == 0) sanityCek.push('Jumlah Pengguna');
+        if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
+
+        // Jika layanan evaluasi
+        if (typeLayanan === 'Evaluasi' && arrKontrolTmp.some(value => !value.kode_lencana)) {
+            return Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Kode lencana tidak boleh kosong!'
+            });
+        }
+
+        if(sanityCek.length > 0){
+            return Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: `Data berikut masih kosong: ${sanityCek.join(', ')}`
+            });
+        }
 
         Swal.fire({
             title: 'Apa kamu yakin?',
@@ -357,6 +318,8 @@ $(function () {
                 formData.append('hargaLayanan', valHargaLayanan);
                 formData.append('totalHarga', valtotalHarga);
                 formData.append('periode', 0);
+
+                typeLayanan == 'Evaluasi' ? formData.append('tldKontrol', JSON.stringify(arrKontrolTmp)) : false;
         
                 spinner('show', obj.target);
                 ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
@@ -391,6 +354,7 @@ $(function () {
         const divisiPengguna = modalDivisiPengguna.val();
         const jenisRadiasi = modalJenisRadiasi.val();
         const imageKtp = $('#uploadKtpPengguna')[0].files[0];
+        const kodeLencana = $('#kodeLencanaPengguna').val();
 
         const formData = new FormData();
         formData.append('ktp', imageKtp);
@@ -398,6 +362,7 @@ $(function () {
         formData.append('divisi', divisiPengguna);
         formData.append('radiasi', JSON.stringify(jenisRadiasi));
         formData.append('idPermohonan', idPermohonan);
+        kodeLencana ? formData.append('kode_lencana', kodeLencana) : false;
         
         ajaxPost(`api/v1/permohonan/tambahPengguna`, formData, result => {
             spinner('hide', obj.target);
@@ -426,8 +391,6 @@ $(function () {
         setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
     });
 })
-
-
 // js add periode
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
 const periodeJs = new Periode(getPeriode);
@@ -446,6 +409,121 @@ periodeJs.on('periode.simpan', result => {
     calcPrice();
 });
 
+function loadPengguna(){
+    let params = {
+        idPermohonan: idPermohonan
+    }
+    // $('#pengguna-placeholder').show();
+    // $('#pengguna-list-container').hide();
+    ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
+        if(result.meta.code == 200){
+            let html = '';
+            for (const [i,pengguna] of result.data.entries()) {
+                let txtRadiasi = '';
+                pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
+                
+                html += `
+                    <div class="card mb-1 shadow-sm">
+                        <div class="card-body row align-items-center p-1 px-3">
+                            <div class="col-md-7 lh-sm align-items-center">
+                                <div>${pengguna.nama}</div>
+                                <small class="text-body-secondary fw-light">${pengguna.posisi}</small>
+                                <div class="d-flex flex-wrap">
+                                    ${txtRadiasi}
+                                </div>
+                            </div>
+                            <div class="col-auto ms-auto">
+                                <span class="fw-bold">${pengguna.tld ?? ''}</span>
+                            </div>
+                            <div class="col-auto text-end ms-auto">
+                                <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${pengguna.permohonan_pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if(result.data.length == 0){
+                html = `
+                    <div class="d-flex flex-column align-items-center py-4">
+                        <span class="fw-bold text-muted">Tidak ada pengguna</span>
+                    </div>
+                `;
+            }
+            $('#jum_pengguna').val(result.data.length);
+
+            calcPrice();
+            $('#pengguna-list-container').html(html);
+            // $('#pengguna-placeholder').hide();
+            // $('#pengguna-list-container').show();
+            showPopupReload();
+        }
+    })
+}
+function deletePengguna(obj){
+    let idPengguna = $(obj).data('idpengguna');
+
+    ajaxDelete(`api/v1/permohonan/destroyPengguna/${idPengguna}`, result => {
+        Swal.fire({
+            icon: 'success',
+            text: result.data.msg,
+            timer: 1200,
+            timerProgressBar: true,
+            showConfirmButton: false
+        }).then(() => {
+            loadPengguna()
+        });
+    }, error => {
+        Swal.fire({
+            icon: "error",
+            text: 'Server error',
+        });
+        console.error(error.responseJSON.data.msg);
+    })
+}
+
+function loadKontrol(){
+    let html = '';
+    for (const [i,kode] of arrKontrolTmp.entries()) {
+        html += `
+            <div class="input-group mb-1">
+                <input type="text" class="form-control" name="kodeLencanaKontrol" value="${kode.kode_lencana}" data-index="${i}" placeholder="Masukkan Kode Lencana" oninput="addFormKontrol(this)" />
+                <button type="button" class="input-group-text btn btn-sm btn-outline-danger" data-index="${i}" onclick="removeFormKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>
+            </div>
+        `;
+    }
+    if(arrKontrolTmp.length == 0){
+        html = `
+            <div class="d-flex flex-column align-items-center py-4">
+                <span class="fw-bold text-muted">Tidak ada kontrol</span>
+            </div>
+        `;
+    }
+    $('#jum_kontrol').val(arrKontrolTmp.length);
+    calcPrice();
+
+    $('#kontrol-list-container').html(html);
+}
+function addFormKontrol(obj = false) {
+    if(obj){
+        const index = $(obj).data('index');
+
+        arrKontrolTmp[index].kode_lencana = $(obj).val();
+    }else{
+        arrKontrolTmp.push({
+            "kode_lencana": ""
+        });
+        loadKontrol();
+    }
+
+}
+function removeFormKontrol(obj){
+    const index = $(obj).data('index');
+    arrKontrolTmp.splice(index, 1);
+
+    loadKontrol();
+}
 function calcPrice(){
     let price = window.price;
     let subTotal = price;
@@ -462,4 +540,14 @@ function calcPrice(){
     $('#total_harga').val(subTotal);
     
     maskReload();
+}
+
+function showHideCollapse(obj){
+    const collapse = obj;
+    if(!collapse.classList.contains('show')) { 
+        collapse.innerHTML = '<i class="bi bi-eye"></i> Tampilkan'; 
+    } else { 
+        collapse.innerHTML = '<i class="bi bi-eye-slash"></i> Lebih sedikit';
+    } 
+    collapse.classList.toggle('show');
 }

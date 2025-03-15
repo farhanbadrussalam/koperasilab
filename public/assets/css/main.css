@@ -30,6 +30,9 @@ body {
 .hover-2:hover {
   background-color: #858585 !important;
 }
+.hover-text:hover{
+  --bs-text-opacity: .7;
+}
 
 .dot {
   border-radius: 50px;
@@ -385,7 +388,7 @@ a {
 }
 
 .tl-item>* {
-  padding: 10px 10px 0px;
+  padding: 10px 10px 10px;
 }
 
 .tl-item .avatar {

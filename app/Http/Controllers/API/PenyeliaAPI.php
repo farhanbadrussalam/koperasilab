@@ -15,6 +15,7 @@ use App\Models\Permohonan;
 use App\Models\Permohonan_dokumen;
 
 use App\Models\Master_jobs;
+use App\Models\Master_tld;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
@@ -277,7 +278,6 @@ class PenyeliaAPI extends Controller
         $userId = false;
         $status = false;
         $typePencarian = 'in';
-        // $idPermohonan = $request->has('idPermohonan') ? decryptor($request->idPermohonan) : false;
 
         switch($menu) {
             // case 'surattugas':
@@ -299,11 +299,11 @@ class PenyeliaAPI extends Controller
         if(!$status){
             $paramStatus = $request->has('status') ? $request->status : false;
             if($paramStatus){
-            //     $tmpArr = array();
-            //     foreach ($paramStatus as $key => $value) {
-            //         array_push($tmpArr, decryptor($value));
-            //     }
-            //     $status = $tmpArr;
+                $tmpArr = array();
+                foreach ($paramStatus as $key => $value) {
+                    array_push($tmpArr, decryptor($value));
+                }
+                $status = $tmpArr;
                 $userId = Auth::user()->id;
             }
         }
@@ -340,6 +340,8 @@ class PenyeliaAPI extends Controller
                                     $q->whereHas('permohonan.pelanggan.perusahaan', function ($v) use ($value) {
                                         $v->where('id_perusahaan', decryptor($value));
                                     });
+                                } else if($key === 'status') {
+                                    $q->where($key, decryptor($value));
                                 } else {
                                     $q->whereHas('permohonan', function ($p) use ($key, $value) {
                                         $p->where($key, decryptor($value));
@@ -424,10 +426,18 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak.periode',
                 'permohonan.dokumen',
                 'permohonan.invoice',
+                'permohonan.pengguna',
+                'permohonan.pengguna.tld_pengguna',
                 'log',
+                'log.user',
                 'media'
             )->find($idPenyelia);
             DB::commit();
+
+            if(isset($query->permohonan->list_tld) && count($query->permohonan->list_tld) > 0){
+                $tldKontrol = Master_tld::whereIn('id_tld', $query->permohonan->list_tld)->get();
+                $query->permohonan->tld_kontrol = $tldKontrol;
+            }
     
             return $this->output($query);
         } catch (\Exception $ex) {
@@ -537,11 +547,15 @@ class PenyeliaAPI extends Controller
             Penyelia_map::where('id_penyelia', $idPenyelia)->delete();
 
             // update penyelia
-            Penyelia::find($idPenyelia)->update(array(
+            $penyelia = Penyelia::find($idPenyelia);
+            $penyelia->update(array(
                 'status' => 1,
                 'start_date' => null,
                 'end_date' => null
             ));
+
+            // hapus dokumen surat tugas
+            Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surattugas')->delete();
 
             // Log penyelia
             $this->log->addLog('penyelia', array(
@@ -555,7 +569,7 @@ class PenyeliaAPI extends Controller
             DB::commit();
 
             return $this->output(array('msg' => 'Surat tugas berhasil dihapus!'));
-        } catch (\Exception $th) {
+        } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);

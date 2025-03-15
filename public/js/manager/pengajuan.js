@@ -53,38 +53,36 @@ function loadData(page = 1) {
         for (const [i, keuangan] of result.data.entries()) {
             const permohonan = keuangan.permohonan;
             permohonan.idkeuangan = keuangan.keuangan_hash;
-            let periode = permohonan.periode_pemakaian;
             let btnAction = '';
 
             if(keuangan.status == 2){
-                btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiInvoice(this)">verifikasi</button>`;
-            }else{
-                btnAction = statusFormat('keuangan', keuangan.status);
+                btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiInvoice(this, 'verify')">verifikasi</button>`;
+            } else {
+                btnAction = `<button class="btn btn-outline-info btn-sm" title="Detail Invoice" onclick="verifikasiInvoice(this, 'detail')"><i class="bi bi-info-circle"></i> Detail invoice</button>`;
             }
 
-            html += `
-                <div class="card mb-2">
-                    <div class="card-body row align-items-center">
-                        <div class="col-12 col-md-3">
-                            <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>${permohonan.jenis_tld.name}</div>
-                                <div>Periode : ${periode.length} Bulan</div>
-                                <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
-                            </small>
-                        </div>
-                        <div class="col-6 col-md-2 my-3">${permohonan.jenis_layanan_parent.name}-${permohonan.jenis_layanan.name}</div>
-                        <div class="col-6 col-md-3 my-3 text-end text-md-start">
-                            <div>${permohonan.tipe_kontrak}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
-                        </div>
-                        <div class="col-6 col-md-2">${permohonan.pelanggan.name}</div>
-                        <div class="col-6 col-md-2 text-center" data-keuangan='${keuangan.keuangan_hash}'>
-                            ${btnAction}
-                        </div>
-                    </div>
-                </div>
-            `;
+            let badgeClass = 'bg-primary-subtle';
+            if(permohonan.tipe_kontrak == 'kontrak lama') {
+                badgeClass = 'bg-success-subtle';
+            }
+
+            const data = {
+                tipeKontrak: permohonan.tipe_kontrak,
+                jenisLayananParent: permohonan.jenis_layanan_parent.name,
+                jenisLayanan: permohonan.jenis_layanan.name,
+                format: 'keuangan',
+                status: keuangan.status,
+                jenisTld: permohonan.jenis_tld?.name ?? '-',
+                namaLayanan: permohonan.layanan_jasa?.nama_layanan,
+                perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
+                pelanggan: permohonan.pelanggan.name,
+                periode: permohonan.periode,
+                created_at: permohonan.created_at,
+                kontrak: permohonan.kontrak?.no_kontrak,
+                id: keuangan.keuangan_hash
+            }
+
+            html += cardComponent(data, {btnAction: btnAction});
         }
 
         if(result.data.length == 0){
@@ -112,11 +110,11 @@ $('#list-pagination').on('click', 'a', function (e) {
     loadData(pageno);
 });
 
-function verifikasiInvoice(obj){
-    const keuangan = $(obj).parent().data("keuangan");
+function verifikasiInvoice(obj, mode){
+    const keuangan = $(obj).parent().data("id");
     ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
         invoice.addData(result.data);
-        invoice.open('verify');
+        invoice.open(mode);
     })
 }
 

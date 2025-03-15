@@ -76,12 +76,36 @@
                             </div>
                         </div>
                         <div class="col-md-6" id="form-jum-pengguna">
-                            <label class="col-form-label" for="jum_pengguna">Jumlah Pengguna<span class="text-danger ms-1">*</span></label>
-                            <input type="number" name="jum_pengguna" id="jum_pengguna" class="form-control bg-secondary-subtle" readonly>
+                            <div class="d-flex justify-content-between">
+                                <label class="col-form-label" for="jum_pengguna">Pengguna<span class="text-danger ms-1">*</span></label>
+                                <a class="text-decoration-none cursor-pointer text-primary hover-text pt-2" id="btn-add-pengguna"><i class="bi bi-plus-circle"></i> Tambah</a>
+                            </div>
+                            <input type="text" name="jum_pengguna" id="jum_pengguna" class="form-control bg-secondary-subtle" readonly>
+                            <div id="pengguna-list-container" class="border border-opacity-50 rounded p-1 bg-body-tertiary overflow-y-auto overflow-x-hidden collapse show" style="max-height: 40vh;">
+                                
+                            </div>
+                            <div class="d-flex justify-content-end">
+                                <a class="text-decoration-none cursor-pointer text-primary-emphasis hover-text" data-bs-toggle="collapse" data-bs-target="#pengguna-list-container" aria-expanded="true" aria-controls="pengguna-list-container" onclick="showHideCollapse(this)">
+                                    <i class="bi bi-eye-slash"></i> Lebih sedikit
+                                </a>
+                            </div>
                         </div>
                         <div class="col-md-6" id="form-jum-kontrol">
-                            <label class="col-form-label" for="jum_kontrol">Jumlah Kontrol<span class="text-danger ms-1">*</span></label>
+                            <div class="d-flex justify-content-between">
+                                <label class="col-form-label" for="jum_kontrol">Kontrol<span class="text-danger ms-1">*</span></label>
+                                <a id="btnTambahKontrol" class="text-decoration-none cursor-pointer text-primary hover-text pt-2" onclick="addFormKontrol()"><i class="bi bi-plus-circle"></i> Tambah</a>
+                            </div>
                             <input type="number" name="jum_kontrol" id="jum_kontrol" class="form-control" oninput="calcPrice()">
+                            <div id="divKontrolEvaluasi">
+                                <div id="kontrol-list-container" class="border border-opacity-50 rounded p-1 bg-body-tertiary overflow-y-auto overflow-x-hidden collapse show" style="max-height: 40vh;">
+                                    
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <a class="text-decoration-none cursor-pointer text-primary-emphasis hover-text" data-bs-toggle="collapse" data-bs-target="#kontrol-list-container" aria-expanded="true" aria-controls="kontrol-list-container" onclick="showHideCollapse(this)">
+                                        <i class="bi bi-eye-slash"></i> Lebih sedikit
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-md-6" id="form-pic">
                             <label class="col-form-label" for="pic">PIC<span class="text-danger ms-1">*</span></label>
@@ -126,36 +150,41 @@
                         </div>
                     </div>
                 </form>
-                <div class="pengguna my-3">
-                    <button class="btn btn-secondary" id="btn-add-pengguna">Tambah Pengguna</button>
-                    <button class="btn btn-secondary d-none" id="btn-pilih-pengguna">Pilih Pengguna</button>
-                    <div class="border border-opacity-50 rounded my-3 p-3">
-                        <div class="body-placeholder my-3" id="pengguna-placeholder">
-                            @for ($i = 1; $i < 6; $i++)
-                            <div class="card mb-2 shadow-sm border-dark">
-                                <div class="card-body row align-items-center">
-                                    <div class="placeholder-glow col-md-4 lh-sm d-flex flex-column">
-                                        <div class="placeholder w-50 mb-1"></div>
-                                        <div class="placeholder w-25 mb-1"></div>
-                                    </div>
-                                    <div class="placeholder-glow col-md-3">
-                                        <div class="placeholder w-50 mb-1"></div>
-                                    </div>
-                                    <div class="placeholder-glow col-md-3">
-                                        <div class="placeholder w-50 mb-1"></div>
-                                    </div>
-                                    <div class="placeholder-glow col-md-2 text-end">
-                                        <div class="placeholder w-50 mb-1"></div>
+                {{-- <div class="my-3 d-flex gap-2">
+                    <div class="flex-fill">
+                        <button class="btn btn-outline-secondary btn-sm" id="btn-add-pengguna">Tambah Pengguna</button>
+                        <button class="btn btn-secondary d-none" id="btn-pilih-pengguna">Pilih Pengguna</button>
+                        <div class="border border-opacity-50 rounded my-3 p-3">
+                            <div class="body-placeholder my-3" id="pengguna-placeholder">
+                                @for ($i = 1; $i < 6; $i++)
+                                <div class="card mb-2 shadow-sm border-dark">
+                                    <div class="card-body row align-items-center">
+                                        <div class="placeholder-glow col-md-4 lh-sm d-flex flex-column">
+                                            <div class="placeholder w-50 mb-1"></div>
+                                            <div class="placeholder w-25 mb-1"></div>
+                                        </div>
+                                        <div class="placeholder-glow col-md-3">
+                                            <div class="placeholder w-50 mb-1"></div>
+                                        </div>
+                                        <div class="placeholder-glow col-md-3">
+                                            <div class="placeholder w-50 mb-1"></div>
+                                        </div>
+                                        <div class="placeholder-glow col-md-2 text-end">
+                                            <div class="placeholder w-50 mb-1"></div>
+                                        </div>
                                     </div>
                                 </div>
+                                @endfor
                             </div>
-                            @endfor
-                        </div>
-                        <div class="body my-3" id="pengguna-list-container">
-                            
+                            <div class="body my-3" id="pengguna-list-container">
+                                
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <div class="flex-fill">
+                        <button class="btn btn-outline-secondary btn-sm" id="btn-add-kontrol">Tambah Kontrol</button>
+                    </div>
+                </div> --}}
                 <div class="d-flex justify-content-end">
                     <button class="btn btn-primary" id="simpanPengajuan">Simpan pengajuan</button>
                 </div>
@@ -168,7 +197,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Create pengguna</h1>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Tambahkan pengguna</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body g-2 row">
@@ -187,6 +216,10 @@
                                 <option value="{{ $value->radiasi_hash }}">{{ $value->nama_radiasi }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div id="form-kode-lencana-pengguna">
+                        <label for="kodeLencanaPengguna" class="col-form-label">Kode Lencana</label>
+                        <input type="text" name="kodeLencanaPengguna" id="kodeLencanaPengguna" class="form-control">
                     </div>
                     <div>
                         <label for="upload_ktp" class="col-form-label">Upload KTP</label>

@@ -33,7 +33,6 @@ class KeuanganAPI extends Controller
     {
         $limit = $request->has('limit') ? $request->limit : 10;
         $page = $request->has('page') ? $request->page : 1;
-        $search = $request->has('search') ? $request->search : '';
         $menu = $request->has('menu') ? $request->menu : '';
         $filter = $request->has('filter') ? $request->filter : [];
 

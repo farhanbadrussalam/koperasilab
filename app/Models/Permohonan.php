@@ -29,6 +29,7 @@ class Permohonan extends Model
         'total_harga',
         'harga_layanan',
         'list_tld',
+        'tld_kontrol',
         'pic',
         'no_hp',
         'ttd',
@@ -59,6 +60,7 @@ class Permohonan extends Model
     protected $casts = [
         'periode_pemakaian' => 'array',
         'list_tld' => 'array',
+        'tld_kontrol' => 'array'
     ];
 
     public function getPermohonanHashAttribute()
