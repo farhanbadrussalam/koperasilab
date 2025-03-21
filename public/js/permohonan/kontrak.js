@@ -244,8 +244,9 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
             `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>` :
             `<div class="d-flex flex-column justify-content-center align-items-end"><div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div><div>${statusFormat('permohonan', data.permohonan.status)}</div></div>`;
 
-        if (!statusKirimTld && role == 'Staff Pengiriman') {
+        if (!statusKirimTld && role == 'Staff Pengiriman' && data.periode != 0) {
             !lastPeriode && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
+            // data.periode == 0 ? htmlAction = '' : '';
         } else {
             if (isPelanggan && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && !statusKirimTld && !data.permohonan.kontrak_hash) {
                 evaluasiState.active && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);

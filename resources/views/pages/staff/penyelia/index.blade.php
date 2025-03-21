@@ -12,7 +12,7 @@
                   <button class="nav-link" id="penerbitanlhu-tab" onclick="switchLoadTab(2)" data-bs-toggle="tab" data-bs-target="#penerbitanlhu-tab-pane" type="button" role="tab" aria-controls="penerbitanlhu-tab-pane" aria-selected="true">Penyeliaan LHU</button>
                 </li>
             </ul>
-            <div class="card shadow-sm m-4">
+            <div class="card shadow-sm mt-2">
                 <div class="card-body">
                     <div class="d-flex">
                         <div class="flex-grow-1">

@@ -123,6 +123,8 @@ function loadData(page = 1, menu) {
         $(`#list-placeholder`).hide();
         $(`#list-container`).show();
     })
+
+    countList();
 }
 
 function openInvoiceModal(obj, mode) {
@@ -140,4 +142,18 @@ function reload() {
 function clearFilter() {
     filterComp.clear();
     switchLoadTab(thisTab);
+}
+
+function countList() {
+    ajaxGet(`api/v1/keuangan/countList`, false, result => {
+        const count = result.data.reduce((acc, cur) => {
+            acc[cur.name] = (acc[cur.name] || 0) + cur.total;
+            return acc;
+        }, {});
+        Object.entries(count).forEach(([key, value]) => {
+            const element = $(`#count${key}`);
+            element.html(value === 0 ? "" : `(${value})`);
+            element.toggle(value > 0);
+        });
+    })
 }

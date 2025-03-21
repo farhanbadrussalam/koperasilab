@@ -12,8 +12,10 @@ class Timeline {
     }
 
     _initializeProperties() {
-        this.dataTimeline = this.options.timeline;
+        this.dataTimeline = this.options.timeline.filter(tugas => !tugas.point_jobs);
+        this.dataTimelineParalel = this.options.timeline.filter(tugas => tugas.point_jobs);
         this.widthCalc = 100 / this.dataTimeline.length;
+        this.widthCalcParalel = 100 / this.dataTimelineParalel.length;
     }
 
     _createCustomEvents() {
@@ -34,15 +36,30 @@ class Timeline {
 
     elementCreate() {
         const htmlTimeline = this.dataTimeline.map(tugas => {
-            const jobActive = tugas.status === 1 ? 'active' : (this.options.status === tugas.jobs.status ? 'onprogress' : '');
+            const jobActive = tugas.status === 2 ? 'active' : (tugas.status === 1 ? 'onprogress' : '');
             return `<li class="${jobActive} step0 cursor-pointer" data-idmap="${tugas.map_hash}" data-id="${this.options.id}" style="width: ${this.widthCalc}%;"><span class="px-1">${tugas.jobs.name}</span></li>`;
         }).join('');
 
+        let pointJobs = false;
+        const htmlTimelineParalel = this.dataTimelineParalel.map(tugas => {
+            pointJobs = tugas.jobs_paralel;
+            const jobActive = tugas.status === 2 ? 'active' : (tugas.status === 1 ? 'onprogress' : '');
+            return `<li class="${jobActive} step0 cursor-pointer" data-idmap="${tugas.map_hash}" data-id="${this.options.id}" style="width: ${this.widthCalc}%;"><span class="px-1">${tugas.jobs.name}</span></li>`;
+        }).join('');
+        
         return `
         <div class="col-md-12 mt-2 pt-4 pb-0">
-            <ul id="progressbar" class="text-center">
+            <ul id="progressbar" class="text-center mb-0">
                 ${htmlTimeline}
             </ul>
+            <div class="rounded" style="border: 1px dashed !important;">
+                <div class="text-center fs-6">
+                    Proses setelah ${pointJobs?.name ?? ''}
+                </div>
+                <ul id="progressbar" class="text-center mb-0">
+                    ${htmlTimelineParalel}
+                </ul>
+            </div>
         </div>
         `;
     }
@@ -52,10 +69,6 @@ class Timeline {
 
         ajaxGet(`api/v1/penyelia/getPenyeliaMapById/${idmap}`, false, (result) => {
             const data = result.data;
-            if(!data.petugas){
-                console.log(data);
-                console.log(idmap);
-            }
             let htmlModal = `
                 <div class="modal fade" id="progresLhuModal" tabindex="-1" aria-labelledby="progresLhuModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
@@ -69,17 +82,16 @@ class Timeline {
                                     ${(() => {
                                         switch (data.status) {
                                             case 1:
+                                                return `<div class="text-primary small"><i class="bi bi-three-dots"></i> Sedang dikerjakan</div>`;
+                                            case 2:
                                                 return `<div class="text-success small"><i class="bi bi-check-circle"></i> Selesai</div>`;
-                                            case 0:
-                                                if(data.jobs.status == data.penyelia.status){
-                                                    return `<div class="text-primary small"><i class="bi bi-three-dots"></i> Sedang dikerjakan</div>`;
-                                                }
+                                            default:
                                                 return `<div class="text-secondary small"><i class="bi bi-x-circle"></i> Belum dimulai</div>`;
                                         }
                                     })()}
                                 </div>
                                 ${
-                                    data.status == 1 ? `
+                                    data.status == 2 ? `
                                     <div class="mt-2 d-flex justify-content-between">
                                         <label class="fw-normal">Tanggal selesai</label>
                                         <div class="text-body-secondary small">${data.done_at ? dateFormat(data.done_at, 4) : '-'}</div>

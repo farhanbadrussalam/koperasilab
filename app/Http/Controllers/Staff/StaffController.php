@@ -51,7 +51,7 @@ class StaffController extends Controller
         $listJobs = array();
         foreach ($userJobs as $key => $value) {
             $dataJobs = Master_jobs::find($value);
-            array_push($listJobs, encryptor($dataJobs->status));
+            array_push($listJobs, $dataJobs->jobs_hash);
         }
 
         $data = [
@@ -136,18 +136,30 @@ class StaffController extends Controller
 
         // mengambil data jobs
         $listJobs = array();
+        $listJobsParalel = array();
         if(count($query->penyelia_map) != 0){
             foreach ($query->penyelia_map as $key => $value) {
                 $dataJobs = Master_jobs::find(decryptor($value->jobs_hash));
                 $dataJobs['order'] = $value->order;
-                array_push($listJobs, $dataJobs);
+                
+                if($value->point_jobs == null){
+                    array_push($listJobs, $dataJobs);
+                }else{
+                    array_push($listJobsParalel, $dataJobs);
+                }
             }
         }else{
             // Mengambil jobs dari layanan jasa
             $list = $query->permohonan->jenis_layanan_parent->jobs;
+            $listParalel = $query->permohonan->jenis_layanan_parent->jobs_paralel;
             foreach ($list as $key => $value) {
                 $dataJobs = Master_jobs::find($value);
                 array_push($listJobs, $dataJobs);
+            }
+
+            foreach ($listParalel as $key => $value) {
+                $dataJobs = Master_jobs::find($value);
+                array_push($listJobsParalel, $dataJobs);
             }
         }
         $data = [
@@ -155,6 +167,8 @@ class StaffController extends Controller
             'module' => 'staff-penyelia',
             'penyelia' => $query,
             'jobs' => $listJobs,
+            'jobsParalel' => $listJobsParalel,
+            'jobsPoint' => Master_jobs::find($query->permohonan->jenis_layanan_parent->jobs_paralel_point)->first(),
             'type' => $typeSurat
         ];
 

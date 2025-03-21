@@ -220,7 +220,7 @@ function loadTldKontrol(){
         for(let i = 0; i < dataPermohonan.jumlah_kontrol; i++){
             let options = '';
             if(dataPermohonan.tldKontrol && dataPermohonan.tldKontrol[i]){
-                options = `<option value="${dataPermohonan.tldKontrol[i].tld_hash ?? dataPermohonan.tldKontrol}" selected>${dataPermohonan.tldKontrol[i].kode_lencana ?? dataPermohonan.tldKontrol}</option>`
+                options = `<option value="${dataPermohonan.tldKontrol[i].tld_hash ?? dataPermohonan.tldKontrol[i]}" selected>${dataPermohonan.tldKontrol[i].kode_lencana ?? dataPermohonan.tldKontrol[i]}</option>`
             }else if(result.data[i]){
                 options = `<option value="${result.data[i].tld_hash}" selected>${result.data[i].kode_lencana}</option>`;
             }else{
@@ -448,7 +448,6 @@ function verif_kelengkapan(status, obj){
             if(result.isConfirmed){
                 let ttd = signaturePad.toDataURL();
                 let formData = new FormData();
-                formData.append('_token', csrf);
                 formData.append('ttd', ttd);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);

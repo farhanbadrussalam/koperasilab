@@ -67,6 +67,10 @@ $(function () {
         d.order = i + 1;
     });
 
+    listJobsParalel.forEach((d, i) => {
+        d.order = i + 1;
+    });
+
     if(!['verif', 'show'].includes(typeSurat)){
         $('#sortJobs').sortable({
             connectWith: '#sortJobs',
@@ -83,7 +87,7 @@ $(function () {
     }
 })
 
-function tambahPetugas(idJobs, index, name){
+function tambahPetugas(idJobs, index, name, isParalel = false){
     ajaxGet(`api/v1/petugas/list`, {idJobs : idJobs}, result => {
         const data = result.data;
         let html = '';
@@ -94,7 +98,7 @@ function tambahPetugas(idJobs, index, name){
                         <span class="fw-medium">${petugas.name}</span>
                         <span class="text-secondary"> - ${petugas.email}</span>
                     </div>
-                    <div class="text-success cursoron" data-idjobs="${idJobs}" data-name="${petugas.name}" data-email="${petugas.email}" data-index="${index}" onclick="pilihPetugas(this,'${petugas.user_hash}')"><i class="bi bi-person-check"></i> Pilih</div>
+                    <div class="text-success cursoron" data-isParalel="${isParalel}" data-idjobs="${idJobs}" data-name="${petugas.name}" data-email="${petugas.email}" data-index="${index}" onclick="pilihPetugas(this,'${petugas.user_hash}')"><i class="bi bi-person-check"></i> Pilih</div>
                 </div>
             `;
         }
@@ -110,6 +114,7 @@ function pilihPetugas(obj,idPetugas){
     const idJobs = $(obj).data('idjobs');
     const name = $(obj).data('name');
     const email = $(obj).data('email');
+    const isParalel = $(obj).data('isparalel');
     
     // Tambah data ke arrJobs
     let tmp = {
@@ -118,6 +123,10 @@ function pilihPetugas(obj,idPetugas){
         name: name,
         email: email
     };
+
+    if(isParalel){
+        tmp.isParalel = isParalel;
+    }
 
     // Pastikan arrJobs[index] adalah array
     // arrJobs[idJobs] = arrJobs[idJobs] || [];
@@ -235,16 +244,16 @@ function saveSuratTugas(obj){
                 params.append('endDate', dateEnd);
                 params.append('petugas', JSON.stringify(arrJobs));
                 params.append('jobsMap', JSON.stringify(listJobs));
+                params.append('jobsMapParalel', JSON.stringify(listJobsParalel));
                 params.append('jenisLog', typeSurat == 'tambah' ? 'created' : 'updated');
             }else{
-                params.append('status', listJobs[0].status);
+                params.append('status', 10); // Start Proses LHU
                 params.append('ttd', signaturePad.toDataURL());
                 params.append('ttd_by', userActive.user_hash);
-                params.append('statusPermohonan', 3); // Status untuk proses pelaksana lab
             }
 
             spinner('show', $(obj));
-            ajaxPost(`api/v1/penyelia/action`, params, result => {
+            ajaxPost(`api/v1/penyelia/actionSuratTugas`, params, result => {
                 if(result.meta.code) {
                     Swal.fire({
                         icon: 'success',
@@ -254,6 +263,7 @@ function saveSuratTugas(obj){
                         showConfirmButton: false
                     }).then(() => {
                         window.location.href = `${base_url}${!['verif', 'show'].includes(typeSurat) ? "/staff/penyelia" : "/manager/surat_tugas"}`;
+                        // spinner('hide', $(obj));
                     });
                 }
         

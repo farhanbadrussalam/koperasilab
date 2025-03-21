@@ -16,7 +16,6 @@ $(function () {
 
     filterComp = new FilterComponent('pengajuan-filter', {
         filter : {
-            status : true,
             jenis_tld : true,
             jenis_layanan : true,
             no_kontrak : true
@@ -42,6 +41,22 @@ function switchLoadTab(menu){
             break;
 
         case 2:
+            thisStatus = [1];
+            break;
+
+        case 3:
+            thisStatus = [2];
+            break;
+
+        case 4:
+            thisStatus = [3];
+            break;
+
+        case 5:
+            thisStatus = [5];
+            break;
+
+        case 6:
             thisStatus = [80];
             break;
     }
@@ -84,7 +99,7 @@ function loadData(page = 1, status) {
                 badgeClass = 'bg-success-subtle';
             }
 
-            if(thisTab == 2){
+            if(thisTab == 6){
                 html += `
                     <div class="card mb-2">
                         <div class="card-body row align-items-center">
@@ -135,6 +150,8 @@ function loadData(page = 1, status) {
         $('#pengajuan-placeholder').hide();
         $('#pengajuan-list-container').show();
     });
+
+    countList();
 }
 
 function remove(obj){
@@ -181,4 +198,19 @@ function clearFilter(){
     filterComp.clear();
 
     switchLoadTab(thisTab);
+}
+
+function countList(){
+    ajaxGet('api/v1/permohonan/countList', false, result => {
+        console.log(result);
+        const count = result.data.reduce((acc, cur) => {
+            acc[cur.name] = (acc[cur.name] || 0) + cur.total;
+            return acc;
+        }, {});
+        Object.entries(count).forEach(([key, value]) => {
+            const element = $(`#count${key}`);
+            element.html(value === 0 ? "" : `(${value})`);
+            element.toggle(value > 0);
+        });
+    });
 }

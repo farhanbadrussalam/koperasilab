@@ -49,7 +49,6 @@ class PenyeliaAPI extends Controller
             $arrPetugas = array();
             $textNote = $request->note ? $request->note : '';
             $statusPermohonan = $request->statusPermohonan ? $request->statusPermohonan : '';
-            $sProgress = $request->sProgress ? $request->sProgress : '';
             $jenisLog = $request->jenisLog ? $request->jenisLog : '';
 
             $document = $request->file("document");
@@ -69,113 +68,14 @@ class PenyeliaAPI extends Controller
             $ttd && $params['ttd'] = $ttd;
             $ttd_by && $params['ttd_by'] = $ttd_by;
             $file_document && $params['document'] = $file_document->getIdMedia();
-            
-            // Menambahkan jobs ke penyelia
-            if($jobsMap){
-                $arrJobsMap = json_decode($jobsMap);
-                
-                foreach($arrJobsMap as $value){
-                    $data = array(
-                        'order' => $value->order,
-                        'created_by' => Auth::user()->id
-                    );
-                    
-                    Penyelia_map::updateOrCreate(
-                        [
-                            'id_jobs' => decryptor($value->jobs_hash),
-                            'id_penyelia' => $idPenyelia
-                        ],
-                        $data
-                    );
-                }
-            }
 
-            // Menambahkan petugas
-            if($petugas){
-                $arr = json_decode($petugas);
-                
-                foreach ($arr as $value) {
-                    $findMap = Penyelia_map::where('id_jobs', decryptor($value->idJobs))->where('id_penyelia', $idPenyelia)->first();
-                    if($findMap){
-                        $data = array(
-                            'status' => 1,
-                            'created_by' => Auth::user()->id
-                        );
-
-                        Penyelia_petugas::updateOrCreate(
-                            [
-                                'id_map' => decryptor($findMap->map_hash),
-                                'id_penyelia' => $idPenyelia,
-                                'id_user' => decryptor($value->idPetugas),
-                            ],
-                            $data
-                        );
-                    }
-                }
-                
-                // menambahkan dokumen perjanjian 
-                $penyeliaData = Penyelia::select('id_permohonan','id_penyelia')->find($idPenyelia);
-                $dataParams = array(
-                    'id_permohonan' => $penyeliaData->id_permohonan,
-                    'created_by' => Auth::user()->id,
-                    'nama' => 'Surat Tugas Uji',
-                    'jenis' => 'surattugas',
-                    'status' => 1,
-                    'nomer' => generateNoDokumen('surattugas', $penyeliaData->id_penyelia)
-                );
-                
-                $document = Permohonan_dokumen::create($dataParams);
-            }
-
-            $params['status'] = $status;
+            $status && $params['status'] = $status;
 
             $penyelia = Penyelia::where('id_penyelia', $idPenyelia)->first();
             if($penyelia){
                 !$penyelia->created_by && $params['created_by'] = Auth::user()->id;
             }else{
                 $params['created_by'] = Auth::user()->id;
-            }
-
-            // cek penyelia map
-            if($sProgress){
-                $idJobs = false;
-                if($sProgress == 'done') {
-                    $idJobs = Master_jobs::select('id_jobs','status')->where('status', $penyelia->status)->first();
-                    if($idJobs) {
-                        Penyelia_map::where('id_jobs', $idJobs->id_jobs)
-                            ->where('id_penyelia', $idPenyelia)
-                            ->update(array(
-                                'status' => 1,
-                                'done_by' => Auth::user()->id,
-                                'done_at' => date('Y-m-d H:i:s')
-                            ));
-                    }
-                }else{
-                    $idJobs = Master_jobs::select('id_jobs','status')->where('status', $status)->first();    
-                    if($idJobs) {
-                        Penyelia_map::where('id_jobs', $idJobs->id_jobs)
-                            ->where('id_penyelia', $idPenyelia)
-                            ->update(array(
-                                'status' => 0,
-                                'done_by' => null,
-                                'done_at' => null
-                            ));
-                    }
-                    // remove dokument LHU saat dikembalikan
-                    $this->destroyDokumenLhu($penyelia->penyelia_hash, encryptor($penyelia->document));
-                }
-
-                // menambahkan log penyelia
-                if($idJobs){
-                    $this->log->addLog('penyelia', array(
-                        'id_penyelia' => $penyelia->id_penyelia,
-                        'status' => $sProgress == 'done' ? $idJobs->status : $penyelia->status,
-                        'message' => $this->log->noteLog('penyelia', $sProgress == 'done' ? $idJobs->status : $penyelia->status, $jenisLog),
-                        'note' => $textNote,
-                        'created_by' => Auth::user()->id
-                    ));
-                    $flagSkipLog = true;
-                }
             }
 
             // menambahkan periode
@@ -218,23 +118,8 @@ class PenyeliaAPI extends Controller
                             ->update(array('status' => $statusPermohonan));
 
                 if($statusPermohonan == 3){ // ketika proses pelaksana lab
-                    // menambahkan dokumen surat pengantar 
-                    $data = array(
-                        'id_permohonan' => $penyelia->id_permohonan,
-                        'created_by' => Auth::user()->id,
-                        'nama' => 'SURAT PENGANTAR',
-                        'jenis' => 'surpeng',
-                        'status' => 1,
-                        'nomer' => generateNoDokumen('surpeng')
-                    );
-                    $document = Permohonan_dokumen::create($data);
 
-                    // log surat tugas
-                    $this->log->addLog('penyelia', array(
-                        'id_penyelia' => $penyelia->id_penyelia,
-                        'message' => 'Surat tugas ditandatangani',
-                        'created_by' => Auth::user()->id
-                    ));
+                    
                     $flagSkipLog = true;
                 } else if($statusPermohonan == 4){ // ketika proses LHU selesai
                     $flagSkipLog = false;
@@ -268,6 +153,239 @@ class PenyeliaAPI extends Controller
         }
     }
 
+    public function actionSuratTugas(Request $request){
+        DB::beginTransaction();
+        try {
+            $idPenyelia = $request->has('idPenyelia') ? decryptor($request->idPenyelia) : false;
+            $status = $request->has('status') ? $request->status : false;
+            $startDate = $request->has('startDate') ? $request->startDate : false;
+            $endDate = $request->has('endDate') ? $request->endDate : false;
+            $ttd = $request->has('ttd') ? $request->ttd : false;
+            $ttd_by = $request->has('ttd_by') ? decryptor($request->ttd_by) : false;
+
+            $petugas = $request->has('petugas') ? $request->petugas : false;
+            $jobsMap = $request->has('jobsMap') ? $request->jobsMap : false;
+            $jobsMapParalel = $request->has('jobsMapParalel') ? $request->jobsMapParalel : false;
+            $jenisLog = $request->has('jenisLog') ? $request->jenisLog : false;
+
+            $params = array();
+
+            $startDate && $params['start_date'] = $startDate;
+            $endDate && $params['end_date'] = $endDate;
+            $status && $params['status'] = $status;
+            $ttd_by && $params['ttd_by'] = $ttd_by;
+            $ttd && $params['ttd'] = $ttd;
+
+            $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan_parent')->find($idPenyelia);
+            if($penyelia){
+                $penyelia->update($params);
+
+                // Menambahkan jobs ke penyelia
+                if($jobsMap && $jobsMapParalel){
+                    $arrJobsMap = json_decode($jobsMap);
+                    $arrJobsMapParalel = json_decode($jobsMapParalel);
+                    
+                    foreach($arrJobsMap as $value){
+                        $data = array(
+                            'order' => $value->order,
+                            'created_by' => Auth::user()->id
+                        );
+                        
+                        Penyelia_map::updateOrCreate(
+                            [
+                                'id_jobs' => decryptor($value->jobs_hash),
+                                'id_penyelia' => $idPenyelia
+                            ],
+                            $data
+                        );
+                    }
+
+                    foreach($arrJobsMapParalel as $value){
+                        $data = array(
+                            'order' => $value->order,
+                            'created_by' => Auth::user()->id,
+                            'point_jobs' => $penyelia->permohonan->jenis_layanan_parent->jobs_paralel_point
+                        );
+                        
+                        Penyelia_map::updateOrCreate(
+                            [
+                                'id_jobs' => decryptor($value->jobs_hash),
+                                'id_penyelia' => $idPenyelia
+                            ],
+                            $data
+                        );
+                    }
+                }
+
+                // Menambahkan petugas
+                if($petugas){
+                    $arr = json_decode($petugas);
+                    
+                    // Menghapus data sebelumnya
+                    Penyelia_petugas::where('id_penyelia', $idPenyelia)->delete();
+
+                    foreach ($arr as $value) {
+                        $findMap = Penyelia_map::where('id_jobs', decryptor($value->idJobs))->where('id_penyelia', $idPenyelia)->first();
+                        if($findMap){
+                            $data = array(
+                                'status' => 1,
+                                'created_by' => Auth::user()->id,
+                                'id_map' => decryptor($findMap->map_hash),
+                                'id_penyelia' => $idPenyelia,
+                                'id_user' => decryptor($value->idPetugas),
+                            );
+
+                            Penyelia_petugas::create($data);
+                        }
+                    }
+                    
+                }
+                
+                // Jika status = 10 akan mengganti status di permohonan menjadi 3 = Proses Pelaksana LAB
+                if($status == 10){
+                    $permohonan = Permohonan::find($penyelia->id_permohonan);
+                    $permohonan->update(array('status' => 3));
+
+                    // mengganti status penyelia_map
+                    $subQuery = Penyelia_map::where('id_penyelia', $idPenyelia)->where('order', 1)->where('point_jobs', null)->first();
+                    $subQuery->update(array('status' => 1));
+
+                    Penyelia_map::where('point_jobs', $subQuery->id_jobs)->where('id_penyelia', $idPenyelia)->update(array('status' => 1));
+
+                    // log surat tugas
+                    $this->log->addLog('penyelia', array(
+                        'id_penyelia' => $penyelia->id_penyelia,
+                        'message' => 'Surat tugas ditandatangani',
+                        'created_by' => Auth::user()->id
+                    ));
+                }
+
+                // cek dokumen sudah ada atau belum
+                $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surattugas')->first();
+
+                if(!$dokumen){
+                    // menambahkan dokumen perjanjian 
+                    $penyeliaData = Penyelia::select('id_permohonan','id_penyelia')->find($idPenyelia);
+                    $dataParams = array(
+                        'id_permohonan' => $penyeliaData->id_permohonan,
+                        'created_by' => Auth::user()->id,
+                        'nama' => 'Surat Tugas Uji',
+                        'jenis' => 'surattugas',
+                        'status' => 1,
+                        'nomer' => generateNoDokumen('surattugas', $penyeliaData->id_penyelia)
+                    );
+                    
+                    $document = Permohonan_dokumen::create($dataParams);
+                }
+            }
+
+            DB::commit();
+            return $this->output(array('msg' => 'Berhasil mengupdate penyelia'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function actionJobProses(Request $request){
+        DB::beginTransaction();
+        try {
+            $validate = $request->validate([
+                'idPenyelia' => 'required',
+                'note' => 'required',
+                'sProgress' => 'required',
+            ]);
+
+            $idPenyelia = decryptor($request->idPenyelia);
+            $sProgress = $request->sProgress;
+            $note = $request->note;
+            $nextJobs = $request->nextJobs ? decryptor($request->nextJobs) : false;
+            $nowJobs = $request->nowJobs ? decryptor($request->nowJobs) : false;
+
+            $penyelia = Penyelia::find($idPenyelia);
+            $jobsNow = Penyelia_map::with('jobs')->where('id_map', $nowJobs)->first();
+            $jobsNow->update(array(
+                'status' => $sProgress == 'done' ? 2 : 0,
+                'done_by' => $sProgress == 'done' ? Auth::user()->id : null,
+                'done_at' => $sProgress == 'done' ? date('Y-m-d H:i:s') : null
+            ));
+
+            if($sProgress != 'done' && $penyelia->document) {
+                // remove dokument LHU saat dikembalikan
+                $this->destroyDokumenLhu($penyelia->penyelia_hash, encryptor($penyelia->document));
+            }
+            
+            $jobsNext = Penyelia_map::with('jobs')->where('id_map', $nextJobs)->first();
+            if($jobsNext){
+                $jobsNext->update(array(
+                    'status' => 1,
+                    'done_by' => null,
+                    'done_at' => null
+                ));
+            }
+
+            if($sProgress == 'done') {
+                // mencari jobs yang sifatnya paralel
+                $jobsParalel = Penyelia_map::with('jobs')
+                    ->where('order', 1)
+                    ->where('id_penyelia', $idPenyelia)
+                    ->where('point_jobs', $jobsNow->id_jobs)
+                    ->first();
+    
+                if($jobsParalel){
+                    $jobsParalel->update(array(
+                        'status' => 1,
+                    ));
+                }
+            }
+
+            // menambahkan log penyelia
+            $this->log->addLog('penyelia', array(
+                'id_penyelia' => $penyelia->id_penyelia,
+                'status' => $jobsNow->jobs->status,
+                'message' => $this->log->noteLog('penyelia', $jobsNow->jobs->status),
+                'note' => $note,
+                'created_by' => Auth::user()->id
+            ));
+
+            if(!$nextJobs && !$jobsNow->point_jobs){
+                $permohonan = Permohonan::find($penyelia->id_permohonan);
+                    $permohonan->update(array('status' => 4)); // ketika proses lhu selesai
+
+                $penyelia->update(array(
+                    'status' => 3
+                ));
+                // menambahkan dokumen surat pengantar 
+                $data = array(
+                    'id_permohonan' => $penyelia->id_permohonan,
+                    'created_by' => Auth::user()->id,
+                    'nama' => 'SURAT PENGANTAR',
+                    'jenis' => 'surpeng',
+                    'status' => 1,
+                    'nomer' => generateNoDokumen('surpeng')
+                );
+                $document = Permohonan_dokumen::create($data);
+
+                // menambahkan log penyelia
+                $this->log->addLog('penyelia', array(
+                    'id_penyelia' => $penyelia->id_penyelia,
+                    'status' => $penyelia->status,
+                    'message' => $this->log->noteLog('penyelia', $penyelia->status),
+                    'created_by' => Auth::user()->id
+                ));
+            }
+
+
+            DB::commit();
+            return $this->output(array('msg' => 'Berhasil mengupdate Progress'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
     public function listPenyelia(Request $request)
     {
         $limit = $request->has('limit') ? $request->limit : 10;
@@ -280,10 +398,6 @@ class PenyeliaAPI extends Controller
         $typePencarian = 'in';
 
         switch($menu) {
-            // case 'surattugas':
-            //     $status = [2];
-            //     $typePencarian = 'not';
-                // break;
             case 'ttd-surat':
                 $status = [1];
                 $typePencarian = 'not';
@@ -311,51 +425,58 @@ class PenyeliaAPI extends Controller
         DB::beginTransaction();
         try {
             $query = Penyelia::with(
-                            'permohonan',
-                            'petugas',
-                            'petugas.jobs',
-                            'penyelia_map',
-                            'penyelia_map.jobs:id_jobs,status,name,upload_doc',
-                            'usersig:id,name',
-                            'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                            'permohonan.jenisTld:id_jenisTld,name', 
-                            'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
-                            'permohonan.jenis_layanan_parent',
-                            'permohonan.pelanggan',
-                            'permohonan.pelanggan.perusahaan',
-                            'permohonan.kontrak',
-                            'permohonan.kontrak.periode'
-                        )
-                        ->orderBy('id_penyelia','DESC')
-                        ->offset(($page - 1) * $limit)
-                        ->when($status, function($q, $status) use ($typePencarian) {
-                            if($typePencarian == 'not'){
-                                return $q->whereNotIn('status', $status);
-                            }
-                            return $q->whereIn('status', $status);
-                        })
-                        ->when($filter, function($q, $filter) {
-                            foreach ($filter as $key => $value) {
-                                if ($key === 'id_perusahaan') {
-                                    $q->whereHas('permohonan.pelanggan.perusahaan', function ($v) use ($value) {
-                                        $v->where('id_perusahaan', decryptor($value));
-                                    });
-                                } else if($key === 'status') {
-                                    $q->where($key, decryptor($value));
-                                } else {
-                                    $q->whereHas('permohonan', function ($p) use ($key, $value) {
-                                        $p->where($key, decryptor($value));
-                                    });
-                                }
-                            }
-                        })
-                        ->when($userId, function($q, $userId) {
-                            return $q->whereHas('petugas', function ($query) use ($userId) {
-                                return $query->where('id_user', $userId);
-                            });
-                        })
-                        ->limit($limit)
-                        ->paginate($limit);
+                'permohonan',
+                'petugas',
+                'petugas.jobs',
+                'penyelia_map',
+                'penyelia_map.jobs:id_jobs,status,name,upload_doc',
+                'penyelia_map.jobs_paralel:id_jobs,status,name,upload_doc',
+                'usersig:id,name',
+                'permohonan.layanan_jasa:id_layanan,nama_layanan',
+                'permohonan.jenisTld:id_jenisTld,name', 
+                'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
+                'permohonan.jenis_layanan_parent',
+                'permohonan.pelanggan',
+                'permohonan.pelanggan.perusahaan',
+                'permohonan.kontrak',
+                'permohonan.kontrak.periode'
+            )
+            ->orderBy('id_penyelia','DESC')
+            ->offset(($page - 1) * $limit)
+            ->when($status, function($q, $status) use ($typePencarian) {
+                if($typePencarian == 'not'){
+                    return $q->whereNotIn('status', $status);
+                }
+
+                return $q->whereHas('penyelia_map', function ($query) use ($status) {
+                    return $query->whereIn('id_jobs', $status)->where('status', 1)->whereHas('petugas', function ($q) {
+                        return $q->where('id_user', Auth::user()->id);
+                    });
+                });
+            })
+            ->when($filter, function($q, $filter) {
+                foreach ($filter as $key => $value) {
+                    if ($key === 'id_perusahaan') {
+                        $q->whereHas('permohonan.pelanggan.perusahaan', function ($v) use ($value) {
+                            $v->where('id_perusahaan', decryptor($value));
+                        });
+                    } else if($key === 'status') {
+                        $q->where($key, decryptor($value));
+                    } else {
+                        $q->whereHas('permohonan', function ($p) use ($key, $value) {
+                            $p->where($key, decryptor($value));
+                        });
+                    }
+                }
+            })
+            ->when($userId, function($q, $userId) {
+                return $q->whereHas('petugas', function ($query) use ($userId) {
+                    return $query->where('id_user', $userId);
+                });
+            })
+            
+            ->limit($limit)
+            ->paginate($limit);
 
             $arr = $query->toArray();
             $this->pagination = Arr::except($arr, 'data');
@@ -455,6 +576,7 @@ class PenyeliaAPI extends Controller
     
             $query = Penyelia_map::with(
                 'jobs:id_jobs,status,name,upload_doc',
+                'jobs_paralel:id_jobs,status,name,upload_doc',
                 'petugas',
                 'petugas.user',
                 'doneBy:id,name',

@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("permohonan")->controller(PermohonanAPI::class)->group(function () {
         Route::delete('/destroyPermohonan/{id}', 'destroyPermohonan');
         Route::get('/listPengajuan', 'listPengajuan');
+        Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
         Route::post('/tambahPengguna', 'tambahPengguna');
         Route::delete('/destroyPengguna/{idPengguna}', 'destroyPengguna');
@@ -76,6 +77,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
         Route::post('/action', 'keuanganAction');
         Route::get('/listKeuangan', 'listKeuangan');
+        Route::get('/countList', 'countList');
         Route::get('/getKeuangan/{idKeuangan}', 'getKeuangan');
         Route::post('/uploadFaktur', 'uploadFaktur');
         Route::post('/uploadBuktiBayar', 'uploadBuktiBayar');
@@ -104,6 +106,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix("penyelia")->controller(PenyeliaAPI::class)->group(function () {
         Route::post('/action', 'actionPenyelia');
+        Route::post('/actionSuratTugas', 'actionSuratTugas');
+        Route::post('/actionJobProses', 'actionJobProses');
         Route::get('/list', 'listPenyelia');
         Route::get('/listPetugas', 'getListPetugas');
         Route::get('/getById/{idPenyelia}', 'getPenyeliaById');

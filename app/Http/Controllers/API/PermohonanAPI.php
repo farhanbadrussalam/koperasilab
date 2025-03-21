@@ -213,7 +213,7 @@ class PermohonanAPI extends Controller
             $arrRadiasi = json_decode($request->radiasi);
             
             foreach ($arrRadiasi as $key => $value) {
-                $idRadiasi = decryptor($value);
+                $idRadiasi = (int) decryptor($value);
                 array_push($radiasi, $idRadiasi ? $idRadiasi : $value);
             }
 
@@ -227,7 +227,7 @@ class PermohonanAPI extends Controller
                 'posisi' => $divisi,
                 'id_radiasi' => $radiasi,
                 'file_ktp' => $file_ktp->getIdMedia(),
-                'status' => 2,
+                'status' => 0,
                 'created_by' => Auth::user()->id
             );
 
@@ -524,6 +524,78 @@ class PermohonanAPI extends Controller
         }
     }
 
+    public function countList(Request $request){
+        DB::beginTransaction();
+        try {
+            $arrStatus = [1,2,3,4,5,11,80];
+            $_status = Permohonan::selectRaw('count(*) as total, status')
+                ->groupBy('status')
+                ->get()
+                ->toArray();
+
+            $total = 0;
+
+            foreach ($arrStatus as $value) {
+                $exist = array_filter($_status, function($item) use ($value) {
+                    return $item['status'] == $value;
+                });
+                if (count($exist) == 0) {
+                    $_status[] = [
+                        'status' => $value,
+                        'total' => 0
+                    ];
+                }
+                if ($value !== 80) {
+                    $existStatus = array_filter($_status, function($item) use ($value) {
+                        return $item['status'] == $value;
+                    });
+                    $total += $existStatus ? reset($existStatus)['total'] : 0;
+                }
+            }
+
+            $_status[] = [
+                'status' => 'Semua',
+                'name' => 'Semua',
+                'total' => $total
+            ];
+            
+            $query = array_map(function($item) {
+                switch($item['status']) {
+                    case 1:
+                        $item['name'] = 'Pengajuan';
+                        break;
+                    case 2:
+                        $item['name'] = 'Verifikasi';
+                        break;
+                    case 3:
+                        $item['name'] = 'Lab';
+                        break;
+                    case 4:
+                        $item['name'] = 'Pengiriman';
+                        break;
+                    case 5:
+                        $item['name'] = 'Selesai';
+                        break;
+                    case 11:
+                        $item['name'] = 'Sewa';
+                        break;
+                    case 80:
+                        $item['name'] = 'Draft';
+                        break;
+                }
+                return $item;
+            }, $_status);
+            
+            DB::commit();
+
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function getPengajuanById($id)
     {
         DB::beginTransaction();
@@ -715,7 +787,7 @@ class PermohonanAPI extends Controller
                                 'status' => 1,
                                 'jenis' => 'pengguna',
                             ]);
-                            Permohonan_pengguna::where('id_pengguna', decryptor($item->id))->update(['id_tld' => $tldData->id_tld]);
+                            Permohonan_pengguna::where('id_pengguna', decryptor($item->id))->update(['id_tld' => $tldData->id_tld, 'tld' => null]);
                         }
                     }
 
@@ -730,6 +802,7 @@ class PermohonanAPI extends Controller
                         $arrayUpdate['list_tld'][$key] = (int) decryptor($kontrol->tld_hash);
                     }
     
+                    $arrayUpdate['tld_kontrol'] = null;
                     $arrayUpdate['ttd'] = $ttd;
                     $arrayUpdate['ttd_by'] = Auth::user()->id;
                     $arrayUpdate['verify_at'] = date('Y-m-d H:i:s');

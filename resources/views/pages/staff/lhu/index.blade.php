@@ -71,7 +71,9 @@
                     </div>
                     <span class="fw-bold">Progress</span>
                     <div class="col-sm-12 mb-3 d-flex justify-content-between align-items-center">
-                        <input type="text" class="form-control bg-secondary-subtle" name="prosesNow" id="prosesNow" readonly>
+                        <select name="prosesNow" id="prosesNow" class="form-select">
+                            <option value="">Pilih proses</option>
+                        </select>
                         <span class="mx-2">To</span>
                         <input type="text" class="form-control bg-secondary-subtle" name="prosesNext" id="prosesNext" readonly>
                     </div>

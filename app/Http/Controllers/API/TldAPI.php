@@ -52,10 +52,16 @@ class TldAPI extends Controller
         try {
             $jenis = $request->has('jenis') ? $request->jenis : false;
             $kode_lencana = $request->has('kode_lencana') ? $request->kode_lencana : false;
+            $limit = 10;
             $data = array();
 
             if(!empty($kode_lencana)){
-                $data = Master_tld::where('jenis', $jenis)->where('kode_lencana', 'like', '%'.$kode_lencana.'%')->orderBy('status', 'desc')->get();
+                $data = Master_tld::where('jenis', $jenis)
+                    ->where('kode_lencana', 'like', '%'.$kode_lencana.'%')
+                    ->limit($limit)
+                    ->orderBy('status', 'desc')->get();
+            } else {
+                $data = Master_tld::limit($limit)->where('jenis', $jenis)->orderBy('status', 'desc')->get();
             }
 
             DB::commit();

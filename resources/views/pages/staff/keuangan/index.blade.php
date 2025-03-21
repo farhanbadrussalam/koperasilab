@@ -4,24 +4,14 @@
 <div class="content-wrapper">
     <section class="content col-md-12">
         <div class="container">
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="pengajuan-tab" onclick="switchLoadTab(1)" data-bs-toggle="tab" data-bs-target="#pengajuan-tab-pane" type="button" role="tab" aria-controls="pengajuan-tab-pane" aria-selected="true">Pengajuan</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="pembayaran-tab" onclick="switchLoadTab(2)" data-bs-toggle="tab" data-bs-target="#pembayaran-tab-pane" type="button" role="tab" aria-controls="pembayaran-tab-pane" aria-selected="true">Pembayaran</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="verifikasi-tab" onclick="switchLoadTab(3)" data-bs-toggle="tab" data-bs-target="#verifikasi-tab-pane" type="button" role="tab" aria-controls="verifikasi-tab-pane" aria-selected="true">Verifikasi</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="diterima-tab" onclick="switchLoadTab(4)" data-bs-toggle="tab" data-bs-target="#diterima-tab-pane" type="button" role="tab" aria-controls="diterima-tab-pane" aria-selected="true">Diterima</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="ditolak-tab" onclick="switchLoadTab(5)" data-bs-toggle="tab" data-bs-target="#ditolak-tab-pane" type="button" role="tab" aria-controls="ditolak-tab-pane" aria-selected="true">Ditolak</button>
-                </li>
+            <ul class="nav nav-tabs" id="myTab">
+                <li class="nav-item"><button class="nav-link active" role="tab" data-bs-toggle="tab" onclick="switchLoadTab(1)">Pengajuan <span id="countPengajuan"></span></button></li>
+                <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab" onclick="switchLoadTab(2)">Pembayaran <span id="countPembayaran"></span></button></li>
+                <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab" onclick="switchLoadTab(3)">Verifikasi <span id="countVerifikasi"></span></button></li>
+                <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab" onclick="switchLoadTab(4)">Diterima <span id="countDiterima"></span></button></li>
+                <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab" onclick="switchLoadTab(5)">Ditolak <span id="countDitolak"></span></button></li>
             </ul>
-            <div class="card shadow-sm m-4">
+            <div class="card shadow-sm mt-2">
                 <div class="card-body">
                     <div class="d-flex">
                         <div class="flex-grow-1">

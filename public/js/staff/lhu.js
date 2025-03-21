@@ -20,13 +20,19 @@ $(function () {
     });
 
     $(`[name="statusProgress"]`).on('click', obj => {
+        const prosesNow = nowSelect.penyelia_map.find(d => listJobs.includes(d.jobs_hash) && d.status == 1);
+
         if(obj.target.value == 'return') {
             $('#divUploadDocLhu').hide();
             $('#prosesNext').val(nowSelect.prosesPrev.jobs.name);
         } else {
-            $('#divUploadDocLhu').show();
+            prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
             $('#prosesNext').val(nowSelect.prosesNext.jobs.name);
         }
+    });
+    $('#prosesNow').on('change', obj => {
+        const prosesNow = nowSelect.penyelia_map.find(d => d.map_hash == obj.target.value);
+        setProses(prosesNow);
     });
 
     filterComp = new FilterComponent('list-filter', {
@@ -75,11 +81,16 @@ function loadData(page = 1) {
             const permohonan = lhu.permohonan;
             let periode = permohonan.periode_pemakaian;
             let btnAction = '';
+            // Mengecek array listJobs apakah ada di jobsAktive
+            // Algoritma ini opsional jika dimunculkan semuanya
+            /* 
+                let jobsAktive = lhu.penyelia_map.filter(x => x.status == 1);
+                let jobsAktiveHash = jobsAktive.map(x => x.jobs_hash);
+                const hasCommonValue = jobsAktiveHash.some(hash => listJobs.includes(hash));
+            */
             
             btnAction += `<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
-            if(listJobs.includes(lhu.status_hash)) {
-                btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
-            }
+            btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
 
             let divInfoTugas = `
                 <div class="col-md-12 mt-2 fs-7">
@@ -105,6 +116,19 @@ function loadData(page = 1) {
                 htmlPeriode = `<div>Periode ${permohonan.periode}</div>`;
             }
 
+            // status jobs yang aktif
+            let htmlStatus = statusFormat('penyelia', lhu.status);
+            if(lhu.status == 10) {
+                const aktifJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
+
+                aktifJobs.map(d => {
+                    let petugasInJobs = lhu.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
+                    if(petugasInJobs){
+                        htmlStatus += statusFormat('penyelia', d.jobs.status);
+                    }
+                })
+            }
+
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center py-2">
@@ -112,7 +136,7 @@ function loadData(page = 1) {
                             <div class="">
                                 <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
-                                <span> | ${statusFormat('penyelia', lhu.status)}</span>
+                                <span> | ${htmlStatus}</span>
                             </div>
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
@@ -164,11 +188,18 @@ function openProgressModal(obj){
         
         $('#statusDone').prop('checked', true);
         // Mengambil proses jobs 
-        const prosesNow = nowSelect.penyelia_map.find(d => d.jobs.status == nowSelect.status);
-        const prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
-        const prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
-    
-        !prosesPrev ? $('#divReturnProgress').hide() : null;
+        const listJobsAktif = nowSelect.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
+        
+        let htmlJobs = listJobsAktif.map((d, index) => {
+            let petugasInJobs = nowSelect.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
+            if(petugasInJobs){
+                return `<option value="${d.map_hash}" ${index == 0 ? 'selected' : ''}>${d.jobs.name}</option>`;
+            }
+        });
+
+        $('#prosesNow').html(htmlJobs.join(''));
+        
+        setProses(listJobsAktif[0]);
     
         $('#dateProgress').flatpickr({
             altInput: true,
@@ -179,11 +210,6 @@ function openProgressModal(obj){
             maxDate: nowSelect.end_date,
             defaultDate: 'today'
         });
-        prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
-    
-        nowSelect.prosesNow = prosesNow;
-        nowSelect.prosesPrev = prosesPrev;
-        nowSelect.prosesNext = prosesNext;
     
         if(documentLhu){
             documentLhu.destroy();
@@ -204,19 +230,39 @@ function openProgressModal(obj){
         if(nowSelect.media) {
             documentLhu.setData(nowSelect.media);
         }
-    
-        $('#prosesNow').val(prosesNow.jobs.name);
-        $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
+        
         $('#inputNote').val('');
         
         $('#updateProgressModal').modal('show');
     })
 }
 
+function setProses(prosesNow){
+    let prosesNext = false;
+    let prosesPrev = false;
+    if(!prosesNow.point_jobs){
+        prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
+        prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
+    } else {
+        prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1) && d.point_jobs);
+        prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1) && d.point_jobs);
+    }
+
+    !prosesPrev ? $('#divReturnProgress').hide() : null;
+    prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
+
+    nowSelect.prosesNow = prosesNow;
+    nowSelect.prosesPrev = prosesPrev;
+    nowSelect.prosesNext = prosesNext;
+    
+    $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
+}
+
 function simpanProgress(obj){
     let note = $('#inputNote').val();
     let sProgress = $(`[name="statusProgress"]:checked`).val();
-    let status = sProgress == 'done' ? (nowSelect?.prosesNext?.jobs?.status ?? 3) : nowSelect?.prosesPrev?.jobs?.status;
+    let nextJobs = sProgress == 'done' ? (nowSelect?.prosesNext?.map_hash ?? 3) : nowSelect?.prosesPrev?.map_hash;
+    let nowJobs = nowSelect?.prosesNow?.map_hash;
 
     if(note == ''){
         return Swal.fire({
@@ -235,13 +281,13 @@ function simpanProgress(obj){
     }
     const form = new FormData();
     form.append('idPenyelia', nowSelect?.penyelia_hash);
-    form.append('status', status);
+    form.append('nextJobs', nextJobs);
+    form.append('nowJobs', nowJobs);
     form.append('note', note);
     form.append('sProgress', sProgress);
-    !nowSelect?.prosesNext && form.append('statusPermohonan', 4); // status permohonan untuk proses pengiriman
 
     spinner('show', $(obj));
-    ajaxPost(`api/v1/penyelia/action`, form, result => {
+    ajaxPost(`api/v1/penyelia/actionJobProses`, form, result => {
         spinner('hide', $(obj));
         if(result.meta.code == 200){
             Swal.fire({

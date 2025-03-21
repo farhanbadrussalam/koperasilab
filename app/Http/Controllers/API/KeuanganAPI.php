@@ -113,6 +113,58 @@ class KeuanganAPI extends Controller
         }
     }
 
+    public function countList(Request $request){
+        DB::beginTransaction();
+        try {
+            $arrStatus = [1,2,3,4,5,6];
+            $_status = Keuangan::selectRaw('count(*) as total, status')
+                ->groupBy('status')
+                ->get()
+                ->toArray();
+            foreach ($arrStatus as $value) {
+                $exist = array_filter($_status, function($item) use ($value) {
+                    return $item['status'] == $value;
+                });
+                if (count($exist) == 0) {
+                    $_status[] = [
+                        'status' => $value,
+                        'total' => 0
+                    ];
+                }
+            }
+
+            $query = array_map(function($item) {
+                switch ($item['status']) {
+                    case 1:
+                        $item['name'] = 'Pengajuan';
+                        break;
+                    case 2:
+                    case 3:
+                        $item['name'] = 'Pembayaran';
+                        break;
+                    case 4:
+                        $item['name'] = 'Verifikasi';
+                        break;
+                    case 5:
+                        $item['name'] = 'Diterima';
+                        break;
+                    case 6:
+                        $item['name'] = 'Ditolak';
+                        break;
+                }
+                return $item;
+            }, $_status);
+            
+            DB::commit();
+
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function getKeuangan($idKeuangan)
     {
         $idKeuangan = $idKeuangan ? decryptor($idKeuangan) : false;

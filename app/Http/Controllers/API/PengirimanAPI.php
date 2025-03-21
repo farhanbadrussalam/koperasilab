@@ -59,6 +59,9 @@ class PengirimanAPI extends Controller
                         'lhu',
                         'lhu.media',
                         'lhu.pengiriman',
+                        'lhu.penyelia_map',
+                        'lhu.penyelia_map.jobs',
+                        'lhu.petugas',
                         'file_lhu'
                     )->when($search, function($q, $search){
                         return $q->where('no_kontrak', 'like', "%$search%");

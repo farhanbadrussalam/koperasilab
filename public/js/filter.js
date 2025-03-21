@@ -15,12 +15,6 @@ class FilterComponent {
         this.options = {
             filter: Object.fromEntries(Object.entries(options.filter).filter(([key, value]) => value === true))
         };
-        
-        // status: options.filter.status ?? false,
-        // jenis_tld: options.filter.jenis_tld ?? false,
-        // jenis_layanan: options.filter.jenis_layanan ?? false,
-        // no_kontrak: options.filter.no_kontrak ?? false
-        // this.options.filter = ;
 
         this.selfElement.addClass('w-100 d-flex flex-wrap my-3 gap-2');
     }

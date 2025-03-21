@@ -86,6 +86,16 @@ function loadData(page=1) {
             });
             divTimelineTugas.push(timeline);
 
+            // status jobs yang aktif
+            let htmlStatus = statusFormat('penyelia', lhu.status);
+            if(lhu.status == 10) {
+                const aktifJobs = lhu.penyelia_map.filter(d => d.status == 1);
+
+                aktifJobs.map(d => {
+                    htmlStatus += statusFormat('penyelia', d.jobs.status);
+                })
+            }
+
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
@@ -93,7 +103,7 @@ function loadData(page=1) {
                             <div class="">
                                 <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
-                                <span> | ${statusFormat('penyelia', lhu.status)}</span>
+                                <span> | ${htmlStatus}</span>
                             </div>
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>

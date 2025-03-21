@@ -16,6 +16,8 @@ class Penyelia_map extends Model
         'id_jobs',
         'id_penyelia',
         'order',
+        'status',
+        'point_jobs',
         'created_by',
         'done_by',
         'done_at',
@@ -44,6 +46,11 @@ class Penyelia_map extends Model
     public function jobs()
     {
         return $this->belongsTo(Master_jobs::class, 'id_jobs', 'id_jobs');
+    }
+
+    public function jobs_paralel()
+    {
+        return $this->belongsTo(Master_jobs::class, 'point_jobs', 'id_jobs');
     }
 
     public function petugas()

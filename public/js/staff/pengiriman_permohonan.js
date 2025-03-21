@@ -60,6 +60,14 @@ function loadData(page = 1, menu) {
 
             // Data LHU
             let htmlLhu = '';
+            let aktifJobsLhu = data.lhu?.penyelia_map.filter(d => d.status == 1);
+            let htmlStatusLhu = data.lhu ? statusFormat('penyelia', data.lhu.status) : '';
+            if(aktifJobsLhu) {
+                aktifJobsLhu.map(d => {
+                    htmlStatusLhu = statusFormat('penyelia', d.jobs.status);
+                });
+            }
+            
             data.lhu ? htmlLhu = `
                 <div class="col-md-12 mt-2">
                     <div class="border-top py-2 d-flex justify-content-between align-items-center">
@@ -70,7 +78,7 @@ function loadData(page = 1, menu) {
                         </div>
                         <div class="d-flex align-items-center gap-3 text-secondary">
                             <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data.lhu.created_at, 4)}</small>
-                            <small>${statusFormat('penyelia', data.lhu.status)}</small>
+                            <small>${htmlStatusLhu}</small>
                             <!-- <small class="bg-body-tertiary rounded-pill ${data.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
                         </div>
                     </div>

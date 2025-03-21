@@ -61,7 +61,7 @@
                 <ul id="sortJobs">
                     @foreach ($jobs as $job)
                     <li class="col-12" data-idjobs="{{ $job->jobs_hash }}">
-                        <div class="card shadow-sm border border-1 rounded-4">
+                        <div class="card shadow-sm border border-1 rounded-4 mb-2">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div class="fw-bolder">@if (!in_array($type, ['verif', 'show']))
@@ -82,6 +82,35 @@
                     </li>
                     @endforeach
                 </ul>
+                <div>Tugas yang akan di lakukan setelah proses {{ $jobsPoint->name }}</div>
+                {{-- Load List jobs paralel --}}
+                <ul id="sortJobsParalel">
+                    @foreach ($jobsParalel as $job)
+                    <li class="col-12" data-idjobs="{{ $job->jobs_hash }}">
+                        <div class="card shadow-sm border border-1 rounded-4 mb-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <div class="fw-bolder">
+                                        @if (!in_array($type, ['verif', 'show']))
+                                        <span class="moveon cursormove"><i class="bi bi-grip-vertical"></i></span>
+                                        @endif {{ $job->name }}
+                                    </div>
+                                    @if (!in_array($type, ['verif', 'show']))
+                                        <button class="btn btn-primary btn-sm" onclick="tambahPetugas('{{ $job->jobs_hash }}', {{ $loop->index }}, '{{ $job->name }}', true)">
+                                            <i class="bi bi-person-plus-fill"></i> Tambah petugas
+                                        </button>
+                                    @endif
+                                </div>
+                                <div class="mt-3" id="list-petugas-{{ $job->jobs_hash }}">
+                                    <p class="w-100 text-center fs-4 m-auto"><i class="bi bi-person-fill-slash"></i> Belum
+                                        ada petugas</p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    @endforeach
+                </ul>
+                
                 @if (($type == 'show' && $penyelia->ttd) || ($type == 'verif'))
                 <div class="col-md-12 d-flex justify-content-center">
                     <div class="wrapper" id="content-ttd-1"></div>
@@ -121,6 +150,7 @@
 @push('scripts')
     <script>
         const listJobs = @json($jobs);
+        const listJobsParalel = @json($jobsParalel);
         const idPenyelia = "{{ $penyelia->penyelia_hash }}";
         const dataPenyelia = @json($penyelia);
         const typeSurat = "{{ $type }}";

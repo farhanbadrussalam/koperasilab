@@ -14,6 +14,8 @@ class Master_jenisLayanan extends Model
         'id_jenisLayanan',
         'name',
         'jobs',
+        'jobs_paralel',
+        'jobs_paralel_point',
         'status'
     ];
 
@@ -27,7 +29,8 @@ class Master_jenisLayanan extends Model
     ];
 
     protected $casts = [
-        'jobs' => 'array'
+        'jobs' => 'array',
+        'jobs_paralel' => 'array',
     ];
 
     public function getJenisLayananHashAttribute()

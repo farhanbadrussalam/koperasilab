@@ -2,14 +2,14 @@
 
 @section('content')
 <ul class="nav nav-tabs" id="pengajuanTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="pengajuan-tab" data-bs-toggle="tab" data-bs-target="#pengajuan" type="button" role="tab" aria-controls="pengajuan" aria-selected="true" onclick="switchLoadTab(1)">Pengajuan</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="draft-tab" data-bs-toggle="tab" data-bs-target="#draft" type="button" role="tab" aria-controls="draft" aria-selected="false" onclick="switchLoadTab(2)">Draft</button>
-    </li>
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab(1)">Semua <span id="countSemua"></span></button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab(2)">Pengajuan <span id="countPengajuan"></span></button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab(3)">Terverifikasi <span id="countVerifikasi"></span></button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab(4)">Proses LAB <span id="countLab"></span></button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab(5)">Selesai <span id="countSelesai"></span></button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="false" onclick="switchLoadTab(6)">Draft <span id="countDraft"></span></button></li>
 </ul>
-<div class="card shadow-sm m-4">
+<div class="card shadow-sm mt-2">
     <div class="card-body">
         <div class="d-flex">
             <div class="flex-grow-1">

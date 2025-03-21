@@ -39,31 +39,62 @@
 
     <div class="content" style="line-height: 1.3em">
         <p>Sehubungan dengan {{ $data->permohonan->jenis_layanan_parent->name }}
-            {{ $data->permohonan->layanan_jasa->nama_layanan }} {{ $data->permohonan->jenisTld->name }} periode pemakaian bulan Maret 2023 s.d. Februari 2024, sesuai dengan Surat
-            Perjanjian No. {{ $data->permohonan->kontrak?->no_kontrak ?? '-' }}, dengan ini kami mohon penyelesaian pembayaran dengan rincian sebagai berikut
-            :</p>
+            {{ $data->permohonan->layanan_jasa->nama_layanan }} {{ $data->permohonan->jenisTld->name }} periode pemakaian
+            bulan {{ convert_date($periode_start['start_date'], 6) }} s.d.
+            {{ convert_date($periode_end['end_date'], 6) }}, sesuai dengan Surat
+            Perjanjian No. {{ $data->permohonan->kontrak?->no_kontrak ?? '-' }}, dengan ini kami mohon penyelesaian
+            pembayaran dengan rincian sebagai berikut :</p>
     </div>
+
+    @php
+        $subJumlah = 0;
+
+        if ($data->diskon) {
+            foreach ($data->diskon as $item) {
+                $item->jumDiskon = $data->permohonan->total_harga * ($item->diskon / 100);
+                $subJumlah += $item->jumDiskon;
+            }
+        }
+
+        $jumAfterDiskon = $data->permohonan->total_harga - $subJumlah;
+
+        $jumPph = $data->pph ? $jumAfterDiskon * ($data->pph / 100) : 0;
+        $jumAfterPph = $jumAfterDiskon - $jumPph;
+        $jumPpn = $data->ppn ? $jumAfterPph * ($data->ppn / 100) : 0;
+    @endphp
 
     <table class="table">
         <tr>
-            <td>15 Unit BARC x 4 Periode x Rp. 125.000</td>
-            <td>Rp. 7.500.000</td>
+            <td>{{ $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol }} Unit
+                {{ $data->permohonan->jenisTld->name }} x {{ count($data->permohonan->periode_pemakaian) }} Periode x
+                {{ formatCurrency($data->permohonan->harga_layanan) }}</td>
+            <td>{{ formatCurrency($data->permohonan->total_harga) }}</td>
         </tr>
+        @foreach ($data->diskon as $item)
         <tr>
-            <td>Discount 2.5 %</td>
-            <td>( Rp. 187.500 )</td>
+            <td>{{ $item->name }} {{ $item->diskon }}%</td>
+            <td>( {{ formatCurrency($item->jumDiskon) }} )</td>
         </tr>
+        @endforeach
         <tr>
             <td>Sub Jumlah</td>
-            <td>Rp. 7.312.500</td>
+            <td>{{ formatCurrency($jumAfterDiskon) }}</td>
         </tr>
-        <tr>
-            <td>PPN</td>
-            <td>Rp. 804.375</td>
-        </tr>
+        @if ($data->pph)
+            <tr>
+                <td>PPH {{ $data->pph }}%</td>
+                <td>( {{ formatCurrency($jumPph) }} )</td>
+            </tr>
+        @endif
+        @if ($data->ppn)
+            <tr>
+                <td>PPN</td>
+                <td>{{ formatCurrency($jumPpn) }}</td>
+            </tr>
+        @endif
         <tr>
             <td>Jumlah</td>
-            <td>Rp. 8.116.875</td>
+            <td>{{ formatCurrency($jumAfterPph + $jumPpn) }}</td>
         </tr>
     </table>
 
@@ -84,7 +115,7 @@
     <div class="footer-invoice" style="margin: 0px;">
         <span>Koperasi Jasa Keselamatan Radiasi dan Lingkungan</span>
     </div>
-    
+
     <table style="width: 100%;">
         <tr>
             <td width="50%" class="align-top text-center">
@@ -97,7 +128,8 @@
             </td>
             <td width="50%" style="text-align: center">
                 <div>
-                    <div class="p-2"><img src="{{ $data->ttd ? $data->ttd : $ttd_default }}" alt="TTD_keuangan" class="img-fluid"></div>
+                    <div class="p-2"><img src="{{ $data->ttd ? $data->ttd : $ttd_default }}" alt="TTD_keuangan"
+                            class="img-fluid"></div>
                     <div>{{ $data->usersig ? $data->usersig->name : '................................' }}</div>
                 </div>
             </td>

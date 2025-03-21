@@ -45,6 +45,13 @@ class ReportController extends Controller
         $data['title'] = "Invoice";
         $data['ttd_default'] = public_path('icons/default/white.png');
 
+        $periodePemakaian = $query->permohonan->periode_pemakaian;
+
+        if($query->permohonan && count($periodePemakaian) > 0){
+            $data['periode_start'] = $periodePemakaian[0];
+            $data['periode_end'] = $periodePemakaian[count($periodePemakaian) - 1] ?? null;
+        }
+        
         $pdf = PDF::loadView('report.invoice', $data);
 
         $pdf->render();
