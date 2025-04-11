@@ -30,14 +30,14 @@ class Kontrak_pengguna extends Model
     ];
 
     protected $appends = [
-        'permohonan_pengguna_hash'
+        'kontrak_pengguna_hash'
     ];
 
     protected $casts = [
         'id_radiasi' => 'array'
     ];
 
-    public function getPermohonanPenggunaHashAttribute()
+    public function getKontrakPenggunaHashAttribute()
     {
         return encryptor($this->id_pengguna);
     }

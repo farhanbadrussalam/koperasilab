@@ -306,7 +306,7 @@ class Invoice {
             $('#paymentProofImage').empty();
             let htmlBukti = '';
             for (const bukti of media) {
-                htmlBukti = `
+                htmlBukti += `
                     <li class="w-50">
                         <a class="show-popup-image" href="${base_url}/storage/${bukti.file_path}/${bukti.file_hash}">
                         <img src="${base_url}/storage/${bukti.file_path}/${bukti.file_hash}" alt="Bukti Pembayaran" class="img-fluid rounded img-thumbnail">

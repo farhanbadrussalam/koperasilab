@@ -13,13 +13,12 @@ $(function () {
             if(perusahaan.alamat[obj.target.value]){
                 $('#txt_alamat').val(perusahaan.alamat[obj.target.value].alamat + ", "+ perusahaan.alamat[obj.target.value].kode_pos);
             }else{
-                $('#txt_alamat').val('');                
+                $('#txt_alamat').val('');
             }
         }
     });
 
-    loadTldKontrol();
-    loadPengguna();
+    loadTld();
 
     $('#checkAllTldPengguna').on('change', function() {
         const isChecked = $(this).is(':checked');
@@ -28,32 +27,35 @@ $(function () {
 })
 
 function loadTld() {
-    let tld = dataKontrak.list_tld;
+    let tldPengguna = dataKontrak.rincian_list_tld.filter(tld => tld.pengguna);
+    let tldKontrol = dataKontrak.rincian_list_tld.filter(tld => !tld.pengguna);
 
-    let html = '';
-    for (const [i, value] of tld.entries()) {
-        html += `
-            <li class="list-group-item px-0">
-                <input class="form-check-input form-check-lg" type="checkbox" value="${value}" id="flexCheckTld${i}" name="flexCheckTld" checked>
-                <label class="form-check-label" for="flexCheckTld${i}">${value}</label>
-            </li>
-        `;
-    }
+    loadTldKontrol(tldKontrol);
+    loadPengguna(tldPengguna);
 
-    $('#listTld').html(html);
+    // let html = '';
+    // for (const [i, value] of tld.entries()) {
+    //     html += `
+    //         <li class="list-group-item px-0">
+    //             <input class="form-check-input form-check-lg" type="checkbox" value="${value}" id="flexCheckTld${i}" name="flexCheckTld" checked>
+    //             <label class="form-check-label" for="flexCheckTld${i}">${value}</label>
+    //         </li>
+    //     `;
+    // }
+
+    // $('#listTld').html(html);
 }
 
-function loadTldKontrol() {
-    let kontrak = dataPermohonan ? dataPermohonan : dataKontrak;
-    let htmlTldKontrol = ``;
-    for (const [i, list] of kontrak.tldKontrol.entries()) {
+function loadTldKontrol(tldKontrol) {
+    let htmlTldKontrol = '';
+    for (const [i, list] of tldKontrol.entries()) {
         htmlTldKontrol += `
             <div class="w-50 pe-1 mb-1 input-group">
                 <div class="input-group-text">
-                    <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.tld_hash}" aria-label="Checkbox for following text input">
+                    <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
                 </div>
                 <select class="form-select kodeTldKontrol" name="kodeTldKontrol">
-                    <option value="${list.tld_hash}" selected>${list.kode_lencana}</option>
+                    <option value="${list.tld.tld_hash}" selected>${list.tld.kode_lencana}</option>
                 </select>
             </div>
         `;
@@ -62,43 +64,45 @@ function loadTldKontrol() {
     $('#tld-kontrol-content').html(htmlTldKontrol);
 }
 
-function loadPengguna(){
+function loadPengguna(tldPengguna){
     let pengguna = dataPermohonan ? dataPermohonan.pengguna : dataKontrak.pengguna;
 
     let htmlPengguna = '';
     for (const [i, value] of pengguna.entries()) {
         let txtRadiasi = '';
-            let options = '';
-            value.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
-            if(value.tld_pengguna){
-                options = `<option value="${value.tld_pengguna.tld_hash}">${value.tld_pengguna.kode_lencana}</option>`;
-            } else {
-                options = `<option value="">Pilih Kode lencana</option>`;
-            }
-            
-            htmlPengguna += `
-                <tr>
-                    <td>
-                        <input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${value.permohonan_pengguna_hash}" aria-label="" id="checkTldPengguna${i}">
-                    </td>
-                    <td>${i + 1}</td>
-                    <td>
-                        <div>${value.nama}</div>
-                        <small class="text-body-secondary fw-light">${value.posisi}</small>
-                    </td>
-                    <td>${txtRadiasi}</td>
-                    <td>
-                        <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${value.permohonan_pengguna_hash}" data-id="${value.permohonan_pengguna_hash}">
-                            ${options}
-                        </select>
-                    </td>
-                    <td>
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.media.file_path}/${value.media.file_hash}" title="Show ktp">
-                            <i class="bi bi-file-person-fill"></i>
-                        </a>
-                    </td>
-                </tr>
-            `;
+        let options = '';
+        value.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
+
+        let dataTld = tldPengguna.find(tld => tld.pengguna.kontrak_pengguna_hash == value.kontrak_pengguna_hash);
+        if(dataTld.tld){
+            options = `<option value="${dataTld.tld.tld_hash}">${dataTld.tld.kode_lencana}</option>`;
+        } else {
+            options = `<option value="">Pilih Kode lencana</option>`;
+        }
+        
+        htmlPengguna += `
+            <tr>
+                <td>
+                    <input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${dataTld.kontrak_tld_hash}" aria-label="" id="checkTldPengguna${i}">
+                </td>
+                <td>${i + 1}</td>
+                <td>
+                    <div>${value.nama}</div>
+                    <small class="text-body-secondary fw-light">${value.posisi}</small>
+                </td>
+                <td>${txtRadiasi}</td>
+                <td>
+                    <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${value.permohonan_pengguna_hash}" data-id="${value.permohonan_pengguna_hash}">
+                        ${options}
+                    </select>
+                </td>
+                <td>
+                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.media.file_path}/${value.media.file_hash}" title="Show ktp">
+                        <i class="bi bi-file-person-fill"></i>
+                    </a>
+                </td>
+            </tr>
+        `;
     }
 
     $('#pengguna-list-container').html(htmlPengguna);
@@ -112,15 +116,10 @@ function buatPermohonan(obj){
     let periode = dataPeriodeNow;
     let alamatIndex = $('#selectAlamat').val();
 
-    let checkTldPengguna = [];
-    let checkTldKontrol = [];
-    $('input[name="checkTldPengguna"]:checked').each(function() {
-        checkTldPengguna.push($(this).val());
+    let checkTld = [];
+    $('input[name="checkTldPengguna"]:checked, input[name="checkTldKontrol"]:checked').each(function() {
+        checkTld.push($(this).val());
     });
-    $('input[name="checkTldKontrol"]:checked').each(function() {
-        checkTldKontrol.push($(this).val());
-    });
-    // return;
 
     if(!alamatIndex){
         Swal.fire({
@@ -144,14 +143,17 @@ function buatPermohonan(obj){
 
             let alamatData = dataKontrak.pelanggan.perusahaan.alamat[alamatIndex]; // Get address data
 
+            console.log(checkTld);
+            return;
             const params = new FormData();
             params.append('jenisLayanan2', jenisLayanan);
             params.append('jenisLayanan1', jenisLayananParent);
             params.append('idKontrak', idKontrak);
             params.append('periode', periode?.periode);
             params.append('alamat', alamatData.alamat_hash); // Send the address hash
-            params.append('dataTld', JSON.stringify(checkTldKontrol));
-            params.append('tldPengguna', JSON.stringify(checkTldPengguna));
+            // params.append('dataTld', JSON.stringify(checkTldKontrol));
+            // params.append('tldPengguna', JSON.stringify(checkTldPengguna));
+            params.append('listTld', JSON.stringify(checkTld));
             params.append('createBy', userActive.user_hash);
             params.append('tipeKontrak', 'kontrak lama');
             dataPermohonan ? params.append('idPermohonan', dataPermohonan.permohonan_hash) : false;

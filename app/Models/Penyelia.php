@@ -14,6 +14,7 @@ class Penyelia extends Model
     
     protected $fillable = [
         'id_permohonan',
+        'id_pengiriman',
         'start_date',
         'end_date',
         'periode',

@@ -136,13 +136,11 @@ function loadData(page = 1, menu) {
                     }
                     // status jobs yang aktif
                     let htmlStatus = statusFormat('penyelia', penyelia.status);
-                    if(penyelia.status == 10) {
-                        const aktifJobs = penyelia.penyelia_map.filter(d => d.status == 1);
+                    const aktifJobs = penyelia.penyelia_map.filter(d => d.status == 1);
+                    aktifJobs.map(d => {
+                        htmlStatus += statusFormat('penyelia', d.jobs.status);
+                    });
 
-                        aktifJobs.map(d => {
-                            htmlStatus += statusFormat('penyelia', d.jobs.status);
-                        })
-                    }
                     html += `
                         <div class="card mb-2">
                             <div class="card-body row align-items-center py-2 position-relative">

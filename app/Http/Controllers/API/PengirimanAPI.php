@@ -19,6 +19,8 @@ use App\Models\Keuangan;
 use App\Models\Penyelia;
 use App\Models\Kontrak;
 use App\Models\Kontrak_pengguna;
+use App\Models\Kontrak_tld;
+use App\Models\Kontrak_periode;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -44,7 +46,7 @@ class PengirimanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Permohonan::with(
+            $query = Permohonan::with([
                         'layanan_jasa:id_layanan,nama_layanan',
                         'jenisTld:id_jenisTld,name', 
                         'jenis_layanan:id_jenisLayanan,name,parent',
@@ -53,6 +55,8 @@ class PengirimanAPI extends Controller
                         'pelanggan.perusahaan',
                         'kontrak',
                         'kontrak.periode',
+                        'kontrak.pengiriman',
+                        'kontrak.pengiriman.detail',
                         'pengiriman',
                         'invoice',
                         'invoice.pengiriman',
@@ -63,7 +67,7 @@ class PengirimanAPI extends Controller
                         'lhu.penyelia_map.jobs',
                         'lhu.petugas',
                         'file_lhu'
-                    )->when($search, function($q, $search){
+                    ])->when($search, function($q, $search){
                         return $q->where('no_kontrak', 'like', "%$search%");
                     })
                     ->whereIn('status', [2, 3, 4, 5])
@@ -71,7 +75,7 @@ class PengirimanAPI extends Controller
                     ->offset(($page - 1) * $limit)
                     ->limit($limit)
                     ->paginate($limit);
-
+                    
             $arr = $query->toArray();
             DB::commit();
             $this->pagination = Arr::except($arr, 'data');
@@ -95,10 +99,9 @@ class PengirimanAPI extends Controller
         DB::beginTransaction();
         try {
             $query = Pengiriman::with(
-                        'permohonan:id_permohonan,periode_pemakaian,created_by',
-                        'permohonan.pelanggan',
-                        'permohonan.pelanggan.perusahaan',
                         'kontrak',
+                        'kontrak.pelanggan',
+                        'kontrak.pelanggan.perusahaan',
                         'detail',
                         'alamat'
                     )->orderBy('created_at', 'DESC')
@@ -133,7 +136,7 @@ class PengirimanAPI extends Controller
         try {
             $query = Pengiriman::with([
                 'ekspedisi',
-                'kontrak:id_kontrak,no_kontrak',
+                'kontrak',
                 'detail',
                 'alamat',
                 'tujuan:id,id_perusahaan,name',
@@ -143,10 +146,7 @@ class PengirimanAPI extends Controller
                 'permohonan.pelanggan.perusahaan',
                 'permohonan.invoice',
                 'permohonan.lhu',
-                'permohonan.lhu.media',
-                'permohonan.dokumen' => function ($q) {
-                    $q->where('jenis', 'surpeng');
-                },
+                'permohonan.lhu.media'
             ])->where('id_pengiriman', $id)->first();
 
             // mengambil media pengiriman
@@ -291,7 +291,6 @@ class PengirimanAPI extends Controller
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
-
             $query = Pengiriman::updateOrCreate(
                 ["id_pengiriman" => $idPengiriman],
                 $params
@@ -305,33 +304,26 @@ class PengirimanAPI extends Controller
 
             // jika status 2 = pengiriman selesai maka mengganti list_tld di tabel kontrak
             if ($status == 2 && $pengiriman->kontrak) {
-                $tldKontrol = [];
-                $tldPengguna = [];
+                $listTld = [];
                 
-                foreach ($pengiriman->detail as $item) {
-                    if ($item->jenis === 'tld') {
-                        $tldKontrol = array_map('intval', $item->tld_kontrol);
-                        $tldPengguna = $item->tld_pengguna;
-                    }
+                $listTld = array_map('intval', $pengiriman->detail->where('jenis', 'tld')->pluck('list_tld')->flatten()->toArray());
+            
+                if (!empty($listTld)) {
+                    // mengganti status di kontrak_tld menjadi 2 artinya sudah diterima oleh pelanggan
+                    Kontrak_tld::where('id_kontrak', $pengiriman->id_kontrak)
+                        ->where('status', 1)
+                        ->whereIn('id_tld', $listTld)
+                        ->update(['status' => 2]);
                 }
 
-            
-                if (!empty($tldKontrol)) {
-                    if($pengiriman->kontrak->list_tld){
-                        Master_tld::whereIn('id_tld', $pengiriman->kontrak->list_tld)->update(['status' => 2]);
-                    }
-                    $pengiriman->kontrak->update(['list_tld' => $tldKontrol]);
-                    Master_tld::whereIn('id_tld', $tldKontrol)->update(['status' => 1]);
-                }
-            
-                if (!empty($tldPengguna)) {
-                    foreach ($tldPengguna as $item) {
-                        $pengguna = $pengiriman->kontrak->pengguna->where('file_ktp', $item['id_ktp'])->first();
-                        if ($pengguna) {
-                            Master_tld::where('id_tld', $pengguna->id_tld)->update(['status' => 2]);
-                            $pengguna->update(['id_tld' => $item['tld']]);
-                            Master_tld::where('id_tld', $item['tld'])->update(['status' => 1]);
-                        }
+                // Mengecek semua proses dan pengiriman selesai semua di periode terakhir
+
+                // Mengambil last periode
+                $kontrakPeriode = Kontrak_periode::where('id_kontrak', $pengiriman->id_kontrak)->orderBy('periode', 'desc')->first();
+                if ($kontrakPeriode) {
+                    $isLast = $kontrakPeriode->periode == $pengiriman->periode ? true : false;
+                    if($isLast){
+                        Kontrak::where('id_kontrak', $pengiriman->id_kontrak)->update(['status' => 2]);
                     }
                 }
             } else if ($status == 3 && isset($pengiriman->kontrak)) {
@@ -354,30 +346,39 @@ class PengirimanAPI extends Controller
                         'periode' => $value->periode ?? null,
                     );
 
-                    if($value->tldKontrol){
-                        $params['tld_kontrol'] = [];
-                        foreach ($value->tldKontrol as $tld) {
-                            $params['tld_kontrol'][] = (int) decryptor($tld->tld);
-                            $kontrol = Master_tld::updateOrCreate(['id_tld' => decryptor($tld->tld)], [
-                                'status' => 1,
-                                'jenis' => 'kontrol',
-                            ]);
+                    if($value->listTld){
+                        $params['list_tld'] = [];
+                        foreach ($value->listTld as $val) {
+                            // mengambil data kontrak_tld
+                            $kontrakTld = Kontrak_tld::with('pengguna')->where('id_kontrak_tld', decryptor($val->id))->first();
+                            $jenis = '';
+                            $idTld = false;
+                            if(!decryptor($val->tld)){
+                                $createMasterTld = Master_tld::create([
+                                    'kode_lencana' => $val->tld,
+                                    'jenis' => $kontrakTld->pengguna ? 'pengguna' : 'kontrol',
+                                    'status' => 1
+                                ]);
+
+                                $idTld = $createMasterTld->id_tld;
+                                $kontrakTld->update(array('id_tld' => $idTld, 'status' => 1));
+                            }else{
+                                $kontrakTld->update(array('status' => 1));
+                                $idTld = decryptor($val->tld);
+                            }
+                            
+                            $params['list_tld'][] = (int) $idTld;
                         }
                     }
-                    if($value->tldPengguna){
-                        $params['tld_pengguna'] = [];
-                        foreach ($value->tldPengguna as $tld) {
-                            // mengambil id ktp dari permohonan_pengguna
-                            $idKtp = Kontrak_pengguna::select('file_ktp')->find(decryptor($tld->id));
-                            $params['tld_pengguna'][] = array(
-                                "id_ktp" => $idKtp->file_ktp,
-                                "tld" => decryptor($tld->tld)
-                            );
-                            $tldData = Master_tld::updateOrCreate(['id_tld' => decryptor($tld->tld)], [
-                                'status' => 1,
-                                'jenis' => 'pengguna',
-                            ]);
-                        }
+
+                    if($value->jenis == 'tld') {
+                        $params['nomer_surpeng'] = generateNoDokumen('surpeng');
+                        Kontrak_periode::where('id_kontrak', $idKontrak)
+                        ->where('periode', $value->periode)
+                        ->update([
+                            'nomer_surpeng' => $params['nomer_surpeng'],
+                            'created_surpeng_at' => Carbon::now()
+                        ]);
                     }
                     
                     Pengiriman_detail::create($params);
@@ -386,9 +387,15 @@ class PengirimanAPI extends Controller
                     if($value->jenis == 'invoice'){
                         $invoice = Keuangan::where('id_keuangan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
                     } else if($value->jenis == 'lhu'){
-                        $lhu = Penyelia::where('id_penyelia', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+                        $penyelia = Penyelia::where('id_penyelia', decryptor($value->id))->first();
+                        if($penyelia){
+                            $penyelia->update(['id_pengiriman' => $idPengiriman]);
+                            Permohonan::where('id_permohonan', $penyelia->id_permohonan)->update(['id_pengiriman' => $idPengiriman]);
+                        }
                     } else if($value->jenis == 'tld'){
-                        $tld = Permohonan::where('id_permohonan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+                        if($value->id){
+                            $tld = Permohonan::where('id_permohonan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+                        }
                     }
                 }
             }
@@ -434,7 +441,7 @@ class PengirimanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $fileBukti = Pengiriman::select('bukti_pengiriman','bukti_penerima')->where('id_pengiriman', $id)->first();
+            $fileBukti = Pengiriman::select('bukti_pengiriman','bukti_penerima', 'id_kontrak', 'periode')->where('id_pengiriman', $id)->first();
             $delete = Pengiriman::where('id_pengiriman', $id)->delete();
             $detail = Pengiriman_detail::where('id_pengiriman', $id)->delete();
 
@@ -442,6 +449,12 @@ class PengirimanAPI extends Controller
             Keuangan::where('id_pengiriman', $id)->update(['id_pengiriman' => null]);
             Penyelia::where('id_pengiriman', $id)->update(['id_pengiriman' => null]);
             Permohonan::where('id_pengiriman', $id)->update(['id_pengiriman' => null]);
+            Kontrak_periode::where('id_kontrak', $fileBukti->id_kontrak)
+            ->where('periode', $fileBukti->periode)
+            ->update([
+                'nomer_surpeng' => null,
+                'created_surpeng_at' => null
+            ]);
 
             DB::commit();
 

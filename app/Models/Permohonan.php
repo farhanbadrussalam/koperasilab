@@ -132,4 +132,8 @@ class Permohonan extends Model
     public function periodenow(){
         return $this->belongsTo(Kontrak_periode::class, 'id_permohonan', 'id_permohonan');
     }
+
+    public function rincian_list_tld(){
+        return $this->hasMany(Permohonan_tld::class, 'id_permohonan', 'id_permohonan');
+    }
 }

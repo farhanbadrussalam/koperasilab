@@ -87,4 +87,8 @@ class Kontrak extends Model
     public function invoice() {
         return $this->belongsTo(Keuangan::class, 'id_keuangan', 'id_keuangan');
     }
+
+    public function rincian_list_tld(){
+        return $this->hasMany(Kontrak_tld::class, 'id_kontrak', 'id_kontrak');
+    }
 }

@@ -18,6 +18,7 @@ class Kontrak_periode extends Model
         'id_permohonan',
         'start_date',
         'end_date',
+        'nomer_surpeng',
         'status',
         'created_by',
         'created_at'

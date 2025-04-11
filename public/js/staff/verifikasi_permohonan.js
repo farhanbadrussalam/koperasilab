@@ -23,8 +23,7 @@ $(function () {
     signaturePad = signature(conten_2, {
         text: 'Front desk'
     });
-    loadPengguna();
-    loadTldKontrol();
+    loadTld();
     $('#btn-tandaterima').on('click', () => {
         if(tandaterima){
             loadPertanyaan();
@@ -209,7 +208,18 @@ function toggleReason(index, enable) {
     $(`#reason_${index}`).prop('disabled', !enable);
 }
 
-function loadTldKontrol(){
+function loadTld(){
+    ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
+        // filter untuk memisahkan antara tld pengguna dan tld kontrol
+        let tldPengguna = result.data.filter(tld => tld.pengguna);
+        let tldKontrol = result.data.filter(tld => !tld.pengguna);
+        
+        loadTldKontrol(tldKontrol);
+        loadPengguna(tldPengguna);
+    });
+}
+
+function loadTldKontrol(tldKontrol){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
         let htmlDisabled = '';
@@ -217,19 +227,19 @@ function loadTldKontrol(){
         if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
             htmlDisabled = 'disabled';
         }
-        for(let i = 0; i < dataPermohonan.jumlah_kontrol; i++){
-            let options = '';
-            if(dataPermohonan.tldKontrol && dataPermohonan.tldKontrol[i]){
-                options = `<option value="${dataPermohonan.tldKontrol[i].tld_hash ?? dataPermohonan.tldKontrol[i]}" selected>${dataPermohonan.tldKontrol[i].kode_lencana ?? dataPermohonan.tldKontrol[i]}</option>`
-            }else if(result.data[i]){
+        for(const [i,iKontrol] of tldKontrol.entries()){
+            let options = `<option value="">Pilih Kode lencana</option>`;
+            if(iKontrol.tld) {
+                options = `<option value="${iKontrol.tld.tld_hash}" selected>${iKontrol.tld.kode_lencana}</option>`
+            } else if(iKontrol.tld_tmp){
+                options = `<option value="${iKontrol.tld_tmp}" selected>${iKontrol.tld_tmp}</option>`
+            } else if(result.data[i]){
                 options = `<option value="${result.data[i].tld_hash}" selected>${result.data[i].kode_lencana}</option>`;
-            }else{
-                options = `<option value="">Pilih Kode lencana</option>`;
             }
             html += `
                 <div class="col-sm-6 mt-2">
                     <label for="" class="mb-2">Kode Lencana Kontrol ${i+1}</label>
-                    <select class="form-select kodeTldKontrol" name="tld_kontrol[]" ${htmlDisabled}>
+                    <select class="form-select kodeTldKontrol" name="tld_kontrol[]" data-id="${iKontrol.permohonan_tld_hash}" ${htmlDisabled}>
                         ${options}
                     </select>
                 </div>
@@ -287,7 +297,7 @@ function loadTldKontrol(){
         })
     });
 }
-function loadPengguna(){
+function loadPengguna(tldPengguna){
     let params = {
         idPermohonan: dataPermohonan.permohonan_hash
     }
@@ -302,12 +312,21 @@ function loadPengguna(){
         }
         for (const [i,pengguna] of result.data.entries()) {
             let txtRadiasi = '';
-            let options = '';
+            let options = `<option value="">Pilih Kode lencana</option>`;
+            // RADIASI
             pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
-            if(pengguna.tld_pengguna){
-                options = `<option value="${pengguna.tld_pengguna.tld_hash ?? pengguna.tld_pengguna}">${pengguna.tld_pengguna.kode_lencana ?? pengguna.tld_pengguna}</option>`;
-            } else {
-                options = `<option value="">Pilih Kode lencana</option>`;
+
+            // TLD PENGGUNA
+            const iPengguna = tldPengguna.find(d => d.pengguna?.permohonan_pengguna_hash == pengguna.permohonan_pengguna_hash)
+
+            if(iPengguna){
+                if(iPengguna.tld){
+                    options = `<option value="${iPengguna.tld.tld_hash}">${iPengguna.tld.kode_lencana}</option>`;
+                } else if(iPengguna.tld_tmp){
+                    options = `<option value="${iPengguna.tld_tmp}">${iPengguna.tld_tmp}</option>`;
+                } else if(pengguna.tld_pengguna) {
+                    options = `<option value="${pengguna.tld_pengguna.tld_hash}">${pengguna.tld_pengguna.kode_lencana}</option>`
+                }
             }
             
             html += `
@@ -319,7 +338,7 @@ function loadPengguna(){
                     </td>
                     <td>${txtRadiasi}</td>
                     <td>
-                        <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${pengguna.permohonan_pengguna_hash}" data-id="${pengguna.permohonan_pengguna_hash}" ${htmlDisabled}>
+                        <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${pengguna.permohonan_pengguna_hash}" data-id="${iPengguna?.permohonan_tld_hash}" ${htmlDisabled}>
                             ${options}
                         </select>
                     </td>
@@ -419,18 +438,17 @@ function verif_kelengkapan(status, obj){
             });
         }
 
-        let checkedTldValues = $('select[name="kodeTldPengguna"]').map(function() {
+        let listTld = [...$('select[name="kodeTldPengguna"]').map(function() {
             return {
                 id: $(this).data('id'),
                 tld: $(this).val()
             };
-        }).get();
-
-        let listTldKontrol = $('select[name="tld_kontrol[]"]').map(function() {
+        }).get(), ...$('select[name="tld_kontrol[]"]').map(function() {
             return {
+                id: $(this).data('id'),
                 tld: $(this).val()
             };
-        }).get();
+        }).get()];
         
         Swal.fire({
             icon: 'warning',
@@ -451,8 +469,7 @@ function verif_kelengkapan(status, obj){
                 formData.append('ttd', ttd);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
-                formData.append('listTld', JSON.stringify(checkedTldValues))
-                formData.append('tldKontrol', JSON.stringify(listTldKontrol));
+                formData.append('listTld', JSON.stringify(listTld));
 
                 spinner('show', obj);
                 ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {

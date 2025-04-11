@@ -388,6 +388,7 @@ $(function () {
         $('#nama_pengguna').val('');
         $('#divisi_pengguna').val('');
         $('#jenis_radiasi').val(null).trigger('change');
+        $('#kodeLencanaPengguna').val('');
         setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
     });
 })
@@ -433,7 +434,7 @@ function loadPengguna(){
                                 </div>
                             </div>
                             <div class="col-auto ms-auto">
-                                <span class="fw-bold">${pengguna.tld ?? ''}</span>
+                                <span class="fw-bold">${pengguna.permohonan_tld.tld_tmp ?? ''}</span>
                             </div>
                             <div class="col-auto text-end ms-auto">
                                 <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>

@@ -6,6 +6,7 @@ use App\Models\notifikasi;
 use App\Models\User;
 use App\Models\Penyelia;
 use App\Models\Permohonan_dokumen;
+use App\Models\Pengiriman_detail;
 use Illuminate\Support\Facades\Crypt;
 
 if (!function_exists('formatCurrency')) {
@@ -390,10 +391,17 @@ if (!function_exists('generateNoDokumen')) {
         $lastContractNumber = 1;
 
         // Incremental number
-        $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
-                                ->whereMonth('created_at', $bulanSekarang)
-                                ->whereYear('created_at', $tahunSekarang)
-                                ->count(); // Ubah dengan pengambilan nomor terakhir dari database
+        if($jenis != 'surpeng'){
+            $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
+                                    ->whereMonth('created_at', $bulanSekarang)
+                                    ->whereYear('created_at', $tahunSekarang)
+                                    ->count(); // Ubah dengan pengambilan nomor terakhir dari database
+        }else{
+            $lastContractNumber = Pengiriman_detail::where('nomer_surpeng', '!=', null)
+                                    ->whereMonth('created_at', $bulanSekarang)
+                                    ->whereYear('created_at', $tahunSekarang)
+                                    ->count();
+        }
         $increment = str_pad($lastContractNumber + 1, 4, '0', STR_PAD_LEFT);
 
         switch ($jenis) {

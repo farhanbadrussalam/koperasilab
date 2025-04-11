@@ -202,7 +202,6 @@ function clearFilter(){
 
 function countList(){
     ajaxGet('api/v1/permohonan/countList', false, result => {
-        console.log(result);
         const count = result.data.reduce((acc, cur) => {
             acc[cur.name] = (acc[cur.name] || 0) + cur.total;
             return acc;

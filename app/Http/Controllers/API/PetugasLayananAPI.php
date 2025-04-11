@@ -22,9 +22,15 @@ class PetugasLayananAPI extends Controller
     public function listPetugas(Request $request)
     {
         $idJobs = isset($request->idJobs) ? decryptor($request->idJobs) : false;
+        $search = $request->search ? $request->search : false;
         DB::beginTransaction();
         try {
-            $query = User::select('id','name', 'email')->whereRaw('JSON_CONTAINS(jobs, ?)', [$idJobs])->get();
+            $query = User::select('id','name', 'email')
+                    ->whereRaw('JSON_CONTAINS(jobs, ?)', [$idJobs])
+                    ->when($search, function($query, $search){
+                        return $query->where('name', 'like', "%$search%");
+                    })
+                    ->get();
             DB::commit();
 
             return $this->output($query);

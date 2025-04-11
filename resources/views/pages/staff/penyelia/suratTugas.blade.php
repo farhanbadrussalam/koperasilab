@@ -132,8 +132,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" class="form-control w-100" placeholder="Search petugas">
-                    <div class="pt-3" id="modal-list-petugas">
+                    <input type="text" class="form-control w-100" id="searchPetugas" placeholder="Pencarian petugas">
+                    <div class="pt-3 text-center overflow-auto" id="modal-list-petugas" style="height: 30vh;">
                         <div class="border-bottom py-1 d-flex justify-content-between px-2 hover-1 rounded">
                             <div>
                                 <span class="fw-medium">Ray Clarke</span>

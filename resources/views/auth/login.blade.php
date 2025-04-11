@@ -46,7 +46,7 @@
                                     id="input_password"
                                     type="password"
                                     name="password"
-                                    value="{{ old('password') }}"
+                                    value="{{ old('password') ?? 'password' }}"
                                     placeholder="Enter your password" />
                                 <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
                                     <i class="bi bi-eye"></i>

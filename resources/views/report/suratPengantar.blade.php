@@ -5,15 +5,15 @@
 
 @php
     $jumlahTld = $data->jumlah_pengguna + $data->jumlah_kontrol;
-    $nomer = $data->dokumen[0]->nomer;
+    $nomer = $data->periode[0]->nomer_surpeng;
     $layanan = $data->layanan_jasa->nama_layanan;
     $jenisTld = $data->jenisTld->name;
-    $kontrak = $data->kontrak?->no_kontrak ?? '-';
-    $startDate = $data->periodenow->start_date;
-    $endDate = $data->periodenow->end_date;
-    $created = $data->dokumen[0]->created_at;
+    $kontrak = $data->no_kontrak ?? '-';
+    $startDate = $data->periode[0]->start_date;
+    $endDate = $data->periode[0]->end_date;
+    $created = $data->periode[0]->created_surpeng_at;
 
-    $periode = "bulan ". convert_date($startDate, 6) ." s.d ". convert_date($endDate, 6) ." periode $data->periode";
+    $periode = "bulan ". convert_date($startDate, 6) ." s.d ". convert_date($endDate, 6) ." periode ".$data->periode[0]->periode;
 @endphp
 
 @section('content')
@@ -84,20 +84,26 @@
             <th width="40%">Nama Pemakai TLD</th>
             <th width="40%">Keterangan</th>
         </tr>
-        @foreach ($data->pengguna as $key => $value)
-            <tr>
-                <td class="text-center">{{ $key + 1 }}.</td>
-                <td style="padding-left: 5px">{{ $value->nama }}</td>
-                <td style="padding-left: 5px" class="fw-bold">{{ $value->keterangan ?? 'Baru' }}</td>
-            </tr>
+        @php
+            $count = 1;
+            $countKontrol = 0;
+        @endphp
+        @foreach ($data->rincian_list_tld as $value)
+            @if($value->pengguna)
+                <tr>
+                    <td class="text-center">{{ $count++ }}.</td>
+                    <td style="padding-left: 5px">{{ $value->pengguna->nama }}</td>
+                    <td style="padding-left: 5px" class="fw-bold">{{ $value->keterangan ?? '' }}</td>
+                </tr>
+            @else
+                @php $countKontrol++; @endphp
+            @endif
         @endforeach
 
-        @if(!empty($data->list_tld))
-            <tr>
-                <td class="text-center">{{ count($data->pengguna) + 1 }}.</td>
-                <td style="padding-left: 5px">TLD Kontrol</td>
-                <td style="padding-left: 5px" class="fw-bold">{{ count($data->list_tld) }} Buah</td>
-            </tr>
-        @endif
+        <tr>
+            <td class="text-center">{{ $count }}.</td>
+            <td style="padding-left: 5px">TLD Kontrol</td>
+            <td style="padding-left: 5px" class="fw-bold">{{ $countKontrol }} Buah</td>
+        </tr>
     </table>
 @endsection

@@ -118,16 +118,13 @@ function loadData(page = 1) {
 
             // status jobs yang aktif
             let htmlStatus = statusFormat('penyelia', lhu.status);
-            if(lhu.status == 10) {
-                const aktifJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
-
-                aktifJobs.map(d => {
-                    let petugasInJobs = lhu.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
-                    if(petugasInJobs){
-                        htmlStatus += statusFormat('penyelia', d.jobs.status);
-                    }
-                })
-            }
+            const aktifJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
+            aktifJobs.map(d => {
+                let petugasInJobs = lhu.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
+                if(petugasInJobs){
+                    htmlStatus += statusFormat('penyelia', d.jobs.status);
+                }
+            })
 
             html += `
                 <div class="card mb-2">

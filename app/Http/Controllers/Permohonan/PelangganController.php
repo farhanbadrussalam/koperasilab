@@ -45,7 +45,7 @@ class PelangganController extends Controller
         if($periodeNow){
             $periodeNext = Kontrak_periode::where('id_kontrak', decryptor($idKontrak))->where('periode', $periodeNow->periode+1)->first();
             // Mengambil Kontrak
-            $queryKontrak = Kontrak::with(
+            $queryKontrak = Kontrak::with([
                                 'layanan_jasa',
                                 'jenisTld:id_jenisTld,name',
                                 'jenis_layanan:id_jenisLayanan,name,parent',
@@ -56,9 +56,12 @@ class PelangganController extends Controller
                                 'pelanggan',
                                 'pelanggan.perusahaan',
                                 'pelanggan.perusahaan.alamat',
-                                'pengguna',
-                                'pengguna.tld_pengguna'
-                            )->where('id_kontrak', decryptor($idKontrak))->first();
+                                'rincian_list_tld' => function($q) use ($periodeNow){
+                                    return $q->where('periode', $periodeNow->periode-1);
+                                },
+                                'rincian_list_tld.tld',
+                                'rincian_list_tld.pengguna'
+                            ])->where('id_kontrak', decryptor($idKontrak))->first();
     
             if($queryKontrak && $queryKontrak->pengguna){
                 foreach($queryKontrak->pengguna as $key => $value){
@@ -66,9 +69,9 @@ class PelangganController extends Controller
                 }
             }
 
-            if($queryKontrak->list_tld && count($queryKontrak->list_tld) > 0){
-                $queryKontrak->tldKontrol = Master_tld::whereIn('id_tld', $queryKontrak->list_tld)->get();
-            }
+            // if($queryKontrak->list_tld && count($queryKontrak->list_tld) > 0){
+            //     $queryKontrak->tldKontrol = Master_tld::whereIn('id_tld', $queryKontrak->list_tld)->get();
+            // }
     
             // Mengambil jenis layanan Evaluasi - Dengan kontrak
             $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();

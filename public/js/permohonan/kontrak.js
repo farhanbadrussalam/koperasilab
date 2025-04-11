@@ -113,9 +113,12 @@ function loadData(page = 1) {
                     break;
                 }
             }
+            if(i == 1) {
+                console.log(activePeriode);
+            }
 
             let hidden = role === 'Pelanggan' ? 'd-none' : '';
-            
+
             html += `
                 <div class="card mb-2 smooth-height">
                     <div class="card-body row align-items-center py-2">
@@ -147,7 +150,7 @@ function loadData(page = 1) {
                         </div>
                         <div class="p-3 pb-0" id="listPeriodeNow${i}">
                             ${(() => {
-                                return htmlPeriode(activePeriode, i, cekStatusPeriode, arrFind, { active: true });
+                                return activePeriode ? htmlPeriode(activePeriode, i, cekStatusPeriode, arrFind, { active: true }) : '';
                             })()}
                         </div>
                         <div class="p-3 pb-0" id="listPeriode${i}" style="display:none">
@@ -255,7 +258,10 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         evaluasiState.active = isComplete;
     }else{
         if(role == 'Staff Pengiriman') {
-            (evaluasiState.active && !lastPeriode) && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
+            (!statusKirimTld && evaluasiState.active && !lastPeriode) && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
+            if([3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
+                htmlAction = '';
+            }
         } else if(role == 'Pelanggan' && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
             // 2 = Sewa, 3 = Evaluasi, 5 = Evaluasi - dengan kontrak
             evaluasiState.active && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);
@@ -286,9 +292,11 @@ function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
     // Cek apakah semua dokumen dalam arrFind sudah selesai
     for (const doc of arrFind) {
         let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
+        let lastPeriode = dataKontrak[index].periode[dataKontrak[index].periode.length - 1].periode == data.periode;
 
         if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
         if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
+        if (doc === 'tld' && lastPeriode) continue;
 
         // Jika ada dokumen yang statusnya bukan 2 (selesai), maka periode belum complete
         if (!findPeriode || findPeriode.status != 2) {

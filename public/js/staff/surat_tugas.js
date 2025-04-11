@@ -1,6 +1,7 @@
 let signaturePad = false;
 let arrJobs = [];
 let periodeJs = false;
+let objSelected = {};
 $(function () {
     // Mengambil periode
     let arrPeriode = dataPenyelia.permohonan.kontrak?.periode ?? dataPenyelia.permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
@@ -11,6 +12,11 @@ $(function () {
     }else{
         $('#periodePermohonan').html(`${dateFormat(findPeriode.start_date, 5)} - ${dateFormat(findPeriode.end_date, 5)}`);
     }
+
+    $('#searchPetugas').on('input', () => {
+        let val = $('#searchPetugas').val();
+        searchPetugasList(val);
+    });
 
     if(!['verif', 'show'].includes(typeSurat)){
         $('#date_start').flatpickr({
@@ -88,26 +94,59 @@ $(function () {
 })
 
 function tambahPetugas(idJobs, index, name, isParalel = false){
-    ajaxGet(`api/v1/petugas/list`, {idJobs : idJobs}, result => {
-        const data = result.data;
-        let html = '';
-        for (const petugas of data) {
-            html += `
-                <div class="border-bottom py-1 d-flex justify-content-between px-2 hover-1 rounded">
-                    <div>
-                        <span class="fw-medium">${petugas.name}</span>
-                        <span class="text-secondary"> - ${petugas.email}</span>
+    objSelected = {
+        idJobs: idJobs,
+        index: index,
+        isParalel: isParalel
+    }
+    $('#modal-list-petugas').html('');
+    $('#searchPetugas').val('');
+    searchPetugasList();
+    $('#modal-name-jobs').text(name);
+    $('#modalAddPetugas').modal('show');
+}
+
+function searchPetugasList(search = '') {
+    if(objSelected){
+        const idJobs = objSelected.idJobs;
+        const index = objSelected.index;
+        const isParalel = objSelected.isParalel;
+
+        $('#modal-list-petugas').html('');
+
+        spinner('show', $('#modal-list-petugas'), {
+            width: '40px',
+            height: '40px'
+        });
+        
+        ajaxGet(`api/v1/petugas/list`, {idJobs : idJobs, search : search}, result => {
+            const data = result.data;
+            let html = '';
+            for (const petugas of data) {
+                html += `
+                    <div class="border-bottom py-1 d-flex justify-content-between px-2 hover-1 rounded">
+                        <div>
+                            <span class="fw-medium">${petugas.name}</span>
+                            <span class="text-secondary"> - ${petugas.email}</span>
+                        </div>
+                        <div class="text-success cursoron" data-isParalel="${isParalel}" data-idjobs="${idJobs}" data-name="${petugas.name}" data-email="${petugas.email}" data-index="${index}" onclick="pilihPetugas(this,'${petugas.user_hash}')"><i class="bi bi-person-check"></i> Pilih</div>
                     </div>
-                    <div class="text-success cursoron" data-isParalel="${isParalel}" data-idjobs="${idJobs}" data-name="${petugas.name}" data-email="${petugas.email}" data-index="${index}" onclick="pilihPetugas(this,'${petugas.user_hash}')"><i class="bi bi-person-check"></i> Pilih</div>
-                </div>
-            `;
-        }
+                `;
+            }
 
-        $('#modal-name-jobs').text(name);
-        $('#modal-list-petugas').html(html);
-
-        $('#modalAddPetugas').modal('show');
-    });
+            if(data.length == 0){
+                html = `
+                    <div class="border-bottom py-1 d-flex justify-content-center px-2">
+                        <div>
+                            <span class="fw-medium">Tidak ada petugas</span>
+                        </div>
+                    </div>
+                `;
+            }
+    
+            $('#modal-list-petugas').html(html);
+        })
+    }
 }
 
 function pilihPetugas(obj,idPetugas){

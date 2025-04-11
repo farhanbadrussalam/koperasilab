@@ -21,7 +21,6 @@ function loadData(page = 1, menu) {
             let urlLaporanInvoice = data.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data.invoice.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
             let urlDocLhu = data.lhu?.status == 3 ? `<a href="${base_url}/storage/${data.lhu.media.file_path}/${data.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>` : '<i class="bi bi-printer-fill"></i> Cetak LHU';
             let arrDocCustom = [];
-            let statusDocument = true;
 
             // Data Invoice
             let htmlInvoice = '';
@@ -42,29 +41,43 @@ function loadData(page = 1, menu) {
                 </div>
             ` : false;
 
+            let aktifJobsLhu = data.lhu?.penyelia_map.filter(d => d.status == 1);
+
             // Data layanan jasa (TLD)
             let htmlTld = '';
-            htmlTld = `
-                <div class="col-md-12 mt-2">
-                    <div class="border-top py-2 d-flex justify-content-between align-items-center">
-                        <div class="px-2">
-                            <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
-                            <small class="text-body-tertiary"> - ${data.jumlah_pengguna} Pengguna + ${data.jumlah_kontrol} Kontrol</small>
-                            <small>${statusFormat('pengiriman', data.pengiriman?.status)}</small>
-                        </div>
-                        <div class="d-flex align-items-center gap-3 text-secondary">
+            let isLast = cekLastPeriode(data.kontrak.periode, data.periode);
+            let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.periode == data.periode && d.detail.find(c => c.jenis == 'tld'));
+            let htmlStatus = '';
+            // aktifJobsLhu.map(d => {
+            //     if(d.point_jobs){
+            //         htmlStatus += statusFormat('penyelia', d.jobs.status);
+            //     }
+            // })
+            
+            if(!isLast) {
+                htmlTld = `
+                    <div class="col-md-12 mt-2">
+                        <div class="border-top py-2 d-flex justify-content-between align-items-center">
+                            <div class="px-2">
+                                <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
+                                <small class="text-body-tertiary"> - ${data.jumlah_pengguna} Pengguna + ${data.jumlah_kontrol} Kontrol</small>
+                                <small>${statusFormat('pengiriman', cekStatusTldPengiriman ? cekStatusTldPengiriman.status : false)}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 text-secondary">
+                                <small>${htmlStatus}</small>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
 
             // Data LHU
             let htmlLhu = '';
-            let aktifJobsLhu = data.lhu?.penyelia_map.filter(d => d.status == 1);
-            let htmlStatusLhu = data.lhu ? statusFormat('penyelia', data.lhu.status) : '';
-            if(aktifJobsLhu) {
+            let htmlStatusLhu = statusFormat('penyelia', data.lhu.status);
+            // let htmlStatusLhu = data.lhu ? statusFormat('penyelia', data.lhu.status) : '';
+            if(aktifJobsLhu && data.lhu.status == 10) {
                 aktifJobsLhu.map(d => {
-                    htmlStatusLhu = statusFormat('penyelia', d.jobs.status);
+                    htmlStatusLhu += statusFormat('penyelia', d.jobs.status);
                 });
             }
             
@@ -197,6 +210,13 @@ function showPeriode(index) {
     periodeJs.on('periode.hide.modal', () => {
         periodeJs.destroy();
     });
+}
+
+function cekLastPeriode(periode_kontrak, periode_now){
+    // Ambil periode terakhir
+    const lastPeriode = periode_kontrak[periode_kontrak.length-1];
+    const isLast = periode_now == lastPeriode?.periode ? true : false;
+    return isLast;
 }
 
 function reload(){

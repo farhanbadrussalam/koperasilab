@@ -172,7 +172,7 @@ class ReportController extends Controller
  * @return \Illuminate\Http\Response The PDF stream response.
  */
 
-    public function suratPengantar($id  = null)
+    public function suratPengantar($id  = null, $periode = null)
     {
         $id = decryptor($id);
 
@@ -180,27 +180,21 @@ class ReportController extends Controller
             return redirect()->back();
         }
 
-        $query = Permohonan::with([
-            'jenisTld:id_jenisTld,name', 
+        $query = Kontrak::with([
+            'jenisTld:id_jenisTld,name',
             'pelanggan',
             'pelanggan.perusahaan',
-            'layanan_jasa',
-            'jenis_layanan',
-            'kontrak',
-            'kontrak.periode',
-            'dokumen' => function($query) {
-                return $query->where('jenis', 'surpeng');
-            },
+            'layanan_jasa:id_layanan,nama_layanan',
+            'jenis_layanan:id_jenisLayanan,name',
             'pengguna',
-            'periodenow',
-            'lhu',
-            'lhu.petugas',
-            'lhu.petugas.user:id,name',
-            'lhu.petugas.jobs:id_map,id_jobs',
-            'lhu.petugas.jobs.jobs:id_jobs,name',
-            'lhu.createBy',
-            'lhu.createBy.satuankerja',
-            'lhu.usersig:id,name',
+            'periode' => function($query) use ($periode) {
+                return $query->where('periode', $periode);
+            },
+            'rincian_list_tld' => function($query) {
+                return $query->where('status', 1);
+            },
+            'rincian_list_tld.tld',
+            'rincian_list_tld.pengguna'
         ])->find($id);
 
         $data['date'] = Carbon::now()->year;

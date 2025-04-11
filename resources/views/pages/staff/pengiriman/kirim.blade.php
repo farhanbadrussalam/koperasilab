@@ -23,20 +23,20 @@
                                 <label for="" class="form-label">Pelanggan</label>
                                 <input type="text" class="form-control bg-secondary-subtle" name="txtPelanggan"
                                     id="txtPelanggan"
-                                    value="{{ $permohonan->pelanggan->perusahaan->nama_perusahaan }} - {{ $permohonan->pelanggan->name }}"
+                                    value="{{ $informasi->pelanggan->perusahaan->nama_perusahaan }} - {{ $informasi->pelanggan->name }}"
                                     readonly>
                             </div>
                             <div class="col-md-6">
                                 <label for="" class="form-label">No kontrak</label>
                                 <input type="text" name="txt_no_kontrak" id="txt_no_kontrak"
-                                    class="form-control bg-secondary-subtle" value="{{ $permohonan->kontrak?->no_kontrak ?? '-' }}"
+                                    class="form-control bg-secondary-subtle" value="{{ $informasi->kontrak?->no_kontrak ?? $informasi->no_kontrak ?? '-' }}"
                                     readonly>
                             </div>
                             <div class="col-md-6">
                                 <label for="" class="form-label">Jenis</label>
                                 <input type="text" name="txt_jenis" id="txt_jenis"
                                     class="form-control bg-secondary-subtle"
-                                    value="{{ $permohonan->jenis_layanan_parent->name }}-{{ $permohonan->jenis_layanan->name }}"
+                                    value="{{ $informasi->jenis_layanan_parent->name }}-{{ $informasi->jenis_layanan->name }}"
                                     readonly>
                             </div>
                             <div class="col-md-6">
@@ -54,7 +54,7 @@
                             
                         </div>
                         <div class="d-flex justify-content-end mt-3">
-                            <a type="button" class="btn btn-secondary me-3 d-none" id="btnCetakSurat" href="{{ route('laporan.surpeng', $permohonan->permohonan_hash) }}" target="_blank"><i
+                            <a type="button" class="btn btn-secondary me-3 d-none" id="btnCetakSurat" target="_blank"><i
                                     class="bi bi-printer-fill"></i> Cetak Surat Pengantar</a>
                             <button type="button" class="btn btn-primary" onclick="buatPengiriman(this)">Buat pengiriman</button>
                         </div>
@@ -79,7 +79,9 @@
 
 @push('scripts')
     <script>
-        const permohonan = @json($permohonan);
+        const informasi = @json($informasi);
+        const periodeNow = @json($periode);
+        const status_tld = @json($status_tld);
     </script>
     <script src="{{ asset('js/staff/pengiriman_send.js') }}"></script>
 @endpush

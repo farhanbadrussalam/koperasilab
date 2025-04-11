@@ -58,11 +58,12 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("permohonan")->controller(PermohonanAPI::class)->group(function () {
         Route::delete('/destroyPermohonan/{id}', 'destroyPermohonan');
         Route::get('/listPengajuan', 'listPengajuan');
+        Route::get('/listPengguna', 'listPengguna');
+        Route::get('/loadTld', 'loadTld');
         Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
         Route::post('/tambahPengguna', 'tambahPengguna');
         Route::delete('/destroyPengguna/{idPengguna}', 'destroyPengguna');
-        Route::get('/listPengguna', 'listPengguna');
         Route::get('/getChildJenisLayanan/{idParent}', 'getChildJenisLayanan');
         Route::get('/getJenisTld/{idJenisLayanan}', 'getJenisTld');
         Route::get('/getPrice', 'getPrice');

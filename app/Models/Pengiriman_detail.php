@@ -11,14 +11,13 @@ class Pengiriman_detail extends Model
 
     protected $table = 'pengiriman_detail';
     protected $primaryKey = 'id_pengiriman_detail';
-    public $timestamps = false;
 
     protected $fillable = [
         'id_pengiriman',
         'jenis',
         'periode',
-        'tld_kontrol',
-        'tld_pengguna'
+        'list_tld',
+        'nomer_surpeng'
     ];
 
     protected $hidden = [
@@ -32,8 +31,7 @@ class Pengiriman_detail extends Model
     ];
 
     protected $casts = [
-        'tld_kontrol' => 'array',
-        'tld_pengguna' => 'array'
+        'list_tld' => 'array',
     ];
 
     public function getPengirimanDetailHashAttribute()

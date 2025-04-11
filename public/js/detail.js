@@ -654,27 +654,23 @@ class Detail {
                 tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
                 break;
             case 'penyelia':
-                tldKontrol = this.data.permohonan.tld_kontrol ?? false;
-                tldPengguna = this.data.permohonan.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.permohonan.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
+                listTld = this.data.permohonan.rincian_list_tld ?? [];
                 break;
         
             default:
                 break;
         }
-        if(tldKontrol && tldPengguna){
-            listTld = [...tldPengguna, ...tldKontrol];
-        }
 
         if (listTld.length > 0) {
             return `
                 <ul class="list-group list-group-flush">
-                    ${listTld.map((pengguna, i) => 
+                    ${listTld.map((data, i) => 
                         `<li class="list-group-item d-flex justify-content-between">
                             <div>
                                 <span>${i + 1}. </span>
-                                <span>${pengguna.name ?? 'TLD Kontrol'}</span>
+                                <span>${data.pengguna?.nama ?? 'TLD Kontrol'}</span>
                             </div>
-                            <span>${pengguna.kode_lencana}</span>
+                            <span>${data.tld.kode_lencana}</span>
                         </li>`
                     ).join('')}
                 </ul>

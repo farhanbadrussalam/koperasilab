@@ -125,7 +125,7 @@ function loadData(page = 1) {
                             ${data.detail.length} Item
                         </div>
                         <div class="col-6 col-md-2">
-                            <span>${data.permohonan.pelanggan.perusahaan.nama_perusahaan}</span>
+                            <span>${data.kontrak.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
                                     Alamat ${data.alamat.jenis}
@@ -184,28 +184,6 @@ function showModalDiterima(obj){
         const data = result.data;
         $('#idPengiriman').val(id);
         buktiPengiriman.addData(data.media_pengiriman);
-        let htmlSurpeng = '';
-        for (const dok of data.permohonan.dokumen) {
-            htmlSurpeng += `
-                <div
-                    class="d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border">
-                        <a class="d-flex align-items-center w-100" href="${base_url}/laporan/${dok.jenis}/${dok.permohonan_hash}" target="_blank">
-                            <div>
-                                <img class="my-3" src="${base_url}/icons/${iconDocument('application/pdf')}" alt=""
-                                    style="width: 24px; height: 24px;">
-                            </div>
-                            <div class="flex-grow-1 ms-2">
-                                <div class="d-flex flex-column">
-                                    <span class="caption text-main">${dok.nama}</span>
-                                    <span class="text-submain caption text-secondary">${dateFormat(dok.created_at, 1)}</span>
-                                </div>
-                            </div>
-                        </a>
-                    <div class="d-flex align-items-center"></div>
-                </div>
-            `;
-        }
-        $('#surpengDiv').html(htmlSurpeng);
 
         // Inisialiasi Date
         $('#txt_date_diterima').flatpickr({
@@ -255,14 +233,37 @@ function showModalDiterima(obj){
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold">TLD <span class="text-secondary fw-normal">- ${data.permohonan.jumlah_pengguna} Pengguna + ${data.permohonan.jumlah_kontrol} Kontrol</span></div>
+                                <div class="fw-bold">TLD <span class="text-secondary fw-normal">- ${data.kontrak.jumlah_pengguna} Pengguna + ${data.kontrak.jumlah_kontrol} Kontrol</span></div>
                                 <div></div>
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentTld" 
-                                data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}" 
-                                autocomplete="off" >
+                                data-jenis="${detail.jenis}" autocomplete="off" >
                         </li>
                     `;
+
+                    // Menampilkan dokumen surpeng
+                    let htmlSurpeng = '';
+                    if(detail.nomer_surpeng){
+                        htmlSurpeng += `
+                            <div
+                                class="d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border">
+                                    <a class="d-flex align-items-center w-100" href="${base_url}/laporan/surpeng/${data.kontrak.kontrak_hash}/${data.periode ?? 0}" target="_blank">
+                                        <div>
+                                            <img class="my-3" src="${base_url}/icons/${iconDocument('application/pdf')}" alt=""
+                                                style="width: 24px; height: 24px;">
+                                        </div>
+                                        <div class="flex-grow-1 ms-2">
+                                            <div class="d-flex flex-column">
+                                                <span class="caption text-main">SURAT PENGANTAR</span>
+                                                <span class="text-submain caption text-secondary">${dateFormat(detail.created_at, 1)}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                <div class="d-flex align-items-center"></div>
+                            </div>
+                        `;
+                    }
+                    $('#surpengDiv').html(htmlSurpeng);
                     break
                 default:
                     htmlJenis += `

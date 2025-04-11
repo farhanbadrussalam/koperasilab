@@ -364,7 +364,7 @@ function statusFormat(feature, status) {
                 break;
             case 3:
                 htmlStatus = `
-                    <span class="badge bg-success-subtle text-dark border">Selesai</span>
+                    <span class="badge bg-success-subtle text-dark border">LHU Selesai</span>
                 `;
                 break;
             case 11:
@@ -432,6 +432,9 @@ function statusFormat(feature, status) {
         switch (status) {
             case 1:
                 htmlStatus = `<span class="badge bg-primary-subtle text-dark border border-primary">Kontrak sedang berjalan</span>`;
+                break;
+            case 2:
+                htmlStatus = `<span class="badge bg-success-subtle text-dark border border-success">Kontrak selesai</span>`;
                 break;
         }
     }

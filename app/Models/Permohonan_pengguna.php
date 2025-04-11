@@ -58,4 +58,8 @@ class Permohonan_pengguna extends Model
     public function tld_pengguna(){
         return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
     }
+
+    public function permohonan_tld(){
+        return $this->belongsTo(Permohonan_tld::class, 'id_pengguna', 'id_pengguna');
+    }
 }

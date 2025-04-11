@@ -59,7 +59,7 @@ function loadData(page = 1) {
                             ${data.detail.length} Item
                         </div>
                         <div class="col-6 col-md-2">
-                            <span>${data.permohonan.pelanggan.perusahaan.nama_perusahaan}</span>
+                            <span>${data.kontrak.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
                                     Alamat ${data.alamat.jenis}
@@ -69,7 +69,7 @@ function loadData(page = 1) {
                         <div class="col-6 col-md-2 text-center">
                             ${statusFormat('pengiriman', data.status)}
                         </div>
-                        <div class="col-6 col-md-3 text-center" data-id="${data.id_pengiriman}" data-idpermohonan="${data.permohonan.permohonan_hash}">
+                        <div class="col-6 col-md-3 text-center" data-id="${data.id_pengiriman}">
                             <button class="btn btn-outline-info btn-sm" onclick="showDetail(this)">Detail</button>
                             ${htmlButton}
                         </div>

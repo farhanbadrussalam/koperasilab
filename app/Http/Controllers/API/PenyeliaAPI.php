@@ -118,8 +118,6 @@ class PenyeliaAPI extends Controller
                             ->update(array('status' => $statusPermohonan));
 
                 if($statusPermohonan == 3){ // ketika proses pelaksana lab
-
-                    
                     $flagSkipLog = true;
                 } else if($statusPermohonan == 4){ // ketika proses LHU selesai
                     $flagSkipLog = false;
@@ -303,8 +301,20 @@ class PenyeliaAPI extends Controller
             $nextJobs = $request->nextJobs ? decryptor($request->nextJobs) : false;
             $nowJobs = $request->nowJobs ? decryptor($request->nowJobs) : false;
 
-            $penyelia = Penyelia::find($idPenyelia);
+            $penyelia = Penyelia::with(
+                'permohonan',
+                'permohonan.kontrak.rincian_list_tld'
+            )->find($idPenyelia);
             $jobsNow = Penyelia_map::with('jobs')->where('id_map', $nowJobs)->first();
+            
+            if($jobsNow->jobs->status == 17){ // Penyimpanan TLD
+                foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
+                    if($value->status == 3) {
+                        Master_tld::where('id_tld', $value->id_tld)->update(array('status' => 0));
+                    }
+                }
+            }
+
             $jobsNow->update(array(
                 'status' => $sProgress == 'done' ? 2 : 0,
                 'done_by' => $sProgress == 'done' ? Auth::user()->id : null,
@@ -349,31 +359,25 @@ class PenyeliaAPI extends Controller
                 'created_by' => Auth::user()->id
             ));
 
-            if(!$nextJobs && !$jobsNow->point_jobs){
-                $permohonan = Permohonan::find($penyelia->id_permohonan);
-                    $permohonan->update(array('status' => 4)); // ketika proses lhu selesai
+            // kondisi saat salah satu proses selesai
+            if (!$nextJobs && !$jobsNow->point_jobs) {
+                // $condition = $jobsNow->point_jobs ? 'whereNull' : 'whereNotNull';
+                // $jobsParalel = Penyelia_map::where('status', 1)->$condition('point_jobs')->where('id_penyelia', $idPenyelia)->first();
 
-                $penyelia->update(array(
-                    'status' => 3
-                ));
-                // menambahkan dokumen surat pengantar 
-                $data = array(
-                    'id_permohonan' => $penyelia->id_permohonan,
-                    'created_by' => Auth::user()->id,
-                    'nama' => 'SURAT PENGANTAR',
-                    'jenis' => 'surpeng',
-                    'status' => 1,
-                    'nomer' => generateNoDokumen('surpeng')
-                );
-                $document = Permohonan_dokumen::create($data);
+                // if (!$jobsParalel) {
+                    $permohonan = Permohonan::find($penyelia->id_permohonan);
+                    $permohonan->update(['status' => 4]); // ketika proses lhu selesai
+    
+                    $penyelia->update(['status' => 3]);
 
-                // menambahkan log penyelia
-                $this->log->addLog('penyelia', array(
-                    'id_penyelia' => $penyelia->id_penyelia,
-                    'status' => $penyelia->status,
-                    'message' => $this->log->noteLog('penyelia', $penyelia->status),
-                    'created_by' => Auth::user()->id
-                ));
+                    // menambahkan log penyelia
+                    $this->log->addLog('penyelia', [
+                        'id_penyelia' => $penyelia->id_penyelia,
+                        'status' => $penyelia->status,
+                        'message' => $this->log->noteLog('penyelia', $penyelia->status),
+                        'created_by' => Auth::user()->id
+                    ]);
+                // }
             }
 
 
@@ -549,6 +553,9 @@ class PenyeliaAPI extends Controller
                 'permohonan.invoice',
                 'permohonan.pengguna',
                 'permohonan.pengguna.tld_pengguna',
+                'permohonan.rincian_list_tld',
+                'permohonan.rincian_list_tld.tld:id_tld,kode_lencana',
+                'permohonan.rincian_list_tld.pengguna:id_pengguna,nama,posisi',
                 'log',
                 'log.user',
                 'media'

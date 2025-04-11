@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Models\Penyelia;
+use App\Models\Pengiriman;
 use App\Models\Permohonan;
 use App\Models\Permohonan_pengguna;
 use App\Models\User;
@@ -15,6 +16,7 @@ use App\Models\Master_ekspedisi;
 use App\Models\Kontrak;
 use App\Models\Kontrak_periode;
 use App\Models\Kontrak_pengguna;
+use App\Models\Kontrak_tld;
 use App\Models\Master_tld;
 
 use App\Http\Controllers\API\PermohonanAPI;
@@ -246,59 +248,22 @@ class StaffController extends Controller
 
     public function buatOrderPengiriman($idHash, $periode = false)
     {
+        $id = decryptor($idHash) ?? false;
+        $permohonan = false;
+        $data = false;
+        $periodeNow = false;
+        $statusTld = false;
         if($periode){
-            $idKontrak = decryptor($idHash) ?? false;
             $idPeriode = decryptor($periode) ?? false;
-
             // mengambil periode sekarang
             $periodeNow = Kontrak_periode::find($idPeriode);
             // mencari apakah ada permohonan di periode sekarang
-            $permohonan = Permohonan::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode)->first();
-            
-            if($permohonan){
-                $idPermohonan = $permohonan->id_permohonan;
-            } else {
-                // membuat permohonan
-                $dataKontrak = Kontrak::with('pengguna')->find($idKontrak);
-
-                $encrypTld = array_map(function ($item) {
-                    return encryptor($item);
-                }, $dataKontrak->list_tld);
-
-                $tldPengguna = array();
-                foreach ($dataKontrak->pengguna as $key => $value) {
-                    array_push($tldPengguna, $value->permohonan_pengguna_hash);
-                }
-                
-                $params = array(
-                    'idKontrak' => encryptor($idKontrak),
-                    'periode' => $periodeNow->periode,
-                    'tipeKontrak' => 'kontrak lama',
-                    'jenisLayanan2' => encryptor($dataKontrak->jenis_layanan_2),
-                    'jenisLayanan1' => encryptor($dataKontrak->jenis_layanan_1),
-                    'dataTld' => json_encode($encrypTld),
-                    'tldPengguna' => json_encode($tldPengguna),
-                    'createBy' => encryptor($dataKontrak->id_pelanggan),
-                    'status' => 11 // sewa
-                );
-                $create = $this->permohonan->tambahPengajuan(new Request($params));
-                $responsePermohonan = json_decode($create->getContent(), true);
-                if($responsePermohonan['meta']['code'] == 200){
-                    $idPermohonan = decryptor($responsePermohonan['data']['id']);
-                    
-                    // remove list_tld di kontrak dan id_tld pada kontrak_pengguna
-                    $dataKontrak->list_tld = null;
-                    $dataKontrak->save();
-                    foreach ($dataKontrak->pengguna as $key => $value) {
-                        Kontrak_pengguna::where('id_pengguna', $value->id_pengguna)->update(['id_tld' => null]);
-                    }
-                }
-            }
-        } else {
-            $idPermohonan = decryptor($idHash) ?? false;
+            $permohonan = Permohonan::where('id_kontrak', $id)->where('periode', $periodeNow->periode)->first();
+            $id = $permohonan ? $permohonan->id_permohonan : false;
         }
-        
-        $dataPermohonan = Permohonan::with(
+
+        if($id){
+            $data = Permohonan::with(
                 'layanan_jasa:id_layanan,nama_layanan',
                 'jenisTld:id_jenisTld,name', 
                 'jenis_layanan:id_jenisLayanan,name,parent',
@@ -308,8 +273,6 @@ class StaffController extends Controller
                 'pelanggan.perusahaan.alamat',
                 'kontrak',
                 'kontrak.periode',
-                'kontrak.pengguna',
-                'kontrak.pengguna.tld_pengguna',
                 'invoice',
                 'invoice.pengiriman',
                 'lhu',
@@ -317,27 +280,63 @@ class StaffController extends Controller
                 'pengiriman',
                 'file_lhu',
                 'pengguna',
-                'pengguna.tld_pengguna'
-            )->find($idPermohonan);
-            
-        if(isset($dataPermohonan->kontrak->list_tld) && count($dataPermohonan->kontrak->list_tld) > 0) {
-            $dataPermohonan->kontrak->tldKontrol = Master_tld::whereIn('id_tld', $dataPermohonan->kontrak->list_tld)->get();
-        } else {
-            $arrTldKontrol = array();
-            for($i = 0; $i < $dataPermohonan->kontrak->jumlah_kontrol; $i++){
-                array_push($arrTldKontrol, null);
+                'rincian_list_tld',
+                'rincian_list_tld.pengguna:id_pengguna,nama,posisi',
+                'rincian_list_tld.tld',
+            )->find($id);
+
+            // cek tld apakah sudah di kirim atau belum
+            $statusTld = Pengiriman::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
+
+            // mengambil periode dari kontrak_periode
+            $kontrakPeriode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
+            $data->kontrak_periode = $kontrakPeriode;
+        }else{
+            $idKontrak = decryptor($idHash) ?? false;
+            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode)->get();
+            // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya 
+            if(count($kontrakTld) == 0){
+                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->get();
+                foreach($dataKontrakTldSebelum as $val){
+                    Kontrak_tld::create([
+                        'id_kontrak' => $idKontrak,
+                        'id_pengguna' => $val->id_pengguna,
+                        'periode' => $periodeNow->periode,
+                        'status' => 1,
+                        'created_by' => Auth::user()->id
+                    ]);
+                }
             }
-            $dataPermohonan->kontrak->tldKontrol = $arrTldKontrol;
+            
+            $data = Kontrak::with([
+                'pengguna',
+                'layanan_jasa:id_layanan,nama_layanan',
+                'jenisTld:id_jenisTld,name',
+                'jenis_layanan:id_jenisLayanan,name,parent',
+                'jenis_layanan_parent',
+                'pelanggan:id,id_perusahaan,name',
+                'pelanggan.perusahaan',
+                'pelanggan.perusahaan.alamat',
+                'rincian_list_tld' => function ($query) {
+                    $query->where('status', 1);
+                },
+                'rincian_list_tld.pengguna:id_pengguna,nama,posisi',
+                'rincian_list_tld.tld',
+            ])->find($idKontrak);
+
         }
 
-        $data = [
+        // membuat permohonan
+        $result = [
             'title' => 'Buat Pengiriman',
             'module' => 'staff-pengiriman-permohonan',
             'noPengiriman' => $this->generateNoPengiriman(),
-            'permohonan' => $dataPermohonan
+            'informasi' => $data,
+            'periode' => $periodeNow ? $periodeNow->periode : false,
+            'status_tld' => $statusTld
         ];
 
-        return view('pages.staff.pengiriman.kirim', $data);
+        return view('pages.staff.pengiriman.kirim', $result);
     }
 
     private function generateNoPengiriman() {
