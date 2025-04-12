@@ -35,13 +35,13 @@ function load_form() {
     }
 
     // filter untuk memisahkan antara tld pengguna dan tld kontrol
-    let tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna);
-    let tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
+    let tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna);
+    let tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
 
     // list document TLD
     
     // Mengecek apakah sudah last periode atau belum
-    const isLastPeriode = _cekLastPeriode(informasi.kontrak.periode, informasi.periode);
+    const isLastPeriode = _cekLastPeriode(informasi.kontrak?.periode ?? informasi.periode, (periodeNow ?? informasi.periode));
     if(!isLastPeriode){
         let checkedTld = status_tld ? 'disabled' : 'checked';
         let htmlKontrol = ``;
@@ -49,7 +49,7 @@ function load_form() {
             htmlKontrol += `
                 <div class="w-50 pe-1">
                     <span>&nbsp;</span>
-                    <select class="form-select kodeTldKontrol" name="kodeTldKontrol" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
+                    <select class="form-select kodeTldKontrol" name="kodeTldKontrol" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
                         <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
                     </select>
                 </div>
@@ -62,7 +62,7 @@ function load_form() {
             htmlPengguna += `
                 <div class="w-50 pe-1">
                     <span>${list.pengguna.nama}</span>
-                    <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
+                    <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
                         <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
                     </select>
                 </div>
@@ -212,7 +212,7 @@ function updateSelectDocument(){
                 break;
             case 'tld':
                 if(doc.checked){
-                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${informasi.periode ?? 0}`);
+                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${periodeNow ?? informasi.periode ?? 0}`);
                     $('#btnCetakSurat').addClass('d-block').removeClass('d-none');
                 }else{
                     $('#btnCetakSurat').attr('href', ``);
@@ -238,11 +238,13 @@ function updateSelectDocument(){
                 listTld = [...$('select[name="kodeTldPengguna"]').map(function() {
                     return {
                         id: $(this).data('id'),
+                        status: $(this).data('status'),
                         tld: $(this).val()
                     };
                 }).get(), ...$('select[name="kodeTldKontrol"]').map(function() {
                     return {
                         id: $(this).data('id'),
+                        status: $(this).data('status'),
                         tld: $(this).val()
                     };
                 }).get()];
@@ -304,7 +306,7 @@ function buatPengiriman(obj){
             informasi.kontrak_hash ? params.append('idKontrak', informasi.kontrak_hash) : false;
 
             spinner('show', $(obj));
-            ajaxPost('api/v1/pengiriman/action', params, result => {
+            ajaxPost('api/v1/pengiriman/buatPengiriman', params, result => {
                 Swal.fire({
                     icon: 'success',
                     text: `Pengiriman di jadwalkan`,

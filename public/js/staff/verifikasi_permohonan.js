@@ -211,8 +211,17 @@ function toggleReason(index, enable) {
 function loadTld(){
     ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
         // filter untuk memisahkan antara tld pengguna dan tld kontrol
-        let tldPengguna = result.data.filter(tld => tld.pengguna);
-        let tldKontrol = result.data.filter(tld => !tld.pengguna);
+        let kPengguna = result.data.tldKontrak ? result.data.tldKontrak?.filter(tld => tld.pengguna) : [];
+        let tldPengguna = [
+            ...result.data.tldPermohonan.filter(tld => tld.pengguna),
+            ...kPengguna,
+        ];
+
+        let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
+        let tldKontrol = [
+            ...result.data.tldPermohonan.filter(tld => !tld.pengguna),
+            ...kKontrol,
+        ];
         
         loadTldKontrol(tldKontrol);
         loadPengguna(tldPengguna);
@@ -353,10 +362,14 @@ function loadPengguna(tldPengguna){
 
         if(result.data.length == 0){
             html = `
+            <tr>
+                <td colspan="5" class="text-center">
                 <div class="d-flex flex-column align-items-center py-3">
                     <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
                     <span class="fw-bold mt-3 text-muted">No Data Available</span>
                 </div>
+                </td>
+            </tr>
             `;
         }
 

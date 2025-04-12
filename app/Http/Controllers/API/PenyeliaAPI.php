@@ -17,6 +17,8 @@ use App\Models\Permohonan_dokumen;
 use App\Models\Master_jobs;
 use App\Models\Master_tld;
 
+use App\Models\Kontrak_tld;
+
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
 
@@ -310,7 +312,12 @@ class PenyeliaAPI extends Controller
             if($jobsNow->jobs->status == 17){ // Penyimpanan TLD
                 foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
                     if($value->status == 3) {
-                        Master_tld::where('id_tld', $value->id_tld)->update(array('status' => 0));
+                        if($penyelia->permohonan->kontrak->jenis_layanan_2 != '3') { // jenis kontraknya bukan evaluasi berarti di update statusnya
+                            Master_tld::where('id_tld', $value->id_tld)->update(array('status' => 0));
+                        }
+
+                        // Masih opsional apakah Kontrak_tld di ganti menjadi status 0 atau masih tetap 3
+                        Kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 0]);
                     }
                 }
             }

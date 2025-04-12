@@ -419,30 +419,32 @@ function loadPengguna(){
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         if(result.meta.code == 200){
             let html = '';
-            for (const [i,pengguna] of result.data.entries()) {
-                let txtRadiasi = '';
-                pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
-                
-                html += `
-                    <div class="card mb-1 shadow-sm">
-                        <div class="card-body row align-items-center p-1 px-3">
-                            <div class="col-md-7 lh-sm align-items-center">
-                                <div>${pengguna.nama}</div>
-                                <small class="text-body-secondary fw-light">${pengguna.posisi}</small>
-                                <div class="d-flex flex-wrap">
-                                    ${txtRadiasi}
+            if(result.data){
+                for (const [i,pengguna] of result.data.entries()) {
+                    let txtRadiasi = '';
+                    pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
+                    
+                    html += `
+                        <div class="card mb-1 shadow-sm">
+                            <div class="card-body row align-items-center p-1 px-3">
+                                <div class="col-md-7 lh-sm align-items-center">
+                                    <div>${pengguna.nama}</div>
+                                    <small class="text-body-secondary fw-light">${pengguna.posisi}</small>
+                                    <div class="d-flex flex-wrap">
+                                        ${txtRadiasi}
+                                    </div>
+                                </div>
+                                <div class="col-auto ms-auto">
+                                    <span class="fw-bold">${pengguna.permohonan_tld.tld_tmp ?? ''}</span>
+                                </div>
+                                <div class="col-auto text-end ms-auto">
+                                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${pengguna.permohonan_pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
                                 </div>
                             </div>
-                            <div class="col-auto ms-auto">
-                                <span class="fw-bold">${pengguna.permohonan_tld.tld_tmp ?? ''}</span>
-                            </div>
-                            <div class="col-auto text-end ms-auto">
-                                <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${pengguna.permohonan_pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
-                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
 
             if(result.data.length == 0){

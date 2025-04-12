@@ -252,7 +252,7 @@ class PermohonanAPI extends Controller
                 'posisi' => $divisi,
                 'id_radiasi' => $radiasi,
                 'file_ktp' => $file_ktp->getIdMedia(),
-                'status' => 0,
+                'status' => 1, // Baru
                 'created_by' => Auth::user()->id
             );
 
@@ -365,11 +365,16 @@ class PermohonanAPI extends Controller
             $permohonan->delete();
             
             DB::commit();
-
+            
             if($permohonan){
                 Permohonan_pengguna::where('id_permohonan', $id)->delete();
                 Permohonan_tld::where('id_permohonan', $id)->delete();
 
+                if($permohonan->tipe_kontrak == 'kontrak lama') {
+                    Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null));
+                    Kontrak_tld::where('id_kontrak', $permohonan->id_kontrak)->where('status', 3)->update(array('status' => 2));
+                }
+                
                 return $this->output(array('msg' => 'Data berhasil dihapus!'));
             }
 
@@ -419,15 +424,21 @@ class PermohonanAPI extends Controller
         try {
             // mengambil tipe_kontrak yang ada di tabel permohonan untuk di kondisikan
             // jika kontrak baru akan menggunakan permohonan_pengguna jika kontrak lama akan menggunakan kontrak_pengguna
-            // $permohonan = Permohonan::select('tipe_kontrak','id_kontrak')->where('id_permohonan', $idPermohonan)->first();
+            $permohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
             $query = Permohonan_pengguna::with('media:id,file_hash,file_path', 'permohonan_tld')
                         ->where('id_permohonan', $idPermohonan)
-                        ->offset(($page - 1) * $limit)
-                        ->limit($limit)
-                        ->paginate($limit);
-            $arr = $query->toArray();
+                        ->get();
+
+            $queryKontrak = false;
+            if($permohonan->tipe_kontrak == 'kontrak lama'){
+                $queryKontrak = Kontrak_pengguna::with('media:id,file_hash,file_path', 'kontrak_tld')
+                                    ->where('id_kontrak', $permohonan->id_kontrak)
+                                    ->get();
+                $arrKontrak = $queryKontrak->toArray();
+                $query = $query->merge($queryKontrak);
+            }
             
-            $this->pagination = Arr::except($arr, 'data');
+            // $this->pagination = Arr::except($arr, 'data');
 
             $tld = $this->tld->searchTldNotUsed(new Request(['jenis' => 'pengguna']));
             $resTld = json_decode($tld->getContent(), true);
@@ -435,7 +446,11 @@ class PermohonanAPI extends Controller
 
             foreach ($query as $item) {
                 // mengecek informasi tld
-                if(!$item->permohonan_tld->id_tld){
+                if($item->kontrak_tld) {
+                    $tld_1 = $this->tld->getById($item->kontrak_tld->id_tld);
+                    $resTld_1 = json_decode($tld_1->getContent(), true);
+                    $item->tld_pengguna = $resTld_1['data'];
+                } else if(!$item->permohonan_tld->id_tld){
                     if(isset($resTld['data'][$noTld]) && !$item->permohonan_tld->tld){
                         $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
                         $noTld++;
@@ -443,9 +458,9 @@ class PermohonanAPI extends Controller
                         $item->tld_pengguna = $item->permohonan_tld->tld ?? null;
                     }
                 }else{
-                    $tld_1 = $this->tld->getById($item->permohonan_tld->id_tld);
-                    $resTld_1 = json_decode($tld_1->getContent(), true);
-                    $item->tld_pengguna = $resTld_1['data'];
+                    $tld_2 = $this->tld->getById($item->permohonan_tld->id_tld);
+                    $resTld_2 = json_decode($tld_2->getContent(), true);
+                    $item->tld_pengguna = $resTld_2['data'];
                 }
 
                 // mengambil data radiasi
@@ -489,12 +504,29 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
+            $permohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
+
             $query = Permohonan_tld::with(
                 'pengguna:id_pengguna,nama,posisi', 
                 'tld'
             )->where('id_permohonan', $idPermohonan)->get();
+
+            $queryKontrak = false;
+            if($permohonan->periode){
+                $queryKontrak = Kontrak_tld::with(
+                    'pengguna:id_pengguna,nama,posisi',
+                    'tld'
+                )->where('id_kontrak', $permohonan->id_kontrak)
+                ->where('periode', $permohonan->periode-1)
+                ->get();
+            }
+            
             DB::commit();
-            return $this->output($query);
+
+            return $this->output(array(
+                'tldPermohonan' => $query,
+                'tldKontrak' => $queryKontrak
+            ));
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

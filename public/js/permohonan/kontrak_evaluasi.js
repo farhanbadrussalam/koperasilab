@@ -143,16 +143,12 @@ function buatPermohonan(obj){
 
             let alamatData = dataKontrak.pelanggan.perusahaan.alamat[alamatIndex]; // Get address data
 
-            console.log(checkTld);
-            return;
             const params = new FormData();
             params.append('jenisLayanan2', jenisLayanan);
             params.append('jenisLayanan1', jenisLayananParent);
             params.append('idKontrak', idKontrak);
             params.append('periode', periode?.periode);
             params.append('alamat', alamatData.alamat_hash); // Send the address hash
-            // params.append('dataTld', JSON.stringify(checkTldKontrol));
-            // params.append('tldPengguna', JSON.stringify(checkTldPengguna));
             params.append('listTld', JSON.stringify(checkTld));
             params.append('createBy', userActive.user_hash);
             params.append('tipeKontrak', 'kontrak lama');

@@ -263,7 +263,7 @@ class StaffController extends Controller
         }
 
         if($id){
-            $data = Permohonan::with(
+            $data = Permohonan::with([
                 'layanan_jasa:id_layanan,nama_layanan',
                 'jenisTld:id_jenisTld,name', 
                 'jenis_layanan:id_jenisLayanan,name,parent',
@@ -273,6 +273,11 @@ class StaffController extends Controller
                 'pelanggan.perusahaan.alamat',
                 'kontrak',
                 'kontrak.periode',
+                'kontrak.rincian_list_tld' => function ($query) {
+                    $query->where('status', 1);
+                },
+                'kontrak.rincian_list_tld.pengguna:id_pengguna,nama,posisi',
+                'kontrak.rincian_list_tld.tld',
                 'invoice',
                 'invoice.pengiriman',
                 'lhu',
@@ -283,10 +288,27 @@ class StaffController extends Controller
                 'rincian_list_tld',
                 'rincian_list_tld.pengguna:id_pengguna,nama,posisi',
                 'rincian_list_tld.tld',
-            )->find($id);
+            ])->find($id);
 
             // cek tld apakah sudah di kirim atau belum
             $statusTld = Pengiriman::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
+
+            // Membuat kontrak_tld
+            $kontrakTld = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
+            // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya 
+            if(count($kontrakTld) == 0){
+                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode-1)->get();
+                foreach($dataKontrakTldSebelum as $val){
+                    Kontrak_tld::create([
+                        'id_kontrak' => $data->id_kontrak,
+                        'id_pengguna' => $val->id_pengguna,
+                        'periode' => $data->periode,
+                        'id_tld' => $val->id_tld,
+                        'status' => 1,
+                        'created_by' => Auth::user()->id
+                    ]);
+                }
+            }
 
             // mengambil periode dari kontrak_periode
             $kontrakPeriode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
@@ -322,6 +344,7 @@ class StaffController extends Controller
                 },
                 'rincian_list_tld.pengguna:id_pengguna,nama,posisi',
                 'rincian_list_tld.tld',
+                'periode'
             ])->find($idKontrak);
 
         }
@@ -335,6 +358,8 @@ class StaffController extends Controller
             'periode' => $periodeNow ? $periodeNow->periode : false,
             'status_tld' => $statusTld
         ];
+
+        // dd($result);
 
         return view('pages.staff.pengiriman.kirim', $result);
     }

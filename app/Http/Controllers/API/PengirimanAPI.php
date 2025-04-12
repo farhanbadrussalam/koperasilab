@@ -275,18 +275,6 @@ class PengirimanAPI extends Controller
                 $params['bukti_pengiriman'] = $bukti;
             }
 
-            $tmpBuktiPenerima = array();
-            $tmpFilePenerima = array();
-            if(count($buktiPenerima) != 0){
-                foreach ($buktiPenerima as $key => $file) {
-                    $fileBukti = $this->media->upload($file, 'pengiriman');
-                    array_push($tmpBuktiPenerima, $fileBukti->getIdMedia());
-                    array_push($tmpFilePenerima, $fileBukti);
-                }
-
-                $params['bukti_penerima'] = $tmpBuktiPenerima;
-            }
-
             $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna')->where('id_pengiriman', $idPengiriman)->first();
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
@@ -335,6 +323,206 @@ class PengirimanAPI extends Controller
             }
 
             // Add to detail
+            // if($detail){
+            //     // Remove all detail
+            //     Pengiriman_detail::where('id_pengiriman', $idPengiriman)->delete();
+
+            //     foreach (json_decode($detail) as $key => $value) {
+            //         $params = array(
+            //             'id_pengiriman' => $idPengiriman,
+            //             'jenis' => $value->jenis,
+            //             'periode' => $value->periode ?? null,
+            //         );
+
+            //         if($value->listTld){
+            //             $params['list_tld'] = [];
+            //             foreach ($value->listTld as $val) {
+            //                 // mengambil data kontrak_tld
+            //                 $kontrakTld = Kontrak_tld::with('pengguna')->where('id_kontrak_tld', decryptor($val->id))->first();
+            //                 $jenis = '';
+            //                 $idTld = false;
+            //                 if(!decryptor($val->tld)){
+            //                     $createMasterTld = Master_tld::create([
+            //                         'kode_lencana' => $val->tld,
+            //                         'jenis' => $kontrakTld->pengguna ? 'pengguna' : 'kontrol',
+            //                         'status' => 1
+            //                     ]);
+
+            //                     $idTld = $createMasterTld->id_tld;
+            //                     $kontrakTld->update(array('id_tld' => $idTld, 'status' => 1));
+            //                 }else{
+            //                     if($val->status == 'kontrak'){
+            //                         $kontrakTld->update(array('status' => 1));
+            //                     }
+            //                     $idTld = decryptor($val->tld);
+            //                 }
+                            
+            //                 $params['list_tld'][] = (int) $idTld;
+            //             }
+            //         }
+
+            //         if($value->jenis == 'tld') {
+            //             $params['nomer_surpeng'] = generateNoDokumen('surpeng');
+            //             Kontrak_periode::where('id_kontrak', $idKontrak)
+            //             ->where('periode', $value->periode)
+            //             ->update([
+            //                 'nomer_surpeng' => $params['nomer_surpeng'],
+            //                 'created_surpeng_at' => Carbon::now()
+            //             ]);
+            //         }
+                    
+            //         Pengiriman_detail::create($params);
+                    
+            //         // menambahkan id_pengiriman ke invoice
+            //         if($value->jenis == 'invoice'){
+            //             $invoice = Keuangan::where('id_keuangan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+            //         } else if($value->jenis == 'lhu'){
+            //             $penyelia = Penyelia::where('id_penyelia', decryptor($value->id))->first();
+            //             if($penyelia){
+            //                 $penyelia->update(['id_pengiriman' => $idPengiriman]);
+            //                 Permohonan::where('id_permohonan', $penyelia->id_permohonan)->update(['id_pengiriman' => $idPengiriman]);
+            //             }
+            //         } else if($value->jenis == 'tld'){
+            //             if($value->id){
+            //                 $tld = Permohonan::where('id_permohonan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+            //             }
+            //         }
+            //     }
+            // }
+
+            $result['id_pengiriman'] = $query->pengiriman_hash;
+
+            if ($query->wasRecentlyCreated) {
+                $result['status'] = "created";
+                $result['msg'] = "Pengiriman berhasil dibuat.";
+            } elseif ($query->wasChanged()) {
+                $result['status'] = "updated";
+                $result['msg'] = "Pengiriman berhasil diedit.";
+            } else {
+                $result['status'] = "none";
+                $result['msg'] = "Nothing has changed.";
+            }
+
+            if(count($tmpFileBukti) != 0){
+                foreach ($tmpFileBukti as $key => $file) {
+                    $file->store();
+                }
+            }
+
+            DB::commit();
+            
+            return $this->output($result);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function diterima(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $recivedAt = $request->dateRecived ? $request->dateRecived : false;
+            $idPengiriman = $request->idPengiriman ? $request->idPengiriman : false;
+            $status = $request->status;
+            $buktiPenerima = $request->file('buktiPenerima') ? $request->file('buktiPenerima') : array();
+            $statusPermohonan = $request->statusPermohonan ? $request->statusPermohonan : false;
+
+            $params = array();
+            $params['received_at'] = $recivedAt;
+            $params['status'] = $status;
+
+            $tmpBuktiPenerima = array();
+            $tmpFilePenerima = array();
+            if(count($buktiPenerima) != 0){
+                foreach ($buktiPenerima as $key => $file) {
+                    $fileBukti = $this->media->upload($file, 'pengiriman');
+                    array_push($tmpBuktiPenerima, $fileBukti->getIdMedia());
+                    array_push($tmpFilePenerima, $fileBukti);
+                }
+
+                $params['bukti_penerima'] = $tmpBuktiPenerima;
+            }
+
+            $query = Pengiriman::with('detail', 'kontrak')->where('id_pengiriman', $idPengiriman)->first();
+            $query->update($params);
+
+            // jika LHU sudah dikirim
+            if($statusPermohonan){
+                Permohonan::where('id_permohonan', $query->id_permohonan)
+                            ->update(array('status' => $statusPermohonan));
+            }
+
+            $listTld = array_map('intval', $query->detail->where('jenis', 'tld')->pluck('list_tld')->flatten()->toArray());
+            if (!empty($listTld)) {
+                // mengganti status di kontrak_tld menjadi 2 artinya sudah diterima oleh pelanggan
+                Kontrak_tld::where('id_kontrak', $query->id_kontrak)
+                    ->where('status', 1)
+                    ->whereIn('id_tld', $listTld)
+                    ->update(['status' => 2]);
+                    
+                // Mengganti status di master_tld menjadi 1 artinya tld sedang digunakan
+                Master_tld::whereIn('id_tld', $listTld)->update(['status' => 1]);
+            }
+
+            // Mengecek semua proses dan pengiriman selesai semua di periode terakhir
+            // Mengambil last periode
+            $kontrakPeriode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->orderBy('periode', 'desc')->first();
+            if ($kontrakPeriode) {
+                $isLast = $kontrakPeriode->periode == $query->periode ? true : false;
+                if($isLast){
+                    Kontrak::where('id_kontrak', $query->id_kontrak)->update(['status' => 2]);
+                }
+            }
+
+            if(count($tmpFilePenerima) != 0){
+                foreach ($tmpFilePenerima as $key => $file) {
+                    $file->store();
+                }
+            }
+
+            DB::commit();
+
+            $result = array(
+                'id_pengiriman' => $query->pengiriman_hash,
+                'status' => 'Success',
+                'msg' => 'Pengiriman berhasil diterima'
+            );
+
+            return $this->output($result);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function buatPengiriman(Request $request){
+        DB::beginTransaction();
+        try {
+            $idPengiriman = $request->idPengiriman ? $request->idPengiriman : false;
+            $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            $alamat = $request->alamat ? decryptor($request->alamat) : false;
+            $tujuan = $request->tujuan ? $request->tujuan : false;
+            $status = $request->status ? $request->status : false;
+            $detail = $request->detail ? $request->detail : false;
+            $periode = $request->periode ? $request->periode : false;
+            $idKontrak = $request->idKontrak ? decryptor($request->idKontrak) : false;
+
+            $params = array();
+            $idPermohonan && $params['id_permohonan'] = $idPermohonan;
+            $alamat && $params['alamat'] = $alamat;
+            $tujuan && $params['tujuan'] = $tujuan;
+            $status && $params['status'] = $status;
+            $periode && $params['periode'] = $periode;
+            $idKontrak && $params['id_kontrak'] = $idKontrak;
+            $params['created_by'] = Auth::user()->id;
+            $params['id_pengiriman'] = $idPengiriman;
+
+            $query = Pengiriman::create($params);
+
+            // Add to detail
             if($detail){
                 // Remove all detail
                 Pengiriman_detail::where('id_pengiriman', $idPengiriman)->delete();
@@ -363,8 +551,10 @@ class PengirimanAPI extends Controller
                                 $idTld = $createMasterTld->id_tld;
                                 $kontrakTld->update(array('id_tld' => $idTld, 'status' => 1));
                             }else{
-                                $kontrakTld->update(array('status' => 1));
                                 $idTld = decryptor($val->tld);
+                                if($val->status == 'kontrak'){
+                                    $kontrakTld->update(array('status' => 1, 'id_tld' => $idTld));
+                                }
                             }
                             
                             $params['list_tld'][] = (int) $idTld;
@@ -400,33 +590,14 @@ class PengirimanAPI extends Controller
                 }
             }
 
-            $result['id_pengiriman'] = $query->pengiriman_hash;
-
-            if ($query->wasRecentlyCreated) {
-                $result['status'] = "created";
-                $result['msg'] = "Pengiriman berhasil dibuat.";
-            } elseif ($query->wasChanged()) {
-                $result['status'] = "updated";
-                $result['msg'] = "Pengiriman berhasil diedit.";
-            } else {
-                $result['status'] = "none";
-                $result['msg'] = "Nothing has changed.";
-            }
-
-            if(count($tmpFileBukti) != 0){
-                foreach ($tmpFileBukti as $key => $file) {
-                    $file->store();
-                }
-            }
-
-            if(count($tmpFilePenerima) != 0){
-                foreach ($tmpFilePenerima as $key => $file) {
-                    $file->store();
-                }
-            }
-
             DB::commit();
-            
+
+            $result = array(
+                'id_pengiriman' => $query->pengiriman_hash,
+                'status' => 'Success',
+                'msg' => 'Pengiriman berhasil dibuat'
+            );
+
             return $this->output($result);
         } catch (\Exception $ex) {
             info($ex);

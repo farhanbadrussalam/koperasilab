@@ -53,4 +53,8 @@ class Kontrak_pengguna extends Model
     public function tld_pengguna(){
         return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
     }
+
+    public function kontrak_tld(){
+        return $this->belongsTo(Kontrak_tld::class, 'id_pengguna', 'id_pengguna');
+    }
 }

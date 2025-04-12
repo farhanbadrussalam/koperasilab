@@ -67,7 +67,7 @@ $(function () {
                     isLhuSend == 'true' ? formData.append('statusPermohonan', 5) : false;
 
                     spinner('show', $(obj.target));
-                    ajaxPost('api/v1/pengiriman/action', formData, result => {
+                    ajaxPost('api/v1/pengiriman/diterima', formData, result => {
                         spinner('hide', $(obj.target));
                         if(result.meta.code == 200) {
                             Swal.fire({
