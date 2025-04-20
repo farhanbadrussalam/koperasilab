@@ -151,6 +151,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     });
 
     Route::prefix('tld')->group(function(){
+        Route::get('/getData', [TldApi::class, 'getData']);
         Route::get('/searchTldNotUsed', [TldApi::class, 'searchTldNotUsed']);
         Route::get('/searchTld', [TldApi::class, 'searchTld']);
         Route::post('/action', [TldApi::class, 'action']);

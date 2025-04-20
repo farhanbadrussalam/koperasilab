@@ -14,7 +14,6 @@ class Kontrak_pengguna extends Model
 
     protected $fillable = [
         'id_kontrak',
-        'id_tld',
         'nama',
         'posisi',
         'id_radiasi',

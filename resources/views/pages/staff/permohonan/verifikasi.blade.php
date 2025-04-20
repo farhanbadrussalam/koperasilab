@@ -110,8 +110,8 @@
                                         <tr>
                                             <th width="1%">No</th>
                                             <th width="20%">Nama</th>
-                                            <th width="40%">Radiasi</th>
-                                            <th width="20%">Kode Lencana TLD</th>
+                                            <th width="30%">Radiasi</th>
+                                            <th width="30%">No Seri TLD</th>
                                             <th width="10%">ktp</th>
                                         </tr>
                                     </thead>

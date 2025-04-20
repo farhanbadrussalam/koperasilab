@@ -863,19 +863,18 @@ class PermohonanAPI extends Controller
                         $listTld = $request->listTld ? json_decode($request->listTld) : [];
 
                         foreach ($listTld as $item) {
-                            $idTld = decryptor($item->tld) ? (['id_tld' => decryptor($item->tld)]) : ['kode_lencana' => $item->tld];
+                            $idTld = decryptor($item->tld);
                             $id = decryptor($item->id);
                             
                             $dataTldPermohonan = Permohonan_tld::find($id);
 
-                            $tldData = Master_tld::updateOrCreate($idTld, [
+                            $tldData = Master_tld::where('id_tld', $idTld)->update([
                                 'status' => 1,
-                                'jenis' => $dataTldPermohonan->id_pengguna ? 'pengguna' : 'kontrol',
+                                'digunakan' => $no_kontrak
                             ]);
 
                             $dataTldPermohonan->update([
-                                'id_tld' => $tldData->id_tld,
-                                'tld_tmp' => null
+                                'id_tld' => $idTld
                             ]);
                             // Permohonan_pengguna::where('id_pengguna', decryptor($item->id))->update(['id_tld' => $tldData->id_tld, 'tld' => null]);
                         }

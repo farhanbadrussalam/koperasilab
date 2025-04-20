@@ -6,7 +6,7 @@ $(function () {
         ajax: `${base_url}/management/getDataTld`,
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
-            { data: 'kode_lencana', name: 'kode_lencana' },
+            { data: 'no_seri_tld', name: 'no_seri_tld' },
             { data: 'status', name: 'status', className: 'text-center' },
             { data: 'jenis', name: 'jenis' },
             { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
@@ -79,9 +79,9 @@ function btnEdit(obj) {
     const id = $(obj).data('id');
     ajaxGet(`management/tld/${id}`, false, result => {
         $('#inputIdTldEdit').val(result.data.tld_hash);
-        $('#inputKodeLencanaTldEdit').val(result.data.kode_lencana);
+        $('#inputNoSeriEdit').val(result.data.no_seri_tld);
         $('#inputJenisTldEdit').val(result.data.jenis);
-        // $('#status').val(result.data.status);
+        $('#inputMerkEdit').val(result.data.merk);
         $('#editTldModal').modal('show');
     });
 }
@@ -106,4 +106,7 @@ function btnDelete(obj) {
 function resetForm() {
     $('#form-create')[0].reset();
     $('#form-edit')[0].reset();
+}
+function reload(){
+    filter();
 }

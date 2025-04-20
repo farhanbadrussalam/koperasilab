@@ -41,7 +41,7 @@ class KeuanganAPI extends Controller
                 $status = [1];
                 break;
             case 'pembayaran':
-                $status = [2,3];
+                $status = [3];
                 break;
             case 'verifikasi':
                 $status = [4];
@@ -51,6 +51,9 @@ class KeuanganAPI extends Controller
                 break;
             case 'ditolak':
                 $status = [90];
+                break;
+            case 'faktur':
+                $status = [2,7];
                 break;
             default:
                 $status = false;
@@ -116,7 +119,7 @@ class KeuanganAPI extends Controller
     public function countList(Request $request){
         DB::beginTransaction();
         try {
-            $arrStatus = [1,2,3,4,5,6];
+            $arrStatus = [1,2,3,4,5,6,7];
             $_status = Keuangan::selectRaw('count(*) as total, status')
                 ->groupBy('status')
                 ->get()
@@ -138,7 +141,6 @@ class KeuanganAPI extends Controller
                     case 1:
                         $item['name'] = 'Pengajuan';
                         break;
-                    case 2:
                     case 3:
                         $item['name'] = 'Pembayaran';
                         break;
@@ -150,6 +152,10 @@ class KeuanganAPI extends Controller
                         break;
                     case 6:
                         $item['name'] = 'Ditolak';
+                        break;
+                    case 2:
+                    case 7:
+                        $item['name'] = 'Faktur';
                         break;
                 }
                 return $item;
@@ -279,7 +285,7 @@ class KeuanganAPI extends Controller
                 ));
             }
 
-            if($status == 2){
+            if($status == 7){
                 // Simpan dokumen Invoice
                 $document = Permohonan_dokumen::create(array(
                     'id_permohonan' => $keuangan->id_permohonan,

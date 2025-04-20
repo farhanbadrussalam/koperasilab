@@ -62,6 +62,14 @@
                         </a>
                     </li>
                 @endcan
+                
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'tld' ? 'active' : '' }}"
+                        href="{{ route('tld.index') }}" aria-expanded="false">
+                        <span><i class="bi bi-card-list"></i></span>
+                        <span class="hide-menu">Penyimpanan TLD</span>
+                    </a>
+                </li>
                 <!-- END MAIN MENU -->
 
                 {{-- PERMOHONAN --}}

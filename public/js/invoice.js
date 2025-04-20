@@ -209,7 +209,7 @@ class Invoice {
         }
 
         // Set Up upload document
-        if(mode === 'create') {
+        if(this.dataKeuangan.status === 7) { // untuk status upload faktur
             if(!this.uploadFaktur) {
                 this.uploadFaktur = new UploadComponent('uploadDocumentFaktur', {
                     allowedFileExtensions: ['pdf'],
@@ -222,6 +222,7 @@ class Invoice {
                     }
                 })
             }
+            $('#docFaktur-tab').click();
         }else{
             if(!this.uploadFaktur) {
                 this.uploadFaktur = new UploadComponent('uploadDocumentFaktur', {
@@ -242,6 +243,12 @@ class Invoice {
             footerHTML = `
                 <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal-verif-invalid">Tolak</button>
                 <button type="button" class="btn btn-success" id="btnSimpanInvoice">Setujui</button>
+            `;
+        }
+        
+        if(this.dataKeuangan.status === 7) {
+            footerHTML = `
+                <button type="button" class="btn btn-primary" id="btnSimpanInvoice">Simpan</button>
             `;
         }
         $('#modalFooter').html(footerHTML);
@@ -596,7 +603,7 @@ class Invoice {
                 formData.append('totalHarga', this.jumTotal);
                 this.ppn && formData.append('ppn', $('#inputPpn').val());
                 this.pph && formData.append('pph', $('#inputPph').val());
-                formData.append('status', 2);
+                formData.append('status', 7);
                 textQuestion = 'Apa anda yakin ingin membuat invoice ?';
                 textSuccess = 'Invoice berhasil dibuat.';
                 break;
@@ -618,6 +625,19 @@ class Invoice {
                 textQuestion = 'Apa invoice sudah benar ?';
                 textSuccess = 'Invoice berhasil diverifikasi.';
                 break;
+        }
+
+        if(this.dataKeuangan.status === 7) {
+            // cek sudah uploadDokumen faktur atau belum
+            if(this.dataKeuangan.media.length == 0){
+                return Swal.fire({
+                    icon: "warning",
+                    text: "Harap unggah dokumen faktur terlebih dahulu.",
+                });
+            }
+            formData.append('status', 2);
+            textQuestion = 'Apa faktur sudah benar ?';
+            textSuccess = 'Faktur berhasil diupload.';
         }
 
     

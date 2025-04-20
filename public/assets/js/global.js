@@ -321,7 +321,11 @@ function statusFormat(feature, status) {
                     <span class="badge bg-success-subtle text-dark">Pembayaran diterima</span>
                     `;
                 break;
-                
+            case 7:
+                htmlStatus = `
+                    <span class="badge bg-secondary-subtle text-dark">Upload Faktur Pajak</span>
+                    `;
+                break;
             default:
                 htmlStatus = `
                     <span class="badge bg-danger-subtle text-dark">Pembayaran ditolak</span>

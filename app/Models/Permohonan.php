@@ -28,8 +28,6 @@ class Permohonan extends Model
         'jumlah_kontrol',
         'total_harga',
         'harga_layanan',
-        'list_tld',
-        'tld_kontrol',
         'pic',
         'no_hp',
         'ttd',

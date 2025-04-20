@@ -6,8 +6,23 @@ let checkedTldValues = [];
 let listTldKontrol = [];
 let uploadDocLhu = false;
 let modalDoc = false;
+let inventoryTld = false;
+let tmpArrTld = [];
 
 $(function () {
+    inventoryTld = new Inventory_tld({preview: true});
+    inventoryTld.on('inventory.selected', (e) => {
+        const detail = e.detail;
+
+        $(`#tldNoSeri_${detail.selected}`).val(detail.data_tld.no_seri_tld);
+
+        // reset tmpArrTld 
+        let index = tmpArrTld.findIndex(d => d.id == detail.selected);
+
+        if(index > -1){
+            tmpArrTld[index].tld = detail.data_tld.tld_hash;
+        }
+    })
     const arrPeriode = dataPermohonan.periode_pemakaian;
     jenisLayanan = dataPermohonan.jenis_layanan;
 
@@ -232,29 +247,43 @@ function loadTldKontrol(tldKontrol){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
         let htmlDisabled = '';
-
         if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
             htmlDisabled = 'disabled';
         }
         for(const [i,iKontrol] of tldKontrol.entries()){
-            let options = `<option value="">Pilih Kode lencana</option>`;
+            let tldHash = '';
+            let no_seri_tld = '';
+            
             if(iKontrol.tld) {
-                options = `<option value="${iKontrol.tld.tld_hash}" selected>${iKontrol.tld.kode_lencana}</option>`
+                tldHash = iKontrol.tld.tld_hash;
+                no_seri_tld = iKontrol.tld.no_seri_tld;
             } else if(iKontrol.tld_tmp){
-                options = `<option value="${iKontrol.tld_tmp}" selected>${iKontrol.tld_tmp}</option>`
+                tldHash = iKontrol.tld_tmp;
+                no_seri_tld = iKontrol.tld_tmp;
             } else if(result.data[i]){
-                options = `<option value="${result.data[i].tld_hash}" selected>${result.data[i].kode_lencana}</option>`;
+                tldHash = result.data[i].tld_hash;
+                no_seri_tld = result.data[i].no_seri_tld;
+            } else {
+                tldHash = '';
+                no_seri_tld = '';
             }
+
+            tmpArrTld.push({
+                id: iKontrol.permohonan_tld_hash,
+                tld: tldHash
+            });
             html += `
                 <div class="col-sm-6 mt-2">
-                    <label for="" class="mb-2">Kode Lencana Kontrol ${i+1}</label>
-                    <select class="form-select kodeTldKontrol" name="tld_kontrol[]" data-id="${iKontrol.permohonan_tld_hash}" ${htmlDisabled}>
-                        ${options}
-                    </select>
+                    <label for="" class="mb-2">No Seri Kontrol ${i+1}</label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${iKontrol.permohonan_tld_hash}" placeholder="Pilih No Seri" readonly>
+                        <button class="btn btn-outline-secondary" type="button" data-id="${iKontrol.permohonan_tld_hash}" onclick="openInventory(this, 'kontrol')">
+                            <i class="bi bi-arrow-repeat"></i> Ganti
+                        </button>
+                    </div>
                 </div>
             `;
         }
-        
         $('#tld-kontrol-content').html(html);
 
         $('.kodeTldKontrol').select2({
@@ -321,23 +350,35 @@ function loadPengguna(tldPengguna){
         }
         for (const [i,pengguna] of result.data.entries()) {
             let txtRadiasi = '';
-            let options = `<option value="">Pilih Kode lencana</option>`;
             // RADIASI
             pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
 
             // TLD PENGGUNA
             const iPengguna = tldPengguna.find(d => d.pengguna?.permohonan_pengguna_hash == pengguna.permohonan_pengguna_hash)
 
+            let tldHash = '';
+            let no_seri_tld = '';
+
             if(iPengguna){
                 if(iPengguna.tld){
-                    options = `<option value="${iPengguna.tld.tld_hash}">${iPengguna.tld.kode_lencana}</option>`;
+                    tldHash = iPengguna.tld.tld_hash;
+                    no_seri_tld = iPengguna.tld.no_seri_tld;
                 } else if(iPengguna.tld_tmp){
-                    options = `<option value="${iPengguna.tld_tmp}">${iPengguna.tld_tmp}</option>`;
+                    tldHash = iPengguna.tld_tmp;
+                    no_seri_tld = iPengguna.tld_tmp;
                 } else if(pengguna.tld_pengguna) {
-                    options = `<option value="${pengguna.tld_pengguna.tld_hash}">${pengguna.tld_pengguna.kode_lencana}</option>`
+                    tldHash = pengguna.tld_pengguna.tld_hash;
+                    no_seri_tld = pengguna.tld_pengguna.no_seri_tld;
+                } else {
+                    tldHash = '';
+                    no_seri_tld = '';
                 }
             }
             
+            tmpArrTld.push({
+                id: iPengguna.permohonan_tld_hash,
+                tld: tldHash
+            });
             html += `
                 <tr>
                     <td>${i + 1}</td>
@@ -347,9 +388,10 @@ function loadPengguna(tldPengguna){
                     </td>
                     <td>${txtRadiasi}</td>
                     <td>
-                        <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${pengguna.permohonan_pengguna_hash}" data-id="${iPengguna?.permohonan_tld_hash}" ${htmlDisabled}>
-                            ${options}
-                        </select>
+                        <div class="input-group">
+                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${iPengguna.permohonan_tld_hash}" placeholder="Pilih No Seri" readonly>
+                            <button class="btn btn-outline-secondary" type="button" data-id="${iPengguna.permohonan_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>
+                        </div>
                     </td>
                     <td>
                         <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp">
@@ -451,17 +493,17 @@ function verif_kelengkapan(status, obj){
             });
         }
 
-        let listTld = [...$('select[name="kodeTldPengguna"]').map(function() {
-            return {
-                id: $(this).data('id'),
-                tld: $(this).val()
-            };
-        }).get(), ...$('select[name="tld_kontrol[]"]').map(function() {
-            return {
-                id: $(this).data('id'),
-                tld: $(this).val()
-            };
-        }).get()];
+        // let listTld = [...$('select[name="kodeTldPengguna"]').map(function() {
+        //     return {
+        //         id: $(this).data('id'),
+        //         tld: $(this).val()
+        //     };
+        // }).get(), ...$('select[name="tld_kontrol[]"]').map(function() {
+        //     return {
+        //         id: $(this).data('id'),
+        //         tld: $(this).val()
+        //     };
+        // }).get()];
         
         Swal.fire({
             icon: 'warning',
@@ -482,7 +524,7 @@ function verif_kelengkapan(status, obj){
                 formData.append('ttd', ttd);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
-                formData.append('listTld', JSON.stringify(listTld));
+                formData.append('listTld', JSON.stringify(tmpArrTld));
 
                 spinner('show', obj);
                 ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
@@ -694,4 +736,9 @@ function templateTld(state){
         </div>
     `);
     return content;
+}
+
+function openInventory(obj, jenis){
+    let id = $(obj).data('id');
+    inventoryTld.show(id, tmpArrTld, jenis);
 }

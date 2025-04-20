@@ -24,7 +24,6 @@ class Kontrak extends Model
         'jumlah_kontrol',
         'total_harga',
         'harga_layanan',
-        'list_tld',
         'ttd',
         'ttd_by',
         'status',

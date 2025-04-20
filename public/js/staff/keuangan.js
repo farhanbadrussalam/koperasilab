@@ -39,6 +39,10 @@ function switchLoadTab(menu){
             menu = 'diterima';
             break;
 
+        case 6:
+            menu = 'faktur';
+            break;
+
         default:
             menu = 'ditolak';
             break;
@@ -72,21 +76,21 @@ function loadData(page = 1, menu) {
     $(`#list-container`).hide();
     ajaxGet(`api/v1/keuangan/listKeuangan`, params, result => {
         let html = '';
-        for (const [i, keuangan] of result.data.entries()) {
+        for (const keuangan of result.data) {
             const permohonan = keuangan.permohonan;
             let btnAction = '';
-            switch (menu) {
-                case 'pengajuan':
+            switch (keuangan.status) {
+                case 1:
                     btnAction = `<button class="btn btn-outline-primary btn-sm" title="Buat Invoice" onclick="openInvoiceModal(this, 'create')"><i class="bi bi-plus"></i> Buat invoice</button>`;
                     break;
-                case 'pembayaran':
-                case 'diterima':
-                    btnAction = `<button class="btn btn-outline-info btn-sm" title="Detail Invoice" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-info-circle"></i> Detail invoice</button>`;
+                case 7:
+                    btnAction = `<button class="btn btn-outline-primary btn-sm" title="Upload Faktur" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-upload"></i> Upload Faktur</button>`;
                     break;
-                case 'verifikasi':
+                case 4:
                     btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openInvoiceModal(this, 'verifStaff')"><i class="bi bi-check2-circle"></i> Verif Invoice</button>`;
                     break;
                 default:
+                    btnAction = `<button class="btn btn-outline-info btn-sm" title="Detail Invoice" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-info-circle"></i> Detail invoice</button>`;
                     break;
             }
 

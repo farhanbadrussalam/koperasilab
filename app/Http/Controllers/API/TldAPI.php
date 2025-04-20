@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 use App\Models\Master_tld;
 use App\Traits\RestApi;
@@ -83,7 +84,7 @@ class TldAPI extends Controller
         try {
             $jenis = $request->has('jenis') ? $request->jenis : false;
 
-            $data = Master_tld::where('status', 0)->where('jenis', $jenis)->get();
+            $data = Master_tld::where('status', 0)->whereNull('kepemilikan')->where('jenis', $jenis)->get();
 
             DB::commit();
             return $this->output($data, 200);
@@ -100,6 +101,45 @@ class TldAPI extends Controller
             // $id = decryptor($id);
             $data = Master_tld::find($id);
             DB::commit();
+            return $this->output($data, 200);
+        } catch (\Exception $ex ) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function getData(Request $request) {
+        DB::beginTransaction();
+        try {
+            $jenis = $request->has('jenis') ? $request->jenis : false;
+            $status = $request->has('status') ? $request->status : false;
+            $search = $request->has('search') ? $request->search : false;
+
+            $page = $request->has('page') ? $request->page : 1;
+            $limit = $request->has('limit') ? $request->limit : 5;
+
+            $data = Master_tld::whereNull('kepemilikan')
+                    ->when($jenis, function($query, $jenis){
+                        return $query->where('jenis', $jenis);
+                    })
+                    ->when($status, function($query, $status){
+                        return $query->where('status', $status);
+                    })
+                    ->when($search, function($query, $search){
+                        return $query->where('no_seri_tld', 'like', '%'.$search.'%')->orWhere('merk', 'like', '%'.$search.'%');
+                    })
+                    ->orderBy('status', 'asc')
+                    ->orderBy('jenis', 'asc')
+                    ->orderBy('tanggal_pengadaan', 'desc')
+                    ->offset(($page - 1) * $limit)
+                    ->limit($limit)
+                    ->paginate($limit);
+                
+            $arr = $data->toArray();
+            $this->pagination = Arr::except($arr, 'data');
+            DB::commit();
+
             return $this->output($data, 200);
         } catch (\Exception $ex ) {
             info($ex);

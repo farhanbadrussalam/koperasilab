@@ -11,6 +11,7 @@ use App\Models\Master_tld;
 
 use DataTables;
 use DB;
+use Auth;
 
 class TldController extends Controller
 {
@@ -30,7 +31,12 @@ class TldController extends Controller
 
     public function getData()
     {
-        $tld = Master_tld::where('status', '!=', '99')->orderBy('id_tld', 'desc');
+        $tld = Master_tld::where('status', '!=', '99')
+            ->with('pemilik')
+            ->orderBy('tanggal_pengadaan', 'desc');
+
+        // mengambil role
+        Auth::user()->getRoleNames()[0] == 'Pelanggan' ? $tld->where('kepemilikan', Auth::user()->id_perusahaan) : false;
 
         if(request()->has('status') && request()->status != null){
             $tld->where('status', request()->status);
@@ -42,6 +48,21 @@ class TldController extends Controller
 
         return DataTables::of($tld)
             ->addIndexColumn()
+            ->addColumn('no_seri_tld', function ($tld) {
+                $htmlKepemilikan = '';
+                if($tld->pemilik != null && Auth::user()->getRoleNames()[0] != 'Pelanggan'){
+                    $htmlKepemilikan = '<small class="text-body-tertiary">' . $tld->pemilik->nama_perusahaan . '</small>';
+                }
+
+                return '
+                    <div class="d-flex align-items-center">
+                        <div class="flex-fill">
+                            <div>' . $tld->no_seri_tld . '</div>
+                            '. $htmlKepemilikan .'
+                        </div>
+                    </div>
+                ';
+            })
             ->addColumn('status', function ($tld) {
                 return $tld->status == 1 ? '<span class="badge bg-success">Digunakan</span>' : '<span class="badge bg-secondary">Tidak Digunakan</span>';
             })
@@ -52,7 +73,7 @@ class TldController extends Controller
                 ';
                 return $btn;
             })
-            ->rawColumns(['action', 'status'])
+            ->rawColumns(['no_seri_tld','action', 'status'])
             ->make(true);
     }
 
@@ -71,23 +92,32 @@ class TldController extends Controller
     {
         DB::beginTransaction();
         $validator = $request->validate([
-            'kode_lencana' => 'required',
+            'nomer_seri' => 'required',
             'jenis' => 'required',
         ]);
         try {
-            $exists = Master_tld::where('kode_lencana', $request->kode_lencana)
+            $exists = Master_tld::where('no_seri_tld', $request->nomer_seri)
                 ->where('jenis', $request->jenis)
                 ->where('status', '!=', '99')
                 ->exists();
 
             if ($exists) {
-                return $this->output(array('msg' => 'Kode lencana dan jenis sudah ada'), 'Fail', 422);
+                return $this->output(array('msg' => 'Nomer seri dan jenis sudah ada'), 'Fail', 422);
+            }
+
+            // mengambil role
+            $role = Auth::user()->getRoleNames()[0];
+            if($role == 'Pelanggan'){
+                $kepemilikan = Auth::user()->id_perusahaan;
             }
 
             Master_tld::create([
-                'kode_lencana' => $request->kode_lencana,
+                'no_seri_tld' => $request->nomer_seri,
                 'jenis' => $request->jenis,
-                'status' => 2
+                'merk' => $request->merk,
+                'tanggal_pengadaan' => date('Y-m-d H:i:s'),
+                'kepemilikan' => isset($kepemilikan) ? $kepemilikan : null,
+                'status' => 0
             ]);
 
             DB::commit();
@@ -135,18 +165,19 @@ class TldController extends Controller
     {
         DB::beginTransaction();
         try {
-            $exists = Master_tld::where('kode_lencana', $request->kode_lencana)
+            $exists = Master_tld::where('no_seri_tld', $request->nomer_seri)
                 ->where('jenis', $request->jenis)
                 ->exists();
 
             if ($exists) {
-                return $this->output(array('msg' => 'Kode lencana dan jenis sudah ada'), 'Fail', 422);
+                return $this->output(array('msg' => 'No seri dan jenis sudah ada'), 'Fail', 422);
             }
             
             $tld = Master_tld::findOrFail(decryptor($request->id_tld));
             $tld->update([
-                'kode_lencana' => $request->kode_lencana,
-                'jenis' => $request->jenis
+                'no_seri_tld' => $request->nomer_seri,
+                'jenis' => $request->jenis,
+                'merk' => $request->merk
             ]);
 
             DB::commit();

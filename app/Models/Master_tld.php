@@ -16,9 +16,13 @@ class Master_tld extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'kode_lencana',
+        'no_seri_tld',
+        'merk',
         'jenis',
         'status',
+        'tanggal_pengadaan',
+        'kepemilikan',
+        'digunakan'
     ];
 
     protected $hidden = [
@@ -32,5 +36,10 @@ class Master_tld extends Model
     public function getTldHashAttribute()
     {
         return encryptor($this->id_tld);
+    }
+
+    public function pemilik()
+    {
+        return $this->belongsTo(Perusahaan::class, 'kepemilikan', 'id_perusahaan');
     }
 }
