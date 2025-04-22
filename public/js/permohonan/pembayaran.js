@@ -50,6 +50,9 @@ function loadData(page = 1) {
                 btnAction = `<a class="btn btn-outline-warning btn-sm" href="${base_url}/permohonan/pembayaran/bayar/${keuangan.keuangan_hash}" title="Bayar"><i class="bi bi-cash"></i> Bayar</a>`;
             }else{
                 btnAction = `<button class="btn btn-outline-info btn-sm" title="Show Invoice" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-eye-fill"></i> Detail</button>`;
+                if(keuangan.status == 5){
+                    btnAction += `<a class="btn btn-outline-warning btn-sm ms-1" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi"><i class="bi bi-printer-fill"></i> Kwitansi</a>`;
+                }
             }
 
             const data = {

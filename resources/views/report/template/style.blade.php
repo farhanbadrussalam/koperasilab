@@ -183,4 +183,17 @@
         margin-top: 20px !important;
         margin-bottom: 20px !important;
     }
+
+    .img-stempel {
+        width: 100px;
+        height: 100px;
+        right: 10rem;
+        position: absolute;
+        z-index: 2; /* Lapisan depan lebih tinggi */
+    }
+
+    .img-fluid {
+        max-width: 100%;
+        height: auto;
+    }
 </style>

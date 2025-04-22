@@ -44,6 +44,7 @@ class ReportController extends Controller
         $data['date'] = Carbon::now();
         $data['title'] = "Invoice";
         $data['ttd_default'] = public_path('icons/default/white.png');
+        $data['stempel'] = public_path('icons/Stempel-Lab.png');
 
         $periodePemakaian = $query->permohonan->periode_pemakaian;
 
@@ -53,9 +54,7 @@ class ReportController extends Controller
         }
         
         $pdf = PDF::loadView('report.invoice', $data);
-
         $pdf->render();
-
         return $pdf->stream();
     }
 
@@ -71,12 +70,21 @@ class ReportController extends Controller
             'permohonan',
             'permohonan.jenis_layanan',
             'permohonan.pelanggan',
-            'permohonan.pelanggan.perusahaan'
+            'permohonan.pelanggan.perusahaan',
+            'permohonan.kontrak:id_kontrak,no_kontrak'
         )->where('id_keuangan', $idKeuangan)->first();
 
         $data['data'] = $query;
         $data['title'] = 'Kwitansi';
         $data['date'] = Carbon::now();
+        $data['ttd_default'] = public_path('icons/default/white.png');
+        $data['stempel'] = public_path('icons/Stempel-Lab.png');
+
+        // mengambil periode pertama dan terakhir
+        $start = $query->permohonan->periode_pemakaian[0]['start_date'];
+        $end = $query->permohonan->periode_pemakaian[count($query->permohonan->periode_pemakaian) - 1]['end_date'];
+        $data['periode_start'] = convert_date($start, 6);
+        $data['periode_end'] = convert_date($end, 6);
 
         $pdf = PDF::loadView('report.kwitansi', $data);
 
@@ -228,8 +236,20 @@ class ReportController extends Controller
         // dd($query);
 
         $pdf = PDF::loadView('report.perjanjian', $data);
-
         $pdf->render();
+
+        // Dapatkan canvas dari DomPDF
+        $canvas = $pdf->getDomPDF()->get_canvas();
+
+        // Tentukan posisi dan sudut rotasi
+        $canvas->save(); // Simpan state awal canvas
+        $canvas->rotate(-45, $canvas->get_width() / 2, $canvas->get_height() / 2); // Rotasi -45 derajat di tengah halaman
+
+        // Tambahkan teks "DRAFT" di latar belakang
+        $canvas->set_opacity(0.1); // Transparansi teks
+        $canvas->text(150, 350, 'DRAFT', null, 100, [0, 0, 0]);
+
+        $canvas->restore(); // Kembali ke state awal setelah rotasi
 
         return $pdf->stream();
     }

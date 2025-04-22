@@ -126,12 +126,16 @@
                     TELP. 021 - 74786334
                 </div>
             </td>
-            <td width="50%" style="text-align: center">
-                <div>
-                    <div class="p-2"><img src="{{ $data->ttd ? $data->ttd : $ttd_default }}" alt="TTD_keuangan"
-                            class="img-fluid"></div>
-                    <div>{{ $data->usersig ? $data->usersig->name : '................................' }}</div>
+            <td width="50%" style="text-align: center;">
+                <div class="p-2">
+                    @if ($data->ttd)
+                    <div class="img-stempel">
+                        <img src="{{ $stempel }}" class="img-fluid" alt="Stempel-Lab">
+                    </div>
+                    @endif
+                    <img src="{{ $data->ttd ? $data->ttd : $ttd_default }}" alt="TTD_keuangan">
                 </div>
+                <div>{{ $data->usersig ? $data->usersig->name : '................................' }}</div>
             </td>
         </tr>
     </table>

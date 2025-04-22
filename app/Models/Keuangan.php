@@ -24,6 +24,7 @@ class Keuangan extends Model
         'bukti_bayar_pph',
         'ttd',
         'ttd_by',
+        'plt',
         'total_harga',
         'created_at',
         'created_by'

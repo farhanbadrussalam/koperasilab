@@ -90,6 +90,7 @@ class Invoice {
         let invoiceClass = this;
         $('#content-ttd-manager').empty();
         $('#ttd-div-manager').addClass('d-none').removeClass('d-block');
+        $('#plt-div-manager').addClass('d-none').removeClass('d-block');
 
         // Populate invoice details
         const detailsHTML = `
@@ -173,10 +174,17 @@ class Invoice {
             });
             $('#rincianInvoice-tab').click();
         } else if (mode === 'verify') {
+            // sini
             this.signaturePad = signature(document.getElementById("content-ttd-manager"), {
                 text: 'Manager'
             });
+            if(this.dataKeuangan.plt) {
+                $('#plt-div-manager input').prop('checked', true);
+            } else {
+                $('#plt-div-manager input').prop('checked', false);
+            }
             $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
+            $('#plt-div-manager').addClass('d-block').removeClass('d-none');
 
             $('#rincianInvoice-tab').click();
             // $('#invoiceActions').append(this.btnPrinter());
@@ -617,6 +625,7 @@ class Invoice {
                 formData.append('ttd', this.signaturePad.toDataURL());
                 formData.append('ttd_by', userActive.user_hash);
                 formData.append('status', 3);
+                $('#pltChecked').is(":checked") ? formData.append('plt', 1) : formData.append('plt', 0);
                 textQuestion = 'Apa invoice sudah benar ?';
                 textSuccess = 'Invoice berhasil diverifikasi.';
                 break;
@@ -751,6 +760,14 @@ class Invoice {
                                         <tbody id="deskripsiInvoice">
                                         </tbody>
                                     </table>
+                                </div>
+                                <div class="row m-2 d-none" id="plt-div-manager">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" value="" id="pltChecked">
+                                        <label class="form-check-label" for="pltChecked">
+                                            Pilih jika manager sedang tidak ada
+                                        </label>
+                                    </div>
                                 </div>
                                 <div class="row my-2 d-none" id="ttd-div-manager">
                                     <div class="col-md-12 d-flex justify-content-center">

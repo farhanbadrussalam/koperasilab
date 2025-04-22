@@ -83,6 +83,23 @@
                     Atas perhatian dan kerjasamanya, diucapkan terima kasih
                 </p>
             </div>
+            <div class="border rounded p-3 mt-3">
+                <h4>Dokumen pendukung</h4>
+                <div class="row">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <a target="_blank" href="{{ url('laporan/invoice/'.$keuangan->keuangan_hash) }}" class="text-decoration-none">
+                                <i class="bi bi-file-earmark-fill"></i> Invoice
+                            </a>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="{{ url('laporan/perjanjian/'.$keuangan->permohonan->kontrak_hash) }}" target="_blank" class="text-decoration-none">
+                                <i class="bi bi-file-earmark-fill"></i> Kontrak MoU
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
             <div class="row my-4">
                 <div class="col-md-6">
                     <label for="" class="form-label">Upload bukti bayar<span class="text-danger ms-1">*</span></label>
@@ -100,7 +117,6 @@
             </div> --}}
             <div class="modal-footer d-flex justify-content-center mt-3">
                 <button type="button" class="btn btn-primary me-2" onclick="btnSimpan()">Kirim bukti bayar</button>
-                <a type="button" class="btn btn-secondary" target="_blank" href="{{ url('laporan/invoice/'.$keuangan->keuangan_hash) }}"><i class="bi bi-printer-fill"></i> Cetak</a>
             </div>
         </div>
     </div>

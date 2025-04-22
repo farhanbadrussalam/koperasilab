@@ -250,6 +250,7 @@ class KeuanganAPI extends Controller
             $ttd = $request->ttd ?? false;
             $ttd_by = $request->ttd_by ? decryptor($request->ttd_by) : false;
             $textNote = $request->note ?? '';
+            $plt = $request->has('plt') ? $request->plt : false;
 
             $result = array();
             $data = [];
@@ -260,6 +261,7 @@ class KeuanganAPI extends Controller
             $idPermohonan && $data['id_permohonan'] = $idPermohonan;
             $ttd && $data['ttd'] = $ttd;
             $ttd_by && $data['ttd_by'] = $ttd_by;
+            $plt && $data['plt'] = $plt;
             
             $data['status'] = $status;
             
