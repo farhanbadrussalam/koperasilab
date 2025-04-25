@@ -1,3 +1,5 @@
+const tmpArrTld = [];
+
 $(function () {
     let htmlAlamat = '<option value="">Pilih alamat</option>';
     for (const [i,value] of dataKontrak.pelanggan.perusahaan.alamat.entries()) {
@@ -49,14 +51,17 @@ function loadTld() {
 function loadTldKontrol(tldKontrol) {
     let htmlTldKontrol = '';
     for (const [i, list] of tldKontrol.entries()) {
+        tmpArrTld.push({
+            id: list.kontrak_tld_hash,
+            tld: list.tld?.tld_hash
+        });
+
         htmlTldKontrol += `
             <div class="w-50 pe-1 mb-1 input-group">
                 <div class="input-group-text">
                     <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
                 </div>
-                <select class="form-select kodeTldKontrol" name="kodeTldKontrol">
-                    <option value="${list.tld.tld_hash}" selected>${list.tld.kode_lencana}</option>
-                </select>
+                <input type="text" class="form-control" value="${list.tld.no_seri_tld}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
             </div>
         `;
     }
@@ -74,11 +79,11 @@ function loadPengguna(tldPengguna){
         value.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
 
         let dataTld = tldPengguna.find(tld => tld.pengguna.kontrak_pengguna_hash == value.kontrak_pengguna_hash);
-        if(dataTld.tld){
-            options = `<option value="${dataTld.tld.tld_hash}">${dataTld.tld.kode_lencana}</option>`;
-        } else {
-            options = `<option value="">Pilih Kode lencana</option>`;
-        }
+
+        tmpArrTld.push({
+            id: dataTld.kontrak_tld_hash,
+            tld: dataTld.tld?.tld_hash
+        });
         
         htmlPengguna += `
             <tr>
@@ -92,9 +97,9 @@ function loadPengguna(tldPengguna){
                 </td>
                 <td>${txtRadiasi}</td>
                 <td>
-                    <select class="form-select kodeTldPengguna" name="kodeTldPengguna" id="kodeTld_${value.permohonan_pengguna_hash}" data-id="${value.permohonan_pengguna_hash}">
-                        ${options}
-                    </select>
+                    <div class="input-group">
+                        <input type="text" class="form-control rounded-start" value="${dataTld.tld.no_seri_tld}" id="tldNoSeri_${dataTld.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                    </div>
                 </td>
                 <td>
                     <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.media.file_path}/${value.media.file_hash}" title="Show ktp">

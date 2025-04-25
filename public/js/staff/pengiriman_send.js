@@ -1,13 +1,22 @@
 const arrSelectDocument = [];
 const arrDocCustom = [];
-// let arrPeriode = informasi.periode_pemakaian;
-
-// if(informasi.tipe_kontrak == 'kontrak lama') {
-//     arrPeriode = informasi.kontrak.periode;
-// }
+let inventoryTld = false;
 let mPeriode = false;
+const tmpArrTld = [];
 $(function () {
-    // mPeriode = new Periode(arrPeriode, {dataonly: true});
+    inventoryTld = new Inventory_tld({preview: true});
+    inventoryTld.on('inventory.selected', (e) => {
+        const detail = e.detail;
+
+        $(`#tldNoSeri_${detail.selected}`).val(detail.data_tld.no_seri_tld);
+
+        // reset tmpArrTld 
+        let index = tmpArrTld.findIndex(d => d.id == detail.selected);
+
+        if(index > -1){
+            tmpArrTld[index].tld = detail.data_tld.tld_hash;
+        }
+    })
     load_form();
 
     $('#select_alamat').on('change', obj => {
@@ -19,6 +28,11 @@ $(function () {
     });
 
 })
+
+function openInventory(obj, jenis){
+    let id = $(obj).data('id');
+    inventoryTld.show(id, tmpArrTld, jenis);
+}
 
 function load_form() {
     // Inisialisasi Alamat
@@ -35,40 +49,66 @@ function load_form() {
     }
 
     // filter untuk memisahkan antara tld pengguna dan tld kontrol
-    let tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna);
-    let tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
+    let tldPengguna = [];
+    let tldKontrol = [];
+    let kontrakPeriode = [];
+    if(informasi.kontrak){
+        tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna);
+        tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
+        kontrakPeriode = informasi.kontrak.periode;
+    }else{
+        tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna);
+        tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
+        kontrakPeriode = informasi.periode;
+    }
 
     // list document TLD
     
     // Mengecek apakah sudah last periode atau belum
-    const isLastPeriode = _cekLastPeriode(informasi.kontrak?.periode ?? informasi.periode, (periodeNow ?? informasi.periode));
+    const isLastPeriode = _cekLastPeriode(kontrakPeriode, (periodeNow ? periodeNow : informasi.periode));
+    
     if(!isLastPeriode){
         let checkedTld = status_tld ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const list of tldKontrol) {
+            tmpArrTld.push({
+                id: list.kontrak_tld_hash,
+                tld: list.tld?.tld_hash
+            })
             htmlKontrol += `
                 <div class="w-50 pe-1">
                     <span>&nbsp;</span>
-                    <select class="form-select kodeTldKontrol" name="kodeTldKontrol" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
-                        <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
-                    </select>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld?.no_seri_tld ?? ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                        ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                    </div>
                 </div>
             `;
         }
+        // <select class="form-select kodeTldKontrol" name="kodeTldKontrol" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
+        //     <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
+        // </select>
     
         // Menambil tld Pengguna dari kontrak
         let htmlPengguna = ``;
         for (const list of tldPengguna){
+            tmpArrTld.push({
+                id: list.kontrak_tld_hash,
+                tld: list.tld?.tld_hash
+            })
             htmlPengguna += `
                 <div class="w-50 pe-1">
                     <span>${list.pengguna.nama}</span>
-                    <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
-                        <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
-                    </select>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld?.no_seri_tld ?? ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                        ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                    </div>
                 </div>
             `;
         }
-        
+        // <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
+        //     <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
+        // </select>
         htmlTld = `
             <div class="border shadow-sm py-2 rounded mb-2">
                 <div
@@ -85,7 +125,6 @@ function load_form() {
                     </div>
                 </div>
                 <div id="listTld" class="row">
-                    <div class="ps-5 text-info"><small>Di isi dengan Kode lencana yang sesuai</small></div>
                     <div class="row">
                         <div class="col-md-6">
                             <label class="px-4">TLD Pengguna</label>
@@ -105,8 +144,8 @@ function load_form() {
         `;
         $('#list-document').append(htmlTld);
 
-        _tldKontrol();
-        _tldPengguna();
+        // _tldKontrol();
+        // _tldPengguna();
     }
 
     // list document invoice
@@ -212,7 +251,7 @@ function updateSelectDocument(){
                 break;
             case 'tld':
                 if(doc.checked){
-                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${periodeNow ?? informasi.periode ?? 0}`);
+                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${periodeNow ? periodeNow : (informasi.periode ? informasi.periode : 0)}`);
                     $('#btnCetakSurat').addClass('d-block').removeClass('d-none');
                 }else{
                     $('#btnCetakSurat').attr('href', ``);
@@ -234,20 +273,8 @@ function updateSelectDocument(){
                 }else{
                     $('#listTld').addClass('d-none').removeClass('d-flex');
                 }
-
-                listTld = [...$('select[name="kodeTldPengguna"]').map(function() {
-                    return {
-                        id: $(this).data('id'),
-                        status: $(this).data('status'),
-                        tld: $(this).val()
-                    };
-                }).get(), ...$('select[name="kodeTldKontrol"]').map(function() {
-                    return {
-                        id: $(this).data('id'),
-                        status: $(this).data('status'),
-                        tld: $(this).val()
-                    };
-                }).get()];
+                
+                listTld = tmpArrTld;
                 break;
             default:
                 periode = informasi.periode;

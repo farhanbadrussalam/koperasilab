@@ -77,7 +77,7 @@ class PelangganController extends Controller
             $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
     
             // cek apakah permohonan sudah ada atau belum
-            $permohonan = Permohonan::select('id_permohonan', 'list_tld')
+            $permohonan = Permohonan::select('id_permohonan')
                 ->with(
                     'pengguna',
                     'pengguna.media',
@@ -87,9 +87,6 @@ class PelangganController extends Controller
                 ->where('id_kontrak', decryptor($idKontrak))
                 ->where('periode', $periodeNow->periode)
                 ->first();
-            if(isset($permohonan->list_tld) && count($permohonan->list_tld) > 0){
-                $permohonan->tldKontrol = Master_tld::whereIn('id_tld', $permohonan->list_tld)->get();
-            }
     
             $data = [
                 'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,

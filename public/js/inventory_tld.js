@@ -26,12 +26,6 @@ class Inventory_tld {
             self.page = e.target.dataset.page;
             self._loadData();
         });
-
-        // $('#btn-pilih-tld').on('click', function (e) {
-        //     e.preventDefault();
-        //     document.dispatchEvent(this.eventSelected, self.formTldSelected);
-        //     $('#modal-inventory-tld').modal('hide');
-        // });
     }
 
     _loadData(){
@@ -53,6 +47,10 @@ class Inventory_tld {
                 let find = this.selectedArr.find(d => d.tld == tld.tld_hash);
                 if(find){
                     checked = '<span class="text-success"><i class="bi bi-check"></i> Terpilih</span>';
+                }
+                
+                if(tld.status == 1){
+                    checked = '';
                 }
 
                 $('#list-inventory-tld').append(`

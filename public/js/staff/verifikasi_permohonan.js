@@ -246,20 +246,18 @@ function loadTld(){
 function loadTldKontrol(tldKontrol){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
-        let htmlDisabled = '';
+        let htmlDisabled = false;
         if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
-            htmlDisabled = 'disabled';
+            htmlDisabled = true;
         }
         for(const [i,iKontrol] of tldKontrol.entries()){
             let tldHash = '';
             let no_seri_tld = '';
+            let idHash = iKontrol.permohonan_tld_hash ? iKontrol.permohonan_tld_hash : iKontrol.kontrak_tld_hash;
             
             if(iKontrol.tld) {
                 tldHash = iKontrol.tld.tld_hash;
                 no_seri_tld = iKontrol.tld.no_seri_tld;
-            } else if(iKontrol.tld_tmp){
-                tldHash = iKontrol.tld_tmp;
-                no_seri_tld = iKontrol.tld_tmp;
             } else if(result.data[i]){
                 tldHash = result.data[i].tld_hash;
                 no_seri_tld = result.data[i].no_seri_tld;
@@ -269,70 +267,20 @@ function loadTldKontrol(tldKontrol){
             }
 
             tmpArrTld.push({
-                id: iKontrol.permohonan_tld_hash,
+                id: idHash,
                 tld: tldHash
             });
             html += `
                 <div class="col-sm-6 mt-2">
                     <label for="" class="mb-2">No Seri Kontrol ${i+1}</label>
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${iKontrol.permohonan_tld_hash}" placeholder="Pilih No Seri" readonly>
-                        <button class="btn btn-outline-secondary" type="button" data-id="${iKontrol.permohonan_tld_hash}" onclick="openInventory(this, 'kontrol')">
-                            <i class="bi bi-arrow-repeat"></i> Ganti
-                        </button>
+                        <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idHash}" placeholder="Pilih No Seri" readonly>
+                        ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${idHash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                     </div>
                 </div>
             `;
         }
         $('#tld-kontrol-content').html(html);
-
-        $('.kodeTldKontrol').select2({
-            theme: "bootstrap-5",
-            tags: true,
-            placeholder: "Pilih Kode lencana",
-            createTag: (params) => {
-                return {
-                    id: params.term,
-                    text: params.term,
-                    newTag: true
-                };
-            },
-            maximumSelectionLength: 2,
-            ajax: {
-                url: `${base_url}/api/v1/tld/searchTld`,
-                type: "GET",
-                dataType: "json",
-                processing: true,
-                serverSide: true,
-                delay: 250,
-                headers: {
-                    'Authorization': `Bearer ${bearer}`,
-                    'Content-Type': 'application/json'
-                },
-                data: function(params) {
-                    let queryParams = {
-                        kode_lencana: params.term,
-                        jenis: 'kontrol'
-                    }
-                    return queryParams;
-                },
-                processResults: function(response, params){
-                    let items = [];
-                    for (const data of response.data) {
-                        items.push({
-                            id : data.tld_hash,
-                            text : data.kode_lencana,
-                            status : data.status,
-                            disabled : data.status == 1 ? true : false
-                        });
-                    }
-                    return {
-                        results: items
-                    };
-                }
-            },
-            templateResult: templateTld
-        })
     });
 }
 function loadPengguna(tldPengguna){
@@ -344,28 +292,35 @@ function loadPengguna(tldPengguna){
 
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         let html = '';
-        let htmlDisabled = '';
+        let htmlDisabled = false;
         if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
-            htmlDisabled = 'disabled';
+            htmlDisabled = true;
         }
+        
         for (const [i,pengguna] of result.data.entries()) {
             let txtRadiasi = '';
             // RADIASI
             pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
 
             // TLD PENGGUNA
-            const iPengguna = tldPengguna.find(d => d.pengguna?.permohonan_pengguna_hash == pengguna.permohonan_pengguna_hash)
+            const iPengguna = tldPengguna.find(d => {
+                if(d.pengguna.permohonan_pengguna_hash && d.pengguna.permohonan_pengguna_hash == pengguna.permohonan_pengguna_hash){
+                    return d;
+                } else if (d.pengguna.kontrak_pengguna_hash && d.pengguna.kontrak_pengguna_hash == pengguna.kontrak_pengguna_hash){
+                    return d;
+                }
+                return false;
+            })
 
             let tldHash = '';
             let no_seri_tld = '';
+            let idHash = '';
 
             if(iPengguna){
+                idHash = iPengguna.permohonan_tld_hash ? iPengguna.permohonan_tld_hash : iPengguna.kontrak_tld_hash;
                 if(iPengguna.tld){
                     tldHash = iPengguna.tld.tld_hash;
                     no_seri_tld = iPengguna.tld.no_seri_tld;
-                } else if(iPengguna.tld_tmp){
-                    tldHash = iPengguna.tld_tmp;
-                    no_seri_tld = iPengguna.tld_tmp;
                 } else if(pengguna.tld_pengguna) {
                     tldHash = pengguna.tld_pengguna.tld_hash;
                     no_seri_tld = pengguna.tld_pengguna.no_seri_tld;
@@ -376,9 +331,10 @@ function loadPengguna(tldPengguna){
             }
             
             tmpArrTld.push({
-                id: iPengguna.permohonan_tld_hash,
+                id: idHash,
                 tld: tldHash
             });
+
             html += `
                 <tr>
                     <td>${i + 1}</td>
@@ -389,8 +345,8 @@ function loadPengguna(tldPengguna){
                     <td>${txtRadiasi}</td>
                     <td>
                         <div class="input-group">
-                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${iPengguna.permohonan_tld_hash}" placeholder="Pilih No Seri" readonly>
-                            <button class="btn btn-outline-secondary" type="button" data-id="${iPengguna.permohonan_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>
+                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idHash}" placeholder="Pilih No Seri" readonly>
+                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${idHash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
                         </div>
                     </td>
                     <td>
@@ -417,53 +373,6 @@ function loadPengguna(tldPengguna){
 
         $('#pengguna-list-container').html(html);
 
-        $('.kodeTldPengguna').select2({
-            theme: "bootstrap-5",
-            tags: true,
-            placeholder: "Pilih Kode lencana",
-            createTag: (params) => {
-                return {
-                    id: params.term,
-                    text: params.term,
-                    newTag: true
-                };
-            },
-            maximumSelectionLength: 2,
-            ajax: {
-                url: `${base_url}/api/v1/tld/searchTld`,
-                type: "GET",
-                dataType: "json",
-                processing: true,
-                serverSide: true,
-                delay: 250,
-                headers: {
-                    'Authorization': `Bearer ${bearer}`,
-                    'Content-Type': 'application/json'
-                },
-                data: function(params) {
-                    let queryParams = {
-                        kode_lencana: params.term,
-                        jenis: 'pengguna'
-                    }
-                    return queryParams;
-                },
-                processResults: function(response, params){
-                    let items = [];
-                    for (const data of response.data) {
-                        items.push({
-                            id : data.tld_hash,
-                            text : data.kode_lencana,
-                            status : data.status,
-                            disabled : data.status == 1 ? true : false
-                        });
-                    }
-                    return {
-                        results: items
-                    };
-                }
-            },
-            templateResult: templateTld
-        })
         $('#pengguna-placeholder').addClass('d-none');
         $('#pengguna-table').removeClass('d-none');
         showPopupReload();

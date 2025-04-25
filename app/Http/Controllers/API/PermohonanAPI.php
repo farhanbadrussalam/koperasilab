@@ -160,7 +160,7 @@ class PermohonanAPI extends Controller
 
                 if($listTld){
                     foreach ($listTld as $value) {
-                        $kontrakTld = Kontrak_tld::with('pengguna')->find(decryptor($value));
+                        $kontrakTld = Kontrak_tld::with('pengguna')->where('id_kontrak_tld', decryptor($value))->first();
                         // $permohonanPengguna = false;
                         // // Menambahkan pengguna dari kontrak ke permohonan_pengguna
                         // if($kontrakTld->pengguna){

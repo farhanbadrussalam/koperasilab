@@ -53,4 +53,9 @@ class Kontrak_tld extends Model
     {
         return $this->belongsTo(Kontrak_pengguna::class, 'id_pengguna', 'id_pengguna');
     }
+
+    public function kontrak()
+    {
+        return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
+    }
 }

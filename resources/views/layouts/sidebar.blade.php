@@ -63,13 +63,15 @@
                     </li>
                 @endcan
                 
+                @can('Tld')
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'tld' ? 'active' : '' }}"
                         href="{{ route('tld.index') }}" aria-expanded="false">
-                        <span><i class="bi bi-card-list"></i></span>
-                        <span class="hide-menu">Penyimpanan TLD</span>
+                        <span><i class="bi bi-motherboard"></i></span>
+                        <span class="hide-menu">Data TLD</span>
                     </a>
                 </li>
+                @endcan
                 <!-- END MAIN MENU -->
 
                 {{-- PERMOHONAN --}}

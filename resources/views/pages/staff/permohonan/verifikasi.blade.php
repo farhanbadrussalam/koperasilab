@@ -71,16 +71,6 @@
                     <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
                         <div class="card-body row">
                             <div class="col-12">
-                                <h2 class="text-center">TLD Kontrol</h2>
-                            </div>
-                            <div class="col-12 overflow-auto" style="max-height: 25rem;">
-                                <div id="tld-kontrol-content" class="row"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
-                        <div class="card-body row">
-                            <div class="col-12">
                                 <h2 class="text-center">Daftar nama pemakai TLD</h2>
                             </div>
                             <div class="col-12 overflow-auto" style="max-height: 25rem;">
@@ -117,6 +107,16 @@
                                     </thead>
                                     <tbody id="pengguna-list-container" class="align-middle"></tbody>
                                 </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
+                        <div class="card-body row">
+                            <div class="col-12">
+                                <h2 class="text-center">TLD Kontrol</h2>
+                            </div>
+                            <div class="col-12 overflow-auto" style="max-height: 25rem;">
+                                <div id="tld-kontrol-content" class="row"></div>
                             </div>
                         </div>
                     </div>

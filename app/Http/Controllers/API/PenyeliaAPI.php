@@ -18,6 +18,7 @@ use App\Models\Master_jobs;
 use App\Models\Master_tld;
 
 use App\Models\Kontrak_tld;
+use App\Models\Kontrak_periode;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
@@ -312,12 +313,22 @@ class PenyeliaAPI extends Controller
             if($jobsNow->jobs->status == 17){ // Penyimpanan TLD
                 foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
                     if($value->status == 3) {
-                        if($penyelia->permohonan->kontrak->jenis_layanan_2 != '3') { // jenis kontraknya bukan evaluasi berarti di update statusnya
-                            Master_tld::where('id_tld', $value->id_tld)->update(array('status' => 0));
+                        // jenis kontraknya bukan evaluasi berarti di update statusnya
+                        if($penyelia->permohonan->kontrak->jenis_layanan_2 != '3') { 
+                            Master_tld::where('id_tld', $value->id_tld)->update(array('status' => 0, 'digunakan' => null));
                         }
 
                         // Masih opsional apakah Kontrak_tld di ganti menjadi status 0 atau masih tetap 3
                         Kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 0]);
+
+                        // mengecek jika sudah di periode terakhir
+                        // Mengambil last periode
+                        $kontrakPeriode = Kontrak_periode::where('id_kontrak', $penyelia->permohonan->kontrak->id_kontrak)->orderBy('periode', 'desc')->first();
+                        $isLast = $kontrakPeriode->periode == $penyelia->permohonan->periode ? true : false;
+
+                        if($isLast) {
+                            Master_tld::where('digunakan', $penyelia->permohonan->kontrak->no_kontrak)->update(array('status' => 0, 'digunakan' => null));
+                        }
                     }
                 }
             }
@@ -561,7 +572,7 @@ class PenyeliaAPI extends Controller
                 'permohonan.pengguna',
                 'permohonan.pengguna.tld_pengguna',
                 'permohonan.rincian_list_tld',
-                'permohonan.rincian_list_tld.tld:id_tld,kode_lencana',
+                'permohonan.rincian_list_tld.tld:id_tld,no_seri_tld',
                 'permohonan.rincian_list_tld.pengguna:id_pengguna,nama,posisi',
                 'log',
                 'log.user',
