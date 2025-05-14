@@ -33,7 +33,9 @@ class TldController extends Controller
     {
         $tld = Master_tld::where('status', '!=', '99')
             ->with('pemilik')
-            ->orderBy('tanggal_pengadaan', 'desc');
+            ->orderBy('kepemilikan', 'asc')
+            ->orderBy('status', 'asc')
+            ->orderBy('jenis', 'asc');
 
         // mengambil role
         Auth::user()->getRoleNames()[0] == 'Pelanggan' ? $tld->where('kepemilikan', Auth::user()->id_perusahaan) : false;

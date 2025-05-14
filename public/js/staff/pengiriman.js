@@ -36,7 +36,7 @@ function loadData(page = 1) {
         let html = '';
         for (const [i, data] of result.data.entries()) {
             let htmlButton = '';
-            
+
             if(data.status == 3){
                 htmlButton += `<button class="btn btn-outline-primary btn-sm me-1" onclick="showFormPengiriman(this)">Kirim</button>`;
                 htmlButton += `<button class="btn btn-outline-danger btn-sm" onclick="removePengiriman(this)">Delete</button>`;
@@ -59,7 +59,6 @@ function loadData(page = 1) {
                             ${data.detail.length} Item
                         </div>
                         <div class="col-6 col-md-2">
-                            <span>${data.kontrak.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
                                     Alamat ${data.alamat.jenis}
@@ -72,6 +71,11 @@ function loadData(page = 1) {
                         <div class="col-6 col-md-3 text-center" data-id="${data.id_pengiriman}">
                             <button class="btn btn-outline-info btn-sm" onclick="showDetail(this)">Detail</button>
                             ${htmlButton}
+                        </div>
+                        <div class="col-md-12 mt-1">
+                            <div class="text-body-tertiary fs-7">
+                                <div><i class="bi bi-building-fill"></i> ${data.kontrak.pelanggan.perusahaan.nama_perusahaan}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -144,7 +148,7 @@ function showFormPengiriman(obj){
     let idPengiriman = $(obj).parent().data('id');
     $('#no_pengiriman').val(idPengiriman);
     $('#noResi').val('');
-    
+
     $('#modal-kirim-dokumen').modal('show');
 }
 
@@ -212,16 +216,16 @@ function kirimDokumen(obj){
 
 /**
  * Handles the cancellation of document delivery.
- * 
+ *
  * This function triggers a confirmation dialog using Swal.fire to confirm the cancellation of a document delivery.
  * If confirmed, it sends an AJAX POST request to update the delivery status to cancelled.
- * 
+ *
  * @param {Object} obj - The DOM element that triggered the function.
- * 
+ *
  * @example
  * // Assuming `this` is the DOM element that triggered the function
  * batalKirimDokumen(this);
- * 
+ *
  * @fires Swal.fire - To show confirmation and success/error messages.
  * @fires ajaxPost - To send the cancellation request to the server.
  */

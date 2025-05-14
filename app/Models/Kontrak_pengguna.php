@@ -10,43 +10,33 @@ class Kontrak_pengguna extends Model
     use HasFactory;
 
     protected $table = "kontrak_pengguna";
-    protected $primaryKey = "id_pengguna";
+    protected $primaryKey = "id_map_pengguna";
 
     protected $fillable = [
+        'id_map_pengguna',
         'id_kontrak',
-        'nama',
-        'posisi',
-        'id_radiasi',
-        'file_ktp',
+        'id_pengguna',
+        'id_tld',
         'status',
         'created_by',
         'created_at'
     ];
 
     protected $hidden = [
-        'id_pengguna',
-        'id_radiasi'
+        'id_map_pengguna'
     ];
 
     protected $appends = [
-        'kontrak_pengguna_hash'
+        'pengguna_map_hash'
     ];
 
     protected $casts = [
         'id_radiasi' => 'array'
     ];
 
-    public function getKontrakPenggunaHashAttribute()
+    public function getPenggunaMapHashAttribute()
     {
-        return encryptor($this->id_pengguna);
-    }
-
-    public function radiasi(){
-        return $this->belongsTo(Master_radiasi::class, 'id_radiasi', 'id_radiasi')->withDefault();
-    }
-
-    public function media(){
-        return $this->belongsTo(Master_media::class, 'file_ktp', 'id');
+        return encryptor($this->id_map_pengguna);
     }
 
     public function tld_pengguna(){
@@ -54,6 +44,10 @@ class Kontrak_pengguna extends Model
     }
 
     public function kontrak_tld(){
-        return $this->belongsTo(Kontrak_tld::class, 'id_pengguna', 'id_pengguna');
+        return $this->belongsTo(Kontrak_tld::class, 'id_map_pengguna', 'id_map_pengguna');
+    }
+
+    public function pengguna(){
+        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna');
     }
 }

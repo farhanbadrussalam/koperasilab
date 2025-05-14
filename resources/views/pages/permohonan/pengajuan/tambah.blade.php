@@ -45,6 +45,9 @@
                         </select>
                     </div>
                 </div>
+                <div class="w-100 mt-2" id="div-buat-form">
+                    <button class="btn btn-primary float-end" id="btn-buat-form">Buat form</button>
+                </div>
             </div>
         </div>
 
@@ -95,7 +98,7 @@
                                 <label class="col-form-label" for="jum_kontrol">Kontrol<span class="text-danger ms-1">*</span></label>
                                 <a id="btnTambahKontrol" class="text-decoration-none cursor-pointer text-primary hover-text pt-2" onclick="addFormKontrol()"><i class="bi bi-plus-circle"></i> Tambah</a>
                             </div>
-                            <input type="number" name="jum_kontrol" id="jum_kontrol" class="form-control" oninput="calcPrice()">
+                            <input type="number" name="jum_kontrol" id="jum_kontrol" class="form-control bg-secondary-subtle" oninput="calcPrice()" readonly>
                             <div id="divKontrolEvaluasi">
                                 <div id="kontrol-list-container" class="border border-opacity-50 rounded p-1 bg-body-tertiary overflow-y-auto overflow-x-hidden collapse show" style="max-height: 40vh;">
                                     
@@ -185,7 +188,8 @@
                         <button class="btn btn-outline-secondary btn-sm" id="btn-add-kontrol">Tambah Kontrol</button>
                     </div>
                 </div> --}}
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-outline-danger" id="hapusPengajuan" onclick="remove()">Hapus pengajuan</button>
                     <button class="btn btn-primary" id="simpanPengajuan">Simpan pengajuan</button>
                 </div>
             </div>
@@ -194,43 +198,40 @@
 
     <!-- Modal -->
     <div class="modal fade" id="modal-add-pengguna" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h1 class="modal-title fs-5" id="exampleModalLabel">Tambahkan pengguna</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body g-2 row">
-                    <div>
-                        <label for="nama_pengguna" class="col-form-label">Nama Pengguna</label>
-                        <input type="text" name="nama_pengguna" id="nama_pengguna" class="form-control">
+                    <div class="d-flex justify-content-between mb-2">
+                        <div class="flex-grow-1">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i
+                                    class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                        </div>
                     </div>
-                    <div>
-                        <label for="divisi_pengguna" class="col-form-label">Divisi Pengguna</label>
-                        <input type="text" name="divisi_pengguna" id="divisi_pengguna" class="form-control">
-                    </div>
-                    <div>
-                        <label for="jenis_radiasi" class="col-form-label">Jenis/Energi Radiasi</label>
-                        <select name="jenis_radiasi" id="jenis_radiasi" class="form-select" multiple="multiple">
-                            @foreach ($dataRadiasi as $value)
-                                <option value="{{ $value->radiasi_hash }}">{{ $value->nama_radiasi }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <table class="table table-hover w-100 align-middle" id="table-pengguna">
+                        <thead>
+                            <th width="5%">No</th>
+                            <th>Name</th>
+                            <th width="20%">Divisi</th>
+                            <th width="15%" class="text-center">Action</th>
+                        </thead>
+                    </table>
                     <div id="form-kode-lencana-pengguna">
-                        <label for="kodeLencanaPengguna" class="col-form-label">Kode Lencana</label>
-                        <input type="text" name="kodeLencanaPengguna" id="kodeLencanaPengguna" class="form-control">
+                        <label for="kodeLencanaPengguna" class="col-form-label">No Seri TLD</label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control rounded-start" id="noSeriPengguna" placeholder="Pilih No Seri" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>
+                        </div>
                     </div>
-                    <div>
+                    <div class="d-none" id="form-upload-ktp">
                         <label for="upload_ktp" class="col-form-label">Upload KTP</label>
                         <div class="card mb-0" style="height: 150px;">
                             <input type="file" name="dokumen" id="uploadKtpPengguna" accept="image/*" class="form-control dropify">
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="btn-tambah-pengguna">Simpan</button>
                 </div>
             </div>
         </div>

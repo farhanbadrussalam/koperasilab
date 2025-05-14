@@ -11,46 +11,30 @@ class Permohonan_pengguna extends Model
 
     protected $table = "permohonan_pengguna";
 
-    protected $primaryKey = "id_pengguna";
+    protected $primaryKey = "id_map_pengguna";
 
     protected $fillable = [
+        'id_map_pengguna',
         'id_permohonan',
-        'nama',
-        'posisi',
-        'id_radiasi',
-        'file_ktp',
+        'id_pengguna',
+        'id_tld',
         'status',
-        'keterangan',
         'created_by',
         'created_at'
     ];
 
     protected $hidden = [
-        'id_pengguna',
-        'id_radiasi',
+        'id_map_pengguna',
         'id_tld'
     ];
 
     protected $appends = [
-        'permohonan_pengguna_hash'
+        'pengguna_map_hash'
     ];
 
-    protected $casts = [
-        'id_radiasi' => 'array'
-    ];
-
-    public function getPermohonanPenggunaHashAttribute()
+    public function getPenggunaMapHashAttribute()
     {
-        return encryptor($this->id_pengguna);
-    }
-
-    public function radiasi(){
-        // return Master_radiasi::whereJsonContains('id_radiasi', $this->id_radiasi)->get();
-        return $this->belongsTo(Master_radiasi::class, 'id_radiasi', 'id_radiasi');
-    }
-
-    public function media(){
-        return $this->belongsTo(Master_media::class, 'file_ktp', 'id');
+        return encryptor($this->id_map_pengguna);
     }
 
     public function tld_pengguna(){
@@ -58,6 +42,10 @@ class Permohonan_pengguna extends Model
     }
 
     public function permohonan_tld(){
-        return $this->belongsTo(Permohonan_tld::class, 'id_pengguna', 'id_pengguna');
+        return $this->belongsTo(Permohonan_tld::class, 'id_map_pengguna', 'id_map_pengguna');
+    }
+
+    public function pengguna(){
+        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna');
     }
 }

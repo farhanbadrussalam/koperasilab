@@ -72,6 +72,17 @@
                     </a>
                 </li>
                 @endcan
+
+                @can('pengguna')
+                @endcan
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'pengguna' ? 'active' : '' }}"
+                        href="{{ route('userpengguna.index') }}" aria-expanded="false">
+                        <span><i class="bi bi-people"></i></span>
+                        <span class="hide-menu">Pengguna</span>
+                    </a>
+                </li>
+
                 <!-- END MAIN MENU -->
 
                 {{-- PERMOHONAN --}}

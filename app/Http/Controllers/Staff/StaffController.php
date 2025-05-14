@@ -95,7 +95,7 @@ class StaffController extends Controller
     public function createSuratTugas($idPenyelia)
     {
         $idPenyelia = decryptor($idPenyelia);
-        
+
         // Mendapatkan segmen terakhir dari URL
         $segmenTerakhir = request()->segment(count(request()->segments()) - 1);
         $typeSurat = '';
@@ -129,7 +129,7 @@ class StaffController extends Controller
             'permohonan.kontrak.periode',
             'permohonan.layanan_jasa:id_layanan,nama_layanan',
             'permohonan.layanan_jasa.jobs_pelaksana',
-            'permohonan.jenisTld:id_jenisTld,name', 
+            'permohonan.jenisTld:id_jenisTld,name',
             'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
             'permohonan.jenis_layanan_parent',
             'permohonan.pelanggan',
@@ -143,7 +143,7 @@ class StaffController extends Controller
             foreach ($query->penyelia_map as $key => $value) {
                 $dataJobs = Master_jobs::find(decryptor($value->jobs_hash));
                 $dataJobs['order'] = $value->order;
-                
+
                 if($value->point_jobs == null){
                     array_push($listJobs, $dataJobs);
                 }else{
@@ -207,7 +207,7 @@ class StaffController extends Controller
         $dataPermohonan = Permohonan::with(
                             'file_lhu',
                             'layanan_jasa:id_layanan,nama_layanan',
-                            'jenisTld:id_jenisTld,name', 
+                            'jenisTld:id_jenisTld,name',
                             'jenis_layanan:id_jenisLayanan,name,parent',
                             'jenis_layanan_parent',
                             'pengguna',
@@ -265,7 +265,7 @@ class StaffController extends Controller
         if($id){
             $data = Permohonan::with([
                 'layanan_jasa:id_layanan,nama_layanan',
-                'jenisTld:id_jenisTld,name', 
+                'jenisTld:id_jenisTld,name',
                 'jenis_layanan:id_jenisLayanan,name,parent',
                 'jenis_layanan_parent',
                 'pelanggan:id,id_perusahaan,name',
@@ -276,7 +276,8 @@ class StaffController extends Controller
                 'kontrak.rincian_list_tld' => function ($query) {
                     $query->where('status', 1);
                 },
-                'kontrak.rincian_list_tld.pengguna:id_pengguna,nama,posisi',
+                'kontrak.rincian_list_tld.pengguna_map',
+                'kontrak.rincian_list_tld.pengguna_map.pengguna',
                 'kontrak.rincian_list_tld.tld',
                 'invoice',
                 'invoice.pengiriman',
@@ -286,7 +287,8 @@ class StaffController extends Controller
                 'file_lhu',
                 'pengguna',
                 'rincian_list_tld',
-                'rincian_list_tld.pengguna:id_pengguna,nama,posisi',
+                'rincian_list_tld.pengguna_map',
+                'rincian_list_tld.pengguna_map.pengguna',
                 'rincian_list_tld.tld',
             ])->find($id);
 
@@ -295,15 +297,16 @@ class StaffController extends Controller
 
             // Membuat kontrak_tld
             $kontrakTld = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
-            // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya 
+            // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
             if(count($kontrakTld) == 0){
                 $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode-1)->get();
                 foreach($dataKontrakTldSebelum as $val){
                     Kontrak_tld::create([
                         'id_kontrak' => $data->id_kontrak,
-                        'id_pengguna' => $val->id_pengguna,
+                        'id_map_pengguna' => $val->id_map_pengguna,
                         'periode' => $data->periode,
                         'id_tld' => $val->id_tld,
+                        'id_divisi' => $val->id_divisi,
                         'status' => 1,
                         'created_by' => Auth::user()->id
                     ]);
@@ -316,7 +319,7 @@ class StaffController extends Controller
         }else{
             $idKontrak = decryptor($idHash) ?? false;
             $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode)->get();
-            // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya 
+            // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
             if(count($kontrakTld) == 0){
                 $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->get();
                 foreach($dataKontrakTldSebelum as $val){
@@ -327,10 +330,11 @@ class StaffController extends Controller
                     //             return $query->where('id_pengguna', $val->id_pengguna);
                     //         })
                     //         ->where('status', 0)->first();
-                    
+
                     $arr = array(
                         'id_kontrak' => $idKontrak,
-                        'id_pengguna' => $val->id_pengguna,
+                        'id_map_pengguna' => $val->id_map_pengguna,
+                        'id_divisi' => $val->id_divisi,
                         'periode' => $periodeNow->periode,
                         'status' => 1,
                         'created_by' => Auth::user()->id
@@ -338,9 +342,9 @@ class StaffController extends Controller
                     Kontrak_tld::create($arr);
                 }
             }
-            
+
             $data = Kontrak::with([
-                'pengguna',
+                'pengguna_map',
                 'layanan_jasa:id_layanan,nama_layanan',
                 'jenisTld:id_jenisTld,name',
                 'jenis_layanan:id_jenisLayanan,name,parent',
@@ -351,7 +355,8 @@ class StaffController extends Controller
                 'rincian_list_tld' => function ($query) {
                     $query->where('status', 1);
                 },
-                'rincian_list_tld.pengguna:id_pengguna,nama,posisi',
+                'rincian_list_tld.pengguna_map',
+                'rincian_list_tld.pengguna_map.pengguna',
                 'rincian_list_tld.tld',
                 'periode'
             ])->find($idKontrak);
@@ -376,13 +381,13 @@ class StaffController extends Controller
     private function generateNoPengiriman() {
         // Format tanggal: milisecond (timestamp)
         $milliseconds = round(microtime(true) * 1000);
-        
+
         // Angka acak (3 digit)
         $randomNumber = mt_rand(100, 999);
-    
+
         // Kombinasi nomor pengiriman
         $noPengiriman = "D-" . $milliseconds . $randomNumber;
-    
+
         return $noPengiriman;
     }
 
@@ -415,6 +420,6 @@ class StaffController extends Controller
             Log::error("permohonan creation failed: " . $permohonanResponse->getContent());
             // ... consider throwing an exception or other error handling
         }
-    
+
     }
 }

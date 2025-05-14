@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 use App\Models\Kontrak;
+use App\Models\Kontrak_tld;
+use App\Models\Kontrak_periode;
 use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
@@ -31,7 +33,7 @@ class ReportController extends Controller
             'usersig',
             'permohonan',
             'permohonan.layanan_jasa:id_layanan,nama_layanan',
-            'permohonan.jenisTld:id_jenisTld,name', 
+            'permohonan.jenisTld:id_jenisTld,name',
             'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
             'permohonan.jenis_layanan_parent',
             'permohonan.pelanggan',
@@ -52,7 +54,7 @@ class ReportController extends Controller
             $data['periode_start'] = $periodePemakaian[0];
             $data['periode_end'] = $periodePemakaian[count($periodePemakaian) - 1] ?? null;
         }
-        
+
         $pdf = PDF::loadView('report.invoice', $data);
         $pdf->render();
         return $pdf->stream();
@@ -102,7 +104,7 @@ class ReportController extends Controller
         }
 
         $query = Permohonan::with([
-            'jenisTld:id_jenisTld,name', 
+            'jenisTld:id_jenisTld,name',
             'pelanggan',
             'pelanggan.perusahaan',
             'kontrak',
@@ -137,7 +139,7 @@ class ReportController extends Controller
         }
 
         $query = Permohonan::with([
-            'jenisTld:id_jenisTld,name', 
+            'jenisTld:id_jenisTld,name',
             'pelanggan',
             'pelanggan.perusahaan',
             'layanan_jasa',
@@ -160,7 +162,7 @@ class ReportController extends Controller
         $data['title'] = 'SURAT TUGAS UJI';
         $data['ttd_default'] = public_path('icons/default/white.png');
         $data['data'] = $query;
-        
+
         $pdf = PDF::loadView('report.suratTugas', $data);
 
         $pdf->render();
@@ -171,9 +173,9 @@ class ReportController extends Controller
 /**
  * Generates a PDF stream of the "Surat Pengantar" report.
  *
- * This function retrieves the report data based on the provided ID, 
- * sets the necessary title and date information, and then loads 
- * the 'suratPengantar' view to generate a PDF document. The PDF 
+ * This function retrieves the report data based on the provided ID,
+ * sets the necessary title and date information, and then loads
+ * the 'suratPengantar' view to generate a PDF document. The PDF
  * is then rendered and streamed back to the user.
  *
  * @param string|null $id Encrypted report identifier.
@@ -202,7 +204,7 @@ class ReportController extends Controller
                 return $query->where('status', 1);
             },
             'rincian_list_tld.tld',
-            'rincian_list_tld.pengguna'
+            'rincian_list_tld.pengguna_map'
         ])->find($id);
 
         $data['date'] = Carbon::now()->year;
@@ -239,17 +241,55 @@ class ReportController extends Controller
         $pdf->render();
 
         // Dapatkan canvas dari DomPDF
-        $canvas = $pdf->getDomPDF()->get_canvas();
+        // $canvas = $pdf->getDomPDF()->get_canvas();
 
         // Tentukan posisi dan sudut rotasi
-        $canvas->save(); // Simpan state awal canvas
-        $canvas->rotate(-45, $canvas->get_width() / 2, $canvas->get_height() / 2); // Rotasi -45 derajat di tengah halaman
+        // $canvas->save(); // Simpan state awal canvas
+        // $canvas->rotate(-45, $canvas->get_width() / 2, $canvas->get_height() / 2); // Rotasi -45 derajat di tengah halaman
 
         // Tambahkan teks "DRAFT" di latar belakang
-        $canvas->set_opacity(0.1); // Transparansi teks
-        $canvas->text(150, 350, 'DRAFT', null, 100, [0, 0, 0]);
+        // $canvas->set_opacity(0.1); // Transparansi teks
+        // $canvas->text(150, 350, 'DRAFT', null, 100, [0, 0, 0]);
 
-        $canvas->restore(); // Kembali ke state awal setelah rotasi
+        // $canvas->restore(); // Kembali ke state awal setelah rotasi
+
+        return $pdf->stream();
+    }
+
+    public function label($id = null){
+        $id = decryptor($id);
+
+        if($id == null){
+            return redirect()->back();
+        }
+
+        $query = Penyelia::with([
+            'permohonan',
+            'permohonan.kontrak',
+            'permohonan.pelanggan.perusahaan',
+        ])->where('id_penyelia', $id)->first();
+
+        // mengambil list tld di kontrak
+        $listTld = Kontrak_tld::with('tld', 'pengguna_map.pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
+                    ->where('periode', $query->permohonan->periode)
+                    ->orderBy('id_map_pengguna', 'asc')
+                    ->orderBy('id_divisi', 'asc')
+                    ->get();
+
+        $dataPeriode = Kontrak_periode::where('id_kontrak', $query->permohonan->id_kontrak)
+                    ->where('periode', $query->permohonan->periode)
+                    ->first();
+
+        $data = array();
+
+        $data['date'] = Carbon::now()->year;
+        $data['title'] = 'Label';
+        $data['data'] = json_decode($listTld);
+        $data['penyelia'] = $query;
+        $data['periode'] = $dataPeriode;
+
+        $pdf = PDF::loadView('report.label', $data);
+        $pdf->render();
 
         return $pdf->stream();
     }

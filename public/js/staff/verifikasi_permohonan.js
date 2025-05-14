@@ -16,7 +16,7 @@ $(function () {
 
         $(`#tldNoSeri_${detail.selected}`).val(detail.data_tld.no_seri_tld);
 
-        // reset tmpArrTld 
+        // reset tmpArrTld
         let index = tmpArrTld.findIndex(d => d.id == detail.selected);
 
         if(index > -1){
@@ -33,7 +33,7 @@ $(function () {
         txtPeriode = arrPeriode.length + ' Periode';
     }
     $('#periode-pemakaian').val(txtPeriode);
-    
+
     const conten_2 = document.getElementById("content-ttd-2");
     signaturePad = signature(conten_2, {
         text: 'Front desk'
@@ -51,17 +51,17 @@ $(function () {
             preview: false,
             max: arrPeriode.length
         });
-        
+
         $('#btn-periode').on('click', () => {
             periodeJs.show();
         });
-    
+
         periodeJs.on('periode.simpan', () => {
             const dataPeriode = periodeJs.getData();
             const params = new FormData();
             params.append('idPermohonan', dataPermohonan.permohonan_hash);
             params.append('periodePemakaian', JSON.stringify(dataPeriode));
-    
+
             ajaxPost(`api/v1/permohonan/tambahPengajuan`, params, result => {
                 Swal.fire({
                     icon: 'success',
@@ -98,7 +98,7 @@ $(function () {
     modalDoc = new ModalDocument({
         title: 'Tanda Terima Pengujian',
     });
-    
+
     $('#btn-show-tandaterima').on('click', () => {
         modalDoc.show(`laporan/tandaterima/${dataPermohonan.permohonan_hash}`);
     });
@@ -125,7 +125,7 @@ $(function () {
 function loadPelanggan() {
     const pelanggan = dataPermohonan.pelanggan;
     const perusahaan = pelanggan.perusahaan;
-    
+
     $('#nama-instansi').val(perusahaan.nama_perusahaan);
     $('#nama-pic').val(pelanggan.name);
     $('#jabatan-pic').val(pelanggan.jabatan);
@@ -225,19 +225,20 @@ function toggleReason(index, enable) {
 
 function loadTld(){
     ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
+
         // filter untuk memisahkan antara tld pengguna dan tld kontrol
-        let kPengguna = result.data.tldKontrak ? result.data.tldKontrak?.filter(tld => tld.pengguna) : [];
+        let kPengguna = result.data.tldKontrak ? result.data.tldKontrak?.filter(tld => tld.pengguna_map) : [];
         let tldPengguna = [
-            ...result.data.tldPermohonan.filter(tld => tld.pengguna),
+            ...result.data.tldPermohonan.filter(tld => tld.pengguna_map),
             ...kPengguna,
         ];
 
-        let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
+        let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna_map) : [];
         let tldKontrol = [
-            ...result.data.tldPermohonan.filter(tld => !tld.pengguna),
+            ...result.data.tldPermohonan.filter(tld => !tld.pengguna_map),
             ...kKontrol,
         ];
-        
+
         loadTldKontrol(tldKontrol);
         loadPengguna(tldPengguna);
     });
@@ -254,7 +255,7 @@ function loadTldKontrol(tldKontrol){
             let tldHash = '';
             let no_seri_tld = '';
             let idHash = iKontrol.permohonan_tld_hash ? iKontrol.permohonan_tld_hash : iKontrol.kontrak_tld_hash;
-            
+
             if(iKontrol.tld) {
                 tldHash = iKontrol.tld.tld_hash;
                 no_seri_tld = iKontrol.tld.no_seri_tld;
@@ -272,7 +273,7 @@ function loadTldKontrol(tldKontrol){
             });
             html += `
                 <div class="col-sm-6 mt-2">
-                    <label for="" class="mb-2">No Seri Kontrol ${i+1}</label>
+                    <label for="" class="mb-2">No Seri Kontrol ${iKontrol.divisi.kode_lencana}</label>
                     <div class="input-group mb-3">
                         <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idHash}" placeholder="Pilih No Seri" readonly>
                         ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${idHash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
@@ -296,17 +297,15 @@ function loadPengguna(tldPengguna){
         if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
             htmlDisabled = true;
         }
-        
-        for (const [i,pengguna] of result.data.entries()) {
+
+        for (const [i, value] of result.data.entries()) {
             let txtRadiasi = '';
             // RADIASI
-            pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
+            value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
 
             // TLD PENGGUNA
             const iPengguna = tldPengguna.find(d => {
-                if(d.pengguna.permohonan_pengguna_hash && d.pengguna.permohonan_pengguna_hash == pengguna.permohonan_pengguna_hash){
-                    return d;
-                } else if (d.pengguna.kontrak_pengguna_hash && d.pengguna.kontrak_pengguna_hash == pengguna.kontrak_pengguna_hash){
+                if(d.pengguna_map.pengguna_map_hash && d.pengguna_map.pengguna_map_hash == value.pengguna_map_hash){
                     return d;
                 }
                 return false;
@@ -321,15 +320,15 @@ function loadPengguna(tldPengguna){
                 if(iPengguna.tld){
                     tldHash = iPengguna.tld.tld_hash;
                     no_seri_tld = iPengguna.tld.no_seri_tld;
-                } else if(pengguna.tld_pengguna) {
-                    tldHash = pengguna.tld_pengguna.tld_hash;
-                    no_seri_tld = pengguna.tld_pengguna.no_seri_tld;
+                } else if(value.tld_pengguna) {
+                    tldHash = value.tld_pengguna.tld_hash;
+                    no_seri_tld = value.tld_pengguna.no_seri_tld;
                 } else {
                     tldHash = '';
                     no_seri_tld = '';
                 }
             }
-            
+
             tmpArrTld.push({
                 id: idHash,
                 tld: tldHash
@@ -339,8 +338,8 @@ function loadPengguna(tldPengguna){
                 <tr>
                     <td>${i + 1}</td>
                     <td>
-                        <div>${pengguna.nama}</div>
-                        <small class="text-body-secondary fw-light">${pengguna.posisi}</small>
+                        <div>${value.pengguna.name}</div>
+                        <small class="text-body-secondary fw-light">${value.pengguna.divisi.name}</small>
                     </td>
                     <td>${txtRadiasi}</td>
                     <td>
@@ -350,7 +349,7 @@ function loadPengguna(tldPengguna){
                         </div>
                     </td>
                     <td>
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp">
+                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}">
                             <i class="bi bi-file-person-fill"></i>
                         </a>
                     </td>
@@ -388,13 +387,7 @@ function verif_kelengkapan(status, obj){
                 text: "Harap tambah tandaterima terlebih dahulu.",
             });
         }
-        // if(jenisLayanan.name == 'Sewa'){
-        //     return Swal.fire({
-        //         icon: "warning",
-        //         text: "Harap unggah dokumen LHU terlebih dahulu.",
-        //     });
-        // }
-        
+
         if(signaturePad.isEmpty()){
             return Swal.fire({
                 icon: "warning",
@@ -402,18 +395,6 @@ function verif_kelengkapan(status, obj){
             });
         }
 
-        // let listTld = [...$('select[name="kodeTldPengguna"]').map(function() {
-        //     return {
-        //         id: $(this).data('id'),
-        //         tld: $(this).val()
-        //     };
-        // }).get(), ...$('select[name="tld_kontrol[]"]').map(function() {
-        //     return {
-        //         id: $(this).data('id'),
-        //         tld: $(this).val()
-        //     };
-        // }).get()];
-        
         Swal.fire({
             icon: 'warning',
             title: 'Apakah data sudah lengkap?',
@@ -608,11 +589,11 @@ function simpanTldPermohonan(obj){
 
 function areThereEmptyFields(formElements) {
     let isEmpty = false; // Assume no empty fields initially
-  
+
     // Iterate through each form element
     formElements.each(function() {
       const element = $(this); // Get the jQuery object for the element
-  
+
       // Check for empty values based on element type
       if (element.is('input[type="text"], input[type="email"], input[type="number"], textarea') && element.val().trim() === "") {
         isEmpty = true; // Found an empty field
@@ -629,7 +610,7 @@ function areThereEmptyFields(formElements) {
         return false;
       }
     });
-  
+
     return isEmpty;
 }
 

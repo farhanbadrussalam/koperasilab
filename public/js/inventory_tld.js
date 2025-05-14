@@ -5,16 +5,24 @@ class Inventory_tld {
         if(this.canShow){
             $('body').append(this.modalCreate);
         }
-        
+
+        this.filter = new FilterComponent('filter-inventory-tld', {
+            filter : {
+                search: true
+            }
+        });
+
         this._bindEventListeners();
     }
     _initializeProperties(options) {
         this.canShow = options.preview || false;
+        this.no_kontrak = options.no_kontrak || false;
         this.page = 1;
         this.limit = 5;
         this.selectedArr = [];
         this.formTldSelected = false;
         this.jenisSelected = false;
+        this.filter = false;
     }
 
     _bindEventListeners() {
@@ -26,18 +34,31 @@ class Inventory_tld {
             self.page = e.target.dataset.page;
             self._loadData();
         });
+
+        this.filter.on('filter.change', () => {
+            self.page = 1;
+            self._loadData();
+        });
+
+        $('#modal-inventory-tld').on('hide.bs.modal', () => {
+            this.filter.clear();
+        })
     }
 
     _loadData(){
         // filter
         const params = {
             page: this.page,
-            limit: this.limit
+            limit: this.limit,
+            no_kontrak: this.no_kontrak
         };
+        let filterValue = this.filter && this.filter.getAllValue();
+        filterValue.search && (params.search = filterValue.search);
+
         const self = this;
 
         this.jenisSelected && (params.jenis = this.jenisSelected);
-        
+
         $('#placeholder-inventory-tld').show();
         $('#list-inventory-tld').hide();
         $('#list-inventory-tld').empty();
@@ -48,7 +69,7 @@ class Inventory_tld {
                 if(find){
                     checked = '<span class="text-success"><i class="bi bi-check"></i> Terpilih</span>';
                 }
-                
+
                 if(tld.status == 1){
                     checked = '';
                 }
@@ -68,6 +89,20 @@ class Inventory_tld {
                                 </div>
                                 <div class="text-end col-2">
                                     ${checked}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            }
+
+            if(result.data.length == 0){
+                $('#list-inventory-tld').append(`
+                    <div class="card mb-2 shadow-sm">
+                        <div class="card-body p-2">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="card-title mb-0">Data Tidak Ditemukan</div>
                                 </div>
                             </div>
                         </div>
@@ -97,7 +132,7 @@ class Inventory_tld {
 
     show(id, arr = [], jenis = false){
         this.page = 1;
-        this.selectedArr = arr; 
+        this.selectedArr = arr;
         this.formTldSelected = id;
         this.jenisSelected = jenis;
         this._loadData();

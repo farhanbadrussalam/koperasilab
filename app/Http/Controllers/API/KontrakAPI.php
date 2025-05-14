@@ -36,13 +36,13 @@ class KontrakAPI extends Controller
         $role = Auth::user()->getRoleNames();
         $idPelanggan = false;
         if(in_array('Pelanggan', $role->toArray())){
-            $idPelanggan = Auth::user()->id; 
+            $idPelanggan = Auth::user()->id;
         }
-        
+
         DB::beginTransaction();
         try {
             $query = Kontrak::with(
-                        'pengguna',
+                        'pengguna_map',
                         'periode',
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',
@@ -50,7 +50,7 @@ class KontrakAPI extends Controller
                         'periode.permohonan.file_lhu',
                         'invoice',
                         'layanan_jasa:id_layanan,nama_layanan',
-                        'jenisTld:id_jenisTld,name', 
+                        'jenisTld:id_jenisTld,name',
                         'jenis_layanan:id_jenisLayanan,name,parent',
                         'jenis_layanan_parent',
                         'pelanggan:id,id_perusahaan,name',
@@ -64,19 +64,33 @@ class KontrakAPI extends Controller
                     })
                     ->when($filter, function($q, $filter) {
                         foreach ($filter as $key => $value) {
-                            $q->where($key, decryptor($value));
+                            if($key == 'date_range') {
+                                $q->whereHas('periode', function($p) use ($value) {
+                                    $p->where(function($p) use ($value) {
+                                        $p->whereBetween('start_date', [$value[0], $value[1]])
+                                            ->orWhereBetween('end_date', [$value[0], $value[1]])
+                                            ->orWhere(function($p) use ($value) {
+                                                $p->where('start_date', '<=', $value[0])
+                                                    ->where('end_date', '>=', $value[1]);
+                                            });
+                                    });
+                                });
+                                // $q->when('periode', fn($p) => $p->whereBetween('start_date', [$value[0], $value[1]]));
+                            }else{
+                                $q->where($key, decryptor($value));
+                            }
                         }
                     })
                     ->orderBy('created_at', 'desc')
                     ->offset(($page - 1) * $limit)
                     ->limit($limit)
                     ->paginate($limit);
-            
+
             $arr = $query->toArray();
             $this->pagination = Arr::except($arr, 'data');
 
             DB::commit();
-            
+
             return $this->output($query, 200);
         } catch (\Exception $ex) {
             info($ex);
@@ -125,7 +139,7 @@ class KontrakAPI extends Controller
                         'periode.permohonan.file_lhu',
                         'invoice',
                         'layanan_jasa:id_layanan,nama_layanan',
-                        'jenisTld:id_jenisTld,name', 
+                        'jenisTld:id_jenisTld,name',
                         'jenis_layanan:id_jenisLayanan,name,parent',
                         'jenis_layanan_parent',
                         'pelanggan:id,id_perusahaan,name',
@@ -142,7 +156,7 @@ class KontrakAPI extends Controller
                 $query->tld_kontrol = $tldKontrol;
             }
             DB::commit();
-            
+
             return $this->output($query, 200);
         } catch (\Exception $ex) {
             info($ex);
@@ -163,7 +177,7 @@ class KontrakAPI extends Controller
                         ->where('no_kontrak', 'like', '%'.$no_kontrak.'%')
                         ->get();
             }
-            
+
             DB::commit();
             return $this->output($data, 200);
         } catch (\Exception $ex) {

@@ -46,36 +46,38 @@ class PelangganController extends Controller
             $periodeNext = Kontrak_periode::where('id_kontrak', decryptor($idKontrak))->where('periode', $periodeNow->periode+1)->first();
             // Mengambil Kontrak
             $queryKontrak = Kontrak::with([
-                                'layanan_jasa',
-                                'jenisTld:id_jenisTld,name',
-                                'jenis_layanan:id_jenisLayanan,name,parent',
-                                'jenis_layanan_parent:id_jenisLayanan,name,parent',
-                                'periode',
-                                'pengguna',
-                                'pengguna.media',
-                                'pelanggan',
-                                'pelanggan.perusahaan',
-                                'pelanggan.perusahaan.alamat',
-                                'rincian_list_tld' => function($q) use ($periodeNow){
-                                    return $q->where('periode', $periodeNow->periode-1);
-                                },
-                                'rincian_list_tld.tld',
-                                'rincian_list_tld.pengguna'
-                            ])->where('id_kontrak', decryptor($idKontrak))->first();
-    
-            if($queryKontrak && $queryKontrak->pengguna){
-                foreach($queryKontrak->pengguna as $key => $value){
-                    $queryKontrak->pengguna[$key]->radiasi = Master_radiasi::whereIn('id_radiasi', $value->id_radiasi)->get();
+                'layanan_jasa',
+                'jenisTld:id_jenisTld,name',
+                'jenis_layanan:id_jenisLayanan,name,parent',
+                'jenis_layanan_parent:id_jenisLayanan,name,parent',
+                'periode',
+                'pengguna_map',
+                'pengguna_map.pengguna.media_ktp',
+                'pengguna_map.pengguna.divisi',
+                'pelanggan',
+                'pelanggan.perusahaan',
+                'pelanggan.perusahaan.alamat',
+                'rincian_list_tld' => function($q) use ($periodeNow){
+                    return $q->where('periode', $periodeNow->periode-1);
+                },
+                'rincian_list_tld.tld',
+                'rincian_list_tld.pengguna_map',
+                'rincian_list_tld.pengguna_map.pengguna'
+            ])->where('id_kontrak', decryptor($idKontrak))->first();
+
+            if($queryKontrak && $queryKontrak->pengguna_map){
+                foreach($queryKontrak->pengguna_map as $key => $value){
+                    $queryKontrak->pengguna_map[$key]->pengguna->radiasi = Master_radiasi::whereIn('id_radiasi', $value->pengguna->id_radiasi)->get();
                 }
             }
 
             // if($queryKontrak->list_tld && count($queryKontrak->list_tld) > 0){
             //     $queryKontrak->tldKontrol = Master_tld::whereIn('id_tld', $queryKontrak->list_tld)->get();
             // }
-    
+
             // Mengambil jenis layanan Evaluasi - Dengan kontrak
             $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
-    
+
             // cek apakah permohonan sudah ada atau belum
             $permohonan = Permohonan::select('id_permohonan')
                 ->with(
@@ -87,7 +89,7 @@ class PelangganController extends Controller
                 ->where('id_kontrak', decryptor($idKontrak))
                 ->where('periode', $periodeNow->periode)
                 ->first();
-    
+
             $data = [
                 'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
                 'module' => 'permohonan-kontrak',
@@ -102,7 +104,7 @@ class PelangganController extends Controller
             return view('pages.permohonan.kontrak.evaluasi', $data);
         }
     }
-    
+
     // FEATURE PENGAJUAN
     public function indexPengajuan()
     {
@@ -129,7 +131,10 @@ class PelangganController extends Controller
         $dataPermohonan = Permohonan::with(
                             'pelanggan',
                             'pelanggan.perusahaan',
-                            'pelanggan.perusahaan.alamat'
+                            'pelanggan.perusahaan.alamat',
+                            'layanan_jasa:id_layanan,nama_layanan',
+                            'jenis_layanan:id_jenisLayanan,name',
+                            'jenis_layanan_parent:id_jenisLayanan,name',
                         )
                         ->where('id_permohonan', $idPermohonan)->first();
         $data = [
@@ -140,7 +145,7 @@ class PelangganController extends Controller
             'layanan_jasa' => Master_layanan_jasa::all(),
             'permohonan' => $dataPermohonan,
         ];
-        
+
         return view('pages.permohonan.pengajuan.tambah', $data);
     }
 
@@ -171,13 +176,13 @@ class PelangganController extends Controller
         ];
 
         $idKeuangan = decryptor($idKeuangan);
-        
+
         $keuangan = Keuangan::with(
                        'diskon',
                        'usersig:id,name',
                        'permohonan',
                        'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                       'permohonan.jenisTld:id_jenisTld,name', 
+                       'permohonan.jenisTld:id_jenisTld,name',
                        'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                        'permohonan.jenis_layanan_parent',
                        'permohonan.pelanggan',
@@ -208,7 +213,7 @@ class PelangganController extends Controller
             $keuangan->media_bukti_bayar_pph = array();
         }
         $data['keuangan'] = $keuangan;
-        
+
         return view('pages.permohonan.pembayaran.bayar', $data);
     }
 

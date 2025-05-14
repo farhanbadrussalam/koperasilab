@@ -12,6 +12,7 @@ class FilterComponent {
     _initializeProperties(options) {
         this.data = null;
         this.jenis = options.jenis ?? '';
+        this.fp = false;
         this.options = {
             filter: Object.fromEntries(Object.entries(options.filter).filter(([key, value]) => value === true))
         };
@@ -86,15 +87,15 @@ class FilterComponent {
                     result.data.child.forEach((list) => {
                         jenisChild.append(`<option value="${list.jenis_layanan_hash}">${list.name}</option>`);
                     });
-        
+
                     jenisChild.trigger('change');
                 });
-        
+
                 document.dispatchEvent(self.eventChange);
             }).on('select2:clear', function(e) {
                 jenisChild.empty().append('<option value="">All</option>').trigger('change');
                 document.dispatchEvent(self.eventChange);
-        
+
                 // Tutup Select2 setelah sedikit delay
                 setTimeout(() => {
                     $(this).select2('close');
@@ -190,6 +191,62 @@ class FilterComponent {
                 }, 10); // Penundaan kecil agar Select2 menutup dengan benar
             });
         }
+
+        if(filterName == 'date_range'){
+            this.fp = $('#filterDateRange').flatpickr({
+                mode: 'range',
+                dateFormat: 'Y-m-d',
+                locale: {
+                    firstDayOfWeek: 1,
+                    weekdays: {
+                        shorthand: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+                        longhand: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+                    },
+                    months: {
+                        shorthand: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
+                        longhand: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+                    },
+                },
+                defaultDate: null,
+                altInput: true,
+                altFormat: 'j F Y',
+                enableTime: false,
+                time_24hr: true,
+                minuteIncrement: 1,
+                static: true,
+                showMonths: 2,
+                onOpen: function() {},
+                onChange: function(selectedDates) {
+                    if(selectedDates.length == 2){
+                        document.dispatchEvent(self.eventChange);
+                    }
+                },
+                onClose: function(selectedDates) {
+                    // document.dispatchEvent(self.eventChange);
+                    // Tutup Select2 setelah sedikit delay
+                    setTimeout(() => {
+                        $('.flatpickr-input').blur();
+                    }, 10); // Penundaan kecil agar flatpickr menutup dengan benar
+                }
+            });
+            const self = this;
+            $('#clearDateRange').on('click', function() {
+                self.fp.clear();
+                document.dispatchEvent(self.eventChange);
+            })
+        }
+
+        if(filterName == 'search'){
+            $('#btnSearch').on('click', function() {
+                document.dispatchEvent(self.eventChange);
+            });
+
+            $('#filterSearch').on('keyup', function(event) {
+                if (event.keyCode === 13) {
+                    document.dispatchEvent(self.eventChange);
+                }
+            });
+        }
     }
 
     loadFilter() {
@@ -210,8 +267,25 @@ class FilterComponent {
         this.options.filter.jenis_layanan && this.createJenisLayananContent(html => callback(html), Object.keys(this.options.filter).indexOf('jenis_layanan'));
         this.options.filter.no_kontrak && this.createNoKontrakContent(html => callback(html), Object.keys(this.options.filter).indexOf('no_kontrak'));
         this.options.filter.perusahaan && this.createPerusahaanContent(html => callback(html), Object.keys(this.options.filter).indexOf('perusahaan'));
+        this.options.filter.date_range && this.createDateRangeContent(html => callback(html), Object.keys(this.options.filter).indexOf('date_range'));
+        this.options.filter.search && this.createSearchContent(html => callback(html), Object.keys(this.options.filter).indexOf('search'));
     }
 
+    createJenisTldContent(callback, index) {
+        const self = this;
+        ajaxGet(`api/v1/filter/getJenisTld`, false, result => {
+            let html = `
+                <div class="col-3 order-${index+1}">
+                    <select name="filterJenisTld" id="filterJenisTld" class="form-select form-select-sm">
+                        <option value="" selected>All</option>
+                        ${result.data.map(item => `<option value="${item.jenis_tld_hash}">${item.name}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+            callback(html);
+            self._setupFilter('jenis_tld');
+        });
+    }
     createStatusContent(callback, index) {
         const self = this;
         let params  = {
@@ -229,22 +303,6 @@ class FilterComponent {
             callback(html);
             self._setupFilter('status');
         })
-    }
-
-    createJenisTldContent(callback, index) {
-        const self = this;
-        ajaxGet(`api/v1/filter/getJenisTld`, false, result => {
-            let html = `
-                <div class="col-3 order-${index+1}">
-                    <select name="filterJenisTld" id="filterJenisTld" class="form-select form-select-sm">
-                        <option value="" selected>All</option>
-                        ${result.data.map(item => `<option value="${item.jenis_tld_hash}">${item.name}</option>`).join('')}
-                    </select>
-                </div>
-            `;
-            callback(html);
-            self._setupFilter('jenis_tld');
-        });
     }
 
     createJenisLayananContent(callback, index) {
@@ -294,6 +352,34 @@ class FilterComponent {
         self._setupFilter('perusahaan');
     }
 
+    createDateRangeContent(callback, index) {
+        const self = this;
+        let html = `
+            <div class="col-3 order-${index+1}">
+                <div class="input-group">
+                    <input type="text" id="filterDateRange" class="form-control form-control-sm" placeholder="All Date" readonly>
+                    <span class="btn btn-outline-danger btn-sm" id="clearDateRange"><i class="bi bi-x-lg"></i></span>
+                </div>
+            </div>
+        `;
+        callback(html);
+        self._setupFilter('date_range');
+    }
+
+    createSearchContent(callback, index) {
+        const self = this;
+        let html = `
+            <div class="col-3 order-${index+1}">
+                <div class="input-group">
+                    <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="Search">
+                    <span class="btn btn-outline-secondary btn-sm" id="btnSearch"><i class="bi bi-search"></i></span>
+                </div>
+            </div>
+        `;
+        callback(html);
+        self._setupFilter('search');
+    }
+
     getAllValue(){
         let allValue = {};
 
@@ -303,6 +389,8 @@ class FilterComponent {
         this.options.filter.jenis_layanan && (allValue.jenis_layanan_child = this.getValue('jenis_layanan_child'));
         this.options.filter.no_kontrak && (allValue.no_kontrak = this.getValue('no_kontrak'));
         this.options.filter.perusahaan && (allValue.perusahaan = this.getValue('perusahaan'));
+        this.options.filter.date_range && (allValue.date_range = this.getValue('date_range'));
+        this.options.filter.search && (allValue.search = this.getValue('search'));
 
         return allValue;
     }
@@ -319,6 +407,8 @@ class FilterComponent {
         if (filterName == 'jenis_layanan_child') return $('#filterJenisLayananChild').val();
         if (filterName == 'no_kontrak') return $('#filterSearchKontrak').val();
         if (filterName == 'perusahaan') return $('#filterPerusahaan').val();
+        if (filterName == 'date_range') return this.fp.selectedDates.map(date => date.toISOString().split('T')[0]);
+        if (filterName == 'search') return $('#filterSearch').val();
     }
 
     clear() {
@@ -328,8 +418,10 @@ class FilterComponent {
         this.options.filter.jenis_layanan_child && ($('#filterJenisLayananChild').val('').trigger('change'));
         this.options.filter.no_kontrak && ($('#filterSearchKontrak').val('').trigger('change'));
         this.options.filter.perusahaan && ($('#filterPerusahaan').val('').trigger('change'));
+        this.options.filter.date_range && (this.fp.clear());
+        this.options.filter.search && $('#filterSearch').val('');
     }
-    
+
     on(eventName, callback = () => { }) {
         return document.addEventListener(eventName, callback);
     }

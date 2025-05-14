@@ -29,8 +29,8 @@ $(function () {
 })
 
 function loadTld() {
-    let tldPengguna = dataKontrak.rincian_list_tld.filter(tld => tld.pengguna);
-    let tldKontrol = dataKontrak.rincian_list_tld.filter(tld => !tld.pengguna);
+    let tldPengguna = dataKontrak.rincian_list_tld.filter(tld => tld.pengguna_map);
+    let tldKontrol = dataKontrak.rincian_list_tld.filter(tld => !tld.pengguna_map);
 
     loadTldKontrol(tldKontrol);
     loadPengguna(tldPengguna);
@@ -70,21 +70,20 @@ function loadTldKontrol(tldKontrol) {
 }
 
 function loadPengguna(tldPengguna){
-    let pengguna = dataPermohonan ? dataPermohonan.pengguna : dataKontrak.pengguna;
+    let pengguna = dataPermohonan ? dataPermohonan.pengguna : dataKontrak.pengguna_map;
 
     let htmlPengguna = '';
     for (const [i, value] of pengguna.entries()) {
         let txtRadiasi = '';
-        let options = '';
-        value.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
+        value.pengguna.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
 
-        let dataTld = tldPengguna.find(tld => tld.pengguna.kontrak_pengguna_hash == value.kontrak_pengguna_hash);
+        let dataTld = tldPengguna.find(tld => tld.pengguna_map.pengguna_map_hash == value.pengguna_map_hash);
 
         tmpArrTld.push({
             id: dataTld.kontrak_tld_hash,
             tld: dataTld.tld?.tld_hash
         });
-        
+
         htmlPengguna += `
             <tr>
                 <td>
@@ -92,8 +91,8 @@ function loadPengguna(tldPengguna){
                 </td>
                 <td>${i + 1}</td>
                 <td>
-                    <div>${value.nama}</div>
-                    <small class="text-body-secondary fw-light">${value.posisi}</small>
+                    <div>${value.pengguna.name}</div>
+                    <small class="text-body-secondary fw-light">${value.pengguna.divisi.name}</small>
                 </td>
                 <td>${txtRadiasi}</td>
                 <td>
@@ -102,7 +101,7 @@ function loadPengguna(tldPengguna){
                     </div>
                 </td>
                 <td>
-                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.media.file_path}/${value.media.file_hash}" title="Show ktp">
+                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}" title="Show ktp">
                         <i class="bi bi-file-person-fill"></i>
                     </a>
                 </td>
@@ -183,5 +182,5 @@ function buatPermohonan(obj){
             });
         } // End of if(result.isConfirmed)
     });
-    
+
 }

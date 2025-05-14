@@ -53,7 +53,7 @@ function loadData(page = 1, menu) {
             //         htmlStatus += statusFormat('penyelia', d.jobs.status);
             //     }
             // })
-            
+
             if(!isLast) {
                 htmlTld = `
                     <div class="col-md-12 mt-2">
@@ -80,13 +80,13 @@ function loadData(page = 1, menu) {
                     htmlStatusLhu += statusFormat('penyelia', d.jobs.status);
                 });
             }
-            
+
             data.lhu ? htmlLhu = `
                 <div class="col-md-12 mt-2">
                     <div class="border-top py-2 d-flex justify-content-between align-items-center">
                         <div class="px-2">
                             <span class="fw-semibold fs-6">LHU</span>
-                            <small class="text-body-tertiary"> - ${data.lhu.periode == 0 ? "Zero cek" : `Periode ${data.lhu.periode}`}</small>
+                            <small class="text-body-tertiary"> - Periode ${data.lhu.periode}${data.lhu.periode == 1 ? "/Zero cek" : ""}</small>
                             <small>${statusFormat('pengiriman', data.lhu.pengiriman?.status)}</small>
                         </div>
                         <div class="d-flex align-items-center gap-3 text-secondary">
@@ -127,7 +127,7 @@ function loadData(page = 1, menu) {
                 case 4:
                     cekHtmlBtn = !data.lhu?.pengiriman || !data.pengiriman;
                     break;
-            
+
                 default:
                     if(data.jenis_layanan.id_jenisLayanan == 2){
                         if(htmlInvoice){
@@ -150,7 +150,7 @@ function loadData(page = 1, menu) {
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center py-2">
-                        <div class="col-auto">
+                        <div class="col-9">
                             <div class="">
                                 <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.tipe_kontrak}</span>
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
@@ -195,7 +195,7 @@ function loadData(page = 1, menu) {
 $('#list-pagination-list').on('click', 'a', function (e) {
     e.preventDefault();
     const pageno = e.target.dataset.page;
-    
+
     loadData(pageno);
 });
 

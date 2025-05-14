@@ -4,8 +4,12 @@
     @include('report.template.style-tandaterima')
 @endsection
 
+@section('header')
+    @include('report.template.header')
+@endsection
+
 @section('content')
-    <?php 
+    <?php
         $tdContent = '';
         $getPertanyaan = [];
         foreach ($data->tandaterima as $key => $value) {
@@ -88,7 +92,7 @@
         </tr>
         <?php echo $tdContent; ?>
     </table>
-    
+
     <table class="table-footer">
         <tr>
             <td colspan="2">Jumlah : <span class="text-secondary">{{ $data->jumlah_pengguna + $data->jumlah_kontrol }}</span></td>

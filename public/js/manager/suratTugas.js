@@ -113,7 +113,7 @@ function loadData(page=1) {
                             </div>
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
                                 <div><i class="bi bi-person-check-fill"></i> ${permohonan.pelanggan.name}</div>
-                                <span><i class="bi bi-calendar-range"></i> ${permohonan.periode ? `Periode ${permohonan.periode}` : 'Zero cek'}</span>
+                                <span><i class="bi bi-calendar-range"></i> Periode ${permohonan.periode} ${permohonan.periode == 1 ? ` + Zero cek` : ''}</span>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                 ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                             </div>

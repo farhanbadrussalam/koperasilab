@@ -254,9 +254,13 @@ if (!function_exists('stringSplit')) {
 
 #ex: Thursday, 31 Aug 2023 12:42 WIB
 if (!function_exists('convert_date')) {
-	function convert_date($tanggal, $type = false)
+	function convert_date($tanggal, $type = false, $language = 'id')
     {
         $format = '';
+        $month3 = false;
+        $month_eng = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $month_id = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $month3_id = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         switch ($type) {
             case 1:
                 # 11 September 2023 12:00
@@ -282,22 +286,29 @@ if (!function_exists('convert_date')) {
                 # September 2023
                 $format = 'M Y';
                 break;
+            case 7:
+                # Sep 2025
+                $format = 'M Y';
+                $month3 = true;
+                break;
         }
 
-        // Mengganti nama hari dalam bahasa Inggris dengan bahasa Indonesia
         $new_tanggal = date($format, strtotime($tanggal));
-        $new_tanggal = str_replace(
-            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-            ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu', 'Minggu'],
-            $new_tanggal
-        );
-        
-        // Mengganti nama bulan dalam bahasa Inggris dengan bahasa Indonesia
-        $new_tanggal = str_replace(
-            ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
-            $new_tanggal
-        );
+        if($language == 'id') {
+            // Mengganti nama hari dalam bahasa Inggris dengan bahasa Indonesia
+            $new_tanggal = str_replace(
+                ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                ['Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu', 'Minggu'],
+                $new_tanggal
+            );
+
+            // Mengganti nama bulan dalam bahasa Inggris dengan bahasa Indonesia
+            $new_tanggal = str_replace(
+                $month_eng,
+                $month3 ? $month3_id : $month_id,
+                $new_tanggal
+            );
+        }
 
         // Mengembalikan tanggal dengan format yang diinginkan
         return $new_tanggal;
@@ -423,9 +434,9 @@ if (!function_exists('generateNoDokumen')) {
                 // Format nomor kontrak
                 $noKontrak = "{$increment}/JKRL-B/{$romawiBulan}/{$tahunSekarang}";
                 break;
-            
+
         }
-        
+
 
         return $noKontrak;
     }

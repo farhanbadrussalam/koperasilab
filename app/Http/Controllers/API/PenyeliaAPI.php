@@ -29,14 +29,14 @@ use DB;
 class PenyeliaAPI extends Controller
 {
     use RestApi;
-    
+
     public function __construct()
     {
         $this->log = resolve(LogController::class);
         $this->media = resolve(MediaController::class);
     }
 
-    public function actionPenyelia(Request $request) 
+    public function actionPenyelia(Request $request)
     {
         DB::beginTransaction();
         try {
@@ -61,10 +61,10 @@ class PenyeliaAPI extends Controller
             if($document){
                 $file_document = $this->media->upload($document, 'penyelia');
             }
-            
+
             $params = array();
             $result = array();
-            
+
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
@@ -86,7 +86,7 @@ class PenyeliaAPI extends Controller
             if($dataPemohonan){
                 $params['periode'] = $dataPemohonan->periode ? $dataPemohonan->periode : 0;
             }
-            
+
             $penyelia = Penyelia::updateOrCreate(
                 ["id_penyelia" => $idPenyelia],
                 $params
@@ -185,13 +185,13 @@ class PenyeliaAPI extends Controller
                 if($jobsMap && $jobsMapParalel){
                     $arrJobsMap = json_decode($jobsMap);
                     $arrJobsMapParalel = json_decode($jobsMapParalel);
-                    
+
                     foreach($arrJobsMap as $value){
                         $data = array(
                             'order' => $value->order,
                             'created_by' => Auth::user()->id
                         );
-                        
+
                         Penyelia_map::updateOrCreate(
                             [
                                 'id_jobs' => decryptor($value->jobs_hash),
@@ -207,7 +207,7 @@ class PenyeliaAPI extends Controller
                             'created_by' => Auth::user()->id,
                             'point_jobs' => $penyelia->permohonan->jenis_layanan_parent->jobs_paralel_point
                         );
-                        
+
                         Penyelia_map::updateOrCreate(
                             [
                                 'id_jobs' => decryptor($value->jobs_hash),
@@ -221,7 +221,7 @@ class PenyeliaAPI extends Controller
                 // Menambahkan petugas
                 if($petugas){
                     $arr = json_decode($petugas);
-                    
+
                     // Menghapus data sebelumnya
                     Penyelia_petugas::where('id_penyelia', $idPenyelia)->delete();
 
@@ -239,9 +239,9 @@ class PenyeliaAPI extends Controller
                             Penyelia_petugas::create($data);
                         }
                     }
-                    
+
                 }
-                
+
                 // Jika status = 10 akan mengganti status di permohonan menjadi 3 = Proses Pelaksana LAB
                 if($status == 10){
                     $permohonan = Permohonan::find($penyelia->id_permohonan);
@@ -265,7 +265,7 @@ class PenyeliaAPI extends Controller
                 $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surattugas')->first();
 
                 if(!$dokumen){
-                    // menambahkan dokumen perjanjian 
+                    // menambahkan dokumen perjanjian
                     $penyeliaData = Penyelia::select('id_permohonan','id_penyelia')->find($idPenyelia);
                     $dataParams = array(
                         'id_permohonan' => $penyeliaData->id_permohonan,
@@ -275,7 +275,7 @@ class PenyeliaAPI extends Controller
                         'status' => 1,
                         'nomer' => generateNoDokumen('surattugas', $penyeliaData->id_penyelia)
                     );
-                    
+
                     $document = Permohonan_dokumen::create($dataParams);
                 }
             }
@@ -309,13 +309,13 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak.rincian_list_tld'
             )->find($idPenyelia);
             $jobsNow = Penyelia_map::with('jobs')->where('id_map', $nowJobs)->first();
-            
+
             if($jobsNow->jobs->status == 17){ // Penyimpanan TLD
                 foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
                     if($value->status == 3) {
                         // jenis kontraknya bukan evaluasi berarti di update statusnya
-                        if($penyelia->permohonan->kontrak->jenis_layanan_2 != '3') { 
-                            Master_tld::where('id_tld', $value->id_tld)->update(array('status' => 0, 'digunakan' => null));
+                        if($penyelia->permohonan->kontrak->jenis_layanan_2 != '3') {
+                            Master_tld::where('id_tld', $value->id_tld)->update(array('status' => 0));
                         }
 
                         // Masih opsional apakah Kontrak_tld di ganti menjadi status 0 atau masih tetap 3
@@ -343,7 +343,7 @@ class PenyeliaAPI extends Controller
                 // remove dokument LHU saat dikembalikan
                 $this->destroyDokumenLhu($penyelia->penyelia_hash, encryptor($penyelia->document));
             }
-            
+
             $jobsNext = Penyelia_map::with('jobs')->where('id_map', $nextJobs)->first();
             if($jobsNext){
                 $jobsNext->update(array(
@@ -360,7 +360,7 @@ class PenyeliaAPI extends Controller
                     ->where('id_penyelia', $idPenyelia)
                     ->where('point_jobs', $jobsNow->id_jobs)
                     ->first();
-    
+
                 if($jobsParalel){
                     $jobsParalel->update(array(
                         'status' => 1,
@@ -385,7 +385,7 @@ class PenyeliaAPI extends Controller
                 // if (!$jobsParalel) {
                     $permohonan = Permohonan::find($penyelia->id_permohonan);
                     $permohonan->update(['status' => 4]); // ketika proses lhu selesai
-    
+
                     $penyelia->update(['status' => 3]);
 
                     // menambahkan log penyelia
@@ -455,13 +455,14 @@ class PenyeliaAPI extends Controller
                 'penyelia_map.jobs_paralel:id_jobs,status,name,upload_doc',
                 'usersig:id,name',
                 'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                'permohonan.jenisTld:id_jenisTld,name', 
+                'permohonan.jenisTld:id_jenisTld,name',
                 'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                 'permohonan.jenis_layanan_parent',
                 'permohonan.pelanggan',
                 'permohonan.pelanggan.perusahaan',
                 'permohonan.kontrak',
-                'permohonan.kontrak.periode'
+                'permohonan.kontrak.periode',
+                'permohonan.periodenow',
             )
             ->orderBy('id_penyelia','DESC')
             ->offset(($page - 1) * $limit)
@@ -484,6 +485,17 @@ class PenyeliaAPI extends Controller
                         });
                     } else if($key === 'status') {
                         $q->where($key, decryptor($value));
+                    } else if ($key === 'date_range') {
+                        $q->whereHas('permohonan.periodenow', function ($v) use ($value) {
+                            $v->where(function($v) use ($value) {
+                                $v->whereBetween('start_date', [$value[0], $value[1]])
+                                    ->orWhereBetween('end_date', [$value[0], $value[1]])
+                                    ->orWhere(function($v) use ($value) {
+                                        $v->where('start_date', '<=', $value[0])
+                                            ->where('end_date', '>=', $value[1]);
+                                    });
+                            });
+                        });
                     } else {
                         $q->whereHas('permohonan', function ($p) use ($key, $value) {
                             $p->where($key, decryptor($value));
@@ -496,7 +508,7 @@ class PenyeliaAPI extends Controller
                     return $query->where('id_user', $userId);
                 });
             })
-            
+
             ->limit($limit)
             ->paginate($limit);
 
@@ -529,13 +541,13 @@ class PenyeliaAPI extends Controller
                         return $query->where('name', 'LIKE', '%'.$search.'%');
                     })
                     ->role('Staff');
-            
+
             if($idUser){
                 $query = $query->first();
             }else{
                 $query = $query->get();
             }
-                    
+
             DB::commit();
 
             return response()->json($query, 200);
@@ -551,7 +563,7 @@ class PenyeliaAPI extends Controller
         DB::beginTransaction();
         try {
             $idPenyelia = decryptor($idPenyelia);
-    
+
             $query = Penyelia::with(
                 'permohonan',
                 'petugas',
@@ -560,7 +572,7 @@ class PenyeliaAPI extends Controller
                 'penyelia_map.jobs:id_jobs,status,name,upload_doc',
                 'usersig:id,name',
                 'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                'permohonan.jenisTld:id_jenisTld,name', 
+                'permohonan.jenisTld:id_jenisTld,name',
                 'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                 'permohonan.jenis_layanan_parent',
                 'permohonan.pelanggan',
@@ -573,7 +585,8 @@ class PenyeliaAPI extends Controller
                 'permohonan.pengguna.tld_pengguna',
                 'permohonan.rincian_list_tld',
                 'permohonan.rincian_list_tld.tld:id_tld,no_seri_tld',
-                'permohonan.rincian_list_tld.pengguna:id_pengguna,nama,posisi',
+                'permohonan.rincian_list_tld.pengguna_map',
+                'permohonan.rincian_list_tld.pengguna_map.pengguna',
                 'log',
                 'log.user',
                 'media'
@@ -584,7 +597,7 @@ class PenyeliaAPI extends Controller
                 $tldKontrol = Master_tld::whereIn('id_tld', $query->permohonan->list_tld)->get();
                 $query->permohonan->tld_kontrol = $tldKontrol;
             }
-    
+
             return $this->output($query);
         } catch (\Exception $ex) {
             info($ex);
@@ -592,13 +605,13 @@ class PenyeliaAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
-    
+
     public function getPenyeliaMapById($idPenyeliaMap)
     {
         DB::beginTransaction();
         try {
             $idPenyeliaMap = decryptor($idPenyeliaMap);
-    
+
             $query = Penyelia_map::with(
                 'jobs:id_jobs,status,name,upload_doc',
                 'jobs_paralel:id_jobs,status,name,upload_doc',
@@ -608,7 +621,7 @@ class PenyeliaAPI extends Controller
                 'penyelia:id_penyelia,status'
             )->find($idPenyeliaMap);
             DB::commit();
-    
+
             return $this->output($query);
         } catch (\Exception $ex) {
             info($ex);
@@ -630,19 +643,19 @@ class PenyeliaAPI extends Controller
 
             $fileUpload = $this->media->upload($file, 'penyelia');
             $dataPenyelia = Penyelia::find($idPenyelia);
-            
+
             if(isset($dataPenyelia)){
                 $update = $dataPenyelia->update(array('document' => $fileUpload->getIdMedia()));
-    
+
                 DB::commit();
-    
+
                 if($update){
                     $fileUpload->store();
                     // ambil media dokumen lhu
                     $mediaDokumenLhu = $this->media->get($fileUpload->getIdMedia());
                     return $this->output(array('msg' => 'Dokumen lhu berhasil diupload', 'data' => $mediaDokumenLhu));
                 }
-    
+
                 return $this->output(array('msg' => 'Dokumen lhu gagal diupload'), 'Fail', 400);
             }
 
@@ -662,17 +675,17 @@ class PenyeliaAPI extends Controller
         DB::beginTransaction();
         try {
             $dataPenyelia = Penyelia::find($idPenyelia);
-            
+
             if(isset($dataPenyelia)){
                 $update = $dataPenyelia->update(array('document' => null));
-    
+
                 DB::commit();
-    
+
                 if($update){
                     $this->media->destroy($idMedia);
                     return $this->output(array('msg' => 'Dokumen lhu berhasil dihapus'));
                 }
-    
+
                 return $this->output(array('msg' => 'Dokumen lhu gagal dihapus'), 'Fail', 400);
             }
 
@@ -687,7 +700,7 @@ class PenyeliaAPI extends Controller
     public function removeSuratTugas($idPenyelia)
     {
         $idPenyelia = decryptor($idPenyelia);
-        
+
         DB::beginTransaction();
         try {
             Penyelia_petugas::where('id_penyelia', $idPenyelia)->delete();

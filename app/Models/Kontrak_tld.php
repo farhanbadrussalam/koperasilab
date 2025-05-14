@@ -16,7 +16,8 @@ class Kontrak_tld extends Model
     protected $fillable = [
         'id_kontrak',
         'id_tld',
-        'id_pengguna',
+        'id_map_pengguna',
+        'id_divisi',
         'periode',
         'status',
         'created_by'
@@ -49,13 +50,18 @@ class Kontrak_tld extends Model
         return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
     }
 
-    public function pengguna()
+    public function pengguna_map()
     {
-        return $this->belongsTo(Kontrak_pengguna::class, 'id_pengguna', 'id_pengguna');
+        return $this->belongsTo(Kontrak_pengguna::class, 'id_map_pengguna', 'id_map_pengguna');
     }
 
     public function kontrak()
     {
         return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
+    }
+
+    public function divisi()
+    {
+        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi');
     }
 }

@@ -67,7 +67,7 @@ class Kontrak extends Model
         return $this->belongsTo(Master_layanan_jasa::class, 'id_layanan', 'id_layanan');
     }
 
-    public function pengguna() {
+    public function pengguna_map() {
         return $this->hasMany(Kontrak_pengguna::class, 'id_kontrak', 'id_kontrak');
     }
 

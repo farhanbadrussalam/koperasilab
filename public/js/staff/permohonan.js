@@ -29,7 +29,7 @@ $(function () {
 $('#list-pagination').on('click', 'a', function (e) {
     e.preventDefault();
     const pageno = e.target.dataset.page;
-    
+
     loadPengajuan(pageno);
 });
 
@@ -85,7 +85,7 @@ function loadData(page = 1) {
                             </div>
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
                                 <div><i class="bi bi-person-check-fill"></i> ${pengajuan.pelanggan.name}</div>
-                                <span><i class="bi bi-calendar-range"></i> ${pengajuan.periode ? `Periode ${pengajuan.periode}` : 'Zero cek'}</span>
+                                <span><i class="bi bi-calendar-range"></i> Periode ${pengajuan.periode}${pengajuan.periode == 1 ? '/Zero cek' : ''}</span>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(pengajuan.created_at, 4)}</div>
                                 ${pengajuan.kontrak ? `<div><i class="bi bi-file-text"></i> ${pengajuan.kontrak.no_kontrak}</div>` : ''}
                             </div>

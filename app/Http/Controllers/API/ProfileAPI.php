@@ -166,13 +166,22 @@ class ProfileAPI extends Controller
     public function getListPerusahaan(Request $request)
     {
         $search = $request->has('search') ? $request->search : '';
+        $limit = $request->has('limit') ? $request->limit : false;
+        $page = $request->has('page') ? $request->page : 1;
 
         DB::beginTransaction();
         try {
             $query = Perusahaan::with('users')->when($search, function($q, $search){
-                            return $q->where('nama_perusahaan', 'like', "%$search%");
-                        })
-                        ->get();
+                return $q->where('nama_perusahaan', 'like', "%$search%");
+            });
+
+            if($limit){
+                $data = $query->offset(($page - 1) * $limit)->limit($limit)->paginate($limit);
+                $query = $data->toArray();
+                $this->pagination = Arr::except($query, 'data');
+            }else{
+                $query = $query->get();
+            }
 
             return $this->output($query, 200);
 

@@ -84,6 +84,7 @@ function loadData(page = 1) {
             `;
         }
 
+        console.log(result);
         $('#list-container').html(html);
 
         $('#list-pagination').html(createPaginationHTML(result.pagination));

@@ -765,7 +765,7 @@ class Invoice {
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" value="" id="pltChecked">
                                         <label class="form-check-label" for="pltChecked">
-                                            Pilih jika manager sedang tidak ada
+                                            Plt Manager
                                         </label>
                                     </div>
                                 </div>

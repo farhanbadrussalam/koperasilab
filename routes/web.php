@@ -19,6 +19,7 @@ use App\Http\Controllers\Management\PermissionController;
 use App\Http\Controllers\Management\RolesController;
 use App\Http\Controllers\Management\TldController;
 use App\Http\Controllers\Management\RadiasiController;
+use App\Http\Controllers\Management\PenggunaController;
 
 use App\Http\Controllers\ReportController;
 
@@ -107,6 +108,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/tandaterima/{id}', 'tandaTerima')->name('laporan.tandaterima');
             Route::get('/surpeng/{id}/{periode}', 'suratPengantar')->name('laporan.surpeng');
             Route::get('/perjanjian/{id}', 'perjanjian')->name('laporan.perjanjian');
+            Route::get('/label/{id}', 'label')->name('laporan.label');
         });
     });
 
@@ -129,6 +131,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
         Route::resource('radiasi', RadiasiController::class);
         Route::get('getDataRadiasi', [RadiasiController::class, 'getData'])->name('radiasi.getData');
+
+        Route::resource('userpengguna', PenggunaController::class);
+        Route::get('getDataPengguna', [PenggunaController::class, 'getData'])->name('pengguna.getData');
     });
     // });
 

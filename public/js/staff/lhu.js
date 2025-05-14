@@ -88,9 +88,6 @@ function loadData(page = 1) {
                 let jobsAktiveHash = jobsAktive.map(x => x.jobs_hash);
                 const hasCommonValue = jobsAktiveHash.some(hash => listJobs.includes(hash));
             */
-            
-            btnAction += `<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
-            btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
 
             let divInfoTugas = `
                 <div class="col-md-12 mt-2 fs-7">
@@ -117,14 +114,21 @@ function loadData(page = 1) {
             }
 
             // status jobs yang aktif
+            let isPelabelan = false;
             let htmlStatus = statusFormat('penyelia', lhu.status);
             const aktifJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
             aktifJobs.map(d => {
                 let petugasInJobs = lhu.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
                 if(petugasInJobs){
+                    d.jobs.status == 20 ? isPelabelan = true : false;
                     htmlStatus += statusFormat('penyelia', d.jobs.status);
                 }
             })
+
+            // button action
+            btnAction += `<button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
+            isPelabelan ? btnAction += `<a class="btn btn-outline-info btn-sm" title="Print Label" href="${base_url}/laporan/label/${lhu.penyelia_hash}" target="_blank"><i class="bi bi-printer"></i> Label</a>` : '';
+            btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
 
             html += `
                 <div class="card mb-2">
@@ -142,12 +146,12 @@ function loadData(page = 1) {
                                 </div>
                             </div>
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                <span><i class="bi bi-calendar-range"></i> ${permohonan.periode ? `Periode ${permohonan.periode}` : `Zero cek`}</span>
+                                <span><i class="bi bi-calendar-range"></i> Periode ${permohonan.periode}${permohonan.periode == 1 ? `/Zero cek` : ''}</span>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                 ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                             </div>
                         </div>
-                        <div class="ms-auto col-auto text-center" data-id='${lhu.penyelia_hash}' data-index='${i}'>
+                        <div class="ms-auto col-auto text-center gap-1 d-flex" data-id='${lhu.penyelia_hash}' data-index='${i}'>
                             ${btnAction}
                         </div>
                         ${divInfoTugas}

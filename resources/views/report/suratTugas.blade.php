@@ -3,6 +3,10 @@
     @include('report.template.style-kwitansi')
 @endsection
 
+@section('header')
+    @include('report.template.header')
+@endsection
+
 @section('content')
     <div class="title">
         <h2>SURAT TUGAS UJI</h2>

@@ -3,6 +3,10 @@
     @include('report.template.style-invoice')
 @endsection
 
+@section('header')
+    @include('report.template.header')
+@endsection
+
 @section('content')
     <table class="table">
         <tr>
@@ -60,7 +64,7 @@
 
         $jumPph = $data->pph ? $jumAfterDiskon * ($data->pph / 100) : 0;
         $jumAfterPph = $jumAfterDiskon - $jumPph;
-        $jumPpn = $data->ppn ? $jumAfterPph * ($data->ppn / 100) : 0;
+        $jumPpn = $data->ppn ? $jumAfterDiskon * ($data->ppn / 100) : 0;
     @endphp
 
     <table class="table">
@@ -98,7 +102,7 @@
         </tr>
     </table>
 
-    <p>(Terbilang : <em>Delapan juta seratus enam belas ribu delapan ratus tujuh puluh lima rupiah</em>)</p>
+    <p>(Terbilang : <em>{{ angkaKeHuruf($jumAfterPph + $jumPpn) }}</em>)</p>
 
     <div class="note">
         <p>Note : Kwitansi asli dan TLD akan kami kirimkan setelah menerima bukti pembayaran. (Mohon Bukti Potong PPh 23

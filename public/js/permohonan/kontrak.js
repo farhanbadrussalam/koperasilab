@@ -16,6 +16,7 @@ $(function () {
             status : true,
             jenis_tld : true,
             no_kontrak : true,
+            date_range: true
         }
     })
 
@@ -43,6 +44,7 @@ function loadData(page = 1) {
     filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
@@ -187,9 +189,9 @@ function loadData(page = 1) {
 }
 
 function showPeriode(index) {
-    
+
     if ($(`#listPeriode${index}`).is(':visible')) {
-        $(`#listPeriodeNow${index}`).show();        
+        $(`#listPeriodeNow${index}`).show();
         $(`#listPeriode${index}`).hide();
         return;
     }
@@ -268,11 +270,11 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         }
         evaluasiState.active = false;
     }
-    
+
     return `
         <div class="border-top py-2 d-flex justify-content-between align-items-center">
             <div class="px-2">
-                <span class="fw-semibold fs-6">${data.periode == 0 ? 'Zero cek' : `Periode ${data.periode}`}</span>
+                <span class="fw-semibold fs-6">Periode ${data.periode}${data.periode == 1 ? '/Zero cek' : ''}</span>
                 ${data.periode == 0 ? '' : `<small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>`}
                 <div class="d-flex gap-3 flex-wrap">
                     ${htmlDoc}

@@ -275,7 +275,7 @@ class PengirimanAPI extends Controller
                 $params['bukti_pengiriman'] = $bukti;
             }
 
-            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna')->where('id_pengiriman', $idPengiriman)->first();
+            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna_map')->where('id_pengiriman', $idPengiriman)->first();
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
@@ -470,7 +470,7 @@ class PengirimanAPI extends Controller
                         $params['list_tld'] = [];
                         foreach ($value->listTld as $val) {
                             // mengambil data kontrak_tld
-                            $kontrakTld = Kontrak_tld::with('pengguna', 'kontrak:id_kontrak,no_kontrak')->where('id_kontrak_tld', decryptor($val->id))->first();
+                            $kontrakTld = Kontrak_tld::with('pengguna_map', 'kontrak:id_kontrak,no_kontrak')->where('id_kontrak_tld', decryptor($val->id))->first();
                             $idTld = decryptor($val->tld);
                             $kontrakTld->update(array('status' => 1, 'id_tld' => $idTld));
                             Master_tld::where('id_tld', $idTld)->update(['status' => 1, 'digunakan' => $kontrakTld->kontrak->no_kontrak]);

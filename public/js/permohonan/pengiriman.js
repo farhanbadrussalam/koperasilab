@@ -27,7 +27,7 @@ $(function () {
         const idPengiriman = $('#idPengiriman').val();
         const arrSelectDocument = document.getElementsByName('selectDocument');
         const arrImgBukti = buktiPenerima.getData();
-        
+
         let isComplete = true;
         for (const selectDocument of arrSelectDocument) {
             if(!selectDocument.checked){
@@ -125,7 +125,6 @@ function loadData(page = 1) {
                             ${data.detail.length} Item
                         </div>
                         <div class="col-6 col-md-2">
-                            <span>${data.kontrak.pelanggan.perusahaan.nama_perusahaan}</span>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
                                     Alamat ${data.alamat.jenis}
@@ -206,11 +205,11 @@ function showModalDiterima(obj){
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold">Invoice</div>
+                                <div class="fw-bold">Invoice + MoU</div>
                                 ${data.permohonan.invoice.no_invoice}
                             </div>
-                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentInvoice" 
-                                data-jenis="${detail.jenis}" data-id="${data.permohonan.invoice.keuangan_hash}" 
+                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentInvoice"
+                                data-jenis="${detail.jenis}" data-id="${data.permohonan.invoice.keuangan_hash}"
                                 autocomplete="off" >
                         </li>
                     `;
@@ -221,10 +220,10 @@ function showModalDiterima(obj){
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">LHU</div>
-                                <div>${detail.periode == 0 ? 'Zero cek' : `Periode ${detail.periode}`}</div>
+                                <div>Periode ${detail.periode}${detail.periode == 1 ? '/Zero cek' : ''}</div>
                             </div>
-                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentLhu" 
-                                data-jenis="${detail.jenis}" data-id="${data.permohonan.lhu.lhu_hash}" 
+                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentLhu"
+                                data-jenis="${detail.jenis}" data-id="${data.permohonan.lhu.lhu_hash}"
                                 autocomplete="off" >
                         </li>
                     `;
@@ -236,7 +235,7 @@ function showModalDiterima(obj){
                                 <div class="fw-bold">TLD <span class="text-secondary fw-normal">- ${data.kontrak.jumlah_pengguna} Pengguna + ${data.kontrak.jumlah_kontrol} Kontrol</span></div>
                                 <div></div>
                             </div>
-                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentTld" 
+                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentTld"
                                 data-jenis="${detail.jenis}" autocomplete="off" >
                         </li>
                     `;
@@ -271,8 +270,8 @@ function showModalDiterima(obj){
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">${detail.jenis[0].toUpperCase() + detail.jenis.substring(1)} <span class="text-secondary fw-normal"></div>
                             </div>
-                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentCustom" 
-                                data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}" 
+                            <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentCustom"
+                                data-jenis="${detail.jenis}" data-id="${data.permohonan.permohonan_hash}"
                                 autocomplete="off" >
                         </li>
                     `;

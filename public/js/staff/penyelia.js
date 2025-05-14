@@ -31,11 +31,12 @@ $(function () {
     filterComp = new FilterComponent('list-filter', {
         jenis: 'penyelia',
         filter : {
-            status : true,
             jenis_tld : true,
             jenis_layanan : true,
+            date_range: true,
             no_kontrak : true,
-            perusahaan: true
+            perusahaan: true,
+            status : true,
         }
     })
 
@@ -49,7 +50,7 @@ function switchLoadTab(menu){
         case 1:
             menu = 'surattugas';
             break;
-    
+
         case 2:
             menu = 'penerbitanlhu';
             break;
@@ -74,6 +75,7 @@ function loadData(page = 1, menu) {
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
     filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
+    (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
@@ -81,7 +83,7 @@ function loadData(page = 1, menu) {
     } else {
         $('#countFilter').addClass('d-none');
     }
-    
+
     $(`#list-placeholder`).show();
     $(`#list-container`).hide();
     ajaxGet(`api/v1/penyelia/list`, params, result => {
@@ -95,7 +97,7 @@ function loadData(page = 1, menu) {
             if(permohonan.tipe_kontrak == 'kontrak lama') {
                 badgeClass = 'bg-success-subtle';
             }
-            
+
             let btnAction = '';
             switch (menu) {
                 case 'surattugas':
@@ -159,7 +161,7 @@ function loadData(page = 1, menu) {
                                     </div>
                                     <div class="d-flex gap-3 text-body-tertiary fs-7">
                                         <div><i class="bi bi-person-check-fill"></i> ${permohonan.pelanggan.name}</div>
-                                        <span><i class="bi bi-calendar-range"></i> ${permohonan.periode ? `Periode ${permohonan.periode}` : 'Zero cek'}</span>
+                                        <span><i class="bi bi-calendar-range"></i> Periode ${permohonan.periode}${permohonan.periode == 1 ? '/Zero cek' : ''}</span>
                                         <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                         ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                                     </div>
@@ -235,11 +237,11 @@ function openProgressModal(obj) {
     $('#statusDone').prop('checked', true);
     nowSelect = penyelia;
 
-    // Mengambil proses jobs 
+    // Mengambil proses jobs
     const prosesNow = nowSelect.penyelia_map.find(d => d.jobs.status == nowSelect.status);
     const prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
     const prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
-    
+
     $('#dateProgress').flatpickr({
         altInput: true,
         locale: "id",
@@ -342,10 +344,10 @@ function clearFilter(){
 
 function showHideProgress(obj){
     const collapse = obj;
-    if(!collapse.classList.contains('show')) { 
+    if(!collapse.classList.contains('show')) {
         collapse.innerText = 'Lebih sedikit';
-    } else { 
-        collapse.innerText = 'Lihat Progress LAB'; 
-    } 
+    } else {
+        collapse.innerText = 'Lihat Progress LAB';
+    }
     collapse.classList.toggle('show');
 }

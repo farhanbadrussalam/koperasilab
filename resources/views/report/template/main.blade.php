@@ -11,7 +11,7 @@
 
 <body>
 
-    @include('report.template.header')
+    @yield('header')
 
     <main class="main">
         @yield('content')

@@ -3,6 +3,10 @@
     @include('report.template.style-suratPengantar')
 @endsection
 
+@section('header')
+    @include('report.template.header')
+@endsection
+
 @php
     $jumlahTld = $data->jumlah_pengguna + $data->jumlah_kontrol;
     $nomer = $data->periode[0]->nomer_surpeng;
@@ -48,7 +52,7 @@
     <div class="fs-3 lh-2" style="margin-top: 15px;">
         <p class="text-indent">
             Dengan ini kami kirimkan <span class="fw-bold">sebanyak {{ $data->jumlah_pengguna }} buah {{ $layanan }} {{ $jenisTld }} monitor</span>
-            beserta <span class="fw-bold">{{ $data->jumlah_kontrol }} buah TLD Kontrol</span> untuk pemakaian <span class="fw-bold">{{ $data->periode ? $periode : 'Zero cek' }},</span> Kontrak No. ({{ $kontrak }}) daftar nama terlampir.
+            beserta <span class="fw-bold">{{ $data->jumlah_kontrol }} buah TLD Kontrol</span> untuk pemakaian <span class="fw-bold">{{ $periode }},</span> Kontrak No. ({{ $kontrak }}) daftar nama terlampir.
         </p>
         <p class="text-indent">
             Demikian, atas perhatian dan kerjasamanya kami ucapkan terima kasih.

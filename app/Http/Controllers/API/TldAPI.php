@@ -26,7 +26,7 @@ class TldAPI extends Controller
             $status = $request->has('status') ? $request->status : false;
 
             $data = array();
-            
+
             $kode ? $data['kode'] = $kode : false;
             $jenis ? $data['jenis'] = $jenis : false;
             $status ? $data['status'] = $status : false;
@@ -35,7 +35,7 @@ class TldAPI extends Controller
 
             //save to db
             $tld = Master_tld::updateOrCreate(
-                ['id_tld' => $id], 
+                ['id_tld' => $id],
                 $data
             );
 
@@ -115,27 +115,46 @@ class TldAPI extends Controller
             $jenis = $request->has('jenis') ? $request->jenis : false;
             $status = $request->has('status') ? $request->status : false;
             $search = $request->has('search') ? $request->search : false;
+            $no_kontrak = $request->has('no_kontrak') ? $request->no_kontrak : false;
 
             $page = $request->has('page') ? $request->page : 1;
             $limit = $request->has('limit') ? $request->limit : 5;
 
-            $data = Master_tld::whereNull('kepemilikan')
-                    ->when($jenis, function($query, $jenis){
-                        return $query->where('jenis', $jenis);
-                    })
-                    ->when($status, function($query, $status){
-                        return $query->where('status', $status);
-                    })
-                    ->when($search, function($query, $search){
-                        return $query->where('no_seri_tld', 'like', '%'.$search.'%')->orWhere('merk', 'like', '%'.$search.'%');
-                    })
-                    ->orderBy('status', 'asc')
-                    ->orderBy('jenis', 'asc')
-                    ->orderBy('tanggal_pengadaan', 'desc')
-                    ->offset(($page - 1) * $limit)
-                    ->limit($limit)
-                    ->paginate($limit);
-                
+            // pengecekan role user
+            $role = Auth::user()->getRoleNames()[0];
+
+            // pengecekan tld yang sedang digunakan oleh kontrak
+            $cekTldKontrak = false;
+            if($role != 'Pelanggan' && $no_kontrak){
+                $cekTldKontrak = Master_tld::where('digunakan', $no_kontrak)->where('status', 0)->first();
+            }
+
+            $data = Master_tld::when($role, function($query, $role){
+                if($role == 'Pelanggan'){
+                    return $query->where('kepemilikan', Auth::user()->id_perusahaan);
+                }else {
+                    return $query->whereNull('kepemilikan');
+                }
+            })
+            ->when($cekTldKontrak, function($query, $cekTldKontrak) use ($no_kontrak){
+                return $query->where('digunakan', $no_kontrak)->where('status', 0);
+            })
+            ->when($jenis, function($query, $jenis){
+                return $query->where('jenis', $jenis);
+            })
+            ->when($status, function($query, $status){
+                return $query->where('status', $status);
+            })
+            ->when($search, function($query, $search){
+                return $query->where('no_seri_tld', 'like', '%'.$search.'%')->orWhere('merk', 'like', '%'.$search.'%');
+            })
+            ->orderBy('status', 'asc')
+            ->orderBy('jenis', 'desc')
+            // ->orderBy('tanggal_pengadaan', 'desc')
+            ->offset(($page - 1) * $limit)
+            ->limit($limit)
+            ->paginate($limit);
+
             $arr = $data->toArray();
             $this->pagination = Arr::except($arr, 'data');
             DB::commit();

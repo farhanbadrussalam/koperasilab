@@ -14,6 +14,7 @@ use App\Http\Controllers\API\ProfileAPI;
 use App\Http\Controllers\API\KontrakAPI;
 use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\FilterAPI;
+use App\Http\Controllers\API\PenggunaAPI;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +74,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::delete('/destroyTandaterima/{idPermohonan}', 'destroyTandaterima');
         Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');
         Route::delete('/destroyLhuZero/{idPermohonan}/{idMedia}', 'destroyLhuZero');
+        Route::delete('/destroyKontrol/{id}', 'destroyKontrol');
     });
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
@@ -98,7 +100,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPermohonan', 'getPermohonan');
         Route::delete('/destroy/{pengiriman_hash}', 'destroy');
     });
-    
+
     Route::prefix("kontrak")->controller(KontrakAPI::class)->group(function () {
         Route::post('/action', 'actionKontrak');
         Route::get('/list', 'listKontrak');
@@ -157,4 +159,10 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', [TldApi::class, 'action']);
     });
 
+    Route::prefix('pengguna')->controller(PenggunaAPI::class)->group(function () {
+        Route::post('/action', 'action');
+        Route::get('/getPengguna', 'getPengguna');
+        Route::get('/getDataById/{id}', 'getDataById');
+        Route::delete('/destroy/{id}', 'destroy');
+    });
 });

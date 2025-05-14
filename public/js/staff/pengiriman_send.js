@@ -4,13 +4,17 @@ let inventoryTld = false;
 let mPeriode = false;
 const tmpArrTld = [];
 $(function () {
-    inventoryTld = new Inventory_tld({preview: true});
+    inventoryTld = new Inventory_tld({
+        preview: true,
+        no_kontrak: informasi.no_kontrak
+    });
+
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
 
         $(`#tldNoSeri_${detail.selected}`).val(detail.data_tld.no_seri_tld);
 
-        // reset tmpArrTld 
+        // reset tmpArrTld
         let index = tmpArrTld.findIndex(d => d.id == detail.selected);
 
         if(index > -1){
@@ -53,20 +57,19 @@ function load_form() {
     let tldKontrol = [];
     let kontrakPeriode = [];
     if(informasi.kontrak){
-        tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna);
-        tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
+        tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna_map);
+        tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna_map);
         kontrakPeriode = informasi.kontrak.periode;
     }else{
-        tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna);
-        tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
+        tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna_map);
+        tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna_map);
         kontrakPeriode = informasi.periode;
     }
 
     // list document TLD
-    
     // Mengecek apakah sudah last periode atau belum
     const isLastPeriode = _cekLastPeriode(kontrakPeriode, (periodeNow ? periodeNow : informasi.periode));
-    
+
     if(!isLastPeriode){
         let checkedTld = status_tld ? 'disabled' : 'checked';
         let htmlKontrol = ``;
@@ -76,9 +79,9 @@ function load_form() {
                 tld: list.tld?.tld_hash
             })
             htmlKontrol += `
-                <div class="w-50 pe-1">
+                <div class="w-50 pe-1 d-flex flex-column">
                     <span>&nbsp;</span>
-                    <div class="input-group mb-3">
+                    <div class="input-group mt-auto mb-3">
                         <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld?.no_seri_tld ?? ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
                         ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                     </div>
@@ -88,7 +91,7 @@ function load_form() {
         // <select class="form-select kodeTldKontrol" name="kodeTldKontrol" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
         //     <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
         // </select>
-    
+
         // Menambil tld Pengguna dari kontrak
         let htmlPengguna = ``;
         for (const list of tldPengguna){
@@ -97,9 +100,9 @@ function load_form() {
                 tld: list.tld?.tld_hash
             })
             htmlPengguna += `
-                <div class="w-50 pe-1">
-                    <span>${list.pengguna.nama}</span>
-                    <div class="input-group mb-3">
+                <div class="w-50 pe-1 d-flex flex-column">
+                    <span>${list.pengguna_map.pengguna.name}</span>
+                    <div class="input-group mt-auto mb-3">
                         <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld?.no_seri_tld ?? ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
                         ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                     </div>
@@ -151,7 +154,8 @@ function load_form() {
     // list document invoice
     let htmlInvoice = '';
     let urlLaporanInvoice = informasi.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${informasi.invoice?.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
-    let checkedInvoice = informasi.invoice?.status == 5 ? (informasi.invoice?.pengiriman ? 'disabled' : 'checked') : 'disabled';
+    // let checkedInvoice = informasi.invoice?.status == 5 ? (informasi.invoice?.pengiriman ? 'disabled' : 'checked') : 'disabled';
+    let checkedInvoice = informasi.invoice?.pengiriman ? 'disabled' : 'checked';
     informasi.invoice ? htmlInvoice = `
         <div
             class="border shadow-sm py-2 d-flex justify-content-between align-items-center px-2 rounded mb-2">
@@ -159,7 +163,7 @@ function load_form() {
                 <input class="form-check-input me-2" type="checkbox"
                     data-jenis="invoice" data-id="${informasi.invoice.keuangan_hash}"
                     id="selectDocumentInvoice" name="selectDocument" onclick="updateSelectDocument()" ${checkedInvoice}>
-                <span class="fw-semibold fs-6">Invoice</span>
+                <span class="fw-semibold fs-6">Invoice + MoU</span>
                 <small class="text-body-tertiary"> - ${informasi.invoice.no_invoice}</small>
                 <small>${statusFormat('pengiriman', informasi.invoice.pengiriman?.status)}</small>
             </div>
@@ -190,7 +194,7 @@ function load_form() {
                         data-jenis="lhu" data-id="${informasi.lhu.penyelia_hash}"
                         id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
                     <span class="fw-semibold fs-6">LHU</span>
-                    <small class="text-body-tertiary"> - ${informasi.lhu.periode == 0 ? 'Zero Cek' : `Periode ${informasi.lhu.periode} (${informasi.kontrak_periode?.start_date ? dateFormat(informasi.kontrak_periode.start_date, 4) : '-'} - ${informasi.kontrak_periode?.end_date ? dateFormat(informasi.kontrak_periode.end_date, 4) : '-'})`}</small>
+                    <small class="text-body-tertiary"> - Periode ${informasi.lhu.periode}${informasi.lhu.periode == 1 ? '/Zero Cek' : ''} (${informasi.kontrak_periode?.start_date ? dateFormat(informasi.kontrak_periode.start_date, 4) : '-'} - ${informasi.kontrak_periode?.end_date ? dateFormat(informasi.kontrak_periode.end_date, 4) : '-'})</small>
                     <small>${statusFormat('pengiriman', informasi.lhu.pengiriman?.status)}</small>
                 </div>
                 <div class="d-flex align-items-center gap-3 text-secondary">
@@ -238,7 +242,7 @@ function load_form() {
 
 function updateSelectDocument(){
     let checkedDokumen = $('input[name="selectDocument"]');
-    
+
     for (const doc of checkedDokumen) {
         let jenis = doc.dataset.jenis;
         let id = doc.dataset.id;
@@ -251,18 +255,14 @@ function updateSelectDocument(){
                 break;
             case 'tld':
                 if(doc.checked){
-                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${periodeNow ? periodeNow : (informasi.periode ? informasi.periode : 0)}`);
+                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${periodeNow ? periodeNow : informasi.periode}`);
                     $('#btnCetakSurat').addClass('d-block').removeClass('d-none');
                 }else{
                     $('#btnCetakSurat').attr('href', ``);
                     $('#btnCetakSurat').addClass('d-none').removeClass('d-block');
                 }
 
-                if(informasi.tipe_kontrak == 'kontrak lama'){
-                    periode = informasi.periode;
-                }else{
-                    periode = 0;
-                }
+                periode = informasi.periode;
 
                 if(periodeNow){
                     periode = periodeNow;
@@ -273,7 +273,7 @@ function updateSelectDocument(){
                 }else{
                     $('#listTld').addClass('d-none').removeClass('d-flex');
                 }
-                
+
                 listTld = tmpArrTld;
                 break;
             default:
@@ -295,7 +295,7 @@ function updateSelectDocument(){
             }
         }
     }
-    
+
 }
 
 function buatPengiriman(obj){
@@ -304,11 +304,11 @@ function buatPengiriman(obj){
     if(alamat == '') {
         return Swal.fire({icon: 'warning',text: `Harap pilih alamat`});
     }
-    
+
     if(arrSelectDocument.length == 0){
         return Swal.fire({icon: 'warning',text: `Harap tambahkan document yang akan dikirim`});
     }
-    
+
     updateSelectDocument();
     Swal.fire({
         title: 'Konfirmasi Pengiriman',

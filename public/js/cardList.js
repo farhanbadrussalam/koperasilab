@@ -27,7 +27,7 @@ function cardComponent(data, options = {}) {
                     </div>
                     <div class="d-flex gap-3 text-body-tertiary fs-7">
                         ${data.pelanggan ? `<div><i class="bi bi-person-fill"></i> ${data.pelanggan}</div>` : ''}
-                        <span><i class="bi bi-calendar-range"></i> ${data.periode ? `Periode ${data.periode}` : 'Zero cek'}</span>
+                        <span><i class="bi bi-calendar-range"></i> Periode ${data.periode}${data.periode == 1 ? `/Zero cek` : ''}</span>
                         ${data.created_at ? `<span><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</span>` : ''}
                         ${data.kontrak ? `<div><i class="bi bi-file-text"></i> ${data.kontrak}</div>` : ''}
                     </div>

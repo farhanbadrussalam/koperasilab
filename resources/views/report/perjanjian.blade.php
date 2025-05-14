@@ -3,6 +3,10 @@
     @include('report.template.style-kwitansi')
 @endsection
 
+@section('header')
+    @include('report.template.header')
+@endsection
+
 @section('content')
     <div class="title lh-2">
         <h2>
@@ -26,5 +30,5 @@
         </h2>
     </div>
     <div class="title my-1"><h2 class="fw-normal">DENGAN</h2></div>
-    
+
 @endsection
