@@ -29,8 +29,8 @@ $(function () {
 })
 
 function loadTld() {
-    let tldPengguna = dataKontrak.rincian_list_tld.filter(tld => tld.pengguna_map);
-    let tldKontrol = dataKontrak.rincian_list_tld.filter(tld => !tld.pengguna_map);
+    let tldPengguna = dataKontrak.rincian_list_tld.filter(tld => tld.pengguna);
+    let tldKontrol = dataKontrak.rincian_list_tld.filter(tld => !tld.pengguna);
 
     loadTldKontrol(tldKontrol);
     loadPengguna(tldPengguna);
@@ -70,24 +70,20 @@ function loadTldKontrol(tldKontrol) {
 }
 
 function loadPengguna(tldPengguna){
-    let pengguna = dataPermohonan ? dataPermohonan.pengguna : dataKontrak.pengguna_map;
-
     let htmlPengguna = '';
-    for (const [i, value] of pengguna.entries()) {
+    for (const [i, value] of tldPengguna.entries()) {
         let txtRadiasi = '';
         value.pengguna.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
 
-        let dataTld = tldPengguna.find(tld => tld.pengguna_map.pengguna_map_hash == value.pengguna_map_hash);
-
         tmpArrTld.push({
-            id: dataTld.kontrak_tld_hash,
-            tld: dataTld.tld?.tld_hash
+            id: value.kontrak_tld_hash,
+            tld: value.tld?.tld_hash
         });
 
         htmlPengguna += `
             <tr>
                 <td>
-                    <input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${dataTld.kontrak_tld_hash}" aria-label="" id="checkTldPengguna${i}">
+                    <input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${value.kontrak_tld_hash}" aria-label="" id="checkTldPengguna${i}">
                 </td>
                 <td>${i + 1}</td>
                 <td>
@@ -97,7 +93,7 @@ function loadPengguna(tldPengguna){
                 <td>${txtRadiasi}</td>
                 <td>
                     <div class="input-group">
-                        <input type="text" class="form-control rounded-start" value="${dataTld.tld.no_seri_tld}" id="tldNoSeri_${dataTld.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                        <input type="text" class="form-control rounded-start" value="${value.tld.no_seri_tld}" id="tldNoSeri_${value.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
                     </div>
                 </td>
                 <td>

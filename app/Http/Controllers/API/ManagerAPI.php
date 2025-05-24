@@ -30,7 +30,7 @@ class ManagerAPI extends Controller
             $query = Keuangan::with(
                 'permohonan',
                 'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                'permohonan.jenisTld:id_jenisTld,name', 
+                'permohonan.jenisTld:id_jenisTld,name',
                 'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                 'permohonan.jenis_layanan_parent',
                 'permohonan.pelanggan',
@@ -49,7 +49,7 @@ class ManagerAPI extends Controller
                     }
                 });
             })
-            ->where('status', '!=', 1)
+            ->whereNotIn('status', [1,7])
             ->orderBy('created_at','DESC')
             ->offset(($page - 1) * $limit)
             ->limit($limit)
@@ -64,7 +64,7 @@ class ManagerAPI extends Controller
             info($ex);
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
-        }   
+        }
     }
 
 }

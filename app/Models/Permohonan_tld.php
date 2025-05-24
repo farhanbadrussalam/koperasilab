@@ -17,7 +17,7 @@ class Permohonan_tld extends Model
         'id_permohonan',
         'id_tld',
         'tld_tmp',
-        'id_map_pengguna',
+        'id_pengguna',
         'id_divisi',
         'periode',
         'created_by',
@@ -51,9 +51,9 @@ class Permohonan_tld extends Model
         return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
     }
 
-    public function pengguna_map()
+    public function pengguna()
     {
-        return $this->belongsTo(Permohonan_pengguna::class, 'id_map_pengguna', 'id_map_pengguna');
+        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna');
     }
 
     public function divisi()

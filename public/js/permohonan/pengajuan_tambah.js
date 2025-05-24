@@ -2,6 +2,7 @@ const periode = [];
 const idPermohonan = $('#id_permohonan').val();
 let arrKontrolTmp = [];
 let typeLayanan = '';
+let typeLayanan2 = '';
 let datatable_ = false;
 let arrListPengguna = [];
 
@@ -41,11 +42,14 @@ $(function () {
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
 
-        $('#noSeriPengguna').val(detail.data_tld.no_seri_tld);
+        const params = new FormData();
+        params.append('id_permohonan_tld', detail.selected);
+        params.append('id_tld', detail.data_tld.tld_hash);
 
-        tmpArrTldPengguna = [{
-            tld: detail.data_tld.tld_hash
-        }];
+        ajaxPost(`api/v1/permohonan/action_tld`, params, result => {
+           loadPengguna();
+           loadKontrol();
+        });
     });
 
     modalJenisRadiasi.select2({
@@ -273,6 +277,7 @@ $(function () {
         const jenisLayanan2 = $('#jenis_layanan_2').val();
         const layananJasa = $('#layanan_jasa').val();
         typeLayanan = $('#jenis_layanan').find(':selected').text();
+        typeLayanan2 = $('#jenis_layanan_2').find(':selected').text();
 
         if(jenisLayanan == '' || jenisLayanan2 == '' || layananJasa == ''){
             Swal.fire({
@@ -385,8 +390,17 @@ function loadPengguna(){
                     value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
                     let pengguna = value.pengguna;
 
+                    let htmlEvaluasi = `
+                        <hr class="my-2">
+                        <div class="col-12">
+                            <div class="input-group">
+                                <input type="text" class="form-control form-control-sm" value="${value.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
+                                <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${value.permohonan_tld_hash}" title="Change" onclick="openInventory(this, 'pengguna')"><i class="bi bi-pencil"></i> Ganti</button>
+                            </div>
+                        </div>
+                    `;
                     html += `
-                        <div class="card mb-1 shadow-sm">
+                        <div class="card mb-1 shadow-sm p-1">
                             <div class="card-body row align-items-center p-1 px-3">
                                 <div class="col-md-7 lh-sm align-items-center">
                                     <div>${pengguna.name}</div>
@@ -395,13 +409,11 @@ function loadPengguna(){
                                         ${txtRadiasi}
                                     </div>
                                 </div>
-                                <div class="col-auto ms-auto">
-                                    <span class="fw-bold">${value.permohonan_tld.tld?.no_seri_tld ?? ''}</span>
-                                </div>
                                 <div class="col-auto text-end ms-auto">
                                     <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${value.pengguna_map_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
                                 </div>
+                                ${typeLayanan2 == 'Evaluasi' ? htmlEvaluasi : ``}
                             </div>
                         </div>
                     `;
@@ -503,8 +515,17 @@ function loadKontrol(){
         // mengambil data kontrol
         arrKontrolTmp = result.data.tldPermohonan.filter(tld => tld.id_divisi);
         for (const [i,kode] of arrKontrolTmp.entries()) {
+            let htmlEvaluasi = `
+                <hr class="my-2">
+                <div class="col-12">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" value="${kode.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
+                        <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${kode.permohonan_tld_hash}" title="Change" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil"></i> Ganti</button>
+                    </div>
+                </div>
+            `;
             html += `
-                <div class="card mb-1 shadow-sm">
+                <div class="card mb-1 shadow-sm p-1">
                     <div class="card-body row align-items-center p-1 px-3">
                         <div class="col-md-7 lh-sm align-items-center">
                             <label class="form-label col-form-label fw-bold">Kontrol ${kode.divisi.name}<small class="text-body-secondary fw-light"> - ${kode.divisi.kode_lencana}</small></label>
@@ -512,6 +533,7 @@ function loadKontrol(){
                         <div class="col-auto text-end ms-auto">
                             <button type="button" class="btn btn-sm btn-outline-danger" data-id="${kode.permohonan_tld_hash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
+                        ${typeLayanan2 == 'Evaluasi' ? htmlEvaluasi : ''}
                     </div>
                 </div>
             `;
@@ -578,9 +600,7 @@ function showHideCollapse(obj){
 
 function openInventory(obj, jenis){
     let id = $(obj).data('id');
-    if(jenis == 'pengguna'){
-        inventoryTld.show(false, tmpArrTldPengguna, jenis);
-    }
+    inventoryTld.show(id, tmpArrTldPengguna, jenis);
 }
 
 function reload(){
@@ -704,6 +724,7 @@ function cekLayanan(){
         $('#jenis_layanan_2').html(`<option value="${dataPermohonan.jenis_layanan.jenis_layanan_hash}">${dataPermohonan.jenis_layanan.name}</option>`);
 
         typeLayanan = dataPermohonan.jenis_layanan_parent.name;
+        typeLayanan2 = dataPermohonan.jenis_layanan.name;
 
         // disable untuk form jenisLayanan, jenisLayanan2, dan layananJasa
         $('#jenis_layanan').attr('disabled', true).addClass('bg-secondary-subtle');

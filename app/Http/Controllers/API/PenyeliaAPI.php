@@ -16,6 +16,7 @@ use App\Models\Permohonan_dokumen;
 
 use App\Models\Master_jobs;
 use App\Models\Master_tld;
+use App\Models\Master_pengguna;
 
 use App\Models\Kontrak_tld;
 use App\Models\Kontrak_periode;
@@ -328,6 +329,7 @@ class PenyeliaAPI extends Controller
 
                         if($isLast) {
                             Master_tld::where('digunakan', $penyelia->permohonan->kontrak->no_kontrak)->update(array('status' => 0, 'digunakan' => null));
+                            Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 1));
                         }
                     }
                 }
@@ -585,8 +587,7 @@ class PenyeliaAPI extends Controller
                 'permohonan.pengguna.tld_pengguna',
                 'permohonan.rincian_list_tld',
                 'permohonan.rincian_list_tld.tld:id_tld,no_seri_tld',
-                'permohonan.rincian_list_tld.pengguna_map',
-                'permohonan.rincian_list_tld.pengguna_map.pengguna',
+                'permohonan.rincian_list_tld.pengguna',
                 'log',
                 'log.user',
                 'media'

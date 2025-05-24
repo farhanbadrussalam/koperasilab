@@ -24,9 +24,9 @@
     <table class="table-header fs-3">
         <tr>
             <td width="1%">Nomor</td>
-            <td width="50%">: {{ $nomer }}</td>
+            <td width="50%">: {{ $nomer ?? '-' }}</td>
 
-            <td class="text-end">{{ convert_date($created, 2) }}</td>
+            <td class="text-end">{{ $created ? convert_date($created, 2) : '-' }}</td>
         </tr>
         <tr>
             <td>Lamp</td>
@@ -96,7 +96,7 @@
             @if($value->pengguna)
                 <tr>
                     <td class="text-center">{{ $count++ }}.</td>
-                    <td style="padding-left: 5px">{{ $value->pengguna->nama }}</td>
+                    <td style="padding-left: 5px">{{ $value->pengguna->name }}</td>
                     <td style="padding-left: 5px" class="fw-bold">{{ $value->keterangan ?? '' }}</td>
                 </tr>
             @else

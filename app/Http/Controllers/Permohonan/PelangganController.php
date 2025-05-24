@@ -51,9 +51,6 @@ class PelangganController extends Controller
                 'jenis_layanan:id_jenisLayanan,name,parent',
                 'jenis_layanan_parent:id_jenisLayanan,name,parent',
                 'periode',
-                'pengguna_map',
-                'pengguna_map.pengguna.media_ktp',
-                'pengguna_map.pengguna.divisi',
                 'pelanggan',
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
@@ -61,13 +58,16 @@ class PelangganController extends Controller
                     return $q->where('periode', $periodeNow->periode-1);
                 },
                 'rincian_list_tld.tld',
-                'rincian_list_tld.pengguna_map',
-                'rincian_list_tld.pengguna_map.pengguna'
+                'rincian_list_tld.pengguna',
+                'rincian_list_tld.pengguna.media_ktp',
+                'rincian_list_tld.pengguna.divisi'
             ])->where('id_kontrak', decryptor($idKontrak))->first();
 
-            if($queryKontrak && $queryKontrak->pengguna_map){
-                foreach($queryKontrak->pengguna_map as $key => $value){
-                    $queryKontrak->pengguna_map[$key]->pengguna->radiasi = Master_radiasi::whereIn('id_radiasi', $value->pengguna->id_radiasi)->get();
+            if($queryKontrak && $queryKontrak->rincian_list_tld){
+                foreach($queryKontrak->rincian_list_tld as $key => $value){
+                    if($value->pengguna && $value->pengguna->id_radiasi){
+                        $value->pengguna->radiasi = Master_radiasi::whereIn('id_radiasi', $value->pengguna->id_radiasi)->get();
+                    }
                 }
             }
 
@@ -81,9 +81,9 @@ class PelangganController extends Controller
             // cek apakah permohonan sudah ada atau belum
             $permohonan = Permohonan::select('id_permohonan')
                 ->with(
-                    'pengguna',
-                    'pengguna.media',
-                    'pengguna.tld_pengguna',
+                    'rincian_list_tld.pengguna',
+                    'rincian_list_tld.pengguna.media_ktp',
+                    'rincian_list_tld.tld'
                     )
                 ->where('status', 11)
                 ->where('id_kontrak', decryptor($idKontrak))

@@ -196,7 +196,6 @@ class ReportController extends Controller
             'pelanggan.perusahaan',
             'layanan_jasa:id_layanan,nama_layanan',
             'jenis_layanan:id_jenisLayanan,name',
-            'pengguna',
             'periode' => function($query) use ($periode) {
                 return $query->where('periode', $periode);
             },
@@ -204,7 +203,7 @@ class ReportController extends Controller
                 return $query->where('status', 1);
             },
             'rincian_list_tld.tld',
-            'rincian_list_tld.pengguna_map'
+            'rincian_list_tld.pengguna'
         ])->find($id);
 
         $data['date'] = Carbon::now()->year;
@@ -270,9 +269,9 @@ class ReportController extends Controller
         ])->where('id_penyelia', $id)->first();
 
         // mengambil list tld di kontrak
-        $listTld = Kontrak_tld::with('tld', 'pengguna_map.pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
+        $listTld = Kontrak_tld::with('tld', 'pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
                     ->where('periode', $query->permohonan->periode)
-                    ->orderBy('id_map_pengguna', 'asc')
+                    ->orderBy('id_pengguna', 'asc')
                     ->orderBy('id_divisi', 'asc')
                     ->get();
 

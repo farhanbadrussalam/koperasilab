@@ -276,8 +276,7 @@ class StaffController extends Controller
                 'kontrak.rincian_list_tld' => function ($query) {
                     $query->where('status', 1);
                 },
-                'kontrak.rincian_list_tld.pengguna_map',
-                'kontrak.rincian_list_tld.pengguna_map.pengguna',
+                'kontrak.rincian_list_tld.pengguna',
                 'kontrak.rincian_list_tld.tld',
                 'invoice',
                 'invoice.pengiriman',
@@ -287,29 +286,34 @@ class StaffController extends Controller
                 'file_lhu',
                 'pengguna',
                 'rincian_list_tld',
-                'rincian_list_tld.pengguna_map',
-                'rincian_list_tld.pengguna_map.pengguna',
+                'rincian_list_tld.pengguna',
                 'rincian_list_tld.tld',
             ])->find($id);
 
             // cek tld apakah sudah di kirim atau belum
             $statusTld = Pengiriman::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
 
-            // Membuat kontrak_tld
-            $kontrakTld = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
-            // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
-            if(count($kontrakTld) == 0){
-                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode-1)->get();
-                foreach($dataKontrakTldSebelum as $val){
-                    Kontrak_tld::create([
-                        'id_kontrak' => $data->id_kontrak,
-                        'id_map_pengguna' => $val->id_map_pengguna,
-                        'periode' => $data->periode,
-                        'id_tld' => $val->id_tld,
-                        'id_divisi' => $val->id_divisi,
-                        'status' => 1,
-                        'created_by' => Auth::user()->id
-                    ]);
+            // cek apakah sudah di periode terakhir atau belum
+            $lastPeriode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->orderBy('periode', 'desc')->first();
+            $isLast = $lastPeriode->periode == $data->periode ? true : false;
+
+            if(!$isLast) {
+                // Membuat kontrak_tld
+                $kontrakTld = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
+                // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
+                if(count($kontrakTld) == 0){
+                    $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode-1)->get();
+                    foreach($dataKontrakTldSebelum as $val){
+                        Kontrak_tld::create([
+                            'id_kontrak' => $data->id_kontrak,
+                            'id_pengguna' => $val->id_pengguna,
+                            'periode' => $data->periode,
+                            'id_tld' => $val->id_tld,
+                            'id_divisi' => $val->id_divisi,
+                            'status' => 1,
+                            'created_by' => Auth::user()->id
+                        ]);
+                    }
                 }
             }
 
@@ -333,7 +337,7 @@ class StaffController extends Controller
 
                     $arr = array(
                         'id_kontrak' => $idKontrak,
-                        'id_map_pengguna' => $val->id_map_pengguna,
+                        'id_pengguna' => $val->id_pengguna,
                         'id_divisi' => $val->id_divisi,
                         'periode' => $periodeNow->periode,
                         'status' => 1,
@@ -344,7 +348,6 @@ class StaffController extends Controller
             }
 
             $data = Kontrak::with([
-                'pengguna_map',
                 'layanan_jasa:id_layanan,nama_layanan',
                 'jenisTld:id_jenisTld,name',
                 'jenis_layanan:id_jenisLayanan,name,parent',
@@ -355,8 +358,7 @@ class StaffController extends Controller
                 'rincian_list_tld' => function ($query) {
                     $query->where('status', 1);
                 },
-                'rincian_list_tld.pengguna_map',
-                'rincian_list_tld.pengguna_map.pengguna',
+                'rincian_list_tld.pengguna',
                 'rincian_list_tld.tld',
                 'periode'
             ])->find($idKontrak);

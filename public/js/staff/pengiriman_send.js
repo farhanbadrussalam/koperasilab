@@ -56,13 +56,14 @@ function load_form() {
     let tldPengguna = [];
     let tldKontrol = [];
     let kontrakPeriode = [];
+
     if(informasi.kontrak){
-        tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna_map);
-        tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna_map);
+        tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna);
+        tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
         kontrakPeriode = informasi.kontrak.periode;
     }else{
-        tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna_map);
-        tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna_map);
+        tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna);
+        tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
         kontrakPeriode = informasi.periode;
     }
 
@@ -101,7 +102,7 @@ function load_form() {
             })
             htmlPengguna += `
                 <div class="w-50 pe-1 d-flex flex-column">
-                    <span>${list.pengguna_map.pengguna.name}</span>
+                    <span>${list.pengguna.name}</span>
                     <div class="input-group mt-auto mb-3">
                         <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld?.no_seri_tld ?? ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
                         ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
@@ -109,9 +110,6 @@ function load_form() {
                 </div>
             `;
         }
-        // <select class="form-select kodeTldPengguna" name="kodeTldPengguna" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
-        //     <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
-        // </select>
         htmlTld = `
             <div class="border shadow-sm py-2 rounded mb-2">
                 <div

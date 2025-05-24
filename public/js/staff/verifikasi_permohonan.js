@@ -227,15 +227,15 @@ function loadTld(){
     ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
 
         // filter untuk memisahkan antara tld pengguna dan tld kontrol
-        let kPengguna = result.data.tldKontrak ? result.data.tldKontrak?.filter(tld => tld.pengguna_map) : [];
+        let kPengguna = result.data.tldKontrak ? result.data.tldKontrak?.filter(tld => tld.pengguna) : [];
         let tldPengguna = [
-            ...result.data.tldPermohonan.filter(tld => tld.pengguna_map),
+            ...result.data.tldPermohonan.filter(tld => tld.pengguna),
             ...kPengguna,
         ];
 
-        let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna_map) : [];
+        let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
         let tldKontrol = [
-            ...result.data.tldPermohonan.filter(tld => !tld.pengguna_map),
+            ...result.data.tldPermohonan.filter(tld => !tld.pengguna),
             ...kKontrol,
         ];
 
@@ -304,30 +304,29 @@ function loadPengguna(tldPengguna){
             value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
 
             // TLD PENGGUNA
-            const iPengguna = tldPengguna.find(d => {
-                if(d.pengguna_map.pengguna_map_hash && d.pengguna_map.pengguna_map_hash == value.pengguna_map_hash){
-                    return d;
-                }
-                return false;
-            })
+            // const iPengguna = tldPengguna.find(d => {
+            //     if(d.pengguna_map.pengguna_map_hash && d.pengguna_map.pengguna_map_hash == value.pengguna_map_hash){
+            //         return d;
+            //     }
+            //     return false;
+            // })
 
-            let tldHash = '';
-            let no_seri_tld = '';
-            let idHash = '';
+            let idHash = value.permohonan_tld_hash ? value.permohonan_tld_hash : value.kontrak_tld_hash;
+            let tldHash = value.tld ? value.tld.tld_hash : value.tld_pengguna.tld_hash;
+            let no_seri_tld = value.tld ? value.tld.no_seri_tld : value.tld_pengguna.no_seri_tld;
 
-            if(iPengguna){
-                idHash = iPengguna.permohonan_tld_hash ? iPengguna.permohonan_tld_hash : iPengguna.kontrak_tld_hash;
-                if(iPengguna.tld){
-                    tldHash = iPengguna.tld.tld_hash;
-                    no_seri_tld = iPengguna.tld.no_seri_tld;
-                } else if(value.tld_pengguna) {
-                    tldHash = value.tld_pengguna.tld_hash;
-                    no_seri_tld = value.tld_pengguna.no_seri_tld;
-                } else {
-                    tldHash = '';
-                    no_seri_tld = '';
-                }
-            }
+            // if(iPengguna){
+            //     if(iPengguna.tld){
+            //         tldHash = iPengguna.tld.tld_hash;
+            //         no_seri_tld = iPengguna.tld.no_seri_tld;
+            //     } else if(value.tld_pengguna) {
+            //         tldHash = value.tld_pengguna.tld_hash;
+            //         no_seri_tld = value.tld_pengguna.no_seri_tld;
+            //     } else {
+            //         tldHash = '';
+            //         no_seri_tld = '';
+            //     }
+            // }
 
             tmpArrTld.push({
                 id: idHash,

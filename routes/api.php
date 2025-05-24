@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
         Route::post('/tambahPengguna', 'tambahPengguna');
+        Route::post('/action_tld', 'action_tld');
         Route::delete('/destroyPengguna/{idPengguna}', 'destroyPengguna');
         Route::get('/getChildJenisLayanan/{idParent}', 'getChildJenisLayanan');
         Route::get('/getJenisTld/{idJenisLayanan}', 'getJenisTld');

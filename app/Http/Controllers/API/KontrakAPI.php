@@ -42,7 +42,7 @@ class KontrakAPI extends Controller
         DB::beginTransaction();
         try {
             $query = Kontrak::with(
-                        'pengguna_map',
+                        'pengguna',
                         'periode',
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',

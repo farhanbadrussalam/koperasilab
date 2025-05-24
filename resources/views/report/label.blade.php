@@ -15,8 +15,8 @@
         @foreach ($row as $item)
         <div class="border center table-cell" style="padding: 5px;height: 220px; width: 100px; position: relative;">
             <div class="lh-5">
-                <div>{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item->pengguna_map ? $item->pengguna_map->pengguna->kode_lencana : $item->divisi->kode_lencana }}</div>
-                <div class="fs-1">{{ $item->pengguna_map ? $item->pengguna_map->pengguna->name : 'Kontrol' }}</div>
+                <div>{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item->pengguna ? $item->pengguna->kode_lencana : $item->divisi->kode_lencana }}</div>
+                <div class="fs-1">{{ $item->pengguna ? $item->pengguna->name : 'Kontrol' }}</div>
                 <div class="fs-1">{{ convert_date($periode->start_date, 7) }} - {{ convert_date($periode->end_date, 7) }}</div>
                 <div>{{ substr($penyelia->permohonan->kontrak->no_kontrak, 0, 1) }}</div>
             </div>

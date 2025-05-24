@@ -54,11 +54,11 @@ class Kontrak extends Model
     public function jenisTld(){
         return $this->belongsTo(Master_jenistld::class,'jenis_tld', 'id_jenisTld');
     }
-    
+
     public function jenis_layanan(){
         return $this->belongsTo(Master_jenisLayanan::class,'jenis_layanan_2', 'id_jenisLayanan');
     }
-    
+
     public function jenis_layanan_parent(){
         return $this->belongsTo(Master_jenisLayanan::class,'jenis_layanan_1', 'id_jenisLayanan');
     }
@@ -67,8 +67,8 @@ class Kontrak extends Model
         return $this->belongsTo(Master_layanan_jasa::class, 'id_layanan', 'id_layanan');
     }
 
-    public function pengguna_map() {
-        return $this->hasMany(Kontrak_pengguna::class, 'id_kontrak', 'id_kontrak');
+    public function pengguna() {
+        return $this->hasMany(Kontrak_tld::class, 'id_kontrak', 'id_kontrak');
     }
 
     public function pelanggan() {

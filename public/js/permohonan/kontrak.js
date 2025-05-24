@@ -146,7 +146,7 @@ function loadData(page = 1) {
                                 ${statusFormat('kontrak',data.status)}
                             </div>
                             <div class="d-flex gap-1" data-id="${data.kontrak_hash}">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})"><i class="bi bi-clock-fill"></i> ${arrPeriode.length - 1} Periode</div>
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})"><i class="bi bi-clock-fill"></i> ${arrPeriode.length} Periode</div>
                                 <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</div>
                             </div>
                         </div>

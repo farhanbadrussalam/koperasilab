@@ -48,7 +48,7 @@ class PengirimanAPI extends Controller
         try {
             $query = Permohonan::with([
                         'layanan_jasa:id_layanan,nama_layanan',
-                        'jenisTld:id_jenisTld,name', 
+                        'jenisTld:id_jenisTld,name',
                         'jenis_layanan:id_jenisLayanan,name,parent',
                         'jenis_layanan_parent',
                         'pelanggan:id,id_perusahaan,name',
@@ -75,7 +75,7 @@ class PengirimanAPI extends Controller
                     ->offset(($page - 1) * $limit)
                     ->limit($limit)
                     ->paginate($limit);
-                    
+
             $arr = $query->toArray();
             DB::commit();
             $this->pagination = Arr::except($arr, 'data');
@@ -158,7 +158,7 @@ class PengirimanAPI extends Controller
             if($query->bukti_penerima){
                 $query->media_penerima = Master_media::whereIn('id', $query->bukti_penerima)->get();
             }
-            
+
             DB::commit();
 
             return $this->output($query);
@@ -214,7 +214,7 @@ class PengirimanAPI extends Controller
                 ->offset(($page - 1) * $limit)
                 ->limit($limit)
                 ->paginate($limit);
-                
+
                 $arr = $query->toArray();
                 $this->pagination = Arr::except($arr, 'data');
             }
@@ -248,7 +248,7 @@ class PengirimanAPI extends Controller
             $statusPermohonan = $request->statusPermohonan ? $request->statusPermohonan : false;
             $buktiPengiriman = $request->file('buktiPengiriman') ? $request->file('buktiPengiriman') : array();
             $buktiPenerima = $request->file('buktiPenerima') ? $request->file('buktiPenerima') : array();
-            
+
             $params = array();
             $request->has('noResi') && $params['no_resi'] = $noResi;
             $request->has('idEkspedisi') && $params['id_ekspedisi'] = $idEkspedisi;
@@ -275,7 +275,7 @@ class PengirimanAPI extends Controller
                 $params['bukti_pengiriman'] = $bukti;
             }
 
-            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna_map')->where('id_pengiriman', $idPengiriman)->first();
+            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna')->where('id_pengiriman', $idPengiriman)->first();
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
@@ -293,9 +293,9 @@ class PengirimanAPI extends Controller
             // jika status 2 = pengiriman selesai maka mengganti list_tld di tabel kontrak
             if ($status == 2 && $pengiriman->kontrak) {
                 $listTld = [];
-                
+
                 $listTld = array_map('intval', $pengiriman->detail->where('jenis', 'tld')->pluck('list_tld')->flatten()->toArray());
-            
+
                 if (!empty($listTld)) {
                     // mengganti status di kontrak_tld menjadi 2 artinya sudah diterima oleh pelanggan
                     Kontrak_tld::where('id_kontrak', $pengiriman->id_kontrak)
@@ -342,7 +342,7 @@ class PengirimanAPI extends Controller
             }
 
             DB::commit();
-            
+
             return $this->output($result);
         } catch (\Exception $ex) {
             info($ex);
@@ -393,7 +393,7 @@ class PengirimanAPI extends Controller
                     ->where('status', 1)
                     ->whereIn('id_tld', $listTld)
                     ->update(['status' => 2]);
-                    
+
                 // Mengganti status di master_tld menjadi 1 artinya tld sedang digunakan
                 // Master_tld::whereIn('id_tld', $listTld)->update(['status' => 1]);
             }
@@ -470,11 +470,11 @@ class PengirimanAPI extends Controller
                         $params['list_tld'] = [];
                         foreach ($value->listTld as $val) {
                             // mengambil data kontrak_tld
-                            $kontrakTld = Kontrak_tld::with('pengguna_map', 'kontrak:id_kontrak,no_kontrak')->where('id_kontrak_tld', decryptor($val->id))->first();
+                            $kontrakTld = Kontrak_tld::with('pengguna', 'kontrak:id_kontrak,no_kontrak')->where('id_kontrak_tld', decryptor($val->id))->first();
                             $idTld = decryptor($val->tld);
                             $kontrakTld->update(array('status' => 1, 'id_tld' => $idTld));
                             Master_tld::where('id_tld', $idTld)->update(['status' => 1, 'digunakan' => $kontrakTld->kontrak->no_kontrak]);
-                            
+
                             $params['list_tld'][] = (int) $idTld;
                         }
                     }
@@ -488,9 +488,9 @@ class PengirimanAPI extends Controller
                             'created_surpeng_at' => Carbon::now()
                         ]);
                     }
-                    
+
                     Pengiriman_detail::create($params);
-                    
+
                     // menambahkan id_pengiriman ke invoice
                     if($value->jenis == 'invoice'){
                         $invoice = Keuangan::where('id_keuangan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
