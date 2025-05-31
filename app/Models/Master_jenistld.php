@@ -23,6 +23,10 @@ class Master_jenistld extends Model
         'jenis_tld_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getJenisTldHashAttribute()
     {
         return encryptor($this->id_jenisTld);

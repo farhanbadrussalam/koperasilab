@@ -30,6 +30,10 @@ class Perusahaan extends Model
         'perusahaan_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getPerusahaanHashAttribute()
     {
         return encryptor($this->id_perusahaan);

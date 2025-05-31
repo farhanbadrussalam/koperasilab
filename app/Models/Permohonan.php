@@ -58,7 +58,14 @@ class Permohonan extends Model
     protected $casts = [
         'periode_pemakaian' => 'array',
         'list_tld' => 'array',
-        'tld_kontrol' => 'array'
+        'tld_kontrol' => 'array',
+        'periode' => 'integer',
+        'jumlah_pengguna' => 'integer',
+        'jumlah_kontrol' => 'integer',
+        'total_harga' => 'integer',
+        'harga_layanan' => 'integer',
+        'status' => 'integer',
+        'flag_read' => 'integer',
     ];
 
     public function getPermohonanHashAttribute()
@@ -74,11 +81,11 @@ class Permohonan extends Model
     public function jenisTld(){
         return $this->belongsTo(Master_jenistld::class,'jenis_tld', 'id_jenisTld');
     }
-    
+
     public function jenis_layanan(){
         return $this->belongsTo(Master_jenisLayanan::class,'jenis_layanan_2', 'id_jenisLayanan');
     }
-    
+
     public function jenis_layanan_parent(){
         return $this->belongsTo(Master_jenisLayanan::class,'jenis_layanan_1', 'id_jenisLayanan');
     }
@@ -98,7 +105,7 @@ class Permohonan extends Model
     public function tandaterima() {
         return $this->hasMany(Permohonan_tandaterima::class, 'id_permohonan', 'id_permohonan');
     }
-    
+
     public function kontrak(){
         return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }

@@ -27,6 +27,10 @@ class Log_tld extends Model
         'log_tld_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer',
+    ];
+
     public function getLogTldHashAttribute()
     {
         return encryptor($this->id_log_tld);

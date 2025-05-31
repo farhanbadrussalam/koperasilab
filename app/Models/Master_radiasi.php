@@ -26,6 +26,10 @@ class Master_radiasi extends Model
         'radiasi_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getRadiasiHashAttribute()
     {
         return encryptor($this->id_radiasi);

@@ -13,7 +13,7 @@ class Master_ekspedisi extends Model
     protected $primaryKey = 'id_ekspedisi';
 
     protected $fillable = [
-        'name', 
+        'name',
         'deskripsi',
         'status',
         'created_by'
@@ -25,6 +25,10 @@ class Master_ekspedisi extends Model
 
     protected $appends = [
         'ekspedisi_hash'
+    ];
+
+    protected $casts = [
+        'status' => 'integer'
     ];
 
     public function getEkspedisiHashAttribute()

@@ -22,6 +22,10 @@ class Log_pengiriman extends Model
         'log_pengiriman_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getLogPengirimanHashAttribute()
     {
         return encryptor($this->id);

@@ -25,6 +25,11 @@ class Master_pertanyaan extends Model
         'pertanyaan_hash'
     ];
 
+    protected $casts = [
+        'type' => 'integer',
+        'mandatory' => 'integer'
+    ];
+
     public function getPertanyaanHashAttribute()
     {
         return encryptor($this->id_pertanyaan);

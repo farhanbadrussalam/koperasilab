@@ -34,7 +34,8 @@ class Keuangan extends Model
     protected $casts = [
         'document_faktur' => 'array',
         'bukti_bayar' => 'array',
-        'bukti_bayar_pph' => 'array'
+        'bukti_bayar_pph' => 'array',
+        'status' => 'integer'
     ];
 
     protected $hidden = [
@@ -62,7 +63,7 @@ class Keuangan extends Model
 
     public function permohonan()
     {
-        return $this->belongsTo(permohonan::class, 'id_permohonan', 'id_permohonan');
+        return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id_permohonan');
     }
 
     public function diskon()

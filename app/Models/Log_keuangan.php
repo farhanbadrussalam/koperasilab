@@ -21,6 +21,10 @@ class Log_keuangan extends Model
         'log_keuangan_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getLogKeuanganHashAttribute()
     {
         return encryptor($this->id);

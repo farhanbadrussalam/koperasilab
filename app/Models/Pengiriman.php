@@ -46,6 +46,8 @@ class Pengiriman extends Model
     protected $casts = [
         'bukti_pengiriman' => 'array',
         'bukti_penerima' => 'array',
+        'status' => 'integer',
+        'periode' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

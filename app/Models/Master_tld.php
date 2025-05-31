@@ -33,6 +33,10 @@ class Master_tld extends Model
         'tld_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getTldHashAttribute()
     {
         return encryptor($this->id_tld);

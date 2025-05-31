@@ -19,6 +19,10 @@ class notifikasi extends Model
         'status'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getRecipient(){
         return $this->hasOne(User::class, 'id', 'recipient');
     }

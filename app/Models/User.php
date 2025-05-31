@@ -73,7 +73,8 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
-        'jobs' => 'json'
+        'jobs' => 'json',
+        'status' => 'integer'
     ];
 
     public function perusahaan(){

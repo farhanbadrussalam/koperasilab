@@ -1,7 +1,8 @@
 const bearer = $('#bearer-token')?.val();
 const csrf = $('#csrf-token')?.val();
 const userActive = $('#userActive').val() ? JSON.parse($('#userActive').val()) : false;
-const base_url = $('#base_url')?.val();
+// const base_url = $('#base_url')?.val();
+const base_url = 'https://www.layananpelanggan.nuklindolab.com';
 const role = $('#role')?.val();
 const permission = $('#permission')?.val() ? JSON.parse($('#permission').val()) : false;
 const permissionInRole = $('#permissionInRole').val() ? JSON.parse($('#permissionInRole').val()) : false;

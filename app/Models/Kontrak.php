@@ -44,6 +44,11 @@ class Kontrak extends Model
 
     protected $casts = [
         'list_tld' => 'array',
+        'jumlah_pengguna' => 'integer',
+        'jumlah_kontrol' => 'integer',
+        'total_harga' => 'integer',
+        'harga_layanan' => 'integer',
+        'status' => 'integer'
     ];
 
     public function getKontrakHashAttribute()

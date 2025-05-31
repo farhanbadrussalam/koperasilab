@@ -29,6 +29,10 @@ class Master_alamat extends Model
         'alamat_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getAlamatHashAttribute()
     {
         return encryptor($this->id_alamat);

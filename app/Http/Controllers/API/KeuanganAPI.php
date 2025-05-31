@@ -67,13 +67,13 @@ class KeuanganAPI extends Controller
             if(Auth::user()->hasRole('Pelanggan')){
                 $createBy = Auth::user()->id;
             }
-            
+
             $query = Keuangan::with(
                             'permohonan',
                             'diskon',
                             'usersig',
                             'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                            'permohonan.jenisTld:id_jenisTld,name', 
+                            'permohonan.jenisTld:id_jenisTld,name',
                             'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                             'permohonan.jenis_layanan_parent',
                             'permohonan.pelanggan',
@@ -123,6 +123,12 @@ class KeuanganAPI extends Controller
             $_status = Keuangan::selectRaw('count(*) as total, status')
                 ->groupBy('status')
                 ->get()
+                ->map(function ($item) {
+                    return [
+                        'total' => (int) $item->total,
+                        'status' => (int) $item->status,
+                    ];
+                })
                 ->toArray();
             foreach ($arrStatus as $value) {
                 $exist = array_filter($_status, function($item) use ($value) {
@@ -160,7 +166,7 @@ class KeuanganAPI extends Controller
                 }
                 return $item;
             }, $_status);
-            
+
             DB::commit();
 
             return $this->output($query);
@@ -181,7 +187,7 @@ class KeuanganAPI extends Controller
                 'diskon',
                 'usersig',
                 'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                'permohonan.jenisTld:id_jenisTld,name', 
+                'permohonan.jenisTld:id_jenisTld,name',
                 'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
                 'permohonan.jenis_layanan_parent',
                 'permohonan.pelanggan',
@@ -224,7 +230,7 @@ class KeuanganAPI extends Controller
             }else{
                 $query->media_bukti_bayar_pph = array();
             }
-            
+
             DB::commit();
 
             return $this->output($query);
@@ -254,7 +260,7 @@ class KeuanganAPI extends Controller
 
             $result = array();
             $data = [];
-            
+
             $totalHarga && $data['total_harga'] = $totalHarga;
             $ppn && $data['ppn'] = $ppn;
             $pph && $data['pph'] = $pph;
@@ -262,9 +268,9 @@ class KeuanganAPI extends Controller
             $ttd && $data['ttd'] = $ttd;
             $ttd_by && $data['ttd_by'] = $ttd_by;
             $plt && $data['plt'] = $plt;
-            
+
             $data['status'] = $status;
-            
+
             $invoice = Keuangan::where('id_keuangan', $idKeuangan)->first();
             if($invoice){
                 !$invoice->no_invoice && $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
@@ -346,7 +352,7 @@ class KeuanganAPI extends Controller
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
-        
+
     }
 
     public function uploadBuktiBayar(Request $request)
@@ -362,22 +368,22 @@ class KeuanganAPI extends Controller
 
             $fileUpload = $this->media->upload($file, 'keuangan');
             $dataKeuangan = Keuangan::find($idKeuangan);
-            
+
             if(isset($dataKeuangan)){
                 $buktiBayar = is_array($dataKeuangan->bukti_bayar) ? $dataKeuangan->bukti_bayar : [];
-                
+
                 array_push($buktiBayar, $fileUpload->getIdMedia());
                 $update = $dataKeuangan->update(array('bukti_bayar' => $buktiBayar));
-    
+
                 DB::commit();
-    
+
                 if($update){
                     $fileUpload->store();
                     // ambil media bukti bayar
                     $mediaBuktiBayar = $this->media->get($fileUpload->getIdMedia());
                     return $this->output(array('msg' => 'Bukti bayar berhasil diupload', 'data' => $mediaBuktiBayar));
                 }
-    
+
                 return $this->output(array('msg' => 'Bukti bayar gagal diupload'), 'Fail', 400);
             }
 
@@ -399,25 +405,25 @@ class KeuanganAPI extends Controller
         try {
             $idKeuangan = decryptor($request->idHash);
             $file = $request->file('file');
-            
+
             $fileUpload = $this->media->upload($file, 'keuangan');
             $dataKeuangan = Keuangan::find($idKeuangan);
-            
+
             if(isset($dataKeuangan)){
                 $buktiBayarPph = is_array($dataKeuangan->bukti_bayar_pph) ? $dataKeuangan->bukti_bayar_pph : [];
-                
+
                 array_push($buktiBayarPph, $fileUpload->getIdMedia());
                 $update = $dataKeuangan->update(array('bukti_bayar_pph' => $buktiBayarPph));
-    
+
                 DB::commit();
-    
+
                 if($update){
                     $fileUpload->store();
                     // ambil media bukti bayar pph
                     $mediaBuktiBayarPph = $this->media->get($fileUpload->getIdMedia());
                     return $this->output(array('msg' => 'Bukti bayar PPH berhasil diupload', 'data' => $mediaBuktiBayarPph));
                 }
-    
+
                 return $this->output(array('msg' => 'Bukti bayar PPH gagal diupload'), 'Fail', 400);
             }
 
@@ -442,22 +448,22 @@ class KeuanganAPI extends Controller
 
             $fileUpload = $this->media->upload($file, 'keuangan');
             $dataKeuangan = Keuangan::find($idKeuangan);
-            
+
             if(isset($dataKeuangan)){
                 $documentFaktur = is_array($dataKeuangan->document_faktur) ? $dataKeuangan->document_faktur : [];
-                
+
                 array_push($documentFaktur, $fileUpload->getIdMedia());
                 $update = $dataKeuangan->update(array('document_faktur' => $documentFaktur));
-    
+
                 DB::commit();
-    
+
                 if($update){
                     $fileUpload->store();
                     // ambil media faktur
                     $mediaFaktur = $this->media->get($fileUpload->getIdMedia());
                     return $this->output(array('msg' => 'Faktur berhasil diupload', 'data' => $mediaFaktur));
-                } 
-    
+                }
+
                 return $this->output(array('msg' => 'Faktur gagal diupload'), 'Fail', 400);
             }
 
@@ -482,22 +488,22 @@ class KeuanganAPI extends Controller
 
             $fileUpload = $this->media->upload($file, 'keuangan');
             $dataKeuangan = Keuangan::find($idKeuangan);
-            
+
             if(isset($dataKeuangan)){
                 $documentFaktur = is_array($dataKeuangan->document_faktur) ? $dataKeuangan->document_faktur : [];
-                
+
                 array_push($documentFaktur, $fileUpload->getIdMedia());
                 $update = $dataKeuangan->update(array('document_faktur' => $documentFaktur));
-    
+
                 DB::commit();
-    
+
                 if($update){
                     $fileUpload->store();
                     // ambil media faktur
                     $mediaFaktur = $this->media->get($fileUpload->getIdMedia());
                     return $this->output(array('msg' => 'Faktur berhasil diupload', 'data' => $mediaFaktur));
                 }
-    
+
                 return $this->output(array('msg' => 'Faktur gagal diupload'), 'Fail', 400);
             }
 
@@ -517,7 +523,7 @@ class KeuanganAPI extends Controller
         try {
             $dataKeuangan = Keuangan::find($idKeuangan);
             $buktiBayar = is_array($dataKeuangan->bukti_bayar) ? $dataKeuangan->bukti_bayar : [];
-            
+
             if(($key = array_search($idMedia, $buktiBayar)) !== false) {
                 unset($buktiBayar[$key]);
             }
@@ -549,7 +555,7 @@ class KeuanganAPI extends Controller
         try {
             $dataKeuangan = Keuangan::find($idKeuangan);
             $buktiBayarPph = is_array($dataKeuangan->bukti_bayar_pph) ? $dataKeuangan->bukti_bayar_pph : [];
-            
+
             if(($key = array_search($idMedia, $buktiBayarPph)) !== false) {
                 unset($buktiBayarPph[$key]);
             }
@@ -582,7 +588,7 @@ class KeuanganAPI extends Controller
         try {
             $dataKeuangan = Keuangan::find($idKeuangan);
             $documentFaktur = is_array($dataKeuangan->document_faktur) ? $dataKeuangan->document_faktur : [];
-            
+
             if(($key = array_search($idMedia, $documentFaktur)) !== false) {
                 unset($documentFaktur[$key]);
             }

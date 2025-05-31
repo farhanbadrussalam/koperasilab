@@ -11,7 +11,7 @@ class Penyelia extends Model
 
     protected $table = 'penyelia';
     protected $primaryKey = 'id_penyelia';
-    
+
     protected $fillable = [
         'id_permohonan',
         'id_pengiriman',
@@ -41,7 +41,9 @@ class Penyelia extends Model
 
     protected $casts = [
         'start_date' => 'datetime',
-        'end_date' => 'datetime'
+        'end_date' => 'datetime',
+        'periode' => 'integer',
+        'status' => 'integer',
     ];
 
     public function getPermohonanHashAttribute()

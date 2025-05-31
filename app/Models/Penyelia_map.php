@@ -33,11 +33,15 @@ class Penyelia_map extends Model
         'jobs_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getMapHashAttribute()
     {
         return encryptor($this->id_map);
     }
-    
+
     public function getJobsHashAttribute()
     {
         return encryptor($this->id_jobs);
@@ -57,7 +61,7 @@ class Penyelia_map extends Model
     {
         return $this->hasMany(Penyelia_petugas::class, 'id_map', 'id_map');
     }
-    
+
     public function doneBy()
     {
         return $this->belongsTo(User::class, 'done_by', 'id');

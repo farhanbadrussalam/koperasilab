@@ -31,6 +31,10 @@ class Master_divisi extends Model
         'divisi_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getDivisiHashAttribute()
     {
         return encryptor($this->id_divisi);

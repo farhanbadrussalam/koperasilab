@@ -23,7 +23,8 @@ class Master_layanan_jasa extends Model
 
     // Casting kolom sebagai array
     protected $casts = [
-        'jobs' => 'array'
+        'jobs' => 'array',
+        'status' => 'integer'
     ];
 
     protected $appends = [

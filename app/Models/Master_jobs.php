@@ -26,6 +26,11 @@ class Master_jobs extends Model
         'jobs_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer',
+        'order' => 'integer'
+    ];
+
     public function getJobsHashAttribute()
     {
         return encryptor($this->id_jobs);

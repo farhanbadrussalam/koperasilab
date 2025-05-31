@@ -27,6 +27,11 @@ class Master_price extends Model
         'jenis_tld_hash'
     ];
 
+    protected $casts = [
+        'price' => 'integer',
+        'qty' => 'integer'
+    ];
+
     public function getPriceHashAttribute()
     {
         return encryptor($this->id_price);

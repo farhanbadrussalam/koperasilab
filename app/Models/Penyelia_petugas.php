@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Penyelia_petugas extends Model
 {
     use HasFactory;
-    
+
     protected $table = 'penyelia_petugas';
     protected $primaryKey = 'id_petugas';
-    
+
     protected $fillable = [
         'id_user',
         'id_map',
@@ -32,6 +32,10 @@ class Penyelia_petugas extends Model
         'map_hash',
         'penyelia_hash',
         'user_hash'
+    ];
+
+    protected $casts = [
+        'status' => 'integer'
     ];
 
     public function getPetugasHashAttribute()
@@ -58,7 +62,7 @@ class Penyelia_petugas extends Model
     {
         return $this->belongsTo(Penyelia_map::class, 'id_map', 'id_map');
     }
-    
+
     public function user()
     {
         return $this->belongsTo(User::class, 'id_user', 'id');

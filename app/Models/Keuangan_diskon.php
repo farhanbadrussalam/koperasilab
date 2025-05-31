@@ -28,6 +28,10 @@ class Keuangan_diskon extends Model
         'diskon_hash'
     ];
 
+    protected $casts = [
+        'diskon' => 'integer'
+    ];
+
     public function getKeuanganHashAttribute()
     {
         return encryptor($this->id_keuangan);

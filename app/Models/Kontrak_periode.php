@@ -34,6 +34,11 @@ class Kontrak_periode extends Model
         'permohonan_hash'
     ];
 
+    protected $casts = [
+        'periode' => 'integer',
+        'status' => 'integer'
+    ];
+
     public function getPeriodeHashAttribute()
     {
         return encryptor($this->id_periode);

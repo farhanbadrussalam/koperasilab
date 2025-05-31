@@ -24,6 +24,10 @@ class Log_penyelia extends Model
         'log_penyelia_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getLogPenyeliaHashAttribute()
     {
         return encryptor($this->id);

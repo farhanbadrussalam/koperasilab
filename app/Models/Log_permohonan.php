@@ -24,6 +24,10 @@ class Log_permohonan extends Model
         'log_permohonan_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer'
+    ];
+
     public function getLogPermohonanHashAttribute()
     {
         return encryptor($this->id);

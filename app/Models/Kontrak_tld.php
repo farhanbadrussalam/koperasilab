@@ -37,7 +37,10 @@ class Kontrak_tld extends Model
     ];
 
     protected $casts = [
-        'id_tld' => 'array'
+        'id_tld' => 'array',
+        'status' => 'integer',
+        'count' => 'integer',
+        'periode' => 'integer'
     ];
 
     public function getKontrakTldHashAttribute()

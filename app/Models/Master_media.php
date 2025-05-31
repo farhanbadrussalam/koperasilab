@@ -28,6 +28,11 @@ class Master_media extends Model
         'media_hash'
     ];
 
+    protected $casts = [
+        'status' => 'integer',
+        'file_size' => 'integer'
+    ];
+
     public function getMediaHashAttribute()
     {
         return encryptor($this->id);

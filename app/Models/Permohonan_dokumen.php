@@ -26,10 +26,14 @@ class Permohonan_dokumen extends Model
         'updated_at',
         'id_dokumen'
     ];
-    
+
     protected $appends = [
         'dokumen_hash',
         'permohonan_hash'
+    ];
+
+    protected $casts = [
+        'status' => 'integer'
     ];
 
     public function getDokumenHashAttribute()
