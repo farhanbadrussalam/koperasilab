@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
-use App\Models\Master_jenisTld;
+use App\Models\Master_jenistld;
 use App\Models\Master_jenisLayanan;
 use App\Models\Master_jobs;
 use App\Models\Perusahaan;
@@ -23,7 +23,7 @@ class FilterAPI extends Controller
     {
         DB::beginTransaction();
         try {
-            $jenis_tld = Master_jenisTld::where('status', 1)->get();
+            $jenis_tld = Master_jenistld::where('status', 1)->get();
 
             DB::commit();
             return $this->output($jenis_tld, 200);
