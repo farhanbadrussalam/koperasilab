@@ -56,7 +56,7 @@ function loadData(page = 1) {
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
                         <div class="col-12 col-md-8">
-                            <div class="title">${perusahaan.nama_perusahaan} - ${perusahaan.kode_perusahaan ?? '<span class="text-danger">Belum ada kode</span>'}</div>
+                            <div class="title"><span class="fw-bold">(${perusahaan.kode_perusahaan ?? '<span class="text-danger">Belum memiliki kode</span>'})</span> ${perusahaan.nama_perusahaan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>NPWP : ${perusahaan.npwp_perusahaan}</div>
                                 <div>E-mail : ${perusahaan.email}</div>
@@ -143,6 +143,6 @@ function simpanEditPerusahaan(obj){
 $('#list-pagination').on('click', 'a', function (e) {
     e.preventDefault();
     const pageno = e.target.dataset.page;
-    
+
     loadData(pageno);
 });

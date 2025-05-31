@@ -14,6 +14,7 @@ use App\Models\Keuangan_diskon;
 use App\Models\jadwal;
 use App\Models\Jadwal_petugas;
 use App\Models\Penyelia;
+use App\Models\Master_tld;
 
 use PDF;
 use Auth;
@@ -202,9 +203,14 @@ class ReportController extends Controller
             'rincian_list_tld' => function($query) {
                 return $query->where('status', 1);
             },
-            'rincian_list_tld.tld',
             'rincian_list_tld.pengguna'
         ])->find($id);
+
+        if($query) {
+            $query->rincian_list_tld->each(function($item) {
+                $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+            });
+        }
 
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Surat Pengantar';
@@ -269,11 +275,15 @@ class ReportController extends Controller
         ])->where('id_penyelia', $id)->first();
 
         // mengambil list tld di kontrak
-        $listTld = Kontrak_tld::with('tld', 'pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
+        $listTld = Kontrak_tld::with('pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
                     ->where('periode', $query->permohonan->periode)
                     ->orderBy('id_pengguna', 'asc')
                     ->orderBy('id_divisi', 'asc')
                     ->get();
+
+        $listTld->each(function($item) {
+            $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+        });
 
         $dataPeriode = Kontrak_periode::where('id_kontrak', $query->permohonan->id_kontrak)
                     ->where('periode', $query->permohonan->periode)

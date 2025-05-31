@@ -316,7 +316,7 @@ class PenyeliaAPI extends Controller
                     if($value->status == 3) {
                         // jenis kontraknya bukan evaluasi berarti di update statusnya
                         if($penyelia->permohonan->kontrak->jenis_layanan_2 != '3') {
-                            Master_tld::where('id_tld', $value->id_tld)->update(array('status' => 0));
+                            Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
                         }
 
                         // Masih opsional apakah Kontrak_tld di ganti menjadi status 0 atau masih tetap 3
@@ -586,7 +586,6 @@ class PenyeliaAPI extends Controller
                 'permohonan.pengguna',
                 'permohonan.pengguna.tld_pengguna',
                 'permohonan.rincian_list_tld',
-                'permohonan.rincian_list_tld.tld:id_tld,no_seri_tld',
                 'permohonan.rincian_list_tld.pengguna',
                 'log',
                 'log.user',
@@ -594,9 +593,10 @@ class PenyeliaAPI extends Controller
             )->find($idPenyelia);
             DB::commit();
 
-            if(isset($query->permohonan->list_tld) && count($query->permohonan->list_tld) > 0){
-                $tldKontrol = Master_tld::whereIn('id_tld', $query->permohonan->list_tld)->get();
-                $query->permohonan->tld_kontrol = $tldKontrol;
+            if(isset($query->permohonan->rincian_list_tld) && count($query->permohonan->rincian_list_tld) > 0){
+                $query->permohonan->rincian_list_tld->each(function($item) {
+                    $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+                });
             }
 
             return $this->output($query);

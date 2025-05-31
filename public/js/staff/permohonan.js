@@ -30,7 +30,7 @@ $('#list-pagination').on('click', 'a', function (e) {
     e.preventDefault();
     const pageno = e.target.dataset.page;
 
-    loadPengajuan(pageno);
+    loadData(pageno);
 });
 
 function loadData(page = 1) {

@@ -38,7 +38,7 @@ class FilterAPI extends Controller
     {
         DB::beginTransaction();
         try {
-            $jenis_layanan = Master_jenisLayanan::where('status', 1)->whereNull('parent')->get();            
+            $jenis_layanan = Master_jenisLayanan::where('status', 1)->whereNull('parent')->get();
 
             DB::commit();
             return $this->output($jenis_layanan, 200);
@@ -142,6 +142,22 @@ class FilterAPI extends Controller
                         array(
                             'id' => encryptor(5),
                             'name' => 'Pembayaran diterima',
+                        )
+                    ];
+                    break;
+                case 'pengguna':
+                    $status = [
+                        array(
+                            'id' => encryptor(1),
+                            'name' => 'Tidak Aktif',
+                        ),
+                        array(
+                            'id' => encryptor(2),
+                            'name' => 'Pengajuan',
+                        ),
+                        array(
+                            'id' => encryptor(3),
+                            'name' => 'Aktif',
                         )
                     ];
                     break;

@@ -93,7 +93,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputRole" class="form-label">Role <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="role" id="inputRole" class="form-control @error('role') is-invalid @enderror" value="{{ old('role') }}">
+                                <select name="role[]" id="inputRole" class="form-control @error('role') is-invalid @enderror" value="{{ old('role') }}" multiple="multiple">
                                     <option value="">--- Select ---</option>
                                     @foreach ($role as $value)
                                         <option value="{{ $value->name }}">{{ $value->name }}</option>
@@ -161,7 +161,8 @@
         $(function(){
             $('#inputRole').on('change', function(evt){
                 $('#tugas_lhu').removeClass('d-block').addClass('d-none');
-                if(evt.target.value == 'Staff LHU') {
+                let role = $('#inputRole').val();
+                if(role.includes('Staff LHU')) {
                     $('#tugas_lhu').removeClass('d-none').addClass('d-block');
                 }
             });
@@ -170,6 +171,11 @@
                 theme: "bootstrap-5",
                 placeholder: "Pilih Tugas",
             });
+
+            $('#inputRole').select2({
+                theme: "bootstrap-5",
+                placeholder: "Pilih Role",
+            })
         })
         function selectFileImage() {
             let _uploadfile = document.getElementById('uploadavatar');

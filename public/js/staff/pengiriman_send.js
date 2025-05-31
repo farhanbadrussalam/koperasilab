@@ -12,7 +12,7 @@ $(function () {
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
 
-        $(`#tldNoSeri_${detail.selected}`).val(detail.data_tld.no_seri_tld);
+        $(`#tldNoSeri_${$.escapeSelector(detail.selected)}`).val(detail.data_tld.no_seri_tld);
 
         // reset tmpArrTld
         let index = tmpArrTld.findIndex(d => d.id == detail.selected);
@@ -75,19 +75,22 @@ function load_form() {
         let checkedTld = status_tld ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const list of tldKontrol) {
-            tmpArrTld.push({
-                id: list.kontrak_tld_hash,
-                tld: list.tld?.tld_hash
-            })
-            htmlKontrol += `
-                <div class="w-50 pe-1 d-flex flex-column">
-                    <span>&nbsp;</span>
-                    <div class="input-group mt-auto mb-3">
-                        <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld?.no_seri_tld ?? ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-                        ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+
+            for (let idx = 0; idx < list.count; idx++) {
+                tmpArrTld.push({
+                    id: `${list.kontrak_tld_hash}|${idx+1}`,
+                    tld: list.tld ? list.tld[idx]?.tld_hash : null
+                })
+                htmlKontrol += `
+                    <div class="w-50 pe-1 d-flex flex-column">
+                        <span>${list.divisi?.name ?? ''} ${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
+                        <div class="input-group mt-auto mb-3">
+                            <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
+                            ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
         // <select class="form-select kodeTldKontrol" name="kodeTldKontrol" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
         //     <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
@@ -98,13 +101,13 @@ function load_form() {
         for (const list of tldPengguna){
             tmpArrTld.push({
                 id: list.kontrak_tld_hash,
-                tld: list.tld?.tld_hash
+                tld: list.tld ? list.tld[0].tld_hash : null
             })
             htmlPengguna += `
                 <div class="w-50 pe-1 d-flex flex-column">
-                    <span>${list.pengguna.name}</span>
+                    <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}</span>
                     <div class="input-group mt-auto mb-3">
-                        <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld?.no_seri_tld ?? ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                        <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld ? list.tld[0].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
                         ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                     </div>
                 </div>

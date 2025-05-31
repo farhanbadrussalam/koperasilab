@@ -17,6 +17,7 @@ class Permohonan_tld extends Model
         'id_permohonan',
         'id_tld',
         'tld_tmp',
+        'count',
         'id_pengguna',
         'id_divisi',
         'periode',
@@ -34,6 +35,10 @@ class Permohonan_tld extends Model
     protected $appends = [
         'permohonan_tld_hash',
         'permohonan_hash'
+    ];
+
+    protected $casts = [
+        'id_tld' => 'json'
     ];
 
     public function getPermohonanTldHashAttribute()

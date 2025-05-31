@@ -80,8 +80,7 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputRole" class="form-label">Role <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="role" id="inputRole" class="form-control @error('role') is-invalid @enderror" value="{{ old('role') }}">
-                                    <option value="">--- Select ---</option>
+                                <select name="role[]" id="inputRole" class="form-control @error('role') is-invalid @enderror" multiple="multiple">
                                     @foreach ($role as $value)
                                         <option value="{{ $value->name }}">{{ $value->name }}</option>
                                     @endforeach
@@ -109,7 +108,6 @@
                             <div class="col-md-12 mb-2 d-none" id="tugas_lhu">
                                 <label for="inputTugasLhu" class="form-label">Tugas LHU <span class="fw-bold fs-14 text-danger">*</span></label>
                                 <select name="tugas_lhu[]" id="inputTugasLhu" class="form-control @error('tugas_lhu') is-invalid @enderror" value="{{ old('tugas_lhu') }}" multiple="multiple">
-                                    <option value="">--- Select ---</option>
                                     @foreach ($jobs as $value)
                                         <option value="{{ $value->jobs_hash }}">{{ $value->name }}</option>
                                     @endforeach
@@ -133,7 +131,8 @@
                                 <label for="inputAlamat" class="form-label">Alamat</label>
                                 <textarea name="alamat" id="inputAlamat" cols="30" rows="3" class="form-control">{{ old('alamat') ? old('alamat') : ($d_user->profile ? $d_user->profile->alamat : '') }}</textarea>
                             </div>
-                            <div class="col-md-12 mt-3 text-center">
+                            <div class="col-md-12 mt-3 text-center d-flex justify-content-between">
+                                <button type="button" class="btn btn-danger" onclick="deleteUser()">Delete User</button>
                                 <button type="submit" class="btn btn-primary">Update</button>
                             </div>
                         </div>
@@ -147,12 +146,20 @@
 @push('scripts')
     <script>
         // Initialisasi
-        const roleUser = @json(count($d_user->getRoleNames()) != 0 ? $d_user->getRoleNames()[0] : '');
+        const roleUser = @json(count($d_user->getRoleNames()) != 0 ? $d_user->getRoleNames() : '');
         const profile = @json($d_user->profile);
         const d_user = @json($d_user);
-        
+
         $(function() {
-            $('#inputRole').val(roleUser);
+
+            $('#inputRole').on('change', function(evt){
+                $('#tugas_lhu').removeClass('d-block').addClass('d-none');
+                let role = $('#inputRole').val();
+                if(role.includes('Staff LHU')) {
+                    $('#tugas_lhu').removeClass('d-none').addClass('d-block');
+                }
+            });
+
             if(profile?.jenis_kelamin){
                 $('#inputJenisKelamin').val(profile.jenis_kelamin);
             }
@@ -166,10 +173,15 @@
             $('#inputTugasLhu').select2({
                 theme: "bootstrap-5",
                 placeholder: "Pilih Tugas",
-
+                defaultValue: roleUser
             })
 
-            if(d_user?.jobs){
+            $('#inputRole').select2({
+                theme: "bootstrap-5",
+                placeholder: "Pilih Role",
+            }).val(roleUser).trigger('change');
+
+            if(roleUser.includes('Staff LHU')){
                 $('#tugas_lhu').removeClass('d-none');
                 $('#inputTugasLhu').val(d_user.jobs).trigger('change');
             }else{
@@ -194,6 +206,21 @@
 
                 reader.readAsDataURL(file);
             }
+        }
+
+        function deleteUser() {
+            ajaxDelete(`management/users/${d_user.user_hash}`, (result) => {
+                if (result.meta.code == 200) {
+                    swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil dihapus',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.href = '/management/users';
+                    })
+                }
+            })
         }
     </script>
 @endpush

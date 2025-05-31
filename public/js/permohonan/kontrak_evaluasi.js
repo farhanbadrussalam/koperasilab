@@ -32,38 +32,32 @@ function loadTld() {
     let tldPengguna = dataKontrak.rincian_list_tld.filter(tld => tld.pengguna);
     let tldKontrol = dataKontrak.rincian_list_tld.filter(tld => !tld.pengguna);
 
+    console.log(tldPengguna);
+    console.log(tldKontrol);
     loadTldKontrol(tldKontrol);
     loadPengguna(tldPengguna);
-
-    // let html = '';
-    // for (const [i, value] of tld.entries()) {
-    //     html += `
-    //         <li class="list-group-item px-0">
-    //             <input class="form-check-input form-check-lg" type="checkbox" value="${value}" id="flexCheckTld${i}" name="flexCheckTld" checked>
-    //             <label class="form-check-label" for="flexCheckTld${i}">${value}</label>
-    //         </li>
-    //     `;
-    // }
-
-    // $('#listTld').html(html);
 }
 
 function loadTldKontrol(tldKontrol) {
     let htmlTldKontrol = '';
     for (const [i, list] of tldKontrol.entries()) {
-        tmpArrTld.push({
-            id: list.kontrak_tld_hash,
-            tld: list.tld?.tld_hash
-        });
 
-        htmlTldKontrol += `
-            <div class="w-50 pe-1 mb-1 input-group">
-                <div class="input-group-text">
-                    <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
+        for (let idx = 0; idx < list.count; idx++) {
+            tmpArrTld.push({
+                id: `${list.kontrak_tld_hash}|${idx+1}`,
+                tld: list.tld[idx].tld_hash
+            });
+
+            htmlTldKontrol += `
+                <div class="w-50 pe-1 mb-1 input-group">
+                    <div class="input-group-text">
+                        <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
+                    </div>
+                    <input type="text" class="form-control" value="${list.tld[idx].no_seri_tld}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
                 </div>
-                <input type="text" class="form-control" value="${list.tld.no_seri_tld}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-            </div>
-        `;
+            `;
+        }
+
     }
 
     $('#tld-kontrol-content').html(htmlTldKontrol);
@@ -77,7 +71,7 @@ function loadPengguna(tldPengguna){
 
         tmpArrTld.push({
             id: value.kontrak_tld_hash,
-            tld: value.tld?.tld_hash
+            tld: value.tld ? value.tld[0].tld_hash : null
         });
 
         htmlPengguna += `
@@ -88,12 +82,12 @@ function loadPengguna(tldPengguna){
                 <td>${i + 1}</td>
                 <td>
                     <div>${value.pengguna.name}</div>
-                    <small class="text-body-secondary fw-light">${value.pengguna.divisi.name}</small>
+                    <small class="text-body-secondary fw-light">${value.pengguna.divisi?.name || ''}</small>
                 </td>
                 <td>${txtRadiasi}</td>
                 <td>
                     <div class="input-group">
-                        <input type="text" class="form-control rounded-start" value="${value.tld.no_seri_tld}" id="tldNoSeri_${value.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                        <input type="text" class="form-control rounded-start" value="${value.tld ? value.tld[0].no_seri_tld : ''}" id="tldNoSeri_${value.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
                     </div>
                 </td>
                 <td>

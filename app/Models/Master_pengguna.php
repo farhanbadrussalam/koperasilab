@@ -19,7 +19,7 @@ class Master_pengguna extends Model
         'kode_lencana',
         'nik',
         'name',
-        'posisi',
+        'id_divisi',
         'jenis_kelamin',
         'tempat_lahir',
         'tanggal_lahir',

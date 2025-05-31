@@ -100,7 +100,7 @@
                     <td style="padding-left: 5px" class="fw-bold">{{ $value->keterangan ?? '' }}</td>
                 </tr>
             @else
-                @php $countKontrol++; @endphp
+                @php $countKontrol += $value->count; @endphp
             @endif
         @endforeach
 

@@ -27,16 +27,16 @@ function formatRupiah(angka) {
 
 /**
  * Initializes input masks for various input fields.
- * 
+ *
  * This function applies different input masks to elements with specific classes:
- * - `.rupiah`: Applies a numeric input mask formatted as currency with no prefix, 
- *   comma as the radix point, dot as the group separator, no digits after the decimal, 
+ * - `.rupiah`: Applies a numeric input mask formatted as currency with no prefix,
+ *   comma as the radix point, dot as the group separator, no digits after the decimal,
  *   auto grouping enabled, right alignment disabled, and mask removed on form submit.
- * - `.maskNumber`: Applies a numeric input mask with a minimum value of 0, maximum value of 100, 
+ * - `.maskNumber`: Applies a numeric input mask with a minimum value of 0, maximum value of 100,
  *   no minus or plus signs allowed, integer values only, and right alignment disabled.
- * - `.maskNPWP`: Applies an input mask for NPWP (Indonesian Tax Identification Number) 
+ * - `.maskNPWP`: Applies an input mask for NPWP (Indonesian Tax Identification Number)
  *   with a specific pattern and placeholder.
- * - `.maskNIK`: Applies an input mask for NIK (Indonesian National Identification Number) 
+ * - `.maskNIK`: Applies an input mask for NIK (Indonesian National Identification Number)
  *   with a specific pattern and placeholder.
  * - `.maskTelepon`: Applies an input mask for telephone numbers with a specific pattern and placeholder.
  */
@@ -51,8 +51,16 @@ function maskReload() {
         rightAlign: false,
         removeMaskOnSubmit: true
     });
-    
+
     $('.maskNumber').inputmask('numeric', {
+        min: 0,
+        allowMinus: false,
+        allowPlus: false,
+        integer: true,
+        rightAlign: false
+    });
+
+    $('.maskPercent').inputmask('numeric', {
         min: 0,
         max: 100,
         allowMinus: false,
@@ -62,7 +70,7 @@ function maskReload() {
     });
 
     $('.maskNPWP').inputmask('99.999.999.9-999.999', { "placeholder": "_", "removeMaskOnSubmit": true });
-    $('.maskNIK').inputmask('9999999999999999', { "placeholder": "_", "removeMaskOnSubmit": true });
+    $('.maskNIK').inputmask('99999999999999999', { "placeholder": "_", "removeMaskOnSubmit": true });
     $('.maskTelepon').inputmask('9999-9999-9999', { "placeholder": " ", "removeMaskOnSubmit": true });
 }
 maskReload();
@@ -343,7 +351,7 @@ function statusFormat(feature, status) {
                 htmlStatus = `
                     <span class="text-success ms-2"><i class="bi bi-check-circle-fill"></i> Sudah diterima</span>`;
                 break;
-                
+
             case 3:
                 htmlStatus = `
                     <span class="text-primary ms-2"><i class="bi bi-arrow-repeat"></i> Proses Pengiriman</span>`;
@@ -771,7 +779,7 @@ function ajaxDelete(url, callback = () => {}, onError = () => {}){
                     });
                     console.error(error);
                 }
-        
+
                 onError(error);
             });
         }
@@ -789,7 +797,7 @@ function printMedia(media, folder=false, option = {}){
 
     const dateContent = options.date ? `<span class="text-submain caption text-secondary">${dateFormat(media.created_at, 1)}</span>` : '';
     const sizeContent = options.size ? `<small class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</small>` : '';
-    
+
     if(options.isHtml){
         return `
             <div
@@ -864,13 +872,13 @@ function printMedia(media, folder=false, option = {}){
     linkMedia.append(divImg);
     linkMedia.append(divDesc);
     linkMedia.append(divSize);
-    
+
     div1.append(linkMedia);
     div1.append(divAction);
 
     return div1;
 
-    
+
 }
 
 /**

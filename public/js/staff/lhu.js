@@ -57,7 +57,7 @@ function loadData(page = 1) {
     };
 
     let filterValue = filterComp && filterComp.getAllValue();
-    
+
     filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
     filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
@@ -83,7 +83,7 @@ function loadData(page = 1) {
             let btnAction = '';
             // Mengecek array listJobs apakah ada di jobsAktive
             // Algoritma ini opsional jika dimunculkan semuanya
-            /* 
+            /*
                 let jobsAktive = lhu.penyelia_map.filter(x => x.status == 1);
                 let jobsAktiveHash = jobsAktive.map(x => x.jobs_hash);
                 const hasCommonValue = jobsAktiveHash.some(hash => listJobs.includes(hash));
@@ -105,7 +105,7 @@ function loadData(page = 1) {
                 id: lhu.penyelia_hash
             });
             divTimelineTugas.push(timeline);
-            
+
             let htmlPeriode = `
                 <div>${periode?.length ?? '0'} Periode</div>
             `;
@@ -186,11 +186,11 @@ function openProgressModal(obj){
     const index = $(obj).parent().data("index");
     ajaxGet(`api/v1/penyelia/getById/${dataPenyelia[index].penyelia_hash}`, false, result => {
         nowSelect = result.data ?? false;
-        
+        // console.log(nowSelect);
         $('#statusDone').prop('checked', true);
-        // Mengambil proses jobs 
+        // Mengambil proses jobs
         const listJobsAktif = nowSelect.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
-        
+
         let htmlJobs = listJobsAktif.map((d, index) => {
             let petugasInJobs = nowSelect.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
             if(petugasInJobs){
@@ -199,9 +199,9 @@ function openProgressModal(obj){
         });
 
         $('#prosesNow').html(htmlJobs.join(''));
-        
+
         setProses(listJobsAktif[0]);
-    
+
         $('#dateProgress').flatpickr({
             altInput: true,
             locale: "id",
@@ -211,12 +211,12 @@ function openProgressModal(obj){
             maxDate: nowSelect.end_date,
             defaultDate: 'today'
         });
-    
+
         if(documentLhu){
             documentLhu.destroy();
             documentLhu = false;
         }
-    
+
         documentLhu = new UploadComponent('upload_document', {
             camera: false,
             allowedFileExtensions: ['pdf'],
@@ -231,9 +231,9 @@ function openProgressModal(obj){
         if(nowSelect.media) {
             documentLhu.setData(nowSelect.media);
         }
-        
+
         $('#inputNote').val('');
-        
+
         $('#updateProgressModal').modal('show');
     })
 }
@@ -255,7 +255,7 @@ function setProses(prosesNow){
     nowSelect.prosesNow = prosesNow;
     nowSelect.prosesPrev = prosesPrev;
     nowSelect.prosesNext = prosesNext;
-    
+
     $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
 }
 
@@ -323,10 +323,10 @@ function clearFilter(){
 }
 function showHideProgress(obj){
     const collapse = obj;
-    if(!collapse.classList.contains('show')) { 
+    if(!collapse.classList.contains('show')) {
         collapse.innerText = 'Lebih sedikit';
-    } else { 
-        collapse.innerText = 'Lihat Progress LAB'; 
-    } 
+    } else {
+        collapse.innerText = 'Lihat Progress LAB';
+    }
     collapse.classList.toggle('show');
 }

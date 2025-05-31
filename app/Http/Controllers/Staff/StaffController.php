@@ -277,7 +277,7 @@ class StaffController extends Controller
                     $query->where('status', 1);
                 },
                 'kontrak.rincian_list_tld.pengguna',
-                'kontrak.rincian_list_tld.tld',
+                'kontrak.rincian_list_tld.divisi',
                 'invoice',
                 'invoice.pengiriman',
                 'lhu',
@@ -287,8 +287,18 @@ class StaffController extends Controller
                 'pengguna',
                 'rincian_list_tld',
                 'rincian_list_tld.pengguna',
-                'rincian_list_tld.tld',
+                'rincian_list_tld.divisi'
             ])->find($id);
+
+            if($data){
+                $data->rincian_list_tld->each(function($item) {
+                    $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+                });
+
+                $data->kontrak->rincian_list_tld->each(function($item) {
+                    $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+                });
+            }
 
             // cek tld apakah sudah di kirim atau belum
             $statusTld = Pengiriman::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
@@ -310,6 +320,7 @@ class StaffController extends Controller
                             'periode' => $data->periode,
                             'id_tld' => $val->id_tld,
                             'id_divisi' => $val->id_divisi,
+                            'count' => $val->count,
                             'status' => 1,
                             'created_by' => Auth::user()->id
                         ]);
@@ -341,6 +352,7 @@ class StaffController extends Controller
                         'id_divisi' => $val->id_divisi,
                         'periode' => $periodeNow->periode,
                         'status' => 1,
+                        'count' => $val->count,
                         'created_by' => Auth::user()->id
                     );
                     Kontrak_tld::create($arr);
@@ -359,9 +371,12 @@ class StaffController extends Controller
                     $query->where('status', 1);
                 },
                 'rincian_list_tld.pengguna',
-                'rincian_list_tld.tld',
                 'periode'
             ])->find($idKontrak);
+
+            $data->rincian_list_tld->each(function($item) {
+                $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+            });
 
         }
 

@@ -28,14 +28,21 @@ class PenggunaAPI extends Controller
     }
 
     public function action(Request $request) {
-        
+
         DB::beginTransaction();
         try {
             $id = $request->id ? decryptor($request->id) : false;
+            $nik = $request->has('nik') ? $request->nik : false;
+            $jenisKelamin = $request->has('jenis_kelamin') ? $request->jenis_kelamin : false;
+            $tanggalLahir = $request->has('tanggal_lahir') ? $request->tanggal_lahir : false;
+            $tempatLahir = $request->has('tempat_lahir') ? $request->tempat_lahir : false;
             $name = $request->has('name') ? $request->name : false;
-            $posisi = $request->has('divisi') ? $request->divisi : false;
+            $posisi = $request->has('divisi') ? decryptor($request->divisi) : false;
             $radiasi = $request->has('radiasi') ? json_decode($request->radiasi) : false;
             $ktp = $request->has('ktp') ? $request->file('ktp') : false;
+
+            $isAktif = $request->has('is_aktif') ? $request->is_aktif : false;
+            $kodeLencana = $request->has('kode_lencana') ? $request->kode_lencana : false;
 
             foreach ($radiasi as $key => $value) {
                 $radiasi[$key] = (int) decryptor($value);
@@ -46,20 +53,24 @@ class PenggunaAPI extends Controller
             $params = array();
 
             $name && $params['name'] = $name;
-            $posisi && $params['posisi'] = $posisi;
+            $posisi && $params['id_divisi'] = $posisi;
             $radiasi && $params['id_radiasi'] = $radiasi;
             $ktp && $params['ktp'] = $file_ktp->getIdMedia();
+            $nik && $params['nik'] = $nik;
+            $kodeLencana && $params['kode_lencana'] = str_pad($kodeLencana, 3, '0', STR_PAD_LEFT);
+            $jenisKelamin && $params['jenis_kelamin'] = $jenisKelamin;
+            $tanggalLahir && $params['tanggal_lahir'] = $tanggalLahir;
+            $tempatLahir && $params['tempat_lahir'] = $tempatLahir;
 
             if(!$id){
                 // generate kode lencana
-
                 $params['created_by'] = Auth::user()->id;
                 $params['id_perusahaan'] = Auth::user()->id_perusahaan;
                 $params['status'] = 1;
-                $params['kode_lencana'] = $this->generateKodeLencana();
+                $params['kode_lencana'] = $isAktif == 1 ? $this->generateKodeLencana() : str_pad($kodeLencana, 3, '0', STR_PAD_LEFT);
             }
 
-            Master_pengguna::updateOrCreate(
+            $pengguna = Master_pengguna::updateOrCreate(
                 ['id_pengguna' => $id],
                 $params
             );
@@ -67,7 +78,7 @@ class PenggunaAPI extends Controller
             $file_ktp->store();
 
             DB::commit();
-            return $this->output(array('msg' => 'Pengguna Behasil ditambahkan'));
+            return $this->output(array('msg' => 'Pengguna Behasil ditambahkan', 'id' => encryptor($pengguna->id_pengguna)), 200);
 
         } catch (\Exception $ex ) {
             info($ex);
@@ -124,18 +135,18 @@ class PenggunaAPI extends Controller
 
     private function generateKodeLencana() {
         // Mengambil kode perusahaan
-        $perusahaan = Auth::user()->id_perusahaan;
-        $perusahaan = Perusahaan::find($perusahaan);
-        $perusahaan = $perusahaan->kode_perusahaan;
+        // $perusahaan = Auth::user()->id_perusahaan;
+        // $perusahaan = Perusahaan::find($perusahaan);
+        // $perusahaan = $perusahaan->kode_perusahaan;
 
         // Mengambil kode lencana terakhir yang ada
-        $lencana = Master_pengguna::where('id_perusahaan', Auth::user()->id_perusahaan)->orderBy('id_pengguna', 'desc')->first();
+        $lencana = Master_pengguna::where('id_perusahaan', Auth::user()->id_perusahaan)->orderBy('kode_lencana', 'desc')->first();
 
         if($lencana){
-            $lencana = (int) explode('-', $lencana->kode_lencana)[1];
+            $lencana = (int) $lencana->kode_lencana;
         } else {
             $lencana = 0;
         }
-        return $perusahaan .'-'. str_pad($lencana + 1, 4, '0', STR_PAD_LEFT);
+        return str_pad($lencana + 1, 3, '0', STR_PAD_LEFT);
     }
 }

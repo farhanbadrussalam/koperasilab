@@ -62,7 +62,7 @@
                         </a>
                     </li>
                 @endcan
-                
+
                 @can('Tld')
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'tld' ? 'active' : '' }}"
@@ -74,7 +74,6 @@
                 @endcan
 
                 @can('pengguna')
-                @endcan
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'pengguna' ? 'active' : '' }}"
                         href="{{ route('userpengguna.index') }}" aria-expanded="false">
@@ -82,6 +81,7 @@
                         <span class="hide-menu">Pengguna</span>
                     </a>
                 </li>
+                @endcan
 
                 <!-- END MAIN MENU -->
 
@@ -142,7 +142,7 @@
                         </span>
                         <span class="hide-menu">Data Petugas</span>
                     </a>
-                </li>    
+                </li>
                 @endcan
 
                 @can('Staff/permohonan')

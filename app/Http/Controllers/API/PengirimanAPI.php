@@ -389,11 +389,12 @@ class PengirimanAPI extends Controller
             $listTld = array_map('intval', $query->detail->where('jenis', 'tld')->pluck('list_tld')->flatten()->toArray());
             if (!empty($listTld)) {
                 // mengganti status di kontrak_tld menjadi 2 artinya sudah diterima oleh pelanggan
-                Kontrak_tld::where('id_kontrak', $query->id_kontrak)
-                    ->where('status', 1)
-                    ->whereIn('id_tld', $listTld)
-                    ->update(['status' => 2]);
-
+                foreach ($listTld as $value) {
+                    Kontrak_tld::whereRaw('JSON_CONTAINS(id_tld, ?)', [json_encode($value)])
+                        ->where('id_kontrak', $query->id_kontrak)
+                        ->where('status', 1)
+                        ->update(['status' => 2]);
+                }
                 // Mengganti status di master_tld menjadi 1 artinya tld sedang digunakan
                 // Master_tld::whereIn('id_tld', $listTld)->update(['status' => 1]);
             }
@@ -470,9 +471,17 @@ class PengirimanAPI extends Controller
                         $params['list_tld'] = [];
                         foreach ($value->listTld as $val) {
                             // mengambil data kontrak_tld
-                            $kontrakTld = Kontrak_tld::with('pengguna', 'kontrak:id_kontrak,no_kontrak')->where('id_kontrak_tld', decryptor($val->id))->first();
-                            $idTld = decryptor($val->tld);
-                            $kontrakTld->update(array('status' => 1, 'id_tld' => $idTld));
+                            $splitTld = explode('|', $val->id);
+                            $idTld = (int) decryptor($val->tld);
+                            $kontrakTld = Kontrak_tld::with('pengguna', 'kontrak:id_kontrak,no_kontrak')->where('id_kontrak_tld', decryptor($splitTld[0]))->first();
+
+                            $tmp = $kontrakTld->id_tld;
+                            if($kontrakTld->count > 1) {
+                                $tmp[(int) $splitTld[1] - 1] = $idTld;
+                            } else {
+                                $tmp = [$idTld];
+                            }
+                            $kontrakTld->update(array('status' => 1, 'id_tld' => $tmp));
                             Master_tld::where('id_tld', $idTld)->update(['status' => 1, 'digunakan' => $kontrakTld->kontrak->no_kontrak]);
 
                             $params['list_tld'][] = (int) $idTld;

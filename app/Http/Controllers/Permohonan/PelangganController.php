@@ -9,8 +9,10 @@ use App\Models\Master_radiasi;
 use App\Models\Master_jenisLayanan;
 use App\Models\Master_tld;
 use App\Models\Master_jenisTLD;
-use App\Models\Permohonan;
 use App\Models\Master_layanan_jasa;
+use App\Models\Master_divisi;
+
+use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Kontrak;
 use App\Models\Kontrak_periode;
@@ -57,7 +59,6 @@ class PelangganController extends Controller
                 'rincian_list_tld' => function($q) use ($periodeNow){
                     return $q->where('periode', $periodeNow->periode-1);
                 },
-                'rincian_list_tld.tld',
                 'rincian_list_tld.pengguna',
                 'rincian_list_tld.pengguna.media_ktp',
                 'rincian_list_tld.pengguna.divisi'
@@ -68,12 +69,10 @@ class PelangganController extends Controller
                     if($value->pengguna && $value->pengguna->id_radiasi){
                         $value->pengguna->radiasi = Master_radiasi::whereIn('id_radiasi', $value->pengguna->id_radiasi)->get();
                     }
+
+                    $value->tld = $value->id_tld ? Master_tld::whereIn('id_tld', $value->id_tld)->get() : null;
                 }
             }
-
-            // if($queryKontrak->list_tld && count($queryKontrak->list_tld) > 0){
-            //     $queryKontrak->tldKontrol = Master_tld::whereIn('id_tld', $queryKontrak->list_tld)->get();
-            // }
 
             // Mengambil jenis layanan Evaluasi - Dengan kontrak
             $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
@@ -83,12 +82,17 @@ class PelangganController extends Controller
                 ->with(
                     'rincian_list_tld.pengguna',
                     'rincian_list_tld.pengguna.media_ktp',
-                    'rincian_list_tld.tld'
                     )
                 ->where('status', 11)
                 ->where('id_kontrak', decryptor($idKontrak))
                 ->where('periode', $periodeNow->periode)
                 ->first();
+
+            if($permohonan){
+                $permohonan->rincian_list_tld->each(function($item) {
+                    $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+                });
+            }
 
             $data = [
                 'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
@@ -140,9 +144,10 @@ class PelangganController extends Controller
         $data = [
             'title' => 'Buat pengajuan',
             'module' => 'permohonan-pengajuan',
-            'dataRadiasi' => Master_radiasi::where('status', 1)->get(),
+            'radiasi' => Master_radiasi::where('status', 1)->get(),
             'jenisLayanan' => Master_jenisLayanan::where('status', 1)->whereNull('parent')->get(),
             'layanan_jasa' => Master_layanan_jasa::all(),
+            'divisi' => Master_divisi::where('status', 1)->where('id_perusahaan', Auth::user()->id_perusahaan)->get(),
             'permohonan' => $dataPermohonan,
         ];
 

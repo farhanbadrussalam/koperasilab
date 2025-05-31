@@ -37,12 +37,12 @@ class UserController extends Controller
     }
 
     public function getData(){
-        $query = User::with('satuankerja')->orderBy('id');
+        $query = User::with('satuankerja')->orderBy('id', 'desc');
 
         if(request()->has('satuan_kerja') && request()->satuan_kerja != null){
             $query->where('satuankerja_id', (int) decryptor(request()->satuan_kerja));
         }
-        
+
         if(request()->has('role') && request()->role != null){
             $query->whereHas('roles', function($q) {
                 $q->where('name', request()->role);
@@ -58,12 +58,17 @@ class UserController extends Controller
                 })
                 ->addColumn('role', function($data){
                     if(count($data->getRoleNames()) != 0){
-                        if($data->getRoleNames()[0] == 'Staff LHU'){
-                            $countJobs = $data->jobs ? count($data->jobs) : 0;
-                            return $data->getRoleNames()[0] . ' <span class="text-primary cursor-pointer" data-id="'.$data->user_hash.'" onclick="showTugas(this)">('.$countJobs.' Tugas)</span>';
-                        }else{
-                            return $data->getRoleNames()[0];
+                        $text = '';
+                        $isLhu = false;
+                        foreach($data->getRoleNames() as $key => $value){
+                            $text .= '<span class="badge text-bg-secondary">'.$value.'</span> ';
+                            if($value == 'Staff LHU') $isLhu = true;
                         }
+                        if($isLhu) {
+                            $countJobs = $data->jobs ? count($data->jobs) : 0;
+                            $text .= '<br><span class="text-primary cursor-pointer" data-id="'.$data->user_hash.'" onclick="showTugas(this)">('.$countJobs.' Tugas)</span>';
+                        }
+                        return $text;
                     }else{
                         return '-';
                     }
@@ -91,7 +96,7 @@ class UserController extends Controller
                     return Master_jobs::find($item);
                 }, $user->jobs);
             }
-    
+
             return $this->output($user);
         } catch (\Exception $ex) {
             info($ex);
@@ -112,7 +117,7 @@ class UserController extends Controller
             'role' => Role::all(),
             'jobs' => Master_jobs::all()
         ];
-        
+
         return view('pages.management.users.create', $data);
     }
 
@@ -140,13 +145,19 @@ class UserController extends Controller
             'satuankerja_id' => $request->satuanKerja,
         ];
 
-        if($request->role == 'Staff LHU'){
+        $role = $request->role; // json
+
+        if (in_array('Staff LHU', $role)) {
             $paramsUser['jobs'] = array_map(function($item) {
                 return (int) decryptor($item);
             }, $request->tugas_lhu);
         }
-        
-        $user = User::factory()->create($paramsUser)->assignRole($request->role);
+
+        $user = User::factory()->create($paramsUser);
+
+        foreach ($role as $key => $value) {
+            $user->assignRole($value);
+        }
 
         if($user){
             if($request->file('avatar')){
@@ -218,10 +229,14 @@ class UserController extends Controller
         $idHash = decryptor($id);
         $d_user = User::findOrFail($idHash);
         $profile = profile::where('user_id', $idHash)->first();
+        $role = $request->role;
 
         $d_user->name = $request->name;
         (count($d_user->getRoleNames()) != 0) ? $d_user->removeRole($d_user->getRoleNames()[0]) : false;
-        $d_user->assignRole($request->role);
+
+        foreach($role as $key => $value){
+            $d_user->assignRole($value);
+        }
         if($request->tugas_lhu) {
             $d_user->jobs = array_map(function($item) {
                 return (int) decryptor($item);
@@ -272,6 +287,23 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        DB::beginTransaction();
+        try {
+            $user = User::findOrFail(decryptor($id));
+            Profile::where('user_id', $user->id)->delete();
+            // menghapus semua role yang terikat
+            $user->getRoleNames()->each(function ($roleName) use ($user) {
+                $user->removeRole($roleName);
+            });
+            $user->delete();
+
+            DB::commit();
+
+            return $this->output(array('msg' => 'User Behasil dihapus'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
     }
 }

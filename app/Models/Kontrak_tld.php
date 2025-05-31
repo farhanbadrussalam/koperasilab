@@ -18,6 +18,7 @@ class Kontrak_tld extends Model
         'id_tld',
         'id_pengguna',
         'id_divisi',
+        'count',
         'periode',
         'status',
         'created_by'
@@ -33,6 +34,10 @@ class Kontrak_tld extends Model
     protected $appends = [
         'kontrak_tld_hash',
         'kontrak_hash'
+    ];
+
+    protected $casts = [
+        'id_tld' => 'array'
     ];
 
     public function getKontrakTldHashAttribute()

@@ -151,10 +151,6 @@ class KontrakAPI extends Controller
                     ->where('id_kontrak', $id)
                     ->first();
 
-            if(isset($query->list_tld) && count($query->list_tld) > 0){
-                $tldKontrol = Master_tld::whereIn('id_tld', $query->list_tld)->get();
-                $query->tld_kontrol = $tldKontrol;
-            }
             DB::commit();
 
             return $this->output($query, 200);

@@ -13,9 +13,7 @@
                         <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
                             data-bs-target="#modal-add-pengguna"><i class="bi bi-plus"></i> Create Pengguna</button>
                     </div>
-                    <div class="mb-3">
-                        <div class="row"></div>
-                    </div>
+                    <div class="mb-3" id="list-filter"></div>
                     <div class="row mt-2">
                         <div class="overflow-y-auto">
                             <table class="table table-hover w-100 align-middle" id="pengguna-table">

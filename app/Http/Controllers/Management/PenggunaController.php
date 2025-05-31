@@ -35,7 +35,19 @@ class PenggunaController extends Controller
 
     public function getData(Request $request)
     {
-        $pengguna = Master_pengguna::with('media_ktp', 'divisi')->where('id_perusahaan', Auth::user()->id_perusahaan);
+        $filter = $request->has('filter') ? $request->filter : [];
+        $role = Auth::user()->getRoleNames()->toArray();
+        $pengguna = Master_pengguna::with('media_ktp', 'divisi')
+                    ->when($filter, function($q, $filter) {
+                        foreach ($filter as $key => $value) {
+                            $q->where($key, decryptor($value));
+                        }
+                    })
+                    ->when($role, function($q, $role) {
+                        if(in_array('Pelanggan', $role)){
+                            $q->where('id_perusahaan', Auth::user()->id_perusahaan);
+                        }
+                    });
 
         $type = $request->has('type') ? $request->type : false;
 
@@ -85,7 +97,7 @@ class PenggunaController extends Controller
                 $btn .= '<a class="btn btn-sm btn-outline-secondary show-popup-image" href="' .asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash). '"><i class="bi bi-file-person-fill"></i></a>';
                 $type == 'selected' ? '' : $btn .= '<a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></a>';
 
-                if ($type == 'selected') { 
+                if ($type == 'selected') {
                     $btn .= '<button class="btn btn-sm btn-outline-primary" data-id="' . $row->pengguna_hash . '" onclick="btnPilih(this)"><i class="bi bi-check"></i> Pilih</button>' ;
                 } else {
                     $btn .= '<button class="btn btn-sm btn-outline-danger" data-id="' . $row->pengguna_hash . '" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>';

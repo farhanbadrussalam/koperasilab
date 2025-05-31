@@ -10,7 +10,7 @@ class Invoice {
         if(this.options.modal){
             $('body').append(this.modalCreate());
         }
-        
+
         this._bindEventListeners();
     }
 
@@ -47,7 +47,7 @@ class Invoice {
     _handleFakturUpload(event) {
         const imgTmp = $('#uploadDocumentFaktur')[0].files[0];
         const $target = $(event.target);
-        
+
         spinner('show', $target);
 
         if (!imgTmp) {
@@ -60,8 +60,8 @@ class Invoice {
         params.append('idHash', this.dataKeuangan?.keuangan_hash);
 
         ajaxPost(
-            'api/v1/keuangan/uploadFaktur', 
-            params, 
+            'api/v1/keuangan/uploadFaktur',
+            params,
             this._onFakturUploadSuccess.bind(this, $target),
             this._onFakturUploadError.bind(this, $target)
         );
@@ -139,14 +139,14 @@ class Invoice {
                     <div class="col-6">
                         <label class="col-form-label" for="inputPpn">PPN %</label>
                         <div class="input-group">
-                            <input type="text" name="inputPpn" id="inputPpn" class="form-control maskNumber" value="11" autocomplete="off">
+                            <input type="text" name="inputPpn" id="inputPpn" class="form-control maskPercent" value="11" autocomplete="off">
                             <span class="input-group-text"><input class="form-check-input m-0" type="checkbox" id="checkPpn"></span>
                         </div>
                     </div>
                     <div class="col-6">
                         <label class="col-form-label" for="inputPph">PPH 23 %</label>
                         <div class="input-group">
-                            <input type="text" name="inputPph" id="inputPph" class="form-control maskNumber" value="2" autocomplete="off">
+                            <input type="text" name="inputPph" id="inputPph" class="form-control maskPercent" value="2" autocomplete="off">
                             <span class="input-group-text"><input class="form-check-input m-0" type="checkbox" id="checkPph"></span>
                         </div>
                     </div>
@@ -197,7 +197,7 @@ class Invoice {
                 });
                 $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
             }
-            
+
             $('#rincianInvoice-tab').click();
             this.showPaymentProof();
             $('#invoiceActions').append(this.btnPrinter());
@@ -210,7 +210,7 @@ class Invoice {
                 });
                 $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
             }
-            
+
             $('#buktiPayment-tab').click();
             this.showPaymentProof();
             $('#invoiceActions').append(this.btnPrinter());
@@ -253,14 +253,14 @@ class Invoice {
                 <button type="button" class="btn btn-success" id="btnSimpanInvoice">Setujui</button>
             `;
         }
-        
+
         if(this.dataKeuangan.status === 7) {
             footerHTML = `
                 <button type="button" class="btn btn-primary" id="btnSimpanInvoice">Simpan</button>
             `;
         }
         $('#modalFooter').html(footerHTML);
-        
+
         $('#btnSimpanInvoice').on('click', obj => {
             this.simpanInvoice(obj.target);
         })
@@ -295,7 +295,7 @@ class Invoice {
                 name: namaDiskon,
                 diskon: diskon
             });
-    
+
             $('#deskripsiInvoice').empty().append(this.updateInvoiceDescription());
             $('#diskonModal').modal('hide');
             $('#inputNamaDiskon').val("");
@@ -317,7 +317,7 @@ class Invoice {
         if (this.dataKeuangan.media_bukti_bayar) {
             let media = this.dataKeuangan.media_bukti_bayar;
             let mediaPph = this.dataKeuangan.media_bukti_bayar_pph;
-    
+
             $('#paymentProofImage').empty();
             let htmlBukti = '';
             for (const bukti of media) {
@@ -330,7 +330,7 @@ class Invoice {
                 `;
             }
             $('#paymentProofImage').html(htmlBukti);
-    
+
             $('#paymentPphProof').empty();
 
             let option = {
@@ -350,57 +350,57 @@ class Invoice {
 
     updateInvoiceDescription() {
         const { permohonan } = this.dataKeuangan;
-        
+
         const hargaLayanan = permohonan.harga_layanan;
         const qty = permohonan.jumlah_kontrol + permohonan.jumlah_pengguna;
         const jumLayanan = permohonan.total_harga;
         const periode = permohonan.periode_pemakaian;
-        
+
         let jumDiskon = 0;
         let jumPph = 0;
         let jumPpn = 0;
-        
+
         // Create the table body to append rows
         const tableBody = document.createElement('tbody');
-        
+
         // First row with service details
         const serviceRow = document.createElement('tr');
-        
+
         const serviceNameTh = document.createElement('th');
         serviceNameTh.classList.add('text-start');
         serviceNameTh.textContent = permohonan.layanan_jasa.nama_layanan;
-        
+
         const priceTd = document.createElement('td');
         priceTd.textContent = formatRupiah(hargaLayanan);
-        
+
         const qtyTd = document.createElement('td');
         qtyTd.textContent = qty;
-        
+
         const periodTd = document.createElement('td');
         periodTd.textContent = periode.length;
-        
+
         const totalPriceTd = document.createElement('td');
         totalPriceTd.textContent = formatRupiah(jumLayanan);
-        
+
         serviceRow.append(serviceNameTh, priceTd, qtyTd, periodTd, totalPriceTd);
         tableBody.appendChild(serviceRow);
-        
+
         // Handle discounts
-        const arrDiskon = this.dataKeuangan.diskon.length != 0 
+        const arrDiskon = this.dataKeuangan.diskon.length != 0
             ? this.dataKeuangan.diskon
             : this.arrDiskon;
-        
+
         // Add discount rows
         arrDiskon.forEach((diskon, i) => {
             const countDiskon = jumLayanan * (diskon.diskon / 100);
             jumDiskon += countDiskon;
-            
+
             const discountRow = document.createElement('tr');
-            
+
             const discountNameTh = document.createElement('th');
             discountNameTh.classList.add('text-start');
             discountNameTh.textContent = `${diskon.name} ${diskon.diskon}% `;
-            
+
             // Add remove discount button for create mode
             if (this.invoiceMode === 'create') {
                 const removeButton = document.createElement('i');
@@ -414,87 +414,87 @@ class Invoice {
                 };
                 discountNameTh.appendChild(removeButton);
             }
-            
+
             const emptyTd1 = document.createElement('td');
             const emptyTh = document.createElement('th');
             emptyTh.setAttribute('colspan', '2');
-            
+
             const discountValueTd = document.createElement('td');
             discountValueTd.textContent = `- ${formatRupiah(countDiskon)}`;
-            
+
             discountRow.append(discountNameTh, emptyTd1, emptyTh, discountValueTd);
             tableBody.appendChild(discountRow);
         });
-        
+
         const jumAfterDiskon = jumLayanan - jumDiskon;
-        
+
         // Handle PPH (Pajak Penghasilan)
         if (this.pph || this.dataKeuangan.pph) {
             const valPph = document.getElementById('inputPph')?.value || this.dataKeuangan.pph || 0;
             const pphRate = parseInt(valPph);
             jumPph = jumAfterDiskon * (pphRate / 100);
-            
+
             const pphRow = document.createElement('tr');
-            
+
             const pphNameTh = document.createElement('th');
             pphNameTh.classList.add('text-start');
             pphNameTh.textContent = `PPH 23 (${pphRate}%)`;
-            
+
             const emptyTd1 = document.createElement('td');
             const emptyTd2 = document.createElement('td');
             const emptyTd3 = document.createElement('td');
-            
+
             const pphValueTd = document.createElement('td');
             pphValueTd.textContent = `- ${formatRupiah(jumPph)}`;
-            
+
             pphRow.append(pphNameTh, emptyTd1, emptyTd2, emptyTd3, pphValueTd);
             tableBody.appendChild(pphRow);
         }
-        
+
         const jumAfterPph = jumAfterDiskon - jumPph;
-        
+
         // Handle PPN (Pajak Pertambahan Nilai)
         if (this.ppn || this.dataKeuangan.ppn) {
             const valPpn = document.getElementById('inputPpn')?.value || this.dataKeuangan.ppn;
             const ppnRate = parseInt(valPpn);
             jumPpn = jumAfterPph * (ppnRate / 100);
-            
+
             const ppnRow = document.createElement('tr');
-            
+
             const ppnNameTh = document.createElement('th');
             ppnNameTh.classList.add('text-start');
             ppnNameTh.textContent = `PPN`;
-            
+
             const emptyTd1 = document.createElement('td');
             const emptyTd2 = document.createElement('td');
             const emptyTd3 = document.createElement('td');
-            
+
             const ppnValueTd = document.createElement('td');
             ppnValueTd.textContent = formatRupiah(jumPpn);
-            
+
             ppnRow.append(ppnNameTh, emptyTd1, emptyTd2, emptyTd3, ppnValueTd);
             tableBody.appendChild(ppnRow);
         }
-        
+
         // Calculate total price
         this.jumTotal = jumAfterPph + jumPpn;
-        
+
         // Total row
         const totalRow = document.createElement('tr');
-        
+
         const emptyTd1 = document.createElement('td');
         const emptyTd2 = document.createElement('td');
-        
+
         const totalLabelTh = document.createElement('th');
         totalLabelTh.setAttribute('colspan', '2');
         totalLabelTh.textContent = 'Total Jumlah';
-        
+
         const totalValueTd = document.createElement('td');
         totalValueTd.textContent = formatRupiah(this.jumTotal);
-        
+
         totalRow.append(emptyTd1, emptyTd2, totalLabelTh, totalValueTd);
         tableBody.appendChild(totalRow);
-        
+
         return tableBody.children;
     }
 
@@ -504,12 +504,12 @@ class Invoice {
             width: '50px',
             height: '50px'
         });
-    
+
         $('#loading-document').show();
         $('#list-document').hide();
 
         const invoiceClass = this;
-    
+
         ajaxGet(`api/v1/keuangan/getKeuangan/${this.dataKeuangan.keuangan_hash}`, false, result => {
             $('#list-document').empty();
             if(result.meta.code == 200){
@@ -541,7 +541,7 @@ class Invoice {
                         }
                     }
                     let html = printMedia(media, false, options);
-    
+
                     $('#list-document').append(html);
                 }
 
@@ -556,7 +556,7 @@ class Invoice {
                     $('#list-document').append(html);
                 }
             }
-    
+
             $('#loading-document').hide();
             $('#list-document').show();
         }, error => {
@@ -568,7 +568,7 @@ class Invoice {
     tolakInvoice(obj){
         let note = $('#txt_note').val();
         spinner('show', $(obj));
-    
+
         let formData = new FormData();
         formData.append('status', 91);
         formData.append('note', note);
@@ -603,7 +603,7 @@ class Invoice {
         formData.append('idKeuangan', this.dataKeuangan.keuangan_hash);
 
         let textQuestion,textSuccess = '';
-        
+
         switch (this.invoiceMode) {
             case 'create':
                 formData.append('idPermohonan', this.dataKeuangan.permohonan_hash);
@@ -649,7 +649,7 @@ class Invoice {
             textSuccess = 'Faktur berhasil diupload.';
         }
 
-    
+
         Swal.fire({
             text: textQuestion,
             icon: 'question',
@@ -711,7 +711,7 @@ class Invoice {
         $('#content-ttd-manager').empty();
         $('#paymentPphProof').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
         $('#paymentProofImage').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
-        
+
         this.uploadFaktur ? this.uploadFaktur.destroy() : '';
         this.uploadFaktur = false;
     }
@@ -820,7 +820,7 @@ class Invoice {
                                 </div>
                                 <div class="col-md-12 mb-2">
                                     <label class="col-form-label" for="inputJumDiskon">Jumlah diskon %</label>
-                                    <input type="text" name="inputJumDiskon" id="inputJumDiskon" class="form-control maskNumber" autocomplete="off">
+                                    <input type="text" name="inputJumDiskon" id="inputJumDiskon" class="form-control maskPercent" autocomplete="off">
                                 </div>
                                 <div class="col-md-12 d-flex justify-content-center">
                                     <button type="button" class="btn btn-primary" id="btnTambahDiskon"><i class="bi bi-plus"></i> Tambah</button>

@@ -24,8 +24,6 @@ const formPeriode2 = $('#form-periode-2');
 const formTotalHarga = $('#form-total-harga');
 const formZeroCek = $('#form-zero-cek');
 const btnAddPengguna = $('#btn-add-pengguna');
-const btnPilihPengguna = $('#btn-pilih-pengguna');
-const btnTambahPengguna = $('#btn-tambah-pengguna');
 
 const modalNamaPengguna = $('#nama_pengguna');
 const modalJenisRadiasi = $('#jenis_radiasi');
@@ -56,6 +54,19 @@ $(function () {
         theme: "bootstrap-5",
         tags: true,
         placeholder: "Pilih Jenis Radiasi",
+        dropdownParent: $('#modal-add-pengguna'),
+        createTag: (params) => {
+            return {
+                id: params.term,
+                text: params.term,
+                newTag: true
+            };
+        }
+    });
+    $('#divisi_pengguna').select2({
+        theme: "bootstrap-5",
+        tags: true,
+        placeholder: "Pilih Divisi",
         dropdownParent: $('#modal-add-pengguna'),
         createTag: (params) => {
             return {
@@ -119,11 +130,8 @@ $(function () {
 
     $('#btn-add-pengguna').on('click', () => {
         datatable_.ajax.reload();
-        $('#modal-add-pengguna').modal('show');
+        $('#modal-add-tld-pengguna').modal('show');
     });
-    $('#btn-pilih-pengguna').on('click', () => {
-        $('#modal-pilih-pengguna').modal('show');
-    })
     $('#btn-add-kontrol').on('click', () => {
         $('#modal-add-kontrol').modal('show');
     });
@@ -312,49 +320,87 @@ $(function () {
         });
     });
 
-    btnTambahPengguna.on('click', obj => {
+    $('#btn-tambah-pengguna').on('click', obj => {
         spinner('show', obj.target);
         const namaPengguna = modalNamaPengguna.val();
         const divisiPengguna = modalDivisiPengguna.val();
         const jenisRadiasi = modalJenisRadiasi.val();
         const imageKtp = $('#uploadKtpPengguna')[0].files[0];
-        const noSeriTld = tmpArrTldPengguna[0]?.tld;
+        const nikPengguna = $('#nik_pengguna').val();
+        const jenisKelamin = $('#jenis_kelamin').val();
+        const tanggalLahir = $('#tanggal_lahir').val();
+        const tempatLahir = $('#tempat_lahir').val();
+        const kodeLencana = $('#kode_lencana').val();
+        const isAktif = $('#is_aktif').is(':checked') ? 1 : 0;
+
+        console.log(namaPengguna, divisiPengguna, jenisRadiasi, imageKtp);
 
         const formData = new FormData();
+        formData.append('nik', nikPengguna);
+        formData.append('kode_lencana', kodeLencana);
+        formData.append('is_aktif', isAktif);
+        formData.append('jenis_kelamin', jenisKelamin);
+        formData.append('tanggal_lahir', tanggalLahir);
+        formData.append('tempat_lahir', tempatLahir);
         formData.append('ktp', imageKtp);
-        formData.append('nama', namaPengguna);
+        formData.append('name', namaPengguna);
         formData.append('divisi', divisiPengguna);
         formData.append('radiasi', JSON.stringify(jenisRadiasi));
-        formData.append('idPermohonan', idPermohonan);
-        noSeriTld ? formData.append('idTld', noSeriTld) : false;
 
-        ajaxPost(`api/v1/permohonan/tambahPengguna`, formData, result => {
-            spinner('hide', obj.target);
-            if(result.meta.code == 200){
+        ajaxPost(`api/v1/pengguna/action`, formData, result => {
+            if (result.meta.code == 200) {
                 Swal.fire({
                     icon: "success",
                     text: result.data.msg,
                 });
-                loadPengguna();
-                $('#modal-add-pengguna').modal('hide');
-            }else{
+                btnPilih(result.data.id);
+                spinner('hide', obj.target);
+                $('#modal-add-tld-pengguna').modal('hide');
+            } else {
                 Swal.fire({
                     icon: "error",
                     text: result.data.msg,
                 });
+                spinner('hide', obj.target);
             }
-        }, error => {
-            spinner('hide', obj.target);
-        });
+        })
     });
 
-    $('#modal-add-pengguna').on('hidden.bs.modal', event => {
+    $('#modal-add-tld-pengguna').on('hidden.bs.modal', event => {
         $('#nama_pengguna').val('');
         $('#divisi_pengguna').val('');
         $('#jenis_radiasi').val(null).trigger('change');
         $('#noSeriPengguna').val('');
         tmpArrTldPengguna = [];
         setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
+    });
+
+    $('#btn-close-pengguna').on('click', obj => {
+        $('#modal-add-pengguna').modal('hide');
+        $('#nama_pengguna').val('');
+        $('#divisi_pengguna').val(null).trigger('change');
+        $('#jenis_radiasi').val(null).trigger('change');
+        $('#uploadKtpPengguna').val('');
+
+        $('#modal-add-tld-pengguna').modal('show');
+    });
+
+    $('#tanggal_lahir').flatpickr({
+        enableTime: false,
+        dateFormat: "Y-m-d"
+    });
+
+    $('#is_aktif').on('change', obj => {
+        if ($(obj.target).is(':checked')) {
+            $('#kode_lencana').val('');
+            $('#kode_lencana').attr('readonly', true);
+            $('#kode_lencana').attr('placeholder', 'Auto Generate');
+            $('#kode_lencana').addClass('bg-secondary-subtle');
+        } else {
+            $('#kode_lencana').attr('readonly', false);
+            $('#kode_lencana').attr('placeholder', '');
+            $('#kode_lencana').removeClass('bg-secondary-subtle');
+        }
     });
 })
 // js add periode
@@ -404,14 +450,14 @@ function loadPengguna(){
                             <div class="card-body row align-items-center p-1 px-3">
                                 <div class="col-md-7 lh-sm align-items-center">
                                     <div>${pengguna.name}</div>
-                                    <small class="text-body-secondary fw-light">${pengguna.divisi.name}</small>
+                                    <small class="text-body-secondary fw-light">${pengguna.divisi?.name ?? ''}</small>
                                     <div class="d-flex flex-wrap">
                                         ${txtRadiasi}
                                     </div>
                                 </div>
                                 <div class="col-auto text-end ms-auto">
                                     <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${value.pengguna_map_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${value.pengguna.pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
                                 </div>
                                 ${typeLayanan2 == 'Evaluasi' ? htmlEvaluasi : ``}
                             </div>
@@ -513,7 +559,8 @@ function loadKontrol(){
     let html = '';
     ajaxGet(`api/v1/permohonan/loadTld`, {idPermohonan: idPermohonan}, result => {
         // mengambil data kontrol
-        arrKontrolTmp = result.data.tldPermohonan.filter(tld => tld.id_divisi);
+        arrKontrolTmp = result.data.tldPermohonan.filter(tld => tld.id_divisi || (!tld.id_pengguna && !tld.id_divisi));
+        let jumKontrol = 0;
         for (const [i,kode] of arrKontrolTmp.entries()) {
             let htmlEvaluasi = `
                 <hr class="my-2">
@@ -528,15 +575,26 @@ function loadKontrol(){
                 <div class="card mb-1 shadow-sm p-1">
                     <div class="card-body row align-items-center p-1 px-3">
                         <div class="col-md-7 lh-sm align-items-center">
-                            <label class="form-label col-form-label fw-bold">Kontrol ${kode.divisi.name}<small class="text-body-secondary fw-light"> - ${kode.divisi.kode_lencana}</small></label>
+                            <label class="form-label col-form-label fw-bold">Kontrol ${kode.divisi?.name ?? ''}<small class="text-body-secondary fw-light"> - ${kode.divisi?.kode_lencana ?? 'C'}</small></label>
                         </div>
-                        <div class="col-auto text-end ms-auto">
+                        <div class="col-auto text-end ms-auto d-flex justify-content-between gap-2">
+                            <div class="cursor-pointer rounded-circle" data-id="${kode.permohonan_tld_hash}" onclick="changeCountKontrol('plus', ${kode.count}, this)">
+                                <i class="bi bi-plus-circle text-primary"></i>
+                            </div>
+                            <div>${kode.count}</div>
+                            <div class="cursor-pointer rounded-circle" data-id="${kode.permohonan_tld_hash}" onclick="changeCountKontrol('minus', ${kode.count}, this)">
+                                <i class="bi bi-dash-circle text-danger"></i>
+                            </div>
+                        </div>
+                        <div class="col-auto text-end">
                             <button type="button" class="btn btn-sm btn-outline-danger" data-id="${kode.permohonan_tld_hash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
                         ${typeLayanan2 == 'Evaluasi' ? htmlEvaluasi : ''}
                     </div>
                 </div>
             `;
+
+            jumKontrol += kode.count;
         }
         if(arrKontrolTmp.length == 0){
             html = `
@@ -545,7 +603,7 @@ function loadKontrol(){
                 </div>
             `;
         }
-        $('#jum_kontrol').val(arrKontrolTmp.length);
+        $('#jum_kontrol').val(jumKontrol);
         calcPrice();
 
         $('#kontrol-list-container').html(html);
@@ -608,7 +666,7 @@ function reload(){
 }
 
 function btnPilih(obj){
-    let id = $(obj).data('id');
+    let id = $(obj).length > 0 ? $(obj).data('id') : obj;
 
     const params = new FormData();
     params.append('idPengguna', id);
@@ -618,6 +676,7 @@ function btnPilih(obj){
         loadPengguna();
         loadKontrol();
         reload();
+        $('#modal-add-tld-pengguna').modal('hide');
         $('#modal-add-pengguna').modal('hide');
         spinner('hide', $(obj));
     }, error => {
@@ -641,7 +700,6 @@ function openForm(){
                 switch (typeLayanan.toLowerCase()) {
                     case 'kontrak':
                         btnAddPengguna.addClass('d-block').removeClass('d-none');
-                        btnPilihPengguna.addClass('d-none').removeClass('d-block');
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
@@ -651,7 +709,6 @@ function openForm(){
                         break;
                     case 'evaluasi':
                         // btnAddPengguna.addClass('d-none').removeClass('d-block');
-                        // btnPilihPengguna.addClass('d-block').removeClass('d-none');
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
@@ -665,7 +722,6 @@ function openForm(){
                         break;
                     case 'zero cek':
                         btnAddPengguna.addClass('d-none').removeClass('d-block');
-                        btnPilihPengguna.addClass('d-block').removeClass('d-none');
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
@@ -679,7 +735,6 @@ function openForm(){
                         break;
                     case 'adendum':
                         btnAddPengguna.addClass('d-block').removeClass('d-none');
-                        btnPilihPengguna.addClass('d-none').removeClass('d-block');
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
@@ -765,4 +820,19 @@ function remove(){
             console.error(result.message);
         }
     });
+}
+
+function changeCountKontrol(type, count, obj){
+    if(type == 'minus') {
+        if (count < 1) return;
+    }
+    count += type === 'plus' ? 1 : -1;
+
+    const params = new FormData();
+    params.append('id_permohonan_tld', $(obj).data('id'));
+    params.append('count', count);
+
+    ajaxPost('api/v1/permohonan/action_tld', params, result => {
+        loadKontrol();
+    })
 }

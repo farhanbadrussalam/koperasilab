@@ -239,8 +239,9 @@ function loadTld(){
             ...kKontrol,
         ];
 
+        loadPengguna();
         loadTldKontrol(tldKontrol);
-        loadPengguna(tldPengguna);
+        return;
     });
 }
 
@@ -251,35 +252,43 @@ function loadTldKontrol(tldKontrol){
         if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
             htmlDisabled = true;
         }
-        for(const [i,iKontrol] of tldKontrol.entries()){
+        let index = 0;
+        for(const iKontrol of tldKontrol){
             let tldHash = '';
             let no_seri_tld = '';
             let idHash = iKontrol.permohonan_tld_hash ? iKontrol.permohonan_tld_hash : iKontrol.kontrak_tld_hash;
 
-            if(iKontrol.tld) {
-                tldHash = iKontrol.tld.tld_hash;
-                no_seri_tld = iKontrol.tld.no_seri_tld;
-            } else if(result.data[i]){
-                tldHash = result.data[i].tld_hash;
-                no_seri_tld = result.data[i].no_seri_tld;
-            } else {
-                tldHash = '';
-                no_seri_tld = '';
-            }
+            for (let idx = 0; idx < iKontrol.count; idx++) {
+                if(iKontrol.tld) {
+                    tldHash = iKontrol.tld[idx].tld_hash;
+                    no_seri_tld = iKontrol.tld[idx].no_seri_tld;
+                } else if(result.data[index]){
+                    tldHash = result.data[index].tld_hash;
+                    no_seri_tld = result.data[index].no_seri_tld;
+                } else {
+                    tldHash = '';
+                    no_seri_tld = '';
+                }
 
-            tmpArrTld.push({
-                id: idHash,
-                tld: tldHash
-            });
-            html += `
-                <div class="col-sm-6 mt-2">
-                    <label for="" class="mb-2">No Seri Kontrol ${iKontrol.divisi.kode_lencana}</label>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idHash}" placeholder="Pilih No Seri" readonly>
-                        ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${idHash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                tmpArrTld.push({
+                    id: `${idHash}|${idx+1}`,
+                    tld: tldHash
+                });
+
+                let kodeLencana = iKontrol.count > 1 ? `C${idx+1}` : `C`;
+
+                html += `
+                    <div class="col-sm-6 mt-2">
+                        <label for="" class="mb-2">Kontrol ${iKontrol.divisi?.name ?? ''} ${kodeLencana}</label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idHash}|${idx+1}" placeholder="Pilih No Seri" readonly>
+                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${idHash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+                index++;
+            }
+            index++;
         }
         $('#tld-kontrol-content').html(html);
     });
@@ -304,29 +313,9 @@ function loadPengguna(tldPengguna){
             value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
 
             // TLD PENGGUNA
-            // const iPengguna = tldPengguna.find(d => {
-            //     if(d.pengguna_map.pengguna_map_hash && d.pengguna_map.pengguna_map_hash == value.pengguna_map_hash){
-            //         return d;
-            //     }
-            //     return false;
-            // })
-
             let idHash = value.permohonan_tld_hash ? value.permohonan_tld_hash : value.kontrak_tld_hash;
-            let tldHash = value.tld ? value.tld.tld_hash : value.tld_pengguna.tld_hash;
-            let no_seri_tld = value.tld ? value.tld.no_seri_tld : value.tld_pengguna.no_seri_tld;
-
-            // if(iPengguna){
-            //     if(iPengguna.tld){
-            //         tldHash = iPengguna.tld.tld_hash;
-            //         no_seri_tld = iPengguna.tld.no_seri_tld;
-            //     } else if(value.tld_pengguna) {
-            //         tldHash = value.tld_pengguna.tld_hash;
-            //         no_seri_tld = value.tld_pengguna.no_seri_tld;
-            //     } else {
-            //         tldHash = '';
-            //         no_seri_tld = '';
-            //     }
-            // }
+            let tldHash = value.tld ? value.tld[0].tld_hash : value.tld_pengguna.tld_hash;
+            let no_seri_tld = value.tld ? value.tld[0].no_seri_tld : value.tld_pengguna.no_seri_tld;
 
             tmpArrTld.push({
                 id: idHash,
@@ -338,7 +327,7 @@ function loadPengguna(tldPengguna){
                     <td>${i + 1}</td>
                     <td>
                         <div>${value.pengguna.name}</div>
-                        <small class="text-body-secondary fw-light">${value.pengguna.divisi.name}</small>
+                        <small class="text-body-secondary fw-light">${value.pengguna.divisi?.name || ''}</small>
                     </td>
                     <td>${txtRadiasi}</td>
                     <td>
