@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\auth\GoogleController;
+use App\Http\Controllers\Auth\GoogleController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
@@ -47,12 +47,12 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/pengajuan', 'indexPengajuan')->name('permohonan.pengajuan');
             Route::get('/pengajuan/tambah', 'tambahPengajuan')->name('permohonan.pengajuan.tambah');
             Route::get('/pengajuan/edit/{id_permohonan}', 'editPengajuan')->name('permohonan.pengajuan.edit');
-            
+
             Route::get('/dikembalikan', 'indexPengembalian')->name('permohonan.dikembalikan');
 
             Route::get('/pembayaran', 'indexPembayaran')->name('permohonan.pembayaran');
             Route::get('/pembayaran/bayar/{idKeuangan}', 'bayarInvoicePembayaran')->name('permohonan.pembayaran.bayar');
-            
+
             Route::get('/pengiriman', 'indexPengiriman')->name('permohonan.pengiriman');
 
             Route::get('/kontrak', 'indexKontrak')->name('permohonan.kontrak');
