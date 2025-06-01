@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\auth;
+namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Profile;
 use App\Models\Perusahaan;
-use App\Models\tbl_media;
+use App\Models\Master_media;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,7 +49,7 @@ class GoogleController extends Controller
             // Simpan gambar ke direktori yang ditentukan
             Storage::disk('public')->put('images/avatar/' . $filename, $imageContent);
 
-            $media = tbl_media::create([
+            $media = Master_media::create([
                 'file_hash' => $filename,
                 'file_ori' => $filename,
                 'file_size' => 0,
@@ -65,9 +65,9 @@ class GoogleController extends Controller
             ]);
         }
 
-        $perusahaan = Perusahaan::updateOrCreate([
-            'user_id' => $user->id
-        ]);
+        // $perusahaan = Perusahaan::updateOrCreate([
+        //     'user_id' => $user->id
+        // ]);
 
         Auth::login($user);
 
