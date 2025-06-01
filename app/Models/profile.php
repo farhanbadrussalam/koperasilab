@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class profile extends Model
 {
     use HasFactory;
+    protected $table = 'profiles';
 
     protected $fillable = [
         'id',
@@ -17,6 +18,12 @@ class profile extends Model
         'alamat',
         'no_hp',
         'jenis_kelamin',
+    ];
+
+    protected $casts = [
+        'id' => 'integer',
+        'user_id' => 'integer',
+        'avatar' => 'integer',
     ];
 
     public function media(){

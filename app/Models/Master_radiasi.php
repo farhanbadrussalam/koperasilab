@@ -27,7 +27,8 @@ class Master_radiasi extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_radiasi' => 'integer'
     ];
 
     public function getRadiasiHashAttribute()

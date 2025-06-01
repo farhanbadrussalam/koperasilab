@@ -347,6 +347,7 @@ class PenyeliaAPI extends Controller
             }
 
             $jobsNext = Penyelia_map::with('jobs')->where('id_map', $nextJobs)->first();
+
             if($jobsNext){
                 $jobsNext->update(array(
                     'status' => 1,

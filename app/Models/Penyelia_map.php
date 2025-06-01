@@ -34,7 +34,14 @@ class Penyelia_map extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_map' => 'integer',
+        'id_jobs' => 'integer',
+        'id_penyelia' => 'integer',
+        'order' => 'integer',
+        'point_jobs' => 'integer',
+        'created_by' => 'integer',
+        'done_by' => 'integer',
     ];
 
     public function getMapHashAttribute()

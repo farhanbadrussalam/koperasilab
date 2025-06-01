@@ -29,6 +29,12 @@ class Permohonan_tandaterima extends Model
         'pertanyaan_hash'
     ];
 
+    protected $casts = [
+        'id_permohonan' => 'integer',
+        'id_pertanyaan' => 'integer',
+        'created_by' => 'integer'
+    ];
+
     public function getPermohonanHashAttribute()
     {
         return encryptor($this->id_permohonan);

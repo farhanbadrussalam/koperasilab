@@ -32,6 +32,15 @@ class Permohonan_pengguna extends Model
         'pengguna_map_hash'
     ];
 
+    protected $casts = [
+        'id_map_pengguna' => 'integer',
+        'id_permohonan' => 'integer',
+        'id_pengguna' => 'integer',
+        'id_tld' => 'integer',
+        'status' => 'integer',
+        'created_by' => 'integer'
+    ];
+
     public function getPenggunaMapHashAttribute()
     {
         return encryptor($this->id_map_pengguna);

@@ -14,7 +14,8 @@ class Master_layanan_jasa extends Model
     protected $fillable = [
         'nama_layanan',
         'status',
-        'jobs'
+        'jobs',
+        'created_by',
     ];
 
     protected $hidden = [
@@ -24,7 +25,9 @@ class Master_layanan_jasa extends Model
     // Casting kolom sebagai array
     protected $casts = [
         'jobs' => 'array',
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_layanan' => 'integer',
+        'created_by' => 'integer',
     ];
 
     protected $appends = [

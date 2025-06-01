@@ -32,7 +32,10 @@ class Master_divisi extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_divisi' => 'integer',
+        'id_perusahaan' => 'integer',
+        'created_by' => 'integer',
     ];
 
     public function getDivisiHashAttribute()

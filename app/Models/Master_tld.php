@@ -34,7 +34,9 @@ class Master_tld extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_tld' => 'integer',
+        'kepemilikan' => 'integer'
     ];
 
     public function getTldHashAttribute()

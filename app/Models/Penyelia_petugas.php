@@ -35,7 +35,12 @@ class Penyelia_petugas extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_petugas' => 'integer',
+        'id_user' => 'integer',
+        'id_map' => 'integer',
+        'id_penyelia' => 'integer',
+        'created_by' => 'integer'
     ];
 
     public function getPetugasHashAttribute()

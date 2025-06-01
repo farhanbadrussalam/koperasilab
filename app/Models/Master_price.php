@@ -29,7 +29,10 @@ class Master_price extends Model
 
     protected $casts = [
         'price' => 'integer',
-        'qty' => 'integer'
+        'qty' => 'integer',
+        'id_price' => 'integer',
+        'id_jenisTld' => 'integer',
+        'created_by' => 'integer',
     ];
 
     public function getPriceHashAttribute()

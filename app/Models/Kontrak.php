@@ -48,7 +48,16 @@ class Kontrak extends Model
         'jumlah_kontrol' => 'integer',
         'total_harga' => 'integer',
         'harga_layanan' => 'integer',
-        'status' => 'integer'
+        'status' => 'integer',
+        'created_by' => 'integer',
+        'id_kontrak' => 'integer',
+        'id_layanan' => 'integer',
+        'id_keuangan' => 'integer',
+        'jenis_layanan_2' => 'integer',
+        'jenis_layanan_1' => 'integer',
+        'jenis_tld' => 'integer',
+        'id_pelanggan' => 'integer',
+        'file_lhu' => 'integer'
     ];
 
     public function getKontrakHashAttribute()

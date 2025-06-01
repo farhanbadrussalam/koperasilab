@@ -28,7 +28,9 @@ class Master_jobs extends Model
 
     protected $casts = [
         'status' => 'integer',
-        'order' => 'integer'
+        'order' => 'integer',
+        'upload_doc' => 'integer',
+        'id_jobs' => 'integer'
     ];
 
     public function getJobsHashAttribute()

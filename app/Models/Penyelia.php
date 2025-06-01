@@ -44,6 +44,11 @@ class Penyelia extends Model
         'end_date' => 'datetime',
         'periode' => 'integer',
         'status' => 'integer',
+        'id_penyelia' => 'integer',
+        'id_permohonan' => 'integer',
+        'ttd_by' => 'integer',
+        'created_by' => 'integer',
+        'document' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

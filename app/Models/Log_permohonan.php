@@ -25,7 +25,12 @@ class Log_permohonan extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_permohonan' => 'integer',
+        'flag' => 'integer',
+        'created_by' => 'integer',
+        'id' => 'integer',
+        'file' => 'integer'
     ];
 
     public function getLogPermohonanHashAttribute()

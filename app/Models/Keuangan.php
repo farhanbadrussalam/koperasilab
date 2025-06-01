@@ -35,7 +35,14 @@ class Keuangan extends Model
         'document_faktur' => 'array',
         'bukti_bayar' => 'array',
         'bukti_bayar_pph' => 'array',
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_keuangan' => 'integer',
+        'id_permohonan' => 'integer',
+        'ppn' => 'integer',
+        'pph' => 'integer',
+        'ttd_by' => 'integer',
+        'total_harga' => 'integer',
+        'created_by' => 'integer'
     ];
 
     protected $hidden = [

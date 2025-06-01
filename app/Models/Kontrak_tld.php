@@ -40,7 +40,12 @@ class Kontrak_tld extends Model
         'id_tld' => 'array',
         'status' => 'integer',
         'count' => 'integer',
-        'periode' => 'integer'
+        'periode' => 'integer',
+        'created_by' => 'integer',
+        'id_kontrak' => 'integer',
+        'id_pengguna' => 'integer',
+        'id_divisi' => 'integer',
+        'id_kontrak_tld' => 'integer'
     ];
 
     public function getKontrakTldHashAttribute()

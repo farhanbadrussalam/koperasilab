@@ -31,7 +31,9 @@ class Perusahaan extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_perusahaan' => 'integer',
+        'confirm_by' => 'integer'
     ];
 
     public function getPerusahaanHashAttribute()

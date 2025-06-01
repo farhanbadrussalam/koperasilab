@@ -44,7 +44,12 @@ class Master_pengguna extends Model
 
     protected $casts = [
         'id_radiasi' => 'array',
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_pengguna' => 'integer',
+        'id_perusahaan' => 'integer',
+        'id_divisi' => 'integer',
+        'ktp' => 'integer',
+        'created_by' => 'integer'
     ];
 
     public function getPenggunaHashAttribute()

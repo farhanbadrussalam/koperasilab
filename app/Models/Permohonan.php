@@ -66,6 +66,17 @@ class Permohonan extends Model
         'harga_layanan' => 'integer',
         'status' => 'integer',
         'flag_read' => 'integer',
+        'id_permohonan' => 'integer',
+        'id_layanan' => 'integer',
+        'id_kontrak' => 'integer',
+        'id_alamat' => 'integer',
+        'jenis_layanan_1' => 'integer',
+        'jenis_layanan_2' => 'integer',
+        'jenis_tld' => 'integer',
+        'ttd_by' => 'integer',
+        'file_lhu' => 'integer',
+        'flag_read' => 'integer',
+        'created_by' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

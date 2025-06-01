@@ -27,7 +27,9 @@ class Master_pertanyaan extends Model
 
     protected $casts = [
         'type' => 'integer',
-        'mandatory' => 'integer'
+        'mandatory' => 'integer',
+        'id_layananjasa' => 'integer',
+        'id_pertanyaan' => 'integer',
     ];
 
     public function getPertanyaanHashAttribute()

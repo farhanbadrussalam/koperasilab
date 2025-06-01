@@ -669,6 +669,12 @@ class PermohonanAPI extends Controller
                 })
                 ->groupBy('status')
                 ->get()
+                ->map(function ($item) {
+                    return [
+                        'total' => (int) $item->total,
+                        'status' => (int) $item->status
+                    ];
+                })
                 ->toArray();
 
             $total = 0;

@@ -28,7 +28,8 @@ class Master_ekspedisi extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'created_by' => 'integer'
     ];
 
     public function getEkspedisiHashAttribute()

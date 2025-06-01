@@ -40,6 +40,11 @@ class Permohonan_tld extends Model
     protected $casts = [
         'id_tld' => 'json',
         'count' => 'integer',
+        'id_permohonan_tld' => 'integer',
+        'id_permohonan' => 'integer',
+        'id_pengguna' => 'integer',
+        'id_divisi' => 'integer',
+        'created_by' => 'integer',
     ];
 
     public function getPermohonanTldHashAttribute()

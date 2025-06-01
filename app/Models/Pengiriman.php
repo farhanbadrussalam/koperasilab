@@ -47,7 +47,13 @@ class Pengiriman extends Model
         'bukti_pengiriman' => 'array',
         'bukti_penerima' => 'array',
         'status' => 'integer',
-        'periode' => 'integer'
+        'periode' => 'integer',
+        'id_ekspedisi' => 'integer',
+        'id_permohonan' => 'integer',
+        'id_kontrak' => 'integer',
+        'tujuan' => 'integer',
+        'alamat' => 'integer',
+        'created_by' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

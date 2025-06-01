@@ -25,7 +25,11 @@ class Log_penyelia extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_penyelia' => 'integer',
+        'id_map' => 'integer',
+        'created_by' => 'integer',
+        'id' => 'integer'
     ];
 
     public function getLogPenyeliaHashAttribute()

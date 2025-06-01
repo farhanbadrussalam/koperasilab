@@ -24,7 +24,8 @@ class Master_jenistld extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_jenisTld' => 'integer'
     ];
 
     public function getJenisTldHashAttribute()

@@ -23,7 +23,11 @@ class Log_pengiriman extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_pengiriman' => 'integer',
+        'created_by' => 'integer',
+        'media' => 'integer',
+        'id' => 'integer'
     ];
 
     public function getLogPengirimanHashAttribute()

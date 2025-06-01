@@ -29,6 +29,9 @@ class Log_tld extends Model
 
     protected $casts = [
         'status' => 'integer',
+        'created_by' => 'integer',
+        'id_log_tld' => 'integer',
+        'id_tld' => 'integer'
     ];
 
     public function getLogTldHashAttribute()

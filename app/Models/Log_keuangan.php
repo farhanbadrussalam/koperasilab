@@ -22,7 +22,10 @@ class Log_keuangan extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_keuangan' => 'integer',
+        'created_by' => 'integer',
+        'id' => 'integer'
     ];
 
     public function getLogKeuanganHashAttribute()

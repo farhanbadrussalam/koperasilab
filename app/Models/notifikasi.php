@@ -20,7 +20,10 @@ class notifikasi extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'recipient' => 'integer',
+        'sender' => 'integer',
+        'id' => 'integer'
     ];
 
     public function getRecipient(){

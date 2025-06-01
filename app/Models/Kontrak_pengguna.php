@@ -32,7 +32,12 @@ class Kontrak_pengguna extends Model
 
     protected $casts = [
         'id_radiasi' => 'array',
-        'status' => 'integer'
+        'status' => 'integer',
+        'created_by' => 'integer',
+        'id_map_pengguna' => 'integer',
+        'id_kontrak' => 'integer',
+        'id_pengguna' => 'integer',
+        'id_tld' => 'integer'
     ];
 
     public function getPenggunaMapHashAttribute()

@@ -30,7 +30,8 @@ class Master_media extends Model
 
     protected $casts = [
         'status' => 'integer',
-        'file_size' => 'integer'
+        'file_size' => 'integer',
+        'id' => 'integer'
     ];
 
     public function getMediaHashAttribute()

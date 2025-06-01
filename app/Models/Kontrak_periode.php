@@ -36,7 +36,10 @@ class Kontrak_periode extends Model
 
     protected $casts = [
         'periode' => 'integer',
-        'status' => 'integer'
+        'status' => 'integer',
+        'created_by' => 'integer',
+        'id_permohonan' => 'integer',
+        'id_kontrak' => 'integer'
     ];
 
     public function getPeriodeHashAttribute()

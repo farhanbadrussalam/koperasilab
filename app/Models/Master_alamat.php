@@ -30,7 +30,8 @@ class Master_alamat extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_perusahaan' => 'integer'
     ];
 
     public function getAlamatHashAttribute()

@@ -33,7 +33,10 @@ class Permohonan_dokumen extends Model
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'id_dokumen' => 'integer',
+        'id_permohonan' => 'integer',
+        'created_by' => 'integer'
     ];
 
     public function getDokumenHashAttribute()

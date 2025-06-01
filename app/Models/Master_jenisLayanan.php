@@ -31,6 +31,9 @@ class Master_jenisLayanan extends Model
     protected $casts = [
         'jobs' => 'array',
         'jobs_paralel' => 'array',
+        'parent' => 'integer',
+        'job_paralel_point' => 'integer',
+        'id_jenisLayanan' => 'integer'
     ];
 
     public function getJenisLayananHashAttribute()

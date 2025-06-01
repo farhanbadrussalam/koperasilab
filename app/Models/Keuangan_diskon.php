@@ -29,7 +29,9 @@ class Keuangan_diskon extends Model
     ];
 
     protected $casts = [
-        'diskon' => 'integer'
+        'diskon' => 'integer',
+        'id_diskon' => 'integer',
+        'id_keuangan' => 'integer'
     ];
 
     public function getKeuanganHashAttribute()

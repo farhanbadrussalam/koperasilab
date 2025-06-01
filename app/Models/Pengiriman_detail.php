@@ -32,6 +32,8 @@ class Pengiriman_detail extends Model
 
     protected $casts = [
         'list_tld' => 'array',
+        'id_pengiriman_detail' => 'integer',
+        'periode' => 'integer',
     ];
 
     public function getPengirimanDetailHashAttribute()

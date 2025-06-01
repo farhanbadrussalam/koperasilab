@@ -115,6 +115,7 @@ function loadData(page = 1) {
 
             // status jobs yang aktif
             let isPelabelan = false;
+            console.log(lhu.status);
             let htmlStatus = statusFormat('penyelia', lhu.status);
             const aktifJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
             aktifJobs.map(d => {
