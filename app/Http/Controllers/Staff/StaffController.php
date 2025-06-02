@@ -19,6 +19,8 @@ use App\Models\Kontrak_pengguna;
 use App\Models\Kontrak_tld;
 use App\Models\Master_tld;
 
+use App\Http\Controllers\API\TldAPI;
+
 use App\Http\Controllers\API\PermohonanAPI;
 
 use Auth;
@@ -28,6 +30,7 @@ class StaffController extends Controller
 {
     public function __construct(){
         $this->permohonan = resolve(PermohonanAPI::class);
+        $this->tld = resolve(TldAPI::class);
     }
     public function indexKeuangan()
     {
@@ -374,8 +377,31 @@ class StaffController extends Controller
                 'periode'
             ])->find($idKontrak);
 
-            $data->rincian_list_tld->each(function($item) {
-                $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+            $tld_pengguna = $this->tld->searchTldNotUsed(new Request(['jenis' => 'pengguna']));
+            $tld_kontrol = $this->tld->searchTldNotUsed(new Request(['jenis' => 'kontrol']));
+
+            $resTldPengguna = json_decode($tld_pengguna->getContent(), true);
+            $resTldKontrol = json_decode($tld_kontrol->getContent(), true);
+
+            $indexPengguna = 0;
+            $indexKontrol = 0;
+
+            $data->rincian_list_tld->each(function($item) use (&$resTldPengguna, &$resTldKontrol, &$indexPengguna, &$indexKontrol) {
+                if ($item->id_tld) {
+                    $item->tld = Master_tld::whereIn('id_tld', $item->id_tld)->get();
+                } else {
+                    if ($item->id_pengguna) {
+                        $item->tld = isset($resTldPengguna['data'][$indexPengguna]) ? [$resTldPengguna['data'][$indexPengguna]] : null;
+                        $indexPengguna++;
+                    } else {
+                        $tmp = [];
+                        for ($i = 0; $i < $item->count; $i++) {
+                            $tmp[] = isset($resTldKontrol['data'][$indexKontrol]) ? $resTldKontrol['data'][$indexKontrol] : null;
+                            $indexKontrol++;
+                        }
+                        $item->tld = $tmp;
+                    }
+                }
             });
 
         }
@@ -390,7 +416,6 @@ class StaffController extends Controller
             'status_tld' => $statusTld
         ];
 
-        // dd($result);
 
         return view('pages.staff.pengiriman.kirim', $result);
     }

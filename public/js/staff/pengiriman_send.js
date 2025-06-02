@@ -86,7 +86,7 @@ function load_form() {
                         <span>${list.divisi?.name ?? ''} ${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
                         <div class="input-group mt-auto mb-3">
                             <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
-                            ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                            ${!list.id_tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                         </div>
                     </div>
                 `;
@@ -99,6 +99,7 @@ function load_form() {
         // Menambil tld Pengguna dari kontrak
         let htmlPengguna = ``;
         for (const list of tldPengguna){
+            console.log(list.tld);
             tmpArrTld.push({
                 id: list.kontrak_tld_hash,
                 tld: list.tld ? list.tld[0].tld_hash : null
@@ -108,7 +109,7 @@ function load_form() {
                     <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}</span>
                     <div class="input-group mt-auto mb-3">
                         <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld ? list.tld[0].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-                        ${!list.tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                        ${!list.id_tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                     </div>
                 </div>
             `;

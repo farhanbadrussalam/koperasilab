@@ -27,7 +27,6 @@ const btnAddPengguna = $('#btn-add-pengguna');
 
 const modalNamaPengguna = $('#nama_pengguna');
 const modalJenisRadiasi = $('#jenis_radiasi');
-const modalDivisiPengguna = $('#divisi_pengguna');
 
 const optionsUploadKTP = {
     allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
@@ -323,7 +322,7 @@ $(function () {
     $('#btn-tambah-pengguna').on('click', obj => {
         spinner('show', obj.target);
         const namaPengguna = modalNamaPengguna.val();
-        const divisiPengguna = modalDivisiPengguna.val();
+        const divisiPengguna = $('#divisi_pengguna').val();
         const jenisRadiasi = modalJenisRadiasi.val();
         const imageKtp = $('#uploadKtpPengguna')[0].files[0];
         const nikPengguna = $('#nik_pengguna').val();
@@ -332,8 +331,6 @@ $(function () {
         const tempatLahir = $('#tempat_lahir').val();
         const kodeLencana = $('#kode_lencana').val();
         const isAktif = $('#is_aktif').is(':checked') ? 1 : 0;
-
-        console.log(namaPengguna, divisiPengguna, jenisRadiasi, imageKtp);
 
         const formData = new FormData();
         formData.append('nik', nikPengguna);
@@ -363,6 +360,8 @@ $(function () {
                 });
                 spinner('hide', obj.target);
             }
+        }, error => {
+            spinner('hide', obj.target);
         })
     });
 

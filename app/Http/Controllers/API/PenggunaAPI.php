@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 
 use App\Models\Master_pengguna;
 use App\Models\Master_radiasi;
+use App\Models\Master_divisi;
 use App\Models\Perusahaan;
 
 use App\Traits\RestApi;
@@ -37,15 +38,40 @@ class PenggunaAPI extends Controller
             $tanggalLahir = $request->has('tanggal_lahir') ? $request->tanggal_lahir : false;
             $tempatLahir = $request->has('tempat_lahir') ? $request->tempat_lahir : false;
             $name = $request->has('name') ? $request->name : false;
-            $posisi = $request->has('divisi') ? decryptor($request->divisi) : false;
+            $posisi = $request->has('divisi') ? $request->divisi : false;
             $radiasi = $request->has('radiasi') ? json_decode($request->radiasi) : false;
             $ktp = $request->has('ktp') ? $request->file('ktp') : false;
 
             $isAktif = $request->has('is_aktif') ? $request->is_aktif : false;
             $kodeLencana = $request->has('kode_lencana') ? $request->kode_lencana : false;
 
-            foreach ($radiasi as $key => $value) {
-                $radiasi[$key] = (int) decryptor($value);
+            if ($radiasi) {
+                $radiasi = array_map(function($value) {
+                    if(decryptor($value) == 0) {
+                        $dataRadiasi = Master_radiasi::create([
+                            'nama_radiasi' => $value,
+                            'status' => 1,
+                        ]);
+                        return $dataRadiasi->id_radiasi;
+                    }else {
+                        return decryptor($value);
+                    }
+                }, $radiasi);
+            }
+
+            if ($posisi) {
+                if (decryptor($posisi) == 0) {
+                    $dataDivisi = Master_divisi::create([
+                        'kode_lencana' => "C",
+                        'name' => $posisi,
+                        'id_perusahaan' => Auth::user()->id_perusahaan,
+                        'status' => 1,
+                        'created_by' => Auth::user()->id
+                    ]);
+                    $posisi = $dataDivisi->id_divisi;
+                } else {
+                    $posisi = decryptor($posisi);
+                }
             }
 
             $file_ktp = $this->media->upload($ktp, 'pengguna');
