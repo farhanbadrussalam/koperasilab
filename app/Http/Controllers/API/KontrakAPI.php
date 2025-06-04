@@ -41,9 +41,12 @@ class KontrakAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Kontrak::with(
+            $query = Kontrak::with([
                         'pengguna',
-                        'periode',
+                        'periode' => function($q) use ($filter) {
+                            if(isset($filter['date_range']))
+                                $q->whereBetween('start_date', [$filter['date_range'][0], $filter['date_range'][1]])->whereNull('id_permohonan');
+                        },
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',
                         'periode.permohonan.jenis_layanan_parent',
@@ -58,7 +61,8 @@ class KontrakAPI extends Controller
                         'pengiriman:id_pengiriman,id_kontrak,no_resi,status',
                         'pengiriman.detail',
                         'pengiriman.permohonan:id_permohonan,periode'
-                    )
+                    ])
+                    ->withCount('periode')
                     ->when($idPelanggan, function($q, $idPelanggan){
                         return $q->where('id_pelanggan', $idPelanggan);
                     })
@@ -66,27 +70,22 @@ class KontrakAPI extends Controller
                         foreach ($filter as $key => $value) {
                             if($key == 'date_range') {
                                 $q->whereHas('periode', function($p) use ($value) {
-                                    $p->where(function($p) use ($value) {
-                                        $p->whereBetween('start_date', [$value[0], $value[1]])
-                                            ->orWhereBetween('end_date', [$value[0], $value[1]])
-                                            ->orWhere(function($p) use ($value) {
-                                                $p->where('start_date', '<=', $value[0])
-                                                    ->where('end_date', '>=', $value[1]);
-                                            });
-                                    });
+                                    $p->whereBetween('start_date', [$value[0], $value[1]])->whereNull('id_permohonan');
                                 });
-                                // $q->when('periode', fn($p) => $p->whereBetween('start_date', [$value[0], $value[1]]));
                             }else{
                                 $q->where($key, decryptor($value));
                             }
                         }
-                    })
-                    ->orderBy('created_at', 'desc')
-                    ->offset(($page - 1) * $limit)
-                    ->limit($limit)
-                    ->paginate($limit);
+                    });
 
+            $query = $query->orderBy('created_at', 'desc')
+            ->offset(($page - 1) * $limit)
+            ->limit($limit)
+            ->paginate($limit);
+
+            // Filter range periode start_date - end_date
             $arr = $query->toArray();
+
             $this->pagination = Arr::except($arr, 'data');
 
             DB::commit();
@@ -98,6 +97,19 @@ class KontrakAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
         }
     }
+
+    // private function filter_by_periode($data, $filter){
+    //     $dataNew = [];
+    //     foreach ($data as $key => $value) {
+    //         $arrFilter = array_filter($value['periode'], function($p) use ($filter) {
+    //             return $p['permohonan'] == null;
+    //         });
+    //         $value['periode'] = array_values($arrFilter);
+    //         array_push($dataNew, $value);
+    //     }
+
+    //     return $dataNew;
+    // }
 
     public function actionKontrak(Request $request){
         $action = $request->action;

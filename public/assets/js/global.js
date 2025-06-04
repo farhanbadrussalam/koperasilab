@@ -1017,14 +1017,16 @@ function getCurrentPeriod(periods) {
         }
     });
 
-    // Jika hari ini sebelum semua periode dimulai
-    if (today < new Date(periods[0].start_date)) {
-        return "notstarted";
-    }
+    if(periods.length >= 1){
+        // Jika hari ini sebelum semua periode dimulai
+        if (today < new Date(periods[0].start_date)) {
+            return "notstarted";
+        }
 
-    // Jika hari ini setelah semua periode selesai
-    if (today >= new Date(periods[periods.length - 1].end_date)) {
-        return "ended";
+        // Jika hari ini setelah semua periode selesai
+        if (today >= new Date(periods[periods.length - 1].end_date)) {
+            return "ended";
+        }
     }
 
     return currentPeriod;

@@ -115,9 +115,6 @@ function loadData(page = 1) {
                     break;
                 }
             }
-            if(i == 1) {
-                console.log(activePeriode);
-            }
 
             let hidden = role === 'Pelanggan' ? 'd-none' : '';
 
@@ -208,7 +205,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     let isComplete = isPeriodeComplete(data, index, cekStatusPeriode, arrFind);
 
     // cek apakah sudah bayar atau belum
-    let lastPeriode = dataKontrak[index].periode[dataKontrak[index].periode.length - 1].periode == data.periode;
+    let lastPeriode = dataKontrak[index].periode_count == data.periode;
     let statusKirimTld = false;
 
     for (const doc of arrFind) {

@@ -357,7 +357,7 @@ class FilterComponent {
         let html = `
             <div class="col-3 order-${index+1}">
                 <div class="input-group">
-                    <input type="text" id="filterDateRange" class="form-control form-control-sm" placeholder="All Date" readonly>
+                    <input type="text" id="filterDateRange" class="form-control form-control-sm" placeholder="All Periode" readonly>
                     <span class="btn btn-outline-danger btn-sm" id="clearDateRange"><i class="bi bi-x-lg"></i></span>
                 </div>
             </div>
