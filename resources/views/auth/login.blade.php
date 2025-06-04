@@ -18,7 +18,7 @@
                     <form action="{{ route('login') }}" method="post">
                         @csrf
                         <div class="mb-3 text-start">
-                            <label for="input_nik" class="form-label text-main body-medium">NIK</label>
+                            <label for="input_nik" class="form-label text-main body-medium">E-mail</label>
                             <div class="input-group">
                                 <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
                                     <i class="bi bi-envelope"></i>
@@ -46,9 +46,9 @@
                                     id="input_password"
                                     type="password"
                                     name="password"
-                                    value="{{ old('password') ?? 'password' }}"
+                                    value="{{ old('password') ?? '' }}"
                                     placeholder="Enter your password" />
-                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1" onclick="showPassword(this)">
                                     <i class="bi bi-eye"></i>
                                 </div>
                             </div>
@@ -80,4 +80,16 @@
         </div>
     </div>
 </div>
+<script>
+    function showPassword(obj) {
+        var x = document.getElementById("input_password");
+        if (x.type === "password") {
+            x.type = "text";
+            obj.innerHTML = '<i class="bi bi-eye-slash"></i>';
+        } else {
+            x.type = "password";
+            obj.innerHTML = '<i class="bi bi-eye"></i>';
+        }
+    }
+</script>
 @endsection

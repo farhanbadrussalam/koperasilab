@@ -40,7 +40,7 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label for="jenis_layanan_2" class="col-form-label d-none d-md-flex">&nbsp;</label>
+                        <label for="jenis_layanan_2" class="col-form-label d-none d-md-flex" id="label-jenis-layanan-2">&nbsp;</label>
                         <select name="jenis_layanan_2" id="jenis_layanan_2" class="form-select">
                             <option value="">Pilih</option>
                         </select>
