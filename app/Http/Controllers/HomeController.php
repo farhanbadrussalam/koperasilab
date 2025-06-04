@@ -45,7 +45,7 @@ class HomeController extends Controller
                 return redirect('userProfile', $data);
             }else{
                 $data['module'] = 'home';
-                return view('home', $data);
+                return redirect('home');
             }
         }else{
             return view('auth.login');

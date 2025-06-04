@@ -81,8 +81,11 @@ $(function () {
     loadPengguna();
 
     let htmlAlamat = '<option value="">Pilih alamat</option>';
-    for (const [i,value] of dataPermohonan.pelanggan.perusahaan.alamat.entries()) {
-        htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+
+    if(dataPermohonan?.pelanggan?.perusahaan?.alamat){
+        for (const [i,value] of Object.entries(dataPermohonan.pelanggan.perusahaan.alamat)) {
+            htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+        }
     }
 
     $('#selectAlamat').html(htmlAlamat);
@@ -144,6 +147,7 @@ $(function () {
             return;
         }
 
+        spinner('show', $('#label-jenis-layanan-2'), {place: 'after'});
         ajaxGet(`api/v1/permohonan/getChildJenisLayanan/${jenisLayanan}`, false, (result) => {
             if(result.meta.code == 200){
                 let parent = result.data;
@@ -157,6 +161,7 @@ $(function () {
                 formInputan.addClass('d-none').removeClass('d-block');
                 $('#jenis_layanan_2').html(html);
                 html = '';
+                spinner('hide', $('#label-jenis-layanan-2'));
             }
         })
         return;
