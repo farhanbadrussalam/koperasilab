@@ -26,10 +26,16 @@ class ProfileController extends Controller
 
     public function index()
     {
+        $profile = user::with('profile', 'perusahaan', 'perusahaan.alamat')->where('id', decryptor(Auth::user()->user_hash))->first();
+
+        if($profile) {
+            $isPassword = $profile->password == null ? false : true;
+        }
         $data = [
             'title' => 'Profile',
             'module' => $this->module,
-            'profile' => user::with('perusahaan','perusahaan.alamat')->where('id', decryptor(Auth::user()->user_hash))->first()
+            'profile' => $profile,
+            'isPassword' => $isPassword
         ];
 
         return view('pages.profile.index', $data);
@@ -74,19 +80,19 @@ class ProfileController extends Controller
     {
         try {
             $profile = Master_alamat::findOrFail(decryptor($id));
-    
+
             $params = array();
-    
+
             $status = $request->has('status') ? $request->status : 99;
             $alamat = $request->has('alamat') ? $request->alamat : false;
             $kodePos = $request->has('kodePos') ? $request->kodePos : false;
-    
+
             $status != 99 && $params['status'] = $status;
             $alamat && $params['alamat'] = $alamat;
             $kodePos && $params['kodePos'] = $kodePos;
-    
+
             $profile->update($params);
-    
+
             $result = array(
                 'status' => 'change'
             );

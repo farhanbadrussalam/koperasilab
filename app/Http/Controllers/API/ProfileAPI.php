@@ -10,12 +10,14 @@ use App\Traits\RestApi;
 use App\Models\User;
 use App\Models\Master_alamat;
 use App\Models\Perusahaan;
+use App\Models\Profile;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
 
 use Auth;
 use DB;
+use Hash;
 
 class ProfileAPI extends Controller
 {
@@ -33,57 +35,42 @@ class ProfileAPI extends Controller
         try {
             $idProfile = $request->idProfile ? decryptor($request->idProfile) : false;
 
+            // $npwp = $request->npwp ? unmask($request->npwp) : false;
+            // $namaInstansi = $request->nama_instansi ? $request->nama_instansi : false;
+            // $emailInstansi = $request->email_instansi ? $request->email_instansi : false;
+
+            $nik = $request->nik_pic ? $request->nik_pic : false;
             $name = $request->nama_pic ? $request->nama_pic : false;
             $jabatan = $request->jabatan_pic ? $request->jabatan_pic : false;
-            $email = $request->email ? $request->email : false;
+            $email = $request->email_pic ? $request->email_pic : false;
             $telepon = $request->telepon ? unmask($request->telepon) : false;
-            $npwp = $request->npwp ? unmask($request->npwp) : false;
+            $jenis_kelamin = $request->jenis_kelamin ? $request->jenis_kelamin : false;
+            $alamat = $request->alamat_pic ? $request->alamat_pic : false;
             $ttd = $request->has('ttd') ? $request->ttd : false;
 
-            // $ktp = $request->file('ktp');
-            // $npwp = $request->file('npwp');
-            // $file_ktp = false;
-            // $file_npwp = false;
-
-            // if($ktp){
-            //     $file_ktp = $this->media->upload($ktp, 'profile');
-            // }
-
-            // if($npwp){
-            //     $file_npwp = $this->media->upload($npwp, 'profile');
-            // }
-
             $params = array();
+            $paramsProfile = array();
             $result = array();
 
+            // User
             $name && $params['name'] = $name;
             $jabatan && $params['jabatan'] = $jabatan;
-            $email && $params['email'] = $email;
-            $telepon && $params['telepon'] = $telepon;
-            $npwp && $params['npwp'] = $npwp;
             $request->has('ttd') && $params['ttd'] = $ttd;
-            // $file_ktp && $params['ktp'] = $file_ktp->getIdMedia();
-            // $file_npwp && $params['npwp'] = $file_npwp->getIdMedia();
+            $email && $params['email'] = $email;
+            $name && $params['name'] = $name;
+            $jabatan && $params['jabatan'] = $jabatan;
 
-            $user = User::where('id', $idProfile)->first();
-            if($user){
-                $user->update($params);
-                $result['status'] = 'updated';
-                $result['msg'] = 'Profile berhasil diupdate';
-            }else{
-                $result['status'] = 'fail';
-                $result['msg'] = 'User tidak ditemukan';
-            }
+            // profile
+            $nik && $paramsProfile['nik'] = $nik;
+            $jenis_kelamin && $paramsProfile['jenis_kelamin'] = $jenis_kelamin;
+            $alamat && $paramsProfile['alamat'] = $alamat;
+            $telepon && $paramsProfile['no_hp'] = $telepon;
 
-            // if($result['status'] == 'updated'){
-            //     if($file_ktp){
-            //         $file_ktp->store();
-            //     }
+            User::where('id', $idProfile)->update($params);
+            Profile::where('user_id', $idProfile)->update($paramsProfile);
 
-            //     if($file_npwp){
-            //         $file_npwp->store();
-            //     }
-            // }
+            $result['status'] = 'updated';
+            $result['msg'] = 'Profile berhasil diupdate';
 
             DB::commit();
 
@@ -102,21 +89,21 @@ class ProfileAPI extends Controller
             $idAlamat = $request->idAlamat ? decryptor($request->idAlamat) : false;
 
             $profile = Master_alamat::findOrFail($idAlamat);
-    
+
             $params = array();
-    
+
             $status = $request->has('status') ? $request->status : 99;
             $alamat = $request->has('alamat') ? $request->alamat : false;
             $kode_pos = $request->has('kode_pos') ? $request->kode_pos : false;
-    
+
             $status != 99 && $params['status'] = $status;
             $alamat && $params['alamat'] = $alamat;
             $kode_pos && $params['kode_pos'] = $kode_pos;
-    
+
             $profile->update($params);
 
             DB::commit();
-    
+
             $result = array(
                 'status' => 'change'
             );
@@ -161,6 +148,42 @@ class ProfileAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
 
+    }
+
+    public function changePassword(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $idProfile = decryptor($request->idProfile);
+            $oldPassword = $request->old_password ? $request->old_password : false;
+            $newPassword = $request->new_password ? $request->new_password : false;
+
+            $user = User::findOrFail($idProfile);
+
+            if($user->password != null){
+                if (!Hash::check($oldPassword, $user->password)) {
+                    return $this->output(array('msg' => 'Password lama salah', 'status' => 'fail'));
+                }
+            }
+
+            $params = [
+                'password' => Hash::make($newPassword)
+            ];
+
+            $user->update($params);
+
+            DB::commit();
+
+            $result = array(
+                'status' => 'updated',
+                'msg' => 'Password berhasil diubah'
+            );
+            return $this->output($result);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
     }
 
     public function getListPerusahaan(Request $request)

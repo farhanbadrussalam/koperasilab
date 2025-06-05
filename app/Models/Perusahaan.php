@@ -33,7 +33,8 @@ class Perusahaan extends Model
     protected $casts = [
         'status' => 'integer',
         'id_perusahaan' => 'integer',
-        'confirm_by' => 'integer'
+        'confirm_by' => 'integer',
+        'surat_kuasa' => 'integer',
     ];
 
     public function getPerusahaanHashAttribute()

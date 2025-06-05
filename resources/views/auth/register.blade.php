@@ -5,73 +5,91 @@
 
     <div class="container-fluid">
         <div class="registration-form">
-            <h1 class="fw-bold text-center mb-4">Registration</h1>
+            <h1 class="fw-bold mb-4 mx-xl-5">Registration</h1>
 
             <form action="{{ route('register') }}" method="post" enctype="multipart/form-data">
                 @csrf
-                <div class="row g-3 mx-lg-5">
-                    <div class="col-md-6">
-                        <label for="nama_instansi" class="form-label">Nama Instansi</label>
-                        <input type="hidden" name="type_instansi" id="type_instansi">
-                        <select name="nama_instansi" class="form-select @error('nama_instansi') is-invalid @enderror" id="nama_instansi"></select>
-                        @error('nama_instansi')
-                            <span class="invalid-feedback" role="alert">
-                                <strong>{{ $message }}</strong>
-                            </span>
-                        @enderror
+                <div class="border rounded my-4 p-3 mx-xl-5 position-relative">
+                    <span class="position-absolute top-0 start-50 translate-middle bg-white px-2 fs-5">
+                        Data Instansi
+                    </span>
+                    <div class="row mt-3">
+                        <div class="col-md-12 mb-2">
+                            <label for="nama_instansi" class="form-label">Nama Instansi <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="hidden" name="type_instansi" id="type_instansi">
+                            <select name="nama_instansi" class="form-select @error('nama_instansi') is-invalid @enderror" id="nama_instansi"></select>
+                            @error('nama_instansi')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                            @enderror
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="email_instansi" class="form-label">Email instansi <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="email" class="form-control maskEmail" id="email_instansi" name="email_instansi" placeholder="" autocomplete="true">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="npwp" class="form-label">NPWP <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="text" class="form-control maskNPWP" id="npwp" name="npwp" placeholder="">
+                        </div>
+                        <div class="col-md-12 mb-2">
+                            <label for="kode_pos" class="form-label">Kode Pos <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="text" class="form-control maskNumber" id="kode_pos" name="kode_pos" placeholder="" autocomplete="true">
+                        </div>
+                        <div class="mb-3">
+                            <label for="alamat" class="form-label">Alamat <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <textarea name="alamat_instansi" id="alamat_instansi" cols="30" rows="5" class="form-control"></textarea>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label for="email_instansi" class="form-label">Email instansi</label>
-                        <input type="email" class="form-control" id="email_instansi" name="email_instansi" placeholder="" autocomplete="true">
+                </div>
+                <div class="border position-relative rounded my-4 p-3 mx-xl-5">
+                    <span class="position-absolute top-0 start-50 translate-middle bg-white px-2 fs-5">
+                        Data PIC
+                    </span>
+                    <div class="row mt-3">
+                        <div class="col-md-6 mb-2">
+                            <label for="nik" class="form-label">NIK <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="text" class="form-control maskNIK" id="nik" name="nik" placeholder="">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="email" class="form-label">Email <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="email" class="form-control maskEmail" id="email" name="email" placeholder="" autocomplete="true">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="nama_pic" class="form-label">Nama <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nama_pic" name="nama_pic" placeholder="">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="jabatan_pic" class="form-label">Jabatan <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="text" class="form-control" id="jabatan_pic" name="jabatan_pic" placeholder="">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="jenis_kelamin" class="form-label">Jenis Kelamin <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <select name="jenis_kelamin" id="jenis_kelamin" class="form-select">
+                                <option value="laki-laki">Laki-laki</option>
+                                <option value="perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="telepon" class="form-label">Telepon <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="text" class="form-control maskTelepon" id="telepon" name="telepon" placeholder="">
+                        </div>
+                        <div class="mb-3">
+                            <label for="alamat" class="form-label">Alamat <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <textarea name="alamat" id="alamat" cols="30" rows="5" class="form-control"></textarea>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="password" class="form-label">Password <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="">
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label for="password_confirmation" class="form-label">Retype password <span class="fw-bold fs-14 text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="">
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label for="nik" class="form-label">NIK</label>
-                        <input type="text" class="form-control maskNIK" id="nik" name="nik" placeholder="">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="npwp" class="form-label">NPWP</label>
-                        <input type="text" class="form-control maskNPWP" id="npwp" name="npwp" placeholder="">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="email" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="email" name="email" placeholder="" autocomplete="true">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="kode_pos" class="form-label">Kode Pos</label>
-                        <input type="text" class="form-control" id="kode_pos" name="kode_pos" placeholder="" autocomplete="true">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="nama_pic" class="form-label">Nama PIC</label>
-                        <input type="text" class="form-control" id="nama_pic" name="nama_pic" placeholder="">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="jabatan_pic" class="form-label">Jabatan PIC</label>
-                        <input type="text" class="form-control" id="jabatan_pic" name="jabatan_pic" placeholder="">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="password_confirmation" class="form-label">Retype password</label>
-                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" placeholder="">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
-                        <select name="jenis_kelamin" id="jenis_kelamin" class="form-select">
-                            <option value="laki-laki">Laki-laki</option>
-                            <option value="perempuan">Perempuan</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="telepon" class="form-label">Telepon</label>
-                        <input type="text" class="form-control maskTelepon" id="telepon" name="telepon" placeholder="">
-                    </div>
-                    <div class="mb-3">
-                        <label for="alamat" class="form-label">Alamat Instansi</label>
-                        <textarea name="alamat" id="alamat" cols="30" rows="5" class="form-control"></textarea>
-                    </div>
-                    <div class="form-group mb-3">
+                </div>
+                <div class="g-3 mx-lg-5">
+                    <div class="form-group mb-2">
                         {!! NoCaptcha::renderJs() !!}
                         {!! NoCaptcha::display() !!}
                         @if ($errors->has('g-recaptcha-response'))

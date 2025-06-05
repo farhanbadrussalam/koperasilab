@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 
+use DB;
+
 class RegisterController extends Controller
 {
     /*
@@ -59,6 +61,9 @@ class RegisterController extends Controller
     {
         return Validator::make($data, [
             'nama_instansi' => ['required', 'string', 'max:255'],
+            'alamat_instansi' => ['required'],
+            'email_instansi' => ['required', 'string', 'email', 'max:255'],
+            'kode_pos' => ['required'],
             'nama_pic' => ['required', 'string', 'max:255'],
             'nik' => ['required'],
             'telepon' => ['required'],
@@ -67,8 +72,7 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             // 'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',//|max:2048
             'g-recaptcha-response' => 'required|captcha',
-            'kode_pos' => ['required'],
-            'alamat' => ['required']
+            'alamat' => ['required'],
         ]);
     }
 
@@ -83,57 +87,70 @@ class RegisterController extends Controller
         // Pengecekan Instansi
         $dataPerusahaan = false;
         $idPerusahaan = decryptor($data['nama_instansi']);
-        
-        if(!$idPerusahaan) {
-            $dataPerusahaan = Perusahaan::create([
-                'nama_perusahaan' => $data['nama_instansi'],
-                'npwp_perusahaan' => $data['npwp'],
-                'email' => $data['email_instansi'],
-                'status' => 1
-            ]);
 
-            $idPerusahaan = decryptor($dataPerusahaan->perusahaan_hash);
+        DB::beginTransaction();
+        try {
+            if(!$idPerusahaan) {
+                $dataPerusahaan = Perusahaan::create([
+                    'nama_perusahaan' => $data['nama_instansi'],
+                    'npwp_perusahaan' => $data['npwp'],
+                    'email' => $data['email_instansi'],
+                    'status' => 1
+                ]);
 
-            // set alamat
-            $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
+                $idPerusahaan = $dataPerusahaan->id_perusahaan;
 
-            $arrAlamat = array();
-            $arrAlamat[] = array(
-                'id_perusahaan' => $idPerusahaan,
-                'jenis' => 'Utama',
-                'status' => 1,
-                'alamat' => $data['alamat'],
-                'kode_pos' => $data['kode_pos']
-            );
-            foreach ($arrJenisAlamat as $key => $value) {
+                // set alamat
+                $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
+
+                $arrAlamat = array();
                 $arrAlamat[] = array(
                     'id_perusahaan' => $idPerusahaan,
-                    'jenis' => $value,
-                    'status' => 0,
-                    'alamat' => null,
-                    'kode_pos' => null
+                    'jenis' => 'Utama',
+                    'status' => 1,
+                    'alamat' => $data['alamat_instansi'],
+                    'kode_pos' => $data['kode_pos']
                 );
+                foreach ($arrJenisAlamat as $key => $value) {
+                    $arrAlamat[] = array(
+                        'id_perusahaan' => $idPerusahaan,
+                        'jenis' => $value,
+                        'status' => 0,
+                        'alamat' => null,
+                        'kode_pos' => null
+                    );
+                }
+
+                Master_alamat::insert($arrAlamat);
+            } else {
+                $dataPerusahaan = Perusahaan::where('id_perusahaan', $idPerusahaan)->first();
+            }
+            if($dataPerusahaan){
+                $user = User::create([
+                    'name' => $data['nama_pic'],
+                    'id_perusahaan'=> $idPerusahaan,
+                    'status' => 1,
+                    'jabatan' => $data['jabatan_pic'],
+                    'email' => $data['email'],
+                    'password' => Hash::make($data['password']),
+                ])->assignRole('Pelanggan');
+
+                $profile = Profile::create([
+                    'user_id' => $user->id,
+                    'nik' => $data['nik'],
+                    'no_hp' => $data['telepon'],
+                    'jenis_kelamin' => $data['jenis_kelamin'],
+                    'alamat' => $data['alamat'],
+                ]);
             }
 
-            Master_alamat::insert($arrAlamat);
-        } else {
-            $dataPerusahaan = Perusahaan::where('id_perusahaan', $idPerusahaan)->first();
-        }
+            DB::commit();
 
-        if($dataPerusahaan){
-            $user = User::create([
-                'name' => $data['nama_pic'],
-                'id_perusahaan'=> $idPerusahaan,
-                'nik' => $data['nik'],
-                'jenis_kelamin' => $data['jenis_kelamin'],
-                'status' => 1,
-                'jabatan' => $data['jabatan_pic'],
-                'telepon' => $data['telepon'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ])->assignRole('Pelanggan');
+            return $user;
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return redirect()->back()->with('error', $ex->getMessage());
         }
-
-        return $user;
     }
 }

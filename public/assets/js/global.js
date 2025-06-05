@@ -73,6 +73,7 @@ function maskReload() {
     $('.maskNPWP').inputmask('99.999.999.9-999.999', { "placeholder": "_", "removeMaskOnSubmit": true });
     $('.maskNIK').inputmask('99999999999999999', { "placeholder": "_", "removeMaskOnSubmit": true });
     $('.maskTelepon').inputmask('9999-9999-9999', { "placeholder": " ", "removeMaskOnSubmit": true });
+    $('.maskEmail').inputmask('email', { "placeholder": " ", "removeMaskOnSubmit": true });
 }
 maskReload();
 

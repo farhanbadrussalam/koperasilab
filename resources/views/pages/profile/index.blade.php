@@ -6,16 +6,16 @@
             <div class="container">
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail-tab-pane" type="button" role="tab" aria-controls="detail-tab-pane" aria-selected="true">My Details</button>
+                        <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail-tab-pane" type="button" role="tab" aria-controls="detail-tab-pane" aria-selected="true">Detail</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="alamat-tab" data-bs-toggle="tab" data-bs-target="#alamat-tab-pane" type="button" role="tab" aria-controls="alamat-tab-pane" aria-selected="true">Alamat</button>
+                        <button class="nav-link" id="instansi-tab" data-bs-toggle="tab" data-bs-target="#instansi-tab-pane" type="button" role="tab" aria-controls="instansi-tab-pane" aria-selected="true">Instansi</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="ttd-tab" data-bs-toggle="tab" data-bs-target="#ttd-tab-pane" type="button" role="tab" aria-controls="ttd-tab-pane" aria-selected="true">Tanda Tangan</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="changepassword-tab" data-bs-toggle="tab" data-bs-target="#changepassword-tab-pane" type="button" role="tab" aria-controls="changepassword-tab-pane" aria-selected="true">Change Password</button>
+                        <button class="nav-link" id="changepassword-tab" data-bs-toggle="tab" data-bs-target="#changepassword-tab-pane" type="button" role="tab" aria-controls="changepassword-tab-pane" aria-selected="true">Ganti Password</button>
                     </li>
                 </ul>
                 <div class="tab-content" id="myTabContent">
@@ -29,10 +29,31 @@
                                     <div class="col-md-6">
                                         <div class="d-flex mb-2">
                                             <div class="flex-fill">
-                                                <label for="nama_instansi" class="form-label">Nama instansi</label>
+                                                <label for="email_pic" class="form-label">Email</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" id="nama_instansi" name="nama_instansi" placeholder="" disabled>
-                                                    <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm" type="button"><i class="bi bi-pencil"></i></button>
+                                                    <input type="email" class="form-control me-2" id="email_pic" name="email_pic" placeholder="" disabled>
+                                                    <div id="btnEditDiv-email_pic" class="d-block" data-field="email_pic">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2 d-none" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-email_pic" class="d-none d-flex" data-field="email_pic">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="nik_pic" class="form-label">NIK</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2 maskNIK" id="nik_pic" name="nik_pic" placeholder="" disabled autocomplete="true">
+                                                    <div id="btnEditDiv-nik_pic" class="d-block" data-field="nik_pic">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-nik_pic" class="d-none d-flex" data-field="nik_pic">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -68,21 +89,6 @@
                                         </div>
                                         <div class="d-flex mb-2">
                                             <div class="flex-fill">
-                                                <label for="email" class="form-label">Email</label>
-                                                <div class="d-flex align-items-center">
-                                                    <input type="email" class="form-control me-2" id="email" name="email" placeholder="" disabled>
-                                                    <div id="btnEditDiv-email" class="d-block" data-field="email">
-                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
-                                                    </div>
-                                                    <div id="btnActionDiv-email" class="d-none d-flex" data-field="email">
-                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
-                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex mb-2">
-                                            <div class="flex-fill">
                                                 <label for="telepon" class="form-label">Telepon</label>
                                                 <div class="d-flex align-items-center">
                                                     <input type="text" class="form-control me-2 maskTelepon" id="telepon" name="telepon" disabled autocomplete="true">
@@ -98,13 +104,31 @@
                                         </div>
                                         <div class="d-flex mb-2">
                                             <div class="flex-fill">
-                                                <label for="npwp" class="form-label">NPWP</label>
+                                                <label for="jenis_kelamin" class="form-label">Jenis Kelamin</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2 maskNPWP" id="npwp" name="npwp" disabled autocomplete="true">
-                                                    <div id="btnEditDiv-npwp" class="d-block" data-field="npwp">
+                                                    <select name="jenis_kelamin" id="jenis_kelamin" class="form-select me-2" disabled>
+                                                        <option value="laki-laki">Laki-laki</option>
+                                                        <option value="perempuan">Perempuan</option>
+                                                    </select>
+                                                    <div id="btnEditDiv-jenis_kelamin" class="d-block" data-field="jenis_kelamin">
                                                         <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
                                                     </div>
-                                                    <div id="btnActionDiv-npwp" class="d-none d-flex" data-field="npwp">
+                                                    <div id="btnActionDiv-jenis_kelamin" class="d-none d-flex" data-field="jenis_kelamin">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="alamat_pic" class="form-label">Alamat</label>
+                                                <div class="d-flex align-items-center">
+                                                    <textarea name="alamat_pic" data-field="alamat" id="alamat_pic" cols="30" rows="3" class="form-control me-2" disabled></textarea>
+                                                    <div id="btnEditDiv-alamat_pic" class="d-block" data-field="alamat_pic">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-alamat_pic" class="d-none d-flex" data-field="alamat_pic">
                                                         <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
                                                         <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
                                                     </div>
@@ -116,15 +140,76 @@
                             </div>
                         </div>
                     </div>
-                    <div class="tab-pane fade show pt-3" id="alamat-tab-pane" role="tabpanel" aria-labelledby="alamat-tab" tabindex="0">
+                    <div class="tab-pane fade show pt-3" id="instansi-tab-pane" role="tabpanel" aria-labelledby="instansi-tab" tabindex="0">
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 fw-bolder mb-3">
+                                        <h2>Detail</h2>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="kode_instansi" class="form-label">Kode instansi</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" id="kode_instansi" name="kode_instansi" placeholder="" disabled>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="nama_instansi" class="form-label">Nama instansi</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" id="nama_instansi" name="nama_instansi" placeholder="" disabled>
+                                                    <div id="btnEditDiv-nama_instansi" class="d-block" data-field="nama_instansi">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-nama_instansi" class="d-none d-flex" data-field="nama_instansi">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="email" class="form-label">E-mail</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2" id="email" name="email" placeholder="" disabled>
+                                                    <div id="btnEditDiv-email" class="d-block" data-field="email">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-email" class="d-none d-flex" data-field="email">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="npwp" class="form-label">NPWP</label>
+                                                <div class="d-flex align-items-center">
+                                                    <input type="text" class="form-control me-2 maskNPWP" id="npwp" name="npwp" disabled autocomplete="true">
+                                                    <div id="btnEditDiv-npwp" class="d-block" data-field="npwp">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-npwp" class="d-none d-flex" data-field="npwp">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr>
                                 <div class="row">
                                     <div class="col-md-4 fw-bolder mb-3">
                                         <h2>Alamat Perusahaan</h2>
                                     </div>
                                     <div class="col-md-6" id="list-alamat">
-                                        
+
                                     </div>
                                 </div>
                             </div>
@@ -152,11 +237,11 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4 fw-bolder mb-3">
-                                        <h2>Change Password</h2>
+                                        <h2>Ganti Password</h2>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="mb-4 text-start">
-                                            <label for="old_password" class="form-label text-main body-medium">Old Password</label>
+                                        <div class="mb-4 text-start d-none" id="form-old-password">
+                                            <label for="old_password" class="form-label text-main body-medium">Password Lama</label>
                                             <div class="input-group mb-2 mt-1">
                                                 <input
                                                     class="form-control form-control input-login"
@@ -164,13 +249,14 @@
                                                     type="password"
                                                     name="old_password"
                                                     placeholder="Enter your old password" />
-                                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                                <div class="input-group-text border-0 bg-body-secondary" onclick="showPassword(this)">
                                                     <i class="bi bi-eye"></i>
                                                 </div>
+                                                <div class="invalid-feedback d-none" id="error-old-password"></div>
                                             </div>
                                         </div>
                                         <div class="mb-4 text-start">
-                                            <label for="new_password" class="form-label text-main body-medium">New Password</label>
+                                            <label for="new_password" class="form-label text-main body-medium">Password Baru</label>
                                             <div class="input-group mb-2 mt-1">
                                                 <input
                                                     class="form-control form-control input-login"
@@ -178,13 +264,13 @@
                                                     type="password"
                                                     name="new_password"
                                                     placeholder="Enter your new password" />
-                                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                                <div class="input-group-text border-0 bg-body-secondary" onclick="showPassword(this)">
                                                     <i class="bi bi-eye"></i>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="mb-4 text-start">
-                                            <label for="confirm_password" class="form-label text-main body-medium">Confirm Password</label>
+                                            <label for="confirm_password" class="form-label text-main body-medium">Password Konfirmasi</label>
                                             <div class="input-group mb-2 mt-1">
                                                 <input
                                                     class="form-control form-control input-login"
@@ -192,13 +278,14 @@
                                                     type="password"
                                                     name="confirm_password"
                                                     placeholder="Enter your confirm password" />
-                                                <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
+                                                <div class="input-group-text border-0 bg-body-secondary rounded-end" onclick="showPassword(this)">
                                                     <i class="bi bi-eye"></i>
                                                 </div>
+                                                <div class="invalid-feedback d-none" id="error-confirm-password"></div>
                                             </div>
                                         </div>
                                         <div class="mb-4">
-                                            <button class="btn btn-primary">Change</button>
+                                            <button class="btn btn-primary" onclick="gantiPassword(this)">Change</button>
                                         </div>
                                     </div>
                                 </div>
@@ -217,6 +304,7 @@
         @endif
 
         const user = @json($profile);
+        const isPassword = {{ $isPassword }};
 
         function editProfile(obj) {
             const name = $('#inputName');

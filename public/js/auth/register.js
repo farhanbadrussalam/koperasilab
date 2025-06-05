@@ -25,15 +25,16 @@ $(function () {
             },
             processResults: function (result) {
                 let items = [];
-                
+
                 for (const value of result.data) {
                     items.push({
                         'id': value.perusahaan_hash,
                         'text': value.nama_perusahaan,
-                        'email': value.email
+                        'email': value.email,
+                        'npwp' : value.npwp_perusahaan
                     });
                 }
-                
+
                 return {
                     results: items
                 };
@@ -43,6 +44,14 @@ $(function () {
         }
     }).on('select2:select', function(e) {
         $('#type_instansi').val(e.params.data.newTag ? 'new' : 'old');
-        $('#email_instansi').val(e.params.data.email ? e.params.data.email : '');
+        if(e.params.data.email) {
+            $('#email_instansi').val(e.params.data.email);
+            $('#email_instansi').attr('readonly', true);
+        }
+
+        if(e.params.data.npwp) {
+            $('#npwp').val(e.params.data.npwp);
+            $('#npwp').attr('readonly', true);
+        }
     })
 })

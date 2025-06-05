@@ -131,6 +131,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', 'actionProfile');
         Route::post('/action/alamat', 'actionAlamat');
         Route::post('/action/perusahaan', 'actionPerusahaan');
+        Route::post('/changePassword', 'changePassword');
         Route::get('/getPerusahaan/{kode}', 'getPerusahaanByKode');
     });
 
