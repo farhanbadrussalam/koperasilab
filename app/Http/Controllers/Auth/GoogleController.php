@@ -23,10 +23,10 @@ class GoogleController extends Controller
         $googleUser = Socialite::driver('google')->user();
 
         $user = User::updateOrCreate([
-            'google_id' => $googleUser->id,
+            'email' => $googleUser->email,
         ], [
             'name' => $googleUser->name,
-            'email' => $googleUser->email,
+            'google_id' => $googleUser->id,
             'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s')
         ])->assignRole('pelanggan');
 
@@ -44,14 +44,18 @@ class GoogleController extends Controller
                 $extension = '.'.$extension;
             }
             // Generate unique file name
-            $filename = 'avatar_'.$googleUser->id . $extension;
+            $filehash = 'avatar_'.$googleUser->id . $extension;
+            $fileori = 'avatar_'.$googleUser->name . $extension;
 
             // Simpan gambar ke direktori yang ditentukan
-            Storage::disk('public')->put('images/avatar/' . $filename, $imageContent);
+            // mengecek apakah filehash sudah da atau belum
+            if(!Storage::disk('public')->exists('images/avatar/' . $filehash)){
+                Storage::disk('public')->put('images/avatar/' . $filehash, $imageContent);
+            }
 
-            $media = Master_media::create([
-                'file_hash' => $filename,
-                'file_ori' => $filename,
+            $media = Master_media::updateOrCreate(['file_hash' => $filehash], [
+                'file_hash' => $filehash,
+                'file_ori' => $fileori,
                 'file_size' => 0,
                 'file_type' => 'image/jpeg',
                 'file_path' => 'images/avatar',
@@ -65,12 +69,8 @@ class GoogleController extends Controller
             ]);
         }
 
-        // $perusahaan = Perusahaan::updateOrCreate([
-        //     'user_id' => $user->id
-        // ]);
-
         Auth::login($user);
 
-        return redirect()->route('userProfile.index');
+        return redirect('/userProfile');
     }
 }

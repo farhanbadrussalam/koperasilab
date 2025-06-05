@@ -203,8 +203,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <hr>
-                                <div class="row">
+                                <div class="row mt-2" id="form-alamat-perusahaan">
+                                    <hr>
                                     <div class="col-md-4 fw-bolder mb-3">
                                         <h2>Alamat Perusahaan</h2>
                                     </div>
@@ -236,10 +236,7 @@
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-4 fw-bolder mb-3">
-                                        <h2>Ganti Password</h2>
-                                    </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-5">
                                         <div class="mb-4 text-start d-none" id="form-old-password">
                                             <label for="old_password" class="form-label text-main body-medium">Password Lama</label>
                                             <div class="input-group mb-2 mt-1">
@@ -303,9 +300,8 @@
             editProfile($('#btnEditProfile'));
         @endif
 
-        const user = @json($profile);
-        const isPassword = {{ $isPassword }};
-
+        const profile = @json($profile);
+        const isPassword = {{ $isPassword ? 1 : 0 }};
         function editProfile(obj) {
             const name = $('#inputName');
             const nik = $('#inputNik');

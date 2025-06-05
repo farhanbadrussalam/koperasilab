@@ -1,6 +1,6 @@
 let signaturePad;
 $(function() {
-    loadForm(user);
+    loadForm(profile);
 
     $('#btn-upload-ttd').click(function() {
         if(signaturePad.isEmpty()){
@@ -15,12 +15,12 @@ $(function() {
         let ttd = signaturePad.toDataURL();
         const formData = new FormData();
         formData.append('ttd', ttd);
-        formData.append('idProfile', user.user_hash);
+        formData.append('idProfile', profile.user_hash);
         ajaxPost(`api/v1/profile/action`, formData, result => {
             if(result.meta.code == 200){
                 document.getElementById('show-ttd').innerHTML = '';
-                user.ttd = ttd;
-                loadForm(user);
+                profile.ttd = ttd;
+                loadForm(profile);
                 spinner('hide', $(this));
             }
         })
@@ -29,13 +29,13 @@ $(function() {
     $(`#btn-hapus-ttd`).click(function() {
         spinner('show', $(this));
         const formData = new FormData();
-        formData.append('idProfile', user.user_hash);
+        formData.append('idProfile', profile.user_hash);
         formData.append('ttd', '');
         ajaxPost(`api/v1/profile/action`, formData, result => {
             if(result.meta.code == 200){
                 document.getElementById('show-ttd').innerHTML = '';
-                user.ttd = '';
-                loadForm(user);
+                profile.ttd = '';
+                loadForm(profile);
                 spinner('hide', $(this));
             }
         })
@@ -64,8 +64,8 @@ $(function() {
 function loadForm(data) {
     $('#nama_instansi').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
     $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
-    $('#kode_instansi').val(data.perusahaan?.kode_perusahaan ? data.perusahaan.kode_perusahaan : 'Belum terverifikasi');
-    $('#kode_instansi').addClass(data.perusahaan?.kode_perusahaan ? 'text-success border-success' : 'text-danger border-danger');
+    $('#kode_instansi').val(data.perusahaan?.kode_perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
+    $('#kode_instansi').addClass(data.perusahaan?.kode_perusahaan ? (data.perusahaan.kode_perusahaan ? 'text-success border-success' : 'text-danger border-danger') : '');
     $('#email').val(data.perusahaan?.email ? data.perusahaan.email : '-');
 
     $('#nik_pic').val(data.profile.nik ? data.profile.nik : '-');
@@ -143,6 +143,7 @@ function loadForm(data) {
             `;
         }
     } else {
+        $('#form-alamat-perusahaan').hide();
         html += `
             <div class="mb-3">
                 <div class="d-flex">
@@ -270,7 +271,7 @@ function simpanEdit(obj, tab){
         });
 
         if(tab == 'instansi'){
-            formParams.append('idPerusahaan', user.perusahaan.perusahaan_hash);
+            formParams.append('idPerusahaan', profile.perusahaan.perusahaan_hash);
 
             ajaxPost(`api/v1/profile/action/perusahaan`, formParams, result => {
                 spinner('hide', $(spinObj));
@@ -283,7 +284,7 @@ function simpanEdit(obj, tab){
                 spinner('hide', $(spinObj));
             })
         }else{
-            formParams.append('idProfile', user.user_hash);
+            formParams.append('idProfile', profile.user_hash);
 
             ajaxPost(`api/v1/profile/action`, formParams, result => {
                 spinner('hide', $(spinObj));
@@ -329,7 +330,7 @@ function gantiPassword(obj) {
     formParams.append('new_password', newPassword);
 
     if(newPassword == confirmPassword){
-        formParams.append('idProfile', user.user_hash);
+        formParams.append('idProfile', profile.user_hash);
         spinner('show', $(obj));
         ajaxPost(`api/v1/profile/changePassword`, formParams, result => {
             if(result.data.status != 'fail') {

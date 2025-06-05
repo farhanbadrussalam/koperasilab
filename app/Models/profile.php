@@ -27,6 +27,6 @@ class Profile extends Model
     ];
 
     public function media(){
-        return $this->belongsTo(tbl_media::class, 'avatar', 'id');
+        return $this->belongsTo(master_media::class, 'avatar', 'id');
     }
 }
