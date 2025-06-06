@@ -93,10 +93,10 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <label for="inputSatuanKerja" class="form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="satuanKerja" id="inputSatuanKerja" class="form-control @error('satuanKerja') is-invalid @enderror" value="{{ old('satuanKerja') }}">
+                                <select name="satuanKerja[]" id="inputSatuanKerja" class="form-control @error('satuanKerja') is-invalid @enderror" multiple="multiple">
                                     <option value="">--- Select ---</option>
                                     @foreach ($satuankerja as $value)
-                                        <option value="{{ $value->id }}">{{ $value->name }}</option>
+                                        <option value="{{ $value->satuan_hash }}">{{ $value->name }}</option>
                                     @endforeach
                                 </select>
                                 @error('satuanKerja')
@@ -164,17 +164,23 @@
                 $('#inputJenisKelamin').val(profile.jenis_kelamin);
             }
 
-            if(d_user?.satuankerja_id){
-                $('#inputSatuanKerja').val(d_user.satuankerja_id);
-            }else{
-                $('#inputSatuanKerja').attr('disabled', true);
+            let arrSatuanId = [];
+            if(d_user?.satuankerja) {
+                arrSatuanId = d_user.satuankerja.map(function(item) {
+                    return item.satuan_hash
+                })
             }
+
+            $('#inputSatuanKerja').select2({
+                theme: "bootstrap-5",
+                placeholder: "Pilih Satuan Kerja",
+            }).val(arrSatuanId).trigger('change');
 
             $('#inputTugasLhu').select2({
                 theme: "bootstrap-5",
                 placeholder: "Pilih Tugas",
                 defaultValue: roleUser
-            })
+            });
 
             $('#inputRole').select2({
                 theme: "bootstrap-5",

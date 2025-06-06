@@ -47,11 +47,11 @@
                     <table class="table table-hover w-100 align-middle" id="user-table">
                         <thead>
                             <th class="text-center">No</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Satuan Kerja</th>
-                            <th>Role</th>
-                            <th>Action</th>
+                            <th width="20%">Name</th>
+                            <th width="20%">Email</th>
+                            <th width="20%">Satuan Kerja</th>
+                            <th width="20%">Role</th>
+                            <th width="10%">Action</th>
                         </thead>
                     </table>
                 </div>
@@ -69,7 +69,7 @@
         <div class="modal-body" id="content-tugas">
         </div>
       </div>
-    </div>    
+    </div>
 </div>
 
 @endsection

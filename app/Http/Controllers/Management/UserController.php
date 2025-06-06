@@ -37,10 +37,10 @@ class UserController extends Controller
     }
 
     public function getData(){
-        $query = User::with('satuankerja')->orderBy('id', 'desc');
+        $query = User::orderBy('id', 'desc');
 
         if(request()->has('satuan_kerja') && request()->satuan_kerja != null){
-            $query->where('satuankerja_id', (int) decryptor(request()->satuan_kerja));
+            $query->whereIn('satuankerja_id', (int) decryptor(request()->satuan_kerja));
         }
 
         if(request()->has('role') && request()->role != null){
@@ -74,7 +74,16 @@ class UserController extends Controller
                     }
                 })
                 ->addColumn('satuankerja', function($data){
-                    return $data->satuankerja ? $data->satuankerja->name : '-';
+                    if(is_array($data->satuankerja_id)) {
+                        $satuankerja = $data->satuankerja_id;
+                    }else {
+                        $satuankerja = $data->satuankerja_id ? [$data->satuankerja_id] : null;
+                    }
+                    $textSatuan = $satuankerja ? array_map(function($item) {
+                        $name = Satuan_kerja::find($item)->name;
+                        return '<span class="badge text-bg-secondary">'.$name.'</span>';
+                    }, $satuankerja) : [];
+                    return "<div class='d-flex flex-wrap align-items-center gap-1'>".implode('', $textSatuan)."</div>";
                 })
                 ->addColumn('tugas', function($data){
                     $tugas = $data->jobs ? array_map(function($item) {
@@ -90,7 +99,12 @@ class UserController extends Controller
     public function getById($id) {
         DB::beginTransaction();
         try {
-            $user = User::with('satuankerja')->find(decryptor($id));
+            $user = User::find(decryptor($id));
+            if(!is_array($user->satuankerja_id)){
+                $user->satuankerja_id = [$user->satuankerja_id];
+            }
+            $user->satuankerja = Satuan_kerja::whereIn('id', $user->satuankerja_id)->get();
+
             if($user->jobs){
                 $user->jobs = array_map(function($item) {
                     return Master_jobs::find($item);
@@ -126,7 +140,7 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = $request->validate([
+        $arrValidator = [
             'name' => ['required', 'string', 'max:255'],
             'nik' => ['required'],
             'no_telepon' => ['required'],
@@ -136,7 +150,10 @@ class UserController extends Controller
             // 'avatar' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'satuanKerja' => ['required'],
             'role' => ['required']
-        ]);
+        ];
+        $arrMessage = messageSanity($arrValidator);
+
+        $validator = $request->validate($arrValidator, $arrMessage);
 
         $paramsUser = [
             'name' => $request->name,
@@ -145,7 +162,9 @@ class UserController extends Controller
             'satuankerja_id' => $request->satuanKerja,
         ];
 
-        $role = $request->role; // json
+        foreach ($request->satuanKerja as $key => $value) {
+            $paramsUser['satuankerja_id'][] = (int) decryptor($value);
+        }
 
         if (in_array('Staff LHU', $role)) {
             $paramsUser['jobs'] = array_map(function($item) {
@@ -155,6 +174,7 @@ class UserController extends Controller
 
         $user = User::factory()->create($paramsUser);
 
+        $role = $request->role; // json
         foreach ($role as $key => $value) {
             $user->assignRole($value);
         }
@@ -203,6 +223,11 @@ class UserController extends Controller
     public function edit(string $id)
     {
         $d_user = User::with('profile')->find(decryptor($id));
+        if(!is_array($d_user->satuankerja_id)){
+            $d_user->satuankerja_id = [$d_user->satuankerja_id];
+        }
+        $d_user->satuankerja = Satuan_kerja::whereIn('id', $d_user->satuankerja_id)->get();
+
         if($d_user->jobs){
             $d_user->jobs = array_map(function($item) {
                 return encryptor($item);
@@ -226,6 +251,18 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $arrValidator = [
+            'name' => ['required', 'string', 'max:255'],
+            'nik' => ['required'],
+            'no_telepon' => ['required'],
+            'jenis_kelamin' => ['required'],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'satuanKerja' => ['required'],
+            'role' => ['required']
+        ];
+        $arrMessage = messageSanity($arrValidator);
+        $validator = $request->validate($arrValidator, $arrMessage);
+
         $idHash = decryptor($id);
         $d_user = User::findOrFail($idHash);
         $profile = profile::where('user_id', $idHash)->first();
@@ -242,10 +279,12 @@ class UserController extends Controller
                 return (int) decryptor($item);
             }, $request->tugas_lhu);
         }
-        $d_user->satuankerja_id = $request->satuanKerja;
+        $d_user->satuankerja_id = array_map(function($item) {
+            return (int) decryptor($item);
+        }, $request->satuanKerja);
         $d_user->update();
 
-        $avatar = "";
+        $avatar = null;
         if($request->file('avatar')){
             // Menghapus file sebelumnya
             if(Storage::exists('public/images/avatar'.$profile->avatar)){

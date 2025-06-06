@@ -19,6 +19,7 @@ class User extends Authenticatable implements MustVerifyEmail
      * @var array<int, string>
      */
     protected $fillable = [
+        'satuankerja_id',
         'id_perusahaan',
         'name',
         'jobs',
@@ -42,6 +43,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $hidden = [
         'id_perusahaan',
+        'satuankerja_id',
         'password',
         'remember_token',
         'email_verified_at',
@@ -52,18 +54,12 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     protected $appends = [
-        'user_hash',
-        'satuankerja_hash'
+        'user_hash'
     ];
 
     public function getUserHashAttribute()
     {
         return encryptor($this->id);
-    }
-
-    public function getSatuankerjaHashAttribute()
-    {
-        return encryptor($this->satuankerja_id);
     }
 
     /**
@@ -75,16 +71,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'jobs' => 'json',
-        'status' => 'integer'
+        'status' => 'integer',
+        'satuankerja_id' => 'json'
     ];
 
     public function perusahaan(){
         return $this->hasOne(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
-    }
-
-
-    public function satuankerja(){
-        return $this->hasOne(Satuan_kerja::class, 'id', 'satuankerja_id');
     }
     public function profile(){
         return $this->hasOne(profile::class, 'user_id', 'id');
