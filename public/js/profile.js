@@ -1,5 +1,39 @@
 let signaturePad;
 $(function() {
+    $('#idPerusahaan').select2({
+        theme: "bootstrap-5",
+        tags: true,
+        createTag: function(params) {
+            return {
+                id: params.term,   // Nilai yang akan disimpan
+                text: params.term, // Text yang ditampilkan
+                newTag: true       // Penanda bahwa ini adalah input baru
+            }
+        },
+        ajax: {
+            url: `${base_url}/api/v1/profile/list/perusahaan`,
+            dataType: 'json',
+            type: 'GET',
+            delay: 250,
+            data: function(params) {
+                let queryParams = {
+                    search: params.term
+                }
+                return queryParams;
+            },
+            processResults: function (data) {
+                return {
+                    results: $.map(data.data, function (item) {
+                        return {
+                            text: item.nama_perusahaan,
+                            id: item.perusahaan_hash
+                        }
+                    })
+                };
+            }
+        }
+    })
+
     loadForm(profile);
 
     $('#btn-upload-ttd').click(function() {
@@ -18,7 +52,6 @@ $(function() {
         formData.append('idProfile', profile.user_hash);
         ajaxPost(`api/v1/profile/action`, formData, result => {
             if(result.meta.code == 200){
-                document.getElementById('show-ttd').innerHTML = '';
                 profile.ttd = ttd;
                 loadForm(profile);
                 spinner('hide', $(this));
@@ -58,14 +91,32 @@ $(function() {
             $('#error-confirm-password').html('');
             $('#error-confirm-password').addClass('d-none');
         }
-    })
+    });
+
 })
 
 function loadForm(data) {
-    $('#nama_instansi').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
+    // Menetapkan default value (pastikan ID ada dalam opsi yang dimuat)
+    if(data.perusahaan){
+        let defaultData = {
+            id: data.perusahaan.perusahaan_hash, // ID default yang ingin di-set
+            text: data.perusahaan.nama_perusahaan // Label default
+        };
+
+        // Tambahkan opsi default ke Select2
+        let newOption = new Option(defaultData.text, defaultData.id, true, true);
+        $('#idPerusahaan').append(newOption).trigger('change');
+        if(data.perusahaan.kode_perusahaan){
+            $('#kode_instansi').removeClass('text-danger border-danger');
+            $('#kode_instansi').addClass('text-success border-success');
+        }else{
+            $('#kode_instansi').removeClass('text-success border-success');
+            $('#kode_instansi').addClass('text-danger border-danger');
+        }
+    }
+
     $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
-    $('#kode_instansi').val(data.perusahaan?.kode_perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
-    $('#kode_instansi').addClass(data.perusahaan?.kode_perusahaan ? (data.perusahaan.kode_perusahaan ? 'text-success border-success' : 'text-danger border-danger') : '');
+    $('#kode_instansi').val(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
     $('#email').val(data.perusahaan?.email ? data.perusahaan.email : '-');
 
     $('#nik_pic').val(data.profile.nik ? data.profile.nik : '-');
@@ -75,9 +126,9 @@ function loadForm(data) {
     $('#telepon').val(data.profile.no_hp ? data.profile.no_hp : '-');
     $('#jenis_kelamin').val(data.profile.jenis_kelamin);
     $('#alamat_pic').html(data.profile.alamat ? data.profile.alamat : '-');
-
     isPassword ? $('#form-old-password').removeClass('d-none') : $('#form-old-password').addClass('d-none');
 
+    document.getElementById('show-ttd').innerHTML = '';
     signaturePad = signature(document.getElementById('show-ttd'), {
         width: 300,
         height: 220,
@@ -263,7 +314,6 @@ function simpanEdit(obj, tab){
         const value = $(`#${inputId}`).val();
 
         const formParams = new FormData();
-        formParams.append('_token', csrf);
         formParams.append(inputId, value);
 
         spinner('show', $(spinObj), {
@@ -271,7 +321,7 @@ function simpanEdit(obj, tab){
         });
 
         if(tab == 'instansi'){
-            formParams.append('idPerusahaan', profile.perusahaan.perusahaan_hash);
+            formParams.append('idPerusahaan', profile.perusahaan?.perusahaan_hash);
 
             ajaxPost(`api/v1/profile/action/perusahaan`, formParams, result => {
                 spinner('hide', $(spinObj));
@@ -287,6 +337,8 @@ function simpanEdit(obj, tab){
             formParams.append('idProfile', profile.user_hash);
 
             ajaxPost(`api/v1/profile/action`, formParams, result => {
+                profile = result.data;
+                loadForm(profile);
                 spinner('hide', $(spinObj));
                 // change form to canedit
                 $(`#${inputId}`).attr('disabled', true);
@@ -317,10 +369,10 @@ function gantiPassword(obj) {
     const newPassword = $('#new_password').val();
     const confirmPassword = $('#confirm_password').val();
 
-    if(oldPassword == '' || newPassword == '' || confirmPassword == '') {
+    if(newPassword == '' || confirmPassword == '') {
         Swal.fire({
             icon: "warning",
-            text: "Password lama, password baru, dan konfirmasi password tidak boleh kosong",
+            text: "password baru, dan konfirmasi password tidak boleh kosong",
         })
         return false;
     }

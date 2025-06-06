@@ -59,7 +59,7 @@ class RegisterController extends Controller
      */
     protected function validator(array $data)
     {
-        return Validator::make($data, [
+        $arrValidation = [
             'nama_instansi' => ['required', 'string', 'max:255'],
             'alamat_instansi' => ['required'],
             'email_instansi' => ['required', 'string', 'email', 'max:255'],
@@ -71,9 +71,17 @@ class RegisterController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             // 'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',//|max:2048
-            'g-recaptcha-response' => 'required|captcha',
+            'g-recaptcha-response' => ['required', 'captcha'],
             'alamat' => ['required'],
-        ]);
+        ];
+
+        $arrMessage = messageSanity($arrValidation);
+        // 'avatar.required' => 'Avatar harus diupload',
+        // 'avatar.image' => 'Avatar harus berupa gambar',
+        // 'avatar.mimes' => 'Avatar hanya boleh berupa format jpeg,png,jpg,gif',
+        // 'avatar.max' => 'Avatar maksimal 2048 Kb',
+
+        return Validator::make($data, $arrValidation, $arrMessage);
     }
 
     /**

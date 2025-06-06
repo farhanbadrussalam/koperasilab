@@ -158,15 +158,17 @@
                                         </div>
                                         <div class="d-flex mb-2">
                                             <div class="flex-fill">
-                                                <label for="nama_instansi" class="form-label">Nama instansi</label>
+                                                <label for="idPerusahaan" class="form-label">Nama instansi</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" id="nama_instansi" name="nama_instansi" placeholder="" disabled>
-                                                    <div id="btnEditDiv-nama_instansi" class="d-block" data-field="nama_instansi">
-                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
+                                                    <div class="w-100 me-2">
+                                                        <select name="idPerusahaan" class="form-select" id="idPerusahaan" disabled></select>
                                                     </div>
-                                                    <div id="btnActionDiv-nama_instansi" class="d-none d-flex" data-field="nama_instansi">
-                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
-                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
+                                                    <div id="btnEditDiv-idPerusahaan" class="d-block" data-field="idPerusahaan">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    </div>
+                                                    <div id="btnActionDiv-idPerusahaan" class="d-none d-flex" data-field="idPerusahaan">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -300,7 +302,7 @@
             editProfile($('#btnEditProfile'));
         @endif
 
-        const profile = @json($profile);
+        let profile = @json($profile);
         const isPassword = {{ $isPassword ? 1 : 0 }};
         function editProfile(obj) {
             const name = $('#inputName');

@@ -441,4 +441,31 @@ if (!function_exists('generateNoDokumen')) {
         return $noKontrak;
     }
 }
+
+if (!function_exists('messageSanity')) {
+    function messageSanity($validationErrors)
+    {
+        $errorMessage = [];
+        foreach ($validationErrors as $fieldName => $errors) {
+            foreach ($errors as $error) {
+                $fieldLabel = ucwords(str_replace('_', ' ', $fieldName));
+                $error = explode(':', $error);
+                $errorMessage[$fieldName.'.'.$error[0]] = match ($error[0]) {
+                    'required' => "Harap isi {$fieldLabel}",
+                    'unique' => "{$fieldLabel} sudah terdaftar",
+                    'max' => "{$fieldLabel} maksimal {$error[1]} karakter",
+                    'min' => "{$fieldLabel} minimal {$error[1]} karakter",
+                    'email' => "Harap isi {$fieldLabel} dengan format email yang benar",
+                    'string' => "Harap isi {$fieldLabel} dengan format string yang benar",
+                    'captcha' => 'Captcha tidak valid',
+                    'confirmed' => 'Password tidak sama dengan Konfirmasi Password',
+                };
+                if ($fieldName === 'g-recaptcha-response' && $error === 'required') {
+                    $errorMessage[$fieldName.'.'.$error] = 'Harap verifikasi Captcha';
+                }
+            }
+        }
+        return $errorMessage;
+    }
+}
 ?>

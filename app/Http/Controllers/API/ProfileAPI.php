@@ -35,9 +35,7 @@ class ProfileAPI extends Controller
         try {
             $idProfile = $request->idProfile ? decryptor($request->idProfile) : false;
 
-            // $npwp = $request->npwp ? unmask($request->npwp) : false;
-            // $namaInstansi = $request->nama_instansi ? $request->nama_instansi : false;
-            // $emailInstansi = $request->email_instansi ? $request->email_instansi : false;
+            $idPerusahaan = $request->idPerusahaan ? decryptor($request->idPerusahaan) : false;
 
             $nik = $request->nik_pic ? $request->nik_pic : false;
             $name = $request->nama_pic ? $request->nama_pic : false;
@@ -45,12 +43,32 @@ class ProfileAPI extends Controller
             $email = $request->email_pic ? $request->email_pic : false;
             $telepon = $request->telepon ? unmask($request->telepon) : false;
             $jenis_kelamin = $request->jenis_kelamin ? $request->jenis_kelamin : false;
-            $alamat = $request->alamat_pic ? $request->alamat_pic : false;
+            $alamat = $request->has('alamat_pic') ? $request->alamat_pic : false;
             $ttd = $request->has('ttd') ? $request->ttd : false;
 
             $params = array();
             $paramsProfile = array();
             $result = array();
+
+            // Pengecekan perusahaan
+            if (!$idPerusahaan) {
+                if($request->idPerusahaan){
+                    $perusahaan = Perusahaan::create([
+                        'nama_perusahaan' => $request->idPerusahaan,
+                    ]);
+
+                    $this->tambahAlamat($perusahaan->id_perusahaan);
+
+                    $idPerusahaan = $perusahaan->id_perusahaan;
+                }
+            } else {
+                // pengecekan alamat
+                $cekalamat = Master_alamat::where('id_perusahaan', $idPerusahaan)->get();
+
+                if (count($cekalamat) == 0) {
+                    $this->tambahAlamat($idPerusahaan);
+                }
+            }
 
             // User
             $name && $params['name'] = $name;
@@ -59,6 +77,7 @@ class ProfileAPI extends Controller
             $email && $params['email'] = $email;
             $name && $params['name'] = $name;
             $jabatan && $params['jabatan'] = $jabatan;
+            $idPerusahaan && $params['id_perusahaan'] = $idPerusahaan;
 
             // profile
             $nik && $paramsProfile['nik'] = $nik;
@@ -71,6 +90,7 @@ class ProfileAPI extends Controller
 
             $result['status'] = 'updated';
             $result['msg'] = 'Profile berhasil diupdate';
+            $result['data'] = User::with('profile', 'perusahaan', 'perusahaan.alamat')->where('id', $idProfile)->first();
 
             DB::commit();
 
@@ -80,6 +100,31 @@ class ProfileAPI extends Controller
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
+    }
+
+    private function tambahAlamat($idPerusahaan) {
+        // set alamat
+        $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
+
+        $arrAlamat = array();
+        $arrAlamat[] = array(
+            'id_perusahaan' => $idPerusahaan,
+            'jenis' => 'Utama',
+            'status' => 1,
+            'alamat' => null,
+            'kode_pos' => null
+        );
+        foreach ($arrJenisAlamat as $key => $value) {
+            $arrAlamat[] = array(
+                'id_perusahaan' => $idPerusahaan,
+                'jenis' => $value,
+                'status' => 0,
+                'alamat' => null,
+                'kode_pos' => null
+            );
+        }
+
+        Master_alamat::insert($arrAlamat);
     }
 
     public function actionAlamat(Request $request)
