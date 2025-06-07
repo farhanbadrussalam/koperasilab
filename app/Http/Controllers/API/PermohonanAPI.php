@@ -597,7 +597,6 @@ class PermohonanAPI extends Controller
         DB::beginTransaction();
         try {
             $user = Auth::user();
-            $role = $user->getRoleNames()[0];
 
             $query = Permohonan::with(
                         'layanan_jasa:id_layanan,nama_layanan',
@@ -612,16 +611,13 @@ class PermohonanAPI extends Controller
                         'kontrak.jenis_layanan:id_jenisLayanan,name,parent',
                         'kontrak.jenis_layanan_parent',
                     )
-                    ->when($role, function($q, $role) use ($status) {
+                    ->when($user, function($q, $user) use ($status) {
                         // Pengecekan role
-                        switch ($role) {
-                            case 'Pelanggan':
-                                $q->where('created_by', Auth::user()->id);
-                                $q->whereIn('status', $status);
-                                break;
-                            default:
-                                $q->whereNotIn('status', [80]);
-                                break;
+                        if($user->hasRole('Pelanggan')){
+                            $q->where('created_by', Auth::user()->id);
+                            $q->whereIn('status', $status);
+                        }else{
+                            $q->whereNotIn('status', [80]);
                         }
 
                         return $q;
@@ -662,7 +658,7 @@ class PermohonanAPI extends Controller
         try {
             $arrStatus = [1,2,3,4,5,11,80];
             // jika role nya pelanggan, wherenya sesuai dengan id user
-            $isPelanggan = Auth::user()->getRoleNames()[0] === 'Pelanggan';
+            $isPelanggan = Auth::user()->hasRole('Pelanggan');
             $_status = Permohonan::selectRaw('count(*) as total, status')
                 ->when($isPelanggan, function($q) {
                     return $q->where('created_by', Auth::user()->id);

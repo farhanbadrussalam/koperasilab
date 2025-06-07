@@ -33,9 +33,8 @@ class KontrakAPI extends Controller
         $filter = $request->filter ?? [];
 
         // cek role
-        $role = Auth::user()->getRoleNames();
         $idPelanggan = false;
-        if(in_array('Pelanggan', $role->toArray())){
+        if(Auth::user()->hasRole('Pelanggan')){
             $idPelanggan = Auth::user()->id;
         }
 

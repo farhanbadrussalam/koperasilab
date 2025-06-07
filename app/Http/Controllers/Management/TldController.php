@@ -38,7 +38,7 @@ class TldController extends Controller
             ->orderBy('jenis', 'asc');
 
         // mengambil role
-        Auth::user()->getRoleNames()[0] == 'Pelanggan' ? $tld->where('kepemilikan', Auth::user()->id_perusahaan) : false;
+        Auth::user()->hasRole('Pelanggan') ? $tld->where('kepemilikan', Auth::user()->id_perusahaan) : false;
 
         if(request()->has('status') && request()->status != null){
             $tld->where('status', request()->status);
@@ -52,7 +52,7 @@ class TldController extends Controller
             ->addIndexColumn()
             ->addColumn('no_seri_tld', function ($tld) {
                 $htmlKepemilikan = '';
-                if($tld->pemilik != null && Auth::user()->getRoleNames()[0] != 'Pelanggan'){
+                if($tld->pemilik != null && !Auth::user()->hasRole('Pelanggan')){
                     $htmlKepemilikan = '<small class="text-body-tertiary">' . $tld->pemilik->nama_perusahaan . '</small>';
                 }
 
@@ -108,8 +108,7 @@ class TldController extends Controller
             }
 
             // mengambil role
-            $role = Auth::user()->getRoleNames()[0];
-            if($role == 'Pelanggan'){
+            if(Auth::user()->hasRole('Pelanggan')){
                 $kepemilikan = Auth::user()->id_perusahaan;
             }
 
@@ -174,7 +173,7 @@ class TldController extends Controller
             if ($exists) {
                 return $this->output(array('msg' => 'No seri dan jenis sudah ada'), 'Fail', 422);
             }
-            
+
             $tld = Master_tld::findOrFail(decryptor($request->id_tld));
             $tld->update([
                 'no_seri_tld' => $request->nomer_seri,

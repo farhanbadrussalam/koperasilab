@@ -121,16 +121,16 @@ class TldAPI extends Controller
             $limit = $request->has('limit') ? $request->limit : 5;
 
             // pengecekan role user
-            $role = Auth::user()->getRoleNames()[0];
+            $role = count(Auth::user()->getRoleNames()) > 0 ? true : false;
 
             // pengecekan tld yang sedang digunakan oleh kontrak
             $cekTldKontrak = false;
-            if($role != 'Pelanggan' && $no_kontrak){
+            if(!Auth::user()->hasRole('Pelanggan') && $no_kontrak){
                 $cekTldKontrak = Master_tld::where('digunakan', $no_kontrak)->where('status', 0)->first();
             }
 
             $data = Master_tld::when($role, function($query, $role){
-                if($role == 'Pelanggan'){
+                if(Auth::user()->hasRole('Pelanggan')){
                     return $query->where('kepemilikan', Auth::user()->id_perusahaan);
                 }else {
                     return $query->whereNull('kepemilikan');

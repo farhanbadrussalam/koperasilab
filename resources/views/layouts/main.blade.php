@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }} | {{ Auth::user()->getRoleNames()[0] }}</title>
+    <title>{{ config('app.name', 'Laravel') }} | {{ count(Auth::user()->getRoleNames()) != 0 ? Auth::user()->getRoleNames()[0] : '' }}</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -78,7 +78,7 @@
     <input type="hidden" name="csrf" id="csrf-token" value="{{ csrf_token() }}">
     <input type="hidden" id="base_url" value="{{ url('') }}">
     <input type="hidden" id="userActive" value="{{ Auth::user() }}">
-    <input type="hidden" id="role" value="{{ Auth::user()->getRoleNames()[0] }}">
+    <input type="hidden" id="role" value="{{ count(Auth::user()->getRoleNames()) > 1 ? Auth::user()->getRoleNames()[0] : '' }}">
     <input type="hidden" id="permission" value="{{ Auth::user()->getDirectPermissions() }}">
     <input type="hidden" id="permissionInRole" value="{{ Auth::user()->getPermissionsViaRoles() }}">
 

@@ -39,7 +39,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <label for="inputFullname" class="form-label">Nama lengkap <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="inputFullname" value="{{ old('name') }}">
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="inputFullname" value="{{ old('name') }}" autocomplete="off">
                                 @error('name')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
@@ -78,22 +78,8 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mb-2">
-                                <label for="inputSatuanKerja" class="form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="satuanKerja" id="inputSatuanKerja" class="form-control @error('satuanKerja') is-invalid @enderror" value="{{ old('satuanKerja') }}">
-                                    <option value="">--- Select ---</option>
-                                    @foreach ($satuankerja as $value)
-                                        <option value="{{ $value->id }}">{{ $value->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('satuanKerja')
-                                    <span class="invalid-feedback" role="alert">
-                                        <strong>{{ $message }}</strong>
-                                    </span>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-2">
                                 <label for="inputRole" class="form-label">Role <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="role[]" id="inputRole" class="form-control @error('role') is-invalid @enderror" value="{{ old('role') }}" multiple="multiple">
+                                <select name="role[]" id="inputRole" class="form-control @error('role') is-invalid @enderror" multiple="multiple">
                                     <option value="">--- Select ---</option>
                                     @foreach ($role as $value)
                                         <option value="{{ $value->name }}">{{ $value->name }}</option>
@@ -105,9 +91,23 @@
                                     </span>
                                 @enderror
                             </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="inputSatuanKerja" class="form-label">Satuan Kerja <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <select name="satuanKerja[]" id="inputSatuanKerja" class="form-control @error('satuanKerja') is-invalid @enderror" multiple="multiple">
+                                    <option value="">--- Select ---</option>
+                                    @foreach ($satuankerja as $value)
+                                        <option value="{{ $value->satuan_hash }}">{{ $value->name }}</option>
+                                    @endforeach
+                                </select>
+                                @error('satuanKerja')
+                                    <span class="invalid-feedback" role="alert">
+                                        <strong>{{ $message }}</strong>
+                                    </span>
+                                @enderror
+                            </div>
                             <div class="col-md-12 mb-2 d-none" id="tugas_lhu">
                                 <label for="inputTugasLhu" class="form-label">Tugas LHU <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="tugas_lhu[]" id="inputTugasLhu" class="form-control @error('tugas_lhu') is-invalid @enderror" value="{{ old('tugas_lhu') }}" multiple="multiple">
+                                <select name="tugas_lhu[]" id="inputTugasLhu" class="form-control @error('tugas_lhu') is-invalid @enderror" multiple="multiple">
                                     <option value="">--- Select ---</option>
                                     @foreach ($jobs as $value)
                                         <option value="{{ $value->jobs_hash }}">{{ $value->name }}</option>
@@ -175,6 +175,11 @@
             $('#inputRole').select2({
                 theme: "bootstrap-5",
                 placeholder: "Pilih Role",
+            });
+
+            $('#inputSatuanKerja').select2({
+                theme: "bootstrap-5",
+                placeholder: "Pilih Satuan Kerja",
             })
         })
         function selectFileImage() {

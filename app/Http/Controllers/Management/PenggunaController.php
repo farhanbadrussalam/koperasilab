@@ -44,7 +44,7 @@ class PenggunaController extends Controller
                         }
                     })
                     ->when($role, function($q, $role) {
-                        if(in_array('Pelanggan', $role)){
+                        if(Auth::user()->hasRole('Pelanggan')){
                             $q->where('id_perusahaan', Auth::user()->id_perusahaan);
                         }
                     });

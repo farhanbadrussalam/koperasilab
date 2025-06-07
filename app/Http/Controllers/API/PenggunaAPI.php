@@ -52,9 +52,9 @@ class PenggunaAPI extends Controller
                             'nama_radiasi' => $value,
                             'status' => 1,
                         ]);
-                        return $dataRadiasi->id_radiasi;
+                        return (int) $dataRadiasi->id_radiasi;
                     }else {
-                        return decryptor($value);
+                        return (int) decryptor($value);
                     }
                 }, $radiasi);
             }
@@ -131,6 +131,40 @@ class PenggunaAPI extends Controller
             if(!$data){
                 return $this->output(array('msg' => 'Data not found'), 'Fail', 400);
             }
+            return $this->output($data, 200);
+        } catch (\Exception $ex ) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function getDivisi(Request $request) {
+        DB::beginTransaction();
+        try {
+            $id_perusahaan = Auth::user()->id_perusahaan;
+            $name_divisi = $request->has('name_divisi') ? $request->name_divisi : false;
+            $data = Master_divisi::where('id_perusahaan', $id_perusahaan)
+                ->when($name_divisi, function ($q) use ($name_divisi) {
+                    return $q->where('name', 'like', '%'.$name_divisi.'%');
+                })->get();
+            DB::commit();
+            return $this->output($data, 200);
+        } catch (\Exception $ex ) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function getRadiasi(Request $request) {
+        DB::beginTransaction();
+        try {
+            $name_radiasi = $request->has('name_radiasi') ? $request->name_radiasi : false;
+            $data = Master_radiasi::when($name_radiasi, function ($q) use ($name_radiasi) {
+                    return $q->where('nama_radiasi', 'like', '%'.$name_radiasi.'%');
+                })->get();
+            DB::commit();
             return $this->output($data, 200);
         } catch (\Exception $ex ) {
             info($ex);

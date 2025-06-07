@@ -43,17 +43,12 @@
                     <label for="divisi_pengguna" class="col-form-label">Divisi Pengguna</label>
                     <select name="divisi_pengguna" id="divisi_pengguna" class="form-select">
                         <option value=""></option>
-                        @foreach ($divisi as $value)
-                            <option value="{{ $value->divisi_hash }}">{{ $value->name }}</option>
-                        @endforeach
                     </select>
                 </div>
                 <div class="col-12">
                     <label for="jenis_radiasi" class="col-form-label">Jenis/Energi Radiasi</label>
                     <select name="jenis_radiasi" id="jenis_radiasi" class="form-select" multiple="multiple">
-                        @foreach ($radiasi as $value)
-                            <option value="{{ $value->radiasi_hash }}">{{ $value->nama_radiasi }}</option>
-                        @endforeach
+                        <option value=""></option>
                     </select>
                 </div>
                 <div>
@@ -70,3 +65,86 @@
         </div>
     </div>
 </div>
+<script>
+    $(function () {
+
+        // set Select2
+        $('#jenis_radiasi').select2({
+            theme: "bootstrap-5",
+            tags: true,
+            placeholder: "Pilih Jenis Radiasi",
+            dropdownParent: $('#modal-add-pengguna'),
+            createTag: (params) => {
+                return {
+                    id: params.term,
+                    text: params.term,
+                    newTag: true
+                };
+            },
+            ajax: {
+                url: `${base_url}/api/v1/pengguna/getRadiasi`,
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${bearer}`,
+                    'Content-Type': 'application/json'
+                },
+                data: params => {
+                    return {
+                        name_radiasi: params.term
+                    }
+                },
+                processResults: (data) => {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.nama_radiasi,
+                                id: item.radiasi_hash
+                            }
+                        })
+                    };
+                }
+            }
+        });
+
+        $('#divisi_pengguna').select2({
+            theme: "bootstrap-5",
+            tags: true,
+            placeholder: "Pilih Divisi",
+            dropdownParent: $('#modal-add-pengguna'),
+            createTag: (params) => {
+                return {
+                    id: params.term,
+                    text: params.term,
+                    newTag: true
+                };
+            },
+            ajax: {
+                url: `${base_url}/api/v1/pengguna/getDivisi`,
+                dataType: 'json',
+                delay: 250,
+                type: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${bearer}`,
+                    'Content-Type': 'application/json'
+                },
+                data: params => {
+                    return {
+                        name_divisi: params.term
+                    }
+                },
+                processResults: (data) => {
+                    return {
+                        results: $.map(data.data, function (item) {
+                            return {
+                                text: item.name,
+                                id: item.divisi_hash
+                            }
+                        })
+                    };
+                }
+            }
+        });
+    });
+</script>

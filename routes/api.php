@@ -165,6 +165,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', 'action');
         Route::get('/getPengguna', 'getPengguna');
         Route::get('/getDataById/{id}', 'getDataById');
+        Route::get('/getDivisi', 'getDivisi');
+        Route::get('/getRadiasi', 'getRadiasi');
         Route::delete('/destroy/{id}', 'destroy');
     });
 });

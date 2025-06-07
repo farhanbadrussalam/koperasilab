@@ -159,13 +159,13 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'satuankerja_id' => $request->satuanKerja,
         ];
 
         foreach ($request->satuanKerja as $key => $value) {
             $paramsUser['satuankerja_id'][] = (int) decryptor($value);
         }
 
+        $role = $request->role; // json
         if (in_array('Staff LHU', $role)) {
             $paramsUser['jobs'] = array_map(function($item) {
                 return (int) decryptor($item);
@@ -174,25 +174,15 @@ class UserController extends Controller
 
         $user = User::factory()->create($paramsUser);
 
-        $role = $request->role; // json
         foreach ($role as $key => $value) {
             $user->assignRole($value);
         }
 
         if($user){
-            if($request->file('avatar')){
-                $image = $request->file('avatar');
-
-                $filename = 'avatar_'.md5($user->id).'.'.$image->getClientOriginalExtension();
-
-                $path = $image->storeAs('public/images/avatar', $filename);
-            }else{
-                $filename = '';
-            }
 
             $profile = Profile::create([
                 'user_id' => $user->id,
-                'avatar' => $filename,
+                'avatar' => null,
                 'nik' => $request->nik,
                 'no_hp' => $request->no_telepon,
                 'jenis_kelamin' => $request->jenis_kelamin,
@@ -269,7 +259,8 @@ class UserController extends Controller
         $role = $request->role;
 
         $d_user->name = $request->name;
-        (count($d_user->getRoleNames()) != 0) ? $d_user->removeRole($d_user->getRoleNames()[0]) : false;
+
+        $d_user->roles()->detach();
 
         foreach($role as $key => $value){
             $d_user->assignRole($value);

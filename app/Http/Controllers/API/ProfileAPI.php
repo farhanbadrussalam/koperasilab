@@ -241,7 +241,7 @@ class ProfileAPI extends Controller
         try {
             $query = Perusahaan::with('users')->when($search, function($q, $search){
                 return $q->where('nama_perusahaan', 'like', "%$search%");
-            });
+            })->orderBy('id_perusahaan', 'desc');
 
             if($limit){
                 $data = $query->offset(($page - 1) * $limit)->limit($limit)->paginate($limit);

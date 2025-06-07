@@ -58,8 +58,8 @@ function loadData(page = 1) {
                         <div class="col-12 col-md-8">
                             <div class="title"><span class="fw-bold">(${perusahaan.kode_perusahaan ?? '<span class="text-danger">Belum memiliki kode</span>'})</span> ${perusahaan.nama_perusahaan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>NPWP : ${perusahaan.npwp_perusahaan}</div>
-                                <div>E-mail : ${perusahaan.email}</div>
+                                <div>NPWP : ${perusahaan.npwp_perusahaan ?? '-'}</div>
+                                <div>E-mail : ${perusahaan.email ?? '-'}</div>
                             </small>
                         </div>
                         <div class="col-6 col-md-2 text-center ms-auto">

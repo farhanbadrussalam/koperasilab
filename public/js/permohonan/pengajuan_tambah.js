@@ -49,32 +49,6 @@ $(function () {
         });
     });
 
-    modalJenisRadiasi.select2({
-        theme: "bootstrap-5",
-        tags: true,
-        placeholder: "Pilih Jenis Radiasi",
-        dropdownParent: $('#modal-add-pengguna'),
-        createTag: (params) => {
-            return {
-                id: params.term,
-                text: params.term,
-                newTag: true
-            };
-        }
-    });
-    $('#divisi_pengguna').select2({
-        theme: "bootstrap-5",
-        tags: true,
-        placeholder: "Pilih Divisi",
-        dropdownParent: $('#modal-add-pengguna'),
-        createTag: (params) => {
-            return {
-                id: params.term,
-                text: params.term,
-                newTag: true
-            };
-        }
-    });
     setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
 
     resetForm();

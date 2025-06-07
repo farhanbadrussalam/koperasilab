@@ -14,7 +14,7 @@
             <div class="d-flex justify-content-center align-items-center flex-fill">
                 <div class="text-center border rounded-4 shadow p-4">
                     <h4 class="mt-2"><b>NuklindoLab</b> Koperasi JKRL</h4>
-                    <div class="text-grey">You need to be logged in to access</div>
+                    <div class="text-grey">Anda perlu login untuk mengakses</div>
                     <form action="{{ route('login') }}" method="post">
                         @csrf
                         <div class="mb-3 text-start">
@@ -29,7 +29,7 @@
                                     id="email"
                                     name="email"
                                     value="{{ old('email') }}"
-                                    placeholder="Email" autofocus />
+                                    placeholder="E-mail" autofocus />
                             </div>
                             @error('email')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -47,7 +47,7 @@
                                     type="password"
                                     name="password"
                                     value="{{ old('password') ?? '' }}"
-                                    placeholder="Enter your password" />
+                                    placeholder="Masukkan kata sandi Anda" />
                                 <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1" onclick="showPassword(this)">
                                     <i class="bi bi-eye"></i>
                                 </div>
@@ -65,14 +65,14 @@
                                 </span>
                             @endif
                         </div>
-                            <button class="btn btn-primary" style="width: 360px;" type="submit">Login</button>
+                            <button class="btn btn-primary" style="width: 360px;" type="submit">Masuk</button>
                         <div class="social-auth-links text-center mt-2 mb-3">
                             <a href="{{ route('google.redirect') }}" class="btn btn-block btn-danger">
-                                <i class="bi bi-google"></i> Sign in using Google
+                                <i class="bi bi-google"></i> Masuk menggunakan Google
                             </a>
                         </div>
                         <div class="text-center">
-                            <a href="{{ route('register') }}" class="text-center">Register a new akun</a>
+                            <a href="{{ route('register') }}" class="text-center">Daftar akun baru</a>
                         </div>
                     </form>
                 </div>
