@@ -14,6 +14,7 @@ class Master_layanan_jasa extends Model
     protected $fillable = [
         'nama_layanan',
         'status',
+        'satuankerja_id',
         'jobs',
         'created_by',
     ];
@@ -28,6 +29,7 @@ class Master_layanan_jasa extends Model
         'status' => 'integer',
         'id_layanan' => 'integer',
         'created_by' => 'integer',
+        'satuankerja_id' => 'integer'
     ];
 
     protected $appends = [

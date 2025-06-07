@@ -6,7 +6,7 @@ $(function () {
     // Mengambil periode
     let arrPeriode = dataPenyelia.permohonan.kontrak?.periode ?? dataPenyelia.permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
     let findPeriode = arrPeriode.find(d => d.periode == dataPenyelia.periode);
-    
+
     if(findPeriode.periode == 0){
         $('#periodePermohonan').html(`Zero cek`);
     }else{
@@ -29,7 +29,7 @@ $(function () {
                 $('#date_end').val('');
                 $('#date_end').removeClass('bg-secondary-subtle');
                 $('#date_end').attr('readonly', false);
-    
+
                 $('#date_end').flatpickr({
                     altInput: true,
                     locale: "id",
@@ -39,7 +39,7 @@ $(function () {
                 })
             }
         });
-    
+
         if(dataPenyelia.end_date){
             $('#date_end').flatpickr({
                 altInput: true,
@@ -68,7 +68,7 @@ $(function () {
     }));
 
     loadPetugas();
-    
+
     listJobs.forEach((d, i) => {
         d.order = i + 1;
     });
@@ -118,16 +118,16 @@ function searchPetugasList(search = '') {
             width: '40px',
             height: '40px'
         });
-        
+
         ajaxGet(`api/v1/petugas/list`, {idJobs : idJobs, search : search}, result => {
             const data = result.data;
             let html = '';
             for (const petugas of data) {
                 html += `
-                    <div class="border-bottom py-1 d-flex justify-content-between px-2 hover-1 rounded">
-                        <div>
-                            <span class="fw-medium">${petugas.name}</span>
-                            <span class="text-secondary"> - ${petugas.email}</span>
+                    <div class="border-bottom py-1 d-flex justify-content-between px-2 hover-1 rounded align-items-center">
+                        <div class="text-start">
+                            <div class="fw-medium">${petugas.name}</div>
+                            <div class="text-secondary">${petugas.email}</div>
                         </div>
                         <div class="text-success cursoron" data-isParalel="${isParalel}" data-idjobs="${idJobs}" data-name="${petugas.name}" data-email="${petugas.email}" data-index="${index}" onclick="pilihPetugas(this,'${petugas.user_hash}')"><i class="bi bi-person-check"></i> Pilih</div>
                     </div>
@@ -143,7 +143,7 @@ function searchPetugasList(search = '') {
                     </div>
                 `;
             }
-    
+
             $('#modal-list-petugas').html(html);
         })
     }
@@ -154,7 +154,7 @@ function pilihPetugas(obj,idPetugas){
     const name = $(obj).data('name');
     const email = $(obj).data('email');
     const isParalel = $(obj).data('isparalel');
-    
+
     // Tambah data ke arrJobs
     let tmp = {
         idJobs: idJobs,
@@ -169,7 +169,7 @@ function pilihPetugas(obj,idPetugas){
 
     // Pastikan arrJobs[index] adalah array
     // arrJobs[idJobs] = arrJobs[idJobs] || [];
-    
+
 
     // Cek apakah idPetugas sudah ada
     const isDuplicate = arrJobs.some(job => job.idPetugas === idPetugas && job.idJobs === idJobs);
@@ -194,13 +194,13 @@ function loadPetugas() {
         const idElement = $(this).attr('id'); // Mendapatkan ID elemen
         const idJobs = idElement.replace('list-petugas-', ''); // Mendapatkan angka ID
         const arrPetugas = arrJobs.filter(job => job.idJobs == idJobs); // Mencari data sesuai ID
-        
+
         if (arrPetugas.length > 0) {
             // Jika ada data untuk elemen ini
             let html = '';
             for (const petugas of arrPetugas) {
-                let btnRemove = !['verif', 'show'].includes(typeSurat) 
-                    ? `<div class="text-danger cursoron" onclick="removePetugas(${arrJobs.indexOf(petugas)})"><i class="bi bi-person-fill-dash"></i> Hapus</div>` 
+                let btnRemove = !['verif', 'show'].includes(typeSurat)
+                    ? `<div class="text-danger cursoron" onclick="removePetugas(${arrJobs.indexOf(petugas)})"><i class="bi bi-person-fill-dash"></i> Hapus</div>`
                     : '';
                 html += `
                     <div class="border-bottom py-1 d-flex justify-content-between px-1">
@@ -305,11 +305,11 @@ function saveSuratTugas(obj){
                         // spinner('hide', $(obj));
                     });
                 }
-        
+
             }, error => {
                 spinner('hide', $(obj));
             });
         }
     });
-    
+
 }

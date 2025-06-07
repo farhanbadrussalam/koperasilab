@@ -211,14 +211,17 @@
                 </li>
                 @endif
 
+                @can('Manager/keuangan')
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'manager-pengajuan' ? 'active' : '' }}"
+                        href="{{ route('manager.pengajuan') }}" aria-expanded="false">
+                        <i class="bi bi-file-earmark-ruled"></i>
+                        <span class="hide-menu">Invoice</span>
+                        </a>
+                    </li>
+                @endcan
+
                 @can('Manager/pengajuan')
-                <li class="sidebar-item">
-                    <a class="sidebar-link {{ $module == 'manager-pengajuan' ? 'active' : '' }}"
-                    href="{{ route('manager.pengajuan') }}" aria-expanded="false">
-                    <i class="bi bi-file-earmark-ruled"></i>
-                    <span class="hide-menu">Invoice</span>
-                    </a>
-                </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'manager-suratTugas' ? 'active' : '' }}"
                     href="{{ route('manager.surat_tugas') }}" aria-expanded="false">

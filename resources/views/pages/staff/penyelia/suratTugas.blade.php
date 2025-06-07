@@ -53,15 +53,15 @@
                 </div>
                 <div class="col-md-6 col-12 mb-4">
                     <label for="" class="fw-bolder">Tanggal Selesai<span class="text-danger ms-1">*</span></label>
-                    <input type="text" name="date_end" id="date_end" 
-                        class="form-control {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? "bg-secondary-subtle" : '') : "bg-secondary-subtle" }}" 
+                    <input type="text" name="date_end" id="date_end"
+                        class="form-control {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? "bg-secondary-subtle" : '') : "bg-secondary-subtle" }}"
                         value="{{ $penyelia->end_date ? (in_array($type, ['verif', 'show']) ? convert_date($penyelia->end_date, 2) : $penyelia->end_date) : '' }}" {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? "readonly" : '') : "readonly" }} >
                 </div>
                 {{-- Load list jobs --}}
                 <ul id="sortJobs">
                     @foreach ($jobs as $job)
                     <li class="col-12" data-idjobs="{{ $job->jobs_hash }}">
-                        <div class="card shadow-sm border border-1 rounded-4 mb-2">
+                        <div class="card shadow-sm border-1 rounded-4 mb-2">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div class="fw-bolder">@if (!in_array($type, ['verif', 'show']))
@@ -87,7 +87,7 @@
                 <ul id="sortJobsParalel">
                     @foreach ($jobsParalel as $job)
                     <li class="col-12" data-idjobs="{{ $job->jobs_hash }}">
-                        <div class="card shadow-sm border border-1 rounded-4 mb-2">
+                        <div class="card shadow-sm border-1 rounded-4 mb-2">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
                                     <div class="fw-bolder">
@@ -110,7 +110,7 @@
                     </li>
                     @endforeach
                 </ul>
-                
+
                 @if (($type == 'show' && $penyelia->ttd) || ($type == 'verif'))
                 <div class="col-md-12 d-flex justify-content-center">
                     <div class="wrapper" id="content-ttd-1"></div>
@@ -134,13 +134,6 @@
                 <div class="modal-body">
                     <input type="text" class="form-control w-100" id="searchPetugas" placeholder="Pencarian petugas">
                     <div class="pt-3 text-center overflow-auto" id="modal-list-petugas" style="height: 30vh;">
-                        <div class="border-bottom py-1 d-flex justify-content-between px-2 hover-1 rounded">
-                            <div>
-                                <span class="fw-medium">Ray Clarke</span>
-                                <span class="text-secondary">ray.c@acke.com</span>
-                            </div>
-                            <div class="text-success cursoron"><i class="bi bi-person-check"></i> Pilih</div>
-                        </div>
                     </div>
                 </div>
             </div>

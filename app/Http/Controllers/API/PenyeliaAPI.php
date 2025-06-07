@@ -444,9 +444,14 @@ class PenyeliaAPI extends Controller
                 }
                 $status = $tmpArr;
                 $userId = Auth::user()->id;
+            } else {
+                if(Auth::user()->hasRole('Staff LHU') && !Auth::user()->hasRole('Staff Penyelia')) {
+                    $status = [99];
+                }
             }
         }
 
+        $user = Auth::user();
         DB::beginTransaction();
         try {
             $query = Penyelia::with(
@@ -467,8 +472,6 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak.periode',
                 'permohonan.periodenow',
             )
-            ->orderBy('id_penyelia','DESC')
-            ->offset(($page - 1) * $limit)
             ->when($status, function($q, $status) use ($typePencarian) {
                 if($typePencarian == 'not'){
                     return $q->whereNotIn('status', $status);
@@ -507,11 +510,15 @@ class PenyeliaAPI extends Controller
                 }
             })
             ->when($userId, function($q, $userId) {
-                return $q->whereHas('petugas', function ($query) use ($userId) {
-                    return $query->where('id_user', $userId);
+                return $q->whereHas('petugas', function ($p) use ($userId) {
+                    return $p->where('id_user', $userId);
                 });
             })
-
+            ->whereHas('permohonan.layanan_jasa', function ($q) {
+                return $q->whereIn('satuankerja_id', Auth::user()->satuankerja_id);
+            })
+            ->orderBy('id_penyelia','DESC')
+            ->offset(($page - 1) * $limit)
             ->limit($limit)
             ->paginate($limit);
 

@@ -42,13 +42,11 @@
                 <div class="col-12">
                     <label for="divisi_pengguna" class="col-form-label">Divisi Pengguna</label>
                     <select name="divisi_pengguna" id="divisi_pengguna" class="form-select">
-                        <option value=""></option>
                     </select>
                 </div>
                 <div class="col-12">
                     <label for="jenis_radiasi" class="col-form-label">Jenis/Energi Radiasi</label>
                     <select name="jenis_radiasi" id="jenis_radiasi" class="form-select" multiple="multiple">
-                        <option value=""></option>
                     </select>
                 </div>
                 <div>
@@ -145,6 +143,35 @@
                     };
                 }
             }
+        });
+
+        $('#is_aktif').on('change', obj => {
+            if ($(obj.target).is(':checked')) {
+                $('#kode_lencana').val('');
+                $('#kode_lencana').attr('readonly', true);
+                $('#kode_lencana').attr('placeholder', 'Auto Generate');
+                $('#kode_lencana').addClass('bg-secondary-subtle');
+            } else {
+                $('#kode_lencana').attr('readonly', false);
+                $('#kode_lencana').attr('placeholder', '');
+                $('#kode_lencana').removeClass('bg-secondary-subtle');
+            }
+        });
+
+        $('#modal-add-pengguna').on('hidden.bs.modal', event => {
+            $('#nik_pengguna').val('');
+            $('#nama_pengguna').val('');
+            $('#jenis_radiasi').val(null).trigger('change');
+            $('#divisi_pengguna').val(null).trigger('change');
+            $('#jenis_kelamin').val('');
+            $('#tanggal_lahir').val('');
+            $('#tempat_lahir').val('');
+            $('#is_aktif').prop('checked', false);
+            $('#kode_lencana').attr('readonly', false);
+            $('#kode_lencana').attr('placeholder', '');
+            $('#kode_lencana').removeClass('bg-secondary-subtle');
+            $('#kode_lencana').val('');
+            setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
         });
     });
 </script>

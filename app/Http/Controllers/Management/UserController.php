@@ -16,6 +16,7 @@ use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use DataTables;
+use Auth;
 use DB;
 
 class UserController extends Controller
@@ -39,8 +40,14 @@ class UserController extends Controller
     public function getData(){
         $query = User::orderBy('id', 'desc');
 
-        if(request()->has('satuan_kerja') && request()->satuan_kerja != null){
-            $query->whereIn('satuankerja_id', (int) decryptor(request()->satuan_kerja));
+        $user = Auth::user();
+
+        if(!is_array($user->satuankerja_id)){
+            $user->satuankerja_id = [$user->satuankerja_id];
+        }
+
+        if(!$user->hasRole('Super Admin')){
+            $query->whereJsonContains('satuankerja_id', $user->satuankerja_id);
         }
 
         if(request()->has('role') && request()->role != null){
@@ -244,7 +251,6 @@ class UserController extends Controller
         $arrValidator = [
             'name' => ['required', 'string', 'max:255'],
             'nik' => ['required'],
-            'no_telepon' => ['required'],
             'jenis_kelamin' => ['required'],
             'email' => ['required', 'string', 'email', 'max:255'],
             'satuanKerja' => ['required'],

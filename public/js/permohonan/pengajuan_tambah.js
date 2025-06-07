@@ -367,19 +367,6 @@ $(function () {
         enableTime: false,
         dateFormat: "Y-m-d"
     });
-
-    $('#is_aktif').on('change', obj => {
-        if ($(obj.target).is(':checked')) {
-            $('#kode_lencana').val('');
-            $('#kode_lencana').attr('readonly', true);
-            $('#kode_lencana').attr('placeholder', 'Auto Generate');
-            $('#kode_lencana').addClass('bg-secondary-subtle');
-        } else {
-            $('#kode_lencana').attr('readonly', false);
-            $('#kode_lencana').attr('placeholder', '');
-            $('#kode_lencana').removeClass('bg-secondary-subtle');
-        }
-    });
 })
 // js add periode
 let getPeriode = $('#periode-pemakaian').attr('data-periode');

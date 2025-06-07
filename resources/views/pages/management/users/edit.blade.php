@@ -57,7 +57,7 @@
                                 @enderror
                             </div>
                             <div class="col-md-6 mb-2">
-                                <label for="inputNoHp" class="form-label">Nomer Telepon <span class="fw-bold fs-14 text-danger">*</span></label>
+                                <label for="inputNoHp" class="form-label">Nomer Telepon</label>
                                 <input type="text" name="no_telepon" id="inputNoHp" class="form-control maskTelepon @error('no_telepon') is-invalid @enderror" value="{{ old('no_telepon') ? old('no_telepon') : ($d_user->profile ? $d_user->profile->no_hp : '') }}">
                                 @error('no_telepon')
                                     <span class="invalid-feedback" role="alert">
@@ -107,7 +107,7 @@
                             </div>
                             <div class="col-md-12 mb-2 d-none" id="tugas_lhu">
                                 <label for="inputTugasLhu" class="form-label">Tugas LHU <span class="fw-bold fs-14 text-danger">*</span></label>
-                                <select name="tugas_lhu[]" id="inputTugasLhu" class="form-control @error('tugas_lhu') is-invalid @enderror" value="{{ old('tugas_lhu') }}" multiple="multiple">
+                                <select name="tugas_lhu[]" id="inputTugasLhu" class="form-control @error('tugas_lhu') is-invalid @enderror" multiple="multiple">
                                     @foreach ($jobs as $value)
                                         <option value="{{ $value->jobs_hash }}">{{ $value->name }}</option>
                                     @endforeach

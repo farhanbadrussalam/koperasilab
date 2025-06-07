@@ -54,9 +54,11 @@ class StaffController extends Controller
     {
         $userJobs = Auth::user()->jobs;
         $listJobs = array();
-        foreach ($userJobs as $key => $value) {
-            $dataJobs = Master_jobs::find($value);
-            array_push($listJobs, $dataJobs->jobs_hash);
+        if($userJobs != null){
+            foreach ($userJobs as $key => $value) {
+                $dataJobs = Master_jobs::find($value);
+                array_push($listJobs, $dataJobs->jobs_hash);
+            }
         }
 
         $data = [
