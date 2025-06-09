@@ -44,4 +44,8 @@ class Master_layanan_jasa extends Model
     public function jobs_pelaksana(){
         return $this->hasMany(Master_jobs::class, 'id_layanan', 'id_layanan');
     }
+
+    public function satuankerja(){
+        return $this->belongsTo(Satuan_kerja::class, 'satuankerja_id', 'id');
+    }
 }

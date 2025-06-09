@@ -422,13 +422,11 @@ if (!function_exists('generateNoDokumen')) {
                 break;
             case 'surattugas':
                 // mengambil satuan kerja
-                $satuankerja = Penyelia::select('satuankerja.alias')
-                ->join('users', 'users.id', '=', 'penyelia.created_by')
-                ->join('satuankerja', 'satuankerja.id', '=', 'users.satuankerja_id')
+                $satuankerja = Penyelia::with('permohonan', 'permohonan.layanan_jasa', 'permohonan.layanan_jasa.satuankerja')
                 ->where('penyelia.id_penyelia', $id)
                 ->first();
 
-                $noKontrak = "{$increment}/NL-{$satuankerja->alias}/{$romawiBulan}/{$tahunSekarang}";
+                $noKontrak = "{$increment}/NL-{$satuankerja->permohonan->layanan_jasa->satuankerja->alias}/{$romawiBulan}/{$tahunSekarang}";
                 break;
             case 'surpeng':
                 // Format nomor kontrak

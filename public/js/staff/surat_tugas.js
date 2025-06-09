@@ -119,7 +119,7 @@ function searchPetugasList(search = '') {
             height: '40px'
         });
 
-        ajaxGet(`api/v1/petugas/list`, {idJobs : idJobs, search : search}, result => {
+        ajaxGet(`api/v1/petugas/list`, {idJobs : idJobs, search : search, idPenyelia: idPenyelia}, result => {
             const data = result.data;
             let html = '';
             for (const petugas of data) {

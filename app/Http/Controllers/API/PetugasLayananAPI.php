@@ -4,10 +4,13 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+
 use App\Models\Petugas_layanan;
 use App\Models\Jadwal_petugas;
 use App\Models\jadwal;
 use App\Models\User;
+use App\Models\Penyelia;
+
 use App\Traits\RestApi;
 
 use DB;
@@ -21,15 +24,20 @@ class PetugasLayananAPI extends Controller
     // NEW API
     public function listPetugas(Request $request)
     {
-        $idJobs = isset($request->idJobs) ? decryptor($request->idJobs) : false;
-        $search = $request->search ? $request->search : false;
         DB::beginTransaction();
         try {
+            $idJobs = isset($request->idJobs) ? decryptor($request->idJobs) : false;
+            $search = $request->search ? $request->search : false;
+            $idPenyelia = $request->idPenyelia ? decryptor($request->idPenyelia) : false;
+
+            $penyelia = Penyelia::with('permohonan', 'permohonan.layanan_jasa')->find($idPenyelia);
+
             $query = User::select('id','name', 'email')
                     ->whereRaw('JSON_CONTAINS(jobs, ?)', [$idJobs])
                     ->when($search, function($query, $search){
                         return $query->where('name', 'like', "%$search%");
                     })
+                    ->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(String) $penyelia->permohonan->layanan_jasa->satuankerja_id])
                     ->get();
             DB::commit();
 
@@ -39,7 +47,7 @@ class PetugasLayananAPI extends Controller
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
-        
+
     }
 
     // OLD API
