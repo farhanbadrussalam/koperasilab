@@ -5,56 +5,56 @@
                 <h1 class="modal-title fs-5" id="exampleModalLabel">Tambahkan pengguna</h1>
                 <button type="button" class="btn-close" id="btn-close-pengguna" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body g-2 row">
-                <div class="col-4">
-                    <label for="nik_pengguna" class="col-form-label">NIK</label>
-                    <input type="text" name="nik_pengguna" id="nik_pengguna" class="form-control maskNIK">
-                </div>
-                <div class="col-4">
-                    <label for="kode_lencana" class="col-form-label">Kode Lencana</label>
-                    <div class="input-group">
-                        <input type="text" name="kode_lencana" id="kode_lencana" class="form-control maskNumber">
-                        <div class="input-group-text">
-                            <input type="checkbox" name="is_aktif" id="is_aktif" class="form-check-input mt-0">
+            <div class="modal-body g-2">
+                <form id="form-tambah-pengguna" class="row">
+                    <div class="col-4">
+                        <label for="nik_pengguna" class="col-form-label">NIK <span class="text-danger ms-1">*</span></label>
+                        <input type="text" name="nik_pengguna" id="nik_pengguna" class="form-control maskNIK" data-parsley-required="true">
+                    </div>
+                    <div class="col-4">
+                        <label for="kode_lencana" class="col-form-label">Kode Lencana <span class="text-danger ms-1">*</span></label>
+                        <div class="input-group">
+                            <input type="text" name="kode_lencana" id="kode_lencana" class="form-control maskNumber" data-parsley-required="true">
+                            <div class="input-group-text rounded-end">
+                                <input type="checkbox" name="is_aktif" id="is_aktif" class="form-check-input mt-0">
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-4">
-                    <label for="nama_pengguna" class="col-form-label">Nama Pengguna</label>
-                    <input type="text" name="nama_pengguna" id="nama_pengguna" class="form-control">
-                </div>
-                <div class="col-4">
-                    <label for="tanggal_lahir" class="col-form-label">Tanggal Lahir</label>
-                    <input type="date" name="tanggal_lahir" id="tanggal_lahir" class="form-control">
-                </div>
-                <div class="col-4">
-                    <label for="tempat_lahir" class="col-form-label">Tempat Lahir</label>
-                    <input type="text" name="tempat_lahir" id="tempat_lahir" class="form-control">
-                </div>
-                <div class="col-4">
-                    <label for="jenis_kelamin" class="col-form-label">Jenis Kelamin</label>
-                    <select name="jenis_kelamin" id="jenis_kelamin" class="form-select">
-                        <option value=""></option>
-                        <option value="laki-laki">Laki laki</option>
-                        <option value="perempuan">Perempuan</option>
-                    </select>
-                </div>
-                <div class="col-12">
-                    <label for="divisi_pengguna" class="col-form-label">Divisi Pengguna</label>
-                    <select name="divisi_pengguna" id="divisi_pengguna" class="form-select">
-                    </select>
-                </div>
-                <div class="col-12">
-                    <label for="jenis_radiasi" class="col-form-label">Jenis/Energi Radiasi</label>
-                    <select name="jenis_radiasi" id="jenis_radiasi" class="form-select" multiple="multiple">
-                    </select>
-                </div>
-                <div>
-                    <label for="upload_ktp" class="col-form-label">Upload KTP</label>
-                    <div class="card mb-0" style="height: 150px;">
-                        <input type="file" name="dokumen" id="uploadKtpPengguna" accept="image/*" class="form-control dropify">
+                    <div class="col-4">
+                        <label for="nama_pengguna" class="col-form-label">Nama Pengguna <span class="text-danger ms-1">*</span></label>
+                        <input type="text" name="nama_pengguna" id="nama_pengguna" class="form-control" data-parsley-required="true">
                     </div>
-                </div>
+                    <div class="col-4">
+                        <label for="tanggal_lahir" class="col-form-label">Tanggal Lahir</label>
+                        <input type="date" name="tanggal_lahir" id="tanggal_lahir" class="form-control">
+                    </div>
+                    <div class="col-4">
+                        <label for="tempat_lahir" class="col-form-label">Tempat Lahir</label>
+                        <input type="text" name="tempat_lahir" id="tempat_lahir" class="form-control">
+                    </div>
+                    <div class="col-4">
+                        <label for="jenis_kelamin" class="col-form-label">Jenis Kelamin <span class="text-danger ms-1">*</span></label>
+                        <select name="jenis_kelamin" id="jenis_kelamin" class="form-select" data-parsley-required="true">
+                            <option value=""></option>
+                            <option value="laki-laki">Laki laki</option>
+                            <option value="perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label for="divisi_pengguna" class="col-form-label">Divisi Pengguna</label>
+                        <select name="divisi_pengguna" id="divisi_pengguna" class="form-select"></select>
+                    </div>
+                    <div class="col-12">
+                        <label for="jenis_radiasi" class="col-form-label">Jenis/Energi Radiasi</label>
+                        <select name="jenis_radiasi" id="jenis_radiasi" class="form-select" multiple="multiple"></select>
+                    </div>
+                    <div>
+                        <label for="upload_ktp" class="col-form-label">Upload KTP <span class="text-danger ms-1">*</span></label>
+                        <div class="card mb-0" style="height: 150px;">
+                            <input type="file" name="dokumen" id="uploadKtpPengguna" accept="image/*" class="form-control dropify">
+                        </div>
+                    </div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -64,7 +64,9 @@
     </div>
 </div>
 <script>
+    let formValidate = false;
     $(function () {
+        formValidate = new FormValidation('form-tambah-pengguna');
 
         // set Select2
         $('#jenis_radiasi').select2({
@@ -151,14 +153,17 @@
                 $('#kode_lencana').attr('readonly', true);
                 $('#kode_lencana').attr('placeholder', 'Auto Generate');
                 $('#kode_lencana').addClass('bg-secondary-subtle');
+                $('#kode_lencana').attr('data-parsley-required', 'false');
             } else {
                 $('#kode_lencana').attr('readonly', false);
                 $('#kode_lencana').attr('placeholder', '');
                 $('#kode_lencana').removeClass('bg-secondary-subtle');
+                $('#kode_lencana').attr('data-parsley-required', 'true');
             }
         });
 
         $('#modal-add-pengguna').on('hidden.bs.modal', event => {
+            formValidate.reset();
             $('#nik_pengguna').val('');
             $('#nama_pengguna').val('');
             $('#jenis_radiasi').val(null).trigger('change');

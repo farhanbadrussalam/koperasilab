@@ -300,6 +300,20 @@ $(function () {
 
     $('#btn-tambah-pengguna').on('click', obj => {
         spinner('show', obj.target);
+        if(!formValidate.validate()){
+            return spinner('hide', obj.target);
+        }
+
+        // cek dropify ada gambar
+        if(!$('#uploadKtpPengguna').val()){
+            Swal.fire({
+                icon: 'warning',
+                title: 'Oops...',
+                text: 'Data berikut masih kosong: KTP Pengguna'
+            })
+            return spinner('hide', obj.target);
+        }
+
         const namaPengguna = modalNamaPengguna.val();
         const divisiPengguna = $('#divisi_pengguna').val();
         const jenisRadiasi = modalJenisRadiasi.val();

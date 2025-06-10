@@ -55,8 +55,12 @@
     {{-- Magnific Popup --}}
     <link rel="stylesheet" href="{{ asset('vendor/magnific/magnific-popup.css') }}">
     <script src="{{ asset('vendor/magnific/jquery.magnific-popup.min.js') }}"></script>
+    {{-- Parsley --}}
+    <script src="{{ asset('vendor/parsley/parsley.min.js') }}"></script>
+    <script src="{{ asset('vendor/parsley/setting.js') }}"></script>
 
     {{-- PeriodeJs --}}
+    <script src="{{ asset('js/validation.js') }}"></script>
     <script src="{{ asset('js/periode.js') }}"></script>
     <script src="{{ asset('js/invoice.js') }}"></script>
     <script src="{{ asset('js/detail.js') }}"></script>

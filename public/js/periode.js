@@ -253,7 +253,7 @@ class Periode {
 
                     if (dateStr) {
                         let nextDate = new Date(dateStr);
-                        nextDate.setMonth(nextDate.getMonth() + 2);
+                        nextDate.setMonth(nextDate.getMonth() + 3);
                         // Set tanggal ke 0 untuk mendapatkan hari terakhir bulan yang baru
                         nextDate.setDate(0);
 

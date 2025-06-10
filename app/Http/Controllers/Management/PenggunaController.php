@@ -47,7 +47,8 @@ class PenggunaController extends Controller
                         if(Auth::user()->hasRole('Pelanggan')){
                             $q->where('id_perusahaan', Auth::user()->id_perusahaan);
                         }
-                    });
+                    })
+                    ->orderBy('id_pengguna', 'desc');
 
         $type = $request->has('type') ? $request->type : false;
 
@@ -100,7 +101,9 @@ class PenggunaController extends Controller
                 if ($type == 'selected') {
                     $btn .= '<button class="btn btn-sm btn-outline-primary" data-id="' . $row->pengguna_hash . '" onclick="btnPilih(this)"><i class="bi bi-check"></i> Pilih</button>' ;
                 } else {
-                    $btn .= '<button class="btn btn-sm btn-outline-danger" data-id="' . $row->pengguna_hash . '" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>';
+                    if($row->status == 1){
+                        $btn .= '<button class="btn btn-sm btn-outline-danger" data-id="' . $row->pengguna_hash . '" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>';
+                    }
                 }
 
                 $btn .= '</div>';

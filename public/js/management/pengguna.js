@@ -53,6 +53,20 @@ $(function () {
     // Event
     $('#btn-tambah-pengguna').on('click', obj => {
         spinner('show', obj.target);
+        if(!formValidate.validate()){
+            return spinner('hide', obj.target);
+        }
+
+        // cek dropify ada gambar
+        if(!$('#uploadKtpPengguna').val()){
+            Swal.fire({
+                icon: 'warning',
+                title: 'Oops...',
+                text: 'Data berikut masih kosong: KTP Pengguna'
+            })
+            return spinner('hide', obj.target);
+        }
+
         const namaPengguna = $('#nama_pengguna').val();
         const divisiPengguna = $('#divisi_pengguna').val();
         const jenisRadiasi = $('#jenis_radiasi').val();
@@ -95,24 +109,6 @@ $(function () {
             spinner('hide', obj.target);
         })
     });
-
-    $('#modal-add-pengguna').on('hidden.bs.modal', event => {
-        resetForm();
-        setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
-    });
-
-    $('#is_aktif').on('change', obj => {
-        if ($(obj.target).is(':checked')) {
-            $('#kode_lencana').val('');
-            $('#kode_lencana').attr('readonly', true);
-            $('#kode_lencana').attr('placeholder', 'Auto Generate');
-            $('#kode_lencana').addClass('bg-secondary-subtle');
-        } else {
-            $('#kode_lencana').attr('readonly', false);
-            $('#kode_lencana').attr('placeholder', '');
-            $('#kode_lencana').removeClass('bg-secondary-subtle');
-        }
-    });
 })
 
 function btnDelete(obj) {
@@ -134,17 +130,4 @@ function btnDelete(obj) {
 
 function reload() {
     datatable_.ajax.reload();
-}
-
-function resetForm() {
-    $('#nama_pengguna').val('');
-    $('#divisi_pengguna').val('').trigger('change');
-    $('#jenis_radiasi').val('').trigger('change');
-    $('#uploadKtpPengguna').val('');
-    $('#nik_pengguna').val('');
-    $('#jenis_kelamin').val('');
-    $('#tanggal_lahir').val('');
-    $('#tempat_lahir').val('');
-    $('#is_aktif').prop('checked', false);
-    $('#kode_lencana').val('');
 }
