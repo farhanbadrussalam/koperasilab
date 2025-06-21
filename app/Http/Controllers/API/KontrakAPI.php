@@ -77,7 +77,8 @@ class KontrakAPI extends Controller
                         }
                     });
 
-            $query = $query->orderBy('created_at', 'desc')
+            $query = $query->orderBy('status', 'asc')
+            ->orderBy('created_at', 'desc')
             ->offset(($page - 1) * $limit)
             ->limit($limit)
             ->paginate($limit);

@@ -33,12 +33,24 @@ class PetugasLayananAPI extends Controller
             $penyelia = Penyelia::with('permohonan', 'permohonan.layanan_jasa')->find($idPenyelia);
 
             $query = User::select('id','name', 'email')
+                    ->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(String) $penyelia->permohonan->layanan_jasa->satuankerja_id])
                     ->whereRaw('JSON_CONTAINS(jobs, ?)', [$idJobs])
                     ->when($search, function($query, $search){
                         return $query->where('name', 'like', "%$search%");
                     })
-                    ->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(String) $penyelia->permohonan->layanan_jasa->satuankerja_id])
                     ->get();
+            if($idJobs == '4') {
+                $queryUserLHU = User::select('id','name', 'email')
+                        ->whereHas('roles', function($query){
+                            $query->where('name', 'Staff Penyelia');
+                        })
+                        ->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(String) $penyelia->permohonan->layanan_jasa->satuankerja_id])
+                        ->when($search, function($query, $search){
+                            return $query->where('name', 'like', "%$search%");
+                        })
+                        ->get();
+                $query = array_merge($query->toArray(), $queryUserLHU->toArray());
+            }
             DB::commit();
 
             return $this->output($query);

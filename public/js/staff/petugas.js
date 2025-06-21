@@ -7,8 +7,7 @@ $(function () {
             url: `${base_url}/management/getData`,
             type: 'GET',
             data: function (d) {
-                d.role = 'Staff LHU';
-                d.satuan_kerja = userActive.satuankerja_hash;
+                d.role = ['Staff LHU', 'Staff Penyelia'];
             }
         },
         columns: [

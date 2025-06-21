@@ -81,6 +81,16 @@
     </div>
 </div>
 <script>
+    @if (session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: '{{ session('error') }}',
+            showConfirmButton: false,
+            timer: 1500
+        })
+    @endif
+
     function showPassword(obj) {
         var x = document.getElementById("input_password");
         if (x.type === "password") {

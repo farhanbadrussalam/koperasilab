@@ -14,7 +14,6 @@ class userPerusahaanController extends Controller
      */
     public function index()
     {
-        $data['token'] = generateToken();
         return view('pages.perusahaan.index', $data);
     }
 
@@ -76,7 +75,7 @@ class userPerusahaanController extends Controller
             $realname =  pathinfo($dokumen->getClientOriginalName(), PATHINFO_FILENAME);
             $filename = 'surat_kuasa_'.$perusahaan->user_id.'_'.md5($realname).'.'.$dokumen->getClientOriginalExtension();
             $path = $dokumen->storeAs('public/dokumen/surat_kuasa', $filename);
-    
+
             $media = tbl_media::create([
                 'file_hash' => $filename,
                 'file_ori' => $dokumen->getClientOriginalName(),

@@ -13,6 +13,19 @@
         <!-- Sidebar navigation-->
         <nav class="sidebar-nav scroll-sidebar shadow-sm" data-simplebar="">
             <ul id="sidebarnav" class="p-0">
+                {{-- kalau role nya bukan pelanggan --}}
+                @if (!Auth::user()->hasRole('Pelanggan'))
+                <li class="nav-small-cap">
+                    <i class="bi bi-list nav-small-cap-icon fs-4"></i>
+                    <span class="hide-menu">Satuan Kerja</span>
+                </li>
+                @endif
+
+                @if(count(Auth::user()->satuankerja) > 0)
+                    @foreach(Auth::user()->satuankerja as $i => $satuan)
+                        <span class="badge text-bg-secondary">{{ $satuan->name }}</span>
+                    @endforeach
+                @endif
                 <!-- MAIN MENU -->
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
@@ -126,7 +139,7 @@
                 {{-- END PERMOHONAN --}}
 
                 {{-- STAFF --}}
-                @if(auth()->user()->hasAnyRole(['Staff Admin', 'Staff keuangan', 'Staff Penyelia', 'Staff LHU', 'Staff Pengiriman']))
+                @if(auth()->user()->hasAnyRole(['Staff Admin', 'Staff keuangan', 'Staff Penyelia', 'Staff LHU']))
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">STAFF</span>
@@ -156,11 +169,15 @@
                 @endcan
 
                 @can('Staff/pengiriman')
+                <li class="nav-small-cap">
+                    <i class="bi bi-list nav-small-cap-icon fs-4"></i>
+                    <span class="hide-menu">PENGIRIMAN</span>
+                </li>
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-pengiriman-permohonan' ? 'active' : '' }}"
                     href="{{ route('staff.pengiriman.permohonan') }}" aria-expanded="false">
                     <span><i class="bi bi-file-earmark-text"></i></span>
-                    <span class="hide-menu">List Permohonan</span>
+                    <span class="hide-menu">Daftar Permohonan</span>
                     </a>
                 </li>
                 <li class="sidebar-item">

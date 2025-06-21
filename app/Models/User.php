@@ -54,13 +54,23 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     protected $appends = [
-        'user_hash'
+        'user_hash',
+        'satuankerja'
     ];
 
     public function getUserHashAttribute()
     {
         return encryptor($this->id);
     }
+
+    public function getSatuankerjaAttribute()
+    {
+        $decodedIds = $this->satuankerja_id;
+        $decodedIds = is_array($decodedIds) ? $decodedIds : [];
+
+        return Satuan_kerja::whereIn('id', $decodedIds)->get();
+    }
+
 
     /**
      * The attributes that should be cast.

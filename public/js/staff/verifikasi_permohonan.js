@@ -249,7 +249,7 @@ function loadTldKontrol(tldKontrol){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
         let htmlDisabled = false;
-        if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
+        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || dataPermohonan.jenis_layanan.name == 'Evaluasi'){
             htmlDisabled = true;
         }
         let index = 0;
@@ -303,7 +303,7 @@ function loadPengguna(tldPengguna){
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         let html = '';
         let htmlDisabled = false;
-        if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
+        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || dataPermohonan.jenis_layanan.name == 'Evaluasi'){
             htmlDisabled = true;
         }
 

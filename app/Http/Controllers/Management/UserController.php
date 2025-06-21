@@ -47,17 +47,21 @@ class UserController extends Controller
         }
 
         if(!$user->hasRole('Super Admin')){
-            $query->whereJsonContains('satuankerja_id', $user->satuankerja_id);
+            foreach ($user->satuankerja_id as $key => $satuanId) {
+                if($key == 0) {
+                    $query->whereJsonContains('satuankerja_id', $satuanId);
+                } else {
+                    $query->orWhereJsonContains('satuankerja_id', $satuanId);
+                }
+            }
         }
 
         if(request()->has('role') && request()->role != null){
-            $query->whereHas('roles', function($q) {
-                $q->where('name', request()->role);
+            $role = request()->role;
+            $query->whereHas('roles', function($q) use ($role){
+                if(is_array($role)) $q->whereIn('name', $role);
+                else $q->where('name', $role);
             });
-        }
-
-        if(request()->has('satuan_kerja') && request()->satuan_kerja != null){
-            $query->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [decryptor(request()->satuan_kerja)]);
         }
 
         return DataTables::of($query)

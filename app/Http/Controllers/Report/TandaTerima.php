@@ -19,7 +19,7 @@ class TandaTerima extends Controller
         $query = Penyelia::with(
             'permohonan',
             'usersig:id,name',
-            'permohonan.jenisTld:id_jenisTld,name', 
+            'permohonan.jenisTld:id_jenisTld,name',
             'permohonan.pelanggan',
             'permohonan.pelanggan.perusahaan',
             'permohonan.kontrak'

@@ -8,22 +8,8 @@
         </div>
         <div class="d-flex pb-4">
             <div class="w-100 d-flex">
-                {{-- <div class="mx-2">
-                    <label for="filterStatusVerif" class="form-label">Status</label>
-                    <select name="statusVerif" id="filterStatusVerif" class="form-select">
-                        <option value="" selected>All</option>
-                        <option value="1">Not verif</option>
-                        <option value="2">Verifikasi</option>
-                    </select>
-                </div>
-                <div class="mx-2">
-                    <label for="filterLab" class="form-label">Lab</label>
-                    <select name="filterLab" id="filterLab" class="form-select">
-                        <option value="" selected>All</option>
-                    </select>
-                </div> --}}
             </div>
-            
+
             <div class="flex-shrink-1">
                 <div class="col-12">
                     <div class="input-group">
@@ -34,23 +20,9 @@
             </div>
         </div>
         <div class="my-3">
-            <div class="header px-3 fw-bolder d-none d-md-flex row">
-                <div class="col-md-3">&nbsp;</div>
-                <div class="col-md-1">&nbsp;</div>
-                <div class="col-md-2">Tujuan</div>
-                <div class="col-md-2 text-center">Status</div>
-                <div class="col-md-2 text-center">Tanggal</div>
-                <div class="col-md-2 text-center">Action</div>
-            </div>
-            <hr>
-            <div class="body-placeholder my-3" id="list-placeholder-pengiriman">
-
-            </div>
-            <div class="body my-3" id="list-container-pengiriman">
-            </div>
-            <div aria-label="Page navigation example" id="list-pagination-pengiriman">
-                    
-            </div>
+            <div class="body-placeholder my-3" id="list-placeholder-pengiriman"></div>
+            <div class="body my-3" id="list-container-pengiriman"></div>
+            <div aria-label="Page navigation example" id="list-pagination-pengiriman"></div>
         </div>
     </div>
 </div>

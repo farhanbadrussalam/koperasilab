@@ -12,7 +12,7 @@ $(function () {
         if(dataKontrak){
             const perusahaan = dataKontrak.pelanggan.perusahaan;
 
-            if(perusahaan.alamat[obj.target.value]){
+            if(perusahaan.alamat[obj.target.value] && perusahaan.alamat[obj.target.value].alamat){
                 $('#txt_alamat').val(perusahaan.alamat[obj.target.value].alamat + ", "+ perusahaan.alamat[obj.target.value].kode_pos);
             }else{
                 $('#txt_alamat').val('');
@@ -32,8 +32,6 @@ function loadTld() {
     let tldPengguna = dataKontrak.rincian_list_tld.filter(tld => tld.pengguna);
     let tldKontrol = dataKontrak.rincian_list_tld.filter(tld => !tld.pengguna);
 
-    console.log(tldPengguna);
-    console.log(tldKontrol);
     loadTldKontrol(tldKontrol);
     loadPengguna(tldPengguna);
 }

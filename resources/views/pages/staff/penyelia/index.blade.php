@@ -16,7 +16,7 @@
                 <div class="card-body">
                     <div class="d-flex">
                         <div class="flex-grow-1">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="reload(1)"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                            <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
                             <button class="btn btn-outline-secondary btn-sm" onclick="clearFilter()">
                                 <i class="bi bi-funnel"></i> Clear Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span>
                             </button>
@@ -86,19 +86,19 @@
                     </div>
                     <span class="fw-bold">Progress</span>
                     <div class="col-sm-12 mb-3 d-flex justify-content-between align-items-center">
-                        <input type="text" class="form-control bg-secondary-subtle" name="prosesNow" id="prosesNow" readonly>
+                        <select name="prosesNow" id="prosesNow" class="form-select">
+                            <option value="">Pilih proses</option>
+                        </select>
                         <span class="mx-2">To</span>
                         <input type="text" class="form-control bg-secondary-subtle" name="prosesNext" id="prosesNext" readonly>
                     </div>
                     <div class="col-sm-12 mb-3">
-                        <label for="inputNote">Note</label>
+                        <label for="inputNote" class="fw-bold">Note<span class="text-danger ms-1">*</span></label>
                         <textarea name="inputNote" id="inputNote" cols="30" rows="5" class="form-control"></textarea>
                     </div>
                     <div id="divUploadDocLhu">
-                        <label for="upload_document" class="col-form-label">Upload Document LHU</label>
-                        <div class="card mb-0" style="height: 150px;">
-                            <input type="file" name="dokumen" id="upload_document" class="form-control dropify">
-                        </div>
+                        <label for="upload_document" class="col-form-label">Upload Document LHU<span class="text-danger ms-1">*</span></label>
+                        <div id="upload_document"></div>
                     </div>
                 </div>
             </div>

@@ -62,7 +62,7 @@ function loadData(page = 1) {
             let arrPeriode = data.periode;
 
             let htmlStatusInvoice = statusFormat('invoice', data.invoice.status);
-            if(data.invoice.status == 3){
+            if(data.invoice.status == 3 && role.includes('Pelanggan')){
                 htmlStatusInvoice = `<a href="${base_url}/permohonan/pembayaran/bayar/${data.invoice.keuangan_hash}">${htmlStatusInvoice}</a>`;
             }
 
@@ -91,11 +91,11 @@ function loadData(page = 1) {
             let cekStatusPeriode = [];
             let arrFind = ['invoice','tld'];
 
-            if([2,3,5,6].includes(Number(dataKontrak[i].jenis_layanan_2))){
+            if([2,3,5,6].includes(Number(data.jenis_layanan_2))){
                 arrFind.push('lhu');
             }
 
-            for (const pengiriman of dataKontrak[i].pengiriman) {
+            for (const pengiriman of data.pengiriman) {
                 let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
                 if(detail.length > 0){
                     detail.map(d => cekStatusPeriode.push({
@@ -108,15 +108,19 @@ function loadData(page = 1) {
             }
 
             let activePeriode = '';
-            for (const periode of dataKontrak[i].periode) {
+            for (const periode of data.periode) {
                 const isComplete = isPeriodeComplete(periode, i, cekStatusPeriode, arrFind);
                 if(!isComplete){
                     activePeriode = periode;
                     break;
                 }
             }
+            // if(data.no_kontrak == "E-0003/JKRL/VI/2025"){
+            //     console.log(activePeriode);
+            //     console.log(cekStatusPeriode);
+            // }
 
-            let hidden = role === 'Pelanggan' ? 'd-none' : '';
+            let hidden = role.includes('Pelanggan') ? 'd-none' : '';
 
             html += `
                 <div class="card mb-2 smooth-height">
@@ -156,8 +160,8 @@ function loadData(page = 1) {
                             ${(() => {
                                 let html = '';
                                 let evaluasiState = { active: false }; // Objek referensi
-                                for (const data of dataKontrak[i].periode) {
-                                    html += htmlPeriode(data, i, cekStatusPeriode, arrFind, evaluasiState);
+                                for (const kontrak of data.periode) {
+                                    html += htmlPeriode(kontrak, i, cekStatusPeriode, arrFind, evaluasiState);
                                 }
                                 return html;
                             })()}
@@ -198,7 +202,7 @@ function showPeriode(index) {
 }
 
 function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
-    const isPelanggan = role === 'Pelanggan';
+    const isPelanggan = role.includes('Pelanggan');
     let htmlAction = ``;
     let htmlDoc = ``;
     // Gunakan fungsi isPeriodeComplete untuk mengecek status
@@ -208,11 +212,13 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     let lastPeriode = dataKontrak[index].periode_count == data.periode;
     let statusKirimTld = false;
 
+    const JL = jenislayanan(dataKontrak[index].jenis_layanan_parent, dataKontrak[index].jenis_layanan);
+
     for (const doc of arrFind) {
         let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
         if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
         if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
-        if (doc === 'tld' && lastPeriode) continue;
+        if (doc === 'tld' && (lastPeriode && JL != "KontrakEvaluasi")) continue;
 
         if (doc === 'tld') {
             statusKirimTld = findPeriode?.status;
@@ -246,7 +252,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
             `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>` :
             `<div class="d-flex flex-column justify-content-center align-items-end"><div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div><div>${statusFormat('permohonan', data.permohonan.status)}</div></div>`;
 
-        if (!statusKirimTld && role == 'Staff Pengiriman' && data.periode != 0) {
+        if (!statusKirimTld && role.includes('Staff Pengiriman') && data.periode != 0) {
             !lastPeriode && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
             // data.periode == 0 ? htmlAction = '' : '';
         } else {
@@ -256,12 +262,12 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         }
         evaluasiState.active = isComplete;
     }else{
-        if(role == 'Staff Pengiriman') {
+        if(role.includes('Staff Pengiriman')) {
             (!statusKirimTld && evaluasiState.active && !lastPeriode) && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
             if([3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
                 htmlAction = '';
             }
-        } else if(role == 'Pelanggan' && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
+        } else if(isPelanggan && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
             // 2 = Sewa, 3 = Evaluasi, 5 = Evaluasi - dengan kontrak
             evaluasiState.active && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`);
         }

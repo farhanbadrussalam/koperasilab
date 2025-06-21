@@ -249,19 +249,35 @@ class PermohonanAPI extends Controller
             $idPermohonanTld = decryptor($request->id_permohonan_tld);
             $idTld = $request->id_tld ? decryptor($request->id_tld) : false;
             $count = $request->count ? $request->count : false;
-
-            $updateParams = array();
-            $idTld ? $updateParams['id_tld'] = $idTld : false;
-            $count ? $updateParams['count'] = $count : false;
+            $index = $request->index ? (int) $request->index : 0;
 
             $dataTld = Permohonan_tld::where('id_permohonan_tld', $idPermohonanTld)->first();
 
+            $updateParams = array();
+            $count ? $updateParams['count'] = $count : false;
+
+            $arrayTld = array();
             if($idTld) {
                 if($dataTld->id_tld) {
-                    Master_tld::where('id_tld', $dataTld->id_tld)->update(['status' => 0]);
+                    $arrayTld = $dataTld->id_tld;
+                    isset($arrayTld[$index]) ? Master_tld::where('id_tld', $arrayTld[$index])->update(['status' => 0]) : false;
+                } else {
+                    for ($i=0; $i < $dataTld->count; $i++) {
+                        $arrayTld[] = 0;
+                    }
                 }
 
                 Master_tld::where('id_tld', $idTld)->update(['status' => 1]);
+                $arrayTld[$index] = (int) $idTld;
+                $updateParams['id_tld'] = $arrayTld;
+            }
+
+            if($dataTld->id_tld && $count) {
+                if(count($dataTld->id_tld) > $count) {
+                    Master_tld::whereIn('id_tld', $dataTld->id_tld)->update(['status' => 0]);
+                    $updateParams['id_tld'] = array_slice($dataTld->id_tld, 0, $count);
+                    Master_tld::whereIn('id_tld', $updateParams['id_tld'])->update(['status' => 1]);
+                }
             }
 
             $dataTld->update($updateParams);
@@ -324,13 +340,11 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            // $dataMap = Permohonan_pengguna::where('id_map_pengguna', $id)->first();
             Master_pengguna::where('id_pengguna', $id)->update(['status' => 1]);
-            // $delete = Permohonan_pengguna::where('id_map_pengguna', $id)->delete();
 
             $dataTld = Permohonan_tld::where('id_pengguna', $id)->first();
-            $dataTld && Master_tld::where('id_tld', $dataTld->id_tld)->update(['status' => 0]);
-            $deleteTld = Permohonan_tld::where('id_pengguna', $id)->delete();
+            $dataTld->id_tld && Master_tld::whereIn('id_tld', $dataTld->id_tld)->update(['status' => 0]);
+            $dataTld->delete();
 
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil dihapus'));
@@ -350,7 +364,9 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            Permohonan_tld::where('id_permohonan_tld', $id)->delete();
+            $dataPermohonanTld = Permohonan_tld::where('id_permohonan_tld', $id)->first();
+            $dataPermohonanTld->id_tld && Master_tld::whereIn('id_tld', $dataPermohonanTld->id_tld)->update(['status' => 0]);
+            $dataPermohonanTld->delete();
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil dihapus'));
         } catch (\Exception $ex) {
@@ -556,7 +572,14 @@ class PermohonanAPI extends Controller
             )->where('id_permohonan', $idPermohonan)->get();
 
             foreach($query as $item){
-                $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
+                if($item->id_tld){
+                    $item->tld = array();
+                    $item->tld = array_map(function($id_tld) {
+                        return Master_tld::find($id_tld);
+                    }, $item->id_tld);
+                }else{
+                    $item->tld = null;
+                }
             }
 
             $queryKontrak = false;
@@ -932,7 +955,11 @@ class PermohonanAPI extends Controller
                             $tmpTld = array();
                             if(isset($dataTldPermohonan->id_tld)) {
                                 $tmpTld = $dataTldPermohonan->id_tld;
-                                $tmpTld[(int) $split_id[1] - 1] = $idTld;
+                                if(isset($split_id[1])){
+                                    $tmpTld[(int) $split_id[1] - 1] = $idTld;
+                                } else {
+                                    $tmpTld = [$idTld];
+                                }
                             } else {
                                 $tmpTld = [$idTld];
                             }
@@ -1079,7 +1106,7 @@ class PermohonanAPI extends Controller
                                     'id_tld' => $val->id_tld,
                                     'id_divisi' => $val->id_divisi,
                                     'count' => $val->count,
-                                    'status' => 3,
+                                    'status' => 1,
                                     'created_by' => Auth::user()->id
                                 ]);
                             }

@@ -57,6 +57,8 @@ class PengirimanAPI extends Controller
                         'kontrak.periode',
                         'kontrak.pengiriman',
                         'kontrak.pengiriman.detail',
+                        'kontrak.jenis_layanan',
+                        'kontrak.jenis_layanan_parent',
                         'pengiriman',
                         'invoice',
                         'invoice.pengiriman',
@@ -104,7 +106,9 @@ class PengirimanAPI extends Controller
                         'kontrak.pelanggan.perusahaan',
                         'detail',
                         'alamat'
-                    )->orderBy('created_at', 'DESC')
+                    )
+                    ->orderBy('recived_at', 'ASC')
+                    ->orderBy('created_at', 'DESC')
                     ->offset(($page - 1) * $limit)
                     // ->when($status, function($q, $status) {
                     //     return $q->whereIn('status', $status);

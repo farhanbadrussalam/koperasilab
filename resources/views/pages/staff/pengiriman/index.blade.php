@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-end pt-2 me-4">
-    <a class="btn btn-primary" href="{{ route('staff.pengiriman.tambah') }}"><i class="bi bi-plus"></i> Buat pengiriman</a>
+    {{-- <a class="btn btn-primary" href="{{ route('staff.pengiriman.tambah') }}"><i class="bi bi-plus"></i> Buat pengiriman</a> --}}
 </div>
 <div class="card shadow-sm m-4 mt-2">
     <div class="card-body">
@@ -26,7 +26,7 @@
                     </select>
                 </div> --}}
             </div>
-            
+
             <div class="flex-shrink-1">
                 <div class="col-12">
                     <div class="input-group">
@@ -51,7 +51,7 @@
             <div class="body my-3" id="list-container-pengiriman">
             </div>
             <div aria-label="Page navigation example" id="list-pagination-pengiriman">
-                    
+
             </div>
         </div>
     </div>
@@ -67,7 +67,7 @@
                 <div class="col-6">
                     <div class="mb-3">
                         <label for="" class="form-label">No kontrak/Permohonan</label>
-                        
+
                     </div>
                 </div>
                 <div class="col-6"></div>

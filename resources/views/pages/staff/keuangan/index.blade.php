@@ -23,14 +23,6 @@
                     </div>
                     <div id="list-filter"></div>
                     <div class="my-3">
-                        <div class="header px-3 fw-bolder d-none d-md-flex row">
-                            <div class="col-md-3">Layanan</div>
-                            <div class="col-md-2">Jenis</div>
-                            <div class="col-md-3">Tipe</div>
-                            <div class="col-md-2">Status</div>
-                            <div class="col-md-2 text-center">Action</div>
-                        </div>
-                        <hr>
                         <div class="body-placeholder my-3" id="list-placeholder">
                             @for ($i = 0; $i < 3; $i++)
                             <div class="card mb-2">
@@ -61,7 +53,7 @@
 
                         </div>
                         <div aria-label="Page navigation example" id="list-pagination">
-                                
+
                         </div>
                     </div>
                 </div>

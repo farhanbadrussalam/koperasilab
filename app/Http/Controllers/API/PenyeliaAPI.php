@@ -427,8 +427,8 @@ class PenyeliaAPI extends Controller
                 $status = [1];
                 $typePencarian = 'not';
                 break;
-            case 'penerbitanlhu':
-                $status = [14];
+            case 'penyelialhu':
+                $status = [4];
                 break;
             default:
                 $status = false;
@@ -515,7 +515,7 @@ class PenyeliaAPI extends Controller
                 });
             })
             ->whereHas('permohonan.layanan_jasa', function ($q) {
-                return $q->whereIn('satuankerja_id', Auth::user()->satuankerja_id);
+                return $q->whereIn('satuankerja_id', Auth::user()->satuankerja_id ? Auth::user()->satuankerja_id : [0]);
             })
             ->orderBy('id_penyelia','DESC')
             ->offset(($page - 1) * $limit)

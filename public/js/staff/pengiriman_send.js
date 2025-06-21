@@ -27,7 +27,11 @@ $(function () {
         if (informasi) {
             const perusahaan = informasi.pelanggan.perusahaan;
 
-            $('#alamatTujuan').val(perusahaan.alamat[obj.target.value].alamat + ", " + perusahaan.alamat[obj.target.value].kode_pos);
+            if(perusahaan.alamat[obj.target.value].alamat){
+                $('#alamatTujuan').val(perusahaan.alamat[obj.target.value].alamat + ", " + perusahaan.alamat[obj.target.value].kode_pos);
+            } else {
+                $('#alamatTujuan').val('');
+            }
         }
     });
 
@@ -47,31 +51,34 @@ function load_form() {
     $('#select_alamat').html(htmlAlamat);
 
     $('#list-document').empty();
-    let htmlDisabled = '';
-    if(informasi.tipe_kontrak == 'kontrak lama'){
-        // htmlDisabled = 'disabled';
+    let htmlDisabled = false;
+    if(informasi.tipe_kontrak == 'kontrak lama' || informasi.jenis_layanan.name == 'Evaluasi'){
+        htmlDisabled = true;
     }
 
     // filter untuk memisahkan antara tld pengguna dan tld kontrol
     let tldPengguna = [];
     let tldKontrol = [];
     let kontrakPeriode = [];
+    let JL = '';
 
     if(informasi.kontrak){
         tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna);
         tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
         kontrakPeriode = informasi.kontrak.periode;
+        JL = jenislayanan(informasi.kontrak.jenis_layanan_parent, informasi.kontrak.jenis_layanan);
     }else{
         tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna);
         tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
         kontrakPeriode = informasi.periode;
+        JL = jenislayanan(informasi.jenis_layanan_parent, informasi.jenis_layanan);
     }
 
     // list document TLD
     // Mengecek apakah sudah last periode atau belum
     const isLastPeriode = _cekLastPeriode(kontrakPeriode, (periodeNow ? periodeNow : informasi.periode));
 
-    if(!isLastPeriode){
+    if(!isLastPeriode || JL == 'KontrakEvaluasi'){
         let checkedTld = status_tld ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const list of tldKontrol) {
@@ -86,20 +93,16 @@ function load_form() {
                         <span>${list.divisi?.name ?? ''} ${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
                         <div class="input-group mt-auto mb-3">
                             <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
-                            ${!list.id_tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                         </div>
                     </div>
                 `;
             }
         }
-        // <select class="form-select kodeTldKontrol" name="kodeTldKontrol" data-status="${list.permohonan_tld_hash ? 'permohonan' : 'kontrak'}" data-id="${list.permohonan_tld_hash ?? list.kontrak_tld_hash ?? ''}" ${htmlDisabled}>
-        //     <option value="${list.tld?.tld_hash ?? ''}" selected>${list.tld?.kode_lencana ?? ''}</option>
-        // </select>
 
-        // Menambil tld Pengguna dari kontrak
+        // Mengambil tld Pengguna dari kontrak
         let htmlPengguna = ``;
         for (const list of tldPengguna){
-            console.log(list.tld);
             tmpArrTld.push({
                 id: list.kontrak_tld_hash,
                 tld: list.tld ? list.tld[0].tld_hash : null
@@ -109,7 +112,7 @@ function load_form() {
                     <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}</span>
                     <div class="input-group mt-auto mb-3">
                         <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld ? list.tld[0].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-                        ${!list.id_tld ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                        ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                     </div>
                 </div>
             `;
@@ -148,9 +151,6 @@ function load_form() {
             </div>
         `;
         $('#list-document').append(htmlTld);
-
-        // _tldKontrol();
-        // _tldPengguna();
     }
 
     // list document invoice

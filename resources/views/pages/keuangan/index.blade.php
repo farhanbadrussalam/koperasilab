@@ -122,17 +122,7 @@
         }
 
         function showBukti(id){
-            $.ajax({
-                url: "{{ url('api/permohonan/show') }}/" + id,
-                method: 'GET',
-                dataType: 'json',
-                processing: true,
-                serverSide: true,
-                headers: {
-                    'Authorization': `Bearer {{ generateToken() }}`,
-                    'Content-Type': 'application/json'
-                }
-            }).done(result => {
+            ajaxGet(`api/permohonan/show/${id}`, false, result => {
                 const data = result.data;
 
                 $('#imgBukti').attr('src', `{{ asset('storage') }}/${data.tbl_kip.bukti.file_path}/${data.tbl_kip.bukti.file_hash}`);

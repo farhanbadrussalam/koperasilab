@@ -78,14 +78,6 @@
 </head>
 
 <body>
-    <input type="hidden" name="bearer" id="bearer-token" value="{{ generateToken() }}">
-    <input type="hidden" name="csrf" id="csrf-token" value="{{ csrf_token() }}">
-    <input type="hidden" id="base_url" value="{{ url('') }}">
-    <input type="hidden" id="userActive" value="{{ Auth::user() }}">
-    <input type="hidden" id="role" value="{{ count(Auth::user()->getRoleNames()) > 1 ? Auth::user()->getRoleNames()[0] : '' }}">
-    <input type="hidden" id="permission" value="{{ Auth::user()->getDirectPermissions() }}">
-    <input type="hidden" id="permissionInRole" value="{{ Auth::user()->getPermissionsViaRoles() }}">
-
     <!--  Body Wrapper -->
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
         <!-- Main Sidebar Container -->
@@ -123,6 +115,15 @@
         </div>
     </div>
 
+    <script>
+        const bearer = "{{ generateToken() }}";
+        const csrf = "{{ csrf_token() }}";
+        const base_url = "{{ url('') }}";
+        const userActive = @json(Auth::user());
+        const role = @json(Auth::user()->getRoleNames());
+        const permission = @json(Auth::user()->getDirectPermissions());
+        const permissionInRole = @json(Auth::user()->getPermissionsViaRoles());
+    </script>
     <script src="{{ asset('assets/js/global.js') }}"></script>
     @stack('scripts')
     <script>
@@ -170,19 +171,30 @@
                 $('#icon_collapse').addClass('bi-chevron-down');
                 $('#icon_collapse').removeClass('bi-chevron-up');
             });
+
+            // Mengecek session
+            setInterval(() => {
+                const authenticated = @json(auth()->check());
+                if (!authenticated) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Session Expired',
+                        text: 'Silahkan login kembali',
+                        showConfirmButton: true
+                    }).then(() => {
+                        document.getElementById('logout-form').submit();
+                    })
+                };
+                // ajaxGet(`check-session`, false, result => {
+                //     if (!result.authenticated) {
+
+                //     }
+                // });
+            }, 10000);
         })
 
         function loadNotifikasi() {
-            $.ajax({
-                url: "{{ url('api/v1/getNotifikasi') }}",
-                dataType: 'json',
-                method: 'GET',
-                processData: true,
-                headers: {
-                    'Authorization' : `Bearer {{ generateToken() }}`,
-                    'Content-Type': 'application/json'
-                },
-            }).done((result) => {
+            ajaxGet(`api/v1/getNotifikasi`, false, result => {
                 let html = '';
                 let countLonceng = 0;
                 for (const notif of result.data) {
@@ -221,21 +233,7 @@
                     break;
             }
 
-            $.ajax({
-                method: 'GET',
-                url : '{{ url("api/setNotifikasi") }}',
-                dataType: "json",
-                processData: true,
-                data: {
-                    id: notifId,
-                    status: 2
-                },
-                headers: {
-                    'Authorization' : `Bearer {{ generateToken() }}`,
-                    'Content-Type': 'application/json'
-                },
-            }).done(result => {
-                // console.log(result);
+            ajaxGet(`api/v1/getNotifikasi`, {id: notifId, status: 2}, result => {
                 if(url){
                     window.location.href = url;
                 }

@@ -38,10 +38,12 @@ $(function () {
     inventoryTld = new Inventory_tld({preview: true});
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
+        const split = detail.selected.split('|');
 
         const params = new FormData();
-        params.append('id_permohonan_tld', detail.selected);
+        params.append('id_permohonan_tld', split[0]);
         params.append('id_tld', detail.data_tld.tld_hash);
+        split[1] ? params.append('index', split[1]) : false;
 
         ajaxPost(`api/v1/permohonan/action_tld`, params, result => {
            loadPengguna();
@@ -419,7 +421,7 @@ function loadPengguna(){
                         <hr class="my-2">
                         <div class="col-12">
                             <div class="input-group">
-                                <input type="text" class="form-control form-control-sm" value="${value.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
+                                <input type="text" class="form-control form-control-sm" value="${value.tld && value.tld[0] ? value.tld[0].no_seri_tld : ''}" placeholder="Pilih No Seri" readonly>
                                 <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${value.permohonan_tld_hash}" title="Change" onclick="openInventory(this, 'pengguna')"><i class="bi bi-pencil"></i> Ganti</button>
                             </div>
                         </div>
@@ -541,15 +543,19 @@ function loadKontrol(){
         arrKontrolTmp = result.data.tldPermohonan.filter(tld => tld.id_divisi || (!tld.id_pengguna && !tld.id_divisi));
         let jumKontrol = 0;
         for (const [i,kode] of arrKontrolTmp.entries()) {
-            let htmlEvaluasi = `
-                <hr class="my-2">
-                <div class="col-12">
-                    <div class="input-group">
-                        <input type="text" class="form-control form-control-sm" value="${kode.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
-                        <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${kode.permohonan_tld_hash}" title="Change" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil"></i> Ganti</button>
+            let htmlEvaluasi = `<hr class="my-2">`;
+
+            for (let index = 0; index < kode.count; index++) {
+                htmlEvaluasi += `
+                    <div class="col-12 mb-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-sm" value="${kode.tld && kode.tld[index] ? kode.tld[index].no_seri_tld : ''}" placeholder="Pilih No Seri" readonly>
+                            <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${kode.permohonan_tld_hash}|${index}" title="Change" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil"></i> Ganti</button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
+
             html += `
                 <div class="card mb-1 shadow-sm p-1">
                     <div class="card-body row align-items-center p-1 px-3">

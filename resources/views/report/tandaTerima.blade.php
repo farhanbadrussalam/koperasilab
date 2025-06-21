@@ -78,7 +78,7 @@
     <table class="table-header">
         <tr>
             <td width="20%">Telah terima dari</td>
-            <td>: <span class="text-secondary">Nuklindolab koperasi JKRL</span></td>
+            <td>: <span class="text-secondary">{{ $data->pelanggan->perusahaan->nama_perusahaan }}</span></td>
         </tr>
         <tr>
             <td>Alamat</td>

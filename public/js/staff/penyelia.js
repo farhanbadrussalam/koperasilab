@@ -52,7 +52,7 @@ function switchLoadTab(menu){
             break;
 
         case 2:
-            menu = 'penerbitanlhu';
+            menu = 'penyelialhu';
             break;
     }
 
@@ -99,6 +99,9 @@ function loadData(page = 1, menu) {
             }
 
             let btnAction = '';
+            let divInfoTugas = '';
+            let htmlStatus = '';
+            let aktifJobs = '';
             switch (menu) {
                 case 'surattugas':
                     btnAction += '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
@@ -116,7 +119,7 @@ function loadData(page = 1, menu) {
                         `;
                     }
 
-                    let divInfoTugas = '';
+                    divInfoTugas = '';
                     let timeLine = false;
                     if(penyelia.start_date && penyelia.end_date){
                         divInfoTugas = `
@@ -137,8 +140,8 @@ function loadData(page = 1, menu) {
                         divTimelineTugas.push(timeLine);
                     }
                     // status jobs yang aktif
-                    let htmlStatus = statusFormat('penyelia', penyelia.status);
-                    const aktifJobs = penyelia.penyelia_map.filter(d => d.status == 1);
+                    htmlStatus = statusFormat('penyelia', penyelia.status);
+                    aktifJobs = penyelia.penyelia_map.filter(d => d.status == 1);
                     aktifJobs.map(d => {
                         htmlStatus += statusFormat('penyelia', d.jobs.status);
                     });
@@ -177,31 +180,73 @@ function loadData(page = 1, menu) {
                         </div>
                     `;
                     break;
-                case 'penerbitanlhu':
+                case 'penyelialhu':
+                    divInfoTugas = `
+                        <div class="col-md-12 mt-2 fs-7">
+                            <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
+                                <span>Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
+                                <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${penyelia.penyelia_hash}" data-bs-toggle="collapse"
+                                onclick="showHideProgress(this)">Lihat Progress LAB</a>
+                            </div>
+                        </div>
+                    `;
+
+                    const timeline = new Timeline({
+                        timeline: penyelia.penyelia_map,
+                        status: penyelia.status,
+                        id: penyelia.penyelia_hash
+                    });
+
+                    divTimelineTugas.push(timeline);
+
+                    let htmlPeriode = `
+                        <div>${arrPeriode?.length ?? '0'} Periode</div>
+                    `;
+                    if(permohonan.periode){
+                        htmlPeriode = `<div>Periode ${permohonan.periode}</div>`;
+                    }
+
+                    // status jobs yang aktif
+                    // let isPelabelan = false;
+                    // htmlStatus = statusFormat('penyelia', penyelia.status);
+                    // aktifJobs = penyelia.penyelia_map.filter(d => [4].includes(d.jobs_hash) && d.status == 1);
+                    // aktifJobs.map(d => {
+                    //     let petugasInJobs = penyelia.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
+                    //     if(petugasInJobs){
+                    //         d.jobs.status == 20 ? isPelabelan = true : false;
+                    //         htmlStatus += statusFormat('penyelia', d.jobs.status);
+                    //     }
+                    // })
+
+                    btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
+
                     html += `
                         <div class="card mb-2">
-                            <div class="card-body row align-items-center">
-                                <div class="col-12 col-md-3">
-                                    <div class="title">Layanan ${permohonan.layanan_jasa.nama_layanan}</div>
-                                    <small class="subdesc text-body-secondary fw-light lh-sm">
-                                        <div>${permohonan.jenis_tld.name}</div>
-                                        <div>Periode ${penyelia.periode} : </div>
-                                        <div>${tgl_periode ? dateFormat(tgl_periode.start_date, 5)+' - '+dateFormat(tgl_periode.end_date, 5) : ''}</div>
-                                        <div>Created : ${dateFormat(permohonan.created_at, 4)}</div>
-                                    </small>
+                            <div class="card-body row align-items-center py-2">
+                                <div class="col-auto">
+                                    <div class="">
+                                        <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
+                                        <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
+                                        <span> | ${htmlStatus}</span>
+                                    </div>
+                                    <div class="fs-5 my-2">
+                                        <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
+                                        <div class="text-body-tertiary fs-7">
+                                            <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-3 text-body-tertiary fs-7">
+                                        <span><i class="bi bi-calendar-range"></i> Periode ${permohonan.periode}${permohonan.periode == 1 ? `/Zero cek` : ''}</span>
+                                        <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
+                                        ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
+                                    </div>
                                 </div>
-                                <div class="col-6 col-md-3 my-3 text-end text-md-start">
-                                    <div>${permohonan.tipe_kontrak}</div>
-                                    <small class="subdesc text-body-secondary fw-light lh-sm">${permohonan.kontrak?.no_kontrak ?? ''}</small>
+                                <div class="ms-auto col-auto text-center gap-1 d-flex" data-id='${penyelia.penyelia_hash}' data-index='${i}'>
+                                    ${btnAction}
                                 </div>
-                                <div class="col-6 col-md-4 text-center">
-                                    <div class="fw-bolder">Start date</div>
-                                    <div>${dateFormat(penyelia.start_date, 4)}</div>
-                                    <div class="fw-bolder">End date</div>
-                                    <div>${dateFormat(penyelia.end_date, 4)}</div>
-                                </div>
-                                <div class="col-6 col-md-2 text-end" data-penyelia='${JSON.stringify(penyelia)}' data-surattugas='${penyelia.no_surat_tugas}'>
-                                    <button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> Update progress</button>
+                                ${divInfoTugas}
+                                <div class="col-md-12 collapse" id="timeline-progress-${penyelia.penyelia_hash}">
+                                    ${timeline.elementCreate()}
                                 </div>
                             </div>
                         </div>
@@ -233,51 +278,71 @@ function loadData(page = 1, menu) {
 }
 
 function openProgressModal(obj) {
-    const penyelia = $(obj).parent().data("penyelia");
-    $('#statusDone').prop('checked', true);
-    nowSelect = penyelia;
+    const penyelia = $(obj).parent().data("id");
+    ajaxGet(`api/v1/penyelia/getById/${penyelia}`, false, result => {
+        nowSelect = result.data ?? false;
+        $('#statusDone').prop('checked', true);
+        // Mengambil proses jobs
+        const listJobsAktif = nowSelect.penyelia_map.filter(d => d.status == 1 && d.point_jobs == null);
 
-    // Mengambil proses jobs
-    const prosesNow = nowSelect.penyelia_map.find(d => d.jobs.status == nowSelect.status);
-    const prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
-    const prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
+        let htmlJobs = listJobsAktif.map((d, index) => {
+            let petugasInJobs = nowSelect.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
+            if(petugasInJobs){
+                return `<option value="${d.map_hash}" ${index == 0 ? 'selected' : ''}>${d.jobs.name}</option>`;
+            }
+        });
 
-    $('#dateProgress').flatpickr({
-        altInput: true,
-        locale: "id",
-        dateFormat: "Y-m-d",
-        altFormat: "j F Y",
-        defaultDate: 'today'
+        $('#prosesNow').html(htmlJobs.join(''));
+
+        setProses(listJobsAktif[0]);
+
+        $('#dateProgress').flatpickr({
+            altInput: true,
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altFormat: "j F Y",
+            minDate: nowSelect.start_date,
+            maxDate: nowSelect.end_date,
+            defaultDate: 'today'
+        });
+
+        $('#inputNote').val('');
+
+        $('#updateProgressModal').modal('show');
     });
 
-    prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
-
-    nowSelect.prosesNow = prosesNow;
-    nowSelect.prosesPrev = prosesPrev;
-    nowSelect.prosesNext = prosesNext;
-
-    $('#prosesNow').val(prosesNow.jobs.name);
-    $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
-
-    $('#updateProgressModal').modal('show');
 }
 
 function simpanProgress(obj){
-    let sProgress = $(`[name="statusProgress"]:checked`).val();
     let note = $('#inputNote').val();
-    let status = sProgress == 'done' ? (nowSelect?.prosesNext?.jobs?.status ?? 3) : nowSelect?.prosesPrev?.jobs?.status;
-    const document = $('#upload_document')[0].files[0];
+    let sProgress = $(`[name="statusProgress"]:checked`).val();
+    let nextJobs = sProgress == 'done' ? (nowSelect?.prosesNext?.map_hash ?? 3) : nowSelect?.prosesPrev?.map_hash;
+    let nowJobs = nowSelect?.prosesNow?.map_hash;
 
+    if(note == ''){
+        return Swal.fire({
+            icon: "warning",
+            text: 'Tolong masukan note!',
+        });
+    }
+    if(nowSelect?.prosesNow.jobs.upload_doc){
+        const document = documentLhu.getData();
+        if(document.length == 0){
+            return Swal.fire({
+                icon: "warning",
+                text: 'Tolong upload dokumen!',
+            });
+        }
+    }
     const form = new FormData();
     form.append('idPenyelia', nowSelect?.penyelia_hash);
-    form.append('status', status);
+    form.append('nextJobs', nextJobs);
+    form.append('nowJobs', nowJobs);
     form.append('note', note);
-    form.append('document', document);
     form.append('sProgress', sProgress);
-    !nowSelect?.prosesNext && form.append('statusPermohonan', 4); // status permohonan untuk proses pengiriman
 
     spinner('show', $(obj));
-    ajaxPost(`api/v1/penyelia/action`, form, result => {
+    ajaxPost(`api/v1/penyelia/actionJobProses`, form, result => {
         spinner('hide', $(obj));
         if(result.meta.code == 200){
             Swal.fire({
@@ -285,7 +350,7 @@ function simpanProgress(obj){
                 text: 'Progress berhasil diupdate',
             });
             $('#updateProgressModal').modal('hide');
-            switchLoadTab(2);
+            reload();
         }else{
             Swal.fire({
                 icon: "error",
@@ -294,7 +359,7 @@ function simpanProgress(obj){
         }
     }, error => {
         spinner('hide', $(obj));
-    })
+    });
 }
 
 function btnDelete(obj) {
@@ -333,8 +398,8 @@ function showDetail(obj){
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }
 
-function reload(tab){
-    switchLoadTab(tab);
+function reload(){
+    switchLoadTab(thisTab);
 }
 
 function clearFilter(){
@@ -350,4 +415,25 @@ function showHideProgress(obj){
         collapse.innerText = 'Lihat Progress LAB';
     }
     collapse.classList.toggle('show');
+}
+
+function setProses(prosesNow){
+    let prosesNext = false;
+    let prosesPrev = false;
+    if(!prosesNow.point_jobs){
+        prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
+        prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
+    } else {
+        prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1) && d.point_jobs);
+        prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1) && d.point_jobs);
+    }
+
+    !prosesPrev ? $('#divReturnProgress').hide() : null;
+    prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
+
+    nowSelect.prosesNow = prosesNow;
+    nowSelect.prosesPrev = prosesPrev;
+    nowSelect.prosesNext = prosesNext;
+
+    $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
 }

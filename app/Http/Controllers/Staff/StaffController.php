@@ -278,6 +278,8 @@ class StaffController extends Controller
                 'pelanggan.perusahaan.alamat',
                 'kontrak',
                 'kontrak.periode',
+                'kontrak.jenis_layanan',
+                'kontrak.jenis_layanan_parent',
                 'kontrak.rincian_list_tld' => function ($query) {
                     $query->where('status', 1);
                 },

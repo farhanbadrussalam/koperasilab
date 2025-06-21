@@ -12,7 +12,8 @@
     <div class="navbar-collapse justify-content-end px-0 w-100" id="navbarNav">
         <ul class="navbar-nav flex-row ms-0 align-items-center justify-content-end">
             <li class="nav-item text-end">
-                {{ Auth::user()->name }}{{ Auth::user()->satuankerja ? ' ('.Auth::user()->satuankerja->alias.')' : '' }}<br>
+                {{ Auth::user()->name }}
+                <br>
                 @foreach(Auth::user()->getRoleNames() as $role)
                     <span class="badge text-bg-secondary">{{ $role }}</span>
                 @endforeach
