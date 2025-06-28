@@ -39,7 +39,8 @@ class Master_pengguna extends Model
     ];
 
     protected $appends = [
-        'pengguna_hash'
+        'pengguna_hash',
+        'radiasi'
     ];
 
     protected $casts = [
@@ -55,6 +56,14 @@ class Master_pengguna extends Model
     public function getPenggunaHashAttribute()
     {
         return encryptor($this->id_pengguna);
+    }
+
+    public function getRadiasiAttribute()
+    {
+        $decodeArr = $this->id_radiasi;
+        $decodeArr = is_array($decodeArr) ? $decodeArr : [];
+
+        return Master_radiasi::whereIn('id_radiasi', $decodeArr)->get();
     }
 
     /**

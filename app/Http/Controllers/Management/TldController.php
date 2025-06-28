@@ -38,7 +38,7 @@ class TldController extends Controller
             ->orderBy('jenis', 'asc');
 
         // mengambil role
-        Auth::user()->hasRole('Pelanggan') ? $tld->where('kepemilikan', Auth::user()->id_perusahaan) : false;
+        Auth::user()->hasRole('Pelanggan') ? $tld->where('kepemilikan', Auth::user()->id_perusahaan) : $tld->whereNull('kepemilikan');
 
         if(request()->has('status') && request()->status != null){
             $tld->where('status', request()->status);

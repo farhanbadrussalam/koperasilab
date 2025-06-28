@@ -291,6 +291,16 @@ if (!function_exists('convert_date')) {
                 $format = 'M Y';
                 $month3 = true;
                 break;
+            case 8:
+                # Monday
+                $format = 'l';
+                break;
+            case 9:
+                $format = 'd M';
+                break;
+            case 10:
+                $format = 'Y';
+                break;
         }
 
         $new_tanggal = date($format, strtotime($tanggal));

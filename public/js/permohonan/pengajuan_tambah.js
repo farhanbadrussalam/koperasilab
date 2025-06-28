@@ -5,6 +5,8 @@ let typeLayanan = '';
 let typeLayanan2 = '';
 let datatable_ = false;
 let arrListPengguna = [];
+let JL = '';
+let haveTldChecked = true;
 
 let inventoryTldPengguna = false;
 let tmpArrTldPengguna = [];
@@ -54,7 +56,6 @@ $(function () {
     setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
 
     resetForm();
-    loadPengguna();
 
     let htmlAlamat = '<option value="">Pilih alamat</option>';
 
@@ -92,6 +93,8 @@ $(function () {
         formPeriode1.hide();
         formPeriode2.hide();
         formZeroCek.hide();
+
+        $('#switch-tld').hide();
 
         $('#no_kontrak').val('');
         $('#durasi').val('');
@@ -187,13 +190,13 @@ $(function () {
         if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
 
         // Jika layanan evaluasi
-        if (typeLayanan === 'Evaluasi' && arrKontrolTmp.some(value => !value.kode_lencana)) {
-            return Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Kode lencana tidak boleh kosong!'
-            });
-        }
+        // if (tmpArrEvaluasi.entries(JL) && arrKontrolTmp.some(value => !value.kode_lencana)) {
+        //     return Swal.fire({
+        //         icon: 'error',
+        //         title: 'Oops...',
+        //         text: 'Kode lencana tidak boleh kosong!'
+        //     });
+        // }
 
         if(sanityCek.length > 0){
             return Swal.fire({
@@ -217,8 +220,8 @@ $(function () {
                 const formData = new FormData();
                 formData.append('idPermohonan', idPermohonan);
 
-                formData.append('pic', valpic);
-                formData.append('noHp', valnoHp);
+                // formData.append('pic', valpic);
+                // formData.append('noHp', valnoHp);
                 formData.append('alamat', valAlamat);
 
                 formData.append('tipeKontrak', 'kontrak baru');
@@ -228,9 +231,10 @@ $(function () {
                 formData.append('jumlahKontrol', valjumKontrol);
                 formData.append('hargaLayanan', valHargaLayanan);
                 formData.append('totalHarga', valtotalHarga);
+                formData.append('haveTld', haveTldChecked ? 1 : 0);
                 formData.append('periode', 1);
 
-                typeLayanan == 'Evaluasi' ? formData.append('tldKontrol', JSON.stringify(arrKontrolTmp)) : false;
+                // typeLayanan == 'Evaluasi' ? formData.append('tldKontrol', JSON.stringify(arrKontrolTmp)) : false;
 
                 spinner('show', obj.target);
                 ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
@@ -266,6 +270,7 @@ $(function () {
         const layananJasa = $('#layanan_jasa').val();
         typeLayanan = $('#jenis_layanan').find(':selected').text();
         typeLayanan2 = $('#jenis_layanan_2').find(':selected').text();
+        JL = jenislayanan({name: $('#jenis_layanan').find(':selected').text()}, {name: $('#jenis_layanan_2').find(':selected').text()});
 
         if(jenisLayanan == '' || jenisLayanan2 == '' || layananJasa == ''){
             Swal.fire({
@@ -383,6 +388,17 @@ $(function () {
         enableTime: false,
         dateFormat: "Y-m-d"
     });
+
+    $('#haveTld').on('change', obj => {
+        if (obj.target.checked) {
+            haveTldChecked = true;
+        } else {
+            haveTldChecked = false;
+        }
+
+        loadPengguna();
+        loadKontrol();
+    })
 })
 // js add periode
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
@@ -440,7 +456,7 @@ function loadPengguna(){
                                     <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${value.pengguna.pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
                                 </div>
-                                ${typeLayanan2 == 'Evaluasi' ? htmlEvaluasi : ``}
+                                ${tmpArrEvaluasi.includes(JL) && haveTldChecked ? htmlEvaluasi : ``}
                             </div>
                         </div>
                     `;
@@ -574,7 +590,7 @@ function loadKontrol(){
                         <div class="col-auto text-end">
                             <button type="button" class="btn btn-sm btn-outline-danger" data-id="${kode.permohonan_tld_hash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
-                        ${typeLayanan2 == 'Evaluasi' ? htmlEvaluasi : ''}
+                        ${tmpArrEvaluasi.includes(JL) && haveTldChecked ? htmlEvaluasi : ''}
                     </div>
                 </div>
             `;
@@ -672,10 +688,8 @@ function btnPilih(obj){
 function openForm(){
     const layanan = $('#jenis_layanan_2').val();
     let html = '<option value="">Pilih</option>';
-    // $('#divKontrolEvaluasi').hide();
     $('#btnTambahKontrol').hide();
     $('#form-kode-lencana-pengguna').hide();
-    // $('#jum_kontrol').attr('readonly', false).removeClass('bg-secondary-subtle');
     arrKontrolTmp = [];
     if(layanan == ''){
         $('#form-inputan').addClass('d-none').removeClass('d-block');
@@ -699,11 +713,11 @@ function openForm(){
                         formJenisTld.show();
                         formJumKontrol.show();
                         formJumPengguna.show();
-                        formPic.show();
-                        formNoHp.show();
                         formAlamat.show();
-                        formPeriodeNext.show();
                         formTotalHarga.show();
+                        // formPic.show();
+                        // formNoHp.show();
+                        // formPeriodeNext.show();
                         break;
                     case 'zero cek':
                         btnAddPengguna.addClass('d-none').removeClass('d-block');
@@ -737,11 +751,8 @@ function openForm(){
                         break;
                 }
                 let list = result.data;
-                if(typeLayanan == 'Evaluasi') {
-                    // $('#divKontrolEvaluasi').show();
-                    // $('#btnTambahKontrol').show();
-                    // $('#form-kode-lencana-pengguna').show();
-                    // $('#jum_kontrol').attr('readonly', true).addClass('bg-secondary-subtle');
+                if(JL == 'KontrakEvaluasi') {
+                    $('#switch-tld').show();
                 }
                 $('#form-inputan').addClass('d-block').removeClass('d-none');
 
@@ -754,6 +765,7 @@ function openForm(){
         });
     }
     loadKontrol();
+    loadPengguna();
     return;
 }
 
@@ -765,6 +777,7 @@ function cekLayanan(){
 
         typeLayanan = dataPermohonan.jenis_layanan_parent.name;
         typeLayanan2 = dataPermohonan.jenis_layanan.name;
+        JL = jenislayanan(dataPermohonan.jenis_layanan_parent, dataPermohonan.jenis_layanan);
 
         // disable untuk form jenisLayanan, jenisLayanan2, dan layananJasa
         $('#jenis_layanan').attr('disabled', true).addClass('bg-secondary-subtle');

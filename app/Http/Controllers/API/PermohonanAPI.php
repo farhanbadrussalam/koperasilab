@@ -75,6 +75,8 @@ class PermohonanAPI extends Controller
             $tldPengguna = $request->tldPengguna ? json_decode($request->tldPengguna) : false;
             $listTld = $request->listTld ? json_decode($request->listTld) : false;
 
+            $haveTld = $request->has('haveTld') ? $request->haveTld : 0;
+
             if ($periodePemakaian) {
                 if (is_string($periodePemakaian)) {
                     $periodePemakaian = json_decode($periodePemakaian, true); // Use true for associative array
@@ -108,6 +110,8 @@ class PermohonanAPI extends Controller
             $noHp && $data['no_hp'] = $noHp;
             $alamat && $data['id_alamat'] = $alamat;
 
+            $data['is_have_tld'] = $haveTld;
+
             $status && $data['status'] = $status;
             $data['flag_read'] = 0;
 
@@ -117,15 +121,15 @@ class PermohonanAPI extends Controller
                 }, $dataTld);
             }
 
-            if ($tldKontrol) {
-                array_map(function ($item) use ($idPermohonan) {
-                    return Permohonan_tld::create([
-                        'id_permohonan' => $idPermohonan,
-                        'tld_tmp' => $item->kode_lencana,
-                        'created_by' => Auth::user()->id
-                    ]);
-                }, $tldKontrol);
-            }
+            // if ($tldKontrol) {
+            //     array_map(function ($item) use ($idPermohonan) {
+            //         return Permohonan_tld::create([
+            //             'id_permohonan' => $idPermohonan,
+            //             'tld_tmp' => $item->kode_lencana,
+            //             'created_by' => Auth::user()->id
+            //         ]);
+            //     }, $tldKontrol);
+            // }
 
             // jika tipe kontraknya adalah "kontrak lama" akan mengambil data dari kontrak sebelumnya
             if($tipeKontrak == 'kontrak lama'){
@@ -170,6 +174,10 @@ class PermohonanAPI extends Controller
                     'status' => 1,
                     'nomer' => null
                 ));
+            }
+
+            if($haveTld == 0){
+                Permohonan_tld::where('id_permohonan', $idPermohonan)->update(['id_tld' => null]);
             }
 
             DB::commit();
@@ -1006,6 +1014,7 @@ class PermohonanAPI extends Controller
                                 'note' => $dataPermohonan->note,
                                 'file_lhu' => $dataPermohonan->file_lhu,
                                 'id_pelanggan' => $dataPermohonan->created_by,
+                                'is_have_tld' => $dataPermohonan->is_have_tld,
                                 'created_by' => Auth::user()->id
                             );
                             $dataKontrak = Kontrak::create($params);

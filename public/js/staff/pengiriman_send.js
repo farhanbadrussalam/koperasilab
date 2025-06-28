@@ -3,6 +3,7 @@ const arrDocCustom = [];
 let inventoryTld = false;
 let mPeriode = false;
 const tmpArrTld = [];
+
 $(function () {
     inventoryTld = new Inventory_tld({
         preview: true,
@@ -51,10 +52,6 @@ function load_form() {
     $('#select_alamat').html(htmlAlamat);
 
     $('#list-document').empty();
-    let htmlDisabled = false;
-    if(informasi.tipe_kontrak == 'kontrak lama' || informasi.jenis_layanan.name == 'Evaluasi'){
-        htmlDisabled = true;
-    }
 
     // filter untuk memisahkan antara tld pengguna dan tld kontrol
     let tldPengguna = [];
@@ -74,12 +71,16 @@ function load_form() {
         JL = jenislayanan(informasi.jenis_layanan_parent, informasi.jenis_layanan);
     }
 
+    let htmlDisabled = false;
+    if(informasi.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && informasi.is_have_tld == 1)){
+        htmlDisabled = true;
+    }
     // list document TLD
     // Mengecek apakah sudah last periode atau belum
     const isLastPeriode = _cekLastPeriode(kontrakPeriode, (periodeNow ? periodeNow : informasi.periode));
 
     if(!isLastPeriode || JL == 'KontrakEvaluasi'){
-        let checkedTld = status_tld ? 'disabled' : 'checked';
+        let checkedTld = status_tld?.permohonan ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const list of tldKontrol) {
 
@@ -127,7 +128,7 @@ function load_form() {
                             id="selectDocumentTld" name="selectDocument" onclick="updateSelectDocument()" ${checkedTld}>
                         <span class="fw-semibold fs-6">TLD</span>
                         <small class="text-body-tertiary"> - ${informasi.jumlah_pengguna} Pengguna + ${informasi.jumlah_kontrol} Kontrol</small>
-                        <small>${statusFormat('pengiriman', status_tld?.status)}</small>
+                        <small>${statusFormat('pengiriman', status_tld?.permohonan ? status_tld.status : false)}</small>
                     </div>
                     <div class="d-flex align-items-center gap-3 text-secondary">
                     </div>
@@ -186,6 +187,10 @@ function load_form() {
     if(informasi.lhu?.status == 3){
         checkedLhu = 'checked';
         urlDocLhu = `<a href="${base_url}/storage/${informasi.lhu.media.file_path}/${informasi.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>`;
+    }
+
+    if(informasi.lhu?.pengiriman){
+        checkedLhu = 'disabled';
     }
 
     informasi.lhu ? htmlLhu = `

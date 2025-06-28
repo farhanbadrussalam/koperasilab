@@ -511,7 +511,12 @@ class PengirimanAPI extends Controller
                         $penyelia = Penyelia::where('id_penyelia', decryptor($value->id))->first();
                         if($penyelia){
                             $penyelia->update(['id_pengiriman' => $idPengiriman]);
-                            Permohonan::where('id_permohonan', $penyelia->id_permohonan)->update(['id_pengiriman' => $idPengiriman]);
+
+                            if($penyelia->permohonan->kontrak->jenis_layanan_2 == '3' && $penyelia->permohonan->kontrak->is_have_tld == 1) {
+
+                            }else {
+                                Permohonan::where('id_permohonan', $penyelia->id_permohonan)->update(['id_pengiriman' => $idPengiriman]);
+                            }
                         }
                     } else if($value->jenis == 'tld'){
                         if($value->id){

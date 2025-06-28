@@ -34,6 +34,7 @@ class Permohonan extends Model
         'ttd_by',
         'status',
         'note',
+        'is_have_tld',
         'file_lhu',
         'flag_read',
         'created_by',
@@ -76,7 +77,8 @@ class Permohonan extends Model
         'ttd_by' => 'integer',
         'file_lhu' => 'integer',
         'flag_read' => 'integer',
-        'created_by' => 'integer'
+        'created_by' => 'integer',
+        'is_have_tld' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

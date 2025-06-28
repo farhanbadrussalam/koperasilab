@@ -8,6 +8,7 @@ let uploadDocLhu = false;
 let modalDoc = false;
 let inventoryTld = false;
 let tmpArrTld = [];
+let JL = '';
 
 $(function () {
     inventoryTld = new Inventory_tld({preview: true});
@@ -22,7 +23,10 @@ $(function () {
         if(index > -1){
             tmpArrTld[index].tld = detail.data_tld.tld_hash;
         }
-    })
+    });
+
+    JL = jenislayanan(dataPermohonan.jenis_layanan_parent, dataPermohonan.jenis_layanan);
+
     const arrPeriode = dataPermohonan.periode_pemakaian;
     jenisLayanan = dataPermohonan.jenis_layanan;
 
@@ -249,7 +253,7 @@ function loadTldKontrol(tldKontrol){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
         let htmlDisabled = false;
-        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || dataPermohonan.jenis_layanan.name == 'Evaluasi'){
+        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
             htmlDisabled = true;
         }
         let index = 0;
@@ -265,9 +269,11 @@ function loadTldKontrol(tldKontrol){
                 } else if(result.data[index]){
                     tldHash = result.data[index].tld_hash;
                     no_seri_tld = result.data[index].no_seri_tld;
+                    htmlDisabled = false;
                 } else {
                     tldHash = '';
                     no_seri_tld = '';
+                    htmlDisabled = false;
                 }
 
                 tmpArrTld.push({
@@ -303,7 +309,7 @@ function loadPengguna(tldPengguna){
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         let html = '';
         let htmlDisabled = false;
-        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || dataPermohonan.jenis_layanan.name == 'Evaluasi'){
+        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
             htmlDisabled = true;
         }
 
@@ -314,8 +320,10 @@ function loadPengguna(tldPengguna){
 
             // TLD PENGGUNA
             let idHash = value.permohonan_tld_hash ? value.permohonan_tld_hash : value.kontrak_tld_hash;
-            let tldHash = value.tld ? value.tld[0].tld_hash : value.tld_pengguna.tld_hash;
-            let no_seri_tld = value.tld ? value.tld[0].no_seri_tld : value.tld_pengguna.no_seri_tld;
+            let tldHash = value.tld ? value.tld[0].tld_hash : (value.tld_pengguna?.tld_hash || '');
+            let no_seri_tld = value.tld ? value.tld[0].no_seri_tld : (value.tld_pengguna?.no_seri_tld || '');
+
+            if(!value.tld) htmlDisabled = false;
 
             tmpArrTld.push({
                 id: idHash,

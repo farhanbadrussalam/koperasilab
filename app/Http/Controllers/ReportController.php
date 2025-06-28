@@ -230,17 +230,41 @@ class ReportController extends Controller
             return redirect()->back();
         }
 
-        $query = Kontrak::with(
+        $query = Kontrak::with([
             'jenisTld:id_jenisTld,name',
             'jenis_layanan:id_jenisLayanan,name',
             'jenis_layanan_parent:id_jenisLayanan,name',
             'layanan_jasa:id_layanan,nama_layanan',
-        )->find($id);
+            'pelanggan',
+            'pelanggan.perusahaan',
+            'periode' => function($query) {
+                return $query->whereNotNull('id_permohonan')->orWhereNotNull('nomer_surpeng')->orderBy('periode', 'desc');
+            }
+        ])->find($id);
+
+        $listTld = false;
+
+        if($query && count($query->periode) > 0) {
+            $listTld = Kontrak_tld::with('pengguna', 'divisi')->where('id_kontrak', $query->id_kontrak)->where('periode', $query->periode[0]->periode)->get();
+        }
+
+        // Memisahkan radiasi yang digunakan
+        $listRadiasi = false;
+        if(count($listTld) > 0) {
+            foreach ($listTld as $key => $tld) {
+                if(isset($tld->pengguna)){
+                    foreach($tld->pengguna->radiasi as $item) {
+                        $listRadiasi[$item->id_radiasi] = $item;
+                    }
+                }
+            }
+        }
 
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Surat Kontrak';
         $data['data'] = $query;
-        // dd($query);
+        $data['list_tld'] = $listTld;
+        $data['radiasi'] = $listRadiasi;
 
         $pdf = PDF::loadView('report.perjanjian', $data);
         $pdf->render();

@@ -45,6 +45,7 @@ class PelangganController extends Controller
     {
         $periodeNow = Kontrak_periode::where('id_periode', decryptor($idPeriode))->first();
         if($periodeNow){
+            $periodeBefore = Kontrak_periode::where('id_kontrak', decryptor($idKontrak))->where('periode', $periodeNow->periode-1)->first();
             $periodeNext = Kontrak_periode::where('id_kontrak', decryptor($idKontrak))->where('periode', $periodeNow->periode+1)->first();
             // Mengambil Kontrak
             $queryKontrak = Kontrak::with([
@@ -98,6 +99,7 @@ class PelangganController extends Controller
                 'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
                 'module' => 'permohonan-kontrak',
                 'kontrak' => $queryKontrak,
+                'periodeBefore' => $periodeBefore,
                 'periodeNow' => $periodeNow,
                 'periodeNext' => $periodeNext,
                 'jenisLayanan' => $jenisLayanan,

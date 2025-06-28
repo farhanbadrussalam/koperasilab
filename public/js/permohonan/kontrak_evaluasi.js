@@ -1,6 +1,11 @@
 const tmpArrTld = [];
+let inventoryTld = false;
 
 $(function () {
+    inventoryTld = new Inventory_tld({preview: true});
+    inventoryTld.on('inventory.selected', (e) => {
+        console.log(e);
+    });
     let htmlAlamat = '<option value="">Pilih alamat</option>';
     for (const [i,value] of dataKontrak.pelanggan.perusahaan.alamat.entries()) {
         htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
@@ -52,6 +57,7 @@ function loadTldKontrol(tldKontrol) {
                         <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
                     </div>
                     <input type="text" class="form-control" value="${list.tld[idx].no_seri_tld}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
+                    <button class="btn btn-outline-secondary" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>
                 </div>
             `;
         }
@@ -86,6 +92,7 @@ function loadPengguna(tldPengguna){
                 <td>
                     <div class="input-group">
                         <input type="text" class="form-control rounded-start" value="${value.tld ? value.tld[0].no_seri_tld : ''}" id="tldNoSeri_${value.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                        <button class="btn btn-outline-secondary" type="button" data-id="${value.kontrak_tld_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>
                     </div>
                 </td>
                 <td>
@@ -171,4 +178,9 @@ function buatPermohonan(obj){
         } // End of if(result.isConfirmed)
     });
 
+}
+
+function openInventory(obj, jenis){
+    let id = $(obj).data('id');
+    inventoryTld.show(id, tmpArrTld, jenis);
 }

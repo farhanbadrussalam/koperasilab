@@ -87,6 +87,10 @@
                             <div class="d-flex justify-content-between">
                                 <label class="col-form-label" for="jum_pengguna">Pengguna<span
                                         class="text-danger ms-1">*</span></label>
+                                <div class="form-check form-switch" id="switch-tld">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="haveTld" checked>
+                                    <label class="form-check-label" for="haveTld">Anda Memiliki TLD</label>
+                                </div>
                                 <a class="text-decoration-none cursor-pointer text-primary hover-text pt-2"
                                     id="btn-add-pengguna"><i class="bi bi-plus-circle"></i> Tambah</a>
                             </div>
@@ -142,7 +146,7 @@
                                     class="text-danger ms-1">*</span></label>
                             <input type="text" name="nohp" id="nohp" class="form-control maskTelepon">
                         </div>
-                        <div class="col-md-6" id="form-alamat">
+                        <div class="col-md-12" id="form-alamat">
                             <label for="" class="form-label col-md-3">Alamat</label>
                             <div>
                                 <select name="selectAlamat" id="selectAlamat" class="form-select">
@@ -182,41 +186,6 @@
                         </div>
                     </div>
                 </form>
-                {{-- <div class="my-3 d-flex gap-2">
-                    <div class="flex-fill">
-                        <button class="btn btn-outline-secondary btn-sm" id="btn-add-pengguna">Tambah Pengguna</button>
-                        <button class="btn btn-secondary d-none" id="btn-pilih-pengguna">Pilih Pengguna</button>
-                        <div class="border border-opacity-50 rounded my-3 p-3">
-                            <div class="body-placeholder my-3" id="pengguna-placeholder">
-                                @for ($i = 1; $i < 6; $i++)
-                                <div class="card mb-2 shadow-sm border-dark">
-                                    <div class="card-body row align-items-center">
-                                        <div class="placeholder-glow col-md-4 lh-sm d-flex flex-column">
-                                            <div class="placeholder w-50 mb-1"></div>
-                                            <div class="placeholder w-25 mb-1"></div>
-                                        </div>
-                                        <div class="placeholder-glow col-md-3">
-                                            <div class="placeholder w-50 mb-1"></div>
-                                        </div>
-                                        <div class="placeholder-glow col-md-3">
-                                            <div class="placeholder w-50 mb-1"></div>
-                                        </div>
-                                        <div class="placeholder-glow col-md-2 text-end">
-                                            <div class="placeholder w-50 mb-1"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                @endfor
-                            </div>
-                            <div class="body my-3" id="pengguna-list-container">
-
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex-fill">
-                        <button class="btn btn-outline-secondary btn-sm" id="btn-add-kontrol">Tambah Kontrol</button>
-                    </div>
-                </div> --}}
                 <div class="d-flex justify-content-between mt-3">
                     <button class="btn btn-outline-danger" id="hapusPengajuan" onclick="remove()">Hapus
                         pengajuan</button>

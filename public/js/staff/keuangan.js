@@ -106,7 +106,7 @@ function loadData(page = 1, menu) {
                 pelanggan: permohonan.pelanggan.name,
                 periode: permohonan.periode,
                 created_at: permohonan.created_at,
-                kontrak: permohonan.kontrak.no_kontrak,
+                kontrak: permohonan.kontrak?.no_kontrak,
             }
             html += cardComponent(data, { btnAction: btnAction });
         }

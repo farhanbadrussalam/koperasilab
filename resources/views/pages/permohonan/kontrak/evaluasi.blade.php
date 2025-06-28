@@ -31,8 +31,12 @@
                 <div class="mb-1">
                     <div class="d-flex align-items-center column-gap-2">
                         <div class="border border-secondary rounded p-2 bg-secondary-subtle shadow-sm">
-                            <label for="">(Periode {{ $periodeNow->periode }})</label>
-                            <div>{{ convert_date($periodeNow->start_date, 2) }} - {{ convert_date($periodeNow->end_date, 2) }}</div>
+                            <div for="">Periode Pemakaian</div>
+                            <small>{{ convert_date($periodeBefore->start_date, 2) }} - {{ convert_date($periodeBefore->end_date, 2) }}</small>
+                        </div>
+                        <div class="border border-primary rounded p-2 bg-primary-subtle shadow-sm">
+                            <div for="">Periode Berikutnya</div>
+                            <small>{{ convert_date($periodeNow->start_date, 2) }} - {{ convert_date($periodeNow->end_date, 2) }}</small>
                         </div>
                     </div>
                 </div>

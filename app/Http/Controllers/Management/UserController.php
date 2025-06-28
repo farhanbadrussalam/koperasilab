@@ -64,6 +64,11 @@ class UserController extends Controller
             });
         }
 
+        if(request()->has('satuan_kerja') && request()->satuan_kerja != null){
+            $satuan_kerja = decryptor(request()->satuan_kerja);
+            $query->whereJsonContains('satuankerja_id', (int) $satuan_kerja);
+        }
+
         return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('action', function($data){

@@ -264,8 +264,8 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     }else{
         if(role.includes('Staff Pengiriman')) {
             (!statusKirimTld && evaluasiState.active && !lastPeriode) && (htmlAction = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`);
-            if([3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
-                htmlAction = '';
+            if(['KontrakEvaluasi', 'EvaluasiDenganKontrak'].includes(JL)) {
+                htmlAction = JL == 'KontrakEvaluasi' && dataKontrak[index].is_have_tld == 0 ? htmlAction : '';
             }
         } else if(isPelanggan && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
             // 2 = Sewa, 3 = Evaluasi, 5 = Evaluasi - dengan kontrak

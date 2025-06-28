@@ -30,6 +30,7 @@ class Kontrak extends Model
         'note',
         'file_lhu',
         'id_pelanggan',
+        'is_have_tld',
         'created_by',
         'created_at'
     ];
@@ -57,7 +58,8 @@ class Kontrak extends Model
         'jenis_layanan_1' => 'integer',
         'jenis_tld' => 'integer',
         'id_pelanggan' => 'integer',
-        'file_lhu' => 'integer'
+        'file_lhu' => 'integer',
+        'is_have_tld' => 'integer'
     ];
 
     public function getKontrakHashAttribute()

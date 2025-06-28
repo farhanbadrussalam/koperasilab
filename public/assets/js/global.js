@@ -1,3 +1,6 @@
+const tmpArrEvaluasi = ['KontrakEvaluasi', 'EvaluasiTanpaKontrak'];
+const tmpArrSewa = ['KontrakSewa'];
+const tmpArrZeroCek = [];
 /**
  * Formats a number into Indonesian Rupiah currency format.
  *

@@ -124,6 +124,7 @@ function loadData(page = 1, menu) {
 
             let htmlBtn = '';
             let cekHtmlBtn = false;
+            // console.log(data);
             switch (data.jenis_layanan_parent.id_jenisLayanan) {
                 case 4:
                     cekHtmlBtn = !data.lhu?.pengiriman || !data.pengiriman;
@@ -138,6 +139,7 @@ function loadData(page = 1, menu) {
                         }
                     }else{
                         if(htmlInvoice){
+                            // console.log(data.lhu);
                             cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || !data.pengiriman;
                         }else{
                             cekHtmlBtn = !data.lhu?.pengiriman || !data.pengiriman;

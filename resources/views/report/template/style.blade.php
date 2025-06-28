@@ -82,6 +82,9 @@
     .d-flex {
         display: flex !important;
     }
+    .justify-content-between {
+        justify-content: space-between;
+    }
 
     .flex-wrap {
         flex-wrap: wrap !important;
@@ -224,6 +227,9 @@
         max-width: 100%;
         height: auto;
     }
+    .align-top {
+        vertical-align: top !important;
+    }
 
     .border {
         border: 1px solid #000;
@@ -246,4 +252,31 @@
         text-overflow: ellipsis;
         white-space: nowrap;
     }
+
+    .border-bottom{
+        border-bottom: 1px solid gray;
+    }
+    .p-5 {
+        padding: 5px;
+    }
+
+    .p-2{
+        padding: 2px;
+    }
+    .px-5 {
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+    .title {
+        text-align: center;
+    }
+    .title h2, span{
+        margin: 0;
+        padding: 0;
+    }
+
+    .list-roman {
+        list-style-type: upper-roman;
+    }
+
 </style>

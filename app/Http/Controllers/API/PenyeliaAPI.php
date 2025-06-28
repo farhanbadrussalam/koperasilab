@@ -315,7 +315,9 @@ class PenyeliaAPI extends Controller
                 foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
                     if($value->status == 3) {
                         // jenis kontraknya bukan evaluasi berarti di update statusnya
-                        if($penyelia->permohonan->kontrak->jenis_layanan_2 != '3') {
+                        if($penyelia->permohonan->kontrak->jenis_layanan_2 == '3' && $penyelia->permohonan->kontrak->is_have_tld != 0) {
+
+                        }else{
                             Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
                         }
 

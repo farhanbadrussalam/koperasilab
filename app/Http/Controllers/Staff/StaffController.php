@@ -289,6 +289,7 @@ class StaffController extends Controller
                 'invoice.pengiriman',
                 'lhu',
                 'lhu.media',
+                'lhu.pengiriman',
                 'pengiriman',
                 'file_lhu',
                 'pengguna',
@@ -308,7 +309,11 @@ class StaffController extends Controller
             }
 
             // cek tld apakah sudah di kirim atau belum
-            $statusTld = Pengiriman::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
+            $statusTld = Pengiriman::with([
+                'permohonan' => function($q){
+                    return $q->whereNotNull('id_pengiriman');
+                }
+            ])->where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
 
             // cek apakah sudah di periode terakhir atau belum
             $lastPeriode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->orderBy('periode', 'desc')->first();
