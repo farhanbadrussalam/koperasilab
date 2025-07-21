@@ -36,7 +36,8 @@ class Penyelia extends Model
     protected $appends = [
         'penyelia_hash',
         'permohonan_hash',
-        'status_hash'
+        'status_hash',
+        'media'
     ];
 
     protected $casts = [
@@ -48,7 +49,7 @@ class Penyelia extends Model
         'id_permohonan' => 'integer',
         'ttd_by' => 'integer',
         'created_by' => 'integer',
-        'document' => 'integer'
+        'document' => 'json'
     ];
 
     public function getPermohonanHashAttribute()
@@ -66,6 +67,14 @@ class Penyelia extends Model
         return encryptor($this->status);
     }
 
+    public function getMediaAttribute()
+    {
+        $decodedIds = $this->document;
+        $decodedIds = is_array($decodedIds) ? $decodedIds : [];
+
+        return Master_media::whereIn('id', $decodedIds)->get();
+    }
+
     public function permohonan()
     {
         return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id_permohonan');
@@ -79,9 +88,9 @@ class Penyelia extends Model
         return $this->hasMany(Log_penyelia::class, 'id_penyelia', 'id_penyelia')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
     }
 
-    public function media(){
-        return $this->belongsTo(Master_media::class, 'document', 'id');
-    }
+    // public function media(){
+    //     return $this->belongsTo(Master_media::class, 'document', 'id');
+    // }
 
     public function petugas(){
         return $this->hasMany(Penyelia_petugas::class, 'id_penyelia', 'id_penyelia');

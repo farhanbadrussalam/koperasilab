@@ -164,7 +164,7 @@ function loadData(page = 1, menu) {
                                     </div>
                                     <div class="d-flex gap-3 text-body-tertiary fs-7">
                                         <div><i class="bi bi-person-check-fill"></i> ${permohonan.pelanggan.name}</div>
-                                        <span><i class="bi bi-calendar-range"></i> Periode ${permohonan.periode}${permohonan.periode == 1 ? '/Zero cek' : ''}</span>
+                                        <span><i class="bi bi-calendar-range"></i> ${!permohonan.periode ? 'Zero cek' : 'Periode '+permohonan.periode}</span>
                                         <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                         ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                                     </div>
@@ -236,7 +236,7 @@ function loadData(page = 1, menu) {
                                         </div>
                                     </div>
                                     <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                        <span><i class="bi bi-calendar-range"></i> Periode ${permohonan.periode}${permohonan.periode == 1 ? `/Zero cek` : ''}</span>
+                                        <span><i class="bi bi-calendar-range"></i> ${permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`}</span>
                                         <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                         ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                                     </div>
@@ -276,6 +276,23 @@ function loadData(page = 1, menu) {
         $(`#list-container`).show();
     })
 }
+
+$('#list-pagination').on('click', 'a', function (e) {
+    e.preventDefault();
+    const pageno = e.target.dataset.page;
+    let menu = '';
+    switch (thisTab) {
+        case 1:
+            menu = 'surattugas';
+            break;
+
+        case 2:
+            menu = 'penyelialhu';
+            break;
+    }
+
+    loadData(pageno, menu);
+});
 
 function openProgressModal(obj) {
     const penyelia = $(obj).parent().data("id");

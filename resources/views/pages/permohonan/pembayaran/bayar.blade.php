@@ -63,21 +63,7 @@
                 <p>
                     Note : Kwitansi asli dan TLD akan kami kirimkan setelah menerima bukti pembayaran. <br>
                     (Mohon Bukti Potong PPh 23 dikirimkan kepada kami apabila memotongnya)<br>
-                    Pembayaran dilakukan melalui <b>Virtual Account</b> Bank Mandiri <b>atas nama Koperasi JKRL</b> dengan nomor <b>89029220241750</b> atau transfer melalui rekening : <br>
-                    <div class="container fw-semibold">
-                        <div class="row">
-                            <div class="col-md-2">Nama Bank</div>
-                            <div class="col-auto">: Mandiri cabang Pondok Indah Jakarta Selatan</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2">Nomor rekening</div>
-                            <div class="col-auto">: 101-000011370-2</div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2">Atas nama</div>
-                            <div class="col-auto">: Koperasi Jasa Keselamatan Radiasi dan Lingkungan</div>
-                        </div>
-                    </div>
+                    {!! $keuangan->metode_pembayaran->content !!}
                 </p>
                 <p>
                     Atas perhatian dan kerjasamanya, diucapkan terima kasih

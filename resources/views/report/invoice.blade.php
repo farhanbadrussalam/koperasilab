@@ -110,9 +110,7 @@
     </div>
 
     <div class="payment-info" style="line-height: 1.3em">
-        <p>Pembayaran dapat dilakukan secara Tunai atau melalui Virtual Account Bank Mandiri dengan No : 89029120231337</p>
-        <p>Apabila telah melakukan pembayaran, kami mohon bukti transfer dikirim melalui e-mail ke tld@kop-jkrl.co.id dan
-            diberi keterangan untuk pembayaran dimaksud berdasarkan invoice/kwitansi tersebut diatas.</p>
+        {!! $data->metode_pembayaran->content !!}
         <p>Atas perhatian dan kerjasamanya, diucapkan terima kasih</p>
     </div>
 

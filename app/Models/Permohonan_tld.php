@@ -16,6 +16,7 @@ class Permohonan_tld extends Model
         'id_permohonan_tld',
         'id_permohonan',
         'id_tld',
+        'id_kontrak_tld',
         'tld_tmp',
         'count',
         'id_pengguna',
@@ -29,12 +30,14 @@ class Permohonan_tld extends Model
     protected $hidden = [
         'id_permohonan_tld',
         'id_permohonan',
-        'id_tld',
+        'id_kontrak_tld'
     ];
 
     protected $appends = [
         'permohonan_tld_hash',
-        'permohonan_hash'
+        'permohonan_hash',
+        'kontrak_tld_hash',
+        'tld',
     ];
 
     protected $casts = [
@@ -55,6 +58,20 @@ class Permohonan_tld extends Model
     public function getPermohonanHashAttribute()
     {
         return encryptor($this->id_permohonan);
+    }
+
+    public function getTldAttribute()
+    {
+        $decodedIds = $this->id_tld;
+        $decodedIds = is_array($decodedIds) ? $decodedIds : [];
+        $get = Master_tld::whereIn('id_tld', $decodedIds)->get();
+
+        return count($get) > 0 ? $get : null;
+    }
+
+    public function getKontrakTldHashAttribute()
+    {
+        return encryptor($this->id_kontrak_tld);
     }
 
     public function tld()

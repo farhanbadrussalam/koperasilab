@@ -2,12 +2,13 @@ let signaturePad = false;
 let arrJobs = [];
 let periodeJs = false;
 let objSelected = {};
+let tmpArrPetugas = [];
 $(function () {
     // Mengambil periode
     let arrPeriode = dataPenyelia.permohonan.kontrak?.periode ?? dataPenyelia.permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
     let findPeriode = arrPeriode.find(d => d.periode == dataPenyelia.periode);
 
-    if(findPeriode.periode == 0){
+    if(!findPeriode.periode){
         $('#periodePermohonan').html(`Zero cek`);
     }else{
         $('#periodePermohonan').html(`${dateFormat(findPeriode.start_date, 5)} - ${dateFormat(findPeriode.end_date, 5)}`);
@@ -91,6 +92,15 @@ $(function () {
             }
         });
     }
+
+    $('#modalAddPetugas').on('hidden.bs.modal', removeAddPetugas);
+
+    $('#btnPilihPetugas').on('click', () => {
+        arrJobs = arrJobs.concat(tmpArrPetugas);
+        removeAddPetugas();
+        loadPetugas();
+        $('#modalAddPetugas').modal('hide');
+    });
 })
 
 function tambahPetugas(idJobs, index, name, isParalel = false){
@@ -122,19 +132,31 @@ function searchPetugasList(search = '') {
         ajaxGet(`api/v1/petugas/list`, {idJobs : idJobs, search : search, idPenyelia: idPenyelia}, result => {
             const data = result.data;
             let html = '';
+            let count = 0;
             for (const petugas of data) {
-                html += `
-                    <div class="border-bottom py-1 d-flex justify-content-between px-2 hover-1 rounded align-items-center">
-                        <div class="text-start">
-                            <div class="fw-medium">${petugas.name}</div>
-                            <div class="text-secondary">${petugas.email}</div>
+                let checked = tmpArrPetugas.find(d => d.idPetugas == petugas.user_hash) ? 'checked' : '';
+                // filter petugas yang digunakan
+                let cekPetugas = arrJobs.find(d => d.idPetugas == petugas.user_hash && d.idJobs == idJobs);
+                if(!cekPetugas) {
+                    html += `
+                        <div class="border-bottom py-1 d-flex justify-content-between px-2 hover-1 rounded align-items-center" for="cekPetugas_${petugas.user_hash}" data-isParalel="${isParalel}" data-idjobs="${idJobs}" data-name="${petugas.name}" data-email="${petugas.email}" data-index="${index}" data-idpetugas="${petugas.user_hash}">
+                            <div class="text-start d-flex align-items-center">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="cekPetugas[]" id="cekPetugas_${petugas.user_hash}" onclick="ceklistPetugas(this)" ${checked}>
+                                </div>
+                                <div>
+                                    <div class="fw-medium">${petugas.name}</div>
+                                    <div class="text-secondary">${petugas.email}</div>
+                                </div>
+                            </div>
+                            <div class="text-success cursoron" onclick="pilihPetugas(this,'${petugas.user_hash}')"><i class="bi bi-person-check"></i> Pilih</div>
                         </div>
-                        <div class="text-success cursoron" data-isParalel="${isParalel}" data-idjobs="${idJobs}" data-name="${petugas.name}" data-email="${petugas.email}" data-index="${index}" onclick="pilihPetugas(this,'${petugas.user_hash}')"><i class="bi bi-person-check"></i> Pilih</div>
-                    </div>
-                `;
+                    `;
+                    count++;
+                }
             }
 
-            if(data.length == 0){
+            if(count == 0){
                 html = `
                     <div class="border-bottom py-1 d-flex justify-content-center px-2">
                         <div>
@@ -150,10 +172,10 @@ function searchPetugasList(search = '') {
 }
 
 function pilihPetugas(obj,idPetugas){
-    const idJobs = $(obj).data('idjobs');
-    const name = $(obj).data('name');
-    const email = $(obj).data('email');
-    const isParalel = $(obj).data('isparalel');
+    const idJobs = $(obj).parent().data('idjobs');
+    const name = $(obj).parent().data('name');
+    const email = $(obj).parent().data('email');
+    const isParalel = $(obj).parent().data('isparalel');
 
     // Tambah data ke arrJobs
     let tmp = {
@@ -167,17 +189,13 @@ function pilihPetugas(obj,idPetugas){
         tmp.isParalel = isParalel;
     }
 
-    // Pastikan arrJobs[index] adalah array
-    // arrJobs[idJobs] = arrJobs[idJobs] || [];
-
-
     // Cek apakah idPetugas sudah ada
     const isDuplicate = arrJobs.some(job => job.idPetugas === idPetugas && job.idJobs === idJobs);
 
     if (!isDuplicate) {
         arrJobs.push(tmp); // Tambahkan hanya jika tidak duplikat
     }
-    // return;
+
     loadPetugas();
 
     $('#modalAddPetugas').modal('hide');
@@ -312,4 +330,33 @@ function saveSuratTugas(obj){
         }
     });
 
+}
+
+function ceklistPetugas(obj){
+    const dataItem = $(obj).parent().parent().parent();
+    const idJobs = dataItem.data('idjobs');
+    const name = dataItem.data('name');
+    const email = dataItem.data('email');
+    const isParalel = dataItem.data('isparalel');
+    const idPetugas = dataItem.data('idpetugas');
+
+    let tmp = {
+        idJobs: idJobs,
+        name: name,
+        email: email,
+        idPetugas: idPetugas
+    }
+
+    if(isParalel){
+        tmp.isParalel = isParalel;
+    }
+
+    tmpArrPetugas.push(tmp);
+    $('#jumlah-petugas').text($('[name="cekPetugas[]"]:checked').length);
+}
+
+function removeAddPetugas(){
+    $('[name="cekPetugas[]"]').prop('checked', false);
+    $('#jumlah-petugas').text($('[name="cekPetugas[]"]:checked').length);
+    tmpArrPetugas = [];
 }

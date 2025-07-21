@@ -35,6 +35,7 @@ class Permohonan extends Model
         'status',
         'note',
         'is_have_tld',
+        'is_zerocek',
         'file_lhu',
         'flag_read',
         'created_by',
@@ -78,7 +79,8 @@ class Permohonan extends Model
         'file_lhu' => 'integer',
         'flag_read' => 'integer',
         'created_by' => 'integer',
-        'is_have_tld' => 'integer'
+        'is_have_tld' => 'integer',
+        'is_zerocek' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

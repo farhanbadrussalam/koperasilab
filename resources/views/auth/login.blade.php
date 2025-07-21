@@ -56,7 +56,7 @@
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="form-group">
+                        {{-- <div class="form-group">
                             {!! NoCaptcha::renderJs() !!}
                             {!! NoCaptcha::display() !!}
                             @if ($errors->has('g-recaptcha-response'))
@@ -64,7 +64,7 @@
                                     <strong>{{ $errors->first('g-recaptcha-response') }}</strong>
                                 </span>
                             @endif
-                        </div>
+                        </div> --}}
                             <button class="btn btn-primary" style="width: 360px;" type="submit">Masuk</button>
                         <div class="social-auth-links text-center mt-2 mb-3">
                             <a href="{{ route('google.redirect') }}" class="btn btn-block btn-danger">

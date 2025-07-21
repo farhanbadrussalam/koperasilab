@@ -239,14 +239,15 @@ class Periode {
             $(".date-periode").flatpickr({
                 altInput: true,
                 locale: "id",
-                minDate: lastDate ? lastDate.end_date : "today",
+                // minDate: "today",
+                defaultDate: lastDate ? lastDate.end_date : "",
                 dateFormat: "Y-m-d",
                 altFormat: "j F Y",
                 disable: [
-                    function (date) {
-                        // Hanya mengizinkan tanggal antara 1 dan 10
-                        return date.getDate() > 10;
-                    },
+                //     function (date) {
+                //         // Hanya mengizinkan tanggal antara 1 dan 10
+                //         return date.getDate() > 10;
+                //     },
                 ],
                 onChange: (selectedDates, dateStr, instance) => {
                     let id_input_start = $(instance.input).data("periode");
@@ -293,8 +294,9 @@ class Periode {
             $(".end-periode").flatpickr({
                 altInput: true,
                 locale: "id",
-                minDate: lastDate ? lastDate.start_date : "today",
+                // minDate: lastDate ? lastDate.start_date : "today",
                 maxDate: lastDate ? lastDate.end_date : false,
+                minDate: "today",
                 dateFormat: "Y-m-d",
                 altFormat: "j F Y",
                 disable: [

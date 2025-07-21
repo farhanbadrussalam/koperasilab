@@ -31,6 +31,7 @@ class Kontrak extends Model
         'file_lhu',
         'id_pelanggan',
         'is_have_tld',
+        'is_zerocek',
         'created_by',
         'created_at'
     ];

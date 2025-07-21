@@ -217,6 +217,13 @@
                     <span class="hide-menu">Keuangan</span>
                     </a>
                 </li>
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-jenis-pembayaran' ? 'active' : '' }}"
+                    href="{{ route('staff.jenis.pembayaran') }}" aria-expanded="false">
+                        <i class="bi bi-credit-card"></i>
+                        <span class="hide-menu">Metode Pembayaran</span>
+                    </a>
+                </li>
                 @endcan
                 {{-- END STAFF --}}
 
@@ -292,15 +299,6 @@
                                 <i class="bi bi-circle"></i>
                             </span>
                             <span class="hide-menu">TLD</span>
-                        </a>
-                    </li>
-                    <li class="sidebar-item">
-                        <a class="sidebar-link {{ $module == 'radiasi' ? 'active' : '' }}"
-                            href="{{ route('radiasi.index') }}" aria-expanded="false">
-                            <span>
-                                <i class="bi bi-circle"></i>
-                            </span>
-                            <span class="hide-menu">Radiasi</span>
                         </a>
                     </li>
                     <li class="sidebar-item">

@@ -83,14 +83,20 @@
                                     periode</button>
                             </div>
                         </div>
+                        <div class="col-md-12" id="form-switch">
+                            <div class="form-check form-switch" id="switch-tld">
+                                <input class="form-check-input" type="checkbox" role="switch" id="haveTld" checked>
+                                <label class="form-check-label" for="haveTld">Anda Memiliki TLD</label>
+                            </div>
+                            <div class="form-check form-switch" id="switch-zerocek">
+                                <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
+                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero cek</label>
+                            </div>
+                        </div>
                         <div class="col-md-6" id="form-jum-pengguna">
                             <div class="d-flex justify-content-between">
                                 <label class="col-form-label" for="jum_pengguna">Pengguna<span
                                         class="text-danger ms-1">*</span></label>
-                                <div class="form-check form-switch" id="switch-tld">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="haveTld" checked>
-                                    <label class="form-check-label" for="haveTld">Anda Memiliki TLD</label>
-                                </div>
                                 <a class="text-decoration-none cursor-pointer text-primary hover-text pt-2"
                                     id="btn-add-pengguna"><i class="bi bi-plus-circle"></i> Tambah</a>
                             </div>

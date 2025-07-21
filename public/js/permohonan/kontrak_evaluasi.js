@@ -1,14 +1,29 @@
 const tmpArrTld = [];
 let inventoryTld = false;
+let JL = '';
+let htmlDisabled = false;
 
 $(function () {
-    inventoryTld = new Inventory_tld({preview: true});
+    inventoryTld = new Inventory_tld({
+        preview: true,
+        no_kontrak: dataKontrak.no_kontrak
+    });
     inventoryTld.on('inventory.selected', (e) => {
-        console.log(e);
+        const detail = e.detail;
+        $(`#tldNoSeri_${detail.selected}`).val(detail.data_tld.no_seri_tld);
+
+        // reset tmpArrTld
+        let index = tmpArrTld.findIndex(d => d.id == detail.selected);
+
+        if(index > -1){
+            tmpArrTld[index].tld = detail.data_tld.tld_hash;
+        }
     });
     let htmlAlamat = '<option value="">Pilih alamat</option>';
     for (const [i,value] of dataKontrak.pelanggan.perusahaan.alamat.entries()) {
-        htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+        if(value.status){
+            htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+        }
     }
 
     $('#selectAlamat').html(htmlAlamat);
@@ -24,6 +39,12 @@ $(function () {
             }
         }
     });
+
+    JL = jenislayanan(dataKontrak.jenis_layanan_parent, dataKontrak.jenis_layanan);
+
+    if(tmpArrEvaluasi.includes(JL)){
+        htmlDisabled = true;
+    }
 
     loadTld();
 
@@ -47,8 +68,8 @@ function loadTldKontrol(tldKontrol) {
 
         for (let idx = 0; idx < list.count; idx++) {
             tmpArrTld.push({
-                id: `${list.kontrak_tld_hash}|${idx+1}`,
-                tld: list.tld[idx].tld_hash
+                id: `${list.kontrak_tld_hash}_kontrol_${idx+1}`,
+                tld: list.tld ? list.tld[idx].tld_hash : null
             });
 
             htmlTldKontrol += `
@@ -56,8 +77,8 @@ function loadTldKontrol(tldKontrol) {
                     <div class="input-group-text">
                         <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
                     </div>
-                    <input type="text" class="form-control" value="${list.tld[idx].no_seri_tld}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
-                    <button class="btn btn-outline-secondary" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>
+                    <input type="text" class="form-control" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" id="tldNoSeri_${list.kontrak_tld_hash}_kontrol_${idx+1}" placeholder="Pilih No Seri" readonly>
+                    ${ htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${list.kontrak_tld_hash}_kontrol_${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : '' }
                 </div>
             `;
         }
@@ -92,7 +113,7 @@ function loadPengguna(tldPengguna){
                 <td>
                     <div class="input-group">
                         <input type="text" class="form-control rounded-start" value="${value.tld ? value.tld[0].no_seri_tld : ''}" id="tldNoSeri_${value.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-                        <button class="btn btn-outline-secondary" type="button" data-id="${value.kontrak_tld_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>
+                        ${htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${value.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
                     </div>
                 </td>
                 <td>
@@ -150,7 +171,10 @@ function buatPermohonan(obj){
             params.append('alamat', alamatData.alamat_hash); // Send the address hash
             params.append('listTld', JSON.stringify(checkTld));
             params.append('createBy', userActive.user_hash);
+            params.append('is_zerocek', 0);
+            params.append('haveTld', 1);
             params.append('tipeKontrak', 'kontrak lama');
+            params.append('dataTld', JSON.stringify(tmpArrTld));
             dataPermohonan ? params.append('idPermohonan', dataPermohonan.permohonan_hash) : false;
 
             // params.append('dataPengguna', JSON.stringify(checkedPenggunaValues));

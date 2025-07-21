@@ -47,20 +47,17 @@ function loadData(page = 1, menu) {
             // Data layanan jasa (TLD)
             let htmlTld = '';
             let isLast = cekLastPeriode(data.kontrak.periode, data.periode);
-            let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.periode == data.periode && d.detail.find(c => c.jenis == 'tld'));
+            let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.detail.find(c => c.jenis == 'tld' && c.periode == data.periode));
             let htmlStatus = '';
-            // aktifJobsLhu.map(d => {
-            //     if(d.point_jobs){
-            //         htmlStatus += statusFormat('penyelia', d.jobs.status);
-            //     }
-            // })
+            let isEvaluasiNonZero = tmpArrEvaluasi.includes(JL) && data.is_zerocek == 0;
+            let periodeTld = data.periode == null ? 1 : data.periode;
 
-            if(!isLast || JL == "KontrakEvaluasi") {
+            if( periodeTld != null && !isEvaluasiNonZero) {
                 htmlTld = `
                     <div class="col-md-12 mt-2">
                         <div class="border-top py-2 d-flex justify-content-between align-items-center">
                             <div class="px-2">
-                                <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan}</span>
+                                <span class="fw-semibold fs-6">${data.layanan_jasa.nama_layanan} Periode ${periodeTld}</span>
                                 <small class="text-body-tertiary"> - ${data.jumlah_pengguna} Pengguna + ${data.jumlah_kontrol} Kontrol</small>
                                 <small>${statusFormat('pengiriman', cekStatusTldPengiriman ? cekStatusTldPengiriman.status : false)}</small>
                             </div>
@@ -87,7 +84,7 @@ function loadData(page = 1, menu) {
                     <div class="border-top py-2 d-flex justify-content-between align-items-center">
                         <div class="px-2">
                             <span class="fw-semibold fs-6">LHU</span>
-                            <small class="text-body-tertiary"> - Periode ${data.lhu.periode}${data.lhu.periode == 1 ? "/Zero cek" : ""}</small>
+                            <small class="text-body-tertiary"> - ${data.lhu.periode == 0 ? "Zero cek" : `Periode ${data.lhu.periode}`}</small>
                             <small>${statusFormat('pengiriman', data.lhu.pengiriman?.status)}</small>
                         </div>
                         <div class="d-flex align-items-center gap-3 text-secondary">
@@ -124,25 +121,23 @@ function loadData(page = 1, menu) {
 
             let htmlBtn = '';
             let cekHtmlBtn = false;
-            // console.log(data);
             switch (data.jenis_layanan_parent.id_jenisLayanan) {
                 case 4:
-                    cekHtmlBtn = !data.lhu?.pengiriman || !data.pengiriman;
+                    cekHtmlBtn = !data.lhu?.pengiriman || (!data.pengiriman && !isEvaluasiNonZero);
                     break;
 
                 default:
                     if(data.jenis_layanan.id_jenisLayanan == 2){
                         if(htmlInvoice){
-                            cekHtmlBtn = !data.invoice?.pengiriman || !data.pengiriman;
+                            cekHtmlBtn = !data.invoice?.pengiriman || (!data.pengiriman && !isEvaluasiNonZero);
                         }else{
-                            cekHtmlBtn = !data.pengiriman;
+                            cekHtmlBtn = (!data.pengiriman && !isEvaluasiNonZero);
                         }
                     }else{
                         if(htmlInvoice){
-                            // console.log(data.lhu);
-                            cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || !data.pengiriman;
+                            cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || (!data.pengiriman && !isEvaluasiNonZero);
                         }else{
-                            cekHtmlBtn = !data.lhu?.pengiriman || !data.pengiriman;
+                            cekHtmlBtn = !data.lhu?.pengiriman || (!data.pengiriman && !isEvaluasiNonZero);
                         }
                     }
                     break;
@@ -160,7 +155,7 @@ function loadData(page = 1, menu) {
                             </div>
                             <div class="fs-5 my-2"><span class="fw-bold">${data.jenis_tld.name} - ${data.pelanggan.perusahaan.nama_perusahaan}</span> <span class="text-body-tertiary">${data.kontrak ? "#"+data.kontrak.no_kontrak : ''}</span></div>
                             <div class="d-flex gap-3 text-body-tertiary">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})">${arrPeriode.length} Periode</div>
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})">${arrPeriode.length - 1} Periode</div>
                                 <div><i class="bi bi-person-check-fill"></i> ${data.pelanggan.name}</div>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
                             </div>

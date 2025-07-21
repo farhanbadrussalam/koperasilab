@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Penyelia;
 use App\Models\Permohonan_dokumen;
 use App\Models\Pengiriman_detail;
+use App\Models\Kontrak_periode;
 use Illuminate\Support\Facades\Crypt;
 
 if (!function_exists('formatCurrency')) {
@@ -418,7 +419,7 @@ if (!function_exists('generateNoDokumen')) {
                                     ->whereYear('created_at', $tahunSekarang)
                                     ->count(); // Ubah dengan pengambilan nomor terakhir dari database
         }else{
-            $lastContractNumber = Pengiriman_detail::where('nomer_surpeng', '!=', null)
+            $lastContractNumber = Kontrak_periode::where('nomer_surpeng', '!=', null)
                                     ->whereMonth('created_at', $bulanSekarang)
                                     ->whereYear('created_at', $tahunSekarang)
                                     ->count();
@@ -474,6 +475,13 @@ if (!function_exists('messageSanity')) {
             }
         }
         return $errorMessage;
+    }
+}
+
+if (!function_exists('jenislayanan')) {
+    function jenislayanan($parent, $child)
+    {
+        return trim(preg_replace('/\s+/', '', $parent->name . ' ' . $child->name));
     }
 }
 ?>

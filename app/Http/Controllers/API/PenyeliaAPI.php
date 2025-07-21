@@ -333,6 +333,11 @@ class PenyeliaAPI extends Controller
                             Master_tld::where('digunakan', $penyelia->permohonan->kontrak->no_kontrak)->update(array('status' => 0, 'digunakan' => null));
                             Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 1));
                         }
+                    } else if($value->status == 1) {
+                        if($penyelia->permohonan->is_zerocek == 0) {
+                            Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
+                            kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 0]);
+                        }
                     }
                 }
             }
@@ -599,7 +604,6 @@ class PenyeliaAPI extends Controller
                 'permohonan.rincian_list_tld.pengguna',
                 'log',
                 'log.user',
-                'media'
             )->find($idPenyelia);
             DB::commit();
 
@@ -656,7 +660,15 @@ class PenyeliaAPI extends Controller
             $dataPenyelia = Penyelia::find($idPenyelia);
 
             if(isset($dataPenyelia)){
-                $update = $dataPenyelia->update(array('document' => $fileUpload->getIdMedia()));
+                $arrIdDocument = array();
+                if($dataPenyelia->document){
+                    $arrIdDocument = $dataPenyelia->document;
+                    $arrIdDocument[] = $fileUpload->getIdMedia();
+                }else{
+                    $arrIdDocument[] = $fileUpload->getIdMedia();
+                }
+
+                $update = $dataPenyelia->update(array('document' => $arrIdDocument));
 
                 DB::commit();
 
@@ -688,7 +700,11 @@ class PenyeliaAPI extends Controller
             $dataPenyelia = Penyelia::find($idPenyelia);
 
             if(isset($dataPenyelia)){
-                $update = $dataPenyelia->update(array('document' => null));
+                $arrIdDocument = $dataPenyelia->document;
+                $arrIdDocument = array_filter($arrIdDocument, function($item) use ($idMedia) {
+                    return $item != $idMedia;
+                });
+                $update = $dataPenyelia->update(array('document' => count($arrIdDocument) > 0 ? $arrIdDocument : null));
 
                 DB::commit();
 

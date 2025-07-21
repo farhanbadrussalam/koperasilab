@@ -20,14 +20,13 @@ $(function () {
     });
 
     $(`[name="statusProgress"]`).on('click', obj => {
-        const prosesNow = nowSelect.penyelia_map.find(d => listJobs.includes(d.jobs_hash) && d.status == 1);
-
         if(obj.target.value == 'return') {
             $('#divUploadDocLhu').hide();
             $('#prosesNext').val(nowSelect.prosesPrev.jobs.name);
         } else {
-            prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
-            $('#prosesNext').val(nowSelect.prosesNext.jobs.name);
+            // const prosesNow = nowSelect.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
+            nowSelect.prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
+            $('#prosesNext').val(nowSelect.prosesNext?.jobs?.name ?? "Finish");
         }
     });
     $('#prosesNow').on('change', obj => {
@@ -146,7 +145,7 @@ function loadData(page = 1) {
                                 </div>
                             </div>
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                <span><i class="bi bi-calendar-range"></i> Periode ${permohonan.periode}${permohonan.periode == 1 ? `/Zero cek` : ''}</span>
+                                <span><i class="bi bi-calendar-range"></i> ${permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`}</span>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                 ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                             </div>
@@ -186,21 +185,24 @@ function openProgressModal(obj){
     const index = $(obj).parent().data("index");
     ajaxGet(`api/v1/penyelia/getById/${dataPenyelia[index].penyelia_hash}`, false, result => {
         nowSelect = result.data ?? false;
-        // console.log(nowSelect);
         $('#statusDone').prop('checked', true);
         // Mengambil proses jobs
         const listJobsAktif = nowSelect.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
 
+        let idxPetugas = 0;
         let htmlJobs = listJobsAktif.map((d, index) => {
             let petugasInJobs = nowSelect.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
+
             if(petugasInJobs){
+                if(idxPetugas == 0){
+                    setProses(d);
+                }
+                idxPetugas++;
                 return `<option value="${d.map_hash}" ${index == 0 ? 'selected' : ''}>${d.jobs.name}</option>`;
             }
         });
 
         $('#prosesNow').html(htmlJobs.join(''));
-
-        setProses(listJobsAktif[0]);
 
         $('#dateProgress').flatpickr({
             altInput: true,
@@ -220,7 +222,7 @@ function openProgressModal(obj){
         documentLhu = new UploadComponent('upload_document', {
             camera: false,
             allowedFileExtensions: ['pdf'],
-            multiple: false,
+            multiple: true,
             urlUpload: {
                 url: `api/v1/penyelia/uploadDokumenLhu`,
                 urlDestroy: `api/v1/penyelia/destroyDokumenLhu`,
@@ -228,7 +230,7 @@ function openProgressModal(obj){
             }
         });
 
-        if(nowSelect.media) {
+        if(nowSelect.media.length > 0){
             documentLhu.setData(nowSelect.media);
         }
 

@@ -16,6 +16,7 @@ use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Kontrak;
 use App\Models\Kontrak_periode;
+use App\Models\Kontrak_tld;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -45,8 +46,27 @@ class PelangganController extends Controller
     {
         $periodeNow = Kontrak_periode::where('id_periode', decryptor($idPeriode))->first();
         if($periodeNow){
-            $periodeBefore = Kontrak_periode::where('id_kontrak', decryptor($idKontrak))->where('periode', $periodeNow->periode-1)->first();
-            $periodeNext = Kontrak_periode::where('id_kontrak', decryptor($idKontrak))->where('periode', $periodeNow->periode+1)->first();
+            $idKontrak = decryptor($idKontrak);
+            $periodeBefore = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->first();
+            $periodeNext = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+1)->first();
+            $periode2Next = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+2)->first();
+            // pengecekan periode sekarang
+            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode)->get();
+            if(count($kontrakTld) == 0){
+                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->get();
+                foreach($dataKontrakTldSebelum as $val){
+                    $arr = array(
+                        'id_kontrak' => $idKontrak,
+                        'id_pengguna' => $val->id_pengguna,
+                        'id_divisi' => $val->id_divisi,
+                        'periode' => $periodeNow->periode,
+                        'status' => 1,
+                        'count' => $val->count,
+                        'created_by' => Auth::user()->id
+                    );
+                    Kontrak_tld::create($arr);
+                }
+            }
             // Mengambil Kontrak
             $queryKontrak = Kontrak::with([
                 'layanan_jasa',
@@ -58,20 +78,18 @@ class PelangganController extends Controller
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
                 'rincian_list_tld' => function($q) use ($periodeNow){
-                    return $q->where('periode', $periodeNow->periode-1);
+                    return $q->where('periode', $periodeNow->periode);
                 },
                 'rincian_list_tld.pengguna',
                 'rincian_list_tld.pengguna.media_ktp',
                 'rincian_list_tld.pengguna.divisi'
-            ])->where('id_kontrak', decryptor($idKontrak))->first();
+            ])->where('id_kontrak', $idKontrak)->first();
 
             if($queryKontrak && $queryKontrak->rincian_list_tld){
                 foreach($queryKontrak->rincian_list_tld as $key => $value){
                     if($value->pengguna && $value->pengguna->id_radiasi){
                         $value->pengguna->radiasi = Master_radiasi::whereIn('id_radiasi', $value->pengguna->id_radiasi)->get();
                     }
-
-                    $value->tld = $value->id_tld ? Master_tld::whereIn('id_tld', $value->id_tld)->get() : null;
                 }
             }
 
@@ -89,12 +107,6 @@ class PelangganController extends Controller
                 ->where('periode', $periodeNow->periode)
                 ->first();
 
-            if($permohonan){
-                $permohonan->rincian_list_tld->each(function($item) {
-                    $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
-                });
-            }
-
             $data = [
                 'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
                 'module' => 'permohonan-kontrak',
@@ -102,6 +114,7 @@ class PelangganController extends Controller
                 'periodeBefore' => $periodeBefore,
                 'periodeNow' => $periodeNow,
                 'periodeNext' => $periodeNext,
+                'periode2Next' => $periode2Next,
                 'jenisLayanan' => $jenisLayanan,
                 'permohonan' => $permohonan
             ];
@@ -194,31 +207,10 @@ class PelangganController extends Controller
                        'permohonan.jenis_layanan_parent',
                        'permohonan.pelanggan',
                        'permohonan.pelanggan.perusahaan',
-                       'permohonan.kontrak'
+                       'permohonan.kontrak',
+                       'metode_pembayaran'
                    )->where('id_keuangan', $idKeuangan)->first();
-        // get bukti bayar
-        if(isset($keuangan->bukti_bayar)){
-            $buktiBayar = $keuangan->bukti_bayar;
-            $arrBukti = array();
-            foreach ($buktiBayar as $key => $idMedia) {
-                array_push($arrBukti, $this->media->get($idMedia));
-            }
-            $keuangan->media_bukti_bayar = $arrBukti;
-        }else{
-            $keuangan->media_bukti_bayar = array();
-        }
 
-        // get bukti bayar pph
-        if(isset($keuangan->bukti_bayar_pph)){
-            $buktiBayarPph = $keuangan->bukti_bayar_pph;
-            $arrBuktiPph = array();
-            foreach ($buktiBayarPph as $key => $idMedia) {
-                array_push($arrBuktiPph, $this->media->get($idMedia));
-            }
-            $keuangan->media_bukti_bayar_pph = $arrBuktiPph;
-        }else{
-            $keuangan->media_bukti_bayar_pph = array();
-        }
         $data['keuangan'] = $keuangan;
 
         return view('pages.permohonan.pembayaran.bayar', $data);

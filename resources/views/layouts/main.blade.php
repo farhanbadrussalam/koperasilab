@@ -58,6 +58,8 @@
     {{-- Parsley --}}
     <script src="{{ asset('vendor/parsley/parsley.min.js') }}"></script>
     <script src="{{ asset('vendor/parsley/setting.js') }}"></script>
+    {{-- CKEditor --}}
+    <script src="{{ asset('vendor/ckeditor/build/ckeditor.js') }}"></script>
 
     {{-- PeriodeJs --}}
     <script src="{{ asset('js/validation.js') }}"></script>

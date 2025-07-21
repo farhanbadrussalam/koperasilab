@@ -19,6 +19,8 @@ use App\Models\Kontrak_pengguna;
 use App\Models\Kontrak_tld;
 use App\Models\Master_tld;
 
+use App\Models\Setting_layanan;
+
 use App\Http\Controllers\API\TldAPI;
 
 use App\Http\Controllers\API\PermohonanAPI;
@@ -31,6 +33,7 @@ class StaffController extends Controller
     public function __construct(){
         $this->permohonan = resolve(PermohonanAPI::class);
         $this->tld = resolve(TldAPI::class);
+        $this->global = config('customvariabel');
     }
     public function indexKeuangan()
     {
@@ -95,6 +98,14 @@ class StaffController extends Controller
         ];
         return view('pages.staff.petugas.index', $data);
     }
+    public function indexJenisPembayaran() {
+        $data = [
+            'title' => 'Metode Pembayaran',
+            'module' => 'staff-jenis-pembayaran'
+        ];
+
+        return view('pages.staff.pembayaran.index', $data);
+    }
 
 
     public function createSuratTugas($idPenyelia)
@@ -157,17 +168,14 @@ class StaffController extends Controller
             }
         }else{
             // Mengambil jobs dari layanan jasa
-            $list = $query->permohonan->jenis_layanan_parent->jobs;
-            $listParalel = $query->permohonan->jenis_layanan_parent->jobs_paralel;
-            foreach ($list as $key => $value) {
-                $dataJobs = Master_jobs::find($value);
-                array_push($listJobs, $dataJobs);
+            $type = '';
+            if($query->permohonan->is_zerocek == 1){
+                $type = 'zerocek';
+            } else if ($query->permohonan->is_zerocek == 0) {
+                $type = 'nonzerocek';
             }
-
-            foreach ($listParalel as $key => $value) {
-                $dataJobs = Master_jobs::find($value);
-                array_push($listJobsParalel, $dataJobs);
-            }
+            $listJobs = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs;
+            $listJobsParalel = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs_paralel;
         }
         $data = [
             'title' => 'Surat tugas',
@@ -231,12 +239,17 @@ class StaffController extends Controller
             $dataPermohonan->tldKontrol = $dataPermohonan->tld_kontrol;
         }
 
+        $layanan = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
+
+        $isEvaluasi = in_array($layanan, $this->global['arr_evaluasi']);
+
         $dataPengguna = Permohonan_pengguna::where('id_permohonan', $id)->first();
         $data = [
             'title' => 'Verifikasi Permohonan',
             'module' => 'staff-permohonan',
             'permohonan' => $dataPermohonan,
-            'pertanyaan' => $pertanyaan_tr
+            'pertanyaan' => $pertanyaan_tr,
+            'isEvaluasi' => $isEvaluasi,
         ];
 
         return view('pages.staff.permohonan.verifikasi', $data);
@@ -288,7 +301,6 @@ class StaffController extends Controller
                 'invoice',
                 'invoice.pengiriman',
                 'lhu',
-                'lhu.media',
                 'lhu.pengiriman',
                 'pengiriman',
                 'file_lhu',
@@ -310,10 +322,13 @@ class StaffController extends Controller
 
             // cek tld apakah sudah di kirim atau belum
             $statusTld = Pengiriman::with([
-                'permohonan' => function($q){
-                    return $q->whereNotNull('id_pengiriman');
-                }
-            ])->where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
+                'detail' => function($q){
+                    return $q->where('jenis', 'tld');
+                },
+                'permohonan',
+            ])->where('id_kontrak', $data->id_kontrak)
+            ->where('periode', $data->periode == 1 ? null : $data->periode)
+            ->first();
 
             // cek apakah sudah di periode terakhir atau belum
             $lastPeriode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->orderBy('periode', 'desc')->first();

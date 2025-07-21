@@ -136,6 +136,12 @@
                     <div class="pt-3 text-center overflow-auto" id="modal-list-petugas" style="height: 30vh;">
                     </div>
                 </div>
+                <div class="modal-footer justify-content-start">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-danger" id="btnClearPetugas" onclick="removeAddPetugas()"><span class="bi bi-x"></span></button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="btnPilihPetugas">Pilih <span id="jumlah-petugas">0</span> Petugas</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

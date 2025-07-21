@@ -488,3 +488,17 @@ tl-item.active .tl-dot:before {
   margin-top: 2px;
   min-width: 100px;
 }
+
+.jenis-pembayaran-created {
+    cursor: pointer;
+    border-style: dashed !important;
+}
+
+.jenis-pembayaran-created:hover {
+    border-style: solid !important;
+    background-color: #e2e2e2 !important;
+}
+
+.ck-editor__editable_inline {
+    min-height: 250px;
+}

@@ -80,7 +80,9 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
         Route::post('/action', 'keuanganAction');
+        Route::post('/actionJenisPembayaran', 'actionJenisPembayaran');
         Route::get('/listKeuangan', 'listKeuangan');
+        Route::get('/listJenisPembayaran', 'listJenisPembayaran');
         Route::get('/countList', 'countList');
         Route::get('/getKeuangan/{idKeuangan}', 'getKeuangan');
         Route::post('/uploadFaktur', 'uploadFaktur');
@@ -89,6 +91,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::delete('/destroyFaktur/{idKeuangan}/{idMedia}', 'destroyFaktur');
         Route::delete('/destroyBuktiBayar/{idKeuangan}/{idMedia}', 'destroyBuktiBayar');
         Route::delete('/destroyBuktiPph/{idKeuangan}/{idMedia}', 'destroyBuktiBayarPph');
+        Route::delete('/destroyJenisPembayaran/{idJenisPembayaran}', 'destroyJenisPembayaran');
     });
 
     Route::prefix("pengiriman")->controller(PengirimanAPI::class)->group(function () {

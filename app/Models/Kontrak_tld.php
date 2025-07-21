@@ -33,7 +33,8 @@ class Kontrak_tld extends Model
 
     protected $appends = [
         'kontrak_tld_hash',
-        'kontrak_hash'
+        'kontrak_hash',
+        'tld'
     ];
 
     protected $casts = [
@@ -56,6 +57,15 @@ class Kontrak_tld extends Model
     public function getKontrakHashAttribute()
     {
         return encryptor($this->id_kontrak);
+    }
+
+    public function getTldAttribute()
+    {
+        $decodedIds = $this->id_tld;
+        $decodedIds = is_array($decodedIds) ? $decodedIds : [];
+        $get = Master_tld::whereIn('id_tld', $decodedIds)->get();
+
+        return count($get) > 0 ? $get : null;
     }
 
     public function tld()

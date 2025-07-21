@@ -29,14 +29,17 @@
             </div>
             <div class="col-md-6">
                 <div class="mb-1">
-                    <div class="d-flex align-items-center column-gap-2">
-                        <div class="border border-secondary rounded p-2 bg-secondary-subtle shadow-sm">
+                    <div class="d-flex align-items-center column-gap-2 align-items-stretch align-self-center">
+                        <div class="border border-secondary rounded p-2 bg-secondary-subtle shadow-sm {{ $periodeNow->start_date ? '' : 'd-none' }}">
                             <div for="">Periode Pemakaian</div>
-                            <small>{{ convert_date($periodeBefore->start_date, 2) }} - {{ convert_date($periodeBefore->end_date, 2) }}</small>
-                        </div>
-                        <div class="border border-primary rounded p-2 bg-primary-subtle shadow-sm">
-                            <div for="">Periode Berikutnya</div>
                             <small>{{ convert_date($periodeNow->start_date, 2) }} - {{ convert_date($periodeNow->end_date, 2) }}</small>
+                        </div>
+                        <div class="border border-primary rounded p-2 bg-primary-subtle shadow-sm {{ $periode2Next ? '' : 'd-none' }}">
+                            <div for="">Periode Berikutnya</div>
+                            <small>{{ $periode2Next ? convert_date($periode2Next->start_date, 2) : '-' }} - {{ $periode2Next ? convert_date($periode2Next->end_date, 2) : '-' }}</small>
+                        </div>
+                        <div class="border border-primary rounded p-2 bg-primary-subtle shadow-sm align-content-center {{ $periode2Next ? 'd-none' : '' }}">
+                            <div for="">Pengembalian ke {{ $periodeNow->periode % 2 == 0 ? '2' : '1' }}</div>
                         </div>
                     </div>
                 </div>

@@ -51,7 +51,7 @@
                         <hr>
                         <div class="fw-semibold fs-5">List document</div>
                         <div class="col-md-12 mt-2 row-gap-2" id="list-document">
-                            
+
                         </div>
                         <div class="d-flex justify-content-end mt-3">
                             <a type="button" class="btn btn-secondary me-3 d-none" id="btnCetakSurat" target="_blank"><i

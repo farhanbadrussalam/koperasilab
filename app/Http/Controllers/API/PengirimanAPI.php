@@ -63,7 +63,6 @@ class PengirimanAPI extends Controller
                         'invoice',
                         'invoice.pengiriman',
                         'lhu',
-                        'lhu.media',
                         'lhu.pengiriman',
                         'lhu.penyelia_map',
                         'lhu.penyelia_map.jobs',
@@ -150,7 +149,6 @@ class PengirimanAPI extends Controller
                 'permohonan.pelanggan.perusahaan',
                 'permohonan.invoice',
                 'permohonan.lhu',
-                'permohonan.lhu.media'
             ])->where('id_pengiriman', $id)->first();
 
             // mengambil media pengiriman
@@ -193,7 +191,6 @@ class PengirimanAPI extends Controller
                     'invoice.usersig',
                     'invoice.diskon',
                     'lhu',
-                    'lhu.media',
                     'lhu.log',
                     'kontrak',
                     'jenis_layanan',
@@ -238,13 +235,13 @@ class PengirimanAPI extends Controller
         try {
             $idPengiriman = $request->idPengiriman ? $request->idPengiriman : false;
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
-            $idEkspedisi = $request->has('idEkspedisi') ? decryptor($request->idEkspedisi) : false;
+            $idEkspedisi = $request->has('idEkspedisi') ? decryptor($request->idEkspedisi) : null;
             $noResi = $request->has('noResi') ? $request->noResi : false;
             $jenisPengiriman = $request->jenisPengiriman ? $request->jenisPengiriman : false;
             $idKontrak = $request->idKontrak ? decryptor($request->idKontrak) : false;
             $alamat = $request->alamat ? decryptor($request->alamat) : false;
             $tujuan = $request->tujuan ? $request->tujuan : false;
-            $periode = $request->periode ? $request->periode : false;
+            $periode = $request->has('periode') ? ($request->periode == 0 ? 1 : $request->periode) : false;
             $status = $request->status ? $request->status : false;
             $detail = $request->detail ? $request->detail : false;
             $sendAt = $request->sendAt ? $request->sendAt : false;
@@ -255,7 +252,7 @@ class PengirimanAPI extends Controller
 
             $params = array();
             $request->has('noResi') && $params['no_resi'] = $noResi;
-            $request->has('idEkspedisi') && $params['id_ekspedisi'] = $idEkspedisi;
+            $request->has('idEkspedisi') && $params['id_ekspedisi'] = $idEkspedisi ? $idEkspedisi : null;
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
             $jenisPengiriman && $params['jenis_pengiriman'] = $jenisPengiriman;
             $idKontrak && $params['id_kontrak'] = $idKontrak;
@@ -283,6 +280,7 @@ class PengirimanAPI extends Controller
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
+
             $query = Pengiriman::updateOrCreate(
                 ["id_pengiriman" => $idPengiriman],
                 $params
@@ -408,7 +406,7 @@ class PengirimanAPI extends Controller
             $kontrakPeriode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->orderBy('periode', 'desc')->first();
             if ($kontrakPeriode) {
                 $isLast = $kontrakPeriode->periode == $query->periode ? true : false;
-                if($isLast){
+                if($isLast && $kontrakPeriode->id_permohonan){
                     Kontrak::where('id_kontrak', $query->id_kontrak)->update(['status' => 2]);
                 }
             }
@@ -465,10 +463,11 @@ class PengirimanAPI extends Controller
                 Pengiriman_detail::where('id_pengiriman', $idPengiriman)->delete();
 
                 foreach (json_decode($detail) as $key => $value) {
+
                     $params = array(
                         'id_pengiriman' => $idPengiriman,
                         'jenis' => $value->jenis,
-                        'periode' => $value->periode ?? null,
+                        'periode' => $value->periode ?? false,
                     );
 
                     if($value->listTld){
@@ -493,13 +492,17 @@ class PengirimanAPI extends Controller
                     }
 
                     if($value->jenis == 'tld') {
-                        $params['nomer_surpeng'] = generateNoDokumen('surpeng');
-                        Kontrak_periode::where('id_kontrak', $idKontrak)
-                        ->where('periode', $value->periode)
-                        ->update([
-                            'nomer_surpeng' => $params['nomer_surpeng'],
-                            'created_surpeng_at' => Carbon::now()
-                        ]);
+                        $periodeTld = $value->periode == 0 ? 1 : $value->periode;
+                        $params['periode'] = $periodeTld;
+                        $noSurpeng = generateNoDokumen('surpeng');
+
+                        $kPeriode = Kontrak_periode::where('id_kontrak', $idKontrak)
+                        ->where('periode', $periodeTld)->first();
+                        if($kPeriode->nomer_surpeng == null){
+                            $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
+                        }else{
+                            $params['nomer_surpeng'] = $kPeriode->nomer_surpeng;
+                        }
                     }
 
                     Pengiriman_detail::create($params);
@@ -520,7 +523,7 @@ class PengirimanAPI extends Controller
                         }
                     } else if($value->jenis == 'tld'){
                         if($value->id){
-                            $tld = Permohonan::where('id_permohonan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
+                            Permohonan::where('id_permohonan', decryptor($value->id))->update(['id_pengiriman' => $idPengiriman]);
                         }
                     }
                 }

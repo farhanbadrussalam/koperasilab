@@ -98,6 +98,9 @@
                                 <table class="table w-100 d-none" id="pengguna-table">
                                     <thead>
                                         <tr>
+                                            <th width="1%" class="{{ !$isEvaluasi ? 'd-none' : '' }}">
+                                                <input class="form-check-input mt-0" id="checkAllTldPengguna" name="checkAllTldPengguna" type="checkbox" value="" aria-label="Checkbox for following text input">
+                                            </th>
                                             <th width="1%">No</th>
                                             <th width="20%">Nama</th>
                                             <th width="30%">Radiasi</th>
@@ -246,7 +249,6 @@
                     </div>
                 </div>
             </div>
-            
         </div>
     </section>
 </div>
@@ -286,7 +288,7 @@
                     Pilih semua
                 </button>
                 <ul class="list-group shadow-sm" id="listTldSelect">
-                    
+
                 </ul>
             </div>
             <div class="modal-footer">
@@ -317,6 +319,7 @@
     <script>
         const dataPermohonan = @json($permohonan);
         const tandaterima = @json($pertanyaan);
+        const isEvaluasi = "{{ $isEvaluasi }}";
     </script>
     <script src="{{ asset('js/staff/verifikasi_permohonan.js') }}"></script>
 @endpush

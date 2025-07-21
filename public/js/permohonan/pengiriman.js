@@ -220,7 +220,7 @@ function showModalDiterima(obj){
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">LHU</div>
-                                <div>Periode ${detail.periode}${detail.periode == 1 ? '/Zero cek' : ''}</div>
+                                <div>${!detail.periode ? 'Zero cek' : `Periode ${detail.periode}`}</div>
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentLhu"
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.lhu.lhu_hash}"
@@ -229,10 +229,11 @@ function showModalDiterima(obj){
                     `;
                     break;
                 case 'tld':
+                    let periodeTld = detail.periode ?? 1;
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold">TLD <span class="text-secondary fw-normal">- ${data.kontrak.jumlah_pengguna} Pengguna + ${data.kontrak.jumlah_kontrol} Kontrol</span></div>
+                                <div class="fw-bold">TLD Periode ${periodeTld} <span class="text-secondary fw-normal">- ${data.kontrak.jumlah_pengguna} Pengguna + ${data.kontrak.jumlah_kontrol} Kontrol</span></div>
                                 <div></div>
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentTld"

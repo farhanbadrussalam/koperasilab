@@ -5,6 +5,7 @@ class Invoice {
         }
 
         this._initializeProperties();
+        this._loadMethodePembayaran();
         this._createCustomEvents();
 
         if(this.options.modal){
@@ -24,6 +25,13 @@ class Invoice {
         this.jumTotal = 0;
         this.signaturePad = null;
         this.uploadFaktur = false;
+        this.methodePembayaran = false;
+    }
+
+    _loadMethodePembayaran() {
+        ajaxGet('api/v1/keuangan/listJenisPembayaran', false, result => {
+            this.methodePembayaran = result.data;
+        });
     }
 
     // Create custom events for invoice actions
@@ -91,6 +99,7 @@ class Invoice {
         $('#content-ttd-manager').empty();
         $('#ttd-div-manager').addClass('d-none').removeClass('d-block');
         $('#plt-div-manager').addClass('d-none').removeClass('d-block');
+        $('#methode-pembayaran').addClass('d-none').removeClass('d-block');
 
         // Populate invoice details
         const detailsHTML = `
@@ -173,6 +182,9 @@ class Invoice {
                 $('#deskripsiInvoice').empty().append(this.updateInvoiceDescription);
             });
             $('#rincianInvoice-tab').click();
+
+            // load metode pembayaran
+            this.loadPaymentMethod();
         } else if (mode === 'verify') {
             // sini
             this.signaturePad = signature(document.getElementById("content-ttd-manager"), {
@@ -346,6 +358,17 @@ class Invoice {
             }
             showPopupReload();
         }
+    }
+
+    loadPaymentMethod() {
+        $('#methode-pembayaran-select').empty();
+        for (const metode of this.methodePembayaran) {
+            $('#methode-pembayaran-select').append(`
+                <option value="${metode.jenis_pembayaran_hash}">${metode.name}</option>
+            `);
+        }
+
+        $('#methode-pembayaran').removeClass('d-none');
     }
 
     updateInvoiceDescription() {
@@ -612,6 +635,7 @@ class Invoice {
                 this.ppn && formData.append('ppn', $('#inputPpn').val());
                 this.pph && formData.append('pph', $('#inputPph').val());
                 formData.append('status', 7);
+                formData.append('metodePembayaran', $('#methode-pembayaran-select').val());
                 textQuestion = 'Apa anda yakin ingin membuat invoice ?';
                 textSuccess = 'Invoice berhasil dibuat.';
                 break;
@@ -760,6 +784,12 @@ class Invoice {
                                         <tbody id="deskripsiInvoice">
                                         </tbody>
                                     </table>
+                                </div>
+                                <div class="row my-2" id="methode-pembayaran" class="d-none">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Metode Pembayaran</label>
+                                        <select class="form-select" id="methode-pembayaran-select"></select>
+                                    </div>
                                 </div>
                                 <div class="row m-2 d-none" id="plt-div-manager">
                                     <div class="form-check">

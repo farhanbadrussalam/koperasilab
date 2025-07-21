@@ -13,6 +13,8 @@ use App\Models\Kontrak;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
 
+use App\Models\Jenis_pembayaran;
+
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
 
@@ -116,6 +118,66 @@ class KeuanganAPI extends Controller
         }
     }
 
+    public function listJenisPembayaran(Request $request){
+        DB::beginTransaction();
+        try {
+            $query = Jenis_pembayaran::where('status',1)->get();
+            DB::commit();
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function actionJenisPembayaran(Request $request){
+        DB::beginTransaction();
+        try {
+            $idJenisPembayaran = $request->has('id_jenis_pembayaran') ? decryptor($request->id_jenis_pembayaran) : null;
+            $idSatuanKerja = $request->has('id_satuan_kerja') ? decryptor($request->id_satuan_kerja) : null;
+            $name = $request->has('name') ? $request->name : null;
+            $content = $request->has('content') ? $request->content : null;
+            $status = $request->has('status') ? (int) $request->status : null;
+
+            $data = [];
+
+            $idSatuanKerja && $data['id_satuankerja'] = $idSatuanKerja;
+            $name && $data['name'] = $name;
+            $status && $data['status'] = $status;
+            $content && $data['content'] = $content;
+
+            if($idJenisPembayaran){
+                $data['updated_by'] = Auth::user()->id;
+            } else {
+                $data['created_by'] = Auth::user()->id;
+                $data['created_at'] = date('Y-m-d H:i:s');
+            }
+
+            $query = Jenis_pembayaran::updateOrCreate(['id_jenis_pembayaran' => $idJenisPembayaran], $data);
+            DB::commit();
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroyJenisPembayaran($id){
+        DB::beginTransaction();
+        try {
+            $idJenisPembayaran = decryptor($id);
+            $query = Jenis_pembayaran::where('id_jenis_pembayaran', $idJenisPembayaran)->delete();
+            DB::commit();
+            return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function countList(Request $request){
         DB::beginTransaction();
         try {
@@ -195,42 +257,6 @@ class KeuanganAPI extends Controller
                 'permohonan.kontrak'
             )->find($idKeuangan);
 
-            // get Document faktur
-            if(isset($query->document_faktur)){
-                $documentFaktur = $query->document_faktur;
-                $arrDoc = array();
-                foreach ($documentFaktur as $key => $idMedia) {
-                    array_push($arrDoc, $this->media->get($idMedia));
-                }
-                $query->media = $arrDoc;
-            }else{
-                $query->media = array();
-            }
-
-            // get bukti bayar
-            if(isset($query->bukti_bayar)){
-                $buktiBayar = $query->bukti_bayar;
-                $arrBukti = array();
-                foreach ($buktiBayar as $key => $idMedia) {
-                    array_push($arrBukti, $this->media->get($idMedia));
-                }
-                $query->media_bukti_bayar = $arrBukti;
-            }else{
-                $query->media_bukti_bayar = array();
-            }
-
-            // get bukti bayar pph
-            if(isset($query->bukti_bayar_pph)){
-                $buktiBayarPph = $query->bukti_bayar_pph;
-                $arrBuktiPph = array();
-                foreach ($buktiBayarPph as $key => $idMedia) {
-                    array_push($arrBuktiPph, $this->media->get($idMedia));
-                }
-                $query->media_bukti_bayar_pph = $arrBuktiPph;
-            }else{
-                $query->media_bukti_bayar_pph = array();
-            }
-
             DB::commit();
 
             return $this->output($query);
@@ -257,6 +283,7 @@ class KeuanganAPI extends Controller
             $ttd_by = $request->ttd_by ? decryptor($request->ttd_by) : false;
             $textNote = $request->note ?? '';
             $plt = $request->has('plt') ? $request->plt : false;
+            $metodePembayaran = $request->has('metodePembayaran') ? decryptor($request->metodePembayaran) : false;
 
             $result = array();
             $data = [];
@@ -268,6 +295,7 @@ class KeuanganAPI extends Controller
             $ttd && $data['ttd'] = $ttd;
             $ttd_by && $data['ttd_by'] = $ttd_by;
             $plt && $data['plt'] = $plt;
+            $metodePembayaran && $data['id_jenis_pembayaran'] = $metodePembayaran;
 
             $data['status'] = $status;
 

@@ -80,6 +80,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/pengiriman/tambah', 'buatCustomPengiriman')->name('staff.pengiriman.tambah');
 
             Route::get('/perusahaan', 'indexPerusahaan')->name('staff.perusahaan');
+            Route::get('/jenis/pembayaran', 'indexJenisPembayaran')->name('staff.jenis.pembayaran');
         });
     });
 

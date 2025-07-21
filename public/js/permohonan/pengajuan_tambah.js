@@ -7,6 +7,7 @@ let datatable_ = false;
 let arrListPengguna = [];
 let JL = '';
 let haveTldChecked = true;
+let useZeroCek = true;
 
 let inventoryTldPengguna = false;
 let tmpArrTldPengguna = [];
@@ -94,7 +95,7 @@ $(function () {
         formPeriode2.hide();
         formZeroCek.hide();
 
-        $('#switch-tld').hide();
+        $('#form-switch').hide();
 
         $('#no_kontrak').val('');
         $('#durasi').val('');
@@ -232,7 +233,8 @@ $(function () {
                 formData.append('hargaLayanan', valHargaLayanan);
                 formData.append('totalHarga', valtotalHarga);
                 formData.append('haveTld', haveTldChecked ? 1 : 0);
-                formData.append('periode', 1);
+                formData.append('is_zerocek', useZeroCek ? 1 : 0);
+                formData.append('periode', useZeroCek ? 0 : 1);
 
                 // typeLayanan == 'Evaluasi' ? formData.append('tldKontrol', JSON.stringify(arrKontrolTmp)) : false;
 
@@ -398,6 +400,14 @@ $(function () {
 
         loadPengguna();
         loadKontrol();
+    });
+
+    $('#useZeroCek').on('change', obj => {
+        if (obj.target.checked) {
+            useZeroCek = true;
+        } else {
+            useZeroCek = false;
+        }
     })
 })
 // js add periode
@@ -752,7 +762,7 @@ function openForm(){
                 }
                 let list = result.data;
                 if(JL == 'KontrakEvaluasi') {
-                    $('#switch-tld').show();
+                    $('#form-switch').show();
                 }
                 $('#form-inputan').addClass('d-block').removeClass('d-none');
 

@@ -37,7 +37,7 @@ $(function (){
         if(dataPermohonan){
             let arrPeriode = dataPermohonan.periode_pemakaian;
             let val = arrPeriode[obj.target.value];
-            
+
             if(val){
                 let text = `${dateFormat(val.start_date, 4)} s/d ${dateFormat(val.end_date, 4)}`;
                 $('#text-periode').val(text);
@@ -48,12 +48,12 @@ $(function (){
     });
 
     $('#btnTambahBukti').on('click', obj => {
-        
+
         let imgtmp = $('#uploadBuktiPengiriman')[0].files[0];
 
         if(imgtmp && arrImgBukti.length < 5){
             spinner('show', $(obj.target));
-            
+
             arrImgBukti.push(imgtmp);
             loadPreviewBukti();
             spinner('hide', $(obj.target));
@@ -150,12 +150,12 @@ $(function (){
             $('#list-content').show();
         });
     }
-    
+
 });
 
 function pilihPermohonan(obj) {
     let id = $(obj).parent().data('id');
-    
+
     spinner('show', $(obj));
     ajaxGet(`api/v1/pengiriman/getPermohonan`, {
         idPermohonan: id
@@ -212,7 +212,7 @@ function loadForm(){
                 `;
                 break;
             case 'lhu':
-                
+
                 htmlJenis += `
                     <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                         <div class="ms-2 me-auto">
@@ -295,7 +295,6 @@ function validateForm(){
 }
 
 function openDetailInvoiceModal(){
-    console.log(dataPermohonan);
     // return;
     const keuangan = dataPermohonan.invoice;
     $('#txtNoInvoice').html(keuangan.no_invoice ? keuangan.no_invoice : '-');
@@ -341,7 +340,7 @@ function descInvoice(data){
             <td>${formatRupiah(jumLayanan)}</td>
         </tr>
     `;
-    
+
     for (const [i,diskon] of data.diskon.entries()) {
         countDiskon = jumLayanan * (diskon.diskon/100);
         jumDiskon += countDiskon;

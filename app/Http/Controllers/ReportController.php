@@ -40,7 +40,8 @@ class ReportController extends Controller
             'permohonan.pelanggan',
             'permohonan.pelanggan.perusahaan',
             'permohonan.pelanggan.perusahaan.alamat',
-            'permohonan.kontrak'
+            'permohonan.kontrak',
+            'metode_pembayaran'
         )->where('id_keuangan', $idKeuangan)->first();
 
         $data['data'] = $query;
@@ -186,6 +187,7 @@ class ReportController extends Controller
     public function suratPengantar($id  = null, $periode = null)
     {
         $id = decryptor($id);
+        $periode = $periode == 0 ? 1 : $periode;
 
         if($id == null){
             return redirect()->back();
@@ -206,10 +208,11 @@ class ReportController extends Controller
             'rincian_list_tld.pengguna'
         ])->find($id);
 
-        if($query) {
-            $query->rincian_list_tld->each(function($item) {
-                $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
-            });
+        if($query->periode[0]->nomer_surpeng == null){
+            $noSurpeng = generateNoDokumen('surpeng');
+            $query->periode[0]->nomer_surpeng = $noSurpeng;
+            $query->periode[0]->created_surpeng_at = Carbon::now()->format('Y-m-d');
+            $query->periode[0]->save();
         }
 
         $data['date'] = Carbon::now()->year;

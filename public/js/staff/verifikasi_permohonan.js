@@ -9,6 +9,8 @@ let modalDoc = false;
 let inventoryTld = false;
 let tmpArrTld = [];
 let JL = '';
+let jmlTldCount = 0;
+let isCheckedEvaluasi = false;
 
 $(function () {
     inventoryTld = new Inventory_tld({preview: true});
@@ -120,7 +122,15 @@ $(function () {
                 loadTandaterima();
            })
         });
-    })
+    });
+
+    $('#checkAllTldPengguna').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $('input[name="checkTldPengguna"]').prop('checked', isChecked);
+    });
+
+
+    isCheckedEvaluasi = isEvaluasi || dataPermohonan.is_zerocek == 0;
 
     loadPelanggan();
     loadTandaterima();
@@ -257,6 +267,7 @@ function loadTldKontrol(tldKontrol){
             htmlDisabled = true;
         }
         let index = 0;
+        jmlTldCount += tldKontrol.length;
         for(const iKontrol of tldKontrol){
             let tldHash = '';
             let no_seri_tld = '';
@@ -287,6 +298,11 @@ function loadTldKontrol(tldKontrol){
                     <div class="col-sm-6 mt-2">
                         <label for="" class="mb-2">Kontrol ${iKontrol.divisi?.name ?? ''} ${kodeLencana}</label>
                         <div class="input-group mb-3">
+                            ${isCheckedEvaluasi ? `
+                            <div class="input-group-text">
+                                <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${idx}" type="checkbox" value="${iKontrol.kontrak_tld_hash}" aria-label="Checkbox for following text input">
+                            </div>
+                            ` : ``}
                             <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idHash}|${idx+1}" placeholder="Pilih No Seri" readonly>
                             ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${idHash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                         </div>
@@ -299,7 +315,7 @@ function loadTldKontrol(tldKontrol){
         $('#tld-kontrol-content').html(html);
     });
 }
-function loadPengguna(tldPengguna){
+function loadPengguna(){
     let params = {
         idPermohonan: dataPermohonan.permohonan_hash
     }
@@ -312,6 +328,8 @@ function loadPengguna(tldPengguna){
         if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
             htmlDisabled = true;
         }
+
+        jmlTldCount += result.data.length;
 
         for (const [i, value] of result.data.entries()) {
             let txtRadiasi = '';
@@ -332,6 +350,7 @@ function loadPengguna(tldPengguna){
 
             html += `
                 <tr>
+                    ${isCheckedEvaluasi ? `<td><input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${idHash}" aria-label="" id="checkTldPengguna${i}"></td>` : ''}
                     <td>${i + 1}</td>
                     <td>
                         <div>${value.pengguna.name}</div>
@@ -389,6 +408,20 @@ function verif_kelengkapan(status, obj){
                 icon: "warning",
                 text: "Harap berikan tanda tangan terlebih dahulu.",
             });
+        }
+
+        if(isEvaluasi){
+            let checkTld = [];
+            $('input[name="checkTldPengguna"]:checked, input[name="checkTldKontrol"]:checked').each(function() {
+                checkTld.push($(this).val());
+            });
+
+            if(checkTld.length < jmlTldCount){
+                return Swal.fire({
+                    icon: "warning",
+                    text: "Data Tld belum lengkap.",
+                });
+            }
         }
 
         Swal.fire({

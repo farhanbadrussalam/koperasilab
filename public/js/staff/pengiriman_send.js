@@ -31,7 +31,8 @@ $(function () {
             if(perusahaan.alamat[obj.target.value].alamat){
                 $('#alamatTujuan').val(perusahaan.alamat[obj.target.value].alamat + ", " + perusahaan.alamat[obj.target.value].kode_pos);
             } else {
-                $('#alamatTujuan').val('');
+                const alamatUtama = perusahaan.alamat.find(a => a.jenis == 'utama');
+                $('#alamatTujuan').val(alamatUtama.alamat + ", " + alamatUtama.kode_pos);
             }
         }
     });
@@ -47,7 +48,9 @@ function load_form() {
     // Inisialisasi Alamat
     let htmlAlamat = '<option value="">Pilih alamat</option>';
     for (const [i, value] of informasi.pelanggan.perusahaan.alamat.entries()) {
-        htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+        if(value.status) {
+            htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+        }
     }
     $('#select_alamat').html(htmlAlamat);
 
@@ -79,8 +82,13 @@ function load_form() {
     // Mengecek apakah sudah last periode atau belum
     const isLastPeriode = _cekLastPeriode(kontrakPeriode, (periodeNow ? periodeNow : informasi.periode));
 
-    if(!isLastPeriode || JL == 'KontrakEvaluasi'){
-        let checkedTld = status_tld?.permohonan ? 'disabled' : 'checked';
+    let isEvaluasiZeroCek = tmpArrEvaluasi.includes(JL) && informasi.is_zerocek == 1;
+    let isEvaluasiNonZeroCek = tmpArrEvaluasi.includes(JL) && informasi.is_zerocek == 0;
+    let isSewa = tmpArrSewa.includes(JL);
+    let periodeTld = periodeNow == 0 ? 1 : periodeNow;
+
+    if(!isLastPeriode || isEvaluasiZeroCek || isSewa){
+        let checkedTld = status_tld?.detail?.find(d => d.jenis == 'tld') ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const list of tldKontrol) {
 
@@ -91,7 +99,7 @@ function load_form() {
                 })
                 htmlKontrol += `
                     <div class="w-50 pe-1 d-flex flex-column">
-                        <span>${list.divisi?.name ?? ''} ${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
+                        <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
                         <div class="input-group mt-auto mb-3">
                             <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
                             ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
@@ -126,9 +134,9 @@ function load_form() {
                         <input class="form-check-input me-2" type="checkbox"
                             data-jenis="tld" data-id="${informasi.permohonan_hash ?? ''}"
                             id="selectDocumentTld" name="selectDocument" onclick="updateSelectDocument()" ${checkedTld}>
-                        <span class="fw-semibold fs-6">TLD</span>
+                        <span class="fw-semibold fs-6">TLD Periode ${periodeTld}</span>
                         <small class="text-body-tertiary"> - ${informasi.jumlah_pengguna} Pengguna + ${informasi.jumlah_kontrol} Kontrol</small>
-                        <small>${statusFormat('pengiriman', status_tld?.permohonan ? status_tld.status : false)}</small>
+                        <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? status_tld.status : false)}</small>
                     </div>
                     <div class="d-flex align-items-center gap-3 text-secondary">
                     </div>
@@ -193,6 +201,8 @@ function load_form() {
         checkedLhu = 'disabled';
     }
 
+    let htmlRangeDate = `(${informasi.kontrak_periode?.start_date ? dateFormat(informasi.kontrak_periode.start_date, 4) : '-'} - ${informasi.kontrak_periode?.end_date ? dateFormat(informasi.kontrak_periode.end_date, 4) : '-'})`;
+
     informasi.lhu ? htmlLhu = `
         <div class="border shadow-sm py-2 rounded mb-2">
             <div class="d-flex justify-content-between align-items-center px-2">
@@ -201,7 +211,7 @@ function load_form() {
                         data-jenis="lhu" data-id="${informasi.lhu.penyelia_hash}"
                         id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
                     <span class="fw-semibold fs-6">LHU</span>
-                    <small class="text-body-tertiary"> - Periode ${informasi.lhu.periode}${informasi.lhu.periode == 1 ? '/Zero Cek' : ''} (${informasi.kontrak_periode?.start_date ? dateFormat(informasi.kontrak_periode.start_date, 4) : '-'} - ${informasi.kontrak_periode?.end_date ? dateFormat(informasi.kontrak_periode.end_date, 4) : '-'})</small>
+                    <small class="text-body-tertiary"> - ${!informasi.lhu.periode ? 'Zero Cek' : `Periode ${informasi.lhu.periode} ${htmlRangeDate}`} </small>
                     <small>${statusFormat('pengiriman', informasi.lhu.pengiriman?.status)}</small>
                 </div>
                 <div class="d-flex align-items-center gap-3 text-secondary">
@@ -262,7 +272,7 @@ function updateSelectDocument(){
                 break;
             case 'tld':
                 if(doc.checked){
-                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${periodeNow ? periodeNow : informasi.periode}`);
+                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${periodeNow ? periodeNow : (informasi.periode ? informasi.periode : 1)}`);
                     $('#btnCetakSurat').addClass('d-block').removeClass('d-none');
                 }else{
                     $('#btnCetakSurat').attr('href', ``);
@@ -475,6 +485,6 @@ function _templateTld(state){
 function _cekLastPeriode(periode_kontrak, periode_now){
     // Ambil periode terakhir
     const lastPeriode = periode_kontrak[periode_kontrak.length-1];
-    const isLast = periode_now == lastPeriode?.periode ? true : false;
+    const isLast = periode_now < lastPeriode?.periode ? true : false;
     return isLast;
 }
