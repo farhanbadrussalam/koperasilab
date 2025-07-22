@@ -11,11 +11,15 @@ $(function () {
             items: true,
             bukti: true
         }
-    })
+    });
 
     buktiPengiriman = new UploadComponent('uploadBuktiPengiriman', {
         camera: false,
         allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
+    });
+
+    $('#modal-kirim-dokumen').on('hidden.bs.modal', function (e) {
+        resetModal();
     });
 });
 
@@ -147,7 +151,6 @@ function showDetailPengiriman(){
 function showFormPengiriman(obj){
     let idPengiriman = $(obj).parent().data('id');
     $('#no_pengiriman').val(idPengiriman);
-    $('#noResi').val('');
 
     $('#modal-kirim-dokumen').modal('show');
 }
@@ -283,4 +286,10 @@ $('#list-pagination-pengiriman').on('click', 'a', function (e) {
 function showDetail(obj){
     const id = $(obj).parent().data("id");
     detail.show(`api/v1/pengiriman/getById/${id}`);
+}
+
+function resetModal(){
+    $('#noResi').val('');
+    $('#idEkspedisi').val('');
+    buktiPengiriman.clearFile();
 }

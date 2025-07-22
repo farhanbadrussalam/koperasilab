@@ -68,7 +68,6 @@ function btnSimpan(){
         reverseButtons: true
     }).then(result => {
         if(result.isConfirmed){
-            console.log(formData);
             spinner('show', $('#btn-upload-bukti'));
             ajaxPost(`api/v1/keuangan/action`, formData, result => {
                 if(result.meta.code == 200){

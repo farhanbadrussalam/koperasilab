@@ -16,6 +16,7 @@ class Setting_layanan extends Model
         'name',
         'jobs',
         'jobs_paralel',
+        'jobs_paralel_name',
     ];
 
     protected $hidden = [
@@ -31,6 +32,7 @@ class Setting_layanan extends Model
     protected $casts = [
         'jobs' => 'array',
         'jobs_paralel' => 'array',
+        'jobs_paralel_name' => 'integer',
     ];
 
     public function getSettingLayananHashAttribute()
@@ -40,11 +42,11 @@ class Setting_layanan extends Model
 
     public function getListJobsAttribute()
     {
-        return Master_jobs::whereIn('id_jobs', $this->jobs)->get();
+        return Master_jobs::whereIn('id_jobs', $this->jobs)->orderByRaw('FIELD(id_jobs, ' . implode(',', $this->jobs) . ')')->get();
     }
 
     public function getListJobsParalelAttribute()
     {
-        return Master_jobs::whereIn('id_jobs', $this->jobs_paralel)->get();
+        return Master_jobs::whereIn('id_jobs', $this->jobs_paralel)->orderByRaw('FIELD(id_jobs, ' . implode(',', $this->jobs_paralel) . ')')->get();
     }
 }

@@ -34,12 +34,12 @@ class UploadComponent {
 
         if(this.options.modal){
             $(`#${idElement}`).append(this.modalCreate());
-            
+
             if ($('#modal-preview').length === 0) {
                 $('body').append(this.modalPreview());
             }
         }
-        
+
         this._bindEventListeners();
         this.loadListFile();
     }
@@ -96,7 +96,7 @@ class UploadComponent {
         if (!this.options.multiple) {
             $(`#btnTambahFile_${this.id}`).attr('disabled', this.listFile.length > 0);
         }
-        
+
         if(this.listFile.length === 0){
             $(`#listPreview_${this.id}`).html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
             return;
@@ -136,14 +136,14 @@ class UploadComponent {
         });
 
     }
-    
+
 
     tambah() {
         // ambil gambar dari inputFile
         const inputFile = $(`#uploadFile_${this.id}`)[0].files[0];
         if(inputFile){
             spinner('show', $(`#btnTambahFile_${this.id}`));
-            
+
             if(this.options.urlUpload){
                 const params = new FormData();
                 params.append('idHash', this.options.urlUpload.idHash);
@@ -164,10 +164,10 @@ class UploadComponent {
                         if (evt.lengthComputable) {
                             let percentComplete = evt.loaded / evt.total;
                             percentComplete = parseInt(percentComplete * 100);
-                            
+
                             document.getElementById(`progress_${main.id}`).children[0].style.width = percentComplete + "%";
                             document.getElementById(`progress_${main.id}`).children[0].innerHTML = percentComplete + "%";
-                            
+
                             if(percentComplete === 100){
                                 setTimeout(()=> {
                                     document.getElementById(`progress_${main.id}`).children[0].style.width = "0%";
@@ -276,7 +276,7 @@ class UploadComponent {
         linkMedia.append(divImg);
         linkMedia.append(divDesc);
         linkMedia.append(divSize);
-        
+
         div1.append(linkMedia);
         div1.append(divAction);
 
@@ -286,12 +286,12 @@ class UploadComponent {
     modalCreate() {
         // Buat elemen div container
         const container = document.createElement('div');
-    
+
         if(this.options.mode === 'upload'){
             // Elemen input file
             const inputGroup = document.createElement('div');
             inputGroup.classList.add('input-group');
-        
+
             const inputFile = document.createElement('input');
             inputFile.type = 'file';
             inputFile.classList.add('form-control');
@@ -299,7 +299,7 @@ class UploadComponent {
             inputFile.accept = this.allowedFileExtensions();
             inputFile.setAttribute('aria-label', 'Upload');
             inputGroup.appendChild(inputFile);
-        
+
             // Tombol Tambah
             const btnTambah = document.createElement('button');
             btnTambah.classList.add('btn', 'btn-outline-primary');
@@ -307,18 +307,18 @@ class UploadComponent {
             btnTambah.textContent = 'Tambah';
             btnTambah.onclick = this.tambah.bind(this);
             inputGroup.appendChild(btnTambah);
-        
+
             // Tombol Kamera
             const btnKamera = document.createElement('button');
             btnKamera.classList.add('btn', 'btn-outline-secondary');
             btnKamera.type = 'button';
             btnKamera.id = `activeFoto_${this.id}`;
-        
+
             const iconKamera = document.createElement('i');
             iconKamera.classList.add('bi', 'bi-camera');
             btnKamera.appendChild(iconKamera);
             this.options.camera && inputGroup.appendChild(btnKamera);
-    
+
             // Progress bar
             /*
             <div class="progress" role="progressbar" aria-label="Example with label" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">
@@ -334,17 +334,17 @@ class UploadComponent {
             progressBar.ariaValueMax = 100;
             progressBar.innerHTML = '<div class="progress-bar" style="width: 0%">0%</div>';
             progressBar.style.display = 'none';
-            
+
             container.appendChild(inputGroup);
             container.appendChild(progressBar);
         }
-    
+
         // Elemen untuk daftar preview
         const listPreview = document.createElement('div');
         listPreview.id = `listPreview_${this.id}`;
         listPreview.classList.add('mt-2', 'd-flex', 'column-gap-2', 'flex-wrap');
         container.appendChild(listPreview);
-    
+
         return container;
     }
 
@@ -383,6 +383,11 @@ class UploadComponent {
             this.listFile.splice(index, 1);
             this.loadListFile();
         }
+    }
+
+    clearFile(){
+        this.listFile = [];
+        this.loadListFile();
     }
 
     destroy(){

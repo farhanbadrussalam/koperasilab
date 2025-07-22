@@ -46,7 +46,7 @@ function loadData(page = 1, menu) {
 
             // Data layanan jasa (TLD)
             let htmlTld = '';
-            let isLast = cekLastPeriode(data.kontrak.periode, data.periode);
+            data.periode == null ? data.periode = 1 : data.periode;
             let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.detail.find(c => c.jenis == 'tld' && c.periode == data.periode));
             let htmlStatus = '';
             let isEvaluasiNonZero = tmpArrEvaluasi.includes(JL) && data.is_zerocek == 0;
@@ -155,7 +155,7 @@ function loadData(page = 1, menu) {
                             </div>
                             <div class="fs-5 my-2"><span class="fw-bold">${data.jenis_tld.name} - ${data.pelanggan.perusahaan.nama_perusahaan}</span> <span class="text-body-tertiary">${data.kontrak ? "#"+data.kontrak.no_kontrak : ''}</span></div>
                             <div class="d-flex gap-3 text-body-tertiary">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})">${arrPeriode.length - 1} Periode</div>
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})">${data.is_zerocek == 1 ? arrPeriode.length - 1 : arrPeriode.length} Periode</div>
                                 <div><i class="bi bi-person-check-fill"></i> ${data.pelanggan.name}</div>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
                             </div>
