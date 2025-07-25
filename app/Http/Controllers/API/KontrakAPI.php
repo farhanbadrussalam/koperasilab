@@ -59,7 +59,8 @@ class KontrakAPI extends Controller
                         'pelanggan.perusahaan',
                         'pengiriman:id_pengiriman,id_kontrak,no_resi,status',
                         'pengiriman.detail',
-                        'pengiriman.permohonan:id_permohonan,periode'
+                        'pengiriman.permohonan:id_permohonan,periode',
+                        'tld_aktif:id_tld,digunakan,no_seri_tld,status',
                     ])
                     ->withCount('periode')
                     ->when($idPelanggan, function($q, $idPelanggan){

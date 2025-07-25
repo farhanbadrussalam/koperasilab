@@ -1145,6 +1145,9 @@ class PermohonanAPI extends Controller
                                 Kontrak_tld::where('id_kontrak_tld', $val->id_kontrak_tld)->update([
                                     'id_tld' => $val->id_tld
                                 ]);
+
+                                // mengaktifkan status master_tld
+                                Master_tld::where('id_tld', $val->id_tld)->update(array('digunakan' => $dataPermohonan->kontrak->no_kontrak, 'status' => 1));
                             }
                         }
                     }

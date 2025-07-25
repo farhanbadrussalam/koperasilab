@@ -107,4 +107,8 @@ class Kontrak extends Model
     public function rincian_list_tld(){
         return $this->hasMany(Kontrak_tld::class, 'id_kontrak', 'id_kontrak');
     }
+
+    public function tld_aktif(){
+        return $this->hasMany(Master_tld::class, 'digunakan', 'no_kontrak');
+    }
 }

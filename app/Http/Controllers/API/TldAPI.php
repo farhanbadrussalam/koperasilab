@@ -129,11 +129,13 @@ class TldAPI extends Controller
                 $cekTldKontrak = Master_tld::where('digunakan', $no_kontrak)->where('status', 0)->first();
             }
 
-            $data = Master_tld::when($role, function($query, $role){
+            $data = Master_tld::when($role, function($query, $role) use ($no_kontrak, $cekTldKontrak){
                 if(Auth::user()->hasRole('Pelanggan')){
-                    return $query->where('kepemilikan', Auth::user()->id_perusahaan);
+                    return $query->where('kepemilikan', Auth::user()->id_perusahaan)->whereNull('digunakan');
                 }else {
-                    return $query->whereNull('kepemilikan');
+                    if(!$cekTldKontrak) {
+                        return $query->whereNull('kepemilikan');
+                    }
                 }
             })
             ->when($cekTldKontrak, function($query, $cekTldKontrak) use ($no_kontrak){

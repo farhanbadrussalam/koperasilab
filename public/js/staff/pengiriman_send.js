@@ -74,16 +74,14 @@ function load_form() {
         JL = jenislayanan(informasi.jenis_layanan_parent, informasi.jenis_layanan);
     }
 
-    let htmlDisabled = false;
-    if(informasi.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && informasi.is_have_tld == 1)){
-        htmlDisabled = true;
-    }
     // list document TLD
     // Mengecek apakah sudah last periode atau belum
     const isLastPeriode = _cekLastPeriode(kontrakPeriode, (periodeNow ? periodeNow : informasi.periode));
 
     let isEvaluasiZeroCek = tmpArrEvaluasi.includes(JL) && informasi.is_zerocek == 1;
     let isEvaluasiNonZeroCek = tmpArrEvaluasi.includes(JL) && informasi.is_zerocek == 0;
+    let htmlDisabled = false;
+
     let isSewa = tmpArrSewa.includes(JL);
     let periodeTld = periodeNow == 0 ? 1 : periodeNow;
 
@@ -96,7 +94,14 @@ function load_form() {
                 tmpArrTld.push({
                     id: `${list.kontrak_tld_hash}|${idx+1}`,
                     tld: list.tld ? list.tld[idx]?.tld_hash : null
-                })
+                });
+                if(!list.tld){
+                    htmlDisabled = false;
+                } else {
+                    if(informasi.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && informasi.is_have_tld == 1)){
+                        htmlDisabled = true;
+                    }
+                }
                 htmlKontrol += `
                     <div class="w-50 pe-1 d-flex flex-column">
                         <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
@@ -116,6 +121,13 @@ function load_form() {
                 id: list.kontrak_tld_hash,
                 tld: list.tld ? list.tld[0].tld_hash : null
             })
+            if(!list.tld){
+                htmlDisabled = false;
+            } else {
+                if(informasi.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && informasi.is_have_tld == 1)){
+                    htmlDisabled = true;
+                }
+            }
             htmlPengguna += `
                 <div class="w-50 pe-1 d-flex flex-column">
                     <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}</span>

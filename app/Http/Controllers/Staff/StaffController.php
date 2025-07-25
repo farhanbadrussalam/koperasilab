@@ -366,13 +366,6 @@ class StaffController extends Controller
                 $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->get();
                 foreach($dataKontrakTldSebelum as $val){
                     // Mengecek tld yang sedang di simpan di 2 periode sebelum dan digunakan lagi di periode ini
-                    // $cek = Kontrak_tld::where('id_kontrak', $idKontrak)
-                    //         ->where('periode', $periodeNow->periode-2)
-                    //         ->when($val->id_pengguna, function ($query) use ($val) {
-                    //             return $query->where('id_pengguna', $val->id_pengguna);
-                    //         })
-                    //         ->where('status', 0)->first();
-
                     $arr = array(
                         'id_kontrak' => $idKontrak,
                         'id_pengguna' => $val->id_pengguna,
@@ -427,7 +420,6 @@ class StaffController extends Controller
                     }
                 }
             });
-
         }
 
         // membuat permohonan
@@ -438,6 +430,21 @@ class StaffController extends Controller
             'informasi' => $data,
             'periode' => $periodeNow ? $periodeNow->periode : false,
             'status_tld' => $statusTld
+        ];
+
+
+        return view('pages.staff.pengiriman.kirim', $result);
+    }
+    public function buatOrderPengembalian($idHash)
+    {
+        // membuat permohonan
+        $result = [
+            'title' => 'Buat Pengiriman',
+            'module' => 'staff-pengiriman-permohonan',
+            'noPengiriman' => $this->generateNoPengiriman(),
+            'informasi' => false, // $data,
+            'periode' => false, // $periodeNow ? $periodeNow->periode : false,
+            'status_tld' => false //$statusTld
         ];
 
 

@@ -39,7 +39,7 @@
                             <small>{{ $periode2Next ? convert_date($periode2Next->start_date, 2) : '-' }} - {{ $periode2Next ? convert_date($periode2Next->end_date, 2) : '-' }}</small>
                         </div>
                         <div class="border border-primary rounded p-2 bg-primary-subtle shadow-sm align-content-center {{ $periode2Next ? 'd-none' : '' }}">
-                            <div for="">Pengembalian ke {{ $periodeNow->periode % 2 == 0 ? '2' : '1' }}</div>
+                            <div for="">Pengembalian ke {{ $periodeNow->periode % 2 == 0 ? '1' : '2' }}</div>
                         </div>
                     </div>
                 </div>

@@ -108,17 +108,21 @@ function loadData(page = 1) {
             }
 
             let activePeriode = '';
+            let lastPeriodeKontrak = false;
+            let htmlPengembalian = '';
             for (const periode of data.periode) {
                 const isComplete = isPeriodeComplete(periode, i, cekStatusPeriode, arrFind);
+                lastPeriodeKontrak = (dataKontrak[i].periode_count) == periode.periode;
+
                 if(!isComplete){
                     activePeriode = periode;
                     break;
                 }
             }
 
-            // if(data.no_kontrak == 'S-0002/JKRL/VI/2025') {
-            //     console.log(activePeriode);
-            // }
+            if(lastPeriodeKontrak){
+                htmlPengembalian = pengembalianTLD(data);
+            }
 
             let hidden = role.includes('Pelanggan') ? 'd-none' : '';
 
@@ -128,7 +132,7 @@ function loadData(page = 1) {
                         <div class="col-auto">
                             <div class="">
                                 <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.tipe_kontrak}</span>
-                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
+                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}/span>
                             </div>
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${data.jenis_tld.name} - Layanan ${data.layanan_jasa.nama_layanan}</span> <span class="text-body-tertiary">#${data.no_kontrak}</span>
@@ -155,6 +159,7 @@ function loadData(page = 1) {
                             ${(() => {
                                 return activePeriode ? htmlPeriode(activePeriode, i, cekStatusPeriode, arrFind, { active: true }) : '';
                             })()}
+                            ${htmlPengembalian}
                         </div>
                         <div class="p-3 pb-0" id="listPeriode${i}" style="display:none">
                             ${(() => {
@@ -165,6 +170,7 @@ function loadData(page = 1) {
                                 }
                                 return html;
                             })()}
+                            ${htmlPengembalian}
                         </div>
                     </div>
                 </div>
@@ -320,8 +326,12 @@ function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
 
         if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
         if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
-        if (doc === 'tld' &&  (lastPeriode && JL != "KontrakEvaluasi" || periodeAwal.includes(data.periode))) continue;
-
+        if(role.includes('Staff Pengiriman')){
+            if(doc === 'tld' && (lastPeriode && (!tmpArrEvaluasi.includes(JL) && periodeAwal.includes(data.periode)))){
+                return true;
+            }
+        }
+        if (doc === 'tld' && (lastPeriode && !tmpArrEvaluasi.includes(JL) || periodeAwal.includes(data.periode))) continue;
         if(role.includes('Staff Pengiriman')){
             if(doc === 'tld' && findPeriode?.status == 2) {
                 return true;
@@ -350,4 +360,37 @@ function showDetail(obj){
     const id = $(obj).parent().data("id");
     let url = `api/v1/kontrak/getById/${id}`;
     detail.show(url);
+}
+
+function pengembalianTLD(data){
+    console.log(data);
+    let htmlBtnTld = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/pengembalian/${data.no_kontrak}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
+    let htmlAction = ``;
+    let jumlah = 0;
+    let html = ``;
+    if(data.tld_aktif.length > 0){
+        htmlAction = htmlBtnTld;
+        jumlah = data.tld_aktif.filter(tld => tld.status == 1).length;
+
+        html = `
+            <div class="border-top py-2 d-flex justify-content-between align-items-center">
+                <div class="px-2">
+                    <span class="fw-semibold fs-6">Pengembalian TLD</span>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <div>
+                            <span class="fw-normal">• ${jumlah} TLD</span>
+                            <small class="cursoron hover-1 pe-2">
+                                ${statusFormat('pengiriman', 0)}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3 text-secondary">
+                    ${htmlAction}
+                </div>
+            </div>
+        `;
+    }
+
+    return html;
 }
