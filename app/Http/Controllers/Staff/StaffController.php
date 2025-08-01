@@ -169,10 +169,10 @@ class StaffController extends Controller
         }else{
             // Mengambil jobs dari layanan jasa
             $type = '';
-            if($query->permohonan->is_zerocek == 1){
-                $type = 'zerocek';
-            } else if ($query->permohonan->is_zerocek == 0) {
-                $type = 'nonzerocek';
+            if($query->permohonan->is_have_tld == 1){
+                $type = 'havetld';
+            } else if ($query->permohonan->is_have_tld == 0) {
+                $type = 'nonhavetld';
             }
             $listJobs = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs;
             $listJobsParalel = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs_paralel;
@@ -294,7 +294,7 @@ class StaffController extends Controller
                 'kontrak.jenis_layanan',
                 'kontrak.jenis_layanan_parent',
                 'kontrak.rincian_list_tld' => function ($query) {
-                    $query->where('status', 1);
+                    $query->whereIn('status', [5, 3]);
                 },
                 'kontrak.rincian_list_tld.pengguna',
                 'kontrak.rincian_list_tld.divisi',
@@ -310,16 +310,6 @@ class StaffController extends Controller
                 'rincian_list_tld.divisi'
             ])->find($id);
 
-            if($data){
-                $data->rincian_list_tld->each(function($item) {
-                    $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
-                });
-
-                $data->kontrak->rincian_list_tld->each(function($item) {
-                    $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
-                });
-            }
-
             // cek tld apakah sudah di kirim atau belum
             $statusTld = Pengiriman::with([
                 'detail' => function($q){
@@ -327,7 +317,7 @@ class StaffController extends Controller
                 },
                 'permohonan',
             ])->where('id_kontrak', $data->id_kontrak)
-            ->where('periode', $data->periode == 1 ? null : $data->periode)
+            ->where('periode', $data->periode == 1 ? 0 : $data->periode)
             ->first();
 
             // cek apakah sudah di periode terakhir atau belum
@@ -336,46 +326,31 @@ class StaffController extends Controller
 
             if(!$isLast) {
                 // Membuat kontrak_tld
-                $kontrakTld = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
-                // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
-                if(count($kontrakTld) == 0){
-                    $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode-1)->get();
-                    foreach($dataKontrakTldSebelum as $val){
-                        Kontrak_tld::create([
-                            'id_kontrak' => $data->id_kontrak,
-                            'id_pengguna' => $val->id_pengguna,
-                            'periode' => $data->periode,
-                            'id_tld' => $val->id_tld,
-                            'id_divisi' => $val->id_divisi,
-                            'count' => $val->count,
-                            'status' => 1,
-                            'created_by' => Auth::user()->id
-                        ]);
-                    }
-                }
             }
 
             // mengambil periode dari kontrak_periode
-            $kontrakPeriode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
-            $data->kontrak_periode = $kontrakPeriode;
+            $data->kontrak_periode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
         }else{
             $idKontrak = decryptor($idHash) ?? false;
-            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode)->get();
-            // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
-            if(count($kontrakTld) == 0){
-                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->get();
-                foreach($dataKontrakTldSebelum as $val){
-                    // Mengecek tld yang sedang di simpan di 2 periode sebelum dan digunakan lagi di periode ini
-                    $arr = array(
-                        'id_kontrak' => $idKontrak,
-                        'id_pengguna' => $val->id_pengguna,
-                        'id_divisi' => $val->id_divisi,
-                        'periode' => $periodeNow->periode,
-                        'status' => 1,
-                        'count' => $val->count,
-                        'created_by' => Auth::user()->id
-                    );
-                    Kontrak_tld::create($arr);
+            if($periodeNow){
+                $countTld = $periodeNow->periode % 2 == 1 ? 1 : 2;
+                $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', $countTld)->get();
+                // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
+                if(count($kontrakTld) == 0){
+                    $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', 1)->get();
+                    foreach($dataKontrakTldSebelum as $val){
+                        // Mengecek tld yang sedang di simpan di 2 periode sebelum dan digunakan lagi di periode ini
+                        $arr = array(
+                            'id_kontrak' => $idKontrak,
+                            'id_pengguna' => $val->id_pengguna,
+                            'id_divisi' => $val->id_divisi,
+                            'count_tld' => $countTld,
+                            'status' => 5,
+                            'count' => $val->count,
+                            'created_by' => Auth::user()->id
+                        );
+                        Kontrak_tld::create($arr);
+                    }
                 }
             }
 
@@ -388,7 +363,7 @@ class StaffController extends Controller
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
                 'rincian_list_tld' => function ($query) {
-                    $query->where('status', 1);
+                    $query->where('status', 5);
                 },
                 'rincian_list_tld.pengguna',
                 'periode'
@@ -404,9 +379,7 @@ class StaffController extends Controller
             $indexKontrol = 0;
 
             $data->rincian_list_tld->each(function($item) use (&$resTldPengguna, &$resTldKontrol, &$indexPengguna, &$indexKontrol) {
-                if ($item->id_tld) {
-                    $item->tld = Master_tld::whereIn('id_tld', $item->id_tld)->get();
-                } else {
+                if (!$item->id_tld) {
                     if ($item->id_pengguna) {
                         $item->tld = isset($resTldPengguna['data'][$indexPengguna]) ? [$resTldPengguna['data'][$indexPengguna]] : null;
                         $indexPengguna++;
@@ -437,12 +410,41 @@ class StaffController extends Controller
     }
     public function buatOrderPengembalian($idHash)
     {
-        // membuat permohonan
+        // mengambil kontrak
+        $idKontrak = decryptor($idHash);
+
+        // cek tld apakah sudah di kirim atau belum
+        // $statusTld = Pengiriman::with([
+        //     'detail' => function($q){
+        //         return $q->where('jenis', 'tld');
+        //     },
+        //     'permohonan',
+        // ])->where('id_kontrak', $data->id_kontrak)
+        // ->where('periode', $data->periode == 1 ? null : $data->periode)
+        // ->first();
+
+        $data = Kontrak::with([
+            'layanan_jasa:id_layanan,nama_layanan',
+            'jenisTld:id_jenisTld,name',
+            'jenis_layanan:id_jenisLayanan,name,parent',
+            'jenis_layanan_parent',
+            'pelanggan:id,id_perusahaan,name',
+            'pelanggan.perusahaan',
+            'pelanggan.perusahaan.alamat',
+            'rincian_list_tld' => function ($query) {
+                $query->where('status', 5);
+            },
+            'rincian_list_tld.pengguna',
+            'tld_aktif' => function ($query) {
+                $query->where('status', 0);
+            },
+        ])->find($idKontrak);
+
         $result = [
             'title' => 'Buat Pengiriman',
             'module' => 'staff-pengiriman-permohonan',
             'noPengiriman' => $this->generateNoPengiriman(),
-            'informasi' => false, // $data,
+            'informasi' => $data, // $data,
             'periode' => false, // $periodeNow ? $periodeNow->periode : false,
             'status_tld' => false //$statusTld
         ];

@@ -98,7 +98,7 @@
                                 <table class="table w-100 d-none" id="pengguna-table">
                                     <thead>
                                         <tr>
-                                            <th width="1%" class="{{ !$isEvaluasi ? 'd-none' : '' }}">
+                                            <th width="1%" class="{{ !$permohonan->is_have_tld ? 'd-none' : '' }}">
                                                 <input class="form-check-input mt-0" id="checkAllTldPengguna" name="checkAllTldPengguna" type="checkbox" value="" aria-label="Checkbox for following text input">
                                             </th>
                                             <th width="1%">No</th>

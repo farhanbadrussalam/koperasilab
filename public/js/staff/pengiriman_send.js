@@ -61,40 +61,102 @@ function load_form() {
     let tldKontrol = [];
     let kontrakPeriode = [];
     let JL = '';
+    let periodeAwal = [];
 
-    if(informasi.kontrak){
+    if(informasi.kontrak){ // jika ada permohonannya
         tldPengguna = informasi.kontrak.rincian_list_tld.filter(tld => tld.pengguna);
         tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
         kontrakPeriode = informasi.kontrak.periode;
         JL = jenislayanan(informasi.kontrak.jenis_layanan_parent, informasi.kontrak.jenis_layanan);
-    }else{
-        tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna);
-        tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
+        periodeAwal = informasi.kontrak.is_zerocek == 1 ? [0] : (informasi.kontrak.is_have_tld == 1 ? [1, 2] : []);
+        periodeNow = informasi.periode;
+    }else{ // jika tidak ada permohonannya
+        if(informasi.tld_aktif) {
+            tldPengguna = informasi.tld_aktif.filter(tld => tld.jenis == 'pengguna');
+            tldKontrol = informasi.tld_aktif.filter(tld => tld.jenis == 'kontrol');
+        } else {
+            tldPengguna = informasi.rincian_list_tld.filter(tld => tld.pengguna);
+            tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
+        }
         kontrakPeriode = informasi.periode;
+        periodeAwal = informasi.is_zerocek == 1 ? [0] : (informasi.is_have_tld == 1 ? [1, 2] : []);
         JL = jenislayanan(informasi.jenis_layanan_parent, informasi.jenis_layanan);
     }
 
     // list document TLD
     // Mengecek apakah sudah last periode atau belum
-    const isLastPeriode = _cekLastPeriode(kontrakPeriode, (periodeNow ? periodeNow : informasi.periode));
+    let isLastPeriode = _cekLastPeriode(kontrakPeriode, periodeNow);
 
-    let isEvaluasiZeroCek = tmpArrEvaluasi.includes(JL) && informasi.is_zerocek == 1;
-    let isEvaluasiNonZeroCek = tmpArrEvaluasi.includes(JL) && informasi.is_zerocek == 0;
+    let isZeroCek = informasi.is_zerocek == 1;
+    let isNonZeroCek = informasi.is_zerocek == 0;
     let htmlDisabled = false;
 
     let isSewa = tmpArrSewa.includes(JL);
-    let periodeTld = periodeNow == 0 ? 1 : periodeNow;
+    let periodeTld = periodeNow === 0 ? 1 : periodeNow;
 
-    if(!isLastPeriode || isEvaluasiZeroCek || isSewa){
+    // if((!isLastPeriode || !isSewa) && !periodeAwal.includes(periodeTld)){
+    if(!periodeAwal.includes(periodeTld)){
         let checkedTld = status_tld?.detail?.find(d => d.jenis == 'tld') ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const list of tldKontrol) {
-
-            for (let idx = 0; idx < list.count; idx++) {
+            if(informasi.tld_aktif){
                 tmpArrTld.push({
-                    id: `${list.kontrak_tld_hash}|${idx+1}`,
-                    tld: list.tld ? list.tld[idx]?.tld_hash : null
+                    id: `0`,
+                    tld: list.tld_hash
                 });
+                htmlKontrol += `
+                    <div class="w-50 pe-1 d-flex flex-column">
+                        <div class="input-group mt-auto mb-3">
+                            <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.no_seri_tld}" data-id="${list.tld_hash}" id="tldNoSeri_${list.tld_hash}" placeholder="Pilih No Seri" readonly>
+                        </div>
+                    </div>
+                `;
+            }else {
+                for (let idx = 0; idx < list.count; idx++) {
+                    tmpArrTld.push({
+                        id: `${list.kontrak_tld_hash}|${idx+1}`,
+                        tld: list.tld ? list.tld[idx]?.tld_hash : null
+                    });
+                    if(!list.tld){
+                        htmlDisabled = false;
+                    } else {
+                        if(informasi.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && informasi.is_have_tld == 1)){
+                            htmlDisabled = true;
+                        }
+                    }
+                    htmlKontrol += `
+                        <div class="w-50 pe-1 d-flex flex-column">
+                            <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
+                            <div class="input-group mt-auto mb-3">
+                                <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
+                                ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Mengambil tld Pengguna dari kontrak
+        let htmlPengguna = ``;
+        for (const list of tldPengguna){
+            if(informasi.tld_aktif){
+                tmpArrTld.push({
+                    id: `0`,
+                    tld: list.tld_hash
+                });
+                htmlPengguna += `
+                    <div class="w-50 pe-1 d-flex flex-column">
+                        <div class="input-group mt-auto mb-3">
+                            <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.no_seri_tld}" data-id="${list.tld_hash}" id="tldNoSeri_${list.tld_hash}" placeholder="Pilih No Seri" readonly>
+                        </div>
+                    </div>
+                `;
+            } else {
+                tmpArrTld.push({
+                    id: list.kontrak_tld_hash,
+                    tld: list.tld ? list.tld[0].tld_hash : null
+                })
                 if(!list.tld){
                     htmlDisabled = false;
                 } else {
@@ -102,41 +164,16 @@ function load_form() {
                         htmlDisabled = true;
                     }
                 }
-                htmlKontrol += `
+                htmlPengguna += `
                     <div class="w-50 pe-1 d-flex flex-column">
-                        <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
+                        <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}</span>
                         <div class="input-group mt-auto mb-3">
-                            <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
-                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                            <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld ? list.tld[0].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                         </div>
                     </div>
                 `;
             }
-        }
-
-        // Mengambil tld Pengguna dari kontrak
-        let htmlPengguna = ``;
-        for (const list of tldPengguna){
-            tmpArrTld.push({
-                id: list.kontrak_tld_hash,
-                tld: list.tld ? list.tld[0].tld_hash : null
-            })
-            if(!list.tld){
-                htmlDisabled = false;
-            } else {
-                if(informasi.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && informasi.is_have_tld == 1)){
-                    htmlDisabled = true;
-                }
-            }
-            htmlPengguna += `
-                <div class="w-50 pe-1 d-flex flex-column">
-                    <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}</span>
-                    <div class="input-group mt-auto mb-3">
-                        <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld ? list.tld[0].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-                        ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
-                    </div>
-                </div>
-            `;
         }
         htmlTld = `
             <div class="border shadow-sm py-2 rounded mb-2">
@@ -146,7 +183,7 @@ function load_form() {
                         <input class="form-check-input me-2" type="checkbox"
                             data-jenis="tld" data-id="${informasi.permohonan_hash ?? ''}"
                             id="selectDocumentTld" name="selectDocument" onclick="updateSelectDocument()" ${checkedTld}>
-                        <span class="fw-semibold fs-6">TLD Periode ${periodeTld}</span>
+                        <span class="fw-semibold fs-6">TLD Periode ${periodeTld === false ? 'Pengembalian' : periodeTld}</span>
                         <small class="text-body-tertiary"> - ${informasi.jumlah_pengguna} Pengguna + ${informasi.jumlah_kontrol} Kontrol</small>
                         <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? status_tld.status : false)}</small>
                     </div>
@@ -496,7 +533,10 @@ function _templateTld(state){
 
 function _cekLastPeriode(periode_kontrak, periode_now){
     // Ambil periode terakhir
-    const lastPeriode = periode_kontrak[periode_kontrak.length-1];
-    const isLast = periode_now < lastPeriode?.periode ? true : false;
-    return isLast;
+    if(periode_kontrak){
+        const lastPeriode = periode_kontrak[periode_kontrak.length-1];
+        const isLast = periode_now < lastPeriode?.periode ? false : true;
+        return isLast;
+    }
+    return false;
 }

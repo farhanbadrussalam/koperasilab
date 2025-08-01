@@ -80,7 +80,7 @@
 @push('scripts')
     <script>
         const informasi = @json($informasi);
-        const periodeNow = @json($periode);
+        let periodeNow = @json($periode);
         const status_tld = @json($status_tld);
     </script>
     <script src="{{ asset('js/staff/pengiriman_send.js') }}"></script>

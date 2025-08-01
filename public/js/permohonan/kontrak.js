@@ -88,17 +88,18 @@ function loadData(page = 1) {
                     break;
             }
 
-            let cekStatusPeriode = [];
-            let arrFind = ['invoice','tld'];
+            let detailPengiriman = [];
+            let arrFind = ['invoice','tld', 'lhu'];
+            const JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
 
-            if([2,3,5,6].includes(Number(data.jenis_layanan_2))){
-                arrFind.push('lhu');
-            }
+            // if(tmpArrSewa.includes(JL) || tmpArrEvaluasi.includes(JL)){
+            //     arrFind.push('lhu');
+            // }
 
             for (const pengiriman of data.pengiriman) {
                 let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
                 if(detail.length > 0){
-                    detail.map(d => cekStatusPeriode.push({
+                    detail.map(d => detailPengiriman.push({
                         jenis: d.jenis,
                         periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
                         status: pengiriman.status,
@@ -111,12 +112,15 @@ function loadData(page = 1) {
             let lastPeriodeKontrak = false;
             let htmlPengembalian = '';
             for (const periode of data.periode) {
-                const isComplete = isPeriodeComplete(periode, i, cekStatusPeriode, arrFind);
-                lastPeriodeKontrak = (dataKontrak[i].periode_count) == periode.periode;
+                // const isComplete = isPeriodeComplete(periode, i, detailPengiriman, arrFind);
+                const dokumenAktif = periodeMapDocument(periode, data, arrFind);
+                const isComplete = cekPeriodeComplete(periode, detailPengiriman, data, dokumenAktif);
 
                 if(!isComplete){
                     activePeriode = periode;
                     break;
+                } else {
+                    lastPeriodeKontrak = (data.periode_count) == periode.periode;
                 }
             }
 
@@ -132,7 +136,7 @@ function loadData(page = 1) {
                         <div class="col-auto">
                             <div class="">
                                 <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.tipe_kontrak}</span>
-                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}/span>
+                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
                             </div>
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${data.jenis_tld.name} - Layanan ${data.layanan_jasa.nama_layanan}</span> <span class="text-body-tertiary">#${data.no_kontrak}</span>
@@ -157,7 +161,7 @@ function loadData(page = 1) {
                         </div>
                         <div class="p-3 pb-0" id="listPeriodeNow${i}">
                             ${(() => {
-                                return activePeriode ? htmlPeriode(activePeriode, i, cekStatusPeriode, arrFind, { active: true }) : '';
+                                return activePeriode ? htmlPeriode(activePeriode, i, detailPengiriman, arrFind, { active: true }) : '';
                             })()}
                             ${htmlPengembalian}
                         </div>
@@ -166,7 +170,7 @@ function loadData(page = 1) {
                                 let html = '';
                                 let evaluasiState = { active: false }; // Objek referensi
                                 for (const kontrak of data.periode) {
-                                    html += htmlPeriode(kontrak, i, cekStatusPeriode, arrFind, evaluasiState);
+                                    html += htmlPeriode(kontrak, i, detailPengiriman, arrFind, evaluasiState);
                                 }
                                 return html;
                             })()}
@@ -211,13 +215,14 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     const isPelanggan = role.includes('Pelanggan');
     let htmlAction = ``;
     let htmlDoc = ``;
-    // Gunakan fungsi isPeriodeComplete untuk mengecek status
-    let isComplete = isPeriodeComplete(data, index, cekStatusPeriode, arrFind);
-    let periodeAwal = 0;
+    let periodeAwal = [];
+
     if(dataKontrak[index].is_zerocek == 1) {
         periodeAwal = [0];
     } else if(dataKontrak[index].is_zerocek == 0) {
-        periodeAwal = [1, 2];
+        if(dataKontrak[index].is_have_tld == 1) {
+            periodeAwal = [1, 2];
+        }
     }
     // cek apakah sudah bayar atau belum
     let lastPeriode = (dataKontrak[index].periode_count) == data.periode;
@@ -225,13 +230,13 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
     const JL = jenislayanan(dataKontrak[index].jenis_layanan_parent, dataKontrak[index].jenis_layanan);
 
-    for (const doc of arrFind) {
+    let aktifDokumenKirim = periodeMapDocument(data, dataKontrak[index], arrFind);
+
+    for (const doc of aktifDokumenKirim) {
         let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
-        if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
-        if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
-        if (doc === 'tld' && (lastPeriode && JL != "KontrakEvaluasi" || periodeAwal.includes(data.periode))) continue;
-        // if (doc === 'tld' && data.periode == 1 && JL == "KontrakEvaluasi" && dataKontrak[index].is_zerocek == 0) continue;
-        if (doc === 'tld') {
+
+        // pengecekan TLD
+        if(doc === 'tld') {
             statusKirimTld = findPeriode?.status;
         }
 
@@ -246,48 +251,52 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                 </small>
             </div>
         `;
+
     }
 
+    // Gunakan fungsi isPeriodeComplete untuk mengecek status
+    // let isComplete = isPeriodeComplete(data, index, cekStatusPeriode, arrFind);
+    let isComplete = cekPeriodeComplete(data, cekStatusPeriode, dataKontrak[index], aktifDokumenKirim);
 
     let htmlBtnEvaluasi = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`;
     let htmlBtnTld = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
-
     if(data.permohonan){
-        const showEvaluasi = isPelanggan && data.permohonan.status == 11 && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && data.permohonan.kontrak_hash;
-        htmlAction = showEvaluasi ? htmlBtnEvaluasi :
-            `<div class="d-flex flex-column justify-content-center align-items-end">
-                <div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div>
-                <div>${statusFormat('permohonan', data.permohonan.status)}</div>
-            </div>`;
+        htmlAction = `
+        <div class="d-flex flex-column justify-content-center align-items-end">
+            <div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div>
+            <div>${statusFormat('permohonan', data.permohonan.status)}</div>
+        </div>`;
+    }
 
-        if (!statusKirimTld && role.includes('Staff Pengiriman') && data.periode != 0) {
-            if(['KontrakEvaluasi'].includes(JL) && dataKontrak[index].is_zerocek == 0) {
-
-            }else{
-                !lastPeriode && (htmlAction = htmlBtnTld);
-            }
-        } else {
-            if (isPelanggan && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2)) && !statusKirimTld && !data.permohonan.kontrak_hash) {
-                evaluasiState.active && (htmlAction = htmlBtnEvaluasi);
+    if(isPelanggan) {
+        if(evaluasiState.active) {
+            if(!data.permohonan){
+                htmlAction = htmlBtnEvaluasi;
             }
         }
         evaluasiState.active = isComplete;
-    }else{
-        if(role.includes('Staff Pengiriman')) {
-            if(['KontrakEvaluasi', 'EvaluasiDenganKontrak'].includes(JL) && dataKontrak[index].is_have_tld == 0) {
-                htmlAction = htmlAction;
+    } else {
+        evaluasiState.active = !isComplete;
+
+        if(evaluasiState.active) {
+            let tldSelesai = false;
+            let penyelia2 = dataKontrak[index].periode.find(cek => cek.periode == data.periode - 2);
+            if(penyelia2){
+                tldSelesai = cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
+
+            }else {
+                if(dataKontrak[index].is_zerocek == 0 && dataKontrak[index].is_have_tld == 0) {
+                    tldSelesai = true;
+                }
             }
-            // (!statusKirimTld && evaluasiState.active && !lastPeriode && !periodeAwal.includes(data.periode)) && (htmlAction = htmlBtnTld);
-            (!statusKirimTld && evaluasiState.active && !periodeAwal.includes(data.periode)) && (htmlAction = htmlBtnTld);
-            if(statusKirimTld && isComplete) {
-                evaluasiState.active = true;
-            }else{
-                evaluasiState.active = false;
+
+            if(aktifDokumenKirim.includes('tld')) {
+                if(tldSelesai) {
+                    if(!data.permohonan){
+                        htmlAction = htmlBtnTld;
+                    }
+                }
             }
-        } else if(isPelanggan && [2, 3, 5].includes(Number(dataKontrak[index].jenis_layanan_2))) {
-            // 2 = Sewa, 3 = Evaluasi, 5 = Evaluasi - dengan kontrak
-            evaluasiState.active && (htmlAction = htmlBtnEvaluasi);
-            evaluasiState.active = false;
         }
     }
 
@@ -307,6 +316,90 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     `;
 }
 
+function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen){
+    const periodeAwal = data_kontrak.is_zerocek ? [0] : (data_kontrak.is_have_tld == 1 ? [1, 2] : []);
+    // Pengecekan Invoice apakah sudah di bayar atau belum
+    if (data_kontrak.invoice.status != 5) return false;
+
+    // pengecekan jenis layanan
+    for (const doc of arrFindDokumen) {
+        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
+
+        if(role.includes('Staff Pengiriman') && data_periode.periode != periodeAwal[0]) {
+            if(periodeAwal.includes(data_periode.periode)) {
+                return true;
+            }
+            // cek tld sudah di kirim atau belum
+            if(doc === 'tld'){
+                if(!findPeriode) {
+                    return false;
+                } else if (findPeriode?.status != 2) {
+                    return false;
+                }
+            }
+        } else{
+            if (!findPeriode || findPeriode.status != 2) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+function cekTldComplete(){
+
+}
+
+function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
+    const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
+    const periodeAwal = kontrak.is_zerocek ? [0] : (kontrak.is_have_tld == 1 ? [1, 2] : []);
+    let lastPeriode = (kontrak.periode_count) == data_periode.periode;
+
+    let aktifDokumenKirim = [];
+    for (const doc of arrFindDokumen) {
+        if (doc === 'invoice' && data_periode.permohonan_hash !== kontrak.invoice?.permohonan_hash) continue;
+        if (doc === 'tld') {
+            if (lastPeriode && tmpArrSewa.includes(JL)) continue;
+            if (periodeAwal.includes(data_periode.periode)) continue;
+        }
+
+        aktifDokumenKirim.push(doc);
+    }
+
+    return aktifDokumenKirim;
+}
+
+function cekPenyelia(penyelia, jobs_point) {
+    let search = penyelia?.penyelia_map.find(d => d.jobs.name == jobs_point);
+    if(search?.status == 2) {
+        return true;
+    }
+
+    return false;
+}
+
+function buttonEvaluasi(data_periode, data_kontrak, active){
+    let result = false;
+    let btnEvaluasi = '';
+    if(!data_periode.permohonan) {
+        result = active;
+    }
+
+    return result;
+}
+
+function buttonTLD(data_periode, data_kontrak, active){
+    let result = false;
+    let btnEvaluasi = '';
+    if(!data_periode.permohonan) {
+        result = active;
+        console.log(result);
+    }
+
+    return result;
+}
+
 function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
     // Jika invoice belum status 5, maka langsung false
     if (dataKontrak[index].invoice.status != 5) return false;
@@ -314,11 +407,13 @@ function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
     const JL = jenislayanan(dataKontrak[index].jenis_layanan_parent, dataKontrak[index].jenis_layanan);
 
     // Cek apakah semua dokumen dalam arrFind sudah selesai
-    let periodeAwal = 0;
+    let periodeAwal = [];
     if(dataKontrak[index].is_zerocek == 1) {
         periodeAwal = [0];
     } else if(dataKontrak[index].is_zerocek == 0) {
-        periodeAwal = [1, 2];
+        if(dataKontrak[index].is_have_tld == 1){
+            periodeAwal = [1, 2];
+        }
     }
     for (const doc of arrFind) {
         let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
@@ -327,7 +422,7 @@ function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
         if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
         if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
         if(role.includes('Staff Pengiriman')){
-            if(doc === 'tld' && (lastPeriode && (!tmpArrEvaluasi.includes(JL) && periodeAwal.includes(data.periode)))){
+            if(doc === 'tld' && (lastPeriode && !tmpArrEvaluasi.includes(JL) || periodeAwal.includes(data.periode))){
                 return true;
             }
         }
@@ -363,15 +458,28 @@ function showDetail(obj){
 }
 
 function pengembalianTLD(data){
-    console.log(data);
-    let htmlBtnTld = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/pengembalian/${data.no_kontrak}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
+    let htmlBtnTld = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/pengembalian/${data.kontrak_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
     let htmlAction = ``;
     let jumlah = 0;
     let html = ``;
-    if(data.tld_aktif.length > 0){
-        htmlAction = htmlBtnTld;
-        jumlah = data.tld_aktif.filter(tld => tld.status == 1).length;
+    let tldTidakDigunakan = data.rincian_list_tld;
+    if(tldTidakDigunakan.length > 0){
+        jumlah = tldTidakDigunakan.length;
+        let countTld = tldTidakDigunakan[0].count_tld;
 
+        let orderPeriode = [...data.periode];
+        orderPeriode.sort((a, b) => b.periode - a.periode);
+        let ambil = false;
+        for (const item of orderPeriode) {
+            if(item.count_tld === countTld) {
+                ambil = item;
+                break;
+            }
+        }
+        let tldSelesai = cekPenyelia(ambil.penyelia, 'Pelabelan TLD');
+        if(tldSelesai) {
+            htmlAction = htmlBtnTld;
+        }
         html = `
             <div class="border-top py-2 d-flex justify-content-between align-items-center">
                 <div class="px-2">

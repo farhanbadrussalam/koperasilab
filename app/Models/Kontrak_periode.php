@@ -19,7 +19,9 @@ class Kontrak_periode extends Model
         'start_date',
         'end_date',
         'nomer_surpeng',
+        'created_surpeng_at',
         'status',
+        'count_tld',
         'created_by',
         'created_at'
     ];
@@ -39,7 +41,8 @@ class Kontrak_periode extends Model
         'status' => 'integer',
         'created_by' => 'integer',
         'id_permohonan' => 'integer',
-        'id_kontrak' => 'integer'
+        'id_kontrak' => 'integer',
+        'count_tld' => 'integer'
     ];
 
     public function getPeriodeHashAttribute()
@@ -58,5 +61,9 @@ class Kontrak_periode extends Model
 
     public function permohonan(){
         return $this->belongsTo(Permohonan::class,'id_permohonan', 'id_permohonan');
+    }
+
+    public function penyelia() {
+        return $this->belongsTo(Penyelia::class, 'id_permohonan', 'id_permohonan');
     }
 }

@@ -6,7 +6,7 @@ let typeLayanan2 = '';
 let datatable_ = false;
 let arrListPengguna = [];
 let JL = '';
-let haveTldChecked = true;
+let haveTldChecked = false;
 let useZeroCek = true;
 
 let inventoryTldPengguna = false;
@@ -47,6 +47,7 @@ $(function () {
         params.append('id_permohonan_tld', split[0]);
         params.append('id_tld', detail.data_tld.tld_hash);
         split[1] ? params.append('index', split[1]) : false;
+
 
         ajaxPost(`api/v1/permohonan/action_tld`, params, result => {
            loadPengguna();
@@ -394,8 +395,14 @@ $(function () {
     $('#haveTld').on('change', obj => {
         if (obj.target.checked) {
             haveTldChecked = true;
+            useZeroCek = false;
+            $('#useZeroCek').prop('checked', false);
+            $('#switch-zerocek').hide();
         } else {
             haveTldChecked = false;
+            useZeroCek = true;
+            $('#useZeroCek').prop('checked', true);
+            $('#switch-zerocek').show();
         }
 
         loadPengguna();
@@ -762,7 +769,23 @@ function openForm(){
                 }
                 let list = result.data;
                 if(JL == 'KontrakEvaluasi') {
+                    if($('#haveTld').is(':checked')) {
+                        haveTldChecked = true;
+                        useZeroCek = false;
+                        $('#useZeroCek').prop('checked', false);
+                        $('#switch-zerocek').hide();
+                    } else {
+                        haveTldChecked = false;
+                        useZeroCek = true;
+                        $('#useZeroCek').prop('checked', true);
+                        $('#switch-zerocek').show();
+                    }
                     $('#form-switch').show();
+                } else {
+                    $('#useZeroCek').prop('checked', true);
+                    $('#haveTld').prop('checked', false);
+                    useZeroCek = true;
+                    haveTldChecked = false;
                 }
                 $('#form-inputan').addClass('d-block').removeClass('d-none');
 

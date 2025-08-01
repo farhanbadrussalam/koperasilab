@@ -35,6 +35,7 @@ class PenyeliaAPI extends Controller
     {
         $this->log = resolve(LogController::class);
         $this->media = resolve(MediaController::class);
+        $this->global = config('customvariabel');
     }
 
     public function actionPenyelia(Request $request)
@@ -307,7 +308,9 @@ class PenyeliaAPI extends Controller
 
             $penyelia = Penyelia::with(
                 'permohonan',
-                'permohonan.kontrak.rincian_list_tld'
+                'permohonan.kontrak.rincian_list_tld',
+                'permohonan.kontrak.jenis_layanan',
+                'permohonan.kontrak.jenis_layanan_parent',
             )->find($idPenyelia);
             $jobsNow = Penyelia_map::with('jobs')->where('id_map', $nowJobs)->first();
 
@@ -315,16 +318,15 @@ class PenyeliaAPI extends Controller
                 foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
                     if($value->status == 3) {
                         // jenis kontraknya bukan evaluasi berarti di update statusnya
-                        if($penyelia->permohonan->kontrak->jenis_layanan_2 == '3' && $penyelia->permohonan->kontrak->is_have_tld != 0) {
-                            if($penyelia->permohonan->kontrak->is_zerocek == 0) {
-                                Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
-                            }
-                        }else{
-                            Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
-                        }
-
-                        // Masih opsional apakah Kontrak_tld di ganti menjadi status 0 atau masih tetap 3
-                        Kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 0]);
+                        // if($penyelia->permohonan->kontrak->jenis_layanan_2 == '3' && $penyelia->permohonan->kontrak->is_have_tld != 0) {
+                        //     if($penyelia->permohonan->kontrak->is_zerocek == 0) {
+                        //         Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
+                        //     }
+                        // }else{
+                        //     Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
+                        // }
+                        Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
+                        Kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 5]);
 
                         // mengecek jika sudah di periode terakhir
                         // Mengambil last periode
@@ -332,14 +334,18 @@ class PenyeliaAPI extends Controller
                         $isLast = $kontrakPeriode->periode == $penyelia->permohonan->periode ? true : false;
 
                         if($isLast) {
-                            Master_tld::where('digunakan', $penyelia->permohonan->kontrak->no_kontrak)->update(array('status' => 0, 'digunakan' => null));
+                            $layanan = jenislayanan($penyelia->permohonan->kontrak->jenis_layanan_parent, $penyelia->permohonan->kontrak->jenis_layanan);
+                            $isSewa = in_array($layanan, $this->global['arr_sewa']);
+                            if($isSewa){
+                                Master_tld::where('digunakan', $penyelia->permohonan->kontrak->no_kontrak)->update(array('status' => 0, 'digunakan' => null));
+                            }
                             Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 1));
                         }
                     } else if($value->status == 1) {
-                        if($penyelia->permohonan->is_zerocek == 0) {
-                            Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
-                            kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 0]);
-                        }
+                        // if($penyelia->permohonan->is_zerocek == 0) {
+                        //     Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
+                        //     kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 0]);
+                        // }
                     }
                 }
             }

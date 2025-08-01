@@ -770,6 +770,12 @@ class Invoice {
                                 <div class="row" id="invoiceActions">
                                     <!-- Action buttons will be dynamically inserted here -->
                                 </div>
+                                <div class="row my-2" id="methode-pembayaran" class="d-none">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Metode Pembayaran</label>
+                                        <select class="form-select" id="methode-pembayaran-select"></select>
+                                    </div>
+                                </div>
                                 <div class="border rounded p-3 mt-3">
                                     <table class="table w-100 text-center">
                                         <thead>
@@ -784,12 +790,6 @@ class Invoice {
                                         <tbody id="deskripsiInvoice">
                                         </tbody>
                                     </table>
-                                </div>
-                                <div class="row my-2" id="methode-pembayaran" class="d-none">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Metode Pembayaran</label>
-                                        <select class="form-select" id="methode-pembayaran-select"></select>
-                                    </div>
                                 </div>
                                 <div class="row m-2 d-none" id="plt-div-manager">
                                     <div class="form-check">

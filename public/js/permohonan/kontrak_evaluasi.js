@@ -66,6 +66,7 @@ function loadTldKontrol(tldKontrol) {
     let htmlTldKontrol = '';
     for (const [i, list] of tldKontrol.entries()) {
 
+        console.log(list);
         for (let idx = 0; idx < list.count; idx++) {
             tmpArrTld.push({
                 id: `${list.kontrak_tld_hash}_kontrol_${idx+1}`,

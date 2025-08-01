@@ -130,7 +130,10 @@ $(function () {
     });
 
 
-    isCheckedEvaluasi = isEvaluasi || dataPermohonan.is_zerocek == 0;
+    if(dataPermohonan.is_have_tld){
+        isCheckedEvaluasi = true;
+    }
+    // isCheckedEvaluasi = dataPermohonan.is_have_tld || dataPermohonan.is_zerocek == 0;
 
     loadPelanggan();
     loadTandaterima();
@@ -410,7 +413,7 @@ function verif_kelengkapan(status, obj){
             });
         }
 
-        if(isEvaluasi){
+        if(isCheckedEvaluasi){
             let checkTld = [];
             $('input[name="checkTldPengguna"]:checked, input[name="checkTldKontrol"]:checked').each(function() {
                 checkTld.push($(this).val());

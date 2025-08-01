@@ -50,6 +50,9 @@ class KontrakAPI extends Controller
                         'periode.permohonan.jenis_layanan',
                         'periode.permohonan.jenis_layanan_parent',
                         'periode.permohonan.file_lhu',
+                        'periode.penyelia',
+                        'periode.penyelia.penyelia_map',
+                        'periode.penyelia.penyelia_map.jobs',
                         'invoice',
                         'layanan_jasa:id_layanan,nama_layanan',
                         'jenisTld:id_jenisTld,name',
@@ -61,6 +64,9 @@ class KontrakAPI extends Controller
                         'pengiriman.detail',
                         'pengiriman.permohonan:id_permohonan,periode',
                         'tld_aktif:id_tld,digunakan,no_seri_tld,status',
+                        'rincian_list_tld' => function($q) {
+                            $q->where('status', 5);
+                        }
                     ])
                     ->withCount('periode')
                     ->when($idPelanggan, function($q, $idPelanggan){

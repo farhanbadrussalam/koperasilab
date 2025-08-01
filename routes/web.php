@@ -77,7 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/pengiriman/permohonan', 'indexPengirimanPermohonan')->name('staff.pengiriman.permohonan');
             Route::get('/pengiriman/permohonan/kirim/{idPermohonan}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim');
             Route::get('/pengiriman/permohonan/kirim/{idKontrak}/{periode}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim.kontrak');
-            Route::get('/pengiriman/permohonan/kirim/pengembalian/{idKontrak}', 'buatOrderPengembalian');
+            Route::get('/pengiriman/pengembalian/{idKontrak}', 'buatOrderPengembalian');
             Route::get('/pengiriman/tambah', 'buatCustomPengiriman')->name('staff.pengiriman.tambah');
 
             Route::get('/perusahaan', 'indexPerusahaan')->name('staff.perusahaan');

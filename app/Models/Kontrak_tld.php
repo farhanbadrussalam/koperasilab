@@ -19,7 +19,7 @@ class Kontrak_tld extends Model
         'id_pengguna',
         'id_divisi',
         'count',
-        'periode',
+        'count_tld',
         'status',
         'created_by'
     ];
@@ -41,7 +41,7 @@ class Kontrak_tld extends Model
         'id_tld' => 'array',
         'status' => 'integer',
         'count' => 'integer',
-        'periode' => 'integer',
+        'count_tld' => 'integer',
         'created_by' => 'integer',
         'id_kontrak' => 'integer',
         'id_pengguna' => 'integer',

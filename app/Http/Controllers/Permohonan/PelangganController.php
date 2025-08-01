@@ -30,6 +30,7 @@ class PelangganController extends Controller
     {
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
+        $this->global = config('customvariabel');
     }
 
     // FEATURE KONTRAK
@@ -51,22 +52,25 @@ class PelangganController extends Controller
             $periodeNext = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+1)->first();
             $periode2Next = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+2)->first();
             // pengecekan periode sekarang
-            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode)->get();
+            $countTld = $periodeNow->periode % 2 == 1 ? 1 : 2;
+            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', $countTld)->get();
             if(count($kontrakTld) == 0){
-                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->get();
+                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', 1)->get();
                 foreach($dataKontrakTldSebelum as $val){
                     $arr = array(
                         'id_kontrak' => $idKontrak,
                         'id_pengguna' => $val->id_pengguna,
                         'id_divisi' => $val->id_divisi,
                         'periode' => $periodeNow->periode,
-                        'status' => 1,
+                        'count_tld' => 2,
+                        'status' => 2,
                         'count' => $val->count,
                         'created_by' => Auth::user()->id
                     );
                     Kontrak_tld::create($arr);
                 }
             }
+            $tldUsed = $periodeNow->periode % 2 == 1 ? 1 : 2;
             // Mengambil Kontrak
             $queryKontrak = Kontrak::with([
                 'layanan_jasa',
@@ -77,13 +81,16 @@ class PelangganController extends Controller
                 'pelanggan',
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
-                'rincian_list_tld' => function($q) use ($periodeNow){
-                    return $q->where('periode', $periodeNow->periode);
+                'rincian_list_tld' => function($q) use ($tldUsed){
+                    return $q->where('status', 2)->where('count_tld', $tldUsed); // TLD ada di pelanggan untuk evaluasi kontrak
                 },
                 'rincian_list_tld.pengguna',
                 'rincian_list_tld.pengguna.media_ktp',
                 'rincian_list_tld.pengguna.divisi'
             ])->where('id_kontrak', $idKontrak)->first();
+
+            $layanan = jenislayanan($queryKontrak->jenis_layanan_parent, $queryKontrak->jenis_layanan);
+            $isSewa = in_array($layanan, $this->global['arr_sewa']);
 
             if($queryKontrak && $queryKontrak->rincian_list_tld){
                 foreach($queryKontrak->rincian_list_tld as $key => $value){
@@ -116,7 +123,8 @@ class PelangganController extends Controller
                 'periodeNext' => $periodeNext,
                 'periode2Next' => $periode2Next,
                 'jenisLayanan' => $jenisLayanan,
-                'permohonan' => $permohonan
+                'permohonan' => $permohonan,
+                'isSewa' => $isSewa
             ];
 
 

@@ -74,11 +74,6 @@ class Permohonan_tld extends Model
         return encryptor($this->id_kontrak_tld);
     }
 
-    public function tld()
-    {
-        return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
-    }
-
     public function pengguna()
     {
         return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna');
