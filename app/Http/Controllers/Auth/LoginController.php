@@ -48,7 +48,7 @@ class LoginController extends Controller
         $validator = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
-            // 'g-recaptcha-response' => 'required|captcha',
+            'g-recaptcha-response' => 'required|captcha',
         ]);
 
         if($validator){
