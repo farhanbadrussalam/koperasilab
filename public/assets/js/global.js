@@ -1077,3 +1077,25 @@ function jenislayanan(parent, child){
     let text = (parent.name + ' ' + child.name).replace(/\s+/g, '');
     return text;
 }
+
+function findVariabelInCkeditor(content) {
+    // carikan yang mengandung {{}}
+    const regex = /\{\{.*?\}\}/g;
+    const matches = content.match(regex);
+    // pecahkan menjadi text nya aja tanpa {{}}
+    if(matches){
+        for (let i = 0; i < matches.length; i++) {
+            matches[i] = matches[i].replace(/\{\{|\}\}/g, '');
+        }
+    }
+    return matches;
+}
+
+function contenMetodePembayaran(content, variabels = []){
+    for (let i = 0; i < variabels.length; i++) {
+        for (let j = 0; j < variabels[i].length; j++) {
+            content = content.replace('{{'+variabels[i][j].key+'}}', variabels[i][j].value);
+        }
+    }
+    return content;
+}

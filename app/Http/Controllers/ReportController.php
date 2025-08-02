@@ -18,6 +18,7 @@ use App\Models\Master_tld;
 
 use PDF;
 use Auth;
+use Log;
 
 class ReportController extends Controller
 {
@@ -43,6 +44,10 @@ class ReportController extends Controller
             'permohonan.kontrak',
             'metode_pembayaran'
         )->where('id_keuangan', $idKeuangan)->first();
+
+        if($query->metode_pembayaran){
+            $query->metode_pembayaran->content = contenMetodePembayaran($query->metode_pembayaran->content, $query->variabel_jenis_pembayaran);
+        }
 
         $data['data'] = $query;
         $data['date'] = Carbon::now();

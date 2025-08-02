@@ -219,6 +219,10 @@ class PelangganController extends Controller
                        'metode_pembayaran'
                    )->where('id_keuangan', $idKeuangan)->first();
 
+        if($keuangan->metode_pembayaran){
+            $keuangan->metode_pembayaran->content = contenMetodePembayaran($keuangan->metode_pembayaran->content, $keuangan->variabel_jenis_pembayaran);
+        }
+
         $data['keuangan'] = $keuangan;
 
         return view('pages.permohonan.pembayaran.bayar', $data);

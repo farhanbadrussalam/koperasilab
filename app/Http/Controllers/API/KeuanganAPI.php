@@ -284,6 +284,7 @@ class KeuanganAPI extends Controller
             $textNote = $request->note ?? '';
             $plt = $request->has('plt') ? $request->plt : false;
             $metodePembayaran = $request->has('metodePembayaran') ? decryptor($request->metodePembayaran) : false;
+            $variabelPembayaran = $request->has('variabel_pembayaran') ? json_decode($request->variabel_pembayaran) : false;
 
             $result = array();
             $data = [];
@@ -296,6 +297,7 @@ class KeuanganAPI extends Controller
             $ttd_by && $data['ttd_by'] = $ttd_by;
             $plt && $data['plt'] = $plt;
             $metodePembayaran && $data['id_jenis_pembayaran'] = $metodePembayaran;
+            $variabelPembayaran && $data['variabel_jenis_pembayaran'] = $variabelPembayaran;
 
             $data['status'] = $status;
 
