@@ -120,7 +120,11 @@ function loadData(page = 1) {
                     activePeriode = periode;
                     break;
                 } else {
-                    lastPeriodeKontrak = (data.periode_count) == periode.periode;
+                    let jml_periode = data.periode_count;
+                    if(!tmpArrSewa.includes(JL)){
+                        jml_periode = jml_periode - 1;
+                    }
+                    lastPeriodeKontrak = (jml_periode) == periode.periode;
                 }
             }
 
@@ -480,10 +484,21 @@ function pengembalianTLD(data){
         if(tldSelesai) {
             htmlAction = htmlBtnTld;
         }
+
+        // set tanggal
+        let startDate = new Date(ambil.end_date);
+        // awal bulan setelah startDate
+        startDate.setMonth(startDate.getMonth() + 1);
+        startDate.setDate(1);
+
+        let endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + 3);
+        endDate.setDate(0);
+
         html = `
             <div class="border-top py-2 d-flex justify-content-between align-items-center">
                 <div class="px-2">
-                    <span class="fw-semibold fs-6">Pengembalian TLD</span>
+                    <span class="fw-semibold fs-6">Pengembalian TLD </span><small class="text-body-tertiary">(${dateFormat(startDate, 4)} - ${dateFormat(endDate, 4)})</small>
                     <div class="d-flex gap-3 flex-wrap">
                         <div>
                             <span class="fw-normal">• ${jumlah} TLD</span>

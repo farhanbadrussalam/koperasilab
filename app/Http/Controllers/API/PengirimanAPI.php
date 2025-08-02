@@ -36,6 +36,7 @@ class PengirimanAPI extends Controller
     public function __construct(){
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
+        $this->global = config('customvariabel');
         date_default_timezone_set('Asia/Jakarta');
     }
 
@@ -400,7 +401,14 @@ class PengirimanAPI extends Controller
                 }
                 // Mengganti status di master_tld menjadi 1 artinya tld sedang digunakan
                 if(!$query->detail[0]->periode) {
-                    Master_tld::whereIn('id_tld', $listTld)->update(['status' => 0, 'digunakan' => null]);
+                    $kontrak = Kontrak::where('id_kontrak', $query->id_kontrak)->with('jenis_layanan', 'jenis_layanan_parent')->first();
+                    $layanan = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
+                    $isSewa = in_array($layanan, $this->global['arr_sewa']);
+                    $params = array('status' => 0, 'digunakan' => null);
+                    if(!$isSewa){
+                        $params['kepemilikan'] = Auth::user()->perusahaan->id_perusahaan;
+                    }
+                    Master_tld::whereIn('id_tld', $listTld)->update($params);
                 }
             }
 
