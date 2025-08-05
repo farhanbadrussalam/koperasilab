@@ -235,9 +235,12 @@ $(function () {
                 formData.append('totalHarga', valtotalHarga);
                 formData.append('haveTld', haveTldChecked ? 1 : 0);
                 formData.append('is_zerocek', useZeroCek ? 1 : 0);
-                formData.append('periode', useZeroCek ? 0 : 1);
 
-                // typeLayanan == 'Evaluasi' ? formData.append('tldKontrol', JSON.stringify(arrKontrolTmp)) : false;
+                if(haveTldChecked && useZeroCek) {
+                    formData.append('periode', 1);
+                } else {
+                    formData.append('periode', useZeroCek ? 0 : 1);
+                }
 
                 spinner('show', obj.target);
                 ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
@@ -397,12 +400,12 @@ $(function () {
             haveTldChecked = true;
             useZeroCek = false;
             $('#useZeroCek').prop('checked', false);
-            $('#switch-zerocek').hide();
+            $('#switch-zerocek').show();
         } else {
             haveTldChecked = false;
             useZeroCek = true;
-            $('#useZeroCek').prop('checked', true);
-            $('#switch-zerocek').show();
+            $('#useZeroCek').prop('checked', false);
+            $('#switch-zerocek').hide();
         }
 
         loadPengguna();
@@ -439,8 +442,6 @@ function loadPengguna(){
     let params = {
         idPermohonan: idPermohonan
     }
-    // $('#pengguna-placeholder').show();
-    // $('#pengguna-list-container').hide();
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         if(result.meta.code == 200){
             let html = '';
@@ -768,24 +769,17 @@ function openForm(){
                         break;
                 }
                 let list = result.data;
-                if(JL == 'KontrakEvaluasi') {
-                    if($('#haveTld').is(':checked')) {
-                        haveTldChecked = true;
-                        useZeroCek = false;
-                        $('#useZeroCek').prop('checked', false);
-                        $('#switch-zerocek').hide();
-                    } else {
-                        haveTldChecked = false;
-                        useZeroCek = true;
-                        $('#useZeroCek').prop('checked', true);
-                        $('#switch-zerocek').show();
-                    }
-                    $('#form-switch').show();
-                } else {
+                if(tmpArrSewa.includes(JL)) {
                     $('#useZeroCek').prop('checked', true);
                     $('#haveTld').prop('checked', false);
                     useZeroCek = true;
                     haveTldChecked = false;
+                } else {
+                    useZeroCek = false;
+                    haveTldChecked = true;
+                    $('#useZeroCek').prop('checked', false);
+                    $('#switch-zerocek').show();
+                    $('#form-switch').show();
                 }
                 $('#form-inputan').addClass('d-block').removeClass('d-none');
 

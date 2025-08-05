@@ -130,7 +130,9 @@ function loadData(page = 1, status) {
                     periode: pengajuan.periode,
                     created_at: pengajuan.created_at,
                     kontrak: pengajuan.kontrak?.no_kontrak,
-                    id: pengajuan.permohonan_hash
+                    id: pengajuan.permohonan_hash,
+                    is_have_tld: pengajuan.is_have_tld,
+                    is_zerocek: pengajuan.is_zerocek
                 };
                 const btnAction = `
                     <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>

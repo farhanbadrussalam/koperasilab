@@ -72,7 +72,7 @@ function loadData(page = 1, menu) {
 
             // Data LHU
             let htmlLhu = '';
-            let htmlStatusLhu = statusFormat('penyelia', data.lhu.status);
+            let htmlStatusLhu = statusFormat('penyelia', data.lhu?.status);
             // let htmlStatusLhu = data.lhu ? statusFormat('penyelia', data.lhu.status) : '';
             if(aktifJobsLhu && data.lhu.status == 10) {
                 aktifJobsLhu.map(d => {
@@ -80,12 +80,20 @@ function loadData(page = 1, menu) {
                 });
             }
 
+            let htmlPeriode = false;
+            if(data.lhu) {
+                htmlPeriode = data.lhu?.periode == 0 ? "Zero cek" : `Periode ${data.lhu.periode}`;
+                if(data.lhu.periode == 1 && data.is_zerocek == 1 && data.is_have_tld == 1) {
+                    htmlPeriode += " + Zero cek";
+                }
+            }
+
             data.lhu ? htmlLhu = `
                 <div class="col-md-12 mt-2">
                     <div class="border-top py-2 d-flex justify-content-between align-items-center">
                         <div class="px-2">
                             <span class="fw-semibold fs-6">LHU</span>
-                            <small class="text-body-tertiary"> - ${data.lhu.periode == 0 ? "Zero cek" : `Periode ${data.lhu.periode}`}</small>
+                            <small class="text-body-tertiary"> - ${htmlPeriode}</small>
                             <small>${statusFormat('pengiriman', data.lhu.pengiriman?.status)}</small>
                         </div>
                         <div class="d-flex align-items-center gap-3 text-secondary">

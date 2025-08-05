@@ -1099,3 +1099,17 @@ function contenMetodePembayaran(content, variabels = []){
     }
     return content;
 }
+
+function getPeriodeAwal(data) {
+    let periodeAwal = [];
+    if(data.is_zerocek == 1) {
+        if(data.is_have_tld == 0){
+            periodeAwal = [0];
+        }
+    } else if(data.is_zerocek == 0) {
+        if(data.is_have_tld == 1){
+            periodeAwal = [1, 2];
+        }
+    }
+    return periodeAwal;
+}

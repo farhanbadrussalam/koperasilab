@@ -488,10 +488,12 @@ if (!function_exists('jenislayanan')) {
 if(!function_exists('contenMetodePembayaran')){
     function contenMetodePembayaran($content, $variabels = []){
         // Log::info($metodePembayaran);
-        foreach ($variabels as $key => $value) {
-            foreach ($value as $key2 => $value2) {
-                $content = html_entity_decode($content);
-                $content = str_replace('{{'.$key2.'}}', $value2, $content);
+        if(is_array($variabels)){
+            foreach ($variabels as $key => $value) {
+                foreach ($value as $key2 => $value2) {
+                    $content = html_entity_decode($content);
+                    $content = str_replace('{{'.$key2.'}}', $value2, $content);
+                }
             }
         }
         return $content;
