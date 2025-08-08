@@ -12,6 +12,7 @@ use App\Models\Master_tld;
 use DataTables;
 use DB;
 use Auth;
+use Log;
 
 class TldController extends Controller
 {
@@ -38,7 +39,12 @@ class TldController extends Controller
             ->orderBy('jenis', 'asc');
 
         // mengambil role
-        Auth::user()->hasRole('Pelanggan') ? $tld->where('kepemilikan', Auth::user()->id_perusahaan) : $tld->whereNull('kepemilikan');
+        if(Auth::user()->hasRole('Pelanggan')) {
+            $tld->whereNotNull('kepemilikan');
+            $tld->where('kepemilikan', Auth::user()->id_perusahaan);
+        } else {
+            $tld->whereNull('kepemilikan');
+        }
 
         if(request()->has('status') && request()->status != null){
             $tld->where('status', request()->status);

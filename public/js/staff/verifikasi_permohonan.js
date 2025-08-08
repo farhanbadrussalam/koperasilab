@@ -36,9 +36,26 @@ $(function () {
     if(!dataPermohonan.periode_pemakaian){
         txtPeriode = 'Periode ' + dataPermohonan.periode;
     } else {
-        txtPeriode = arrPeriode.length + ' Periode';
+        if(arrPeriode.length == 1) {
+            txtPeriode = `${dateFormat(arrPeriode[0].start_date, 4)} - ${dateFormat(arrPeriode[0].end_date, 4)}`;
+        } else {
+            txtPeriode = arrPeriode.length + ' Periode';
+        }
     }
     $('#periode-pemakaian').val(txtPeriode);
+
+    // periode pemakaian selanjutnya
+    let txtPeriodeNext = '';
+    if(dataPermohonan.periode_next){
+        let arrPeriodeNext = dataPermohonan.periode_next;
+        if(arrPeriodeNext.length == 1) {
+            txtPeriodeNext = `${dateFormat(arrPeriodeNext[0].start_date, 4)} - ${dateFormat(arrPeriodeNext[0].end_date, 4)}`;
+        } else {
+            txtPeriodeNext = arrPeriodeNext.length + ' Periode';
+        }
+    }
+
+    $('#periode-pemakaian-next').val(txtPeriodeNext);
 
     const conten_2 = document.getElementById("content-ttd-2");
     signaturePad = signature(conten_2, {

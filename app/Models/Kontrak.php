@@ -20,6 +20,7 @@ class Kontrak extends Model
         'tipe_kontrak',
         'no_kontrak',
         'jenis_tld',
+        'periode_next',
         'jumlah_pengguna',
         'jumlah_kontrol',
         'total_harga',
@@ -46,6 +47,7 @@ class Kontrak extends Model
 
     protected $casts = [
         'list_tld' => 'array',
+        'periode_next' => 'array',
         'jumlah_pengguna' => 'integer',
         'jumlah_kontrol' => 'integer',
         'total_harga' => 'integer',

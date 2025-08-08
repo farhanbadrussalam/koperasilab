@@ -49,6 +49,14 @@
                                             @endif
                                         </div>
                                     </div>
+                                    @if($permohonan->periode_next)
+                                    <div class="col-12">
+                                        <label class="col-form-label" for="periode-pemakaian">Periode pemakaian selanjutnya</label>
+                                        <div class="input-group mb-3">
+                                            <input type="text" class="form-control bg-secondary-subtle" id="periode-pemakaian-next" aria-label="Periode pemakaian selanjutnya" value="" readonly>
+                                        </div>
+                                    </div>
+                                    @endif
                                     <div class="col-md-6">
                                         <label for="jum-pengguna" class="col-form-label">Jumlah Pengguna</label>
                                         <input type="text" name="jum-pengguna" id="jum-pengguna" class="form-control bg-secondary-subtle" value="{{ $permohonan->jumlah_pengguna }}" readonly>

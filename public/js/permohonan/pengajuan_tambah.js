@@ -175,6 +175,7 @@ $(function () {
     $('#simpanPengajuan').on('click', obj => {
         let valjenisTld = $('#jenis_tld').val();
         let valperiodePemakaian = $('#periode-pemakaian').attr('data-periode');
+        let valPeriodeNext = $('#periode_next').attr('data-periode');
         let valjumPengguna = $('#jum_pengguna').val();
         let valjumKontrol = $('#jum_kontrol').val();
         let valpic = $('#pic').val();
@@ -188,6 +189,7 @@ $(function () {
         const sanityCek = [];
         if (!valjenisTld) sanityCek.push('Jenis TLD');
         if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
+        if (!valPeriodeNext) sanityCek.push('Periode Next');
         if (valjumPengguna == 0) sanityCek.push('Jumlah Pengguna');
         if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
 
@@ -229,6 +231,7 @@ $(function () {
                 formData.append('tipeKontrak', 'kontrak baru');
                 formData.append('jenisTld', valjenisTld);
                 formData.append('periodePemakaian', valperiodePemakaian);
+                formData.append('periodeNext', valPeriodeNext);
                 formData.append('jumlahPengguna', valjumPengguna);
                 formData.append('jumlahKontrol', valjumKontrol);
                 formData.append('hargaLayanan', valHargaLayanan);
@@ -454,7 +457,6 @@ $('#btn-periode-next').on('click', obj => {
 periodeNextJs.on('periode.simpan.2', simpanPeriodeNext);
 
 function simpanPeriodeNext() {
-    console.log("simpan periode next");
     const dataPeriode = periodeNextJs.getData();
     $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
     if(dataPeriode.length == 1) {
@@ -466,7 +468,6 @@ function simpanPeriodeNext() {
     $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
 }
 function simpanPeriode() {
-    console.log("simpan periode");
     const dataPeriode = periodeJs.getData();
     $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
     if(dataPeriode.length == 1) {

@@ -23,6 +23,7 @@ class Permohonan extends Model
         'no_kontrak',
         'jenis_tld',
         'periode_pemakaian',
+        'periode_next',
         'periode',
         'jumlah_pengguna',
         'jumlah_kontrol',
@@ -59,6 +60,7 @@ class Permohonan extends Model
 
     protected $casts = [
         'periode_pemakaian' => 'array',
+        'periode_next' => 'array',
         'list_tld' => 'array',
         'tld_kontrol' => 'array',
         'periode' => 'integer',
