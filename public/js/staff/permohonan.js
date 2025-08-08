@@ -69,6 +69,13 @@ function loadData(page = 1) {
             if(pengajuan.status == 1){
                 htmlAction = `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/staff/permohonan/verifikasi/${pengajuan.permohonan_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`;
             }
+
+            // periode
+            let htmlPeriode = !pengajuan.periode ? 'Zero cek' : `Periode ${pengajuan.periode}`;
+
+            if(pengajuan.periode && pengajuan.is_have_tld && pengajuan.is_zerocek) {
+                htmlPeriode += ' + Zero cek';
+            }
             html += `
                 <div class="card mb-2 smooth-height">
                     <div class="card-body row align-items-center py-2">
@@ -85,7 +92,7 @@ function loadData(page = 1) {
                             </div>
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
                                 <div><i class="bi bi-person-check-fill"></i> ${pengajuan.pelanggan.name}</div>
-                                <span><i class="bi bi-calendar-range"></i> ${!pengajuan.periode ? 'Zero cek' : `Periode ${pengajuan.periode}`}</span>
+                                <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(pengajuan.created_at, 4)}</div>
                                 ${pengajuan.kontrak ? `<div><i class="bi bi-file-text"></i> ${pengajuan.kontrak.no_kontrak}</div>` : ''}
                             </div>

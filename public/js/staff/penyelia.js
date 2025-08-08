@@ -102,6 +102,7 @@ function loadData(page = 1, menu) {
             let divInfoTugas = '';
             let htmlStatus = '';
             let aktifJobs = '';
+            let htmlPeriode = '';
             switch (menu) {
                 case 'surattugas':
                     btnAction += '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
@@ -146,6 +147,11 @@ function loadData(page = 1, menu) {
                         htmlStatus += statusFormat('penyelia', d.jobs.status);
                     });
 
+                    htmlPeriode = !permohonan.periode ? 'Zero cek' : 'Periode '+permohonan.periode;
+                    if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
+                        htmlPeriode += ' + Zero cek';
+                    }
+
                     html += `
                         <div class="card mb-2">
                             <div class="card-body row align-items-center py-2 position-relative">
@@ -164,7 +170,7 @@ function loadData(page = 1, menu) {
                                     </div>
                                     <div class="d-flex gap-3 text-body-tertiary fs-7">
                                         <div><i class="bi bi-person-check-fill"></i> ${permohonan.pelanggan.name}</div>
-                                        <span><i class="bi bi-calendar-range"></i> ${!permohonan.periode ? 'Zero cek' : 'Periode '+permohonan.periode}</span>
+                                        <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
                                         <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                         ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                                     </div>
@@ -199,25 +205,10 @@ function loadData(page = 1, menu) {
 
                     divTimelineTugas.push(timeline);
 
-                    let htmlPeriode = `
-                        <div>${arrPeriode?.length ?? '0'} Periode</div>
-                    `;
-                    if(permohonan.periode){
-                        htmlPeriode = `<div>Periode ${permohonan.periode}</div>`;
+                    htmlPeriode = permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`;
+                    if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
+                        htmlPeriode += ' + Zero cek';
                     }
-
-                    // status jobs yang aktif
-                    // let isPelabelan = false;
-                    // htmlStatus = statusFormat('penyelia', penyelia.status);
-                    // aktifJobs = penyelia.penyelia_map.filter(d => [4].includes(d.jobs_hash) && d.status == 1);
-                    // aktifJobs.map(d => {
-                    //     let petugasInJobs = penyelia.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
-                    //     if(petugasInJobs){
-                    //         d.jobs.status == 20 ? isPelabelan = true : false;
-                    //         htmlStatus += statusFormat('penyelia', d.jobs.status);
-                    //     }
-                    // })
-
                     btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
 
                     html += `
@@ -236,7 +227,7 @@ function loadData(page = 1, menu) {
                                         </div>
                                     </div>
                                     <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                        <span><i class="bi bi-calendar-range"></i> ${permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`}</span>
+                                        <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
                                         <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                         ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                                     </div>

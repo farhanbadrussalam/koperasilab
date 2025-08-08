@@ -68,7 +68,7 @@ function load_form() {
         tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
         kontrakPeriode = informasi.kontrak.periode;
         JL = jenislayanan(informasi.kontrak.jenis_layanan_parent, informasi.kontrak.jenis_layanan);
-        periodeAwal = informasi.kontrak.is_zerocek == 1 ? [0] : (informasi.kontrak.is_have_tld == 1 ? [1, 2] : []);
+        periodeAwal = getPeriodeAwal(informasi.kontrak);
         periodeNow = informasi.periode;
     }else{ // jika tidak ada permohonannya
         if(informasi.tld_aktif) {
@@ -79,7 +79,7 @@ function load_form() {
             tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
         }
         kontrakPeriode = informasi.periode;
-        periodeAwal = informasi.is_zerocek == 1 ? [0] : (informasi.is_have_tld == 1 ? [1, 2] : []);
+        periodeAwal = getPeriodeAwal(informasi);
         JL = jenislayanan(informasi.jenis_layanan_parent, informasi.jenis_layanan);
     }
 
@@ -252,6 +252,13 @@ function load_form() {
 
     let htmlRangeDate = `(${informasi.kontrak_periode?.start_date ? dateFormat(informasi.kontrak_periode.start_date, 4) : '-'} - ${informasi.kontrak_periode?.end_date ? dateFormat(informasi.kontrak_periode.end_date, 4) : '-'})`;
 
+    let htmlPeriode = "";
+    if(informasi.lhu){
+        if(informasi.lhu.periode == 1 && informasi.is_zerocek == 1 && informasi.is_have_tld == 1) {
+            htmlPeriode += ' + Zero Cek';
+        }
+    }
+
     informasi.lhu ? htmlLhu = `
         <div class="border shadow-sm py-2 rounded mb-2">
             <div class="d-flex justify-content-between align-items-center px-2">
@@ -259,7 +266,7 @@ function load_form() {
                     <input class="form-check-input me-2" type="checkbox"
                         data-jenis="lhu" data-id="${informasi.lhu.penyelia_hash}"
                         id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
-                    <span class="fw-semibold fs-6">LHU</span>
+                    <span class="fw-semibold fs-6">LHU ${htmlPeriode}</span>
                     <small class="text-body-tertiary"> - ${!informasi.lhu.periode ? 'Zero Cek' : `Periode ${informasi.lhu.periode} ${htmlRangeDate}`} </small>
                     <small>${statusFormat('pengiriman', informasi.lhu.pengiriman?.status)}</small>
                 </div>

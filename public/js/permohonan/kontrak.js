@@ -122,13 +122,15 @@ function loadData(page = 1) {
                 } else {
                     let jml_periode = data.periode_count;
                     if(!tmpArrSewa.includes(JL)){
-                        jml_periode = jml_periode - 1;
+                        if(data.is_zerocek && !data.is_have_tld){
+                            jml_periode = jml_periode - 1;
+                        }
                     }
                     lastPeriodeKontrak = (jml_periode) == periode.periode;
                 }
             }
 
-            if(lastPeriodeKontrak){
+            if(lastPeriodeKontrak && role.includes('Staff Pengiriman')){
                 htmlPengembalian = pengembalianTLD(data);
             }
 
@@ -219,15 +221,8 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     const isPelanggan = role.includes('Pelanggan');
     let htmlAction = ``;
     let htmlDoc = ``;
-    let periodeAwal = [];
+    let periodeAwal = getPeriodeAwal(dataKontrak[index]);
 
-    if(dataKontrak[index].is_zerocek == 1) {
-        periodeAwal = [0];
-    } else if(dataKontrak[index].is_zerocek == 0) {
-        if(dataKontrak[index].is_have_tld == 1) {
-            periodeAwal = [1, 2];
-        }
-    }
     // cek apakah sudah bayar atau belum
     let lastPeriode = (dataKontrak[index].periode_count) == data.periode;
     let statusKirimTld = false;
@@ -291,6 +286,8 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
             }else {
                 if(dataKontrak[index].is_zerocek == 0 && dataKontrak[index].is_have_tld == 0) {
                     tldSelesai = true;
+                } else if(dataKontrak[index].is_zerocek == 1 && dataKontrak[index].is_have_tld == 1) {
+                    tldSelesai = true;
                 }
             }
 
@@ -304,10 +301,16 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         }
     }
 
+    let textPeriode = !data.periode ? 'Zero cek' : 'Periode ' + data.periode;
+
+    if(dataKontrak[index].is_have_tld && dataKontrak[index].is_zerocek && data.periode == 1) {
+        textPeriode += ' + Zero cek';
+    }
+
     return `
         <div class="border-top py-2 d-flex justify-content-between align-items-center">
             <div class="px-2">
-                <span class="fw-semibold fs-6">${!data.periode ? 'Zero cek' : 'Periode ' + data.periode}</span>
+                <span class="fw-semibold fs-6">${textPeriode}</span>
                 ${data.periode == 0 ? '' : `<small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>`}
                 <div class="d-flex gap-3 flex-wrap">
                     ${htmlDoc}
@@ -320,58 +323,8 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     `;
 }
 
-function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen){
-    const periodeAwal = data_kontrak.is_zerocek ? [0] : (data_kontrak.is_have_tld == 1 ? [1, 2] : []);
-    // Pengecekan Invoice apakah sudah di bayar atau belum
-    if (data_kontrak.invoice.status != 5) return false;
-
-    // pengecekan jenis layanan
-    for (const doc of arrFindDokumen) {
-        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
-
-        if(role.includes('Staff Pengiriman') && data_periode.periode != periodeAwal[0]) {
-            if(periodeAwal.includes(data_periode.periode)) {
-                return true;
-            }
-            // cek tld sudah di kirim atau belum
-            if(doc === 'tld'){
-                if(!findPeriode) {
-                    return false;
-                } else if (findPeriode?.status != 2) {
-                    return false;
-                }
-            }
-        } else{
-            if (!findPeriode || findPeriode.status != 2) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
 function cekTldComplete(){
 
-}
-
-function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
-    const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
-    const periodeAwal = kontrak.is_zerocek ? [0] : (kontrak.is_have_tld == 1 ? [1, 2] : []);
-    let lastPeriode = (kontrak.periode_count) == data_periode.periode;
-
-    let aktifDokumenKirim = [];
-    for (const doc of arrFindDokumen) {
-        if (doc === 'invoice' && data_periode.permohonan_hash !== kontrak.invoice?.permohonan_hash) continue;
-        if (doc === 'tld') {
-            if (lastPeriode && tmpArrSewa.includes(JL)) continue;
-            if (periodeAwal.includes(data_periode.periode)) continue;
-        }
-
-        aktifDokumenKirim.push(doc);
-    }
-
-    return aktifDokumenKirim;
 }
 
 function cekPenyelia(penyelia, jobs_point) {
@@ -411,14 +364,8 @@ function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
     const JL = jenislayanan(dataKontrak[index].jenis_layanan_parent, dataKontrak[index].jenis_layanan);
 
     // Cek apakah semua dokumen dalam arrFind sudah selesai
-    let periodeAwal = [];
-    if(dataKontrak[index].is_zerocek == 1) {
-        periodeAwal = [0];
-    } else if(dataKontrak[index].is_zerocek == 0) {
-        if(dataKontrak[index].is_have_tld == 1){
-            periodeAwal = [1, 2];
-        }
-    }
+    let periodeAwal = getPeriodeAwal(dataKontrak[index]);
+
     for (const doc of arrFind) {
         let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
         let lastPeriode = dataKontrak[index].periode[dataKontrak[index].periode.length - 1].periode == data.periode;
@@ -488,7 +435,7 @@ function pengembalianTLD(data){
         // set tanggal
         let startDate = new Date(ambil.end_date);
         // awal bulan setelah startDate
-        startDate.setMonth(startDate.getMonth() + 1);
+        startDate.setMonth(startDate.getMonth() + 4);
         startDate.setDate(1);
 
         let endDate = new Date(startDate);

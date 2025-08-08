@@ -1099,3 +1099,68 @@ function contenMetodePembayaran(content, variabels = []){
     }
     return content;
 }
+
+function getPeriodeAwal(data) {
+    let periodeAwal = [];
+    if(data.is_zerocek == 1) {
+        if(data.is_have_tld == 0){
+            periodeAwal = [0];
+        } else if(data.is_have_tld == 1){
+            periodeAwal = [1, 2];
+        }
+    } else if(data.is_zerocek == 0) {
+        if(data.is_have_tld == 1){
+            periodeAwal = [1, 2];
+        }
+    }
+    return periodeAwal;
+}
+
+function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen){
+    const periodeAwal = getPeriodeAwal(data_kontrak);
+    // Pengecekan Invoice apakah sudah di bayar atau belum
+    if (data_kontrak.invoice?.status != 5) return false;
+
+    // pengecekan jenis layanan
+    for (const doc of arrFindDokumen) {
+        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
+
+        if(role.includes('Staff Pengiriman') && data_periode.periode != periodeAwal[0]) {
+            if(periodeAwal.includes(data_periode.periode)) {
+                return true;
+            }
+            // cek tld sudah di kirim atau belum
+            if(doc === 'tld'){
+                if(!findPeriode) {
+                    return false;
+                } else if (findPeriode?.status != 2) {
+                    return false;
+                }
+            }
+        } else{
+            if (!findPeriode || findPeriode.status != 2) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
+    const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
+    const periodeAwal = getPeriodeAwal(kontrak);
+    let lastPeriode = (kontrak.periode_count) == data_periode.periode;
+
+    let aktifDokumenKirim = [];
+    for (const doc of arrFindDokumen) {
+        if (doc === 'invoice' && data_periode.permohonan_hash !== kontrak.invoice?.permohonan_hash) continue;
+        if (doc === 'tld') {
+            if (lastPeriode && tmpArrSewa.includes(JL)) continue;
+            if (periodeAwal.includes(data_periode.periode)) continue;
+        }
+
+        aktifDokumenKirim.push(doc);
+    }
+
+    return aktifDokumenKirim;
+}

@@ -1,6 +1,22 @@
 @extends('layouts.main')
 
 @section('content')
+@php
+    $pengembalianStart = '';
+    $pengembalianEnd = '';
+    if(!$periode2Next || !$isSewa){
+        $startDate = new DateTime($periodeNow->end_date);
+        $startDate->modify('+4 months');
+        $startDate->modify('first day of this month');
+
+        $endDate = clone $startDate;
+        $endDate->modify('+2 months');
+        $endDate->modify('last day of this month');
+
+        $pengembalianStart = $startDate->format('Y-m-d');
+        $pengembalianEnd = $endDate->format('Y-m-d');
+    }
+@endphp
 <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item px-3">
         <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
@@ -40,6 +56,7 @@
                         </div>
                         <div class="border border-primary rounded p-2 bg-primary-subtle shadow-sm align-content-center {{ $periode2Next || $isSewa ? 'd-none' : '' }}">
                             <div for="">Pengembalian ke {{ $periodeNow->periode % 2 == 0 ? '1' : '2' }}</div>
+                            <small>{{ convert_date($pengembalianStart, 2) }} - {{ convert_date($pengembalianEnd, 2) }}</small>
                         </div>
                     </div>
                 </div>

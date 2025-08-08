@@ -9,6 +9,10 @@
  */
 function cardComponent(data, options = {}) {
     const badgeClass = data.tipeKontrak == 'kontrak lama' ? 'bg-success-subtle' : 'bg-primary-subtle';
+    let htmlPeriode = !data.periode ? `Zero cek` : 'Periode ' + data.periode;
+    if(data.periode && data.is_have_tld && data.is_zerocek) {
+        htmlPeriode += ' + Zero cek';
+    }
     const elementList = `
         <div class="card mb-2">
             <div class="card-body row align-items-center py-2 position-relative">
@@ -27,7 +31,7 @@ function cardComponent(data, options = {}) {
                     </div>
                     <div class="d-flex gap-3 text-body-tertiary fs-7">
                         ${data.pelanggan ? `<div><i class="bi bi-person-fill"></i> ${data.pelanggan}</div>` : ''}
-                        <span><i class="bi bi-calendar-range"></i> ${!data.periode ? `Zero cek` : 'Periode ' + data.periode}</span>
+                        <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
                         ${data.created_at ? `<span><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</span>` : ''}
                         ${data.kontrak ? `<div><i class="bi bi-file-text"></i> ${data.kontrak}</div>` : ''}
                     </div>

@@ -61,6 +61,7 @@ class PengirimanAPI extends Controller
                         'kontrak.pengiriman.detail',
                         'kontrak.jenis_layanan',
                         'kontrak.jenis_layanan_parent',
+                        'kontrak.invoice',
                         'pengiriman',
                         'invoice',
                         'invoice.pengiriman',

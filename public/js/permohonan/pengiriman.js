@@ -216,11 +216,16 @@ function showModalDiterima(obj){
                     break;
                 case 'lhu':
                     $('#isLhuSend').val(true);
+                    let htmlPeriode = !detail.periode ? 'Zero cek' : `Periode ${detail.periode}`;
+                    if(detail.periode == 1 && data.kontrak.is_zerocek == 1 && data.kontrak.is_have_tld == 1) {
+                        htmlPeriode += ` + Zero Cek`;
+                    }
+
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
                                 <div class="fw-bold">LHU</div>
-                                <div>${!detail.periode ? 'Zero cek' : `Periode ${detail.periode}`}</div>
+                                <div>${htmlPeriode}</div>
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentLhu"
                                 data-jenis="${detail.jenis}" data-id="${data.permohonan.lhu.lhu_hash}"
