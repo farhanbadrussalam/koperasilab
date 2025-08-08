@@ -68,7 +68,7 @@ function load_form() {
         tldKontrol = informasi.kontrak.rincian_list_tld.filter(tld => !tld.pengguna);
         kontrakPeriode = informasi.kontrak.periode;
         JL = jenislayanan(informasi.kontrak.jenis_layanan_parent, informasi.kontrak.jenis_layanan);
-        periodeAwal = informasi.kontrak.is_zerocek == 1 ? [0] : (informasi.kontrak.is_have_tld == 1 ? [1, 2] : []);
+        periodeAwal = getPeriodeAwal(informasi.kontrak);
         periodeNow = informasi.periode;
     }else{ // jika tidak ada permohonannya
         if(informasi.tld_aktif) {
@@ -79,7 +79,7 @@ function load_form() {
             tldKontrol = informasi.rincian_list_tld.filter(tld => !tld.pengguna);
         }
         kontrakPeriode = informasi.periode;
-        periodeAwal = informasi.is_zerocek == 1 ? [0] : (informasi.is_have_tld == 1 ? [1, 2] : []);
+        periodeAwal = getPeriodeAwal(informasi);
         JL = jenislayanan(informasi.jenis_layanan_parent, informasi.jenis_layanan);
     }
 

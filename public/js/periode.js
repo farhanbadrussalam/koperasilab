@@ -5,33 +5,41 @@ class Periode {
         this.canShow = options.preview || false;
         this.maxPeriode = options.max || false;
         this.dataonly = options.dataonly || false;
-        this.eventSimpan = new CustomEvent("periode.simpan", {});
+        this.textPeriode = options.textPeriode || false;
+        this.id_element = options.id_element || 1;
+        this.eventSimpan = new CustomEvent(`periode.simpan.${this.id_element}`, {});
         this.eventHide = new CustomEvent("periode.hide.modal", {});
 
         // add element modal to body
         if (this.canShow) {
-            $("body").append(this.modalShow);
+            $("body").append(this.modalShow(this));
         } else if (this.dataonly) {
         } else {
-            $("body").append(this.modalCreate);
+            // $("body").append(this.modalCreate);
         }
 
-        $("#modal-pilih-periode").on("hide.bs.modal", () => {
+    }
+
+    _initializeProperties() {
+
+        $("#modal-pilih-periode-"+this.id_element).on("hide.bs.modal", () => {
+            this.destroy();
             this.listPeriode = Array.from(this.masterData);
         });
 
-        $("#modal-show-periode").on("hide.bs.modal", () => {
+        $("#modal-show-periode-" + this.id_element).on("hide.bs.modal", () => {
             document.dispatchEvent(this.eventHide);
         });
 
-        $("#btn-simpan-periode").on("click", () => {
+        $("#btn-simpan-periode-" + this.id_element).on("click", () => {
+            // console.log("simpan periode");
             this.simpanPeriode();
         });
     }
 
-    modalCreate() {
+    modalCreate(self) {
         return `
-            <div class="modal fade" id="modal-pilih-periode" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="pilih_periode" aria-hidden="false">
+            <div class="modal fade" id="modal-pilih-periode-${self.id_element}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="pilih_periode" aria-hidden="false">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -47,7 +55,7 @@ class Periode {
                             </div>
                         </div>
                         <div class="modal-footer" id="btn-action">
-                            <button type="button" class="btn btn-primary" id="btn-simpan-periode">Simpan</button>
+                            <button type="button" class="btn btn-primary" id="btn-simpan-periode-${self.id_element}">Simpan</button>
                         </div>
                     </div>
                 </div>
@@ -55,9 +63,9 @@ class Periode {
         `;
     }
 
-    modalShow() {
+    modalShow(self) {
         return `
-            <div class="modal fade" id="modal-show-periode" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal fade" id="modal-show-periode-${self.id_element}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -65,7 +73,7 @@ class Periode {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body row justify-content-center">
-                            <div class="" id="list-modal-periode">
+                            <div class="" id="list-modal-periode-${self.id_element}">
 
                             </div>
                         </div>
@@ -103,13 +111,15 @@ class Periode {
         this.listPeriode = Array.from(this.masterData);
         if (this.canShow) {
             this.previewPeriode();
-            $("#modal-show-periode").modal("show");
+            $("#modal-show-periode-" + this.id_element).modal("show");
         } else if (this.dataonly) {
         } else {
+            $("body").append(this.modalCreate(this));
+            this._initializeProperties();
             this.listPeriode.length == 0
                 ? this.addPeriode()
                 : this.loadPeriode();
-            $("#modal-pilih-periode").modal("show");
+            $("#modal-pilih-periode-" + this.id_element).modal("show");
         }
     }
 
@@ -118,9 +128,10 @@ class Periode {
         // menghapus this.listPeriode yang periode == 0
         this.listPeriode = this.listPeriode.filter((item) => item.periode != 0);
         for (const [index, data] of this.listPeriode.entries()) {
+            let txtPeriode = this.textPeriode ? this.textPeriode : "Periode " + data.periode;
             html += `
                 <div>
-                    <label class="col-form-label">Periode ${index + 1}</label>
+                    <label class="col-form-label">${txtPeriode}</label>
                     <div class="input-group">
                         <input type="text" aria-label="Date Start" class="form-control bg-secondary-subtle" name="date_start[]" id="periode_start_${index}" value="${dateFormat(
                 data.start_date,
@@ -135,7 +146,7 @@ class Periode {
             `;
         }
 
-        $("#list-modal-periode").html(html);
+        $("#list-modal-periode-"+this.id_element).html(html);
     }
 
     addPeriode() {
@@ -166,7 +177,7 @@ class Periode {
 
             const label1 = document.createElement("label");
             label1.className = "col-form-label";
-            label1.textContent = `Periode ${index + 1}`;
+            label1.textContent = this.textPeriode ? this.textPeriode : `Periode ${index + 1}`;
 
             const btnRemove = document.createElement("button");
             btnRemove.className = "btn btn-outline-danger";
@@ -347,7 +358,7 @@ class Periode {
                     this.masterData = Array.from(this.listPeriode);
                     this.listPeriode = [];
                     document.dispatchEvent(this.eventSimpan);
-                    $("#modal-pilih-periode").modal("hide");
+                    $("#modal-pilih-periode-"+this.id_element).modal("hide");
                 }
             });
         } else {
@@ -368,12 +379,16 @@ class Periode {
         return document.addEventListener(eventName, callback);
     }
 
+    off(eventName, callback = () => {}) {
+        return document.removeEventListener(eventName, callback);
+    }
+
     destroy() {
         if (this.canShow) {
-            $("#modal-show-periode").remove();
+            $("#modal-show-periode-" + this.id_element).remove();
         } else if (this.dataonly) {
         } else {
-            $("#modal-pilih-periode").remove();
+            $("#modal-pilih-periode-" + this.id_element).remove();
         }
     }
 }

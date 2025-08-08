@@ -122,7 +122,7 @@ function loadData(page = 1) {
                 } else {
                     let jml_periode = data.periode_count;
                     if(!tmpArrSewa.includes(JL)){
-                        if(data.is_zerocek){
+                        if(data.is_zerocek && !data.is_have_tld){
                             jml_periode = jml_periode - 1;
                         }
                     }
@@ -130,7 +130,7 @@ function loadData(page = 1) {
                 }
             }
 
-            if(lastPeriodeKontrak){
+            if(lastPeriodeKontrak && role.includes('Staff Pengiriman')){
                 htmlPengembalian = pengembalianTLD(data);
             }
 
@@ -301,16 +301,16 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         }
     }
 
-    let htmlPeriode = !data.periode ? 'Zero cek' : 'Periode ' + data.periode;
+    let textPeriode = !data.periode ? 'Zero cek' : 'Periode ' + data.periode;
 
     if(dataKontrak[index].is_have_tld && dataKontrak[index].is_zerocek && data.periode == 1) {
-        htmlPeriode += ' + Zero cek';
+        textPeriode += ' + Zero cek';
     }
 
     return `
         <div class="border-top py-2 d-flex justify-content-between align-items-center">
             <div class="px-2">
-                <span class="fw-semibold fs-6">${htmlPeriode}</span>
+                <span class="fw-semibold fs-6">${textPeriode}</span>
                 ${data.periode == 0 ? '' : `<small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>`}
                 <div class="d-flex gap-3 flex-wrap">
                     ${htmlDoc}
@@ -323,58 +323,8 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     `;
 }
 
-function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen){
-    const periodeAwal = getPeriodeAwal(data_kontrak);
-    // Pengecekan Invoice apakah sudah di bayar atau belum
-    if (data_kontrak.invoice.status != 5) return false;
-
-    // pengecekan jenis layanan
-    for (const doc of arrFindDokumen) {
-        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
-
-        if(role.includes('Staff Pengiriman') && data_periode.periode != periodeAwal[0]) {
-            if(periodeAwal.includes(data_periode.periode)) {
-                return true;
-            }
-            // cek tld sudah di kirim atau belum
-            if(doc === 'tld'){
-                if(!findPeriode) {
-                    return false;
-                } else if (findPeriode?.status != 2) {
-                    return false;
-                }
-            }
-        } else{
-            if (!findPeriode || findPeriode.status != 2) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
 function cekTldComplete(){
 
-}
-
-function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
-    const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
-    const periodeAwal = getPeriodeAwal(kontrak);
-    let lastPeriode = (kontrak.periode_count) == data_periode.periode;
-
-    let aktifDokumenKirim = [];
-    for (const doc of arrFindDokumen) {
-        if (doc === 'invoice' && data_periode.permohonan_hash !== kontrak.invoice?.permohonan_hash) continue;
-        if (doc === 'tld') {
-            if (lastPeriode && tmpArrSewa.includes(JL)) continue;
-            if (periodeAwal.includes(data_periode.periode)) continue;
-        }
-
-        aktifDokumenKirim.push(doc);
-    }
-
-    return aktifDokumenKirim;
 }
 
 function cekPenyelia(penyelia, jobs_point) {

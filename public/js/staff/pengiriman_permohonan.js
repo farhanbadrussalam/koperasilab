@@ -51,9 +51,9 @@ function loadData(page = 1, menu) {
             let htmlStatus = '';
             let isEvaluasiNonZero = tmpArrEvaluasi.includes(JL) && data.is_zerocek == 0;
             let periodeTld = data.periode === 0 ? 1 : data.periode;
-            const periodeAwal = data.kontrak.is_zerocek ? [0] : (data.kontrak.is_have_tld == 1 ? [1, 2] : []);
+            const periodeAwal = getPeriodeAwal(data.kontrak);
 
-            if( periodeTld !== null && (data.kontrak.is_zerocek || !periodeAwal.includes(data.periode))) {
+            if( periodeTld !== null && (!periodeAwal.includes(data.periode))) {
                 htmlTld = `
                     <div class="col-md-12 mt-2">
                         <div class="border-top py-2 d-flex justify-content-between align-items-center">
@@ -129,29 +129,25 @@ function loadData(page = 1, menu) {
             }
 
             let htmlBtn = '';
-            let cekHtmlBtn = false;
-            switch (data.jenis_layanan_parent.id_jenisLayanan) {
-                case 4:
-                    cekHtmlBtn = !data.lhu?.pengiriman || (!data.pengiriman && !isEvaluasiNonZero);
-                    break;
-
-                default:
-                    if(data.jenis_layanan.id_jenisLayanan == 2){
-                        if(htmlInvoice){
-                            cekHtmlBtn = !data.invoice?.pengiriman || (!data.pengiriman && !isEvaluasiNonZero);
-                        }else{
-                            cekHtmlBtn = (!data.pengiriman && !isEvaluasiNonZero);
-                        }
-                    }else{
-                        if(htmlInvoice){
-                            cekHtmlBtn = !data.invoice?.pengiriman || !data.lhu?.pengiriman || (!data.pengiriman && !isEvaluasiNonZero);
-                        }else{
-                            cekHtmlBtn = !data.lhu?.pengiriman || (!data.pengiriman && !isEvaluasiNonZero);
-                        }
+            let arrFind = ['invoice','tld', 'lhu'];
+            let detailPengiriman = [];
+            if(data.kontrak.pengiriman){
+                for (const pengiriman of data.kontrak.pengiriman) {
+                    let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
+                    if(detail.length > 0){
+                        detail.map(d => detailPengiriman.push({
+                            jenis: d.jenis,
+                            periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
+                            status: pengiriman.status,
+                            no_resi: pengiriman.no_resi ?? false
+                        }));
                     }
-                    break;
+                }
             }
-            if(cekHtmlBtn){
+            const dokumenAktif = periodeMapDocument(data, data.kontrak, arrFind);
+            const isComplete = cekComplete(data, detailPengiriman, dokumenAktif);
+
+            if(!isComplete){
                 htmlBtn += `<a class="btn btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan_hash}"><i class="bi bi-send-fill"></i> Kirim document</a>`;
             }
             html += `
@@ -229,3 +225,17 @@ function cekLastPeriode(periode_kontrak, periode_now){
 function reload(){
     loadData();
 }
+
+function cekComplete(data_periode, detail_pengiriman, arrFindDokumen) {
+    return arrFindDokumen.every(doc => detail_pengiriman.some(cek => cek.periode === data_periode.periode && cek.jenis === doc));
+    for (const doc of arrFindDokumen) {
+        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
+
+        if(!findPeriode) {
+            return false;
+        }
+    }
+
+    return true;
+}
+

@@ -269,6 +269,14 @@ $(function () {
         calcPrice();
     });
 
+    $('#btn-clear-periode-next').on('click', obj => {
+        $('#periode_next').val('');
+        $('#periode_next').attr('data-periode', '');
+        $('#periode_next').attr('data-jumperiode', '');
+        $('#btn-clear-periode-next').addClass('d-none').removeClass('d-block');
+        periodeNextJs.addData([]);
+    });
+
     $('#btn-buat-form').on('click', obj => {
         spinner('show', obj.target);
         const jenisLayanan = $('#jenis_layanan').val();
@@ -422,21 +430,55 @@ $(function () {
 })
 // js add periode
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
-const periodeJs = new Periode(getPeriode);
+let getPeriodeNext = $('#periode_next').attr('data-periode');
+const periodeJs = new Periode(getPeriode, {
+    max: 1,
+    id_element: 1,
+});
+const periodeNextJs = new Periode(getPeriodeNext, {
+    max: 1,
+    textPeriode: 'Periode Berikutnya',
+    id_element: 2
+});
 
 $('#btn-periode').on('click', obj => {
     periodeJs.show();
 });
 
-periodeJs.on('periode.simpan', result => {
+periodeJs.on('periode.simpan.1', simpanPeriode);
+
+$('#btn-periode-next').on('click', obj => {
+    periodeNextJs.show();
+});
+
+periodeNextJs.on('periode.simpan.2', simpanPeriodeNext);
+
+function simpanPeriodeNext() {
+    console.log("simpan periode next");
+    const dataPeriode = periodeNextJs.getData();
+    $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
+    if(dataPeriode.length == 1) {
+        $('#periode_next').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+    } else {
+        $('#periode_next').val(dataPeriode.length + ' Periode');
+    }
+    $('#periode_next').attr('data-jumperiode', dataPeriode.length);
+    $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
+}
+function simpanPeriode() {
+    console.log("simpan periode");
     const dataPeriode = periodeJs.getData();
-    $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
     $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
+    if(dataPeriode.length == 1) {
+        $('#periode-pemakaian').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+    } else {
+        $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
+    }
     $('#periode-pemakaian').attr('data-jumperiode', dataPeriode.length);
     $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
 
     calcPrice();
-});
+}
 
 function loadPengguna(){
     let params = {
@@ -735,7 +777,8 @@ function openForm(){
                         formTotalHarga.show();
                         // formPic.show();
                         // formNoHp.show();
-                        // formPeriodeNext.show();
+                        $('#form-switch').addClass('col-md-6').removeClass('col-md-12');
+                        formPeriodeNext.show();
                         break;
                     case 'zero cek':
                         btnAddPengguna.addClass('d-none').removeClass('d-block');

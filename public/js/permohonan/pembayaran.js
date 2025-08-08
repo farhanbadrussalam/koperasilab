@@ -38,7 +38,7 @@ function loadData(page = 1) {
     } else {
         $('#countFilter').addClass('d-none');
     }
-    
+
     $(`#list-placeholder`).show();
     $(`#list-container`).hide();
     ajaxGet(`api/v1/keuangan/listKeuangan`, params, result => {
@@ -68,6 +68,8 @@ function loadData(page = 1) {
                 created_at: permohonan.created_at,
                 id: keuangan.keuangan_hash,
                 kontrak: permohonan.kontrak.no_kontrak,
+                is_have_tld: permohonan.kontrak.is_have_tld,
+                is_zerocek: permohonan.kontrak.is_zerocek
             }
 
             html += cardComponent(data, {btnAction: btnAction});
