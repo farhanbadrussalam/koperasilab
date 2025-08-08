@@ -362,13 +362,59 @@ class Invoice {
 
     loadPaymentMethod() {
         $('#methode-pembayaran-select').empty();
+        $('#methode-pembayaran-select').append(`
+            <option value="0">Pilih Metode Pembayaran</option>
+        `);
         for (const metode of this.methodePembayaran) {
             $('#methode-pembayaran-select').append(`
                 <option value="${metode.jenis_pembayaran_hash}">${metode.name}</option>
             `);
         }
-
+        this.changeMethodePembayaran();
         $('#methode-pembayaran').removeClass('d-none');
+        // Event
+        $('#methode-pembayaran-select').off('change').on('change', () => this.changeMethodePembayaran());
+    }
+    changeMethodePembayaran() {
+        let selectedMetodePembayaran = $('#methode-pembayaran-select').val();
+        let find = this.methodePembayaran.find(d => d.jenis_pembayaran_hash == selectedMetodePembayaran);
+
+        if(find){
+            let variabels = findVariabelInCkeditor(find.content);
+            let content = find.content;
+            if(variabels) {
+                let html = '';
+                for (const variabel of variabels) {
+                    // reset to string with space
+                    content = content.replace(`{{${variabel}}}`, '_____________');
+                    const formattedVariable = variabel.replace(/_/g, ' ');
+                    html += `
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" name="variabel_content" data-key="${variabel}" id="variabel_${variabel}" placeholder="${formattedVariable}">
+                        </div>
+                    `;
+                }
+
+                $('#inputMetodePembayaran').html(html);
+
+                $('input[name="variabel_content"]').off('input').on('input', () => {
+                    let content = find.content;
+                    for (const variabel of variabels) {
+                        content = content.replace(`{{${variabel}}}`, $('#variabel_' + variabel).val() || '_____________');
+                    }
+                    $('#showMetodePembayaran').html(content);
+                });
+            } else {
+                $('#inputMetodePembayaran').html('');
+            }
+
+            $('#showMetodePembayaran').html(content);
+            $('#collapseMetodePembayaran').collapse('show');
+        } else {
+            $('#showMetodePembayaran').html('');
+            $('#inputMetodePembayaran').html('');
+            $('#collapseMetodePembayaran').collapse('hide');
+        }
     }
 
     updateInvoiceDescription() {
@@ -636,6 +682,13 @@ class Invoice {
                 this.pph && formData.append('pph', $('#inputPph').val());
                 formData.append('status', 7);
                 formData.append('metodePembayaran', $('#methode-pembayaran-select').val());
+                // mengambil value variabel dari methode pembayaran
+                let variabelPembayaran = Array.from($('input[name="variabel_content"]').map(function() {
+                    return { [$(this).data('key')]: $(this).val() };
+                }));
+                if(variabelPembayaran.length > 0){
+                    formData.append('variabel_pembayaran', JSON.stringify(variabelPembayaran));
+                }
                 textQuestion = 'Apa anda yakin ingin membuat invoice ?';
                 textSuccess = 'Invoice berhasil dibuat.';
                 break;
@@ -772,8 +825,15 @@ class Invoice {
                                 </div>
                                 <div class="row my-2" id="methode-pembayaran" class="d-none">
                                     <div class="col-md-6">
-                                        <label class="form-label">Metode Pembayaran</label>
                                         <select class="form-select" id="methode-pembayaran-select"></select>
+                                    </div>
+                                    <div class="col-md-12 mt-2">
+                                        <div class="collapse" id="collapseMetodePembayaran">
+                                            <div class="card card-body mb-2">
+                                                <div id="inputMetodePembayaran" class="mb-2 d-flex gap-2 flex-wrap"></div>
+                                                <div id="showMetodePembayaran"></div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="border rounded p-3 mt-3">

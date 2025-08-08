@@ -484,4 +484,21 @@ if (!function_exists('jenislayanan')) {
         return trim(preg_replace('/\s+/', '', $parent->name . ' ' . $child->name));
     }
 }
+
+if(!function_exists('contenMetodePembayaran')){
+    function contenMetodePembayaran($content, $variabels = []){
+        // Log::info($metodePembayaran);
+        if(is_array($variabels)){
+            foreach ($variabels as $key => $value) {
+                foreach ($value as $key2 => $value2) {
+                    $content = html_entity_decode($content);
+                    $content = str_replace('{{'.$key2.'}}', $value2, $content);
+                }
+            }
+        }
+        return $content;
+    }
+}
+
+
 ?>

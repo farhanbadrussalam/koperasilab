@@ -93,6 +93,17 @@
                                 <label class="form-check-label" for="useZeroCek">Menggunakan Zero cek</label>
                             </div>
                         </div>
+                        <div class="col-md-6" id="form-periode-next">
+                            <label class="col-form-label" for="periode_next">Periode pemakaian selanjutnya</label>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control bg-secondary-subtle" id="periode_next"
+                                    aria-label="Periode pemakaian selanjutnya" readonly>
+                                <button class="btn btn-outline-danger d-none" type="button"
+                                    id="btn-clear-periode-next">Clear</button>
+                                <button class="btn btn-outline-secondary" type="button" id="btn-periode-next">Select
+                                    periode</button>
+                            </div>
+                        </div>
                         <div class="col-md-6" id="form-jum-pengguna">
                             <div class="d-flex justify-content-between">
                                 <label class="col-form-label" for="jum_pengguna">Pengguna<span
@@ -160,17 +171,6 @@
                                 </select>
                                 <textarea name="txt_alamat" id="txt_alamat" cols="30" rows="2"
                                     class="form-control mt-1 bg-secondary-subtle" readonly></textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-6" id="form-periode-next">
-                            <label class="col-form-label" for="periode_next">Periode pemakaian selanjutnya</label>
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control bg-secondary-subtle" id="periode_next"
-                                    aria-label="Periode pemakaian selanjutnya" readonly>
-                                <button class="btn btn-outline-danger d-none" type="button"
-                                    id="btn-clear-periode-next">Clear</button>
-                                <button class="btn btn-outline-secondary" type="button" id="btn-periode-next">Select
-                                    periode</button>
                             </div>
                         </div>
                         <div class="col-md-6" id="form-periode-1">

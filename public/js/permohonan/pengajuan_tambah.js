@@ -235,9 +235,12 @@ $(function () {
                 formData.append('totalHarga', valtotalHarga);
                 formData.append('haveTld', haveTldChecked ? 1 : 0);
                 formData.append('is_zerocek', useZeroCek ? 1 : 0);
-                formData.append('periode', useZeroCek ? 0 : 1);
 
-                // typeLayanan == 'Evaluasi' ? formData.append('tldKontrol', JSON.stringify(arrKontrolTmp)) : false;
+                if(haveTldChecked && useZeroCek) {
+                    formData.append('periode', 1);
+                } else {
+                    formData.append('periode', useZeroCek ? 0 : 1);
+                }
 
                 spinner('show', obj.target);
                 ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
@@ -264,6 +267,14 @@ $(function () {
         $('#btn-clear-periode').addClass('d-none').removeClass('d-block');
         periodeJs.addData([]);
         calcPrice();
+    });
+
+    $('#btn-clear-periode-next').on('click', obj => {
+        $('#periode_next').val('');
+        $('#periode_next').attr('data-periode', '');
+        $('#periode_next').attr('data-jumperiode', '');
+        $('#btn-clear-periode-next').addClass('d-none').removeClass('d-block');
+        periodeNextJs.addData([]);
     });
 
     $('#btn-buat-form').on('click', obj => {
@@ -397,12 +408,12 @@ $(function () {
             haveTldChecked = true;
             useZeroCek = false;
             $('#useZeroCek').prop('checked', false);
-            $('#switch-zerocek').hide();
+            $('#switch-zerocek').show();
         } else {
             haveTldChecked = false;
             useZeroCek = true;
-            $('#useZeroCek').prop('checked', true);
-            $('#switch-zerocek').show();
+            $('#useZeroCek').prop('checked', false);
+            $('#switch-zerocek').hide();
         }
 
         loadPengguna();
@@ -419,28 +430,60 @@ $(function () {
 })
 // js add periode
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
-const periodeJs = new Periode(getPeriode);
+let getPeriodeNext = $('#periode_next').attr('data-periode');
+const periodeJs = new Periode(getPeriode, {
+    max: 1,
+    id_element: 1,
+});
+const periodeNextJs = new Periode(getPeriodeNext, {
+    max: 1,
+    textPeriode: 'Periode Berikutnya',
+    id_element: 2
+});
 
 $('#btn-periode').on('click', obj => {
     periodeJs.show();
 });
 
-periodeJs.on('periode.simpan', result => {
+periodeJs.on('periode.simpan.1', simpanPeriode);
+
+$('#btn-periode-next').on('click', obj => {
+    periodeNextJs.show();
+});
+
+periodeNextJs.on('periode.simpan.2', simpanPeriodeNext);
+
+function simpanPeriodeNext() {
+    console.log("simpan periode next");
+    const dataPeriode = periodeNextJs.getData();
+    $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
+    if(dataPeriode.length == 1) {
+        $('#periode_next').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+    } else {
+        $('#periode_next').val(dataPeriode.length + ' Periode');
+    }
+    $('#periode_next').attr('data-jumperiode', dataPeriode.length);
+    $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
+}
+function simpanPeriode() {
+    console.log("simpan periode");
     const dataPeriode = periodeJs.getData();
-    $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
     $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
+    if(dataPeriode.length == 1) {
+        $('#periode-pemakaian').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+    } else {
+        $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
+    }
     $('#periode-pemakaian').attr('data-jumperiode', dataPeriode.length);
     $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
 
     calcPrice();
-});
+}
 
 function loadPengguna(){
     let params = {
         idPermohonan: idPermohonan
     }
-    // $('#pengguna-placeholder').show();
-    // $('#pengguna-list-container').hide();
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         if(result.meta.code == 200){
             let html = '';
@@ -734,7 +777,8 @@ function openForm(){
                         formTotalHarga.show();
                         // formPic.show();
                         // formNoHp.show();
-                        // formPeriodeNext.show();
+                        $('#form-switch').addClass('col-md-6').removeClass('col-md-12');
+                        formPeriodeNext.show();
                         break;
                     case 'zero cek':
                         btnAddPengguna.addClass('d-none').removeClass('d-block');
@@ -768,24 +812,17 @@ function openForm(){
                         break;
                 }
                 let list = result.data;
-                if(JL == 'KontrakEvaluasi') {
-                    if($('#haveTld').is(':checked')) {
-                        haveTldChecked = true;
-                        useZeroCek = false;
-                        $('#useZeroCek').prop('checked', false);
-                        $('#switch-zerocek').hide();
-                    } else {
-                        haveTldChecked = false;
-                        useZeroCek = true;
-                        $('#useZeroCek').prop('checked', true);
-                        $('#switch-zerocek').show();
-                    }
-                    $('#form-switch').show();
-                } else {
+                if(tmpArrSewa.includes(JL)) {
                     $('#useZeroCek').prop('checked', true);
                     $('#haveTld').prop('checked', false);
                     useZeroCek = true;
                     haveTldChecked = false;
+                } else {
+                    useZeroCek = false;
+                    haveTldChecked = true;
+                    $('#useZeroCek').prop('checked', false);
+                    $('#switch-zerocek').show();
+                    $('#form-switch').show();
                 }
                 $('#form-inputan').addClass('d-block').removeClass('d-none');
 

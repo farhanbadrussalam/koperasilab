@@ -1049,7 +1049,7 @@ class PermohonanAPI extends Controller
 
                             // Tambah periode
                             if($dataPermohonan->periode_pemakaian){
-                                if($dataPermohonan->is_zerocek == 1){
+                                if($dataPermohonan->is_zerocek == 1 && $dataPermohonan->is_have_tld == 0){
                                     // zero cek
                                     Kontrak_periode::create(array(
                                         'id_kontrak' => $dataKontrak->id_kontrak,
