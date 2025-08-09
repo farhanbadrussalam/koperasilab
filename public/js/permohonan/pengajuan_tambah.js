@@ -187,9 +187,12 @@ $(function () {
         dataPermohonan.pelanggan.perusahaan.alamat[valAlamat] ? valAlamat = dataPermohonan.pelanggan.perusahaan.alamat[valAlamat].alamat_hash : false;
 
         const sanityCek = [];
+
+        const periodeNextShow = formPeriodeNext.is(':visible');
+        if(periodeNextShow && !valPeriodeNext) sanityCek.push('Periode Selanjutnya');
+
         if (!valjenisTld) sanityCek.push('Jenis TLD');
         if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
-        if (!valPeriodeNext) sanityCek.push('Periode Next');
         if (valjumPengguna == 0) sanityCek.push('Jumlah Pengguna');
         if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
 
@@ -435,7 +438,6 @@ $(function () {
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
 let getPeriodeNext = $('#periode_next').attr('data-periode');
 const periodeJs = new Periode(getPeriode, {
-    max: 1,
     id_element: 1,
 });
 const periodeNextJs = new Periode(getPeriodeNext, {
@@ -752,6 +754,12 @@ function openForm(){
     $('#btnTambahKontrol').hide();
     $('#form-kode-lencana-pengguna').hide();
     arrKontrolTmp = [];
+
+    // disable untuk form jenisLayanan, jenisLayanan2, dan layananJasa
+    $('#jenis_layanan').attr('disabled', true).addClass('bg-secondary-subtle');
+    $('#jenis_layanan_2').attr('disabled', true).addClass('bg-secondary-subtle');
+    $('#layanan_jasa').attr('disabled', true).addClass('bg-secondary-subtle');
+
     if(layanan == ''){
         $('#form-inputan').addClass('d-none').removeClass('d-block');
     }else{
@@ -776,10 +784,9 @@ function openForm(){
                         formJumPengguna.show();
                         formAlamat.show();
                         formTotalHarga.show();
-                        // formPic.show();
-                        // formNoHp.show();
                         $('#form-switch').addClass('col-md-6').removeClass('col-md-12');
                         formPeriodeNext.show();
+                        periodeJs.maxPeriode = 1;
                         break;
                     case 'zero cek':
                         btnAddPengguna.addClass('d-none').removeClass('d-block');
@@ -850,10 +857,6 @@ function cekLayanan(){
         typeLayanan2 = dataPermohonan.jenis_layanan.name;
         JL = jenislayanan(dataPermohonan.jenis_layanan_parent, dataPermohonan.jenis_layanan);
 
-        // disable untuk form jenisLayanan, jenisLayanan2, dan layananJasa
-        $('#jenis_layanan').attr('disabled', true).addClass('bg-secondary-subtle');
-        $('#jenis_layanan_2').attr('disabled', true).addClass('bg-secondary-subtle');
-        $('#layanan_jasa').attr('disabled', true).addClass('bg-secondary-subtle');
 
         // menghilangkan button buat form
         $('#div-buat-form').addClass('d-none').removeClass('d-block');
