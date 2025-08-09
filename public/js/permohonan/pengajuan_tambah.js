@@ -175,6 +175,7 @@ $(function () {
     $('#simpanPengajuan').on('click', obj => {
         let valjenisTld = $('#jenis_tld').val();
         let valperiodePemakaian = $('#periode-pemakaian').attr('data-periode');
+        let valPeriodeNext = $('#periode_next').attr('data-periode');
         let valjumPengguna = $('#jum_pengguna').val();
         let valjumKontrol = $('#jum_kontrol').val();
         let valpic = $('#pic').val();
@@ -186,6 +187,10 @@ $(function () {
         dataPermohonan.pelanggan.perusahaan.alamat[valAlamat] ? valAlamat = dataPermohonan.pelanggan.perusahaan.alamat[valAlamat].alamat_hash : false;
 
         const sanityCek = [];
+
+        const periodeNextShow = formPeriodeNext.is(':visible');
+        if(periodeNextShow && !valPeriodeNext) sanityCek.push('Periode Selanjutnya');
+
         if (!valjenisTld) sanityCek.push('Jenis TLD');
         if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
         if (valjumPengguna == 0) sanityCek.push('Jumlah Pengguna');
@@ -229,6 +234,7 @@ $(function () {
                 formData.append('tipeKontrak', 'kontrak baru');
                 formData.append('jenisTld', valjenisTld);
                 formData.append('periodePemakaian', valperiodePemakaian);
+                formData.append('periodeNext', valPeriodeNext);
                 formData.append('jumlahPengguna', valjumPengguna);
                 formData.append('jumlahKontrol', valjumKontrol);
                 formData.append('hargaLayanan', valHargaLayanan);
@@ -432,7 +438,6 @@ $(function () {
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
 let getPeriodeNext = $('#periode_next').attr('data-periode');
 const periodeJs = new Periode(getPeriode, {
-    max: 1,
     id_element: 1,
 });
 const periodeNextJs = new Periode(getPeriodeNext, {
@@ -454,7 +459,6 @@ $('#btn-periode-next').on('click', obj => {
 periodeNextJs.on('periode.simpan.2', simpanPeriodeNext);
 
 function simpanPeriodeNext() {
-    console.log("simpan periode next");
     const dataPeriode = periodeNextJs.getData();
     $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
     if(dataPeriode.length == 1) {
@@ -466,7 +470,6 @@ function simpanPeriodeNext() {
     $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
 }
 function simpanPeriode() {
-    console.log("simpan periode");
     const dataPeriode = periodeJs.getData();
     $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
     if(dataPeriode.length == 1) {
@@ -751,6 +754,12 @@ function openForm(){
     $('#btnTambahKontrol').hide();
     $('#form-kode-lencana-pengguna').hide();
     arrKontrolTmp = [];
+
+    // disable untuk form jenisLayanan, jenisLayanan2, dan layananJasa
+    $('#jenis_layanan').attr('disabled', true).addClass('bg-secondary-subtle');
+    $('#jenis_layanan_2').attr('disabled', true).addClass('bg-secondary-subtle');
+    $('#layanan_jasa').attr('disabled', true).addClass('bg-secondary-subtle');
+
     if(layanan == ''){
         $('#form-inputan').addClass('d-none').removeClass('d-block');
     }else{
@@ -775,10 +784,9 @@ function openForm(){
                         formJumPengguna.show();
                         formAlamat.show();
                         formTotalHarga.show();
-                        // formPic.show();
-                        // formNoHp.show();
                         $('#form-switch').addClass('col-md-6').removeClass('col-md-12');
                         formPeriodeNext.show();
+                        periodeJs.maxPeriode = 1;
                         break;
                     case 'zero cek':
                         btnAddPengguna.addClass('d-none').removeClass('d-block');
@@ -849,10 +857,6 @@ function cekLayanan(){
         typeLayanan2 = dataPermohonan.jenis_layanan.name;
         JL = jenislayanan(dataPermohonan.jenis_layanan_parent, dataPermohonan.jenis_layanan);
 
-        // disable untuk form jenisLayanan, jenisLayanan2, dan layananJasa
-        $('#jenis_layanan').attr('disabled', true).addClass('bg-secondary-subtle');
-        $('#jenis_layanan_2').attr('disabled', true).addClass('bg-secondary-subtle');
-        $('#layanan_jasa').attr('disabled', true).addClass('bg-secondary-subtle');
 
         // menghilangkan button buat form
         $('#div-buat-form').addClass('d-none').removeClass('d-block');

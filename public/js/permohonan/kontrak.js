@@ -442,6 +442,11 @@ function pengembalianTLD(data){
         endDate.setMonth(endDate.getMonth() + 3);
         endDate.setDate(0);
 
+        if(data.periode_next) {
+            startDate = new Date(data.periode_next[0].start_date);
+            endDate = new Date(data.periode_next[0].end_date);
+        }
+
         html = `
             <div class="border-top py-2 d-flex justify-content-between align-items-center">
                 <div class="px-2">

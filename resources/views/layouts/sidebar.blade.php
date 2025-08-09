@@ -77,6 +77,7 @@
                 @endcan
 
                 @can('Tld')
+                @if(Auth::user()->id_perusahaan)
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'tld' ? 'active' : '' }}"
                         href="{{ route('tld.index') }}" aria-expanded="false">
@@ -84,6 +85,7 @@
                         <span class="hide-menu">Data TLD</span>
                     </a>
                 </li>
+                @endif
                 @endcan
 
                 @can('pengguna')
