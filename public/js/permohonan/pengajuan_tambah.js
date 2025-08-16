@@ -765,6 +765,20 @@ function openForm(){
     }else{
         ajaxGet(`api/v1/permohonan/getJenisTld/${layanan}`, false, result => {
             if(result.meta.code == 200){
+                let list = result.data;
+                if(tmpArrSewa.includes(JL)) {
+                    $('#useZeroCek').prop('checked', true);
+                    $('#haveTld').prop('checked', false);
+                    useZeroCek = true;
+                    haveTldChecked = false;
+                } else {
+                    useZeroCek = false;
+                    haveTldChecked = true;
+                    $('#useZeroCek').prop('checked', false);
+                    $('#switch-zerocek').show();
+                    $('#form-switch').show();
+                }
+
                 switch (typeLayanan.toLowerCase()) {
                     case 'kontrak':
                         btnAddPengguna.addClass('d-block').removeClass('d-none');
@@ -776,7 +790,6 @@ function openForm(){
                         formTotalHarga.show();
                         break;
                     case 'evaluasi':
-                        // btnAddPengguna.addClass('d-none').removeClass('d-block');
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
@@ -784,9 +797,10 @@ function openForm(){
                         formJumPengguna.show();
                         formAlamat.show();
                         formTotalHarga.show();
-                        $('#form-switch').addClass('col-md-6').removeClass('col-md-12');
                         formPeriodeNext.show();
                         periodeJs.maxPeriode = 1;
+                        formJenisTld.addClass('col-md-12').removeClass('col-md-6');
+                        $('#form-switch').hide();
                         break;
                     case 'zero cek':
                         btnAddPengguna.addClass('d-none').removeClass('d-block');
@@ -819,19 +833,7 @@ function openForm(){
                         formTotalHarga.show();
                         break;
                 }
-                let list = result.data;
-                if(tmpArrSewa.includes(JL)) {
-                    $('#useZeroCek').prop('checked', true);
-                    $('#haveTld').prop('checked', false);
-                    useZeroCek = true;
-                    haveTldChecked = false;
-                } else {
-                    useZeroCek = false;
-                    haveTldChecked = true;
-                    $('#useZeroCek').prop('checked', false);
-                    $('#switch-zerocek').show();
-                    $('#form-switch').show();
-                }
+
                 $('#form-inputan').addClass('d-block').removeClass('d-none');
 
                 list.forEach(value => {

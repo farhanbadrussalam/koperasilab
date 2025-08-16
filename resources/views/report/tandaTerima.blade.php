@@ -95,11 +95,11 @@
 
     <table class="table-footer">
         <tr>
-            <td colspan="2">Jumlah : <span class="text-secondary">{{ $data->jumlah_pengguna + $data->jumlah_kontrol }}</span></td>
+            <td colspan="2">Jumlah : <span class="text-secondary">{{ $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol" }}</span> <span>{{ $data->periode > 0 ? "Periode ". $data->periode : "Periode zero cek" }}</span></td>
         </tr>
         <tr>
             <td width="50%">Tanggal Penerimaan : <span class="text-secondary">{{ convert_date($data->dokumen[0]->created_at, 2) }}</span></td>
-            <td>Tanggal Selesai Pengujian : <span class="text-secondary">.......</span></td>
+            <td>Tanggal Selesai Pengujian : <span class="text-secondary">{{ $selesaiPengujian ? convert_date($selesaiPengujian, 2) : '.......' }}</span></td>
         </tr>
         <tr>
             <td>&nbsp;</td>
@@ -131,9 +131,9 @@
     <p>Catatan:</p>
     <ol>
         <li>Dengan penyerahan benda uji / alat ini, pihak pemohon menyetujui pekerjaan pengujian/kalibrasi yang akan
-            dilakukan Laboratorium Pengujian BATAN sesuai dengan biaya pengujiannya/kalibrasinya.</li>
+            dilakukan NuklindoLab-Koperasi JKRL dan bersedia menanggung biaya pengujiannya/kalibrasinya.</li>
         <li>Untuk benda uji / alat yang dikrim melalui jasa ekspedisi, bila saat diterima ada kerusakan bukan menjadi
-            tanggung jawab BATAN.</li>
+            tanggung jawab NuklindoLab-Koperasi JKRL.</li>
         <li>Pengujian / kalibrasi tidak akan diproses sebelum ada surat permohonan dari pelanggan.</li>
     </ol>
     <p>*) Pilih yang sesuai</p>

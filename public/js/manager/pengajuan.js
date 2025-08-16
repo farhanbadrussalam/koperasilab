@@ -32,7 +32,7 @@ function loadData(page = 1) {
     };
 
     let filterValue = filterComp && filterComp.getAllValue();
-    
+
     filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
     filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
@@ -59,6 +59,10 @@ function loadData(page = 1) {
                 btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiInvoice(this, 'verify')">verifikasi</button>`;
             } else {
                 btnAction = `<button class="btn btn-outline-info btn-sm" title="Detail Invoice" onclick="verifikasiInvoice(this, 'detail')"><i class="bi bi-info-circle"></i> Detail invoice</button>`;
+            }
+
+            if(keuangan.status == 5) {
+                btnAction += `<a class="btn btn-outline-primary btn-sm ms-1" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi"><i class="bi bi-printer-fill"></i> Kwitansi</a>`;
             }
 
             let badgeClass = 'bg-primary-subtle';
@@ -106,7 +110,7 @@ function loadData(page = 1) {
 $('#list-pagination').on('click', 'a', function (e) {
     e.preventDefault();
     const pageno = e.target.dataset.page;
-    
+
     loadData(pageno);
 });
 

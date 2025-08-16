@@ -443,7 +443,18 @@ if (!function_exists('generateNoDokumen')) {
                 // Format nomor kontrak
                 $noKontrak = "{$increment}/JKRL-B/{$romawiBulan}/{$tahunSekarang}";
                 break;
-
+            case 'permintaanpengujian':
+                // Format nomor kontrak
+                $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'perjanjian_pengujian':
+                // Format nomor kontrak
+                $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'kwitansi':
+                // Format nomor kwitansi
+                $noKontrak = "{$increment}/KW-MZR/{$romawiBulan}/{$tahunSekarang}";
+                break;
         }
 
 

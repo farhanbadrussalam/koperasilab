@@ -43,10 +43,54 @@
 
             </div>
             <div aria-label="Page navigation example" id="list-pagination">
-                    
+
             </div>
         </div>
     </div>
+</div>
+{{-- Create modal surat persetujuan --}}
+<div class="modal fade" id="verify_modal_surat_pengujian" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Verifikasi surat pengujian</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+                <label for="inputPemilik" class="form-label">Pemilik</label>
+                <input type="text" name="name" id="inputPemilik" class="form-control" autocomplete="false" required readonly>
+                <input type="hidden" name="txt_id_penyelia" id="txt_id_penyelia" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="inputAlamat" class="form-label">Alamat</label>
+                <textarea name="name" id="inputAlamat" cols="30" rows="3" class="form-control" autocomplete="false" required readonly></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="" class="form-label">List pengujian</label>
+                <ol class="list-group list-group-numbered overflow-auto max-h-max" id="list-pengujian">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="ms-2 me-auto">
+                            <div>M0152-18-019</div>
+                            <div class="fw-bold">P-0001</div>
+                        </div>
+                        <div>Jenis Pengujian</div>
+                    </li>
+                </ol>
+            </div>
+            <div class="d-flex justify-content-center">
+                <div class="wrapper" id="content-ttd"></div>
+            </div>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-danger" id="btnDecline">Tolak</button>
+          <a type="button" class="btn btn-secondary" href="#" target="_blank" id="btnLihatSurat">Lihat surat</a>
+          <button type="button" class="btn btn-primary" id="btnApprove">Setuju</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
 </div>
 @endsection
 

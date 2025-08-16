@@ -9,6 +9,7 @@ use App\Models\Kontrak;
 use App\Models\Kontrak_tld;
 use App\Models\Kontrak_periode;
 use App\Models\Permohonan;
+use App\Models\Permohonan_dokumen;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
 use App\Models\jadwal;
@@ -22,6 +23,10 @@ use Log;
 
 class ReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->global = config('customvariabel');
+    }
     public function invoice($id)
     {
         $idKeuangan = decryptor($id);
@@ -30,7 +35,7 @@ class ReportController extends Controller
             return redirect()->back();
         }
 
-        $query = Keuangan::with(
+        $query = Keuangan::with([
             'diskon',
             'usersig',
             'permohonan',
@@ -42,18 +47,24 @@ class ReportController extends Controller
             'permohonan.pelanggan.perusahaan',
             'permohonan.pelanggan.perusahaan.alamat',
             'permohonan.kontrak',
+            'permohonan.dokumen' => function($q){
+                $q->where('jenis', 'invoice');
+            },
             'metode_pembayaran'
-        )->where('id_keuangan', $idKeuangan)->first();
+        ])->where('id_keuangan', $idKeuangan)->first();
 
         if($query->metode_pembayaran){
             $query->metode_pembayaran->content = contenMetodePembayaran($query->metode_pembayaran->content, $query->variabel_jenis_pembayaran);
         }
+
+        $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
 
         $data['data'] = $query;
         $data['date'] = Carbon::now();
         $data['title'] = "Invoice";
         $data['ttd_default'] = public_path('icons/default/white.png');
         $data['stempel'] = public_path('icons/Stempel-Lab.png');
+        $data['is_catatan'] = !in_array($JL, $this->global['catatan_invoice']);
 
         $periodePemakaian = $query->permohonan->periode_pemakaian;
 
@@ -75,19 +86,22 @@ class ReportController extends Controller
             return redirect()->back();
         }
 
-        $query = keuangan::with(
+        $query = keuangan::with([
             'permohonan',
             'permohonan.jenis_layanan',
             'permohonan.pelanggan',
             'permohonan.pelanggan.perusahaan',
-            'permohonan.kontrak:id_kontrak,no_kontrak'
-        )->where('id_keuangan', $idKeuangan)->first();
+            'permohonan.kontrak:id_kontrak,no_kontrak',
+            'permohonan.dokumen' => function($q){
+                $q->where('jenis', 'kwitansi');
+            }
+        ])->where('id_keuangan', $idKeuangan)->first();
 
         $data['data'] = $query;
         $data['title'] = 'Kwitansi';
         $data['date'] = Carbon::now();
-        $data['ttd_default'] = public_path('icons/default/white.png');
-        $data['stempel'] = public_path('icons/Stempel-Lab.png');
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
 
         // mengambil periode pertama dan terakhir
         $start = $query->permohonan->periode_pemakaian[0]['start_date'];
@@ -128,7 +142,9 @@ class ReportController extends Controller
         $data['data'] = $query;
         $data['date'] = Carbon::now();
         $data['title'] = "Tanda Terima";
-        $data['ttd_default'] = public_path('icons/default/white.png');
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
+        $data['selesaiPengujian'] = $query->lhu ? $query->lhu->end_date : null;
 
         $pdf = PDF::loadView('report.tandaTerima', $data);
 
@@ -150,6 +166,7 @@ class ReportController extends Controller
             'pelanggan',
             'pelanggan.perusahaan',
             'layanan_jasa',
+            'layanan_jasa.satuankerja',
             'jenis_layanan',
             'kontrak',
             'dokumen' => function($query) {
@@ -161,13 +178,13 @@ class ReportController extends Controller
             'lhu.petugas.jobs:id_map,id_jobs',
             'lhu.petugas.jobs.jobs:id_jobs,name',
             'lhu.createBy',
-            'lhu.createBy.satuankerja',
             'lhu.usersig:id,name',
         ])->find($id);
 
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'SURAT TUGAS UJI';
-        $data['ttd_default'] = public_path('icons/default/white.png');
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
         $data['data'] = $query;
 
         $pdf = PDF::loadView('report.suratTugas', $data);
@@ -207,10 +224,7 @@ class ReportController extends Controller
             'periode' => function($query) use ($periode) {
                 return $query->where('periode', $periode);
             },
-            'rincian_list_tld' => function($query) {
-                return $query->where('status', 1);
-            },
-            'rincian_list_tld.pengguna'
+            'signature:id,name',
         ])->find($id);
 
         if($query->periode[0]->nomer_surpeng == null){
@@ -223,6 +237,8 @@ class ReportController extends Controller
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Surat Pengantar';
         $data['data'] = $query;
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
 
         $pdf = PDF::loadView('report.suratPengantar', $data);
 
@@ -253,7 +269,9 @@ class ReportController extends Controller
         $listTld = false;
 
         if($query && count($query->periode) > 0) {
-            $listTld = Kontrak_tld::with('pengguna', 'divisi')->where('id_kontrak', $query->id_kontrak)->where('periode', $query->periode[0]->periode)->get();
+            $listTld = Kontrak_tld::with('pengguna', 'divisi')
+            ->where('id_kontrak', $query->id_kontrak)
+            ->where('count_tld', $query->periode[0]->count_tld)->get();
         }
 
         // Memisahkan radiasi yang digunakan
@@ -273,6 +291,8 @@ class ReportController extends Controller
         $data['data'] = $query;
         $data['list_tld'] = $listTld;
         $data['radiasi'] = $listRadiasi;
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
 
         $pdf = PDF::loadView('report.perjanjian', $data);
         $pdf->render();
@@ -304,11 +324,12 @@ class ReportController extends Controller
             'permohonan',
             'permohonan.kontrak',
             'permohonan.pelanggan.perusahaan',
+            'permohonan.periodenow',
         ])->where('id_penyelia', $id)->first();
 
         // mengambil list tld di kontrak
         $listTld = Kontrak_tld::with('pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
-                    ->where('periode', $query->permohonan->periode)
+                    ->where('count_tld', $query->permohonan->periodenow->count_tld)
                     ->orderBy('id_pengguna', 'asc')
                     ->orderBy('id_divisi', 'asc')
                     ->get();
@@ -327,9 +348,53 @@ class ReportController extends Controller
         $data['title'] = 'Label';
         $data['data'] = json_decode($listTld);
         $data['penyelia'] = $query;
-        $data['periode'] = $dataPeriode;
+        $data['periode'] = $query->permohonan->periodenow;
 
         $pdf = PDF::loadView('report.label', $data);
+        $pdf->render();
+
+        return $pdf->stream();
+    }
+
+    /**
+     * Mencetak persetujuan pengujian.
+     *
+     * @param  int  $idPermohonan  ID permohonan
+     * @return \Illuminate\Http\Response
+     */
+    public function persetujuanPengujian($idPermohonan){
+        $idPermohonan = decryptor($idPermohonan);
+
+        if($idPermohonan == null){
+            return redirect()->back();
+        }
+
+        // mengambil dokumen surat permintaan pengujian
+        $dokumen = Permohonan_dokumen::where('id_permohonan', $idPermohonan)
+                    ->where('jenis', 'permintaanpengujian')->first();
+
+        if(!$dokumen) {
+            // generate nomer dokumen
+            $nodokumen = generateNoDokumen('permintaanpengujian', $idPermohonan);
+
+            // Simpan dokumen permintaan pengujian
+            $dokumen = Permohonan_dokumen::create(array(
+                'id_permohonan' => $idPermohonan,
+                'created_by' => Auth::user()->id,
+                'nama' => 'Permintaan Pengujian',
+                'jenis' => 'permintaanpengujian',
+                'status' => 1,
+                'nomer' => $nodokumen
+            ));
+        }
+
+        $data = array();
+
+        $data['date'] = Carbon::now()->year;
+        $data['title'] = 'Persetujuan Pengujian';
+        // $data['data'] = $dokumen;
+
+        $pdf = PDF::loadView('report.permintaanPengujian', $data);
         $pdf->render();
 
         return $pdf->stream();

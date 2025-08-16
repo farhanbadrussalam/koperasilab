@@ -52,7 +52,7 @@
     <div class="fs-3 lh-2" style="margin-top: 15px;">
         <p class="text-indent">
             Dengan ini kami kirimkan <span class="fw-bold">sebanyak {{ $data->jumlah_pengguna }} buah {{ $layanan }} {{ $jenisTld }} monitor</span>
-            beserta <span class="fw-bold">{{ $data->jumlah_kontrol }} buah TLD Kontrol</span> untuk pemakaian <span class="fw-bold">{{ $periode }},</span> Kontrak No. ({{ $kontrak }}) daftar nama terlampir.
+            beserta <span class="fw-bold">{{ $data->jumlah_kontrol }} buah TLD Kontrol</span> untuk pemakaian <span class="fw-bold">{{ $periode }},</span> Kontrak No. {{ $kontrak }} (daftar nama terlampir).
         </p>
         <p class="text-indent">
             Demikian, atas perhatian dan kerjasamanya kami ucapkan terima kasih.
@@ -70,7 +70,7 @@
                     <div>Koperasi Jasa Keselamatan</div>
                     <div>Radiasi dan Lingkungan</div>
                     <img class="ttd-image" src="{{ $data->ttd ? $data->ttd : $ttd_default }}" alt="ttd" srcset="ttd">
-                    <div class="flex-1 text-underline">( {{ $data->signature ? $data->signature->name : '................................' }} )</div>
+                    <div class="flex-1">( {{ $data->signature ? $data->signature->name : '................................' }} )</div>
                     <div>Manajer Unit Administrasi</div>
                 </div>
             </td>
@@ -92,7 +92,7 @@
             $count = 1;
             $countKontrol = 0;
         @endphp
-        @foreach ($data->rincian_list_tld as $value)
+        @foreach ($data->periode[0]->tld_in_periode as $value)
             @if($value->pengguna)
                 <tr>
                     <td class="text-center">{{ $count++ }}.</td>

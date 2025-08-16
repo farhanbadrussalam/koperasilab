@@ -113,4 +113,8 @@ class Kontrak extends Model
     public function tld_aktif(){
         return $this->hasMany(Master_tld::class, 'digunakan', 'no_kontrak');
     }
+
+    public function signature(){
+        return $this->belongsTo(User::class, 'ttd_by', 'id');
+    }
 }

@@ -94,6 +94,10 @@ function loadData(page = 1, menu) {
                     break;
             }
 
+            if(keuangan.status == 5){
+                btnAction += `<a class="btn btn-outline-primary btn-sm ms-1" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi"><i class="bi bi-printer-fill"></i> Kwitansi</a>`;
+            }
+
             const data = {
                 id: keuangan.keuangan_hash,
                 tipeKontrak: permohonan.tipe_kontrak,

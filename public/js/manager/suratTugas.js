@@ -1,4 +1,6 @@
 let filterComp = false;
+let signaturePad = false;
+let dataPenyelia = false;
 $(function () {
     loadData();
 
@@ -24,7 +26,61 @@ $(function () {
 
     // SETUP FILTER
     filterComp.on('filter.change', () => loadData());
+
+    // SIGNATURE
+    const canvas = document.getElementById('content-ttd');
+    signaturePad = signature(canvas, {
+        text: 'Manager',
+    });
+
+    loadEvent();
 });
+
+function loadEvent() {
+    $('#btnApprove').on('click', (obj) => {
+        if(signaturePad.isEmpty()) {
+            return Swal.fire({
+                icon: "warning",
+                text: "Harap berikan tanda tangan terlebih dahulu.",
+            });
+        }
+        spinner('show', $(obj.target));
+        const idPenyelia = $('#txt_id_penyelia').val();
+        const ttd = signaturePad.toDataURL();
+        const params = new FormData();
+        params.append('ttd', ttd);
+        params.append('idPenyelia', idPenyelia);
+        params.append('type', 'approve');
+        ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
+            if(result.meta.code == 200) {
+                spinner('hide', $(obj.target));
+                $('#verify_modal_surat_pengujian').modal('hide');
+                loadData();
+            }
+        }, error => {
+            spinner('hide', $(obj.target));
+        });
+    });
+
+    $('#btnDecline').on('click', (obj) => {
+        spinner('show', $(obj.target));
+        const idPenyelia = $('#txt_id_penyelia').val();
+        const ttd = signaturePad.toDataURL();
+        const params = new FormData();
+        params.append('ttd', ttd);
+        params.append('idPenyelia', idPenyelia);
+        params.append('type', 'decline');
+        ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
+            if(result.meta.code == 200) {
+                spinner('hide', $(obj.target));
+                $('#verify_modal_surat_pengujian').modal('hide');
+                loadData();
+            }
+        }, error => {
+            spinner('hide', $(obj.target));
+        });
+    });
+}
 
 function loadData(page=1) {
     let params = {
@@ -54,12 +110,15 @@ function loadData(page=1) {
     ajaxGet(`api/v1/penyelia/list`, params, result => {
         let html = '';
         const divTimelineTugas = [];
+        dataPenyelia = result.data;
         for (const [i, lhu] of result.data.entries()) {
             const permohonan = lhu.permohonan;
             let btnAction = '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
 
             if(lhu.status == 2) {
                 btnAction += `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/manager/surat_tugas/v/${lhu.penyelia_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`
+            } else if (lhu.status == 6) {
+                btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiPengujian(this)"><i class="bi bi-check2-circle"></i> Verifikasi Pengujian</button>`
             }else{
                 btnAction += `<a class="btn btn-outline-info btn-sm" href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}"><i class="bi bi-eye"></i> Show</a>`;
             }
@@ -69,15 +128,18 @@ function loadData(page=1) {
                 badgeClass = 'bg-success-subtle';
             }
 
-            let divInfoTugas = `
-                <div class="col-md-12 mt-2 fs-7">
-                    <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
-                        <span>Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
-                        <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
-                        onclick="showHideProgress(this)">Lihat Progress LAB</a>
+            let divInfoTugas = ``;
+            if(lhu.start_date && lhu.end_date) {
+                divInfoTugas = `
+                    <div class="col-md-12 mt-2 fs-7">
+                        <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
+                            <span>Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
+                            <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
+                            onclick="showHideProgress(this)">Lihat Progress LAB</a>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
 
             const timeline = new Timeline({
                 timeline: lhu.penyelia_map,
@@ -118,7 +180,7 @@ function loadData(page=1) {
                                 ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                             </div>
                         </div>
-                        <div class="col-6 col-md-2 text-center ms-auto" data-idpenyelia='${lhu.penyelia_hash}' data-surattugas='${lhu.no_surat_tugas}'>
+                        <div class="col-6 col-md-2 text-center ms-auto d-flex" data-idpenyelia='${lhu.penyelia_hash}' data-surattugas='${lhu.no_surat_tugas}'>
                             ${btnAction}
                         </div>
                         ${divInfoTugas}
@@ -164,4 +226,52 @@ function showHideProgress(obj){
         collapse.innerText = 'Lihat Progress LAB';
     }
     collapse.classList.toggle('show');
+}
+
+function verifikasiPengujian(obj){
+    const idPenyelia = $(obj).parent().data("idpenyelia");
+    let find = dataPenyelia.find(d => d.penyelia_hash == idPenyelia);
+
+    // pisahkan pengguna dan kontrol
+    let findTLD = find.permohonan.kontrak.rincian_list_tld.filter(d => d.status == 3);
+
+    let kode_perusahaan = find.permohonan.pelanggan.perusahaan.kode_perusahaan;
+    $('#list-pengujian').empty();
+
+    for (const kontrak_tld of findTLD) {
+        for (let i = 0; i < kontrak_tld.count; i++) {
+            let tld = kontrak_tld.tld[i];
+
+            let kodeTld = '';
+            if(tld.jenis == 'pengguna') {
+                kodeTld = `${kode_perusahaan}-${kontrak_tld.pengguna.kode_lencana}`;
+
+                $('#list-pengujian').append(`
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="ms-2 me-auto">
+                            <div>${kodeTld}</div>
+                            <div class="fw-bold">${tld.no_seri_tld}</div>
+                        </div>
+                        <div>Jenis Pengujian</div>
+                    </li>
+                `);
+            } else {
+                kodeTld = `${kode_perusahaan}-${kontrak_tld.count > 1 ? `C${i+1}` : 'C'}`;
+                $('#list-pengujian').prepend(`
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="ms-2 me-auto">
+                            <div>${kodeTld}</div>
+                            <div class="fw-bold">${tld.no_seri_tld}</div>
+                        </div>
+                        <div>Jenis Pengujian</div>
+                    </li>
+                `);
+            }
+        }
+    }
+
+    $('#inputPemilik').val(find.permohonan.pelanggan.perusahaan.nama_perusahaan);
+    $('#inputAlamat').text(find.permohonan.pelanggan.perusahaan.alamat[0].alamat);
+    $('#txt_id_penyelia').val(idPenyelia);
+    $('#verify_modal_surat_pengujian').modal('show');
 }

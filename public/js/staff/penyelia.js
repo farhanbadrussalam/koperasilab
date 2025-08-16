@@ -1,10 +1,15 @@
 let tmpPetugas = [];
+let dataPenyelia = false;
 let nowSelect = false;
 let detail = false;
 let filterComp = false;
 let thisTab = 1;
+let modalDoc = false;
 $(function () {
     switchLoadTab(1);
+    modalDoc = new ModalDocument({
+        title: 'Penerbitan Persetujuan Pengujian',
+    });
 
     detail = new Detail({
         jenis: 'penyelia',
@@ -42,6 +47,10 @@ $(function () {
 
     // SETUP FILTER
     filterComp.on('filter.change', () => switchLoadTab(thisTab));
+
+    $('#btnPersetujuan').on('click', () => {
+        modalDoc.show(`laporan/persetujuanPengujian/${nowSelect.permohonan_hash}`);
+    });
 });
 
 function switchLoadTab(menu){
@@ -89,6 +98,7 @@ function loadData(page = 1, menu) {
     ajaxGet(`api/v1/penyelia/list`, params, result => {
         let html = '';
         let divTimelineTugas = [];
+        dataPenyelia = result.data;
         for (const [i, penyelia] of result.data.entries()) {
             const permohonan = penyelia.permohonan;
             let arrPeriode = permohonan.kontrak?.periode ?? permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
@@ -103,9 +113,16 @@ function loadData(page = 1, menu) {
             let htmlStatus = '';
             let aktifJobs = '';
             let htmlPeriode = '';
+
+            // status jobs yang aktif
+            htmlStatus = statusFormat('penyelia', penyelia.status);
+            aktifJobs = penyelia.penyelia_map.filter(d => d.status == 1);
+            aktifJobs.map(d => {
+                htmlStatus += statusFormat('penyelia', d.jobs.status);
+            });
+            btnAction += '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
             switch (menu) {
                 case 'surattugas':
-                    btnAction += '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
                     if(penyelia.status == 1) {
                         btnAction += `<a class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"><i class="bi bi-plus"></i> Surat Tugas</a>`;
                     }else if(penyelia.status == 2) {
@@ -114,7 +131,9 @@ function loadData(page = 1, menu) {
                             <a class="btn btn-outline-warning btn-sm" href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"><i class="bi bi-pencil-square"></i> Edit</a>
                             <button class="btn btn-outline-danger btn-sm mt-1" onclick="btnDelete(this)"><i class="bi bi-trash"></i> Hapus</button>
                         `;
-                    }else{
+                    } else if(penyelia.status == 5) {
+                        btnAction += `<button onclick="createPengujian('${penyelia.penyelia_hash}')" class="btn btn-outline-primary btn-sm" title="Buat Surat Pengujian" ><i class="bi bi-plus"></i> Surat Pengujian</button>`;
+                    } else if(penyelia.status != 6) {
                         btnAction += `
                             <a class="btn btn-outline-info btn-sm" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Lihat</a>
                         `;
@@ -140,12 +159,6 @@ function loadData(page = 1, menu) {
                         });
                         divTimelineTugas.push(timeLine);
                     }
-                    // status jobs yang aktif
-                    htmlStatus = statusFormat('penyelia', penyelia.status);
-                    aktifJobs = penyelia.penyelia_map.filter(d => d.status == 1);
-                    aktifJobs.map(d => {
-                        htmlStatus += statusFormat('penyelia', d.jobs.status);
-                    });
 
                     htmlPeriode = !permohonan.periode ? 'Zero cek' : 'Periode '+permohonan.periode;
                     if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
@@ -444,4 +457,76 @@ function setProses(prosesNow){
     nowSelect.prosesNext = prosesNext;
 
     $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
+}
+
+function createPengujian(id){
+    let find = dataPenyelia.find(d => d.penyelia_hash == id);
+
+    // pisahkan pengguna dan kontrol
+    let findTLD = find.permohonan.kontrak.rincian_list_tld.filter(d => d.status == 3);
+
+    let kode_perusahaan = find.permohonan.pelanggan.perusahaan.kode_perusahaan;
+    $('#list-pengujian').empty();
+
+    for (const kontrak_tld of findTLD) {
+        for (let i = 0; i < kontrak_tld.count; i++) {
+            let tld = kontrak_tld.tld[i];
+
+            let kodeTld = '';
+            if(tld.jenis == 'pengguna') {
+                kodeTld = `${kode_perusahaan}-${kontrak_tld.pengguna.kode_lencana}`;
+
+                $('#list-pengujian').append(`
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="ms-2 me-auto">
+                            <div>${kodeTld}</div>
+                            <div class="fw-bold">${tld.no_seri_tld}</div>
+                        </div>
+                        <div>Jenis Pengujian</div>
+                    </li>
+                `);
+            } else {
+                kodeTld = `${kode_perusahaan}-${kontrak_tld.count > 1 ? `C${i+1}` : 'C'}`;
+                $('#list-pengujian').prepend(`
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div class="ms-2 me-auto">
+                            <div>${kodeTld}</div>
+                            <div class="fw-bold">${tld.no_seri_tld}</div>
+                        </div>
+                        <div>Jenis Pengujian</div>
+                    </li>
+                `);
+            }
+        }
+    }
+
+    $('#inputPemilik').val(find.permohonan.pelanggan.perusahaan.nama_perusahaan);
+    $('#inputAlamat').text(find.permohonan.pelanggan.perusahaan.alamat[0].alamat);
+    $('#txt_id_penyelia').val(id);
+    $('#create_modal_surat_pengujian').modal('show');
+}
+
+
+
+function btnCreatePengujian(obj){
+    let id = $('#txt_id_penyelia').val();
+    spinner('show', $(obj));
+    const form = new FormData();
+    form.append('idPenyelia', id);
+    form.append('status', 6);
+    ajaxPost(`api/v1/penyelia/createPengujian`, form, result => {
+        spinner('hide', $(obj));
+        if(result.meta.code == 200){
+            spinner('hide', $(obj));
+            $('#create_modal_surat_pengujian').modal('hide');
+            reload();
+        }else{
+            Swal.fire({
+                icon: "error",
+                text: result.data.msg,
+            });
+        }
+    }, error => {
+        spinner('hide', $(obj));
+    });
 }

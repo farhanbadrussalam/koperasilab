@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
         Route::post('/tambahPengguna', 'tambahPengguna');
+        Route::get('/createKontrak/{idPermohonan}/{noKontrak}', 'createKontrak');
         Route::post('/action_tld', 'action_tld');
         Route::delete('/destroyPengguna/{idPengguna}', 'destroyPengguna');
         Route::get('/getChildJenisLayanan/{idParent}', 'getChildJenisLayanan');
@@ -117,6 +118,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', 'actionPenyelia');
         Route::post('/actionSuratTugas', 'actionSuratTugas');
         Route::post('/actionJobProses', 'actionJobProses');
+        Route::post('/approvePengujian', 'approvePengujian');
+        Route::post('/createPengujian', 'createPengujian');
         Route::get('/list', 'listPenyelia');
         Route::get('/listPetugas', 'getListPetugas');
         Route::get('/getById/{idPenyelia}', 'getPenyeliaById');

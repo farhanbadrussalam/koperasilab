@@ -18,6 +18,9 @@ class Permohonan_dokumen extends Model
         'nama',
         'status',
         'jenis',
+        'ttd',
+        'ttd_by',
+        'catatan',
         'created_by',
         'created_at',
     ];

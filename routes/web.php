@@ -111,6 +111,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/surpeng/{id}/{periode}', 'suratPengantar')->name('laporan.surpeng');
             Route::get('/perjanjian/{id}', 'perjanjian')->name('laporan.perjanjian');
             Route::get('/label/{id}', 'label')->name('laporan.label');
+            Route::get('/persetujuanPengujian/{id}', 'persetujuanPengujian')->name('laporan.persetujuanPengujian');
         });
     });
 

@@ -310,6 +310,10 @@ class KeuanganAPI extends Controller
                 $data['created_by'] = Auth::user()->id;
             }
 
+            if($status == 4) { // sudah di bayar perlu verifikasi
+                $data['paid_at'] = date('Y-m-d H:i:s');
+            }
+
             $keuangan = Keuangan::updateOrCreate(
                 ["id_keuangan" => $idKeuangan],
                 $data
@@ -334,6 +338,20 @@ class KeuanganAPI extends Controller
                     'nomer' => $keuangan->no_invoice
                 ));
             }
+
+            if($status == 5){ // Diterima
+                // Buat dokumen kwitansi
+                $no_kwitansi = generateNoDokumen('kwitansi', $keuangan->id_permohonan);
+                $document = Permohonan_dokumen::create(array(
+                    'id_permohonan' => $keuangan->id_permohonan,
+                    'created_by' => Auth::user()->id,
+                    'nama' => 'Kwitansi',
+                    'jenis' => 'kwitansi',
+                    'status' => 1,
+                    'nomer' => $no_kwitansi
+                ));
+            }
+
 
             DB::commit();
 

@@ -29,6 +29,7 @@ class Keuangan extends Model
         'plt',
         'total_harga',
         'created_at',
+        'paid_at',
         'created_by'
     ];
 

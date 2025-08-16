@@ -1,6 +1,6 @@
 const tmpArrEvaluasi = ['KontrakEvaluasi', 'EvaluasiTanpaKontrak'];
 const tmpArrSewa = ['KontrakSewa'];
-const tmpArrZeroCek = [];
+const tmpArrPutus = ['EvaluasiTanpaKontrak', 'ZerocekTanpaKontrak'];
 /**
  * Formats a number into Indonesian Rupiah currency format.
  *
@@ -361,6 +361,7 @@ function statusFormat(feature, status) {
     } else if (feature == 'penyelia') {
         switch (status){
             case 1:
+            case 5:
                 htmlStatus = `
                     <span class="badge bg-secondary-subtle text-dark border">Pengajuan</span>
                 `;
@@ -373,6 +374,11 @@ function statusFormat(feature, status) {
             case 3:
                 htmlStatus = `
                     <span class="badge bg-success-subtle text-dark border">LHU Selesai</span>
+                `;
+                break;
+            case 6:
+                htmlStatus = `
+                    <span class="badge bg-primary-subtle text-dark border">TTD Pengujian</span>
                 `;
                 break;
             case 11:
@@ -397,7 +403,7 @@ function statusFormat(feature, status) {
                 break;
             case 15:
                 htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Pendatanganan LHU</span>
+                    <span class="badge bg-primary-subtle text-dark border">Proses Penandatanganan LHU</span>
                 `;
                 break;
             case 16:
@@ -1101,6 +1107,7 @@ function contenMetodePembayaran(content, variabels = []){
 }
 
 function getPeriodeAwal(data) {
+    let JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
     let periodeAwal = [];
     if(data.is_zerocek == 1) {
         if(data.is_have_tld == 0){
@@ -1109,7 +1116,7 @@ function getPeriodeAwal(data) {
             periodeAwal = [1, 2];
         }
     } else if(data.is_zerocek == 0) {
-        if(data.is_have_tld == 1){
+        if(data.is_have_tld == 1 && JL != 'EvaluasiTanpaKontrak'){
             periodeAwal = [1, 2];
         }
     }

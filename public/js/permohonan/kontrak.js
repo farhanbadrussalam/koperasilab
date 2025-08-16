@@ -92,10 +92,6 @@ function loadData(page = 1) {
             let arrFind = ['invoice','tld', 'lhu'];
             const JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
 
-            // if(tmpArrSewa.includes(JL) || tmpArrEvaluasi.includes(JL)){
-            //     arrFind.push('lhu');
-            // }
-
             for (const pengiriman of data.pengiriman) {
                 let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
                 if(detail.length > 0){

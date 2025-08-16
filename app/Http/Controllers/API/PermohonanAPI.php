@@ -956,26 +956,15 @@ class PermohonanAPI extends Controller
         try {
             $arrayUpdate = array();
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
-            $dataPermohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
+            $dataPermohonan = Permohonan::with('jenis_layanan', 'jenis_layanan_parent')->where('id_permohonan', $idPermohonan)->first();
             if($dataPermohonan){
                 if($status == 'lengkap'){
                     $ttd = $request->ttd ? $request->ttd : null;
                     $no_kontrak = null;
 
-                    // mengecek apakah harus generate kontrak atau tidak
-                    // switch ($dataPermohonan->jenis_layanan_2) {
-                    //     case 2: // kontrak - sewa
-                    //     case 3: // kontrak - Evaluasi
-                    //     case 5: // evaluasi - Dengan kontrak
-                    //     case 8: // zero cek - Dengan kontrak
-                    //         break;
-                    //     }
-                    if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                        $no_kontrak = $this->generateNoKontrak($idPermohonan);
-                    }
-
                     // menambahkan tld
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
+                        $no_kontrak = $this->generateNoKontrak($idPermohonan);
                         $listTld = $request->listTld ? json_decode($request->listTld) : [];
 
                         foreach ($listTld as $item) {
@@ -1024,110 +1013,8 @@ class PermohonanAPI extends Controller
                     )->find($idPermohonan);
 
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                        $params = array(
-                            'id_layanan' => $dataPermohonan->id_layanan,
-                            'jenis_layanan_1' => $dataPermohonan->jenis_layanan_1,
-                            'jenis_layanan_2' => $dataPermohonan->jenis_layanan_2,
-                            'tipe_kontrak' => $dataPermohonan->tipe_kontrak,
-                            'no_kontrak' => $no_kontrak,
-                            'jenis_tld' => $dataPermohonan->jenis_tld,
-                            'periode_next' => $dataPermohonan->periode_next,
-                            'jumlah_pengguna' => $dataPermohonan->jumlah_pengguna,
-                            'jumlah_kontrol' => $dataPermohonan->jumlah_kontrol,
-                            'total_harga' => $dataPermohonan->total_harga,
-                            'harga_layanan' => $dataPermohonan->harga_layanan,
-                            'ttd' => $dataPermohonan->ttd,
-                            'ttd_by' => $dataPermohonan->ttd_by,
-                            'status' => 1,
-                            'note' => $dataPermohonan->note,
-                            'file_lhu' => $dataPermohonan->file_lhu,
-                            'id_pelanggan' => $dataPermohonan->created_by,
-                            'is_have_tld' => $dataPermohonan->is_have_tld,
-                            'is_zerocek' => $dataPermohonan->is_zerocek,
-                            'created_by' => Auth::user()->id
-                        );
-                        $dataKontrak = Kontrak::create($params);
-
-                        // Tambah periode
-                        if($dataPermohonan->periode_pemakaian){
-                            if($dataPermohonan->is_zerocek == 1 && $dataPermohonan->is_have_tld == 0){
-                                // zero cek
-                                Kontrak_periode::create(array(
-                                    'id_kontrak' => $dataKontrak->id_kontrak,
-                                    'periode' => 0,
-                                    'start_date' => null,
-                                    'end_date' => null,
-                                    'status' => 1,
-                                    'id_permohonan' => $dataPermohonan->id_permohonan,
-                                    'created_by' => Auth::user()->id,
-                                    'created_at' => date('Y-m-d H:i:s')
-                                ));
-                            }
-
-                            foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
-                                $periode = $key + 1;
-
-                                $paramsPeriode = array(
-                                    'id_kontrak' => $dataKontrak->id_kontrak,
-                                    'periode' => $periode,
-                                    'start_date' => $value['start_date'],
-                                    'end_date' => $value['end_date'],
-                                    'status' => 1,
-                                    'count_tld' => $periode == 1 ? 1 : null,
-                                    'id_permohonan' => $dataPermohonan->periode == $periode ? $dataPermohonan->id_permohonan : null,
-                                    'created_by' => Auth::user()->id,
-                                    'created_at' => date('Y-m-d H:i:s')
-                                );
-                                Kontrak_periode::create($paramsPeriode);
-                            }
-                        }
-
-                        // menambahkan permohonan TLD
-                        if($dataPermohonan->rincian_list_tld){
-                            foreach ($dataPermohonan->rincian_list_tld as $key => $value) {
-                                $kontrakPenggunaId = null;
-                                if(isset($value->id_pengguna)){
-                                    // mengaktifkan status master_pengguna
-                                    // kondisi ketika permohonan di verifikasi
-                                    Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 3));
-                                }
-                                $paramsTld = array(
-                                    'id_kontrak' => $dataKontrak->id_kontrak,
-                                    'id_tld' => $value->id_tld,
-                                    'id_pengguna' => $value->id_pengguna,
-                                    'id_divisi' => $value->id_divisi,
-                                    // 'periode' => $dataPermohonan->periode ? $dataPermohonan->periode : 1,
-                                    'status' => $dataPermohonan->is_have_tld == 1 ? 3 : 5,
-                                    'count' => $value->count,
-                                    'count_tld' => 1,
-                                    'created_by' => Auth::user()->id
-                                );
-                                Kontrak_tld::create($paramsTld);
-                            }
-                        }
-
-                        // Menambahkan id_kontrak ke table permohonan
-                        $dataPermohonan->update(array('id_kontrak' => $dataKontrak->id_kontrak));
-
-                        // menambahkan dokumen perjanjian
-                        $data = array(
-                            'id_permohonan' => $idPermohonan,
-                            'created_by' => Auth::user()->id,
-                            'nama' => 'Surat kontrak ('.convert_date($arrayUpdate['verify_at'], 6).')',
-                            'jenis' => 'perjanjian',
-                            'status' => 1,
-                            'nomer' => $no_kontrak
-                        );
-                        $document = Permohonan_dokumen::create($data);
+                        $this->createdKontrak($request->idPermohonan, $no_kontrak);
                     }
-
-                    // Memindahkan Permohonan ke tabel kontrak
-                    // switch ($dataPermohonan->jenis_layanan_1) {
-                    //     case 1: // Kontrak
-                    //     case 7: // Zero cek
-
-                    //         break;
-                    // }
 
                     if($dataPermohonan->jenis_layanan_2 == 5){
                         // Membuat kontrak_tld
@@ -1183,7 +1070,14 @@ class PermohonanAPI extends Controller
                     // Proses ke penyelia
                     $arrValidPenyelia = [2, 3, 5, 6];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidPenyelia)){
-                        $penyeliaData = $this->createPenyelia($dataPermohonan->permohonan_hash);
+                        $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
+                        if(in_array($JL, $this->global['arr_putus'])) {
+                            $status = 5;
+                        } else {
+                            $status = 1;
+                        }
+
+                        $penyeliaData = $this->createPenyelia($dataPermohonan->permohonan_hash, $status);
 
                         if(!$penyeliaData){
                             throw new \Exception('Gagal membuat penyelia');
@@ -1275,6 +1169,116 @@ class PermohonanAPI extends Controller
 
     }
 
+    public function createdKontrak($idPermohonan, $no_kontrak)
+    {
+        $idPermohonan = decryptor($idPermohonan);
+        $dataPermohonan = Permohonan::with(
+            'kontrak',
+            'jenis_layanan_parent',
+            'jenisTld',
+            'layanan_jasa',
+            'rincian_list_tld'
+        )->find($idPermohonan);
+        $params = array(
+            'id_layanan' => $dataPermohonan->id_layanan,
+            'jenis_layanan_1' => $dataPermohonan->jenis_layanan_1,
+            'jenis_layanan_2' => $dataPermohonan->jenis_layanan_2,
+            'tipe_kontrak' => $dataPermohonan->tipe_kontrak,
+            'no_kontrak' => $no_kontrak,
+            'jenis_tld' => $dataPermohonan->jenis_tld,
+            'periode_next' => $dataPermohonan->periode_next,
+            'jumlah_pengguna' => $dataPermohonan->jumlah_pengguna,
+            'jumlah_kontrol' => $dataPermohonan->jumlah_kontrol,
+            'total_harga' => $dataPermohonan->total_harga,
+            'harga_layanan' => $dataPermohonan->harga_layanan,
+            'ttd' => $dataPermohonan->ttd,
+            'ttd_by' => $dataPermohonan->ttd_by,
+            'status' => 1,
+            'note' => $dataPermohonan->note,
+            'file_lhu' => $dataPermohonan->file_lhu,
+            'id_pelanggan' => $dataPermohonan->created_by,
+            'is_have_tld' => $dataPermohonan->is_have_tld,
+            'is_zerocek' => $dataPermohonan->is_zerocek,
+            'created_by' => Auth::user()->id
+        );
+        $dataKontrak = Kontrak::create($params);
+
+        // Tambah periode
+        if($dataPermohonan->periode_pemakaian){
+            if($dataPermohonan->is_zerocek == 1 && $dataPermohonan->is_have_tld == 0){
+                // zero cek
+                Kontrak_periode::create(array(
+                    'id_kontrak' => $dataKontrak->id_kontrak,
+                    'periode' => 0,
+                    'start_date' => null,
+                    'end_date' => null,
+                    'status' => 1,
+                    'id_permohonan' => $dataPermohonan->id_permohonan,
+                    'created_by' => Auth::user()->id,
+                    'created_at' => date('Y-m-d H:i:s')
+                ));
+            }
+
+            foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
+                $periode = $key + 1;
+
+                $paramsPeriode = array(
+                    'id_kontrak' => $dataKontrak->id_kontrak,
+                    'periode' => $periode,
+                    'start_date' => $value['start_date'],
+                    'end_date' => $value['end_date'],
+                    'status' => 1,
+                    'count_tld' => $periode == 1 ? 1 : null,
+                    'id_permohonan' => $dataPermohonan->periode == $periode ? $dataPermohonan->id_permohonan : null,
+                    'created_by' => Auth::user()->id,
+                    'created_at' => date('Y-m-d H:i:s')
+                );
+                Kontrak_periode::create($paramsPeriode);
+            }
+        }
+
+        // menambahkan permohonan TLD
+        if($dataPermohonan->rincian_list_tld){
+            foreach ($dataPermohonan->rincian_list_tld as $key => $value) {
+                $kontrakPenggunaId = null;
+                if(isset($value->id_pengguna)){
+                    // mengaktifkan status master_pengguna
+                    // kondisi ketika permohonan di verifikasi
+                    Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 3));
+                }
+                $paramsTld = array(
+                    'id_kontrak' => $dataKontrak->id_kontrak,
+                    'id_tld' => $value->id_tld,
+                    'id_pengguna' => $value->id_pengguna,
+                    'id_divisi' => $value->id_divisi,
+                    // 'periode' => $dataPermohonan->periode ? $dataPermohonan->periode : 1,
+                    'status' => $dataPermohonan->is_have_tld == 1 ? 3 : 5,
+                    'count' => $value->count,
+                    'count_tld' => 1,
+                    'created_by' => Auth::user()->id
+                );
+                Kontrak_tld::create($paramsTld);
+            }
+        }
+
+        // Menambahkan id_kontrak ke table permohonan
+        $dataPermohonan->update(array('id_kontrak' => $dataKontrak->id_kontrak));
+
+        $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
+        if(!in_array($JL, $this->global['arr_putus'])){ // jika bukan Evaluasi putus
+            // menambahkan dokumen perjanjian kontrak
+            $data = array(
+                'id_permohonan' => $idPermohonan,
+                'created_by' => Auth::user()->id,
+                'nama' => 'Surat kontrak ('.convert_date($dataPermohonan->verify_at, 6).')',
+                'jenis' => 'perjanjian',
+                'status' => 1,
+                'nomer' => $no_kontrak
+            );
+            $document = Permohonan_dokumen::create($data);
+        }
+    }
+
     private function generateNoKontrak($idPermohonan)
     {
         $permohonan = Permohonan::with('jenis_layanan')->where('id_permohonan', $idPermohonan)->first();
@@ -1329,10 +1333,10 @@ class PermohonanAPI extends Controller
         }
     }
 
-    private function createPenyelia($idPermohonan){
+    private function createPenyelia($idPermohonan, $status){
         $params = [
             'idPermohonan' => $idPermohonan,
-            'status' => 1
+            'status' => $status
         ];
 
         // Make a request to your keuanganAction endpoint

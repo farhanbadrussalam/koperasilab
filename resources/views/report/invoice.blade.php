@@ -15,7 +15,7 @@
                     <tr>
                         <td>Nomor</td>
                         <td>:</td>
-                        <td class="text-left">{{ $data->permohonan->kontrak?->no_kontrak ?? '-' }}</td>
+                        <td class="text-left">{{ $data->no_invoice ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td>Lampiran</td>
@@ -30,7 +30,7 @@
                     </tr>
                 </table>
             </td>
-            <td>Tangerang Selatan, {{ convert_date($date, 2) }}</td>
+            <td>Tangerang Selatan, {{ convert_date($data->permohonan->dokumen[0]->created_at, 2) }}</td>
         </tr>
     </table>
     <div class="header" style="line-height: 1.3em">
@@ -121,17 +121,19 @@
     <table style="width: 100%;">
         <tr>
             <td width="50%" class="align-top text-center">
+                @if($is_catatan)
                 <div class="payment-notice">
                     PEMBAYARAN MAX 30 HARI<br>
                     DARI TANGGAL INVOICE<br>
                     KORESPONDENSI<br>
                     TELP. 021 - 74786334
                 </div>
+                @endif
             </td>
             <td width="50%" style="text-align: center;">
                 <div class="p-2">
                     @if ($data->ttd)
-                    <div class="img-stempel">
+                    <div class="img-stempel" style="right: 10rem;">
                         <img src="{{ $stempel }}" class="img-fluid" alt="Stempel-Lab">
                     </div>
                     @endif

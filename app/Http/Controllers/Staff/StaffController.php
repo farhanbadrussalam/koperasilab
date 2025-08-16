@@ -169,10 +169,15 @@ class StaffController extends Controller
         }else{
             // Mengambil jobs dari layanan jasa
             $type = '';
-            if($query->permohonan->is_have_tld == 1){
-                $type = 'havetld';
-            } else if ($query->permohonan->is_have_tld == 0) {
-                $type = 'nonhavetld';
+            $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
+            if(in_array($JL, $this->global['arr_putus'])) {
+                $type = 'putus';
+            } else {
+                if($query->permohonan->is_have_tld == 1){
+                    $type = 'havetld';
+                } else if ($query->permohonan->is_have_tld == 0) {
+                    $type = 'nonhavetld';
+                }
             }
             $listJobs = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs;
             $listJobsParalel = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs_paralel;

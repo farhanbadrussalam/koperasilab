@@ -33,7 +33,8 @@ class Kontrak_periode extends Model
 
     protected $appends = [
         'periode_hash',
-        'permohonan_hash'
+        'permohonan_hash',
+        'tld_in_periode'
     ];
 
     protected $casts = [
@@ -55,6 +56,14 @@ class Kontrak_periode extends Model
         return encryptor($this->id_permohonan);
     }
 
+    public function getTldInPeriodeAttribute(){
+        $idKontrak = $this->id_kontrak;
+        $countTld = $this->count_tld;
+        $get = Kontrak_tld::with('pengguna')->where('id_kontrak', $idKontrak)->where('count_tld', $countTld)->get();
+
+        return count($get) > 0 ? $get : null;
+    }
+
     public function kontrak(){
         return $this->belongsTo(Kontrak::class,'id_kontrak', 'id_kontrak');
     }
@@ -65,5 +74,9 @@ class Kontrak_periode extends Model
 
     public function penyelia() {
         return $this->belongsTo(Penyelia::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function getTldInPeriode(){
+        return $this->hasMany(Kontrak_tld::class, 'id_periode', 'id_periode');
     }
 }
