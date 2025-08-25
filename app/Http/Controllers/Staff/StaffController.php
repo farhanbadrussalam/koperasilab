@@ -219,7 +219,7 @@ class StaffController extends Controller
 
     public function verifikasiPermohonan($idPermohonan)
     {
-        $arrTandaTerima = [1,4];
+        $arrTandaTerima = [1,4, 7];
         $id = decryptor($idPermohonan);
         $pertanyaan_tr = false;
         $dataPermohonan = Permohonan::with(

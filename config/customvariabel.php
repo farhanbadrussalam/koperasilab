@@ -1,13 +1,8 @@
 <?php
     return [
-        'arr_evaluasi' => [
-            0 => 'EvaluasiDenganKontrak',
-            1 => 'KontrakEvaluasi'
-        ],
-        'arr_sewa' => [
-            0 => 'KontrakSewa',
-        ],
-        'arr_putus' => ['EvaluasiTanpaKontrak','ZerocekTanpaKontrak'],
+        'arr_evaluasi' => ['EvaluasiDenganKontrak','KontrakEvaluasi'],
+        'arr_sewa' => ['KontrakSewa'],
+        'arr_putus' => ['EvaluasiTanpaKontrak','ZeroCekTanpaKontrak'],
 
         'catatan_invoice' => ['EvaluasiTanpaKontrak'],
 

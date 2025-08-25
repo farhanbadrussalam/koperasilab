@@ -19,7 +19,7 @@ class Master_pertanyaan extends Model
         'mandatory'
     ];
     protected $hidden = [
-        'id_pertanyaan',
+        // 'id_pertanyaan',
     ];
     protected $appends = [
         'pertanyaan_hash'

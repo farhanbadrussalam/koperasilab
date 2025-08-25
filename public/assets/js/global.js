@@ -1,6 +1,7 @@
 const tmpArrEvaluasi = ['KontrakEvaluasi', 'EvaluasiTanpaKontrak'];
 const tmpArrSewa = ['KontrakSewa'];
 const tmpArrPutus = ['EvaluasiTanpaKontrak', 'ZerocekTanpaKontrak'];
+const StringZerocek = 'ZeroCekTanpaKontrak';
 /**
  * Formats a number into Indonesian Rupiah currency format.
  *
@@ -157,7 +158,6 @@ function dateFormat(tanggal, type = false) {
         case 3:
             // 2023-10-14 18:40
             return `${year}-${month}-${day} ${hour}:${minute}`;
-            break;
         case 4:
             // 14 August 2024
             options = {
@@ -173,6 +173,11 @@ function dateFormat(tanggal, type = false) {
             year: 'numeric'
             };
             break;
+        case 6:
+            // Sep'25
+            month = d.toLocaleString('default', { month: 'short' });
+            year = d.getFullYear().toString().slice(2);
+            return `${month}'${year}`;
         default:
             // sabtu, 14 Okt 2023, 18:40
             options = {
@@ -1112,7 +1117,7 @@ function getPeriodeAwal(data) {
     if(data.is_zerocek == 1) {
         if(data.is_have_tld == 0){
             periodeAwal = [0];
-        } else if(data.is_have_tld == 1){
+        } else if(data.is_have_tld == 1 && JL != StringZerocek){
             periodeAwal = [1, 2];
         }
     } else if(data.is_zerocek == 0) {

@@ -14,6 +14,7 @@ class Permohonan_dokumen extends Model
 
     protected $fillable = [
         'id_permohonan',
+        'id_doc_template',
         'nomer',
         'nama',
         'status',
@@ -21,6 +22,7 @@ class Permohonan_dokumen extends Model
         'ttd',
         'ttd_by',
         'catatan',
+        'content_value',
         'created_by',
         'created_at',
     ];
@@ -39,7 +41,9 @@ class Permohonan_dokumen extends Model
         'status' => 'integer',
         'id_dokumen' => 'integer',
         'id_permohonan' => 'integer',
-        'created_by' => 'integer'
+        'created_by' => 'integer',
+        'id_doc_template' => 'integer',
+        'content_value' => 'array'
     ];
 
     public function getDokumenHashAttribute()
@@ -50,5 +54,9 @@ class Permohonan_dokumen extends Model
     public function getPermohonanHashAttribute()
     {
         return encryptor($this->id_permohonan);
+    }
+
+    public function doc_template(){
+        return $this->belongsTo(Documents::class, 'id_doc_template', 'id_doc');
     }
 }

@@ -16,22 +16,24 @@ $(function() {
     // Inisialisasi upload component
     buktiBayar = new UploadComponent('uploadBuktiBayar', {
         camera: false,
-        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg', 'pdf'],
         urlUpload: {
             url: `api/v1/keuangan/uploadBuktiBayar`,
             urlDestroy: `api/v1/keuangan/destroyBuktiBayar`,
             idHash: dataKeuangan.keuangan_hash
-        }
+        },
+        maxSize: 20
     });
 
     buktiBayarPph = new UploadComponent('uploadBuktiBayarPph', {
         camera: false,
-        allowedFileExtensions: ['pdf'],
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg', 'pdf'],
         urlUpload: {
             url: `api/v1/keuangan/uploadBuktiPph`,
             urlDestroy: `api/v1/keuangan/destroyBuktiPph`,
             idHash: dataKeuangan.keuangan_hash
-        }
+        },
+        maxSize: 20
     });
 
     buktiBayar.addData(dataKeuangan.media_bukti_bayar);

@@ -283,7 +283,9 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                 if(dataKontrak[index].is_zerocek == 0 && dataKontrak[index].is_have_tld == 0) {
                     tldSelesai = true;
                 } else if(dataKontrak[index].is_zerocek == 1 && dataKontrak[index].is_have_tld == 1) {
-                    tldSelesai = true;
+                    if(JL != StringZerocek) {
+                        tldSelesai = true;
+                    }
                 }
             }
 

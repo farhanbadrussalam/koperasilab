@@ -63,4 +63,5 @@
             <div style="margin-top: 10px;">( {{ $data->lhu->usersig ? $data->lhu->usersig->name : '................................' }} )</div>
         </div>
     </div>
+    @include('report.template.footer')
 @endsection

@@ -46,6 +46,12 @@ $(function () {
         htmlDisabled = true;
     }
 
+    if(StringZerocek == JL){
+        if(dataKontrak.is_have_tld == 1) {
+            htmlDisabled = true;
+        }
+    }
+
     loadTld();
 
     $('#checkAllTldPengguna').on('change', function() {

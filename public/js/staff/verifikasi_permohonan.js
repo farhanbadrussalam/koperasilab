@@ -283,7 +283,11 @@ function loadTldKontrol(tldKontrol){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
         let htmlDisabled = false;
-        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
+        // if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
+        //     htmlDisabled = true;
+        // }
+
+        if(dataPermohonan.is_have_tld){
             htmlDisabled = true;
         }
         let index = 0;
@@ -300,11 +304,9 @@ function loadTldKontrol(tldKontrol){
                 } else if(result.data[index]){
                     tldHash = result.data[index].tld_hash;
                     no_seri_tld = result.data[index].no_seri_tld;
-                    htmlDisabled = false;
                 } else {
                     tldHash = '';
                     no_seri_tld = '';
-                    htmlDisabled = false;
                 }
 
                 tmpArrTld.push({
@@ -345,7 +347,11 @@ function loadPengguna(){
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         let html = '';
         let htmlDisabled = false;
-        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
+        // if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
+        //     htmlDisabled = true;
+        // }
+
+        if(dataPermohonan.is_have_tld){
             htmlDisabled = true;
         }
 

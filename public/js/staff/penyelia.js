@@ -461,46 +461,65 @@ function setProses(prosesNow){
 
 function createPengujian(id){
     let find = dataPenyelia.find(d => d.penyelia_hash == id);
+    // jenis pengujian
+    let zrcek = find.permohonan.is_zerocek ? 'Zero Cek' : '';
+    let lJasa = find.permohonan.layanan_jasa.nama_layanan;
+    let jTld = find.permohonan.jenis_tld.name;
+    let jenisPengujian = zrcek + ' ' + lJasa + ' ' + jTld;
+    $('#list-sample').empty();
 
-    // pisahkan pengguna dan kontrol
-    let findTLD = find.permohonan.kontrak.rincian_list_tld.filter(d => d.status == 3);
+    // sample
+    let htmlSample = `<div>${lJasa} ${jTld}</div>`;
 
-    let kode_perusahaan = find.permohonan.pelanggan.perusahaan.kode_perusahaan;
-    $('#list-pengujian').empty();
+    $('#list-sample').append(htmlSample);
+    let kontrak = find.permohonan.kontrak;
 
-    for (const kontrak_tld of findTLD) {
-        for (let i = 0; i < kontrak_tld.count; i++) {
-            let tld = kontrak_tld.tld[i];
+    // template surat pengujian
+    let template = find.template_surat.find(d => d.name == 'SuratPengujian');
 
-            let kodeTld = '';
-            if(tld.jenis == 'pengguna') {
-                kodeTld = `${kode_perusahaan}-${kontrak_tld.pengguna.kode_lencana}`;
+    // periode
+    for (const periode of kontrak.periode) {
+        if(periode.periode != 0) {
+            let startDate = dateFormat(periode.start_date, 6);
+            let endDate = dateFormat(periode.end_date, 6);
 
-                $('#list-pengujian').append(`
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div class="ms-2 me-auto">
-                            <div>${kodeTld}</div>
-                            <div class="fw-bold">${tld.no_seri_tld}</div>
-                        </div>
-                        <div>Jenis Pengujian</div>
-                    </li>
-                `);
-            } else {
-                kodeTld = `${kode_perusahaan}-${kontrak_tld.count > 1 ? `C${i+1}` : 'C'}`;
-                $('#list-pengujian').prepend(`
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div class="ms-2 me-auto">
-                            <div>${kodeTld}</div>
-                            <div class="fw-bold">${tld.no_seri_tld}</div>
-                        </div>
-                        <div>Jenis Pengujian</div>
-                    </li>
-                `);
-            }
+            $('#list-sample').append(`
+                <div>${kontrak.jumlah_kontrol} + ${kontrak.jumlah_pengguna} ${startDate} - ${endDate}</div>
+            `);
         }
     }
 
-    $('#inputPemilik').val(find.permohonan.pelanggan.perusahaan.nama_perusahaan);
+    // load pertanyaan
+    let htmlPertanyaan = '';
+    for (const [i,pertanyaan] of template.data_pertanyaan.entries()) {
+        let htmlAnswer = ``;
+        let htmlMandatory = pertanyaan.mandatory ? '<span class="text-danger ml-2">*</span>' : '';
+        if(pertanyaan.type == 2) {
+            htmlAnswer = `
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="answer_${i}" id="answer_${i}_siap" value="siap">
+                    <label class="form-check-label" for="answer_${i}_siap">Siap</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="answer_${i}" id="answer_${i}_tidak_siap" value="tidak siap">
+                    <label class="form-check-label" for="answer_${i}_tidak_siap">Tidak Siap</label>
+                </div>
+            </div>
+            `;
+        }
+        htmlPertanyaan += `
+            <div class="mb-3">
+                <label for="" class="mb-2">${pertanyaan.pertanyaan+htmlMandatory}</label>
+                ${htmlAnswer}
+            </div>
+        `;
+    }
+
+    $('#content-pertanyaan').html(htmlPertanyaan);
+
+    $('#inputJenisPengujian').text(jenisPengujian);
+    $('#inputPemilik').text(find.permohonan.pelanggan.perusahaan.nama_perusahaan);
     $('#inputAlamat').text(find.permohonan.pelanggan.perusahaan.alamat[0].alamat);
     $('#txt_id_penyelia').val(id);
     $('#create_modal_surat_pengujian').modal('show');
@@ -511,22 +530,63 @@ function createPengujian(id){
 function btnCreatePengujian(obj){
     let id = $('#txt_id_penyelia').val();
     spinner('show', $(obj));
-    const form = new FormData();
-    form.append('idPenyelia', id);
-    form.append('status', 6);
-    ajaxPost(`api/v1/penyelia/createPengujian`, form, result => {
-        spinner('hide', $(obj));
-        if(result.meta.code == 200){
-            spinner('hide', $(obj));
-            $('#create_modal_surat_pengujian').modal('hide');
-            reload();
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: result.data.msg,
-            });
+
+    // sanity cek pertanyaan
+    let find = dataPenyelia.find(d => d.penyelia_hash == id);
+    let template = find.template_surat.find(d => d.name == 'SuratPengujian');
+    let pertanyaan = template.data_pertanyaan;
+    let answers = [];
+    let status = true;
+    for (const [i, value] of pertanyaan.entries()) {
+        let answer = $('input[name="answer_'+i+'"]:checked').val();
+        answers.push({
+            id: value.pertanyaan_hash,
+            answer,
+        });
+        if(answer == undefined){
+            status = false;
         }
-    }, error => {
+    }
+
+    if(!status){
         spinner('hide', $(obj));
-    });
+        Swal.fire({
+            icon: "warning",
+            text: 'Lengkapi pertanyaan terlebih dahulu',
+        });
+        return;
+    }
+
+    Swal.fire({
+        icon: 'question',
+        text: 'Apakah anda yakin ingin membuat pengujian?',
+        showCancelButton: true,
+        confirmButtonText: 'Ya',
+        cancelButtonText: 'Tidak',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = new FormData();
+            form.append('idPenyelia', id);
+            form.append('status', 6);
+            form.append('answers', JSON.stringify(answers));
+            ajaxPost(`api/v1/penyelia/createPengujian`, form, result => {
+                spinner('hide', $(obj));
+                if(result.meta.code == 200){
+                    spinner('hide', $(obj));
+                    $('#create_modal_surat_pengujian').modal('hide');
+                    reload();
+                }else{
+                    Swal.fire({
+                        icon: "error",
+                        text: result.data.msg,
+                    });
+                }
+            }, error => {
+                spinner('hide', $(obj));
+            });
+        } else {
+            spinner('hide', $(obj));
+        }
+    })
 }

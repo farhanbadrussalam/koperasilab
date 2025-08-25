@@ -76,6 +76,7 @@
             </td>
         </tr>
     </table>
+    @include('report.template.footer')
     <div style="page-break-before: always"></div>
     <div class="fs-3">Lampiran Surat Nomor : {{ $nomer }}</div>
     <div class="fs-3 fw-bold" style="margin-top: 15px;">
@@ -110,4 +111,5 @@
             <td style="padding-left: 5px" class="fw-bold">{{ $countKontrol }} Buah</td>
         </tr>
     </table>
+    @include('report.template.footer')
 @endsection

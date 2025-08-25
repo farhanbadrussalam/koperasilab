@@ -331,31 +331,16 @@ class Invoice {
             let mediaPph = this.dataKeuangan.media_bukti_bayar_pph;
 
             $('#paymentProofImage').empty();
-            let htmlBukti = '';
-            for (const bukti of media) {
-                htmlBukti += `
-                    <li class="w-50">
-                        <a class="show-popup-image" href="${base_url}/storage/${bukti.file_path}/${bukti.file_hash}">
-                        <img src="${base_url}/storage/${bukti.file_path}/${bukti.file_hash}" alt="Bukti Pembayaran" class="img-fluid rounded img-thumbnail">
-                        </a>
-                    </li>
-                `;
-            }
-            $('#paymentProofImage').html(htmlBukti);
+            let previewBukti = new UploadComponent('paymentProofImage', {
+                mode: 'preview',
+                data: media
+            });
 
             $('#paymentPphProof').empty();
-
-            let option = {
-                download: true,
-                date: true
-            }
-            for (const buktiPph of mediaPph) {
-                let med = printMedia(buktiPph, false, option)
-                let divLi = document.createElement('li');
-                divLi.className = 'w-100 mb-2';
-                divLi.append(med);
-                $('#paymentPphProof').append(divLi);
-            }
+            let previewPph = new UploadComponent('paymentPphProof', {
+                mode: 'preview',
+                data: mediaPph
+            });
             showPopupReload();
         }
     }
@@ -870,19 +855,13 @@ class Invoice {
                             </div>
                             <div class="tab-pane fade" id="buktiPayment-tab-pane" role="tabpanel" aria-labelledby="buktiPayment-tab" tabindex="0">
                                 <div id="paymentProofSection" class="mt-3 row">
-                                    <div class="col-6 text-center">
-                                        <h5>Bukti Pembayaran</h5>
-                                        <ul id="paymentProofImage" class="list-group list-group-horizontal">
-                                            <!-- Payment proof image will be inserted here -->
-                                            <div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>
-                                        </ul>
+                                    <div class="col-6">
+                                        <h5 class="text-center">Bukti Pembayaran</h5>
+                                        <div id="paymentProofImage"></div>
                                     </div>
-                                    <div class="col-6 text-center">
-                                        <h5>Bukti PPH</h5>
-                                        <ul id="paymentPphProof" class="list-group">
-                                            <!-- Payment proof image will be inserted here -->
-                                            <div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>
-                                        </ul>
+                                    <div class="col-6">
+                                        <h5 class="text-center">Bukti PPH</h5>
+                                        <div id="paymentPphProof"></div>
                                     </div>
                                 </div>
                             </div>

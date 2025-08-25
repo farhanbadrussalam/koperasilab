@@ -232,45 +232,49 @@ function verifikasiPengujian(obj){
     const idPenyelia = $(obj).parent().data("idpenyelia");
     let find = dataPenyelia.find(d => d.penyelia_hash == idPenyelia);
 
-    // pisahkan pengguna dan kontrol
-    let findTLD = find.permohonan.kontrak.rincian_list_tld.filter(d => d.status == 3);
+    // jenis pengujian
+    let zrcek = find.permohonan.is_zerocek ? 'Zero Cek' : '';
+    let lJasa = find.permohonan.layanan_jasa.nama_layanan;
+    let jTld = find.permohonan.jenis_tld.name;
+    let jenisPengujian = zrcek + ' ' + lJasa + ' ' + jTld;
+    $('#list-sample').empty();
 
-    let kode_perusahaan = find.permohonan.pelanggan.perusahaan.kode_perusahaan;
-    $('#list-pengujian').empty();
+    // sample
+    let htmlSample = `<div>${lJasa} ${jTld}</div>`;
 
-    for (const kontrak_tld of findTLD) {
-        for (let i = 0; i < kontrak_tld.count; i++) {
-            let tld = kontrak_tld.tld[i];
+    $('#list-sample').append(htmlSample);
+    let kontrak = find.permohonan.kontrak;
 
-            let kodeTld = '';
-            if(tld.jenis == 'pengguna') {
-                kodeTld = `${kode_perusahaan}-${kontrak_tld.pengguna.kode_lencana}`;
+    // template surat pengujian
+    let dataSurat = find.permohonan.dokumen.find(d => d.doc_template?.name == 'SuratPengujian');
+    let template = find.template_surat.find(d => d.name == 'SuratPengujian');
 
-                $('#list-pengujian').append(`
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div class="ms-2 me-auto">
-                            <div>${kodeTld}</div>
-                            <div class="fw-bold">${tld.no_seri_tld}</div>
-                        </div>
-                        <div>Jenis Pengujian</div>
-                    </li>
-                `);
-            } else {
-                kodeTld = `${kode_perusahaan}-${kontrak_tld.count > 1 ? `C${i+1}` : 'C'}`;
-                $('#list-pengujian').prepend(`
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div class="ms-2 me-auto">
-                            <div>${kodeTld}</div>
-                            <div class="fw-bold">${tld.no_seri_tld}</div>
-                        </div>
-                        <div>Jenis Pengujian</div>
-                    </li>
-                `);
-            }
-        }
+    // periode
+    for (const periode of kontrak.periode) {
+        let startDate = dateFormat(periode.start_date, 6);
+        let endDate = dateFormat(periode.end_date, 6);
+
+        $('#list-sample').append(`
+            <div>${kontrak.jumlah_kontrol} + ${kontrak.jumlah_pengguna} ${startDate} - ${endDate}</div>
+        `);
     }
 
-    $('#inputPemilik').val(find.permohonan.pelanggan.perusahaan.nama_perusahaan);
+    // load pertanyaan
+    let htmlPertanyaan = '';
+    for (const [i,pertanyaan] of template.data_pertanyaan.entries()) {
+        // mengambil jawaban
+        let answer = dataSurat.content_value?.alasan.find(d => d.id == pertanyaan.id_pertanyaan).answer;
+        htmlPertanyaan += `
+            <div class="mb-3">
+                <label for="" class="mb-2">${pertanyaan.pertanyaan}</label>
+                <div class="rounded border p-2 overflow-auto max-h-max">${answer ? answer : '-'}</div>
+            </div>
+        `;
+    }
+
+    $('#content-pertanyaan').html(htmlPertanyaan);
+    $('#inputJenisPengujian').text(jenisPengujian);
+    $('#inputPemilik').text(find.permohonan.pelanggan.perusahaan.nama_perusahaan);
     $('#inputAlamat').text(find.permohonan.pelanggan.perusahaan.alamat[0].alamat);
     $('#txt_id_penyelia').val(idPenyelia);
     $('#verify_modal_surat_pengujian').modal('show');

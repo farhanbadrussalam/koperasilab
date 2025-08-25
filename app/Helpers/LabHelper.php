@@ -447,7 +447,7 @@ if (!function_exists('generateNoDokumen')) {
                 // Format nomor kontrak
                 $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
                 break;
-            case 'perjanjian_pengujian':
+            case 'KontrakPengujian':
                 // Format nomor kontrak
                 $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
                 break;

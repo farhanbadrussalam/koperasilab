@@ -49,11 +49,10 @@ function loadData(page = 1, menu) {
             data.periode == null ? data.periode = 1 : data.periode;
             let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.detail.find(c => c.jenis == 'tld' && c.periode == data.periode));
             let htmlStatus = '';
-            let isEvaluasiNonZero = tmpArrEvaluasi.includes(JL) && data.is_zerocek == 0;
             let periodeTld = data.periode === 0 ? 1 : data.periode;
             const periodeAwal = getPeriodeAwal(data.kontrak);
 
-            if( periodeTld !== null && (!periodeAwal.includes(data.periode))) {
+            if( periodeTld !== null && (!periodeAwal.includes(periodeTld))) {
                 htmlTld = `
                     <div class="col-md-12 mt-2">
                         <div class="border-top py-2 d-flex justify-content-between align-items-center">

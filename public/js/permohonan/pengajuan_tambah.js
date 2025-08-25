@@ -178,11 +178,11 @@ $(function () {
         let valPeriodeNext = $('#periode_next').attr('data-periode');
         let valjumPengguna = $('#jum_pengguna').val();
         let valjumKontrol = $('#jum_kontrol').val();
-        let valpic = $('#pic').val();
-        let valnoHp = $('#nohp').val();
         let valAlamat = $('#selectAlamat').val();
         let valtotalHarga = $('#total_harga').val();
         let valHargaLayanan = window.price;
+        let haveTld = $('#haveTld').is(':checked');
+        let useZeroCek = $('#useZeroCek').is(':checked');
 
         dataPermohonan.pelanggan.perusahaan.alamat[valAlamat] ? valAlamat = dataPermohonan.pelanggan.perusahaan.alamat[valAlamat].alamat_hash : false;
 
@@ -195,15 +195,6 @@ $(function () {
         if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
         if (valjumPengguna == 0) sanityCek.push('Jumlah Pengguna');
         if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
-
-        // Jika layanan evaluasi
-        // if (tmpArrEvaluasi.entries(JL) && arrKontrolTmp.some(value => !value.kode_lencana)) {
-        //     return Swal.fire({
-        //         icon: 'error',
-        //         title: 'Oops...',
-        //         text: 'Kode lencana tidak boleh kosong!'
-        //     });
-        // }
 
         if(sanityCek.length > 0){
             return Swal.fire({
@@ -239,10 +230,10 @@ $(function () {
                 formData.append('jumlahKontrol', valjumKontrol);
                 formData.append('hargaLayanan', valHargaLayanan);
                 formData.append('totalHarga', valtotalHarga);
-                formData.append('haveTld', haveTldChecked ? 1 : 0);
+                formData.append('haveTld', haveTld ? 1 : 0);
                 formData.append('is_zerocek', useZeroCek ? 1 : 0);
 
-                if(haveTldChecked && useZeroCek) {
+                if(haveTld && useZeroCek) {
                     formData.append('periode', 1);
                 } else {
                     formData.append('periode', useZeroCek ? 0 : 1);
@@ -410,29 +401,26 @@ $(function () {
     });
 
     $('#haveTld').on('change', obj => {
+        let layananActive = jenislayanan({name: $('#jenis_layanan').find(':selected').text()}, {name: $('#jenis_layanan_2').find(':selected').text()});
         if (obj.target.checked) {
-            haveTldChecked = true;
-            useZeroCek = false;
             $('#useZeroCek').prop('checked', false);
-            $('#switch-zerocek').show();
+            if(StringZerocek == layananActive) {
+                $('#useZeroCek').prop('checked', true);
+            } else {
+                $('#switch-zerocek').show();
+            }
         } else {
-            haveTldChecked = false;
-            useZeroCek = true;
-            $('#useZeroCek').prop('checked', false);
-            $('#switch-zerocek').hide();
+            if(StringZerocek == layananActive) {
+                $('#useZeroCek').prop('checked', true);
+            } else {
+                $('#useZeroCek').prop('checked', false);
+                $('#switch-zerocek').hide();
+            }
         }
 
         loadPengguna();
         loadKontrol();
     });
-
-    $('#useZeroCek').on('change', obj => {
-        if (obj.target.checked) {
-            useZeroCek = true;
-        } else {
-            useZeroCek = false;
-        }
-    })
 })
 // js add periode
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
@@ -487,6 +475,7 @@ function loadPengguna(){
     let params = {
         idPermohonan: idPermohonan
     }
+    let haveTld = $('#haveTld').is(':checked');
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         if(result.meta.code == 200){
             let html = '';
@@ -519,7 +508,7 @@ function loadPengguna(){
                                     <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${value.pengguna.pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
                                 </div>
-                                ${tmpArrEvaluasi.includes(JL) && haveTldChecked ? htmlEvaluasi : ``}
+                                ${(tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld ? htmlEvaluasi : ``}
                             </div>
                         </div>
                     `;
@@ -617,6 +606,7 @@ function deleteKontrol(obj){
 </div> */}
 function loadKontrol(){
     let html = '';
+    let haveTld = $('#haveTld').is(':checked');
     ajaxGet(`api/v1/permohonan/loadTld`, {idPermohonan: idPermohonan}, result => {
         // mengambil data kontrol
         arrKontrolTmp = result.data.tldPermohonan.filter(tld => tld.id_divisi || (!tld.id_pengguna && !tld.id_divisi));
@@ -653,7 +643,7 @@ function loadKontrol(){
                         <div class="col-auto text-end">
                             <button type="button" class="btn btn-sm btn-outline-danger" data-id="${kode.permohonan_tld_hash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
-                        ${tmpArrEvaluasi.includes(JL) && haveTldChecked ? htmlEvaluasi : ''}
+                        ${(tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld ? htmlEvaluasi : ''}
                     </div>
                 </div>
             `;
@@ -769,12 +759,9 @@ function openForm(){
                 if(tmpArrSewa.includes(JL)) {
                     $('#useZeroCek').prop('checked', true);
                     $('#haveTld').prop('checked', false);
-                    useZeroCek = true;
-                    haveTldChecked = false;
                 } else {
-                    useZeroCek = false;
-                    haveTldChecked = true;
                     $('#useZeroCek').prop('checked', false);
+                    $('#haveTld').prop('checked', true);
                     $('#switch-zerocek').show();
                     $('#form-switch').show();
                 }
@@ -803,17 +790,16 @@ function openForm(){
                         $('#form-switch').hide();
                         break;
                     case 'zero cek':
-                        btnAddPengguna.addClass('d-none').removeClass('d-block');
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
                         formJumKontrol.show();
                         formJumPengguna.show();
-                        formPic.show();
-                        formNoHp.show();
                         formAlamat.show();
-                        formPeriodeNext.show();
                         formTotalHarga.show();
+                        periodeJs.maxPeriode = 2;
+                        $('#useZeroCek').prop('checked', true);
+                        $('#switch-zerocek').hide();
                         break;
                     case 'adendum':
                         btnAddPengguna.addClass('d-block').removeClass('d-none');

@@ -15,10 +15,27 @@
     .header p {
         margin: 3px 0;
     }
+
+    .footer {
+        position: fixed;
+        bottom: 20px;
+        left: 0px;
+        right: 0px;
+        height: 50px;
+        text-align: center;
+        font-size: 10px;
+        border-top: 1px solid #ccc;
+        line-height: 25px;
+    }
     .content {
         margin-bottom: 0px;
     }
     .table {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .table-1 {
         width: 100%;
         margin-bottom: 10px;
     }
@@ -83,7 +100,7 @@
         display: flex !important;
     }
     .justify-content-between {
-        justify-content: space-between;
+        justify-content: space-between !important;
     }
 
     .flex-wrap {

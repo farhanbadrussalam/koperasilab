@@ -100,8 +100,12 @@ class PelangganController extends Controller
                 }
             }
 
-            // Mengambil jenis layanan Evaluasi - Dengan kontrak
-            $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
+            if($queryKontrak->jenis_layanan_parent->id_jenisLayanan == 7){
+                $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 9)->first();
+            } else {
+                // Mengambil jenis layanan Evaluasi - Dengan kontrak
+                $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
+            }
 
             // cek apakah permohonan sudah ada atau belum
             $permohonan = Permohonan::select('id_permohonan')

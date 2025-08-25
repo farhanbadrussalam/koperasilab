@@ -154,7 +154,7 @@
                     <input type="text" class="form-control" id="noResi" name="noResi" required>
                 </div>
                 <div class="mb-3">
-                    <label for="" class="form-label">Upload bukti pengiriman</label>
+                    <label for="" class="form-label">Upload bukti pengiriman<span class="text-danger ms-1">*</span></label>
                     <div id="uploadBuktiPengiriman"></div>
                 </div>
             </div>

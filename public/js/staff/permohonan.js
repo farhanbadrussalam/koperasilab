@@ -73,17 +73,30 @@ function loadData(page = 1) {
             // periode
             let htmlPeriode = !pengajuan.periode ? 'Zero cek' : `Periode ${pengajuan.periode}`;
 
+            let htmlStatusPenyelia = '';
+            if(pengajuan.lhu){
+                htmlStatusPenyelia = " | Progress Penyelia : ";
+                htmlStatusPenyelia += statusFormat('penyelia', pengajuan.lhu.status);
+                aktifJobs = pengajuan.lhu.penyelia_map.filter(d => d.status == 1);
+                aktifJobs.map(d => {
+                    htmlStatusPenyelia += statusFormat('penyelia', d.jobs.status);
+                });
+            }
+
             if(pengajuan.periode && pengajuan.is_have_tld && pengajuan.is_zerocek) {
                 htmlPeriode += ' + Zero cek';
             }
             html += `
                 <div class="card mb-2 smooth-height">
                     <div class="card-body row align-items-center py-2">
-                        <div class="col-auto">
+                        <div class="col-12">
                             <div class="">
                                 <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${pengajuan.tipe_kontrak}</span>
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${pengajuan.jenis_layanan_parent?.name} - ${pengajuan.jenis_layanan?.name}</span>
+                                ${htmlStatusPenyelia}
                             </div>
+                        </div>
+                        <div class="col-auto">
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${pengajuan.jenis_tld?.name ?? '-'} - Layanan ${pengajuan.layanan_jasa?.nama_layanan}</span>
                                 <div class="text-body-tertiary fs-7">

@@ -37,7 +37,8 @@ class Penyelia extends Model
         'penyelia_hash',
         'permohonan_hash',
         'status_hash',
-        'media'
+        'media',
+        'template_surat'
     ];
 
     protected $casts = [
@@ -73,6 +74,10 @@ class Penyelia extends Model
         $decodedIds = is_array($decodedIds) ? $decodedIds : [];
 
         return Master_media::whereIn('id', $decodedIds)->get();
+    }
+
+    public function getTemplateSuratAttribute(){
+        return Documents::whereIn('name', ['SuratPengujian', 'SuratTugas', 'KontrakPengujian'])->where('status', 1)->get();
     }
 
     public function permohonan()

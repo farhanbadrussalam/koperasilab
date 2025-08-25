@@ -111,6 +111,7 @@
 
     <div class="payment-info" style="line-height: 1.3em">
         {!! $data->metode_pembayaran->content !!}
+        <p>Apabila telah melakukan pembayaran, kami mohon bukti teransfer dikirim melalui layananpelanggan.nuklindolab.com</p>
         <p>Atas perhatian dan kerjasamanya, diucapkan terima kasih</p>
     </div>
 
@@ -143,4 +144,5 @@
             </td>
         </tr>
     </table>
+    @include('report.template.footer')
 @endsection

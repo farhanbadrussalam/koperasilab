@@ -481,14 +481,17 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak.rincian_list_tld',
                 'permohonan.kontrak.rincian_list_tld.pengguna',
                 'permohonan.periodenow',
+                'permohonan.dokumen',
+                'permohonan.dokumen.doc_template',
             )
-            ->when($status, function($q, $status) use ($typePencarian) {
+            ->when($status, function($q, $status) use ($typePencarian, $menu) {
                 if($typePencarian == 'not'){
                     return $q->whereNotIn('status', $status);
                 }
 
-                return $q->whereHas('penyelia_map', function ($query) use ($status) {
-                    return $query->whereIn('id_jobs', $status)->where('status', 1)->whereHas('petugas', function ($q) {
+                return $q->whereHas('penyelia_map', function ($query) use ($status, $menu) {
+                    $statusLhu = $menu == 'selesai' ? 2 : 1;
+                    return $query->whereIn('id_jobs', $status)->where('status', $statusLhu)->whereHas('petugas', function ($q) {
                         return $q->where('id_user', Auth::user()->id);
                     });
                 });
@@ -770,13 +773,23 @@ class PenyeliaAPI extends Controller
     {
         $idPenyelia = $request->idPenyelia ? decryptor($request->idPenyelia) : false;
         $status = $request->status ? $request->status : false;
+        $answers = $request->answers ? json_decode($request->answers) : false;
 
         DB::beginTransaction();
         try {
             $penyelia = Penyelia::find($idPenyelia);
+
             $penyelia->update(array(
                 'status' => $status
             ));
+
+            // mengambil template yg digunakan
+            $template = $penyelia->template_surat->where('name', 'SuratPengujian')->first();
+
+            $answers = array_map(function($answer) {
+                $answer->id = (int) decryptor($answer->id);
+                return $answer;
+            }, $answers);
 
             // simpan ttd ke permohonan dokumen
             $document = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'permintaanpengujian')->first();
@@ -785,14 +798,27 @@ class PenyeliaAPI extends Controller
                 // generate nomer dokumen
                 $nodokumen = generateNoDokumen('permintaanpengujian', $penyelia->id_permohonan);
 
+                // set periode
+                $arrPeriode = array();
+                foreach($penyelia->permohonan->kontrak->periode as $periode) {
+                    $arrPeriode[] = array($periode->start_date, $periode->end_date);
+                }
+
+                $contentValue = array(
+                    'alasan' => $answers,
+                    'periode' => $arrPeriode
+                );
+
                 // Simpan dokumen permintaan pengujian
                 $document = Permohonan_dokumen::create(array(
                     'id_permohonan' => $penyelia->id_permohonan,
+                    'id_doc_template' => $template->id_doc,
                     'created_by' => Auth::user()->id,
                     'nama' => 'Permintaan Pengujian',
-                    'jenis' => 'permintaanpengujian',
+                    'jenis' => 'SuratPengujian',
                     'status' => 1,
-                    'nomer' => $nodokumen
+                    'nomer' => $nodokumen,
+                    'content_value' => $contentValue,
                 ));
             }
 
@@ -831,20 +857,24 @@ class PenyeliaAPI extends Controller
             ));
 
             // simpan ttd ke permohonan dokumen
-            $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'permintaanpengujian')->first();
+            $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'SuratPengujian')->first();
             $dokumen->update(array(
                 'ttd' => $ttd,
                 'ttd_by' => $ttd_by,
                 'catatan' => $catatan
             ));
 
+            // mengambil template yg digunakan
+            $template = $penyelia->template_surat->where('name', 'KontrakPengujian')->first();
+
             // menambahkan dokumen perjanjian kontrak
-            $no_kontrak = generateNoDokumen('perjanjian_pengujian', $penyelia->id_permohonan);
+            $no_kontrak = generateNoDokumen('KontrakPengujian', $penyelia->id_permohonan);
             $data = array(
                 'id_permohonan' => $penyelia->id_permohonan,
                 'created_by' => Auth::user()->id,
                 'nama' => 'Surat kontrak ('.convert_date($penyelia->permohonan->verify_at, 6).')',
-                'jenis' => 'perjanjian_pengujian',
+                'jenis' => 'KontrakPengujian',
+                'id_doc_template' => $template->id_doc,
                 'status' => 1,
                 'nomer' => $no_kontrak
             );

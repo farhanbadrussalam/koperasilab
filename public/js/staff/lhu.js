@@ -3,6 +3,7 @@ let nowSelect = false;
 let detail = false;
 let documentLhu = false;
 let filterComp = false;
+let thisTab = 'progress';
 $(function () {
     loadData();
 
@@ -47,12 +48,18 @@ $(function () {
     filterComp.on('filter.change', () => loadData());
 });
 
+function switchLoadTab(menu){
+    thisTab = menu;
+    loadData(1);
+}
+
 function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
         status: listJobs,
-        filter: {}
+        filter: {},
+        menu: thisTab
     };
 
     let filterValue = filterComp && filterComp.getAllValue();
@@ -115,19 +122,33 @@ function loadData(page = 1) {
             // status jobs yang aktif
             let isPelabelan = false;
             let htmlStatus = statusFormat('penyelia', lhu.status);
-            const aktifJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
-            aktifJobs.map(d => {
-                let petugasInJobs = lhu.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
-                if(petugasInJobs){
-                    d.jobs.status == 20 ? isPelabelan = true : false;
-                    htmlStatus += statusFormat('penyelia', d.jobs.status);
-                }
-            })
 
             // button action
             btnAction += `<button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
             isPelabelan ? btnAction += `<a class="btn btn-outline-info btn-sm" title="Print Label" href="${base_url}/laporan/label/${lhu.penyelia_hash}" target="_blank"><i class="bi bi-printer"></i> Label</a>` : '';
-            btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
+
+            if(thisTab == "selesai") {
+                const selesaiJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 2);
+                selesaiJobs.map(d => {
+                    let petugasInJobs = lhu.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
+                    if(petugasInJobs){
+                        d.jobs.status == 20 ? isPelabelan = true : false;
+                        let txtStatus = statusFormat('penyelia', d.jobs.status);
+                        txtStatus = txtStatus.replace('Proses', 'Selesai').replace('bg-primary-subtle', 'bg-success-subtle');
+                        htmlStatus += txtStatus;
+                    }
+                })
+            } else {
+                const aktifJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
+                aktifJobs.map(d => {
+                    let petugasInJobs = lhu.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
+                    if(petugasInJobs){
+                        d.jobs.status == 20 ? isPelabelan = true : false;
+                        htmlStatus += statusFormat('penyelia', d.jobs.status);
+                    }
+                })
+                btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
+            }
 
             html += `
                 <div class="card mb-2">

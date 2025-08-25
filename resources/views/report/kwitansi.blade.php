@@ -138,4 +138,6 @@
     <div style="margin-top: 60px;font-size: 13px;">
         Catatan : Materai Rp. 10.000,- sudah ditempelkan di invoice sehingga kwitansi tidak memerlukan materai.
     </div>
+
+    @include('report.template.footer')
 @endsection

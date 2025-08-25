@@ -121,7 +121,6 @@ class PermohonanAPI extends Controller
             $status && $data['status'] = $status;
             $data['flag_read'] = 0;
 
-
             // jika tipe kontraknya adalah "kontrak lama" akan mengambil data dari kontrak sebelumnya
             if($tipeKontrak == 'kontrak lama'){
                 $kontrak = Kontrak::with('pengguna','periode')->find($idKontrak);
@@ -671,6 +670,9 @@ class PermohonanAPI extends Controller
                         'kontrak.jenisTld:id_jenisTld,name',
                         'kontrak.jenis_layanan:id_jenisLayanan,name,parent',
                         'kontrak.jenis_layanan_parent',
+                        'lhu',
+                        'lhu.penyelia_map',
+                        'lhu.penyelia_map.jobs',
                     )
                     ->when($user, function($q, $user) use ($status) {
                         // Pengecekan role
@@ -1058,21 +1060,27 @@ class PermohonanAPI extends Controller
                     */
 
                     // proses ke invoice
-                    $arrValidInvoice = [2, 3, 6];
+                    $arrValidInvoice = [2, 3, 6, 9];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidInvoice)){
-                        $invoiceData = $this->createInvoice($dataPermohonan->permohonan_hash);
+                        if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
+                            $invoiceData = $this->createInvoice($dataPermohonan->permohonan_hash);
 
-                        if(!$invoiceData){
-                            throw new \Exception('Gagal membuat invoice');
+                            if(!$invoiceData){
+                                throw new \Exception('Gagal membuat invoice');
+                            }
                         }
                     }
 
                     // Proses ke penyelia
-                    $arrValidPenyelia = [2, 3, 5, 6];
+                    $arrValidPenyelia = [2, 3, 5, 6, 9];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidPenyelia)){
                         $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
                         if(in_array($JL, $this->global['arr_putus'])) {
-                            $status = 5;
+                            if($dataPermohonan->tipe_kontrak == 'kontrak lama'){
+                                $status = 1;
+                            } else {
+                                $status = 5;
+                            }
                         } else {
                             $status = 1;
                         }
