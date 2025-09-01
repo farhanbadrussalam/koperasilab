@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Mews\Purifier\Facades\Purifier;
+use Spatie\Browsershot\Browsershot;
 
 use App\Models\Kontrak;
 use App\Models\Kontrak_tld;
@@ -17,6 +19,8 @@ use App\Models\Jadwal_petugas;
 use App\Models\Penyelia;
 use App\Models\Master_tld;
 
+use App\Models\Documents;
+
 use PDF;
 use Auth;
 use Log;
@@ -26,6 +30,41 @@ class ReportController extends Controller
     public function __construct()
     {
         $this->global = config('customvariabel');
+    }
+
+    private function generatePDF($title, $template, $variables, $htmlKeys = []){
+        $result = array(
+            'title' => $title,
+        );
+
+        $options = [
+            'html_keys' => $htmlKeys,
+            'sanitizer' => fn($h,$k) => Purifier::clean($h, 'ckpdf'), // pakai jika ada mews/purifier
+            'allowed_tags'=> '<p><br><strong><b><em><i><u><span><div><img>',
+        ];
+
+        $result['header'] = $template->header ? renderMentionsToValuesFlexible($template->header->content, $variables, $options) : '';
+        $result['footer'] = $template->footer ? renderMentionsToValuesFlexible($template->footer->content, $variables, $options) : '';
+        $classHeader = $template->header ? 'withHeader' : '';
+        $classFooter = $template->footer ? 'withFooter' : '';
+        $result['body'] = "<div class='" . $classHeader . " " . $classFooter . "'>" . renderMentionsToValuesFlexible($template->content, $variables, $options) . "</div>";
+
+        $html = view('report.index', $result)->render();
+
+        $b = Browsershot::html($html)
+            ->emulateMedia('screen')
+            ->showBackground()                 // penting agar warna/background ikut tercetak
+            ->setOption('displayHeaderFooter', false) // penting!
+            ->format('A4')
+            ->margins(0, 0, 0, 0)         // mm: top,right,bottom,left
+            ->waitUntilNetworkIdle()          // tunggu asset selesai dimuat
+            ->addChromiumArguments(['--allow-file-access-from-files']) // kadang perlu
+            ->setOption('waitUntil', 'networkidle0')
+            ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']); // untuk banyak server Linux
+
+            $bytes = $b->pdf();
+
+        return $bytes;
     }
     public function invoice($id)
     {
@@ -59,11 +98,10 @@ class ReportController extends Controller
 
         $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
 
-        $data['data'] = $query;
         $data['date'] = Carbon::now();
         $data['title'] = "Invoice";
-        $data['ttd_default'] = public_path('icons/default/white.png');
-        $data['stempel'] = public_path('icons/Stempel-Lab.png');
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
         $data['is_catatan'] = !in_array($JL, $this->global['catatan_invoice']);
 
         $periodePemakaian = $query->permohonan->periode_pemakaian;
@@ -73,9 +111,170 @@ class ReportController extends Controller
             $data['periode_end'] = $periodePemakaian[count($periodePemakaian) - 1] ?? null;
         }
 
-        $pdf = PDF::loadView('report.invoice', $data);
-        $pdf->render();
-        return $pdf->stream();
+        // mengambil template invoice
+        $dokumen = $query->permohonan->dokumen->first();
+        if(!$dokumen->id_doc_template){
+            $template = Documents::with('footer', 'header')
+                        ->where('jenis', 'body')
+                        ->where('name', 'Invoice')
+                        ->where('status', '1')
+                        ->first();
+
+            $variables = $this->mappingVars($template, $query, $data);
+            $dokumen->update([
+                'id_doc_template' => $template->id_doc,
+                'variables' => $variables
+            ]);
+        } else {
+            $template = Documents::with('footer', 'header')
+                        ->where('id_doc', $dokumen->id_doc_template)
+                        ->first();
+
+            $variables = $dokumen->variables;
+        }
+        // TTD Invoice
+        $ttd = $dokumen->ttd ?? "";
+        $variables['TTD_IMG'] = $ttd ? "
+            <div style='text-align: center;'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
+                <img src='$ttd' alt='TTD_keuangan' width='200px' height='200px'>
+            </div>
+        " : "<br><br><br>";
+        $variables['TTD_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
+
+        $bytes = $this->generatePDF("Invoice", $template, $variables, ['CATATAN_PEMBAYARAN', 'NOTICE', 'TTD_IMG', 'RINCIAN']);
+        $filename = 'invoice-'.now()->format('Ymd-His').'.pdf';
+
+        return response($bytes, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        ]);
+    }
+
+    public function contentInvoice($data, $params = null){
+        $subJumlah = 0;
+
+        if ($data->diskon) {
+            foreach ($data->diskon as $item) {
+                $item->jumDiskon = $data->permohonan->total_harga * ($item->diskon / 100);
+                $subJumlah += $item->jumDiskon;
+            }
+        }
+
+        $jumAfterDiskon = $data->permohonan->total_harga - $subJumlah;
+
+        $jumPph = $data->pph ? $jumAfterDiskon * ($data->pph / 100) : 0;
+        $jumAfterPph = $jumAfterDiskon - $jumPph;
+        $jumPpn = $data->ppn ? $jumAfterPph * ($data->ppn / 100) : 0;
+
+        $htmlDiskon = '';
+        foreach ($data->diskon as $item) {
+            $htmlDiskon .= '<tr>
+                <td>' . $item->name . ' ' . $item->diskon . '%</td>
+                <td>( ' . formatCurrency($item->jumDiskon) . ' )</td>
+            </tr>';
+        }
+
+        $htmlPpn = '';
+        if ($data->ppn) {
+            $htmlPpn .= '<tr>
+                <td>PPN ' . $data->ppn . '%</td>
+                <td>( ' . formatCurrency($jumPpn) . ' )</td>
+            </tr>';
+        }
+
+        $htmlPph = '';
+        if ($data->pph) {
+            $htmlPph .= '<tr>
+                <td>PPH ' . $data->pph . '%</td>
+                <td>( ' . formatCurrency($jumPph) . ' )</td>
+            </tr>';
+        }
+
+        $result = [
+            "TERBILANG" => angkaKeHuruf($jumAfterPph + $jumPpn),
+            "RINCIAN" => '<table class="table-invoice">
+                    <tr>
+                        <td>' . $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol.' Unit
+                            ' . $data->permohonan->jenisTld->name . ' x ' . count($data->permohonan->periode_pemakaian) . ' Periode x
+                            ' . formatCurrency($data->permohonan->harga_layanan) . '</td>
+                        <td>' . formatCurrency($data->permohonan->total_harga) . '</td>
+                    </tr>
+                    ' . $htmlDiskon . '
+                    <tr>
+                        <td>Sub Jumlah</td>
+                        <td>' . formatCurrency($jumAfterDiskon) . '</td>
+                    </tr>
+                    ' . $htmlPph . '
+                    ' . $htmlPpn . '
+                    <tr>
+                        <td>Jumlah</td>
+                        <td>' . formatCurrency($jumAfterPph + $jumPpn) . '</td>
+                    </tr>
+                </table>'
+        ];
+
+        return $result;
+    }
+
+    public function mappingVars($template, $data, $params = null){
+        $vars = array();
+        switch ($template->name) {
+            case 'Invoice':
+                $vars["NOMOR"] = $data->no_invoice;
+                $vars["LAMPIRAN"] = "Faktur Pajak";
+                $vars["PERIHAL"] = "Invoice " . $data->permohonan->jenis_layanan_parent->name . " " . $data->permohonan->layanan_jasa->nama_layanan . " " . $data->permohonan->jenisTld->name;
+                $vars["LOKASI"] = "Tangerang Selatan";
+                $vars["TANGGAL"] = convert_date($data->permohonan->dokumen[0]->created_at, 2);
+                $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
+                $vars["ALAMAT"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->alamat;
+                $vars["KODE_POS"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->kode_pos;
+                $vars["TELEPON"] = $data->permohonan->pelanggan->telepon;
+                $vars["JENIS_LAYANAN"] = $data->permohonan->jenis_layanan_parent->name;
+                $vars["LAYANAN_JASA"] = $data->permohonan->layanan_jasa->nama_layanan;
+                $vars["JENIS_TLD"] = $data->permohonan->jenisTld->name;
+                $vars["PERIODE_MULAI"] = convert_date($params['periode_start']['start_date'], 6);
+                $vars["PERIODE_SELESAI"] = convert_date($params['periode_end']['end_date'], 6);
+                $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
+                $vars["RINCIAN"] = "";
+                $vars["TERBILANG"] = "";
+                $vars["CATATAN_PEMBAYARAN"] = $data->metode_pembayaran->content;
+                $vars["NOTICE"] = $params['is_catatan'] ? '
+                    <div class="payment-notice">
+                        PEMBAYARAN MAX 30 HARI<br>
+                        DARI TANGGAL INVOICE<br>
+                        KORESPONDENSI<br>
+                        TELP. 021 - 74786334
+                    </div>
+                ' : "";
+                $vars = array_merge($vars, $this->contentInvoice($data, $params));
+                break;
+            case "TandaTerima":
+                $vars["JUDUL"] = "TANDA TERIMA PENGUJIAN/KALIBRASI";
+                $vars["NOMOR"] = $data->dokumen->first()->nomer;
+                $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
+                $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
+                $vars["JENIS_PENGUJIAN"] = $data->periode ? 'Evaluasi TLD' : 'Zero cek';
+                $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol";
+                $vars["PERIODE"] = $data->periode > 0 ? "Periode ". $data->periode : "Periode zero cek";
+                $vars["TGL_PENERIMAAN"] = convert_date($data->dokumen[0]->created_at, 2);
+                $vars["TGL_SELESAI"] = $params['selesaiPengujian'] ? convert_date($params['selesaiPengujian'], 2) : '.......';
+                $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
+                $vars["LOKASI"] = "Tangerang Selatan";
+                $vars = array_merge($vars, $this->contentTandaTerima($data, $params));
+                break;
+            default:
+                # code...
+                break;
+        }
+
+        // cek apakah ada yang kurang dari template
+        $keys = array_keys($vars);
+        $missing = array_diff($template->variables ?? [], $keys);
+        if(count($missing) > 0){
+            $vars = array_merge($vars, array_fill_keys($missing, ""));
+        }
+        return $vars;
     }
 
     public function kwitansi($id)
@@ -146,11 +345,126 @@ class ReportController extends Controller
         $data['stempel'] = $this->global['urlStempel'];
         $data['selesaiPengujian'] = $query->lhu ? $query->lhu->end_date : null;
 
-        $pdf = PDF::loadView('report.tandaTerima', $data);
+        // mengambil template invoice
+        $dokumen = $query->dokumen->first();
+        $template = Documents::with('footer', 'header')
+                        ->where('id_doc', $dokumen->id_doc_template)
+                        ->first();
+        if($dokumen->variables){
+            $variables = $dokumen->variables;
+        } else {
+            $variables = $this->mappingVars($template, $query, $data);
+            $dokumen->update(['variables' => $variables]);
+        }
 
-        $pdf->render();
+        // TTD Invoice
+        $ttd = $dokumen->ttd ?? "";
+        $variables['TTD_PENERIMA'] = $ttd ? "
+            <div style='text-align: center;'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
+                <img src='$ttd' alt='TTD_PENERIMA' width='200px' height='200px'>
+            </div>
+        " : "<br><br><br>";
+        $variables['TTD_PENERIMA_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
 
-        return $pdf->stream();;
+        $ttd_pemohon = $query->pelanggan->ttd ?? "";
+        $variables['TTD_PEMOHON'] = $ttd_pemohon ? "
+            <div style='text-align: center;'>
+                <img src='$ttd_pemohon' alt='TTD_PEMOHON' width='200px' height='200px'>
+            </div>
+        " : "<br><br><br>";
+        $variables['TTD_PEMOHON_BY'] = $query->pelanggan ? $query->pelanggan->name : '...........................................';
+
+        // generate pdf
+        $bytes = $this->generatePDF($data['title'], $template, $variables, ['RINCIAN', 'TTD_PENERIMA', 'TTD_PEMOHON']);
+
+        $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
+
+        return response($bytes, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        ]);
+    }
+
+    private function contentTandaTerima($data, $params = null) {
+        $tdContent = '';
+        $getPertanyaan = [];
+        foreach ($data->tandaterima as $key => $value) {
+            array_push($getPertanyaan, $value->pertanyaan);
+        }
+        $half = ceil(count($getPertanyaan) / 2);
+        $no = 'a';
+        for ($i = 0; $i < $half; $i++) {
+            $tdContent .= '<tr>';
+                // kolom kiri
+                if(isset($getPertanyaan[$i])){
+                    $question = $getPertanyaan[$i]->pertanyaan;
+                    $answer = $data->tandaterima[$i]->jawaban;
+
+                    if($getPertanyaan[$i]->type == 1){
+                        $tdContent .= '
+                            <td width="5%" class="text-center">'.$no++.'.</td>
+                            <td>
+                                '.$getPertanyaan[$i]->pertanyaan.' :<br>
+                                <span class="text-secondary">'.$data->tandaterima[$i]->jawaban.'</span>
+                            </td>
+                        ';
+                    }else{
+                        $tdContent .= '
+                            <td colspan="2">
+                                '.$getPertanyaan[$i]->pertanyaan.' : <span class="text-secondary">'.$data->tandaterima[$i]->jawaban.'</span><br>
+                                Bila cacat, sebutkan : '.$data->tandaterima[$i]->note.'
+                            </td>
+                        ';
+                    }
+
+                }
+
+                // kolom kanan
+
+                if(isset($getPertanyaan[$i + $half])){
+                    $question = $getPertanyaan[$i + $half]->pertanyaan;
+                    $answer = $data->tandaterima[$i + $half]->jawaban;
+
+                    if($getPertanyaan[$i + $half]->type == 1){
+                        $tdContent .= '
+                            <td width="5%" class="text-center">'.$no++.'.</td>
+                            <td>
+                                '.$getPertanyaan[$i + $half]->pertanyaan.' :<br>
+                                <span class="text-secondary">'.$data->tandaterima[$i + $half]->jawaban.'</span>
+                            </td>
+                        ';
+                    }else{
+                        $tdContent .= '
+                            <td colspan="2">
+                                '.$getPertanyaan[$i + $half]->pertanyaan.' : <span class="text-secondary">'.$data->tandaterima[$i + $half]->jawaban.'</span><br>
+                                Bila cacat, sebutkan : '.$data->tandaterima[$i + $half]->note.'
+                            </td>
+                        ';
+                    }
+                }
+            $tdContent .= '</tr>';
+        }
+        $jenisPengujian = $data->periode ? 'Evaluasi TLD' : 'Zero cek';
+
+        return [
+            "RINCIAN" => '
+                <table class="table-tandaterima content-table ck-table-resized" border="1">
+                    <colgroup>
+                        <col style="width: 5%%" />
+                        <col style="width: 45%" />
+                        <col style="width: 5%%" />
+                        <col style="width: 45%" />
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                            <td colspan="4">Jenis Pengujian/Kalibrasi: <span class="text-secondary">'. $jenisPengujian .'</span></td>
+                        </tr>
+                        '. $tdContent .'
+                    </tbody>
+                </table>
+            '
+        ];
     }
 
     public function suratTugas($id = null)
@@ -247,7 +561,7 @@ class ReportController extends Controller
         return $pdf->stream();
     }
 
-    public function perjanjian($id = null){
+    public function kontrak($id = null){
         $id = decryptor($id);
 
         if($id == null){
@@ -294,23 +608,30 @@ class ReportController extends Controller
         $data['ttd_default'] = $this->global['urlTtdDefault'];
         $data['stempel'] = $this->global['urlStempel'];
 
-        $pdf = PDF::loadView('report.perjanjian', $data);
-        $pdf->render();
+        // Mengambil template kontrak
+        $dokumen = $query->document_kontrak;
+        $template = Documents::with('footer','header')
+                    ->where('id_doc', $dokumen->id_doc_template)
+                    ->first();
+        if($dokumen->variables){
+            $variables = $dokumen->variables ?? [];
+        } else {
+            $variables = $this->mappingVars($template, $query, $data);
+        }
 
-        // Dapatkan canvas dari DomPDF
-        // $canvas = $pdf->getDomPDF()->get_canvas();
+        // generate pdf
+        $bytes = $this->generatePDF($data['title'], $template, $variables, []);
 
-        // Tentukan posisi dan sudut rotasi
-        // $canvas->save(); // Simpan state awal canvas
-        // $canvas->rotate(-45, $canvas->get_width() / 2, $canvas->get_height() / 2); // Rotasi -45 derajat di tengah halaman
+        $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
-        // Tambahkan teks "DRAFT" di latar belakang
-        // $canvas->set_opacity(0.1); // Transparansi teks
-        // $canvas->text(150, 350, 'DRAFT', null, 100, [0, 0, 0]);
+        return response($bytes, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        ]);
+        // $pdf = PDF::loadView('report.perjanjian', $data);
+        // $pdf->render();
 
-        // $canvas->restore(); // Kembali ke state awal setelah rotasi
-
-        return $pdf->stream();
+        // return $pdf->stream();
     }
 
     public function label($id = null){

@@ -16,6 +16,8 @@ use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\FilterAPI;
 use App\Http\Controllers\API\PenggunaAPI;
 
+use App\Http\Controllers\Management\DocumentController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -174,5 +176,9 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getDivisi', 'getDivisi');
         Route::get('/getRadiasi', 'getRadiasi');
         Route::delete('/destroy/{id}', 'destroy');
+    });
+
+    Route::prefix('document')->controller(DocumentController::class)->group(function () {
+        Route::post('upload_image', 'upload_image');
     });
 });

@@ -14,6 +14,7 @@ class Permohonan_dokumen extends Model
 
     protected $fillable = [
         'id_permohonan',
+        'id_kontrak',
         'id_doc_template',
         'nomer',
         'nama',
@@ -22,6 +23,7 @@ class Permohonan_dokumen extends Model
         'ttd',
         'ttd_by',
         'catatan',
+        'variables',
         'content_value',
         'created_by',
         'created_at',
@@ -41,9 +43,11 @@ class Permohonan_dokumen extends Model
         'status' => 'integer',
         'id_dokumen' => 'integer',
         'id_permohonan' => 'integer',
+        'id_kontrak' => 'integer',
         'created_by' => 'integer',
         'id_doc_template' => 'integer',
-        'content_value' => 'array'
+        'content_value' => 'array',
+        'variables' => 'array'
     ];
 
     public function getDokumenHashAttribute()
@@ -58,5 +62,9 @@ class Permohonan_dokumen extends Model
 
     public function doc_template(){
         return $this->belongsTo(Documents::class, 'id_doc_template', 'id_doc');
+    }
+
+    public function usersig(){
+        return $this->belongsTo(user::class, 'ttd_by', 'id');
     }
 }

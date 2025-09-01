@@ -13,6 +13,7 @@ use App\Models\Permohonan_pengguna;
 use App\Models\Permohonan_tandaterima;
 use App\Models\Permohonan_tld;
 
+use App\Models\Documents;
 use App\Models\Master_layanan_jasa;
 use App\Models\Master_jenisLayanan;
 use App\Models\Master_media;
@@ -358,11 +359,19 @@ class PermohonanAPI extends Controller
             $dataTandaterima = Permohonan_tandaterima::where('id_permohonan', $idPermohonan)->get();
 
             // Simpan dokumen tandaterima
+            $template = Documents::with('footer', 'header')
+                        ->where('jenis', 'body')
+                        ->where('name', 'TandaTerima')
+                        ->where('status', '1')
+                        ->first();
+
             $document = Permohonan_dokumen::create(array(
                 'id_permohonan' => $idPermohonan,
+                'id_kontrak' => Permohonan::find($idPermohonan)->id_kontrak,
                 'created_by' => Auth::user()->id,
                 'nama' => 'Tanda Terima Pengujian',
                 'jenis' => 'tandaterima',
+                'id_doc_template' => $template->id_doc,
                 'status' => 1,
                 'nomer' => generateNoDokumen('tandaterima')
             ));
@@ -999,10 +1008,16 @@ class PermohonanAPI extends Controller
                         }
                     }
 
-                    $arrayUpdate['ttd'] = $ttd;
-                    $arrayUpdate['ttd_by'] = Auth::user()->id;
                     $arrayUpdate['verify_at'] = date('Y-m-d H:i:s');
                     $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
+
+                    // simpan ttd di dokumen
+                    Permohonan_dokumen::where('id_permohonan', $idPermohonan)
+                    ->where('jenis', 'tandaterima')->where('status', 1)
+                    ->update([
+                        'ttd' => $ttd,
+                        'ttd_by' => Auth::user()->id
+                    ]);
 
                     $dataPermohonan->update($arrayUpdate);
 
@@ -1275,11 +1290,18 @@ class PermohonanAPI extends Controller
         $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
         if(!in_array($JL, $this->global['arr_putus'])){ // jika bukan Evaluasi putus
             // menambahkan dokumen perjanjian kontrak
+            $template = Documents::with('footer', 'header')
+                        ->where('jenis', 'body')
+                        ->where('name', 'Kontrak')
+                        ->where('status', 1)
+                        ->first();
+
             $data = array(
-                'id_permohonan' => $idPermohonan,
+                'id_kontrak' => $dataKontrak->id_kontrak,
                 'created_by' => Auth::user()->id,
                 'nama' => 'Surat kontrak ('.convert_date($dataPermohonan->verify_at, 6).')',
-                'jenis' => 'perjanjian',
+                'jenis' => 'kontrak',
+                'id_doc_template' => $template->id_doc,
                 'status' => 1,
                 'nomer' => $no_kontrak
             );

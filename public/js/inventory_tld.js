@@ -135,7 +135,6 @@ class Inventory_tld {
         this.selectedArr = arr;
         this.formTldSelected = id;
         this.jenisSelected = jenis;
-        console.log(this.no_kontrak);
         this._loadData();
         $('#modal-inventory-tld').modal('show');
     }

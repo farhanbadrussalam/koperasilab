@@ -20,7 +20,12 @@ class UploadComponent {
             type: options.type ?? 'image',
             urlUpload: options.urlUpload ?? false,
             multiple: options.multiple ?? true,
-            maxSize: options.maxSize ?? 10 // default 10MB
+            maxSize: options.maxSize ?? 10, // default 10MB
+            preview: {
+                width: options.preview?.width ?? 100,
+                height: options.preview?.height ?? 100,
+                fullwidth: options.preview?.fullwidth ?? false
+            }
         }
         this.idElement = idElement;
         this.listFile = options.data ?? [];
@@ -233,14 +238,23 @@ class UploadComponent {
         // ambil gambar dari inputFile
         const divMain = document.createElement('div');
         divMain.className = 'position-relative';
-        divMain.style.width = '100px';
-        divMain.style.height = '100px';
+        if(this.options.preview.fullwidth){
+            divMain.style.width = '100%';
+            divMain.style.height = `${this.options.preview.height}px`;
+        } else {
+            divMain.style.width = `${this.options.preview.width}px`;
+            divMain.style.height = `${this.options.preview.height}px`;
+        }
 
         const preview = document.createElement('img');
         preview.src = src;
         preview.className = 'img-thumbnail';
-        preview.style.width = '100px';
-        preview.style.height = '100px';
+        if(this.options.preview.fullwidth){
+            preview.style.height = '100%';
+        } else {
+            preview.style.width = `${this.options.preview.width}px`;
+            preview.style.height = `${this.options.preview.height}px`;
+        }
         preview.style.cursor = 'pointer';
         preview.onclick = () => {
             $('#modal-preview-image').attr('src', src);
@@ -335,6 +349,7 @@ class UploadComponent {
             btnTambah.classList.add('btn', 'btn-outline-primary');
             btnTambah.id = `btnTambahFile_${this.id}`;
             btnTambah.textContent = 'Tambah';
+            btnTambah.type = 'button';
             btnTambah.onclick = this.tambah.bind(this);
             inputGroup.appendChild(btnTambah);
 

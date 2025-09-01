@@ -296,10 +296,7 @@ function statusFormat(feature, status) {
                 break;
             case 90:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-danger"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Ditolak</span>
-                    </div>
+                    <span class="text-danger ms-2"><i class="bi bi-x-circle"></i> Ditolak</span>
                     `;
                 break;
         }
@@ -1175,4 +1172,10 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
     }
 
     return aktifDokumenKirim;
+}
+
+function extractImgSrcSet(html) {
+  const box = document.createElement('div');
+  box.innerHTML = html;
+  return new Set([...box.querySelectorAll('img')].map(img => img.getAttribute('src')));
 }

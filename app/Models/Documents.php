@@ -14,11 +14,16 @@ class Documents extends Model
 
     protected $fillable = [
         'name',
+        'jenis',
         'pertanyaan',
         'status',
         'version',
         'id_doc_verion',
+        'content',
         'view',
+        'id_header',
+        'id_footer',
+        'variables',
         'created_by',
         'created_at',
     ];
@@ -34,6 +39,8 @@ class Documents extends Model
     protected $appends = [
         'doc_hash',
         'doc_version_hash',
+        'header_hash',
+        'footer_hash',
         'data_pertanyaan',
     ];
 
@@ -43,6 +50,9 @@ class Documents extends Model
         'status' => 'integer',
         'pertanyaan' => 'json',
         'id_doc' => 'integer',
+        'id_header' => 'integer',
+        'id_footer' => 'integer',
+        'variables' => 'json',
     ];
 
     public function getDocHashAttribute()
@@ -55,6 +65,16 @@ class Documents extends Model
         return encryptor($this->id_doc_verion);
     }
 
+    public function getHeaderHashAttribute()
+    {
+        return encryptor($this->id_header);
+    }
+
+    public function getFooterHashAttribute()
+    {
+        return encryptor($this->id_footer);
+    }
+
     public function getDataPertanyaanAttribute()
     {
         $decodedIds = $this->pertanyaan;
@@ -63,5 +83,14 @@ class Documents extends Model
         return Master_pertanyaan::whereIn('id_pertanyaan', $decodedIds)->get();
     }
 
+    public function footer()
+    {
+        return $this->belongsTo(Documents::class, 'id_footer', 'id_doc');
+    }
+
+    public function header()
+    {
+        return $this->belongsTo(Documents::class, 'id_header', 'id_doc');
+    }
 
 }

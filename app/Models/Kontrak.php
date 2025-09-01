@@ -42,7 +42,8 @@ class Kontrak extends Model
     ];
 
     protected $appends = [
-        'kontrak_hash'
+        'kontrak_hash',
+        'document_kontrak'
     ];
 
     protected $casts = [
@@ -68,6 +69,11 @@ class Kontrak extends Model
     public function getKontrakHashAttribute()
     {
         return encryptor($this->id_kontrak);
+    }
+
+    public function getDocumentKontrakAttribute()
+    {
+        return Permohonan_dokumen::where('id_kontrak', $this->id_kontrak)->where('jenis', 'kontrak')->first();
     }
 
     public function jenisTld(){

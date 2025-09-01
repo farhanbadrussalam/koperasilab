@@ -433,7 +433,7 @@ class Detail {
                 htmlTabNav += `
               <li role="presentation" class="bg-secondary-subtle rounded-3 mb-1 shadow-sm">
                 <div class="link d-flex justify-content-between align-items-center py-2 px-3" id="pills-${tabId}">
-                    <span>${tab.title} ${badge}</span> 
+                    <span>${tab.title} ${badge}</span>
                     <i class="bi bi-chevron-down"></i>
                 </div>
                 <div class="submenu bg-body-secondary p-2 rounded-bottom-3 overflow-auto overflow-x-hidden" style="max-height: 30vh">
@@ -503,7 +503,8 @@ class Detail {
         let dataPermohonan = false;
         switch (this.options.jenis) {
             case 'permohonan':
-                dataDokumen = this.data.dokumen;
+                this.data.kontrak.document_kontrak && (dataDokumen = [this.data.kontrak.document_kontrak]);
+                dataDokumen = dataDokumen.concat(this.data.dokumen);
                 invoiceData = this.data.invoice;
                 dataPermohonan = this.data;
                 break;
@@ -522,14 +523,14 @@ class Detail {
                 case 'invoice':
                     idHash = invoiceData?.permohonan_hash;
                     break;
-                case 'perjanjian':
+                case 'kontrak':
                     idHash = dataPermohonan.kontrak.kontrak_hash;
                     break;
                 default:
                     idHash = dataPermohonan.permohonan_hash;
                     break;
             }
-            
+
             doc += `
                 <div class="card mb-1">
                     <div class="card-body p-1 px-3 d-flex justify-content-between align-items-center">
@@ -558,7 +559,7 @@ class Detail {
 
     createDokumenLhuContent() {
         if(!this.data.media) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada dokumen</p>';
-        
+
         return printMedia(this.data.media, false, { size: true, date: true, isHtml: true });
     }
     createLogContent() {
@@ -656,7 +657,7 @@ class Detail {
             case 'penyelia':
                 listTld = this.data.permohonan.rincian_list_tld ?? [];
                 break;
-        
+
             default:
                 break;
         }
@@ -664,7 +665,7 @@ class Detail {
         if (listTld.length > 0) {
             return `
                 <ul class="list-group list-group-flush">
-                    ${listTld.map((data, i) => 
+                    ${listTld.map((data, i) =>
                         `<li class="list-group-item d-flex justify-content-between">
                             <div>
                                 <span>${i + 1}. </span>

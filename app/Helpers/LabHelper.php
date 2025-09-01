@@ -362,43 +362,51 @@ if (!function_exists('getRomawiBulan')) {
 }
 
 if (!function_exists('angkaKeHuruf')) {
-    function angkaKeHuruf($angka){
-        $bilangan = array(
-            '',
-            'satu',
-            'dua',
-            'tiga',
-            'empat',
-            'lima',
-            'enam',
-            'tujuh',
-            'delapan',
-            'sembilan'
-        );
+    function angkaKeHuruf($angka) {
+    $angka = (int)$angka;
 
-        $ribu = array('', 'ribu', 'juta', 'miliar', 'triliun');
+    $bilangan = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan'];
+    $ribu     = ['', 'ribu', 'juta', 'miliar', 'triliun'];
 
-        if ($angka < 10) {
-            return $bilangan[$angka];
-        } elseif ($angka < 20) {
-            return 'sepuluh ' . angkaKeHuruf($angka - 10);
-        } elseif ($angka < 100) {
-            return $bilangan[floor($angka / 10)] . ' puluh ' . angkaKeHuruf($angka % 10);
-        } elseif ($angka < 1000) {
-            return $bilangan[floor($angka / 100)] . ' ratus ' . angkaKeHuruf($angka % 100);
-        } else {
-            $result = '';
-            $idxRibuan = 0;
-            while ($angka > 0) {
-                if ($angka % 1000 > 0) {
-                    $result = angkaKeHuruf($angka % 1000) . ' ' . $ribu[$idxRibuan] . ' ' . $result;
-                }
-                $angka = floor($angka / 1000);
-                $idxRibuan++;
-            }
-            return $result;
-        }
+    if ($angka === 0) return 'nol';
+    if ($angka < 10)  return $bilangan[$angka];
+
+    if ($angka === 10) return 'sepuluh';
+    if ($angka === 11) return 'sebelas';
+    if ($angka < 20)   return $bilangan[$angka - 10] . ' belas';
+
+    if ($angka < 100) {
+        $puluh = intdiv($angka, 10);
+        $sisa  = $angka % 10;
+        return trim($bilangan[$puluh] . ' puluh ' . ($sisa ? angkaKeHuruf($sisa) : ''));
     }
+
+    if ($angka < 200)  return trim('seratus ' . angkaKeHuruf($angka - 100));
+
+    if ($angka < 1000) {
+        $ratus = intdiv($angka, 100);
+        $sisa  = $angka % 100;
+        return trim($bilangan[$ratus] . ' ratus ' . ($sisa ? angkaKeHuruf($sisa) : ''));
+    }
+
+    // 1000 ke atas
+    $result = '';
+    $idx = 0;
+    while ($angka > 0) {
+        $chunk = $angka % 1000;
+        if ($chunk) {
+            if ($idx === 1 && $chunk === 1) {
+                $result = 'seribu ' . $result; // bukan "satu ribu"
+            } else {
+                $result = trim(angkaKeHuruf($chunk) . ' ' . $ribu[$idx]) . ' ' . $result;
+            }
+        }
+        $angka = intdiv($angka, 1000);
+        $idx++;
+    }
+    return trim(preg_replace('/\s+/', ' ', $result));
+}
+
 }
 
 if (!function_exists('generateNoDokumen')) {
@@ -511,5 +519,121 @@ if(!function_exists('contenMetodePembayaran')){
     }
 }
 
+if(!function_exists('normalizeMentionKey')) {
+    function normalizeMentionKey(string $raw): string {
+        // Hilangkan entity, spasi, marker @ / # / {{ }}
+        $k = html_entity_decode(trim($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // buang {{VAR}} atau {{ VAR }}
+        // $k = preg_replace('/^\s*\{\{\s*|\s*\}\}\s*$/', '', $k);
+        // buang marker di depan (@, #, $, % ... sesuaikan jika perlu)
+        $k = preg_replace('/^[@#\$%]+/', '', $k);
+        return strtoupper(trim($k)); // konsistenkan ke UPPERCASE
+    }
+}
 
+if(!function_exists('importHtmlFragment')) {
+    function importHtmlFragment(DOMDocument $dom, string $htmlFragment): DOMDocumentFragment {
+        $tmp = new DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $tmp->loadHTML(
+            '<div id="__wrap__">' .
+            $htmlFragment .
+            '</div>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+
+        $wrap = $tmp->getElementById('__wrap__');
+        $frag = $dom->createDocumentFragment();
+        foreach (iterator_to_array($wrap->childNodes) as $child) {
+            $frag->appendChild($dom->importNode($child, true));
+        }
+        return $frag;
+    }
+}
+
+/**
+ * Render mention CKEditor menjadi nilai.
+ * Opsi:
+ *  - html_keys: daftar KEY yang boleh berisi HTML (akan disisipkan sebagai fragment)
+ *  - allowed_tags: whitelist tag jika ingin pakai strip_tags sederhana
+ *  - sanitizer: callable($html, $key): string  -> gunakan kalau pakai HTML Purifier
+ *  - default: nilai default jika key tidak ada
+ */
+if(!function_exists('renderMentionsToValuesFlexible')) {
+    function renderMentionsToValuesFlexible(string $html, array $map, array $options = []): string {
+        $htmlKeys    = array_map('strtoupper', $options['html_keys'] ?? []);
+        $allowedTags = $options['allowed_tags'] ?? '<p><br><strong><b><em><i><u><span><div><ul><ol><li><table><thead><tbody><tr><td><th><h1><h2><h3><h4><h5><h6>';
+        $sanitizer   = $options['sanitizer'] ?? null; // contoh: fn($h,$k)=>Purifier::clean($h)
+        $default     = $options['default']   ?? '......................';
+
+        $wrapperStart = '<div id="__root__">';
+        $wrapperEnd = '</div>';
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($wrapperStart . $html . $wrapperEnd, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $xpath = new DOMXPath($dom);
+
+        // Cari node mention lewat data-mention ATAU class=mention
+        foreach ($xpath->query('//*[@data-mention] | //*[(contains(concat(" ", normalize-space(@class), " "), " mention "))]') as $node) {
+            /** @var DOMElement $node */
+            $rawAttr = $node->getAttribute('data-mention');
+            $rawAttr = html_entity_decode($rawAttr, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            $key = null;
+
+            // 1) Coba parse JSON {"id":"..."}
+            $data = json_decode($rawAttr, true);
+            if (is_array($data) && isset($data['id'])) {
+                $key = normalizeMentionKey((string)$data['id']);
+            }
+
+            // 2) Jika bukan JSON tapi ada string (mis. "@PERUSAHAAN")
+            if ($key === null && $rawAttr !== '') {
+                $key = normalizeMentionKey($rawAttr);
+            }
+
+            // 3) Fallback: ambil dari teks dalam span (mis. "@PERUSAHAAN")
+            if ($key === null || $key === '') {
+                $key = normalizeMentionKey($node->textContent ?? '');
+            }
+
+            // Ambil value
+            // $value = array_key_exists($key, $map) ? (string)$map[$key] : $default;
+            $has = array_key_exists($key, $map);
+            $valueRaw = $has ? (string)$map[$key] : $default;
+
+            if (in_array($key, $htmlKeys, true)) {
+                $value = $valueRaw;
+
+                // Sanitasi (disarankan pakai HTML Purifier di produksi)
+                if (is_callable($sanitizer)) {
+                    $value = (string) $sanitizer($value, $key);
+                } else {
+                    $value = strip_tags($value, $allowedTags);
+                }
+
+                // Ganti node mention dengan fragment HTML
+                $frag = importHtmlFragment($dom, $value);
+                $node->parentNode->replaceChild($frag, $node);
+            } else {
+                // Ganti node mention dengan text node
+                $text = $dom->createTextNode($valueRaw);
+                $node->parentNode->replaceChild($text, $node);
+            }
+
+        }
+
+        // Kembalikan innerHTML
+        $root = $dom->getElementById('__root__');
+        $out = '';
+        foreach (iterator_to_array($root->childNodes) as $child) {
+            $out .= $dom->saveHTML($child);
+        }
+
+        return $out;
+    }
+}
 ?>

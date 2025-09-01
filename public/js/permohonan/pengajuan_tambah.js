@@ -34,10 +34,9 @@ const modalJenisRadiasi = $('#jenis_radiasi');
 const optionsUploadKTP = {
     allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
 };
-$(function () {
-    // cek jika id_layanan sudah ada
-    cekLayanan();
 
+let ktpPenggunaUpload = false;
+$(function () {
     inventoryTld = new Inventory_tld({preview: true});
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
@@ -55,9 +54,18 @@ $(function () {
         });
     });
 
-    setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
+    // setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
 
-    resetForm();
+    ktpPenggunaUpload = new UploadComponent('uploadKtpPengguna', {
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
+        camera: false,
+        multiple: false,
+        preview: {
+            fullwidth: true,
+            height: 300
+        }
+    });
+
 
     let htmlAlamat = '<option value="">Pilih alamat</option>';
 
@@ -94,7 +102,7 @@ $(function () {
         formTotalHarga.hide();
         formPeriode1.hide();
         formPeriode2.hide();
-        formZeroCek.hide();
+        // formZeroCek.hide();
 
         $('#form-switch').hide();
 
@@ -127,6 +135,8 @@ $(function () {
             $('#jenis_layanan_2').html('<option value="">Pilih</option>');
             return;
         }
+
+        if(dataPermohonan.layanan_jasa) return;
 
         spinner('show', $('#label-jenis-layanan-2'), {place: 'after'});
         ajaxGet(`api/v1/permohonan/getChildJenisLayanan/${jenisLayanan}`, false, (result) => {
@@ -321,9 +331,10 @@ $(function () {
         if(!formValidate.validate()){
             return spinner('hide', obj.target);
         }
+        const imageKtp = ktpPenggunaUpload.getData();
 
         // cek dropify ada gambar
-        if(!$('#uploadKtpPengguna').val()){
+        if(imageKtp.length === 0){
             Swal.fire({
                 icon: 'warning',
                 title: 'Oops...',
@@ -335,7 +346,6 @@ $(function () {
         const namaPengguna = modalNamaPengguna.val();
         const divisiPengguna = $('#divisi_pengguna').val();
         const jenisRadiasi = modalJenisRadiasi.val();
-        const imageKtp = $('#uploadKtpPengguna')[0].files[0];
         const nikPengguna = $('#nik_pengguna').val();
         const jenisKelamin = $('#jenis_kelamin').val();
         const tanggalLahir = $('#tanggal_lahir').val();
@@ -350,7 +360,7 @@ $(function () {
         formData.append('jenis_kelamin', jenisKelamin);
         formData.append('tanggal_lahir', tanggalLahir);
         formData.append('tempat_lahir', tempatLahir);
-        formData.append('ktp', imageKtp);
+        formData.append('ktp', imageKtp[0].file);
         formData.append('name', namaPengguna);
         formData.append('divisi', divisiPengguna);
         formData.append('radiasi', JSON.stringify(jenisRadiasi));
@@ -382,7 +392,8 @@ $(function () {
         $('#jenis_radiasi').val(null).trigger('change');
         $('#noSeriPengguna').val('');
         tmpArrTldPengguna = [];
-        setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
+        // setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
+        ktpPenggunaUpload.addData([]);
     });
 
     $('#btn-close-pengguna').on('click', obj => {
@@ -390,8 +401,8 @@ $(function () {
         $('#nama_pengguna').val('');
         $('#divisi_pengguna').val(null).trigger('change');
         $('#jenis_radiasi').val(null).trigger('change');
-        $('#uploadKtpPengguna').val('');
 
+        ktpPenggunaUpload.addData([]);
         $('#modal-add-tld-pengguna').modal('show');
     });
 
@@ -421,6 +432,10 @@ $(function () {
         loadPengguna();
         loadKontrol();
     });
+
+    resetForm();
+    // cek jika id_layanan sudah ada
+    cekLayanan();
 })
 // js add periode
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
@@ -756,6 +771,12 @@ function openForm(){
         ajaxGet(`api/v1/permohonan/getJenisTld/${layanan}`, false, result => {
             if(result.meta.code == 200){
                 let list = result.data;
+
+                list.forEach(value => {
+                    html += `<option value="${value.jenis_tld.jenis_tld_hash}">${value.jenis_tld.name}</option>`
+                });
+
+                $('#jenis_tld').html(html);
                 if(tmpArrSewa.includes(JL)) {
                     $('#useZeroCek').prop('checked', true);
                     $('#haveTld').prop('checked', false);
@@ -777,6 +798,14 @@ function openForm(){
                         formTotalHarga.show();
                         break;
                     case 'evaluasi':
+                        // load data
+                        $('#jenis_tld').val(dataPermohonan.jenis_tld.jenis_tld_hash).trigger('change');
+                        periodeJs.addData(dataPermohonan.periode_pemakaian);
+                        simpanPeriode();
+                        periodeNextJs.addData(dataPermohonan.periode_next);
+                        simpanPeriodeNext();
+
+                        // show
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
@@ -821,12 +850,6 @@ function openForm(){
                 }
 
                 $('#form-inputan').addClass('d-block').removeClass('d-none');
-
-                list.forEach(value => {
-                    html += `<option value="${value.jenis_tld.jenis_tld_hash}">${value.jenis_tld.name}</option>`
-                });
-
-                $('#jenis_tld').html(html);
             }
         });
     }

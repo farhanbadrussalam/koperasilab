@@ -293,8 +293,6 @@ class KeuanganAPI extends Controller
             $ppn && $data['ppn'] = $ppn;
             $pph && $data['pph'] = $pph;
             $idPermohonan && $data['id_permohonan'] = $idPermohonan;
-            $ttd && $data['ttd'] = $ttd;
-            $ttd_by && $data['ttd_by'] = $ttd_by;
             $plt && $data['plt'] = $plt;
             $metodePembayaran && $data['id_jenis_pembayaran'] = $metodePembayaran;
             $variabelPembayaran && $data['variabel_jenis_pembayaran'] = $variabelPembayaran;
@@ -314,6 +312,17 @@ class KeuanganAPI extends Controller
                 $data['paid_at'] = date('Y-m-d H:i:s');
             }
 
+            if($status == 3) {
+                $dataDocument = array();
+                $ttd && $dataDocument['ttd'] = $ttd;
+                $ttd_by && $dataDocument['ttd_by'] = $ttd_by;
+
+                Permohonan_dokumen::updateOrCreate(
+                    ["nomer" => $invoice->no_invoice],
+                    $dataDocument
+                );
+            }
+
             $keuangan = Keuangan::updateOrCreate(
                 ["id_keuangan" => $idKeuangan],
                 $data
@@ -331,6 +340,7 @@ class KeuanganAPI extends Controller
                 // Simpan dokumen Invoice
                 $document = Permohonan_dokumen::create(array(
                     'id_permohonan' => $keuangan->id_permohonan,
+                    'id_kontrak' => Permohonan::find($idPermohonan)->id_kontrak,
                     'created_by' => Auth::user()->id,
                     'nama' => 'Invoice',
                     'jenis' => 'invoice',

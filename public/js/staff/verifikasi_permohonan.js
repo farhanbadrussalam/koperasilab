@@ -1,6 +1,7 @@
 const listDocumenLHU = [];
 let signaturePad = false;
 let periodeJs = false;
+let periodeNextJs = false;
 let jenisLayanan = false;
 let checkedTldValues = [];
 let listTldKontrol = [];
@@ -53,6 +54,35 @@ $(function () {
         } else {
             txtPeriodeNext = arrPeriodeNext.length + ' Periode';
         }
+
+        periodeNextJs = new Periode(arrPeriodeNext, {
+            preview: false,
+            max: arrPeriodeNext.length,
+            id_element: 2
+        });
+
+        $('#btn-periode-next').on('click', () => {
+            periodeNextJs.show();
+        });
+
+        periodeNextJs.on('periode.simpan.2', () => {
+            console.log("simpan periode");
+            const dataPeriode = periodeNextJs.getData();
+            const params = new FormData();
+            params.append('idPermohonan', dataPermohonan.permohonan_hash);
+            params.append('periodeNext', JSON.stringify(dataPeriode));
+            ajaxPost(`api/v1/permohonan/tambahPengajuan`, params, result => {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Update periode successfully',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            });
+        });
     }
 
     $('#periode-pemakaian-next').val(txtPeriodeNext);
@@ -72,14 +102,15 @@ $(function () {
     if(arrPeriode){
         periodeJs = new Periode(arrPeriode, {
             preview: false,
-            max: arrPeriode.length
+            max: arrPeriode.length,
+            id_element: 1
         });
 
         $('#btn-periode').on('click', () => {
             periodeJs.show();
         });
 
-        periodeJs.on('periode.simpan', () => {
+        periodeJs.on('periode.simpan.1', () => {
             const dataPeriode = periodeJs.getData();
             const params = new FormData();
             params.append('idPermohonan', dataPermohonan.permohonan_hash);
@@ -174,7 +205,7 @@ function loadPelanggan() {
         let valAlamat = value.alamat;
         let valKodepos = value.kode_pos;
 
-        if(value.jenis == 'utama'){
+        if(value.jenis == 'Utama'){
             alamatUtama = value.alamat;
             kodeposUtama = value.kode_pos;
         }else{
@@ -182,8 +213,8 @@ function loadPelanggan() {
                 valAlamat = value.alamat;
                 valKodepos = value.kode_pos;
             }else{
-                valAlamat = alamatUtama;
-                valKodepos = kodeposUtama;
+                valAlamat = '';
+                valKodepos = '';
             }
         }
 

@@ -199,7 +199,7 @@ class Invoice {
             $('#plt-div-manager').addClass('d-block').removeClass('d-none');
 
             $('#rincianInvoice-tab').click();
-            // $('#invoiceActions').append(this.btnPrinter());
+            $('#invoiceActions').append(this.btnPrinter());
         } else if (mode === 'detail') {
             if(this.dataKeuangan.ttd){
                 this.signaturePad = signature(document.getElementById("content-ttd-manager"), {

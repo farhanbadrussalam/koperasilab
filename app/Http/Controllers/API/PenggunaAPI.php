@@ -61,14 +61,18 @@ class PenggunaAPI extends Controller
 
             if ($posisi) {
                 if (decryptor($posisi) == 0) {
-                    $dataDivisi = Master_divisi::create([
-                        'kode_lencana' => "C",
-                        'name' => $posisi,
-                        'id_perusahaan' => Auth::user()->id_perusahaan,
-                        'status' => 1,
-                        'created_by' => Auth::user()->id
-                    ]);
-                    $posisi = $dataDivisi->id_divisi;
+                    if($posisi == null){
+                        $posisi = false;
+                    } else {
+                        $dataDivisi = Master_divisi::create([
+                            'kode_lencana' => "C",
+                            'name' => $posisi,
+                            'id_perusahaan' => Auth::user()->id_perusahaan,
+                            'status' => 1,
+                            'created_by' => Auth::user()->id
+                        ]);
+                        $posisi = $dataDivisi->id_divisi;
+                    }
                 } else {
                     $posisi = decryptor($posisi);
                 }

@@ -145,6 +145,13 @@
                 showConfirmButton: false,
                 timer: 1500
             })
+        @elseif (session('warning'))
+            Swal.fire({
+                icon: 'warning',
+                title: 'Peringatan',
+                text: '{{ session('warning') }}',
+                showConfirmButton: true
+            })
         @endif
 
         $(function () {

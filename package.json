@@ -19,6 +19,7 @@
         "bootstrap-icons": "^1.10.5",
         "crypto-js": "^4.1.1",
         "laravel-echo": "^1.15.2",
+        "puppeteer": "^24.17.1",
         "pusher-js": "^8.3.0",
         "signature_pad": "^4.1.7"
     },

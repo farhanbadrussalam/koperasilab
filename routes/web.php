@@ -20,6 +20,7 @@ use App\Http\Controllers\Management\RolesController;
 use App\Http\Controllers\Management\TldController;
 use App\Http\Controllers\Management\RadiasiController;
 use App\Http\Controllers\Management\PenggunaController;
+use App\Http\Controllers\Management\DocumentController;
 
 use App\Http\Controllers\ReportController;
 
@@ -109,7 +110,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/invoice/{id}', 'invoice')->name('laporan.invoice');
             Route::get('/tandaterima/{id}', 'tandaTerima')->name('laporan.tandaterima');
             Route::get('/surpeng/{id}/{periode}', 'suratPengantar')->name('laporan.surpeng');
-            Route::get('/perjanjian/{id}', 'perjanjian')->name('laporan.perjanjian');
+            Route::get('/kontrak/{id}', 'kontrak')->name('laporan.kontrak');
             Route::get('/label/{id}', 'label')->name('laporan.label');
             Route::get('/persetujuanPengujian/{id}', 'persetujuanPengujian')->name('laporan.persetujuanPengujian');
         });
@@ -137,6 +138,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
         Route::resource('userpengguna', PenggunaController::class);
         Route::get('getDataPengguna', [PenggunaController::class, 'getData'])->name('pengguna.getData');
+
+        Route::resource('document', DocumentController::class);
+        Route::post('document/{id}', [DocumentController::class, 'update'])->name('document.update');
     });
     // });
 
