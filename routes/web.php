@@ -69,7 +69,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/penyelia', 'indexPenyelia')->name('staff.penyelia');
             Route::get('/penyelia/surat_tugas/c/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.create.surat_tugas');
             Route::get('/penyelia/surat_tugas/e/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
-            Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
+            Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.show.surat_tugas');
 
             Route::get('/lhu', 'indexLhu')->name('staff.lhu');
             Route::get('/lhu/petugas', 'indexPetugas')->name('staff.lhu.petugas');
