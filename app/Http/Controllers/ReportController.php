@@ -52,6 +52,8 @@ class ReportController extends Controller
         $html = view('report.index', $result)->render();
 
         $b = Browsershot::html($html)
+            ->setNodeBinary(env('NODE_BINARY'))
+            ->setNpmBinary(env('NPM_BINARY'))
             ->emulateMedia('screen')
             ->showBackground()                 // penting agar warna/background ikut tercetak
             ->setOption('displayHeaderFooter', false) // penting!
