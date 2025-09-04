@@ -92,7 +92,7 @@ class ReportController extends Controller
             'metode_pembayaran'
         ])->where('id_keuangan', $idKeuangan)->first();
 
-        if($query->metode_pembayaran){
+        if(isset($query->metode_pembayaran)){
             $query->metode_pembayaran->content = contenMetodePembayaran($query->metode_pembayaran->content, $query->variabel_jenis_pembayaran);
         }
 
@@ -258,10 +258,72 @@ class ReportController extends Controller
                 $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol";
                 $vars["PERIODE"] = $data->periode > 0 ? "Periode ". $data->periode : "Periode zero cek";
                 $vars["TGL_PENERIMAAN"] = convert_date($data->dokumen[0]->created_at, 2);
-                $vars["TGL_SELESAI"] = $params['selesaiPengujian'] ? convert_date($params['selesaiPengujian'], 2) : '.......';
+                $vars["TGL_SELESAI"] = $params['selesaiPengujian'] ? convert_date($params['selesaiPengujian'], 2) : '';
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["LOKASI"] = "Tangerang Selatan";
                 $vars = array_merge($vars, $this->contentTandaTerima($data, $params));
+                break;
+            case "Kontrak":
+                $vars["NOMOR"] = $data->no_kontrak;
+                $vars["JENIS_LAYANAN"] = $data->jenis_layanan->name;
+                $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
+                $vars["JENIS_TLD"] = $data->jenisTld->name;
+                $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
+                $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
+                $vars["KODE_POS"] = $data->pelanggan->perusahaan->alamat[0]->kode_pos;
+                $vars["TELEPON"] = $data->pelanggan->profile->no_hp;
+                $vars["FAX"] = $data->pelanggan->profile->no_fax;
+                $vars["HARI"] = convert_date($data->document_kontrak->created_at, 8);
+                $vars["TGL_BUAT"] = convert_date($data->document_kontrak->created_at, 9);
+                $vars["TAHUN"] = convert_date($data->document_kontrak->created_at, 10);
+                $vars["NAMA_PIC"] = $data->pelanggan->name;
+                $vars["JABATAN_PIC"] = $data->pelanggan->jabatan;
+                $vars["EMAIL_PIC"] = $data->pelanggan->email;
+                $vars["JML_UNIT"] = $data->jumlah_pengguna + $data->jumlah_kontrol;
+                $vars["JML_P"] = $data->jumlah_pengguna;
+                $vars["JML_P_HRF"] = angkaKeHuruf($data->jumlah_pengguna);
+                $vars["JML_K"] = $data->jumlah_kontrol;
+                $vars["JML_K_HRF"] = angkaKeHuruf($data->jumlah_kontrol);
+                $vars["PERIODE_BULAN"] = $data->periode_all['jml_all_bulan'];
+                $vars["PERIODE_MULAI"] = convert_date($data->periode_all['periode_awal'], 6);
+                $vars["PERIODE_SELESAI"] = convert_date($data->periode_all['periode_akhir'], 6);
+                $vars["PERIODE_JML"] = $data->periode_all['jml_periode'];
+                $vars["NAMA_MANAGER"] = "Dr. Eko Pudjadi, M.Sc";
+                $vars["JML_ALL_UNIT"] = $vars["JML_UNIT"] * $vars["PERIODE_JML"];
+                $vars["JML_ALL_UNIT_HRF"] = angkaKeHuruf($vars["JML_ALL_UNIT"]);
+                $vars["RADIOAKTIF"] = implode(", ", array_map(fn($item) => $item['nama_radiasi'], $data->data_radiasi));
+                break;
+            case "SuratTugas":
+                $vars["NOMOR"] = $data->dokumen[0]->nomer;
+                $vars['UNIT'] = $data->layanan_jasa->satuankerja->name;
+                $vars["PENGUJIAN"] = $data->periode == 0 && $data->is_zerocek == 1 ? 'Zero cek' : 'Evaluasi TLD';
+                $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
+                $vars["JENIS_TLD"] = $data->jenisTld->name;
+                $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
+                $vars["JML_P"] = $data->jumlah_pengguna;
+                $vars["JML_K"] = $data->jumlah_kontrol;
+                $vars["TGL_MULAI"] = convert_date($data->lhu->start_date, 2);
+                $vars["TGL_SELESAI"] = convert_date($data->lhu->end_date, 2);
+                $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
+                $vars = array_merge($vars, $this->contentSuratTugas($data, $params));
+                break;
+            case "SuratPengantar":
+                $vars["NOMOR"] = $data["dokumen"]->nomer;
+                $vars["JML_UNIT"] = $data->jumlah_pengguna + $data->jumlah_kontrol;
+                $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
+                $vars["JENIS_TLD"] = $data->jenisTld->name;
+                $vars["TGL_BUAT"] = convert_date($data["dokumen"]->created_at, 2);
+                $vars["PETUGAS"] = $data->pelanggan->name;
+                $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
+                $vars["TELEPON"] = $data->pelanggan->profile->no_hp;
+                $vars["PETUGAS_DIVISI"] = $data->pelanggan->jabatan;
+                $vars["JML_P"] = $data->jumlah_pengguna;
+                $vars["JML_K"] = $data->jumlah_kontrol;
+                $vars["PERIODE_AWAL"] = convert_date($data->periode_all['periode_awal'], 6);
+                $vars["PERIODE_SELESAI"] = convert_date($data->periode_all['periode_akhir'], 6);
+                $vars["NO_KONTRAK"] = $data->no_kontrak;
+                $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
+                $vars= array_merge($vars, $this->contentSuratPengantar($data, $params));
                 break;
             default:
                 # code...
@@ -354,7 +416,10 @@ class ReportController extends Controller
             $variables = $dokumen->variables;
         } else {
             $variables = $this->mappingVars($template, $query, $data);
-            $dokumen->update(['variables' => $variables]);
+            if($query->lhu->end_date){
+                $variables['SELESAI_PENGUJIAN'] = convert_date($query->lhu->end_date, 6);
+                $dokumen->update(['variables' => $variables]);
+            }
         }
 
         // TTD Invoice
@@ -451,9 +516,9 @@ class ReportController extends Controller
             "RINCIAN" => '
                 <table class="table-tandaterima content-table ck-table-resized" border="1">
                     <colgroup>
-                        <col style="width: 5%%" />
+                        <col style="width: 5%" />
                         <col style="width: 45%" />
-                        <col style="width: 5%%" />
+                        <col style="width: 5%" />
                         <col style="width: 45%" />
                     </colgroup>
                     <tbody>
@@ -501,11 +566,86 @@ class ReportController extends Controller
         $data['stempel'] = $this->global['urlStempel'];
         $data['data'] = $query;
 
-        $pdf = PDF::loadView('report.suratTugas', $data);
+        // mengambil template invoice
+        $dokumen = $query->dokumen->first();
+        $template = Documents::with('footer', 'header')
+                    ->where('id_doc', $dokumen->id_doc_template)
+                    ->first();
 
-        $pdf->render();
+        if($dokumen->variables){
+            $variables = $dokumen->variables;
+        } else {
+            $variables = $this->mappingVars($template, $query, $data);
+        }
 
-        return $pdf->stream();
+        // TTD Surat Tugas
+        $ttd = $dokumen->ttd ?? "";
+        $variables["TTD"] = $ttd ? "
+            <div>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
+                <img src='$ttd' alt='TTD_PENERIMA' width='200px' height='200px'>
+            </div>
+        " : "<br><br><br>";
+        $variables["TTD_BY"] = $dokumen->usersig ? $dokumen->usersig->name : ".....................";
+
+        // generate pdf
+        $bytes = $this->generatePdf($data['title'], $template, $variables, ["TTD", "RINCIAN"]);
+
+        $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
+
+        return response($bytes, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        ]);
+        // $pdf = PDF::loadView('report.suratTugas', $data);
+
+        // $pdf->render();
+
+        // return $pdf->stream();
+    }
+
+    private function contentSuratTugas($data, $params) {
+        $html = '';
+        $no = 1;
+        $arr = [];
+        foreach ($data->lhu->petugas as $value) {
+            $arr[$value->user->id][] = array(
+                "name" => $value->user->name,
+                "jobs" => $value->jobs->jobs->name
+            );
+        }
+        foreach ($arr as $key => $value) {
+            $html .= '
+                <tr>
+                    <td style="text-align: center;">'.$no.'</td>
+                    <td>'.$value[0]['name'].'</td>
+                    <td>'.implode(', ', array_column($value, 'jobs')).'</td>
+                </tr>
+            ';
+            $no++;
+        }
+
+        return [
+            "RINCIAN" => '
+                <table class="table-surattugas" border="1">
+                    <colgroup>
+                        <col style="width: 10%" />
+                        <col style="width: 45%" />
+                        <col style="width: 45%" />
+                    </colgroup>
+                    <thead style="text-align: center;">
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Tugas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        '.$html.'
+                    </tbody>
+                </table>
+            '
+        ];
     }
 
 /**
@@ -541,11 +681,38 @@ class ReportController extends Controller
             'signature:id,name',
         ])->find($id);
 
+        // mengambil dokumen surat pengantar
+        $dokumen = Permohonan_dokumen::where("id_kontrak", $id)
+                    ->where("periode", $periode)
+                    ->where("jenis", "surpeng")->first();
+
+        $template = Documents::with('footer', 'header')
+                ->where('jenis', 'body')
+                ->where('name', 'SuratPengantar')
+                ->where('status', '1')
+                ->first();
+
         if($query->periode[0]->nomer_surpeng == null){
             $noSurpeng = generateNoDokumen('surpeng');
             $query->periode[0]->nomer_surpeng = $noSurpeng;
             $query->periode[0]->created_surpeng_at = Carbon::now()->format('Y-m-d');
             $query->periode[0]->save();
+
+            if(!$dokumen){
+                $dokumen = Permohonan_dokumen::create(array(
+                    'periode' => $periode,
+                    'id_kontrak' => $id,
+                    'id_doc_template' => $template->id_doc,
+                    'jenis' => "surpeng",
+                    "nama" => "Surat Pengantar (Periode $periode)",
+                    "nomer" => $noSurpeng,
+                    "created_by" => Auth::user()->id,
+                    "status" => 1
+                ));
+            } else {
+                $dokumen->nomer = $noSurpeng;
+                $dokumen->save();
+            }
         }
 
         $data['date'] = Carbon::now()->year;
@@ -554,11 +721,68 @@ class ReportController extends Controller
         $data['ttd_default'] = $this->global['urlTtdDefault'];
         $data['stempel'] = $this->global['urlStempel'];
 
-        $pdf = PDF::loadView('report.suratPengantar', $data);
+        $query["dokumen"] = $dokumen;
+        if($dokumen->variables){
+            $variables = $dokumen->variables;
+        } else {
+            $variables = $this->mappingVars($template, $query, $data);
+        }
 
-        $pdf->render();
+        $ttd = $query->document_kontrak->ttd ?? "";
+        $variables["TTD"] = $ttd ? "
+            <div style='text-align: center;'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
+                <img src='$ttd' alt='TTD_keuangan' width='200px' height='200px'>
+            </div>
+        " : "<br><br><br>";
+        $variables["TTD_BY"] = $query->document_kontrak->usersig ? $query->document_kontrak->usersig->name : '...........................................';
 
-        return $pdf->stream();
+        // generate pdf
+        $bytes = $this->generatePDF($data['title'], $template, $variables, ["RINCIAN", "TTD"]);
+
+        $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
+
+        return response($bytes, 200, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        ]);
+    }
+
+    private function contentSuratPengantar($data, $params){
+        $html = '';
+        $no = 1;
+        $count = 1;
+        $countKontrol = 0;
+        foreach ($data->periode[0]->tld_in_periode as $value) {
+            if($value->pengguna){
+                $html .= '
+                    <tr>
+                        <td class="text-center">'.$no++.'.</td>
+                        <td style="padding-left: 5px">'.$value->pengguna->name.'</td>
+                        <td style="padding-left: 5px">'.$value->keterangan ?? ''.'</td>
+                    </tr>
+                ';
+            } else {
+                $countKontrol += $value->count;
+            }
+        }
+        return [
+            "RINCIAN" => '
+                <table class="table-surattugas" style="margin-top: 15px;">
+                    <tr>
+                        <th width="10%">No</th>
+                        <th width="40%">Nama Pemakai TLD</th>
+                        <th width="40%">Keterangan</th>
+                    </tr>
+                    '.$html.'
+                    <tr>
+                        <td class="text-center">'. $no .'.</td>
+                        <td style="padding-left: 5px">TLD Kontrol</td>
+                        <td style="padding-left: 5px" class="fw-bold">'. $countKontrol .' Buah</td>
+                    </tr>
+                </table>
+            '
+        ];
     }
 
     public function kontrak($id = null){
@@ -573,8 +797,11 @@ class ReportController extends Controller
             'jenis_layanan:id_jenisLayanan,name',
             'jenis_layanan_parent:id_jenisLayanan,name',
             'layanan_jasa:id_layanan,nama_layanan',
+            'invoice',
             'pelanggan',
+            'pelanggan.profile',
             'pelanggan.perusahaan',
+            'pelanggan.perusahaan.alamat',
             'periode' => function($query) {
                 return $query->whereNotNull('id_permohonan')->orWhereNotNull('nomer_surpeng')->orderBy('periode', 'desc');
             }
@@ -617,10 +844,32 @@ class ReportController extends Controller
             $variables = $dokumen->variables ?? [];
         } else {
             $variables = $this->mappingVars($template, $query, $data);
+            // kondisi jika invoice belum dibuat
+            // 1 = Pengajuan
+            // 2 = TTD General Manager
+            if(!in_array($query->invoice->status, [1,2])) {
+                $total = $query->total_harga + ($query->total_harga * ($query->invoice->ppn / 100));
+                $variables['INVOICE'] = "
+                    ".$variables['JML_UNIT']." buah ". $variables['LAYANAN_JASA']. " " . $variables['JENIS_TLD'] . " x " . $variables['PERIODE_JML'] . " Periode x " . formatCurrency($query->harga_layanan) . ",- = " . formatCurrency($query->total_harga) . ",-
+                    ditambah PPN " . $query->invoice->ppn . "% total biaya yang harus dibayar sebesar " . formatCurrency($total) . ",-
+                ";
+                $variables["INVOICE_HRF"] = angkaKeHuruf($total);
+                $dokumen->update(['variables' => $variables]);
+            }
         }
 
+        // TTD
+        $ttd_1 = $query->pelanggan->ttd ?? "";
+        $variables["TTD_1"] = $ttd_1 ? "
+            <div style='text-align: center;'>
+                <img src='$ttd_1' alt='TTD PIHAK 1' width='100px' height='100px'>
+            </div>
+        " : "<br><br><br>";
+
+        $variables["TTD_2"] = "<br><br><br>";
+
         // generate pdf
-        $bytes = $this->generatePDF($data['title'], $template, $variables, []);
+        $bytes = $this->generatePDF($data['title'], $template, $variables, ['TTD_1', 'TTD_2']);
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
@@ -628,10 +877,6 @@ class ReportController extends Controller
             'Content-Type'        => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$filename.'"',
         ]);
-        // $pdf = PDF::loadView('report.perjanjian', $data);
-        // $pdf->render();
-
-        // return $pdf->stream();
     }
 
     public function label($id = null){

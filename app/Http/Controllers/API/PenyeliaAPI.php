@@ -13,6 +13,7 @@ use App\Models\Penyelia_map;
 use App\Models\User;
 use App\Models\Permohonan;
 use App\Models\Permohonan_dokumen;
+use App\Models\Documents;
 
 use App\Models\Master_jobs;
 use App\Models\Master_tld;
@@ -70,8 +71,6 @@ class PenyeliaAPI extends Controller
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
-            $ttd && $params['ttd'] = $ttd;
-            $ttd_by && $params['ttd_by'] = $ttd_by;
             $file_document && $params['document'] = $file_document->getIdMedia();
 
             $status && $params['status'] = $status;
@@ -176,12 +175,21 @@ class PenyeliaAPI extends Controller
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
             $status && $params['status'] = $status;
-            $ttd_by && $params['ttd_by'] = $ttd_by;
-            $ttd && $params['ttd'] = $ttd;
 
             $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan_parent')->find($idPenyelia);
             if($penyelia){
                 $penyelia->update($params);
+
+
+                // simpan ttd di dokumen
+                if($ttd){
+                    Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)
+                    ->where('jenis', 'surattugas')->where('status', 1)
+                    ->update([
+                        'ttd' => $ttd,
+                        'ttd_by' => $ttd_by
+                    ]);
+                }
 
                 // Menambahkan jobs ke penyelia
                 if($jobsMap && $jobsMapParalel){
@@ -268,12 +276,20 @@ class PenyeliaAPI extends Controller
 
                 if(!$dokumen){
                     // menambahkan dokumen perjanjian
+                    $template = Documents::with('footer', 'header')
+                        ->where('jenis', 'body')
+                        ->where('name', 'SuratTugas')
+                        ->where('status', '1')
+                        ->first();
+
                     $penyeliaData = Penyelia::select('id_permohonan','id_penyelia')->find($idPenyelia);
                     $dataParams = array(
                         'id_permohonan' => $penyeliaData->id_permohonan,
+                        'id_kontrak' => Permohonan::find($penyeliaData->id_permohonan)->id_kontrak,
                         'created_by' => Auth::user()->id,
                         'nama' => 'Surat Tugas Uji',
                         'jenis' => 'surattugas',
+                        'id_doc_template' => $template->id_doc,
                         'status' => 1,
                         'nomer' => generateNoDokumen('surattugas', $penyeliaData->id_penyelia)
                     );

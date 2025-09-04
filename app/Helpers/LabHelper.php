@@ -363,49 +363,52 @@ if (!function_exists('getRomawiBulan')) {
 
 if (!function_exists('angkaKeHuruf')) {
     function angkaKeHuruf($angka) {
-    $angka = (int)$angka;
+        $angka = (int)$angka;
 
-    $bilangan = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan'];
-    $ribu     = ['', 'ribu', 'juta', 'miliar', 'triliun'];
+        $bilangan = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan'];
+        $ribu     = ['', 'ribu', 'juta', 'miliar', 'triliun'];
 
-    if ($angka === 0) return 'nol';
-    if ($angka < 10)  return $bilangan[$angka];
+        if ($angka === 0) return 'nol';
+        if ($angka < 10)  return $bilangan[$angka];
 
-    if ($angka === 10) return 'sepuluh';
-    if ($angka === 11) return 'sebelas';
-    if ($angka < 20)   return $bilangan[$angka - 10] . ' belas';
+        if ($angka === 10) return 'sepuluh';
+        if ($angka === 11) return 'sebelas';
+        if ($angka < 20)   return $bilangan[$angka - 10] . ' belas';
 
-    if ($angka < 100) {
-        $puluh = intdiv($angka, 10);
-        $sisa  = $angka % 10;
-        return trim($bilangan[$puluh] . ' puluh ' . ($sisa ? angkaKeHuruf($sisa) : ''));
-    }
-
-    if ($angka < 200)  return trim('seratus ' . angkaKeHuruf($angka - 100));
-
-    if ($angka < 1000) {
-        $ratus = intdiv($angka, 100);
-        $sisa  = $angka % 100;
-        return trim($bilangan[$ratus] . ' ratus ' . ($sisa ? angkaKeHuruf($sisa) : ''));
-    }
-
-    // 1000 ke atas
-    $result = '';
-    $idx = 0;
-    while ($angka > 0) {
-        $chunk = $angka % 1000;
-        if ($chunk) {
-            if ($idx === 1 && $chunk === 1) {
-                $result = 'seribu ' . $result; // bukan "satu ribu"
-            } else {
-                $result = trim(angkaKeHuruf($chunk) . ' ' . $ribu[$idx]) . ' ' . $result;
-            }
+        if ($angka < 100) {
+            $puluh = intdiv($angka, 10);
+            $sisa  = $angka % 10;
+            return trim($bilangan[$puluh] . ' puluh ' . ($sisa ? angkaKeHuruf($sisa) : ''));
         }
-        $angka = intdiv($angka, 1000);
-        $idx++;
+
+        // ✅ perbaikan di sini
+        if ($angka === 100) return 'seratus';
+        if ($angka < 200)  return trim('seratus ' . angkaKeHuruf($angka - 100));
+
+        if ($angka < 1000) {
+            $ratus = intdiv($angka, 100);
+            $sisa  = $angka % 100;
+            return trim($bilangan[$ratus] . ' ratus ' . ($sisa ? angkaKeHuruf($sisa) : ''));
+        }
+
+        // 1000 ke atas
+        $result = '';
+        $idx = 0;
+        while ($angka > 0) {
+            $chunk = $angka % 1000;
+            if ($chunk) {
+                if ($idx === 1 && $chunk === 1) {
+                    $result = 'seribu ' . $result; // bukan "satu ribu"
+                } else {
+                    $result = trim(angkaKeHuruf($chunk) . ' ' . $ribu[$idx]) . ' ' . $result;
+                }
+            }
+            $angka = intdiv($angka, 1000);
+            $idx++;
+        }
+        return trim(preg_replace('/\s+/', ' ', $result));
     }
-    return trim(preg_replace('/\s+/', ' ', $result));
-}
+
 
 }
 
@@ -421,17 +424,17 @@ if (!function_exists('generateNoDokumen')) {
         $lastContractNumber = 1;
 
         // Incremental number
-        if($jenis != 'surpeng'){
-            $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
-                                    ->whereMonth('created_at', $bulanSekarang)
-                                    ->whereYear('created_at', $tahunSekarang)
-                                    ->count(); // Ubah dengan pengambilan nomor terakhir dari database
-        }else{
-            $lastContractNumber = Kontrak_periode::where('nomer_surpeng', '!=', null)
-                                    ->whereMonth('created_at', $bulanSekarang)
-                                    ->whereYear('created_at', $tahunSekarang)
-                                    ->count();
-        }
+        $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
+                                // ->whereMonth('created_at', $bulanSekarang)
+                                // ->whereYear('created_at', $tahunSekarang)
+                                ->count(); // Ubah dengan pengambilan nomor terakhir dari database
+        // if($jenis != 'surpeng'){
+        // }else{
+        //     $lastContractNumber = Kontrak_periode::where('nomer_surpeng', '!=', null)
+        //                             ->whereMonth('created_at', $bulanSekarang)
+        //                             ->whereYear('created_at', $tahunSekarang)
+        //                             ->count();
+        // }
         $increment = str_pad($lastContractNumber + 1, 4, '0', STR_PAD_LEFT);
 
         switch ($jenis) {
@@ -603,7 +606,7 @@ if(!function_exists('renderMentionsToValuesFlexible')) {
             // Ambil value
             // $value = array_key_exists($key, $map) ? (string)$map[$key] : $default;
             $has = array_key_exists($key, $map);
-            $valueRaw = $has ? (string)$map[$key] : $default;
+            $valueRaw = $has ? (string)$map[$key] == '' ? $default : (string)$map[$key] : $default;
 
             if (in_array($key, $htmlKeys, true)) {
                 $value = $valueRaw;

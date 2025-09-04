@@ -16,6 +16,7 @@ class Permohonan_dokumen extends Model
         'id_permohonan',
         'id_kontrak',
         'id_doc_template',
+        'periode',
         'nomer',
         'nama',
         'status',

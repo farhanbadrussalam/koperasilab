@@ -509,7 +509,8 @@ class Detail {
                 dataPermohonan = this.data;
                 break;
             case 'penyelia':
-                dataDokumen = this.data.permohonan.dokumen;
+                this.data.permohonan.kontrak.document_kontrak && (dataDokumen = [this.data.permohonan.kontrak.document_kontrak]);
+                dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
                 invoiceData = this.data.permohonan.invoice;
                 dataPermohonan = this.data.permohonan;
                 break;
@@ -521,7 +522,7 @@ class Detail {
             let idHash = false;
             switch (dokumen.jenis) {
                 case 'invoice':
-                    idHash = invoiceData?.permohonan_hash;
+                    idHash = invoiceData?.keuangan_hash;
                     break;
                 case 'kontrak':
                     idHash = dataPermohonan.kontrak.kontrak_hash;

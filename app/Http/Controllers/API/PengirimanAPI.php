@@ -14,6 +14,8 @@ use App\Models\Pengiriman;
 use App\Models\Pengiriman_detail;
 use App\Models\Permohonan;
 use App\Models\Permohonan_pengguna;
+use App\Models\Permohonan_dokumen;
+use App\Models\Documents;
 use App\Models\User;
 use App\Models\Keuangan;
 use App\Models\Penyelia;
@@ -524,6 +526,31 @@ class PengirimanAPI extends Controller
                         if($kPeriode){
                             if($kPeriode->nomer_surpeng == null){
                                 $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
+                                // mengambil dokumen surat pengantar
+                                $dokumen = Permohonan_dokumen::where("id_kontrak", $idKontrak)
+                                            ->where("periode", $kPeriode->periode)
+                                            ->where("jenis", "surpeng")->first();
+                                if(!$dokumen){
+                                    $template = Documents::with('footer', 'header')
+                                            ->where('jenis', 'body')
+                                            ->where('name', 'SuratPengantar')
+                                            ->where('status', '1')
+                                            ->first();
+
+                                    $dokumen = Permohonan_dokumen::create(array(
+                                        'periode' => $kPeriode->periode,
+                                        'id_kontrak' => $idKontrak,
+                                        'id_doc_template' => $template->id_doc,
+                                        'jenis' => "surpeng",
+                                        "nama" => "Surat Pengantar (Periode ".$kPeriode->periode.")",
+                                        "nomer" => $noSurpeng,
+                                        "created_by" => Auth::user()->id,
+                                        "status" => 1
+                                    ));
+                                } else {
+                                    $dokumen->nomer = $noSurpeng;
+                                    $dokumen->save();
+                                }
                             }else{
                                 // $params['nomer_surpeng'] = $kPeriode->nomer_surpeng;
                             }

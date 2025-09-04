@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Carbon\Carbon;
+
 class Kontrak extends Model
 {
     use HasFactory;
@@ -43,7 +45,9 @@ class Kontrak extends Model
 
     protected $appends = [
         'kontrak_hash',
-        'document_kontrak'
+        'document_kontrak',
+        'periode_all',
+        'data_radiasi'
     ];
 
     protected $casts = [
@@ -73,7 +77,48 @@ class Kontrak extends Model
 
     public function getDocumentKontrakAttribute()
     {
-        return Permohonan_dokumen::where('id_kontrak', $this->id_kontrak)->where('jenis', 'kontrak')->first();
+        return Permohonan_dokumen::with("usersig")->where('id_kontrak', $this->id_kontrak)->where('jenis', 'kontrak')->first();
+    }
+
+    public function getDataRadiasiAttribute()
+    {
+        $dataPengguna = Kontrak_tld::with('pengguna')->where('id_kontrak', $this->id_kontrak)->whereNotNull('id_pengguna')->get();
+        $radiasi = array();
+        $radiasi = array_merge(...$dataPengguna->pluck('pengguna.radiasi')->filter()->toArray());
+        return $radiasi;
+    }
+
+    public function getPeriodeAllAttribute()
+    {
+        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->get();
+        $jmlBulan = 0;
+        $periodeAwal = "";
+        $periodeAkhir = "";
+        $jmlPeriode = 0;
+
+        foreach ($periode as $key => $item) {
+            // mengambil periode awal
+            if($item->periode == 1) {
+                $periodeAwal = $item->start_date;
+            }
+
+            // mengambil periode akhir
+            if($key == count($periode) - 1) {
+                $periodeAkhir = $item->end_date;
+            }
+
+            if($item->periode != 0){
+                $jmlPeriode++;
+            }
+        }
+
+        $jmlBulan = Carbon::parse($periodeAwal)->diffInMonths(Carbon::parse($periodeAkhir));
+
+        $result['jml_all_bulan'] = $jmlBulan + 1;
+        $result['periode_awal'] = $periodeAwal;
+        $result['periode_akhir'] = $periodeAkhir;
+        $result['jml_periode'] = $jmlPeriode;
+        return $result;
     }
 
     public function jenisTld(){
