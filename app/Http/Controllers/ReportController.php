@@ -416,7 +416,7 @@ class ReportController extends Controller
             $variables = $dokumen->variables;
         } else {
             $variables = $this->mappingVars($template, $query, $data);
-            if($query->lhu->end_date){
+            if($query->lhu && $query->lhu->end_date){
                 $variables['SELESAI_PENGUJIAN'] = convert_date($query->lhu->end_date, 6);
                 $dokumen->update(['variables' => $variables]);
             }
