@@ -10,6 +10,8 @@ use App\Models\Pengiriman_detail;
 use App\Models\Kontrak_periode;
 use Illuminate\Support\Facades\Crypt;
 
+use App\Helpers\TableWidthFixer;
+
 if (!function_exists('formatCurrency')) {
     function formatCurrency($amount)
     {
@@ -636,7 +638,66 @@ if(!function_exists('renderMentionsToValuesFlexible')) {
             $out .= $dom->saveHTML($child);
         }
 
+        $containerPx = a4ContentWidthPx('portrait', 40, 40, 96); // samakan dgn @page margin & DPI
+        $out = convertTableWidthsToPx($out, $containerPx);
+
+        $out = TableWidthFixer::colgroupToFirstRowCellPx($out, 800);
         return $out;
     }
 }
+
+if(!function_exists('a4ContentWidthPx')) {
+    // A4 @ 96 DPI ≈ 794 px lebar. Sesuaikan margin yang kamu pakai di @page.
+    function a4ContentWidthPx(string $orientation='portrait', int $marginLeftPx=40, int $marginRightPx=40, int $dpi=96): int {
+        [$wIn, $hIn] = $orientation === 'portrait' ? [8.268, 11.693] : [11.693, 8.268];
+        $wPx = (int) round($wIn * $dpi);
+        return max(0, $wPx - ($marginLeftPx + $marginRightPx));
+    }
+}
+
+if(!function_exists('convertTableWidthsToPx')) {
+
+    function convertTableWidthsToPx(string $html, int $containerPx): string {
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        $xp = new DOMXPath($dom);
+
+        foreach ($xp->query('//table') as $table) {
+            // Table width (% → px) di style
+            $style = $table->getAttribute('style');
+            if (preg_match('/width\s*:\s*([\d.]+)%/i', $style, $m)) {
+                $px = (int) round($containerPx * (float) $m[1] / 100);
+                $style = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $style);
+                $table->setAttribute('style', $style);
+            }
+
+            // colgroup/col
+            foreach ($xp->query('./colgroup/col', $table) as $col) {
+                $cs = $col->getAttribute('style');
+                if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m2)) {
+                    $px = (int) round($containerPx * (float) $m2[1] / 100);
+                    $cs = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $cs);
+                    $col->setAttribute('style', $cs);
+                }
+            }
+
+            // th/td
+            foreach ($xp->query('.//th|.//td', $table) as $cell) {
+                $cs = $cell->getAttribute('style');
+                if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m3)) {
+                    $px = (int) round($containerPx * (float) $m3[1] / 100);
+                    $cs = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $cs);
+                    $cell->setAttribute('style', $cs);
+                } elseif ($cell->hasAttribute('width') && preg_match('/^\s*([\d.]+)%\s*$/', $cell->getAttribute('width'), $m4)) {
+                    $px = (int) round($containerPx * (float) $m4[1] / 100);
+                    $cell->setAttribute('width', (string) $px); // atribut width px
+                }
+            }
+        }
+        return $dom->saveHTML();
+    }
+}
+
 ?>

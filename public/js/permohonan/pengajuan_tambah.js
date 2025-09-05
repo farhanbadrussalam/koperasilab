@@ -499,6 +499,7 @@ function loadPengguna(){
                     let txtRadiasi = '';
                     value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
                     let pengguna = value.pengguna;
+                    let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
                     let htmlEvaluasi = `
                         <hr class="my-2">
@@ -520,7 +521,7 @@ function loadPengguna(){
                                     </div>
                                 </div>
                                 <div class="col-auto text-end ms-auto">
-                                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
+                                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${fileKtp}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${value.pengguna.pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
                                 </div>
                                 ${(tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld ? htmlEvaluasi : ``}

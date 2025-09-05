@@ -126,11 +126,11 @@ function simpanHeader(obj) {
     const formParams = new FormData();
     formParams.append("variables", vars);
     formParams.append("title", nama_header.value);
-    formParams.append("content", header_html);
+    formParams.append("content", convertHslToHex(header_html));
     formParams.append("jenis", type);
     formParams.append("used_images", JSON.stringify(used));
-    header && formParams.append("header", header);
-    footer && formParams.append("footer", footer);
+    formParams.append("header", header);
+    formParams.append("footer", footer);
 
     let id = _data.doc_hash || '';
 

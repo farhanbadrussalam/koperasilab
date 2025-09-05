@@ -94,8 +94,9 @@ class PenggunaController extends Controller
                 return $status;
             })
             ->addColumn('action', function ($row) use ($type) {
+                $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
                 $btn = '<div class="btn-group">';
-                $btn .= '<a class="btn btn-sm btn-outline-secondary show-popup-image" href="' .asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash). '"><i class="bi bi-file-person-fill"></i></a>';
+                $btn .= '<a class="btn btn-sm btn-outline-secondary show-popup-image" href="' . $fileKtp. '"><i class="bi bi-file-person-fill"></i></a>';
                 $type == 'selected' ? '' : $btn .= '<a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></a>';
 
                 if ($type == 'selected') {

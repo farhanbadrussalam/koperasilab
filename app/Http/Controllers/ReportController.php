@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Mews\Purifier\Facades\Purifier;
-use Spatie\Browsershot\Browsershot;
+
+// use Spatie\Browsershot\Browsershot;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 use App\Models\Kontrak;
 use App\Models\Kontrak_tld;
@@ -46,22 +48,26 @@ class ReportController extends Controller
         $result['footer'] = $template->footer ? renderMentionsToValuesFlexible($template->footer->content, $variables, $options) : '';
         $classHeader = $template->header ? 'withHeader' : '';
         $classFooter = $template->footer ? 'withFooter' : '';
-        $result['body'] = "<div class='" . $classHeader . " " . $classFooter . "'>" . renderMentionsToValuesFlexible($template->content, $variables, $options) . "</div>";
+        $result['body'] = renderMentionsToValuesFlexible($template->content, $variables, $options);
 
-        $html = view('report.index', $result)->render();
+        // dd(TableWidthFixer::colgroupToFirstRowCellPx($result['header'], 800));
+        // dd($result["body"]);
+        // $html = view('report.index', $result)->render();
 
-        $b = Browsershot::html($html)
-            ->emulateMedia('screen')
-            ->showBackground()                 // penting agar warna/background ikut tercetak
-            ->setOption('displayHeaderFooter', false) // penting!
-            ->format('A4')
-            ->margins(0, 0, 0, 0)         // mm: top,right,bottom,left
-            ->waitUntilNetworkIdle()          // tunggu asset selesai dimuat
-            ->addChromiumArguments(['--allow-file-access-from-files']) // kadang perlu
-            ->setOption('waitUntil', 'networkidle0')
-            ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']); // untuk banyak server Linux
+        // $b = Browsershot::html($html)
+        //     ->emulateMedia('screen')
+        //     ->showBackground()                 // penting agar warna/background ikut tercetak
+        //     ->setOption('displayHeaderFooter', false) // penting!
+        //     ->format('A4')
+        //     ->margins(0, 0, 0, 0)         // mm: top,right,bottom,left
+        //     ->waitUntilNetworkIdle()          // tunggu asset selesai dimuat
+        //     ->addChromiumArguments(['--allow-file-access-from-files']) // kadang perlu
+        //     ->setOption('waitUntil', 'networkidle0')
+        //     ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']); // untuk banyak server Linux
 
-            $bytes = $b->pdf();
+        //     $bytes = $b->pdf();
+
+        $bytes = Pdf::loadView('report.index', $result);
 
         return $bytes;
     }
@@ -136,7 +142,7 @@ class ReportController extends Controller
         $variables['TTD_IMG'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
-                <img src='$ttd' alt='TTD_keuangan' width='200px' height='200px'>
+                <img src='$ttd' alt='TTD_keuangan' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
         $variables['TTD_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
@@ -144,10 +150,11 @@ class ReportController extends Controller
         $bytes = $this->generatePDF("Invoice", $template, $variables, ['CATATAN_PEMBAYARAN', 'NOTICE', 'TTD_IMG', 'RINCIAN']);
         $filename = 'invoice-'.now()->format('Ymd-His').'.pdf';
 
-        return response($bytes, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        ]);
+        return $bytes->stream($filename);
+        // return response($bytes, 200, [
+        //     'Content-Type'        => 'application/pdf',
+        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        // ]);
     }
 
     public function contentInvoice($data, $params = null){
@@ -426,7 +433,7 @@ class ReportController extends Controller
         $variables['TTD_PENERIMA'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
-                <img src='$ttd' alt='TTD_PENERIMA' width='200px' height='200px'>
+                <img src='$ttd' alt='TTD_PENERIMA' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
         $variables['TTD_PENERIMA_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
@@ -434,7 +441,7 @@ class ReportController extends Controller
         $ttd_pemohon = $query->pelanggan->ttd ?? "";
         $variables['TTD_PEMOHON'] = $ttd_pemohon ? "
             <div style='text-align: center;'>
-                <img src='$ttd_pemohon' alt='TTD_PEMOHON' width='200px' height='200px'>
+                <img src='$ttd_pemohon' alt='TTD_PEMOHON' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
         $variables['TTD_PEMOHON_BY'] = $query->pelanggan ? $query->pelanggan->name : '...........................................';
@@ -444,10 +451,11 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
-        return response($bytes, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        ]);
+        return $bytes->stream($filename);
+        // return response($bytes, 200, [
+        //     'Content-Type'        => 'application/pdf',
+        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        // ]);
     }
 
     private function contentTandaTerima($data, $params = null) {
@@ -467,7 +475,7 @@ class ReportController extends Controller
 
                     if($getPertanyaan[$i]->type == 1){
                         $tdContent .= '
-                            <td width="5%" class="text-center">'.$no++.'.</td>
+                            <td width="1%" class="text-center">'.$no++.'.</td>
                             <td>
                                 '.$getPertanyaan[$i]->pertanyaan.' :<br>
                                 <span class="text-secondary">'.$data->tandaterima[$i]->jawaban.'</span>
@@ -492,7 +500,7 @@ class ReportController extends Controller
 
                     if($getPertanyaan[$i + $half]->type == 1){
                         $tdContent .= '
-                            <td width="5%" class="text-center">'.$no++.'.</td>
+                            <td width="1%" class="text-center">'.$no++.'.</td>
                             <td>
                                 '.$getPertanyaan[$i + $half]->pertanyaan.' :<br>
                                 <span class="text-secondary">'.$data->tandaterima[$i + $half]->jawaban.'</span>
@@ -514,12 +522,7 @@ class ReportController extends Controller
         return [
             "RINCIAN" => '
                 <table class="table-tandaterima content-table ck-table-resized" border="1">
-                    <colgroup>
-                        <col style="width: 5%" />
-                        <col style="width: 45%" />
-                        <col style="width: 5%" />
-                        <col style="width: 45%" />
-                    </colgroup>
+
                     <tbody>
                         <tr>
                             <td colspan="4">Jenis Pengujian/Kalibrasi: <span class="text-secondary">'. $jenisPengujian .'</span></td>
@@ -582,7 +585,7 @@ class ReportController extends Controller
         $variables["TTD"] = $ttd ? "
             <div>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
-                <img src='$ttd' alt='TTD_PENERIMA' width='200px' height='200px'>
+                <img src='$ttd' alt='TTD_PENERIMA' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
         $variables["TTD_BY"] = $dokumen->usersig ? $dokumen->usersig->name : ".....................";
@@ -592,10 +595,11 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
-        return response($bytes, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        ]);
+        return $bytes->stream($filename);
+        // return response($bytes, 200, [
+        //     'Content-Type'        => 'application/pdf',
+        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        // ]);
         // $pdf = PDF::loadView('report.suratTugas', $data);
 
         // $pdf->render();
@@ -627,16 +631,11 @@ class ReportController extends Controller
         return [
             "RINCIAN" => '
                 <table class="table-surattugas" border="1">
-                    <colgroup>
-                        <col style="width: 10%" />
-                        <col style="width: 45%" />
-                        <col style="width: 45%" />
-                    </colgroup>
                     <thead style="text-align: center;">
                         <tr>
-                            <th>No</th>
-                            <th>Nama</th>
-                            <th>Tugas</th>
+                            <th style="width: 1%">No</th>
+                            <th style="width: 40%">Nama</th>
+                            <th style="width: 40%">Tugas</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -731,7 +730,7 @@ class ReportController extends Controller
         $variables["TTD"] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
-                <img src='$ttd' alt='TTD_keuangan' width='200px' height='200px'>
+                <img src='$ttd' alt='TTD_keuangan' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
         $variables["TTD_BY"] = $query->document_kontrak->usersig ? $query->document_kontrak->usersig->name : '...........................................';
@@ -741,10 +740,11 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
-        return response($bytes, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        ]);
+        return $bytes->stream($filename);
+        // return response($bytes, 200, [
+        //     'Content-Type'        => 'application/pdf',
+        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        // ]);
     }
 
     private function contentSuratPengantar($data, $params){
@@ -769,9 +769,9 @@ class ReportController extends Controller
             "RINCIAN" => '
                 <table class="table-surattugas" style="margin-top: 15px;">
                     <tr>
-                        <th width="10%">No</th>
-                        <th width="40%">Nama Pemakai TLD</th>
-                        <th width="40%">Keterangan</th>
+                        <th width="1%">No</th>
+                        <th width="30%">Nama Pemakai TLD</th>
+                        <th width="30%">Keterangan</th>
                     </tr>
                     '.$html.'
                     <tr>
@@ -872,10 +872,11 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
-        return response($bytes, 200, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        ]);
+        return $bytes->stream($filename);
+        // return response($bytes, 200, [
+        //     'Content-Type'        => 'application/pdf',
+        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
+        // ]);
     }
 
     public function label($id = null){

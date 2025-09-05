@@ -15,12 +15,12 @@
 <body>
 
     @yield('header')
+    @yield('footer')
 
     <main class="main">
         @yield('content')
     </main>
 
-    @yield('footer')
 
     {{-- @include('report.template.footer') --}}
 </body>

@@ -1,5 +1,8 @@
 /* Margin halaman */
-@page { margin: 0px 40px; size: A4; }
+@page {
+  margin: 150px 40px 80px 40px; /* top right bottom left — tambahkan bottom utk ruang footer */
+  size: A4;
+}
 /* @page { margin: 100px 20px 80px 20px; } */
 
 /* “Content styles” – fokus ke output CKEditor, bukan UI editor */
@@ -8,7 +11,7 @@
 
 /* TABEL (CKEditor bisa menghasilkan figure.table ATAU table langsung) */
 /* Kasus kamu: class="table layout-table ck-table-resized" + colgroup */
- table { width: 100%; border-collapse: collapse; table-layout: fixed;text-align: left; }
+ table { width: 100%; border-collapse: collapse; text-align: left; }
  th,  td { border: 1px solid #333; padding: 0px; vertical-align: top; word-wrap: break-word; }
  figure.table { width: 100%; margin: 0 0 8px; }
  figure.table table { width: 100%; border-collapse: collapse; }
@@ -18,7 +21,7 @@
 
 /* GAMBAR dalam konten CKEditor */
  .image { margin: 8px 0; }
- img { display: inline-block; max-width: 100%; height: auto; }
+img { max-width: 100%; height: auto; }
 
 /* img { max-width: 100%; height: auto; width: inherit !important; } */
 /* CKEditor kadang menambah .image_resized + style width:% di <figure> */
@@ -56,8 +59,8 @@
  .lh-20 { line-height: 2; }
 
 /* Hindari pecah tabel di tengah halaman */
- table { page-break-inside: avoid; }
- tr,  td,  th { page-break-inside: avoid; }
+table { page-break-inside: auto; }   /* was: avoid */
+tr, td, th { page-break-inside: avoid; } /* cegah pecah di tengah baris, masih OK */
 
  .text-center {
     text-align: center !important;
@@ -68,11 +71,24 @@
 }
 
 .footer {
-    position: fixed;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
-    border-top: 1px solid #ccc;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -20px;       /* atau 0; sesuaikan dengan tinggi konten footer */
+  height: 70px;        /* kira-kira tinggi footer kamu */
+}
+
+.header {
+  position: fixed;
+  left: 0;
+  right: 0;
+
+  /* Letakkan header di area margin atas */
+  top: -140px;        /* biasanya ≈ -height; coba -90px terlebih dulu */
+  height: 140px;
+
+  /* Stabilitas layout */
+  z-index: 1;
 }
 
 /* .header {
@@ -102,6 +118,7 @@
     width: 100px;
     height: 100px;
     position: absolute;
+    margin-left: 10%;
     z-index: 2; /* Lapisan depan lebih tinggi */
 }
 

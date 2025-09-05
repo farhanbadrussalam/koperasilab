@@ -93,7 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         });
         Route::controller(StaffController::class)->group(function() {
             Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
-            Route::get('/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
+            Route::get('/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.show');
         });
     });
 
@@ -140,7 +140,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::get('getDataPengguna', [PenggunaController::class, 'getData'])->name('pengguna.getData');
 
         Route::resource('document', DocumentController::class);
-        Route::post('document/{id}', [DocumentController::class, 'update'])->name('document.update');
+        Route::post('document/{id}', [DocumentController::class, 'update']);
     });
     // });
 

@@ -405,6 +405,8 @@ function loadPengguna(){
                 tld: tldHash
             });
 
+            let fileKtp = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '';
+
             html += `
                 <tr>
                     ${isCheckedEvaluasi ? `<td><input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${idHash}" aria-label="" id="checkTldPengguna${i}"></td>` : ''}
@@ -421,7 +423,7 @@ function loadPengguna(){
                         </div>
                     </td>
                     <td>
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}">
+                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${fileKtp}" title="Show ktp">
                             <i class="bi bi-file-person-fill"></i>
                         </a>
                     </td>

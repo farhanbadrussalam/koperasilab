@@ -1179,3 +1179,20 @@ function extractImgSrcSet(html) {
   box.innerHTML = html;
   return new Set([...box.querySelectorAll('img')].map(img => img.getAttribute('src')));
 }
+
+function hslToHex(hsl) {
+  const [h, s, l] = hsl.match(/\d+(\.\d+)?/g).map(Number);
+  const a = s * Math.min(l / 100, 1 - l / 100) / 100;
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const color = l/100 - a * Math.max(Math.min(k-3, 9-k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// convert semua inline style di HTML
+function convertHslToHex(html) {
+  return html.replace(/hsl\([^)]+\)/g, match => hslToHex(match));
+}
+

@@ -114,8 +114,8 @@ class DocumentController extends Controller
                 'status' => 1,
                 'created_by' => Auth::user()->id,
             ];
-            $header && $data['id_header'] = $header;
-            $footer && $data['id_footer'] = $footer;
+            $data['id_header'] = $header;
+            $data['id_footer'] = $footer;
 
             Documents::create($data);
 
@@ -151,8 +151,8 @@ class DocumentController extends Controller
                 'jenis' => $request->jenis,
                 'status' => 1,
             ];
-            $header && $data['id_header'] = $header;
-            $footer && $data['id_footer'] = $footer;
+            $data['id_header'] = $header;
+            $data['id_footer'] = $footer;
 
             Documents::where('id_doc', decryptor($id))->update($data);
 
