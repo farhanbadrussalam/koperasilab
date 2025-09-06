@@ -33,7 +33,7 @@ class ReportController extends Controller
         $this->global = config('customvariabel');
     }
 
-    private function generatePDF($title, $template, $variables, $htmlKeys = []){
+    private function generatePDF($title, $template, $variables = [], $htmlKeys = []){
         $result = array(
             'title' => $title,
         );
@@ -135,7 +135,7 @@ class ReportController extends Controller
                         ->where('id_doc', $dokumen->id_doc_template)
                         ->first();
 
-            $variables = $dokumen->variables;
+            $variables = $dokumen->variables ?? [];
         }
         // TTD Invoice
         $ttd = $dokumen->ttd ?? "";
@@ -331,6 +331,23 @@ class ReportController extends Controller
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars= array_merge($vars, $this->contentSuratPengantar($data, $params));
                 break;
+            case "Kwitansi":
+                $vars["NOMOR"] = $data->permohonan->kontrak->dokumen[0]->nomer;
+                $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
+                $vars["JENIS_LAYANAN"] = $data->permohonan->jenis_layanan->name;
+                $vars["LAYANAN_JASA"] = $data->permohonan->layanan_jasa->nama_layanan;
+                $vars["JENIS_TLD"] = $data->permohonan->jenisTld->name;
+                $vars["JML_UNIT"] = $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol;
+                $vars["JML_PERIODE"] = $data->permohonan->kontrak->periode_all['jml_periode'];
+                $vars["HARGA"] = formatCurrency($data->permohonan->kontrak->harga_layanan);
+                $vars["HARGA_AWAL"] = formatCurrency($data->permohonan->kontrak->total_harga);
+                $vars["PERIODE_AWAL"] = convert_date($data->permohonan->kontrak->periode_all['periode_awal'], 6);
+                $vars["PERIODE_SELESAI"] = convert_date($data->permohonan->kontrak->periode_all['periode_akhir'], 6);
+                $vars["TGL_BUAT"] = convert_date($data->permohonan->kontrak->dokumen[0]->created_at, 2);
+                $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
+                $vars["LOKASI_BUAT"] = "Tangerang Selatan";
+                $vars = array_merge($vars, $this->contentKwitansi($data, $params));
+                break;
             default:
                 # code...
                 break;
@@ -358,10 +375,13 @@ class ReportController extends Controller
             'permohonan.jenis_layanan',
             'permohonan.pelanggan',
             'permohonan.pelanggan.perusahaan',
-            'permohonan.kontrak:id_kontrak,no_kontrak',
-            'permohonan.dokumen' => function($q){
+            'permohonan.kontrak',
+            'permohonan.kontrak.dokumen' => function($q){
                 $q->where('jenis', 'kwitansi');
-            }
+            },
+            'permohonan.kontrak.dokumen.doc_template',
+            'permohonan.kontrak.dokumen.doc_template.footer',
+            'permohonan.kontrak.dokumen.doc_template.header'
         ])->where('id_keuangan', $idKeuangan)->first();
 
         $data['data'] = $query;
@@ -376,11 +396,96 @@ class ReportController extends Controller
         $data['periode_start'] = convert_date($start, 6);
         $data['periode_end'] = convert_date($end, 6);
 
-        $pdf = PDF::loadView('report.kwitansi', $data);
+        // mengambil template kwitansi
+        $dokumen = $query->permohonan->kontrak->dokumen->first();
+        if($dokumen) {
+            $template = $dokumen->doc_template;
 
-        $pdf->render();
+            if($dokumen->variables) {
+                $variables = $dokumen->variables ?? [];
+            } else {
+                $variables = $this->mappingVars($template, $query, $data);
+            }
+        } else {
+            $template = null;
+            $variables = [];
+        }
 
-        return $pdf->stream();
+        // TTD KWITANSI
+        $ttd = $dokumen->ttd ?? "";
+        $variables['TTD'] = $ttd ? "
+            <div style='text-align: center;'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
+                <img src='$ttd' alt='TTD_PENERIMA' width='100px' height='100px'>
+            </div>
+        " : "<br><br><br>";
+        $variables['TTD_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
+
+        $bytes = $this->generatePDF("Kwitansi", $template, $variables, ['RINCIAN', 'TTD']);
+        $filename = 'kwitansi-'.now()->format('Ymd-His').'.pdf';
+
+        return $bytes->stream($filename);
+        // $pdf = PDF::loadView('report.kwitansi', $data);
+        // $pdf->render();
+        // return $pdf->stream();
+    }
+
+    private function contentKwitansi($data, $params = null) {
+        $subJumlah = 0;
+
+        $tbl_rincian = "";
+
+        if ($data->diskon) {
+            foreach ($data->diskon as $item) {
+                $item->jumDiskon = $data->permohonan->kontrak->total_harga * ($item->diskon / 100);
+                $subJumlah += $item->jumDiskon;
+
+                $tbl_rincian .= '
+                    <tr>
+                        <td width="20%"></td>
+                        <td><p class="lh-16">'. $item->name .' ' . $item->diskon . '%</p></td>
+                        <td style="text-align: right">' . formatCurrency($item->jumDiskon) . ' ,-</td>
+                    </tr>
+                ';
+            }
+        }
+
+        $jumAfterDiskon = $data->permohonan->kontrak->total_harga - $subJumlah;
+
+        $jumPph = $data->pph ? $jumAfterDiskon * ($data->pph / 100) : 0;
+        $jumAfterPph = $jumAfterDiskon - $jumPph;
+        $jumPpn = $data->ppn ? $jumAfterPph * ($data->ppn / 100) : 0;
+        $subTotal = $jumAfterPph + $jumPpn;
+
+        if($data->pph) {
+            $tbl_rincian .= '
+                <tr>
+                    <td width="20%"></td>
+                    <td><p class="lh-16">PPH ' . $data->pph . '%</p></td>
+                    <td style="text-align: right">' . formatCurrency($jumPph) . ' ,-</td>
+                </tr>
+            ';
+        }
+
+        if($data->ppn) {
+            $tbl_rincian .= '
+                <tr>
+                    <td width="20%"></td>
+                    <td><p class="lh-16">PPN ' . $data->ppn . '%</p></td>
+                    <td style="text-align: right">' . formatCurrency($jumPpn) . ' ,-</td>
+                </tr>
+            ';
+        }
+
+        return [
+            "RINCIAN" => '
+                <table class="table-kwitansi" border="0">
+                    '. $tbl_rincian .'
+                </table>
+            ',
+            "HARGA_TOTAL" => formatCurrency($subTotal),
+            "HARGA_TOTAL_HRF" => angkaKeHuruf($subTotal)
+        ];
     }
 
     public function tandaTerima($idPermohonan)
@@ -419,7 +524,7 @@ class ReportController extends Controller
                         ->where('id_doc', $dokumen->id_doc_template)
                         ->first();
         if($dokumen->variables){
-            $variables = $dokumen->variables;
+            $variables = $dokumen->variables ?? [];
         } else {
             $variables = $this->mappingVars($template, $query, $data);
             if($query->lhu && $query->lhu->end_date){
@@ -575,9 +680,15 @@ class ReportController extends Controller
                     ->first();
 
         if($dokumen->variables){
-            $variables = $dokumen->variables;
+            $variables = $dokumen->variables ?? [];
         } else {
             $variables = $this->mappingVars($template, $query, $data);
+
+            if($dokumen->ttd){
+                $dokumen->update([
+                    'variables' => $variables
+                ]);
+            }
         }
 
         // TTD Surat Tugas
@@ -608,43 +719,69 @@ class ReportController extends Controller
     }
 
     private function contentSuratTugas($data, $params) {
-        $html = '';
-        $no = 1;
-        $arr = [];
-        foreach ($data->lhu->petugas as $value) {
-            $arr[$value->user->id][] = array(
-                "name" => $value->user->name,
-                "jobs" => $value->jobs->jobs->name
-            );
-        }
-        foreach ($arr as $key => $value) {
-            $html .= '
-                <tr>
-                    <td style="text-align: center;">'.$no.'</td>
-                    <td>'.$value[0]['name'].'</td>
-                    <td>'.implode(', ', array_column($value, 'jobs')).'</td>
-                </tr>
-            ';
-            $no++;
-        }
+    $html = '';
+    $no   = 1;
+    $arr  = [];
 
-        return [
-            "RINCIAN" => '
-                <table class="table-surattugas" border="1">
-                    <thead style="text-align: center;">
-                        <tr>
-                            <th style="width: 1%">No</th>
-                            <th style="width: 40%">Nama</th>
-                            <th style="width: 40%">Tugas</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        '.$html.'
-                    </tbody>
-                </table>
-            '
+    // Grouping berdasarkan user
+    foreach ($data->lhu->petugas as $value) {
+        $arr[$value->user->id][] = [
+            "name" => $value->user->name,
+            "jobs" => $value->jobs->jobs->name
         ];
     }
+
+    $rowCount = 0;
+    $html .= '
+        <table class="table-surattugas" border="1">
+            <thead style="text-align: center;">
+                <tr>
+                    <th style="width: 1%">No</th>
+                    <th style="width: 40%">Nama</th>
+                    <th style="width: 40%">Tugas</th>
+                </tr>
+            </thead>
+            <tbody>
+    ';
+
+    foreach ($arr as $key => $value) {
+        $html .= '
+            <tr>
+                <td style="text-align: center;">'.$no.'</td>
+                <td>'.$value[0]['name'].'</td>
+                <td>'.implode(', ', array_column($value, 'jobs')).'</td>
+            </tr>
+        ';
+
+        $no++;
+        $rowCount++;
+
+        // setiap kelipatan 10
+        if ($rowCount % 10 == 0 && $rowCount < count($arr)) {
+            $html .= '
+                </tbody>
+            </table>
+            <div class="page-break"></div>
+            <table class="table-surattugas" border="1">
+                <thead style="text-align: center;">
+                    <tr>
+                        <th style="width: 1%">No</th>
+                        <th style="width: 40%">Nama</th>
+                        <th style="width: 40%">Tugas</th>
+                    </tr>
+                </thead>
+                <tbody>
+            ';
+        }
+    }
+
+    $html .= '</tbody></table>';
+
+    return [
+        "RINCIAN" => $html
+    ];
+}
+
 
 /**
  * Generates a PDF stream of the "Surat Pengantar" report.
@@ -721,7 +858,7 @@ class ReportController extends Controller
 
         $query["dokumen"] = $dokumen;
         if($dokumen->variables){
-            $variables = $dokumen->variables;
+            $variables = $dokumen->variables ?? [];
         } else {
             $variables = $this->mappingVars($template, $query, $data);
         }

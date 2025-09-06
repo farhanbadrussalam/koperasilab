@@ -168,4 +168,8 @@ class Kontrak extends Model
     public function signature(){
         return $this->belongsTo(User::class, 'ttd_by', 'id');
     }
+
+    public function dokumen(){
+        return $this->hasMany(Permohonan_dokumen::class, 'id_kontrak', 'id_kontrak');
+    }
 }
