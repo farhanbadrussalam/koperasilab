@@ -112,4 +112,8 @@ class Penyelia extends Model
     public function createBy(){
         return $this->belongsTo(User::class, 'created_by', 'id');
     }
+
+    public function dokumen(){
+        return $this->hasMany(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan');
+    }
 }

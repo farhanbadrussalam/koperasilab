@@ -503,13 +503,13 @@ class Detail {
         let dataPermohonan = false;
         switch (this.options.jenis) {
             case 'permohonan':
-                this.data.kontrak.document_kontrak && (dataDokumen = [this.data.kontrak.document_kontrak]);
+                this.data.kontrak.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
                 dataDokumen = dataDokumen.concat(this.data.dokumen);
                 invoiceData = this.data.invoice;
                 dataPermohonan = this.data;
                 break;
             case 'penyelia':
-                this.data.permohonan.kontrak.document_kontrak && (dataDokumen = [this.data.permohonan.kontrak.document_kontrak]);
+                this.data.permohonan.kontrak.document_kontrak && (dataDokumen = this.data.permohonan.kontrak.document_kontrak);
                 dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
                 invoiceData = this.data.permohonan.invoice;
                 dataPermohonan = this.data.permohonan;
@@ -525,6 +525,9 @@ class Detail {
                     idHash = invoiceData?.keuangan_hash;
                     break;
                 case 'kontrak':
+                    idHash = dataPermohonan.kontrak.kontrak_hash;
+                    break;
+                case 'KontrakPengujian':
                     idHash = dataPermohonan.kontrak.kontrak_hash;
                     break;
                 default:

@@ -700,4 +700,29 @@ if(!function_exists('convertTableWidthsToPx')) {
     }
 }
 
+if(!function_exists('calculateInvoice')) {
+    function calculateInvoice($total_harga, $diskon = [], $ppn = false, $pph = false) {
+        $subJumlah = 0;
+
+        foreach ($diskon as $item) {
+            $item->jumDiskon = $total_harga * ($item->diskon / 100);
+            $subJumlah += $item->jumDiskon;
+        }
+
+        $jumAfterDiskon = $total_harga - $subJumlah;
+
+        $jumPph = $pph ? $jumAfterDiskon * ($pph / 100) : 0;
+        $jumAfterPph = $jumAfterDiskon - $jumPph;
+        $jumPpn = $ppn ? $jumAfterPph * ($ppn / 100) : 0;
+        $subTotal = $jumAfterPph + $jumPpn;
+
+        return [
+            'diskon' => $diskon,
+            'jumAfterDiskon' => $jumAfterDiskon,
+            'jumPpn' => $jumPpn,
+            'jumPph' => $jumPph,
+            'subTotal' => $subTotal,
+        ];
+    }
+}
 ?>

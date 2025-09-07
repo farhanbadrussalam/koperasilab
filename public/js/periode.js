@@ -108,7 +108,7 @@ class Periode {
     }
 
     show() {
-        this.listPeriode = Array.from(this.masterData);
+        this.listPeriode = Array.from(this.masterData || []);
         if (this.canShow) {
             this.previewPeriode();
             $("#modal-show-periode-" + this.id_element).modal("show");

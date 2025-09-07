@@ -463,25 +463,29 @@ periodeNextJs.on('periode.simpan.2', simpanPeriodeNext);
 
 function simpanPeriodeNext() {
     const dataPeriode = periodeNextJs.getData();
-    $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
-    if(dataPeriode.length == 1) {
-        $('#periode_next').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
-    } else {
-        $('#periode_next').val(dataPeriode.length + ' Periode');
+    if(dataPeriode){
+        $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
+        if(dataPeriode.length == 1) {
+            $('#periode_next').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+        } else {
+            $('#periode_next').val(dataPeriode.length + ' Periode');
+        }
+        $('#periode_next').attr('data-jumperiode', dataPeriode.length);
+        $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
     }
-    $('#periode_next').attr('data-jumperiode', dataPeriode.length);
-    $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
 }
 function simpanPeriode() {
     const dataPeriode = periodeJs.getData();
-    $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
-    if(dataPeriode.length == 1) {
-        $('#periode-pemakaian').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
-    } else {
-        $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
+    if(dataPeriode){
+        $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
+        if(dataPeriode.length == 1) {
+            $('#periode-pemakaian').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+        } else {
+            $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
+        }
+        $('#periode-pemakaian').attr('data-jumperiode', dataPeriode.length);
+        $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
     }
-    $('#periode-pemakaian').attr('data-jumperiode', dataPeriode.length);
-    $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
 
     calcPrice();
 }
@@ -800,7 +804,7 @@ function openForm(){
                         break;
                     case 'evaluasi':
                         // load data
-                        $('#jenis_tld').val(dataPermohonan.jenis_tld.jenis_tld_hash).trigger('change');
+                        $('#jenis_tld').val(dataPermohonan.jenis_tld?.jenis_tld_hash).trigger('change');
                         periodeJs.addData(dataPermohonan.periode_pemakaian);
                         simpanPeriode();
                         periodeNextJs.addData(dataPermohonan.periode_next);

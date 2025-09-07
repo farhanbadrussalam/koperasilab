@@ -793,7 +793,7 @@ class PenyeliaAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $penyelia = Penyelia::find($idPenyelia);
+            $penyelia = Penyelia::with('permohonan')->find($idPenyelia);
 
             $penyelia->update(array(
                 'status' => $status
@@ -829,6 +829,7 @@ class PenyeliaAPI extends Controller
                 $document = Permohonan_dokumen::create(array(
                     'id_permohonan' => $penyelia->id_permohonan,
                     'id_doc_template' => $template->id_doc,
+                    'id_kontrak' => $penyelia->permohonan->id_kontrak,
                     'created_by' => Auth::user()->id,
                     'nama' => 'Permintaan Pengujian',
                     'jenis' => 'SuratPengujian',
@@ -877,7 +878,7 @@ class PenyeliaAPI extends Controller
             $dokumen->update(array(
                 'ttd' => $ttd,
                 'ttd_by' => $ttd_by,
-                'catatan' => $catatan
+                'catatan' => $type
             ));
 
             // mengambil template yg digunakan
@@ -886,7 +887,7 @@ class PenyeliaAPI extends Controller
             // menambahkan dokumen perjanjian kontrak
             $no_kontrak = generateNoDokumen('KontrakPengujian', $penyelia->id_permohonan);
             $data = array(
-                'id_permohonan' => $penyelia->id_permohonan,
+                'id_kontrak' => $penyelia->permohonan->id_kontrak,
                 'created_by' => Auth::user()->id,
                 'nama' => 'Surat kontrak ('.convert_date($penyelia->permohonan->verify_at, 6).')',
                 'jenis' => 'KontrakPengujian',

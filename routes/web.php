@@ -112,7 +112,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/surpeng/{id}/{periode}', 'suratPengantar')->name('laporan.surpeng');
             Route::get('/kontrak/{id}', 'kontrak')->name('laporan.kontrak');
             Route::get('/label/{id}', 'label')->name('laporan.label');
-            Route::get('/persetujuanPengujian/{id}', 'persetujuanPengujian')->name('laporan.persetujuanPengujian');
+            Route::get('/SuratPengujian/{id}', 'SuratPengujian')->name('laporan.SuratPengujian');
+            Route::get('/KontrakPengujian/{id}', 'KontrakPengujian')->name('laporan.KontrakPengujian');
         });
     });
 

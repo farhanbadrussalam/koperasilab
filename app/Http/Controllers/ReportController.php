@@ -158,23 +158,10 @@ class ReportController extends Controller
     }
 
     public function contentInvoice($data, $params = null){
-        $subJumlah = 0;
-
-        if ($data->diskon) {
-            foreach ($data->diskon as $item) {
-                $item->jumDiskon = $data->permohonan->total_harga * ($item->diskon / 100);
-                $subJumlah += $item->jumDiskon;
-            }
-        }
-
-        $jumAfterDiskon = $data->permohonan->total_harga - $subJumlah;
-
-        $jumPph = $data->pph ? $jumAfterDiskon * ($data->pph / 100) : 0;
-        $jumAfterPph = $jumAfterDiskon - $jumPph;
-        $jumPpn = $data->ppn ? $jumAfterPph * ($data->ppn / 100) : 0;
+        $dataKeuangan = calculateInvoice($data->permohonan->total_harga, $data->diskon, $data->ppn, $data->pph);
 
         $htmlDiskon = '';
-        foreach ($data->diskon as $item) {
+        foreach ($dataKeuangan['diskon'] as $item) {
             $htmlDiskon .= '<tr>
                 <td>' . $item->name . ' ' . $item->diskon . '%</td>
                 <td>( ' . formatCurrency($item->jumDiskon) . ' )</td>
@@ -185,7 +172,7 @@ class ReportController extends Controller
         if ($data->ppn) {
             $htmlPpn .= '<tr>
                 <td>PPN ' . $data->ppn . '%</td>
-                <td>( ' . formatCurrency($jumPpn) . ' )</td>
+                <td>( ' . formatCurrency($dataKeuangan['jumPpn']) . ' )</td>
             </tr>';
         }
 
@@ -193,12 +180,12 @@ class ReportController extends Controller
         if ($data->pph) {
             $htmlPph .= '<tr>
                 <td>PPH ' . $data->pph . '%</td>
-                <td>( ' . formatCurrency($jumPph) . ' )</td>
+                <td>( ' . formatCurrency($dataKeuangan['jumPph']) . ' )</td>
             </tr>';
         }
 
         $result = [
-            "TERBILANG" => angkaKeHuruf($jumAfterPph + $jumPpn),
+            "TERBILANG" => angkaKeHuruf($dataKeuangan['subTotal']),
             "RINCIAN" => '<table class="table-invoice">
                     <tr>
                         <td>' . $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol.' Unit
@@ -209,13 +196,13 @@ class ReportController extends Controller
                     ' . $htmlDiskon . '
                     <tr>
                         <td>Sub Jumlah</td>
-                        <td>' . formatCurrency($jumAfterDiskon) . '</td>
+                        <td>' . formatCurrency($dataKeuangan['jumAfterDiskon']) . '</td>
                     </tr>
                     ' . $htmlPph . '
                     ' . $htmlPpn . '
                     <tr>
                         <td>Jumlah</td>
-                        <td>' . formatCurrency($jumAfterPph + $jumPpn) . '</td>
+                        <td>' . formatCurrency($dataKeuangan['subTotal']) . '</td>
                     </tr>
                 </table>'
         ];
@@ -347,6 +334,29 @@ class ReportController extends Controller
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["LOKASI_BUAT"] = "Tangerang Selatan";
                 $vars = array_merge($vars, $this->contentKwitansi($data, $params));
+                break;
+            case "SuratPengujian":
+                $vars["JUDUL"] = "PERSETUJUAN TERHADAP PERMINTAAN PENGUJIAN";
+                $vars["NOMOR"] = $data->dokumen[0]->nomer;
+                $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
+                $vars["ALAMAT"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->alamat;
+                $vars["LOKASI_BUAT"] = "Tangerang Selatan";
+                $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
+                $vars['SATUANKERJA'] = $data->permohonan->layanan_jasa->satuankerja->name;
+                $vars["ACTION"] = $data->dokumen[0]->catatan == "approve" ? "Menyetujui" : "";
+                $vars["PERMINTAAN"] = "Pengujian";
+                $vars = array_merge($vars, $this->contentSuratPengujian($data, $params));
+                break;
+            case "KontrakPengujian":
+                $vars["JUDUL"] = "PERSETUJUAN TERHADAP PERMINTAAN PENGUJIAN";
+                $vars["NOMOR"] = $data->dokumen[0]->nomer;
+                $vars["PERMINTAAN"] = "Pengujian";
+                $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
+                $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
+                $vars["LOKASI"] = "Tangerang Selatan";
+                $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
+                $vars["UNIT"] = $data->layanan_jasa->satuankerja->name;
+                $vars = array_merge($vars, $this->contentKontrakPengujian($data, $params));
                 break;
             default:
                 # code...
@@ -1065,41 +1075,285 @@ class ReportController extends Controller
      * @param  int  $idPermohonan  ID permohonan
      * @return \Illuminate\Http\Response
      */
-    public function persetujuanPengujian($idPermohonan){
+    public function SuratPengujian($idPermohonan){
         $idPermohonan = decryptor($idPermohonan);
-
         if($idPermohonan == null){
             return redirect()->back();
         }
 
+        $query = Penyelia::with([
+            'permohonan',
+            'permohonan.layanan_jasa.satuankerja',
+            'permohonan.jenisTld',
+            'permohonan.pelanggan',
+            'permohonan.pelanggan.perusahaan',
+            'permohonan.pelanggan.perusahaan.alamat',
+            'permohonan.kontrak',
+            'dokumen' => function($q){
+                $q->where('jenis', 'SuratPengujian');
+            }
+        ])->where('id_permohonan', $idPermohonan)->first();
+
         // mengambil dokumen surat permintaan pengujian
-        $dokumen = Permohonan_dokumen::where('id_permohonan', $idPermohonan)
-                    ->where('jenis', 'permintaanpengujian')->first();
-
-        if(!$dokumen) {
-            // generate nomer dokumen
-            $nodokumen = generateNoDokumen('permintaanpengujian', $idPermohonan);
-
-            // Simpan dokumen permintaan pengujian
-            $dokumen = Permohonan_dokumen::create(array(
-                'id_permohonan' => $idPermohonan,
-                'created_by' => Auth::user()->id,
-                'nama' => 'Permintaan Pengujian',
-                'jenis' => 'permintaanpengujian',
-                'status' => 1,
-                'nomer' => $nodokumen
-            ));
-        }
-
-        $data = array();
 
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Persetujuan Pengujian';
-        // $data['data'] = $dokumen;
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
 
-        $pdf = PDF::loadView('report.permintaanPengujian', $data);
-        $pdf->render();
+        $dokumen = $query->dokumen->first();
+        $template = Documents::with('footer', 'header')
+                    ->where('id_doc', $dokumen->id_doc_template)
+                    ->first();
 
-        return $pdf->stream();
+        if($dokumen->variables){
+            $variables = $dokumen->variables ?? [];
+        } else {
+            $variables = $this->mappingVars($template, $query, $data);
+        }
+
+        // TTD
+        $ttd = $dokumen->ttd ?? "";
+        $variables['TTD'] = $ttd ? "
+            <div style='text-align: center;'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
+                <img src='$ttd' alt='TTD_PENERIMA' width='100px' height='100px'>
+            </div>
+        " : "<br><br><br>";
+        $variables['TTD_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '';
+        // generate pdf
+        $bytes = $this->generatePdf($data['title'], $template, $variables, ["RINCIAN", "RINCIAN_2", "TTD"]);
+
+        $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
+        return $bytes->stream($filename);
+        // $pdf = PDF::loadView('report.permintaanPengujian', $data);
+        // $pdf->render();
+
+        // return $pdf->stream();
+    }
+
+    private function contentSuratPengujian($data, $params = null) {
+        $zrcek = $data->permohonan->is_zerocek ? 'Zero Cek' : '';
+        $lJasa = $data->permohonan->layanan_jasa->satuankerja->name;
+        $jTld = $data->permohonan->jenisTld->name;
+
+        $jenisPengujian = $zrcek . ' ' . $lJasa . ' ' . $jTld;
+        $htmlSample = '<div>' . $lJasa . ' ' . $jTld . '</div>';
+
+        foreach ($data->permohonan->kontrak->periode as $periode) {
+            $startDate = convert_date($periode->start_date, 6);
+            $endDate = convert_date($periode->end_date, 6);
+            $htmlSample .= '<div>' . $data->permohonan->kontrak->jumlah_kontrol . ' + ' . $data->permohonan->kontrak->jumlah_pengguna . ' ' . $startDate . ' - ' . $endDate . '</div>';
+        }
+
+        $dokumen = $data->dokumen->first();
+        $template = Documents::with('footer', 'header')
+                    ->where('id_doc', $dokumen->id_doc_template)
+                    ->first();
+
+        $htmlPertanyaan = '';
+        foreach ($template->data_pertanyaan as $pertanyaan) {
+            $answer = '';
+            foreach($dokumen->content_value['alasan'] as $alasan) {
+                if($alasan['id'] == $pertanyaan->id_pertanyaan) {
+                    $answer = $alasan['answer'];
+                }
+            }
+            $htmlPertanyaan .= '
+                <tr>
+                    <td>' . $pertanyaan->pertanyaan . '</td>
+                    <td style="text-align: center;">' . ($answer == "siap" ? "Ok" : "") . '</td>
+                    <td style="text-align: center;">' . ($answer == "siap" ? "" : "X") . '</td>
+                </tr>
+            ';
+        }
+
+        return [
+            "RINCIAN" => '
+                <table class="table-surattugas" style="margin-top: 15px;">
+                    <tr>
+                        <th width="1%">No</th>
+                        <th width="20%">Nama Sample/Alat</th>
+                        <th width="20%">Jenis Pengujian</th>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>' . $htmlSample . '</td>
+                        <td>' . $jenisPengujian . '</td>
+                    </tr>
+                </table>
+            ',
+            "RINCIAN_2" => '
+                <table class="table-surattugas" style="margin-top: 15px;">
+                    <tr>
+                        <th width="20%"></th>
+                        <th width="5%">Siap</th>
+                        <th width="5%">Tidak Siap</th>
+                    </tr>
+                    ' . $htmlPertanyaan . '
+                </table>
+            ',
+        ];
+    }
+
+    public function KontrakPengujian($id) {
+        $id = decryptor($id);
+
+        if($id == null){
+            return redirect()->back();
+        }
+
+        $query = Kontrak::with([
+            'dokumen' => function($q){
+                $q->where('jenis', 'KontrakPengujian');
+            },
+            'pelanggan',
+            'layanan_jasa',
+            'layanan_jasa.satuankerja',
+            'jenisTld',
+            'periode',
+            'periode.penyelia',
+            'periode.penyelia.petugas',
+            'invoice',
+            'invoice.diskon',
+            'pelanggan.perusahaan',
+            'pelanggan.perusahaan.alamat',
+            'rincian_list_tld',
+            'rincian_list_tld.pengguna',
+        ])->where('id_kontrak', $id)->first();
+
+        $data['title'] = "Surat Kontrak Pengujian";
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
+
+        // mengambil template dokumen
+        $dokumen = $query->dokumen->first();
+        $template = Documents::with('footer', 'header')
+                    ->where('id_doc', $dokumen->id_doc_template)
+                    ->first();
+
+        if($dokumen->variables) {
+            $variables = $dokumen->variables ?? [];
+        } else {
+            $variables = $this->mappingVars($template, $query, $data);
+        }
+
+        // mengambil dokumen surat permintaan pengujian
+        $permintaan = Permohonan_dokumen::where('id_kontrak', $id)->where('jenis', 'SuratPengujian')->first();
+
+        if($permintaan){
+            $variables["HARI_PENGUJIAN"] = convert_date($permintaan->created_at, 8);
+            $variables["TGL_PENGUJIAN"] = convert_date($permintaan->created_at, 2);
+        }
+
+        // TTD
+        $ttd_manajer = $dokumen->ttd ?? "";
+        $variables['TTD_MANAJER'] = $ttd_manajer ? "
+            <div style='text-align: center;'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
+                <img src='$ttd_manajer' alt='TTD_PENERIMA' width='100px' height='100px'>
+            </div>
+        " : "<br><br><br>";
+        $variables['TTD_BY_MANAJER'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
+
+        // TTD PELANGGAN
+        $ttd_pelanggan = $query->pelanggan->ttd ?? "";
+        $variables['TTD_PELANGGAN'] = $ttd_pelanggan ? "
+            <div style='text-align: center;'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
+                <img src='$ttd_pelanggan' alt='TTD_PENERIMA' width='100px' height='100px'>
+            </div>
+        " : "<br><br><br>";
+        $variables['TTD_BY_PELANGGAN'] = $query->pelanggan ? $query->pelanggan->name : '...........................................';
+
+        // Generate PDF
+        $bytes = $this->generatePDF($data['title'], $template, $variables, [
+            "TTD_MANAJER", "TTD_BY_MANAJER",
+            "TTD_PELANGGAN", "TTD_BY_PELANGGAN",
+            "RINCIAN", "RINCIAN_2", "RINCIAN_3",
+        ]);
+
+        $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
+
+        return $bytes->stream($filename);
+
+    }
+
+    private function contentKontrakPengujian($data, $params = []) {
+        $zrcek = $data->is_zerocek ? 'Zero Cek' : '';
+        $lJasa = $data->layanan_jasa->satuankerja->name;
+        $jTld = $data->jenisTld->name;
+
+        $jenisPengujian = $zrcek . ' ' . $lJasa . ' ' . $jTld;
+        $htmlSample = '<div>' . $lJasa . ' ' . $jTld . '</div>';
+
+        foreach ($data->periode as $periode) {
+            $startDate = convert_date($periode->start_date, 6);
+            $endDate = convert_date($periode->end_date, 6);
+            $htmlSample .= '<div>' . $data->jumlah_kontrol . ' + ' . $data->jumlah_pengguna . ' ' . $startDate . ' - ' . $endDate . '</div>';
+
+            if($periode->periode == 1) {
+                // dd($periode);
+            }
+        }
+
+        $dataKeuangan = calculateInvoice($data->total_harga, $data->invoice->diskon, $data->invoice->ppn, $data->invoice->pph);
+
+        // Mengambil personil
+
+        // Mengambil LIST TLD yang digunakan
+        $htmlListTld = '';
+        $htmlPengguna = '';
+        foreach ($data->rincian_list_tld as $key => $value) {
+            foreach($value->tld as $tld) {
+                $htmlListTld .= '
+                    <tr>
+                        <td>' . ($key + 1) . '</td>
+                        <td>' . $tld->no_seri_tld . '</td>
+                        <td>' . ($tld->merk ?? '') . '</td>
+                    </tr>
+                ';
+            }
+
+            if($value->pengguna) {
+                $htmlPengguna .= '
+                    <li>' . $value->pengguna->name . '</li>
+                ';
+            }
+        }
+
+        return [
+            "RINCIAN" => '
+                <table class="table-surattugas">
+                    <tr>
+                        <th width="1%">No</th>
+                        <th width="30%">Nama Alat/Sampel</th>
+                        <th width="20%">Biaya</th>
+                        <th>Keterangan</th>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>' . $htmlSample . '</td>
+                        <td style="text-align: center">' . formatCurrency($dataKeuangan['subTotal']) . '</td>
+                        <td></td>
+                    </tr>
+                </table>
+            ',
+            'RINCIAN_2' => '
+                <ol>
+                    '.$htmlPengguna.'
+                </ol>
+            ',
+            "RINCIAN_3" => '
+                <table class="table-surattugas">
+                    <tr>
+                        <th width="1%">No</th>
+                        <th width="30%">Nama Alat</th>
+                        <th width="20%">Merk/Tipe</th>
+                    </tr>
+                    '.$htmlListTld.'
+                </table>
+            '
+        ];
     }
 }

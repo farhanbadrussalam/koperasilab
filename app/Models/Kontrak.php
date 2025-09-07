@@ -77,7 +77,7 @@ class Kontrak extends Model
 
     public function getDocumentKontrakAttribute()
     {
-        return Permohonan_dokumen::with("usersig")->where('id_kontrak', $this->id_kontrak)->where('jenis', 'kontrak')->first();
+        return Permohonan_dokumen::with("usersig")->where('id_kontrak', $this->id_kontrak)->whereIn('jenis', ['kontrak', 'KontrakPengujian'])->get();
     }
 
     public function getDataRadiasiAttribute()

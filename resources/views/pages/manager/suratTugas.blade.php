@@ -90,7 +90,6 @@
         </div>
         <div class="modal-footer d-flex justify-content-between">
           <button type="button" class="btn btn-danger" id="btnDecline">Tolak</button>
-          <a type="button" class="btn btn-secondary" href="#" target="_blank" id="btnLihatSurat">Lihat surat</a>
           <button type="button" class="btn btn-primary" id="btnApprove">Setuju</button>
         </div>
       </div>
