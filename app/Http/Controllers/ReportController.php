@@ -266,9 +266,9 @@ class ReportController extends Controller
                 $vars["KODE_POS"] = $data->pelanggan->perusahaan->alamat[0]->kode_pos;
                 $vars["TELEPON"] = $data->pelanggan->profile->no_hp;
                 $vars["FAX"] = $data->pelanggan->profile->no_fax;
-                $vars["HARI"] = convert_date($data->document_kontrak->created_at, 8);
-                $vars["TGL_BUAT"] = convert_date($data->document_kontrak->created_at, 9);
-                $vars["TAHUN"] = convert_date($data->document_kontrak->created_at, 10);
+                $vars["HARI"] = convert_date($data->document_kontrak[0]->created_at, 8);
+                $vars["TGL_BUAT"] = convert_date($data->document_kontrak[0]->created_at, 9);
+                $vars["TAHUN"] = convert_date($data->document_kontrak[0]->created_at, 10);
                 $vars["NAMA_PIC"] = $data->pelanggan->name;
                 $vars["JABATAN_PIC"] = $data->pelanggan->jabatan;
                 $vars["EMAIL_PIC"] = $data->pelanggan->email;
@@ -873,14 +873,14 @@ class ReportController extends Controller
             $variables = $this->mappingVars($template, $query, $data);
         }
 
-        $ttd = $query->document_kontrak->ttd ?? "";
+        $ttd = $query->document_kontrak[0]->ttd ?? "";
         $variables["TTD"] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
                 <img src='$ttd' alt='TTD_keuangan' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
-        $variables["TTD_BY"] = $query->document_kontrak->usersig ? $query->document_kontrak->usersig->name : '...........................................';
+        $variables["TTD_BY"] = $query->document_kontrak[0]->usersig ? $query->document_kontrak[0]->usersig->name : '...........................................';
 
         // generate pdf
         $bytes = $this->generatePDF($data['title'], $template, $variables, ["RINCIAN", "TTD"]);
@@ -982,7 +982,7 @@ class ReportController extends Controller
         $data['stempel'] = $this->global['urlStempel'];
 
         // Mengambil template kontrak
-        $dokumen = $query->document_kontrak;
+        $dokumen = $query->document_kontrak->first();
         $template = Documents::with('footer','header')
                     ->where('id_doc', $dokumen->id_doc_template)
                     ->first();
