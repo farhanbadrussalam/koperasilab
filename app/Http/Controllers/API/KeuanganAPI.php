@@ -347,6 +347,7 @@ class KeuanganAPI extends Controller
 
                 $document = Permohonan_dokumen::create(array(
                     'id_kontrak' => Permohonan::find($keuangan->id_permohonan)->id_kontrak,
+                    'id_permohonan' => $keuangan->id_permohonan,
                     'id_doc_template' => $template->id_doc,
                     'created_by' => Auth::user()->id,
                     'nama' => 'Invoice',
