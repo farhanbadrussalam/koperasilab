@@ -365,13 +365,13 @@ class Invoice {
         let find = this.methodePembayaran.find(d => d.jenis_pembayaran_hash == selectedMetodePembayaran);
 
         if(find){
-            let variabels = findVariabelInCkeditor(find.content);
+            let variabels = find.variables;
             let content = find.content;
             if(variabels) {
                 let html = '';
                 for (const variabel of variabels) {
                     // reset to string with space
-                    content = content.replace(`{{${variabel}}}`, '_____________');
+                    content = content.replace(new RegExp(`@${variabel}`, 'g'), '_____________');
                     const formattedVariable = variabel.replace(/_/g, ' ');
                     html += `
                         <div class="col-md-4">
@@ -385,7 +385,7 @@ class Invoice {
                 $('input[name="variabel_content"]').off('input').on('input', () => {
                     let content = find.content;
                     for (const variabel of variabels) {
-                        content = content.replace(`{{${variabel}}}`, $('#variabel_' + variabel).val() || '_____________');
+                        content = content.replace(new RegExp(`@${variabel}`, 'g'), $('#variabel_' + variabel).val() || '_____________');
                     }
                     $('#showMetodePembayaran').html(content);
                 });

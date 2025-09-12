@@ -1,6 +1,5 @@
 let tmpPetugas = [];
 let dataPenyelia = false;
-let nowSelect = false;
 let detail = false;
 let filterComp = false;
 let thisTab = 1;
@@ -21,18 +20,6 @@ $(function () {
         }
     });
 
-    setDropify("init", "#upload_document", {
-        allowedFileExtensions: ["pdf"]
-    })
-
-    $(`[name="statusProgress"]`).on('click', obj => {
-        if(obj.target.value == 'return') {
-            $('#prosesNext').val(nowSelect.prosesPrev.jobs.name);
-        } else {
-            $('#prosesNext').val('Finish');
-        }
-    });
-
     filterComp = new FilterComponent('list-filter', {
         jenis: 'penyelia',
         filter : {
@@ -47,10 +34,6 @@ $(function () {
 
     // SETUP FILTER
     filterComp.on('filter.change', () => switchLoadTab(thisTab));
-
-    $('#btnPersetujuan').on('click', () => {
-        modalDoc.show(`laporan/persetujuanPengujian/${nowSelect.permohonan_hash}`);
-    });
 });
 
 function switchLoadTab(menu){
@@ -68,7 +51,7 @@ function switchLoadTab(menu){
     loadData(1, menu);
 }
 
-function loadData(page = 1, menu) {
+function loadData(page = 1, menu = 'penyelialhu') {
     let params = {
         limit: 5,
         page: page,
@@ -298,91 +281,6 @@ $('#list-pagination').on('click', 'a', function (e) {
     loadData(pageno, menu);
 });
 
-function openProgressModal(obj) {
-    const penyelia = $(obj).parent().data("id");
-    ajaxGet(`api/v1/penyelia/getById/${penyelia}`, false, result => {
-        nowSelect = result.data ?? false;
-        $('#statusDone').prop('checked', true);
-        // Mengambil proses jobs
-        const listJobsAktif = nowSelect.penyelia_map.filter(d => d.status == 1 && d.point_jobs == null);
-
-        let htmlJobs = listJobsAktif.map((d, index) => {
-            let petugasInJobs = nowSelect.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
-            if(petugasInJobs){
-                return `<option value="${d.map_hash}" ${index == 0 ? 'selected' : ''}>${d.jobs.name}</option>`;
-            }
-        });
-
-        $('#prosesNow').html(htmlJobs.join(''));
-
-        setProses(listJobsAktif[0]);
-
-        $('#dateProgress').flatpickr({
-            altInput: true,
-            locale: "id",
-            dateFormat: "Y-m-d",
-            altFormat: "j F Y",
-            minDate: nowSelect.start_date,
-            maxDate: nowSelect.end_date,
-            defaultDate: 'today'
-        });
-
-        $('#inputNote').val('');
-
-        $('#updateProgressModal').modal('show');
-    });
-
-}
-
-function simpanProgress(obj){
-    let note = $('#inputNote').val();
-    let sProgress = $(`[name="statusProgress"]:checked`).val();
-    let nextJobs = sProgress == 'done' ? (nowSelect?.prosesNext?.map_hash ?? 3) : nowSelect?.prosesPrev?.map_hash;
-    let nowJobs = nowSelect?.prosesNow?.map_hash;
-
-    if(note == ''){
-        return Swal.fire({
-            icon: "warning",
-            text: 'Tolong masukan note!',
-        });
-    }
-    if(nowSelect?.prosesNow.jobs.upload_doc){
-        const document = documentLhu.getData();
-        if(document.length == 0){
-            return Swal.fire({
-                icon: "warning",
-                text: 'Tolong upload dokumen!',
-            });
-        }
-    }
-    const form = new FormData();
-    form.append('idPenyelia', nowSelect?.penyelia_hash);
-    form.append('nextJobs', nextJobs);
-    form.append('nowJobs', nowJobs);
-    form.append('note', note);
-    form.append('sProgress', sProgress);
-
-    spinner('show', $(obj));
-    ajaxPost(`api/v1/penyelia/actionJobProses`, form, result => {
-        spinner('hide', $(obj));
-        if(result.meta.code == 200){
-            Swal.fire({
-                icon: "success",
-                text: 'Progress berhasil diupdate',
-            });
-            $('#updateProgressModal').modal('hide');
-            reload();
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: result.data.msg,
-            });
-        }
-    }, error => {
-        spinner('hide', $(obj));
-    });
-}
-
 function btnDelete(obj) {
     const id = $(obj).parent().data('idpenyelia');
     ajaxDelete(`api/v1/penyelia/remove/${id}`, result => {
@@ -436,27 +334,6 @@ function showHideProgress(obj){
         collapse.innerText = 'Lihat Progress LAB';
     }
     collapse.classList.toggle('show');
-}
-
-function setProses(prosesNow){
-    let prosesNext = false;
-    let prosesPrev = false;
-    if(!prosesNow.point_jobs){
-        prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
-        prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
-    } else {
-        prosesPrev = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1) && d.point_jobs);
-        prosesNext = nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1) && d.point_jobs);
-    }
-
-    !prosesPrev ? $('#divReturnProgress').hide() : null;
-    prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
-
-    nowSelect.prosesNow = prosesNow;
-    nowSelect.prosesPrev = prosesPrev;
-    nowSelect.prosesNext = prosesNext;
-
-    $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
 }
 
 function createPengujian(id){

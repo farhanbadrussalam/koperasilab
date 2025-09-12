@@ -1,10 +1,19 @@
 let editorInstance;
 let dataList = [];
 let selectedId = false;
+let vars = [];
 $(function() {
-    ClassicEditor
+    CKEditorBuild
         .create( document.querySelector( '#txt_content' ), {
-            toolbar: [ 'heading', '|', 'bold', 'italic', 'link', '|', 'bulletedList', 'numberedList' ],
+            toolbar: {
+                items: [
+                    'fullscreen','heading', 'style',
+                    '|', 'bold', 'italic', 'link', 'alignment',
+                    '|', 'horizontalLine', 'bulletedList', 'numberedList',
+                    '|', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', 'Underline',
+                    '|', 'undo', 'redo'
+                ]
+            },
             heading: {
                 options: [
                     { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
@@ -13,7 +22,23 @@ $(function() {
                     { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
                     { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_heading4' }
                 ]
-            }
+            },
+            mention: {
+                // (CKEditor 5 mendukung custom marker & limit dropdown)
+                feeds: [
+                    {
+                        marker: "@",
+                        feed: (queryText) => {
+                            const q = (queryText || "").toLowerCase();
+                            return vars
+                                .filter((v) => v.toLowerCase().startsWith(q))
+                                .map((v) => `@${v}`);
+                        },
+                        minimumCharacters: 0,
+                        dropdownLimit: 50,
+                    },
+                ],
+            },
         })
         .then( editor => {
             editorInstance = editor;
@@ -26,6 +51,19 @@ $(function() {
 
     $('#modal-tambah-pembayaran').on('hidden.bs.modal', reset);
 })
+const varsInput = document.getElementById('varsInput');
+const varsHidden = document.getElementById('varsHidden');
+varsInput.addEventListener('input', syncVars);
+
+function syncVars() {
+    const items = (varsInput.value || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+    varsHidden.setAttribute("name", "variables"); // kirim sebagai array di Laravel
+    varsHidden.value = JSON.stringify(items);
+    vars = items;
+}
 
 function created(){
     $('#modalLabel').html('Tambah Metode Pembayaran');
@@ -37,6 +75,7 @@ function simpan(obj) {
     const form = new FormData();
     form.append('name', $('#txt_nama').val());
     form.append('content', editorInstance.getData());
+    form.append('variables', JSON.stringify(vars));
     form.append('status', 1);
 
     if(selectedId){
@@ -83,7 +122,9 @@ function edit(obj) {
     let find = dataList.find(d => d.jenis_pembayaran_hash == id);
     $('#txt_nama').val(find.name);
     editorInstance.setData(find.content);
+    varsInput.value = find.variables?.join(',') ?? '';
 
+    syncVars();
     $('#modalLabel').html('Edit Metode Pembayaran');
     $('#modal-tambah-pembayaran').modal('show');
 }

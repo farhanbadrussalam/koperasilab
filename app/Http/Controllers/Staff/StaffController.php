@@ -74,9 +74,18 @@ class StaffController extends Controller
 
     public function indexPenyelia()
     {
+        $userJobs = Auth::user()->jobs;
+        $listJobs = array();
+        $role = Auth::user()->getRoleNames()->toArray();
+        if(in_array('Staff Penyelia', $role)){
+            $dataJobs = Master_jobs::where('status', 14)->first();
+            array_push($listJobs, $dataJobs->jobs_hash);
+        }
+        // dd($listJobs);
         $data = [
             'title' => 'Penyelia',
-            'module' => 'staff-penyelia'
+            'module' => 'staff-penyelia',
+            'listJobs' => $listJobs
         ];
         return view('pages.staff.penyelia.index', $data);
     }

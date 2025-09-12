@@ -72,14 +72,12 @@ class TldController extends Controller
                 ';
             })
             ->addColumn('status', function ($tld) {
-                return $tld->status == 1 ? '<span class="badge bg-success">Digunakan</span>' : '<span class="badge bg-secondary">Tidak Digunakan</span>';
+                return $tld->status == 1 || $tld->digunakan ? '<span class="badge bg-success">Digunakan</span><br><small class="text-body-tertiary">' . $tld->digunakan . '</small>' : '<span class="badge bg-secondary">Tidak Digunakan</span>';
             })
             ->addColumn('action', function ($tld) {
-                $btn = '
-                    <button data-id="' . $tld->tld_hash . '" class="btn btn-outline-warning btn-sm edit" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i> Edit</button>
-                    <button data-id="'. $tld->tld_hash .'" class="btn btn-outline-danger btn-sm delete" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i> Hapus</button>
-                ';
-                return $btn;
+                $btn = '<button data-id="' . $tld->tld_hash . '" class="btn btn-outline-warning btn-sm edit" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i> Edit</button>';
+                $btnRemove = $tld->status == 1 || $tld->digunakan ? '<button data-id="'. $tld->tld_hash .'" class="btn btn-outline-danger btn-sm delete" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i> Hapus</button>' : '';
+                return $btn . $btnRemove;
             })
             ->rawColumns(['no_seri_tld','action', 'status'])
             ->make(true);

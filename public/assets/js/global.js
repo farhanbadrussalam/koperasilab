@@ -1196,3 +1196,30 @@ function convertHslToHex(html) {
   return html.replace(/hsl\([^)]+\)/g, match => hslToHex(match));
 }
 
+function isReminderPeriod(period, offset, unit = "month", hNow = null) {
+  const periodDate = new Date(period);
+  const now = hNow ? new Date(hNow) : new Date();
+
+  // Hitung H-offset
+  let hMinus = new Date(periodDate);
+
+  switch (unit) {
+    case "month":
+      hMinus.setMonth(hMinus.getMonth() - offset);
+      break;
+    case "week":
+      hMinus.setDate(hMinus.getDate() - offset * 7);
+      break;
+    case "day":
+      hMinus.setDate(hMinus.getDate() - offset);
+      break;
+    default:
+      throw new Error("Unit tidak dikenali. Gunakan 'month', 'week', atau 'day'.");
+  }
+
+  // Batas akhir = sehari sebelum periode
+  let beforePeriod = new Date(periodDate);
+  beforePeriod.setDate(beforePeriod.getDate() - 1);
+
+  return now >= hMinus && now <= beforePeriod;
+}

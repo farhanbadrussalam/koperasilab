@@ -5,6 +5,7 @@ use App\Events\NotifikasiEvent;
 use App\Models\notifikasi;
 use App\Models\User;
 use App\Models\Penyelia;
+use App\Models\Permohonan;
 use App\Models\Permohonan_dokumen;
 use App\Models\Pengiriman_detail;
 use App\Models\Kontrak_periode;
@@ -516,7 +517,7 @@ if(!function_exists('contenMetodePembayaran')){
             foreach ($variabels as $key => $value) {
                 foreach ($value as $key2 => $value2) {
                     $content = html_entity_decode($content);
-                    $content = str_replace('{{'.$key2.'}}', $value2, $content);
+                    $content = str_replace('@'.$key2, $value2, $content);
                 }
             }
         }
@@ -724,5 +725,18 @@ if(!function_exists('calculateInvoice')) {
             'subTotal' => $subTotal,
         ];
     }
+}
+
+if(!function_exists('isReminderPeriod')) {
+    function isReminderPeriod($period, $offset, $hNow = false) {
+        $period = Carbon::create($period);
+        $hMinus = $period->copy()->sub("month",$offset);
+
+        // hari ini
+        $hNow = $hNow ? Carbon::create($hNow) : Carbon::now();
+
+        return $hNow->between($hMinus, $period->subDay());
+    }
+
 }
 ?>

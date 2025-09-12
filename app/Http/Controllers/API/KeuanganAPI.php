@@ -140,6 +140,7 @@ class KeuanganAPI extends Controller
             $name = $request->has('name') ? $request->name : null;
             $content = $request->has('content') ? $request->content : null;
             $status = $request->has('status') ? (int) $request->status : null;
+            $variables = $request->has('variables') ? json_decode($request->variables) : null;
 
             $data = [];
 
@@ -147,6 +148,7 @@ class KeuanganAPI extends Controller
             $name && $data['name'] = $name;
             $status && $data['status'] = $status;
             $content && $data['content'] = $content;
+            $variables && $data['variables'] = $variables;
 
             if($idJenisPembayaran){
                 $data['updated_by'] = Auth::user()->id;

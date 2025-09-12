@@ -19,6 +19,12 @@
                             <input type="text" name="txt_nama" id="txt_nama" class="form-control">
                         </div>
                         <div class="col-md-12">
+                            <label class="form-label">Variables (huruf BESAR, pisahkan koma)</label>
+                            <textarea id="varsInput" class="form-control"></textarea>
+                            <input type="hidden" name="variables[]" id="varsHidden">
+                            <small class="text-muted">Contoh: NAMA,NO_VA,TANGGAL,ALAMAT</small>
+                        </div>
+                        <div class="col-md-12">
                             <label class="col-form-label" for="txt_content">Content</label>
                             <textarea name="txt_content" id="txt_content" cols="30" rows="5" class="form-control"></textarea>
                         </div>
