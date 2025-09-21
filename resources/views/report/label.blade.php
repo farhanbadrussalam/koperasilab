@@ -1,6 +1,15 @@
+@php
+    $css = file_get_contents(public_path('css/pdf.css'));
+@endphp
+
 @extends('report.template.main')
 @section('style')
-    @include('report.template.style-label')
+    <style>
+        {!! $css !!}
+        @page {
+        margin: 10px; /* top right bottom left — tambahkan bottom utk ruang footer */
+        }
+    </style>
 @endsection
 
 @section('content')
@@ -22,8 +31,17 @@
     @foreach ($chunks as $row)
     <div class="table-row">
         @foreach ($row as $key => $item)
-        <div class="border center table-cell" style="padding: 5px;height: 220px; width: 100px; position: relative;">
-            <div class="lh-5">
+        @if($penyelia->permohonan->kontrak->jenis_tld === 2)
+        <div class="border text-center table-cell" style="padding: 2px;height: 100px; width: 200px; position: relative;">
+            <div class="lh-20">
+                <div>{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item->pengguna ? $item->pengguna->kode_lencana : ($item->count > 1 ? 'C'.$key : 'C') }}</div>
+                <div class="fs-1">{{ $item->pengguna ? $item->pengguna->name : 'Kontrol' }}</div>
+                <div class="fs-1">{{ convert_date($periode->start_date, 7) }} - {{ convert_date($periode->end_date, 7) }}</div>
+            </div>
+        </div>
+        @else
+        <div class="border text-center table-cell" style="padding: 5px;height: 220px; width: 100px; position: relative;">
+            <div class="lh-16">
                 <div>{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item->pengguna ? $item->pengguna->kode_lencana : ($item->count > 1 ? 'C'.$key : 'C') }}</div>
                 <div class="fs-1">{{ $item->pengguna ? $item->pengguna->name : 'Kontrol' }}</div>
                 <div class="fs-1">{{ convert_date($periode->start_date, 7) }} - {{ convert_date($periode->end_date, 7) }}</div>
@@ -31,6 +49,7 @@
             </div>
             <div style="margin-top: auto; transform: rotate(180deg);position: absolute; bottom: 0;left: 28%;">belakang</div>
         </div>
+        @endif
         @endforeach
     </div>
     @endforeach

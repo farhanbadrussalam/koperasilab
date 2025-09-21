@@ -30,7 +30,7 @@ class Master_jenistld extends Model
 
     public function getJenisTldHashAttribute()
     {
-        return encryptor($this->id_jenisTld);
+        return $this->id_jenisTld ? encryptor($this->id_jenisTld) : null;
     }
 
 }

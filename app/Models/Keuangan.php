@@ -68,7 +68,7 @@ class Keuangan extends Model
 
     public function getKeuanganHashAttribute()
     {
-        return encryptor($this->id_keuangan);
+        return $this->id_keuangan ? encryptor($this->id_keuangan) : null;
     }
 
     public function getPermohonanHashAttribute()

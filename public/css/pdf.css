@@ -173,3 +173,19 @@ tr, td, th { page-break-inside: avoid; } /* cegah pecah di tengah baris, masih O
     border: 0px solid #000000;
     font-weight: bolder;
 }
+
+.table-cell {
+    display: table-cell;
+}
+
+.table-row {
+    display: table-row;
+}
+
+.d-table {
+    display: table;
+}
+
+.border {
+    border: 1px solid #000;
+}

@@ -15,7 +15,6 @@ $(function () {
         tab: {
             dokumen: true,
             log: true,
-            dokumen_lhu: true,
             tld: true
         }
     });

@@ -34,6 +34,6 @@ class Master_pertanyaan extends Model
 
     public function getPertanyaanHashAttribute()
     {
-        return encryptor($this->id_pertanyaan);
+        return $this->id_pertanyaan ? encryptor($this->id_pertanyaan) : null;
     }
 }

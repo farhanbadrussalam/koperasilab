@@ -53,12 +53,12 @@ class Permohonan_dokumen extends Model
 
     public function getDokumenHashAttribute()
     {
-        return encryptor($this->id_dokumen);
+        return $this->id_dokumen ? encryptor($this->id_dokumen) : null;
     }
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
     }
 
     public function doc_template(){

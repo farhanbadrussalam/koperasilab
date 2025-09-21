@@ -25,6 +25,6 @@ class tbl_lab extends Model
 
     public function getLabHashAttribute()
     {
-        return encryptor($this->id);
+        return $this->id ? encryptor($this->id) : null;
     }
 }

@@ -62,25 +62,27 @@ function openProgressModal(obj){
         // add rincian TLD
         let htmlRincianTld = '';
         for (const detail of nowSelect.permohonan?.kontrak?.rincian_list_tld) {
-            let html = ``;
-            let inPenyimpanan = detail.status == 5 ? true : false;
-            for (const TLD of detail.tld) {
-                html += `
-                    <div class="card card-default mb-1">
-                        <div class="card-body d-flex justify-content-between py-2">
-                            <span>${TLD.no_seri_tld}</span>
-                            <div class="">
-                                <small class="text-${inPenyimpanan ? 'secondary' : 'success'}">${inPenyimpanan ? 'Penyimpanan' : 'Aktif'}</small>
+            if(nowSelect.periodenow.count_tld == detail.count_tld){
+                let html = ``;
+                let inPenyimpanan = detail.status == 5 ? true : false;
+                for (const TLD of detail.tld) {
+                    html += `
+                        <div class="card card-default mb-1">
+                            <div class="card-body d-flex justify-content-between py-2">
+                                <span>${TLD.no_seri_tld}</span>
+                                <div class="">
+                                    <small class="text-${inPenyimpanan ? 'secondary' : 'success'}">${inPenyimpanan ? 'Penyimpanan' : 'Aktif'}</small>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-            }
+                    `;
+                }
 
-            if(!detail.pengguna){
-                htmlRincianTld = html + htmlRincianTld;
-            } else {
-                htmlRincianTld += html;
+                if(!detail.pengguna){
+                    htmlRincianTld = html + htmlRincianTld;
+                } else {
+                    htmlRincianTld += html;
+                }
             }
         }
 
@@ -163,6 +165,7 @@ function simpanProgress(obj){
     form.append('idPenyelia', nowSelect?.penyelia_hash);
     form.append('nextJobs', nextJobs);
     form.append('nowJobs', nowJobs);
+    form.append('periodeNow',nowSelect.periodenow.periode_hash);
     form.append('note', note);
     form.append('sProgress', sProgress);
 

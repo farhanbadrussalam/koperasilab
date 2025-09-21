@@ -43,7 +43,7 @@ class Permohonan_pengguna extends Model
 
     public function getPenggunaMapHashAttribute()
     {
-        return encryptor($this->id_map_pengguna);
+        return $this->id_map_pengguna ? encryptor($this->id_map_pengguna) : null;
     }
 
     public function tld_pengguna(){

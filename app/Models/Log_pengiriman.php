@@ -32,6 +32,6 @@ class Log_pengiriman extends Model
 
     public function getLogPengirimanHashAttribute()
     {
-        return encryptor($this->id);
+        return $this->id ? encryptor($this->id) : null;
     }
 }

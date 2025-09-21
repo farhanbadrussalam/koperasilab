@@ -37,12 +37,12 @@ class Permohonan_tandaterima extends Model
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
     }
 
     public function getPertanyaanHashAttribute()
     {
-        return encryptor($this->id_pertanyaan);
+        return $this->id_pertanyaan ? encryptor($this->id_pertanyaan) : null;
     }
 
     public function pertanyaan(){

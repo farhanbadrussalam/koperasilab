@@ -16,7 +16,8 @@ class Master_jenisLayanan extends Model
         'jobs',
         'jobs_paralel',
         'jobs_paralel_point',
-        'status'
+        'status',
+        'alias'
     ];
 
     protected $hidden = [
@@ -38,7 +39,7 @@ class Master_jenisLayanan extends Model
 
     public function getJenisLayananHashAttribute()
     {
-        return encryptor($this->id_jenisLayanan);
+        return $this->id_jenisLayanan ? encryptor($this->id_jenisLayanan) : null;
     }
 
     public function getParentHashAttribute()

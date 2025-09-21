@@ -41,7 +41,7 @@ class Master_tld extends Model
 
     public function getTldHashAttribute()
     {
-        return encryptor($this->id_tld);
+        return $this->id_tld ? encryptor($this->id_tld) : null;
     }
 
     public function pemilik()

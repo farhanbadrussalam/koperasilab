@@ -55,17 +55,17 @@ class Penyelia extends Model
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
     }
 
     public function getPenyeliaHashAttribute()
     {
-        return encryptor($this->id_penyelia);
+        return $this->id_penyelia ? encryptor($this->id_penyelia) : null;
     }
 
     public function getStatusHashAttribute()
     {
-        return encryptor($this->status);
+        return $this->status ? encryptor($this->status) : null;
     }
 
     public function getMediaAttribute()

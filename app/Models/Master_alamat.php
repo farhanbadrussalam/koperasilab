@@ -36,6 +36,6 @@ class Master_alamat extends Model
 
     public function getAlamatHashAttribute()
     {
-        return encryptor($this->id_alamat);
+        return $this->id_alamat ? encryptor($this->id_alamat) : null;
     }
 }

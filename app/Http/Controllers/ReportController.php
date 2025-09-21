@@ -28,6 +28,7 @@ use Log;
 
 class ReportController extends Controller
 {
+    protected $global;
     public function __construct()
     {
         $this->global = config('customvariabel');
@@ -135,7 +136,17 @@ class ReportController extends Controller
                         ->where('id_doc', $dokumen->id_doc_template)
                         ->first();
 
-            $variables = $dokumen->variables ?? [];
+            if($dokumen->variables) {
+                $variables = $dokumen->variables;
+            } else {
+                $variables = $this->mappingVars($template, $query, $data);
+
+                if($dokumen->ttd) {
+                    $dokumen->update([
+                        'variables' => $variables
+                    ]);
+                }
+            }
         }
         // TTD Invoice
         $ttd = $dokumen->ttd ?? "";
@@ -312,8 +323,9 @@ class ReportController extends Controller
                 $vars["PETUGAS_DIVISI"] = $data->pelanggan->jabatan;
                 $vars["JML_P"] = $data->jumlah_pengguna;
                 $vars["JML_K"] = $data->jumlah_kontrol;
-                $vars["PERIODE_AWAL"] = convert_date($data->periode_all['periode_awal'], 6);
-                $vars["PERIODE_SELESAI"] = convert_date($data->periode_all['periode_akhir'], 6);
+                $vars["PERIODE_AWAL"] = convert_date($data->periode[0]->start_date, 6);
+                $vars["PERIODE_SELESAI"] = convert_date($data->periode[0]->end_date, 6);
+                $vars["PERIODE_NOW"] = $data->periode[0]->status == 2 ? "periode pengembalian" : "periode {$data->periode[0]->periode}";
                 $vars["NO_KONTRAK"] = $data->no_kontrak;
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars= array_merge($vars, $this->contentSuratPengantar($data, $params));
@@ -844,12 +856,13 @@ class ReportController extends Controller
             $query->periode[0]->save();
 
             if(!$dokumen){
+                $textPeriode = $query->periode[0]->status == 2 ? "Pengembalian" : "Periode $periode";
                 $dokumen = Permohonan_dokumen::create(array(
                     'periode' => $periode,
                     'id_kontrak' => $id,
                     'id_doc_template' => $template->id_doc,
                     'jenis' => "surpeng",
-                    "nama" => "Surat Pengantar (Periode $periode)",
+                    "nama" => "Surat Pengantar ($textPeriode)",
                     "nomer" => $noSurpeng,
                     "created_by" => Auth::user()->id,
                     "status" => 1
@@ -1051,10 +1064,6 @@ class ReportController extends Controller
             $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
         });
 
-        $dataPeriode = Kontrak_periode::where('id_kontrak', $query->permohonan->id_kontrak)
-                    ->where('periode', $query->permohonan->periode)
-                    ->first();
-
         $data = array();
 
         $data['date'] = Carbon::now()->year;
@@ -1064,6 +1073,7 @@ class ReportController extends Controller
         $data['periode'] = $query->permohonan->periodenow;
 
         $pdf = PDF::loadView('report.label', $data);
+        $pdf->setPaper('a4', 'landscape');
         $pdf->render();
 
         return $pdf->stream();

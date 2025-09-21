@@ -25,12 +25,13 @@ use App\Models\Kontrak_periode;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
 
-use Auth;
-use DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PenyeliaAPI extends Controller
 {
     use RestApi;
+    protected $log, $media, $global, $pagination;
 
     public function __construct()
     {
@@ -321,13 +322,18 @@ class PenyeliaAPI extends Controller
             $note = $request->note;
             $nextJobs = $request->nextJobs ? decryptor($request->nextJobs) : false;
             $nowJobs = $request->nowJobs ? decryptor($request->nowJobs) : false;
+            $idPeriodeKontrak = $request->periodeNow ? decryptor($request->periodeNow) : false;
 
-            $penyelia = Penyelia::with(
+            $getPeriodeNow = Kontrak_periode::select('count_tld')->find($idPeriodeKontrak);
+
+            $penyelia = Penyelia::with([
                 'permohonan',
-                'permohonan.kontrak.rincian_list_tld',
+                'permohonan.kontrak.rincian_list_tld' => function($query) use ($getPeriodeNow) {
+                    $query->where('count_tld', $getPeriodeNow->count_tld);
+                },
                 'permohonan.kontrak.jenis_layanan',
                 'permohonan.kontrak.jenis_layanan_parent',
-            )->find($idPenyelia);
+            ])->find($idPenyelia);
             $jobsNow = Penyelia_map::with('jobs')->where('id_map', $nowJobs)->first();
 
             $jobsNow->update(array(
@@ -391,6 +397,15 @@ class PenyeliaAPI extends Controller
                     $jobsParalel->update(array(
                         'status' => 1,
                     ));
+                } else {
+                    if($jobsNow->jobs->status == 17){
+                        foreach($penyelia->permohonan->kontrak->rincian_list_tld as $value){
+                            // kondisi ketika setelah penyimpanan TLD
+                            if($value->status == 5) {
+                                $value->update(['status' => 6]);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -608,7 +623,7 @@ class PenyeliaAPI extends Controller
                 'petugas',
                 'petugas.jobs',
                 'penyelia_map',
-                'periodenow:id_permohonan,count_tld',
+                'periodenow:id_periode,id_permohonan,count_tld',
                 'penyelia_map.jobs:id_jobs,status,name,upload_doc',
                 'usersig:id,name',
                 'permohonan.layanan_jasa:id_layanan,nama_layanan',

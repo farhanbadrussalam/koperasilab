@@ -35,6 +35,6 @@ class Master_jobs extends Model
 
     public function getJobsHashAttribute()
     {
-        return encryptor($this->id_jobs);
+        return $this->id_jobs ? encryptor($this->id_jobs) : null;
     }
 }

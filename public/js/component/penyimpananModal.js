@@ -1,4 +1,5 @@
 function openPenyimpananModal(obj) {
+    $('#content-penyimpanan-tld').html('');
     $('#penyimpananModal').modal('show');
     spinner('show', $('#content-penyimpanan-tld'), {
         width: '50px',

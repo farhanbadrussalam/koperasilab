@@ -21,6 +21,7 @@ class Kontrak_periode extends Model
         'nomer_surpeng',
         'created_surpeng_at',
         'status',
+        'selesai',
         'count_tld',
         'created_by',
         'created_at'
@@ -43,12 +44,13 @@ class Kontrak_periode extends Model
         'created_by' => 'integer',
         'id_permohonan' => 'integer',
         'id_kontrak' => 'integer',
-        'count_tld' => 'integer'
+        'count_tld' => 'integer',
+        'selesai' => 'integer'
     ];
 
     public function getPeriodeHashAttribute()
     {
-        return encryptor($this->id_periode);
+        return $this->id_periode ? encryptor($this->id_periode) : null;
     }
 
     public function getPermohonanHashAttribute()

@@ -34,7 +34,7 @@ class Log_penyelia extends Model
 
     public function getLogPenyeliaHashAttribute()
     {
-        return encryptor($this->id);
+        return $this->id ? encryptor($this->id) : null;
     }
 
     public function user(){

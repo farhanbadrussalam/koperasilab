@@ -37,7 +37,7 @@ class Setting_layanan extends Model
 
     public function getSettingLayananHashAttribute()
     {
-        return encryptor($this->id);
+        return $this->id ? encryptor($this->id) : null;
     }
 
     public function getListJobsAttribute()

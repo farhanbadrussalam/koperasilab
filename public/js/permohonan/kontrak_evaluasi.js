@@ -70,69 +70,91 @@ function loadTld() {
 
 function loadTldKontrol(tldKontrol) {
     let htmlTldKontrol = '';
-    for (const [i, list] of tldKontrol.entries()) {
+    ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
+       let tldNotUsed = result.data;
+       let noTld = 0;
+       for (const [i, list] of tldKontrol.entries()) {
+           for (let idx = 0; idx < list.count; idx++) {
+                let dataTld = null;
+                if(list.tld){
+                    dataTld = list.tld[idx];
+                } else {
+                    dataTld = tldNotUsed[noTld];
+                    noTld++;
+                }
+               tmpArrTld.push({
+                   id: `${list.kontrak_tld_hash}_kontrol_${idx+1}`,
+                   tld: dataTld.tld_hash
+               });
 
-        for (let idx = 0; idx < list.count; idx++) {
-            tmpArrTld.push({
-                id: `${list.kontrak_tld_hash}_kontrol_${idx+1}`,
-                tld: list.tld ? list.tld[idx].tld_hash : null
-            });
+               htmlTldKontrol += `
+                   <div class="w-50 pe-1 mb-1 input-group">
+                       <div class="input-group-text">
+                           <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
+                       </div>
+                       <input type="text" class="form-control" value="${dataTld.no_seri_tld}" id="tldNoSeri_${list.kontrak_tld_hash}_kontrol_${idx+1}" placeholder="Pilih No Seri" readonly>
+                       ${ htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${list.kontrak_tld_hash}_kontrol_${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : '' }
+                   </div>
+               `;
+           }
 
-            htmlTldKontrol += `
-                <div class="w-50 pe-1 mb-1 input-group">
-                    <div class="input-group-text">
-                        <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
-                    </div>
-                    <input type="text" class="form-control" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" id="tldNoSeri_${list.kontrak_tld_hash}_kontrol_${idx+1}" placeholder="Pilih No Seri" readonly>
-                    ${ htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${list.kontrak_tld_hash}_kontrol_${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : '' }
-                </div>
-            `;
-        }
+       }
 
-    }
-
-    $('#tld-kontrol-content').html(htmlTldKontrol);
+       $('#tld-kontrol-content').html(htmlTldKontrol);
+    });
 }
 
 function loadPengguna(tldPengguna){
     let htmlPengguna = '';
-    for (const [i, value] of tldPengguna.entries()) {
-        let txtRadiasi = '';
-        value.pengguna.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
+    ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'pengguna'}, result => {
+        let tldNotUsed = result.data;
+        let noTld = 0;
+        for (const [i, value] of tldPengguna.entries()) {
+            let txtRadiasi = '';
+            value.pengguna.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
 
-        tmpArrTld.push({
-            id: value.kontrak_tld_hash,
-            tld: value.tld ? value.tld[0].tld_hash : null
-        });
+            let dataTld = null;
+            if(value.tld) {
+                dataTld = value.tld[0];
+            } else {
+                dataTld = tldNotUsed[noTld];
+                noTld++;
+            }
 
-        htmlPengguna += `
-            <tr>
-                <td>
-                    <input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${value.kontrak_tld_hash}" aria-label="" id="checkTldPengguna${i}">
-                </td>
-                <td>${i + 1}</td>
-                <td>
-                    <div>${value.pengguna.name}</div>
-                    <small class="text-body-secondary fw-light">${value.pengguna.divisi?.name || ''}</small>
-                </td>
-                <td>${txtRadiasi}</td>
-                <td>
-                    <div class="input-group">
-                        <input type="text" class="form-control rounded-start" value="${value.tld ? value.tld[0].no_seri_tld : ''}" id="tldNoSeri_${value.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-                        ${htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${value.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
-                    </div>
-                </td>
-                <td>
-                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}" title="Show ktp">
-                        <i class="bi bi-file-person-fill"></i>
-                    </a>
-                </td>
-            </tr>
-        `;
-    }
+            tmpArrTld.push({
+                id: value.kontrak_tld_hash,
+                tld: dataTld.tld_hash
+            });
 
-    $('#pengguna-list-container').html(htmlPengguna);
-    showPopupReload();
+            htmlPengguna += `
+                <tr>
+                    <td>
+                        <input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${value.kontrak_tld_hash}" aria-label="" id="checkTldPengguna${i}">
+                    </td>
+                    <td>${i + 1}</td>
+                    <td>
+                        <div>${value.pengguna.name}</div>
+                        <small class="text-body-secondary fw-light">${value.pengguna.divisi?.name || ''}</small>
+                    </td>
+                    <td>${txtRadiasi}</td>
+                    <td>
+                        <div class="input-group">
+                            <input type="text" class="form-control rounded-start" value="${dataTld.no_seri_tld}" id="tldNoSeri_${value.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
+                            ${htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${value.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
+                        </div>
+                    </td>
+                    <td>
+                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}" title="Show ktp">
+                            <i class="bi bi-file-person-fill"></i>
+                        </a>
+                    </td>
+                </tr>
+            `;
+        }
+
+        $('#pengguna-list-container').html(htmlPengguna);
+        showPopupReload();
+    });
 }
 
 function buatPermohonan(obj){

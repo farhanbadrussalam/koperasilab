@@ -38,6 +38,7 @@ use Log;
 class PermohonanAPI extends Controller
 {
     use RestApi;
+    protected $media, $log, $tld, $global, $pagination;
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
@@ -549,26 +550,11 @@ class PermohonanAPI extends Controller
             foreach ($query as $item) {
                 // mengecek informasi tld
                 if($item->tld) {
-                    // $tld_1 = $this->tld->getById($item->tld->id_tld);
-                    // $resTld_1 = json_decode($tld_1->getContent(), true);
                     $item->tld_pengguna = $item->tld;
                 }else{
                     $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
                     $noTld++;
                 }
-                // else if(!$item->permohonan_tld->id_tld){
-                //     if(isset($resTld['data'][$noTld]) && !$item->permohonan_tld->tld){
-                //         $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
-                //         $noTld++;
-                //     }else{
-                //         $item->tld_pengguna = $item->permohonan_tld->tld ?? null;
-                //     }
-                // }
-                // else{
-                //     $tld_2 = $this->tld->getById($item->permohonan_tld->id_tld);
-                //     $resTld_2 = json_decode($tld_2->getContent(), true);
-                //     $item->tld_pengguna = $resTld_2['data'];
-                // }
 
                 // mengambil data radiasi
                 if($item->pengguna){
@@ -975,7 +961,8 @@ class PermohonanAPI extends Controller
 
                     // menambahkan tld
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                        $no_kontrak = $this->generateNoKontrak($idPermohonan);
+                        // $no_kontrak = $this->generateNoKontrak($idPermohonan);
+                        $no_kontrak = generateNoDokumen('kontrak', $idPermohonan);
                         $listTld = $request->listTld ? json_decode($request->listTld) : [];
 
                         foreach ($listTld as $item) {

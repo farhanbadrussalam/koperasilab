@@ -108,27 +108,31 @@ function loadData(page = 1) {
             let lastPeriodeKontrak = false;
             let htmlPengembalian = '';
             for (const periode of data.periode) {
-                // const isComplete = isPeriodeComplete(periode, i, detailPengiriman, arrFind);
                 const dokumenAktif = periodeMapDocument(periode, data, arrFind);
                 const isComplete = cekPeriodeComplete(periode, detailPengiriman, data, dokumenAktif);
+
+                let jml_periode = data.periode_count;
+                if(!tmpArrSewa.includes(JL)){
+                    if(data.is_zerocek && !data.is_have_tld){
+                        jml_periode = jml_periode - 1;
+                    }
+                }
 
                 if(!isComplete){
                     activePeriode = periode;
                     break;
-                } else {
-                    let jml_periode = data.periode_count;
-                    if(!tmpArrSewa.includes(JL)){
-                        if(data.is_zerocek && !data.is_have_tld){
-                            jml_periode = jml_periode - 1;
-                        }
-                    }
-                    lastPeriodeKontrak = (jml_periode) == periode.periode;
                 }
+                lastPeriodeKontrak = (jml_periode) == periode.periode;
             }
 
             if(lastPeriodeKontrak && role.includes('Staff Pengiriman')){
                 htmlPengembalian = pengembalianTLD(data);
+            } else if(lastPeriodeKontrak) {
+                htmlPengembalian = pengembalianTLD(data);
             }
+
+            let tmpPeriod = [...arrPeriode].filter(d => d.status == 1);
+            let jumlahPeriod = data.is_zerocek == 1 ? tmpPeriod.length - 1 : tmpPeriod.length;
 
             let hidden = role.includes('Pelanggan') ? 'd-none' : '';
 
@@ -157,7 +161,7 @@ function loadData(page = 1) {
                                 ${statusFormat('kontrak',data.status)}
                             </div>
                             <div class="d-flex gap-1" data-id="${data.kontrak_hash}">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})"><i class="bi bi-clock-fill"></i> ${data.is_zerocek == 1 ? arrPeriode.length - 1 : arrPeriode.length} Periode</div>
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})"><i class="bi bi-clock-fill"></i> ${jumlahPeriod} Periode</div>
                                 <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</div>
                             </div>
                         </div>
@@ -165,7 +169,7 @@ function loadData(page = 1) {
                             ${(() => {
                                 return activePeriode ? htmlPeriode(activePeriode, i, detailPengiriman, arrFind, { active: true }) : '';
                             })()}
-                            ${htmlPengembalian}
+                            ${role.includes('Staff Pengiriman') ? htmlPengembalian : ''}
                         </div>
                         <div class="p-3 pb-0" id="listPeriode${i}" style="display:none">
                             ${(() => {
@@ -266,7 +270,9 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     if(isPelanggan) {
         if(evaluasiState.active) {
             if(!data.permohonan){
-                htmlAction = htmlBtnEvaluasi;
+                if(data.status == 1) { // bukan status periode pengembalian
+                    htmlAction = htmlBtnEvaluasi;
+                }
             }
         }
         evaluasiState.active = isComplete;
@@ -292,7 +298,9 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
             if(aktifDokumenKirim.includes('tld')) {
                 if(tldSelesai) {
                     if(!data.permohonan){
-                        htmlAction = htmlBtnTld;
+                        if(!statusKirimTld){
+                            htmlAction = htmlBtnTld;
+                        }
                     }
                 }
             }
@@ -303,6 +311,10 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
     if(dataKontrak[index].is_have_tld && dataKontrak[index].is_zerocek && data.periode == 1) {
         textPeriode += ' + Zero cek';
+    }
+
+    if(data.status == 2) { // Status 2 == Pengembalian
+        textPeriode = 'Pengembalian TLD';
     }
 
     return `
@@ -425,16 +437,19 @@ function pengembalianTLD(data){
                 break;
             }
         }
+
+        if(ambil.status == 2) return '';
+
         let tldSelesai = cekPenyelia(ambil.penyelia, 'Pelabelan TLD');
-        if(tldSelesai) {
+        if(tldSelesai && role.includes('Staff Pengiriman')) {
             htmlAction = htmlBtnTld;
         }
 
         // set tanggal
         let startDate = new Date(ambil.end_date);
         // awal bulan setelah startDate
-        startDate.setMonth(startDate.getMonth() + 4);
         startDate.setDate(1);
+        startDate.setMonth(startDate.getMonth() + 4);
 
         let endDate = new Date(startDate);
         endDate.setMonth(endDate.getMonth() + 3);
@@ -451,7 +466,7 @@ function pengembalianTLD(data){
                     <span class="fw-semibold fs-6">Pengembalian TLD </span><small class="text-body-tertiary">(${dateFormat(startDate, 4)} - ${dateFormat(endDate, 4)})</small>
                     <div class="d-flex gap-3 flex-wrap">
                         <div>
-                            <span class="fw-normal">• ${jumlah} TLD</span>
+                            <span class="fw-normal">• TLD</span>
                             <small class="cursoron hover-1 pe-2">
                                 ${statusFormat('pengiriman', 0)}
                             </small>

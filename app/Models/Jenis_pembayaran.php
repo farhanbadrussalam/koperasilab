@@ -40,6 +40,6 @@ class Jenis_pembayaran extends Model
 
     public function getJenisPembayaranHashAttribute()
     {
-        return encryptor($this->id_jenis_pembayaran);
+        return $this->id_jenis_pembayaran ? encryptor($this->id_jenis_pembayaran) : null;
     }
 }

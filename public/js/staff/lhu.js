@@ -9,7 +9,6 @@ $(function () {
         jenis: 'penyelia',
         tab: {
             dokumen: true,
-            dokumen_lhu: true,
             log: true
         }
     });
@@ -105,7 +104,7 @@ function loadData(page = 1) {
 
             // button action
             btnAction += `<button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
-            isPelabelan ? btnAction += `<a class="btn btn-outline-info btn-sm" title="Print Label" href="${base_url}/laporan/label/${lhu.penyelia_hash}" target="_blank"><i class="bi bi-printer"></i> Label</a>` : '';
+            let btnLabel = `<a class="btn btn-outline-info btn-sm" title="Print Label" href="${base_url}/laporan/label/${lhu.penyelia_hash}" target="_blank"><i class="bi bi-printer"></i> Label</a>`;
 
             if(thisTab == "selesai") {
                 const selesaiJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 2);
@@ -130,13 +129,15 @@ function loadData(page = 1) {
                 })
 
                 let btnUpdateProgress = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
-                let showPenyimpanan = `<button class="btn btn-outline-primary btn-sm" title="Lihat Penyimpanan" onclick="openPenyimpananModal(this)"><i class="bi bi-eye"></i> Lihat penyimpanan</button>`;
+                let showPenyimpanan = `<button class="btn btn-outline-warning btn-sm" title="Lihat Penyimpanan" onclick="openPenyimpananModal(this)"><i class="bi bi-eye"></i> Lihat penyimpanan</button>`;
                 if(!isPenyimpanan){
                     btnAction += btnUpdateProgress;
                 } else {
                     let filterPeriodeNext = lhu.permohonan.kontrak.periode.filter(d => d.periode == lhu.periode + 1);
                     if(filterPeriodeNext.length > 0){
-                        if(filterPeriodeNext[0].tld_in_periode && filterPeriodeNext[0].tld_in_periode[0].status == 5){
+                        let reminderPeriod = isReminderPeriod(filterPeriodeNext[0].start_date, 1, '2026-09-01');
+
+                        if(filterPeriodeNext[0].tld_in_periode && filterPeriodeNext[0].tld_in_periode[0].status == 5 || reminderPeriod){
                             btnAction += btnUpdateProgress;
                         } else {
                             btnAction += showPenyimpanan;
@@ -146,6 +147,7 @@ function loadData(page = 1) {
                     }
                 }
             }
+            isPelabelan ? btnAction += btnLabel : '';
 
             html += `
                 <div class="card mb-2">

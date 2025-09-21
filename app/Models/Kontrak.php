@@ -47,7 +47,7 @@ class Kontrak extends Model
         'kontrak_hash',
         'document_kontrak',
         'periode_all',
-        'data_radiasi'
+        'data_radiasi',
     ];
 
     protected $casts = [
@@ -72,7 +72,7 @@ class Kontrak extends Model
 
     public function getKontrakHashAttribute()
     {
-        return encryptor($this->id_kontrak);
+        return $this->id_kontrak ? encryptor($this->id_kontrak) : null;
     }
 
     public function getDocumentKontrakAttribute()

@@ -25,11 +25,13 @@ use App\Http\Controllers\API\TldAPI;
 
 use App\Http\Controllers\API\PermohonanAPI;
 
-use Auth;
-use Log;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class StaffController extends Controller
 {
+    protected $permohonan, $tld, $global;
     public function __construct(){
         $this->permohonan = resolve(PermohonanAPI::class);
         $this->tld = resolve(TldAPI::class);
@@ -376,8 +378,10 @@ class StaffController extends Controller
                 'pelanggan:id,id_perusahaan,name',
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
-                'rincian_list_tld' => function ($query) {
-                    $query->where('status', 5);
+                'rincian_list_tld' => function ($query) use ($periodeNow) {
+                    $query->where('status', 6)->when($periodeNow, function ($q) use ($periodeNow) {
+                        return $q->where('count_tld', $periodeNow->periode % 2 == 1 ? 1 : 2);
+                    });
                 },
                 'rincian_list_tld.pengguna',
                 'periode'
@@ -416,16 +420,18 @@ class StaffController extends Controller
             'noPengiriman' => $this->generateNoPengiriman(),
             'informasi' => $data,
             'periode' => $periodeNow ? $periodeNow->periode : false,
-            'status_tld' => $statusTld
+            'status_tld' => $statusTld,
+            'periode_aktif' => $periodeNow
         ];
-
 
         return view('pages.staff.pengiriman.kirim', $result);
     }
-    public function buatOrderPengembalian($idHash)
+    public function buatOrderPengembalian($idHash, Request $request)
     {
         // mengambil kontrak
         $idKontrak = decryptor($idHash);
+        $periode = $request->has('periode') ? decryptor($request->periode) : false;
+        // Log::info($idKontrak);
 
         // cek tld apakah sudah di kirim atau belum
         // $statusTld = Pengiriman::with([
@@ -436,35 +442,64 @@ class StaffController extends Controller
         // ])->where('id_kontrak', $data->id_kontrak)
         // ->where('periode', $data->periode == 1 ? null : $data->periode)
         // ->first();
+        $periodeNow = Kontrak_periode::select('periode')->where('id_periode', $periode)->first();
 
-        $data = Kontrak::with([
-            'layanan_jasa:id_layanan,nama_layanan',
-            'jenisTld:id_jenisTld,name',
-            'jenis_layanan:id_jenisLayanan,name,parent',
-            'jenis_layanan_parent',
-            'pelanggan:id,id_perusahaan,name',
-            'pelanggan.perusahaan',
-            'pelanggan.perusahaan.alamat',
-            'rincian_list_tld' => function ($query) {
-                $query->where('status', 5);
-            },
-            'rincian_list_tld.pengguna',
-            'tld_aktif' => function ($query) {
-                $query->where('status', 0);
-            },
-        ])->find($idKontrak);
+        if(!$periodeNow){
+            // melanjutkan periode berikutnya
+            $periodeNow = Kontrak_periode::select('periode', 'end_date')->where('id_kontrak', $idKontrak)->where('periode', '>', 0)->orderBy('periode', 'desc')->first();
+            $next = $periodeNow->periode + 1;
+            $countTld = $next % 2 == 1 ? 1 : 2;
+            // Log::info($next);
 
-        $result = [
-            'title' => 'Buat Pengiriman',
-            'module' => 'staff-pengiriman-permohonan',
-            'noPengiriman' => $this->generateNoPengiriman(),
-            'informasi' => $data, // $data,
-            'periode' => false, // $periodeNow ? $periodeNow->periode : false,
-            'status_tld' => false //$statusTld
-        ];
+            $startDate = Carbon::parse($periodeNow->end_date);
+            // awal bulan setelah startDate
+            $startDate->modify('first day of +1 months');
+            $startDate->setDate($startDate->format('Y'), $startDate->format('m'), 1);
 
+            $endDate = clone $startDate;
+            $endDate->modify('last day of +3 months');
+            $endDate->setDate($endDate->format('Y'), $endDate->format('m'), 0);
 
-        return view('pages.staff.pengiriman.kirim', $result);
+            $periodePengembalian = Kontrak_periode::create([
+                'id_kontrak' => $idKontrak,
+                'periode' => $next,
+                'count_tld' => $countTld,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'status' => 2,
+                'created_by' => Auth::user()->id
+            ]);
+        }
+
+        // $data = Kontrak::with([
+        //     'layanan_jasa:id_layanan,nama_layanan',
+        //     'jenisTld:id_jenisTld,name',
+        //     'jenis_layanan:id_jenisLayanan,name,parent',
+        //     'jenis_layanan_parent',
+        //     'pelanggan:id,id_perusahaan,name',
+        //     'pelanggan.perusahaan',
+        //     'pelanggan.perusahaan.alamat',
+        //     'rincian_list_tld' => function ($query) {
+        //         $query->where('status', 5);
+        //     },
+        //     'rincian_list_tld.pengguna',
+        //     'tld_aktif' => function ($query) {
+        //         $query->where('status', 0);
+        //     },
+        // ])->find($idKontrak);
+
+        // $result = [
+        //     'title' => 'Buat Pengiriman',
+        //     'module' => 'staff-pengiriman-permohonan',
+        //     'noPengiriman' => $this->generateNoPengiriman(),
+        //     'informasi' => $data, // $data,
+        //     'periode' => false, // $periodeNow ? $periodeNow->periode : false,
+        //     'status_tld' => false //$statusTld
+        // ];
+
+        // return view('pages.staff.pengiriman.kirim', $result);
+
+        return redirect(Route('staff.pengiriman.permohonan.kirim.kontrak', [$idHash, $periodePengembalian->periode_hash]));
     }
 
     private function generateNoPengiriman() {

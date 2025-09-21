@@ -35,7 +35,7 @@ class Jadwal_petugas extends Model
 
     public function getJadwalpetugasHashAttribute()
     {
-        return encryptor($this->id);
+        return $this->id ? encryptor($this->id) : null;
     }
 
     // public function getAvatarAttribute()

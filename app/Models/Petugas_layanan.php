@@ -34,7 +34,7 @@ class Petugas_layanan extends Model
 
     public function getPetugasHashAttribute()
     {
-        return encryptor($this->id);
+        return $this->id ? encryptor($this->id) : null;
     }
 
     public function lab(){

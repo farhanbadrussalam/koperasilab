@@ -36,7 +36,7 @@ class Log_tld extends Model
 
     public function getLogTldHashAttribute()
     {
-        return encryptor($this->id_log_tld);
+        return $this->id_log_tld ? encryptor($this->id_log_tld) : null;
     }
 
 }

@@ -290,14 +290,6 @@ function toggleReason(index, enable) {
 
 function loadTld(){
     ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
-
-        // filter untuk memisahkan antara tld pengguna dan tld kontrol
-        let kPengguna = result.data.tldKontrak ? result.data.tldKontrak?.filter(tld => tld.pengguna) : [];
-        let tldPengguna = [
-            ...result.data.tldPermohonan.filter(tld => tld.pengguna),
-            ...kPengguna,
-        ];
-
         let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
         let tldKontrol = [
             ...result.data.tldPermohonan.filter(tld => !tld.pengguna),

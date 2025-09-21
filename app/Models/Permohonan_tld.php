@@ -52,12 +52,12 @@ class Permohonan_tld extends Model
 
     public function getPermohonanTldHashAttribute()
     {
-        return encryptor($this->id_permohonan_tld);
+        return $this->id_permohonan_tld ? encryptor($this->id_permohonan_tld) : null;
     }
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
     }
 
     public function getTldAttribute()
@@ -71,7 +71,7 @@ class Permohonan_tld extends Model
 
     public function getKontrakTldHashAttribute()
     {
-        return encryptor($this->id_kontrak_tld);
+        return $this->id_kontrak_tld ? encryptor($this->id_kontrak_tld) : null;
     }
 
     public function pengguna()

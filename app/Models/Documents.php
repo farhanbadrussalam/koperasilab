@@ -57,22 +57,22 @@ class Documents extends Model
 
     public function getDocHashAttribute()
     {
-        return encryptor($this->id_doc);
+        return $this->id_doc ? encryptor($this->id_doc) : null;
     }
 
     public function getDocVersionHashAttribute()
     {
-        return encryptor($this->id_doc_verion);
+        return $this->id_doc_verion ? encryptor($this->id_doc_verion) : null;
     }
 
     public function getHeaderHashAttribute()
     {
-        return encryptor($this->id_header);
+        return $this->id_header ? encryptor($this->id_header) : null;
     }
 
     public function getFooterHashAttribute()
     {
-        return encryptor($this->id_footer);
+        return $this->id_footer ? encryptor($this->id_footer) : null;
     }
 
     public function getDataPertanyaanAttribute()

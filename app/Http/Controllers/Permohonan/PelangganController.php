@@ -24,9 +24,11 @@ use App\Http\Controllers\LogController;
 
 use Auth;
 use DataTables;
+use Log;
 
 class PelangganController extends Controller
 {
+    protected $media, $log, $global;
     public function __construct()
     {
         $this->media = resolve(MediaController::class);

@@ -84,7 +84,14 @@ class TldAPI extends Controller
         try {
             $jenis = $request->has('jenis') ? $request->jenis : false;
 
-            $data = Master_tld::where('status', 0)->whereNull('kepemilikan')->where('jenis', $jenis)->get();
+            // if role nya pelanggan
+            if(Auth::user()->hasRole('Pelanggan')){
+                $idPerusahaan = Auth::user()->id_perusahaan;
+                $data = Master_tld::where('status', 0)->where('kepemilikan', $idPerusahaan)->whereNull('digunakan')->where('jenis', $jenis)->get();
+            } else {
+                $data = Master_tld::where('status', 0)->whereNull('kepemilikan')->where('jenis', $jenis)->get();
+            }
+
 
             DB::commit();
             return $this->output($data, 200);

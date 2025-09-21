@@ -12,6 +12,9 @@ use App\Models\Kontrak_periode;
 use Illuminate\Support\Facades\Crypt;
 
 use App\Helpers\TableWidthFixer;
+use App\Models\Keuangan;
+use App\Models\Kontrak;
+use Carbon\Carbon;
 
 if (!function_exists('formatCurrency')) {
     function formatCurrency($amount)
@@ -418,6 +421,7 @@ if (!function_exists('angkaKeHuruf')) {
 if (!function_exists('generateNoDokumen')) {
     function generateNoDokumen($jenis, $id = false)
     {
+        $appName = 'JKRL';
         // Mengambil bulan sekarang dan mengubah ke dalam format Romawi
         $bulanSekarang = date('n'); // n = format angka bulan tanpa nol
         $romawiBulan = getRomawiBulan($bulanSekarang);
@@ -450,12 +454,13 @@ if (!function_exists('generateNoDokumen')) {
                 $satuankerja = Penyelia::with('permohonan', 'permohonan.layanan_jasa', 'permohonan.layanan_jasa.satuankerja')
                 ->where('penyelia.id_penyelia', $id)
                 ->first();
+                $alias = $satuankerja->permohonan->layanan_jasa->satuankerja->alias;
 
-                $noKontrak = "{$increment}/NL-{$satuankerja->permohonan->layanan_jasa->satuankerja->alias}/{$romawiBulan}/{$tahunSekarang}";
+                $noKontrak = "{$increment}/NL-{$alias}/{$romawiBulan}/{$tahunSekarang}";
                 break;
             case 'surpeng':
                 // Format nomor kontrak
-                $noKontrak = "{$increment}/JKRL-B/{$romawiBulan}/{$tahunSekarang}";
+                $noKontrak = "{$increment}/{$appName}-B/{$romawiBulan}/{$tahunSekarang}";
                 break;
             case 'permintaanpengujian':
                 // Format nomor kontrak
@@ -463,11 +468,21 @@ if (!function_exists('generateNoDokumen')) {
                 break;
             case 'KontrakPengujian':
                 // Format nomor kontrak
-                $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = $permohonan->layanan_jasa->alias;
+
+                $noKontrak = "{$increment}/{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
                 break;
             case 'kwitansi':
                 // Format nomor kwitansi
                 $noKontrak = "{$increment}/KW-MZR/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'kontrak':
+                // Format nomor kontrak
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = strtoupper(substr($permohonan->jenis_layanan->name, 0, 1));
+
+                $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
                 break;
         }
 
@@ -666,34 +681,40 @@ if(!function_exists('convertTableWidthsToPx')) {
         $xp = new DOMXPath($dom);
 
         foreach ($xp->query('//table') as $table) {
-            // Table width (% → px) di style
-            $style = $table->getAttribute('style');
-            if (preg_match('/width\s*:\s*([\d.]+)%/i', $style, $m)) {
-                $px = (int) round($containerPx * (float) $m[1] / 100);
-                $style = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $style);
-                $table->setAttribute('style', $style);
+            if($table instanceof DOMElement){
+                // Table width (% → px) di style
+                $style = $table->getAttribute('style');
+                if (preg_match('/width\s*:\s*([\d.]+)%/i', $style, $m)) {
+                    $px = (int) round($containerPx * (float) $m[1] / 100);
+                    $style = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $style);
+                    $table->setAttribute('style', $style);
+                }
             }
 
             // colgroup/col
             foreach ($xp->query('./colgroup/col', $table) as $col) {
-                $cs = $col->getAttribute('style');
-                if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m2)) {
-                    $px = (int) round($containerPx * (float) $m2[1] / 100);
-                    $cs = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $cs);
-                    $col->setAttribute('style', $cs);
+                if($col instanceof DOMElement){
+                    $cs = $col->getAttribute('style');
+                    if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m2)) {
+                        $px = (int) round($containerPx * (float) $m2[1] / 100);
+                        $cs = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $cs);
+                        $col->setAttribute('style', $cs);
+                    }
                 }
             }
 
             // th/td
             foreach ($xp->query('.//th|.//td', $table) as $cell) {
-                $cs = $cell->getAttribute('style');
-                if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m3)) {
-                    $px = (int) round($containerPx * (float) $m3[1] / 100);
-                    $cs = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $cs);
-                    $cell->setAttribute('style', $cs);
-                } elseif ($cell->hasAttribute('width') && preg_match('/^\s*([\d.]+)%\s*$/', $cell->getAttribute('width'), $m4)) {
-                    $px = (int) round($containerPx * (float) $m4[1] / 100);
-                    $cell->setAttribute('width', (string) $px); // atribut width px
+                if($cell instanceof DOMElement){
+                    $cs = $cell->getAttribute('style');
+                    if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m3)) {
+                        $px = (int) round($containerPx * (float) $m3[1] / 100);
+                        $cs = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $cs);
+                        $cell->setAttribute('style', $cs);
+                    } elseif ($cell->hasAttribute('width') && preg_match('/^\s*([\d.]+)%\s*$/', $cell->getAttribute('width'), $m4)) {
+                        $px = (int) round($containerPx * (float) $m4[1] / 100);
+                        $cell->setAttribute('width', (string) $px); // atribut width px
+                    }
                 }
             }
         }
@@ -737,6 +758,110 @@ if(!function_exists('isReminderPeriod')) {
 
         return $hNow->between($hMinus, $period->subDay());
     }
+}
 
+if(!function_exists('isFinishKontrak')) {
+    function isFinishKontrak($id_kontrak) {
+        // ambil kontrak
+        $kontrak = Kontrak::with(
+            'invoice',
+            'periode'
+        )->find($id_kontrak);
+
+        // cek apakah invoice sudah di bayar atau belum
+        $statusInvoice = false;
+        if($kontrak->invoice) {
+            $invoice = $kontrak->invoice;
+            $statusInvoice = $invoice->status == 5 ? true : false; // 5 = sudah di bayar
+        }
+
+        // cek apakah periode udah selesai atau belum
+        $statusPeriode = false;
+        $arrDocument = array('tld', 'lhu');
+        foreach ($kontrak->periode as $periode) {
+            if($periode->status == 2) {
+                $statusPeriode = true;
+                break;
+            }
+        }
+    }
+}
+
+if(!function_exists('getPeriodeAwal')) {
+    function getPeriodeAwal(Kontrak $kontrak) {
+        $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
+
+        $periodeAwal = array();
+        if($kontrak->is_zerocek == 1) {
+            if($kontrak->is_have_tld == 0) {
+                $periodeAwal = array(0);
+            } else if($kontrak->is_have_tld == 1 && $JL != 'ZeroCekTanpaKontrak') {
+                $periodeAwal = array(1, 2);
+            }
+        } else if($kontrak->is_zerocek == 0) {
+            if($kontrak->is_have_tld == 1 && $JL != 'EvaluasiTanpaKontrak') {
+                $periodeAwal = array(1, 2);
+            }
+        }
+
+        return $periodeAwal;
+    }
+}
+
+if(!function_exists('cekPeriodeComplete')) {
+    function cekPeriodeComplete($id_kontrak, $periode) {
+        $period = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode)->first();
+        $kontrak = Kontrak::with([
+            'jenis_layanan',
+            'jenis_layanan_parent',
+            'invoice',
+            'pengiriman' => function($q) use ($periode) {
+                $q->where('periode', $periode);
+            },
+            'pengiriman.detail'
+        ])->find($id_kontrak);
+        $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
+        $periodeAwal = getPeriodeAwal($kontrak);
+        $lastPeriode = $kontrak->periode_all['jml_periode'] == $periode;
+
+        $aktifDokumen = array('invoice','tld', 'lhu');
+        $arr = array();
+        foreach ($aktifDokumen as $dokumen) {
+            if($dokumen === 'invoice' && $period->id_permohonan !== $kontrak->invoice->id_permohonan) continue;
+            if($dokumen === 'tld') {
+                if($JL == 'KontrakSewa' && $lastPeriode) continue;
+                if(in_array($period->id_periode, $periodeAwal)) continue;
+            }
+
+            if($dokumen === 'lhu') {
+                if($period->status == 2) continue; // status 2 = Pengembalian
+            }
+
+            $getPengiriman = false;
+            foreach ($kontrak->pengiriman as $pengiriman) {
+                $cekDokumen = Pengiriman_detail::where('id_pengiriman', $pengiriman->id_pengiriman)->where('jenis', $dokumen)->first();
+                if($cekDokumen) {
+                    $getPengiriman = $pengiriman;
+                    break;
+                }
+            }
+
+            if($dokumen === 'invoice') {
+                if ($kontrak->invoice->status != 5) {
+                    return false;
+                }
+            }
+
+            if($getPengiriman) {
+                if($getPengiriman->status != 2) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
 ?>

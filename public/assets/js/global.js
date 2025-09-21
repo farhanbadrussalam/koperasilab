@@ -1167,6 +1167,9 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
             if (periodeAwal.includes(data_periode.periode)) continue;
         }
+        if (doc === 'lhu') {
+            if(data_periode.status == 2) continue;
+        }
 
         aktifDokumenKirim.push(doc);
     }
@@ -1196,7 +1199,7 @@ function convertHslToHex(html) {
   return html.replace(/hsl\([^)]+\)/g, match => hslToHex(match));
 }
 
-function isReminderPeriod(period, offset, unit = "month", hNow = null) {
+function isReminderPeriod(period, offset, hNow = null, unit = "month") {
   const periodDate = new Date(period);
   const now = hNow ? new Date(hNow) : new Date();
 

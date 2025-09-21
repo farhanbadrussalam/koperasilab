@@ -36,11 +36,11 @@ class Keuangan_diskon extends Model
 
     public function getKeuanganHashAttribute()
     {
-        return encryptor($this->id_keuangan);
+        return $this->id_keuangan ? encryptor($this->id_keuangan) : null;
     }
 
     public function getDiskonHashAttribute()
     {
-        return encryptor($this->id_diskon);
+        return $this->id_diskon ? encryptor($this->id_diskon) : null;
     }
 }
