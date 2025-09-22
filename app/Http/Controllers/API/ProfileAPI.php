@@ -22,6 +22,7 @@ use Hash;
 class ProfileAPI extends Controller
 {
     use RestApi;
+    protected $log, $media, $pagination;
 
     public function __construct()
     {
@@ -269,6 +270,21 @@ class ProfileAPI extends Controller
         DB::beginTransaction();
         try {
             $query = Perusahaan::where('kode_perusahaan', $kode)->first();
+
+            return $this->output($query, 200);
+
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function getPerusahaanById($id){
+        DB::beginTransaction();
+        try {
+            $id = decryptor($id);
+            $query = Perusahaan::with('users', 'alamat')->where('id_perusahaan', $id)->first();
 
             return $this->output($query, 200);
 

@@ -141,6 +141,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action/perusahaan', 'actionPerusahaan');
         Route::post('/changePassword', 'changePassword');
         Route::get('/getPerusahaan/{kode}', 'getPerusahaanByKode');
+        Route::get('/getPerusahaanById/{idPerusahaan}', 'getPerusahaanById');
     });
 
     Route::prefix("filter")->controller(FilterAPI::class)->group(function () {

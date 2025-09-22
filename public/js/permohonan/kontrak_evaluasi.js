@@ -126,6 +126,8 @@ function loadPengguna(tldPengguna){
                 tld: dataTld.tld_hash
             });
 
+            const imgPengguna = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '#';
+
             htmlPengguna += `
                 <tr>
                     <td>
@@ -144,7 +146,7 @@ function loadPengguna(tldPengguna){
                         </div>
                     </td>
                     <td>
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}" title="Show ktp">
+                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${imgPengguna}" title="Show ktp">
                             <i class="bi bi-file-person-fill"></i>
                         </a>
                     </td>

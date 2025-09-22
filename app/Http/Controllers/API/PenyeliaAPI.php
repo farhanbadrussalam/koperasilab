@@ -623,7 +623,7 @@ class PenyeliaAPI extends Controller
                 'petugas',
                 'petugas.jobs',
                 'penyelia_map',
-                'periodenow:id_periode,id_permohonan,count_tld',
+                'periodenow:id_periode,id_permohonan,count_tld,periode',
                 'penyelia_map.jobs:id_jobs,status,name,upload_doc',
                 'usersig:id,name',
                 'permohonan.layanan_jasa:id_layanan,nama_layanan',

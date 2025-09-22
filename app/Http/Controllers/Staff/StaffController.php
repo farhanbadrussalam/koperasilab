@@ -287,6 +287,8 @@ class StaffController extends Controller
         $data = false;
         $periodeNow = false;
         $statusTld = false;
+        $resTldPengguna = false;
+        $resTldKontrol = false;
         if($periode){
             $idPeriode = decryptor($periode) ?? false;
             // mengambil periode sekarang
@@ -361,7 +363,7 @@ class StaffController extends Controller
                             'id_pengguna' => $val->id_pengguna,
                             'id_divisi' => $val->id_divisi,
                             'count_tld' => $countTld,
-                            'status' => 5,
+                            'status' => 6,
                             'count' => $val->count,
                             'created_by' => Auth::user()->id
                         );
@@ -421,7 +423,9 @@ class StaffController extends Controller
             'informasi' => $data,
             'periode' => $periodeNow ? $periodeNow->periode : false,
             'status_tld' => $statusTld,
-            'periode_aktif' => $periodeNow
+            'periode_aktif' => $periodeNow,
+            'tld_pengguna' => $resTldPengguna['data'],
+            'tld_kontrol' => $resTldKontrol['data']
         ];
 
         return view('pages.staff.pengiriman.kirim', $result);

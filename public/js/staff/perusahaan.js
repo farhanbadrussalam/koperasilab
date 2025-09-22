@@ -1,5 +1,14 @@
+let detail = false;
 $(function () {
     loadData();
+
+    detail = new Detail({
+        jenis: 'perusahaan',
+        tab: {
+            alamat: true,
+            karyawan: true
+        }
+    });
 
     // mengecek apakah kode perusahaan sudah ada atau belum, jika sudah ada tidak akan bisa di simpan
     $('#kodeEditPerusahaan').on('input', obj => {
@@ -52,22 +61,24 @@ function loadData(page = 1) {
             }else{
                 btnAction = `<button class="btn btn-outline-primary btn-sm" data-id="${perusahaan.perusahaan_hash}" data-kode="${perusahaan.kode_perusahaan}" onclick="openModalEdit(this), 'tambah'"><i class="bi bi-plus"></i> Tambah kode</button>`;
             }
+            btnAction += `<button class="btn btn-outline-info btn-sm" data-id="${perusahaan.perusahaan_hash}" onclick="openModalDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
+
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center">
-                        <div class="col-12 col-md-8">
+                        <div class="col-12 col-md-6">
                             <div class="title"><span class="fw-bold">(${perusahaan.kode_perusahaan ?? '<span class="text-danger">Belum memiliki kode</span>'})</span> ${perusahaan.nama_perusahaan}</div>
                             <small class="subdesc text-body-secondary fw-light lh-sm">
                                 <div>NPWP : ${perusahaan.npwp_perusahaan ?? '-'}</div>
                                 <div>E-mail : ${perusahaan.email ?? '-'}</div>
                             </small>
                         </div>
-                        <div class="col-6 col-md-2 text-center ms-auto">
+                        <div class="col-6 col-md-3 text-center ms-auto">
                             <div class="cursoron hover-1">
-                                <span class="text-secondary ms-2"><i class="bi bi-people-fill"></i> ${perusahaan.users?.length ?? 0} Users</span>
+                                <span class="text-secondary ms-2"><i class="bi bi-people-fill"></i> ${perusahaan.users?.length ?? 0} Karyawan</span>
                             </div>
                         </div>
-                        <div class="col-6 col-md-2 text-center">
+                        <div class="d-flex col-md-3 text-end gap-2">
                             ${btnAction}
                         </div>
                     </div>
@@ -83,8 +94,6 @@ function loadData(page = 1) {
                 </div>
             `;
         }
-
-        console.log(result);
         $('#list-container').html(html);
 
         $('#list-pagination').html(createPaginationHTML(result.pagination));
@@ -138,6 +147,12 @@ function simpanEditPerusahaan(obj){
     }, error => {
         spinner('hide', $(obj));
     });
+}
+
+function openModalDetail(obj){
+    const id = $(obj).data('id');
+
+    detail.show(`api/v1/profile/getPerusahaanById/${id}`);
 }
 
 $('#list-pagination').on('click', 'a', function (e) {

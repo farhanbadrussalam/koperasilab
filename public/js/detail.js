@@ -17,6 +17,9 @@ class Detail {
                 bukti: options.tab.bukti ?? false,
                 // Penyelia
                 proses: options.tab.proses ?? false,
+                // Perusahaan
+                alamat: options.tab.alamat ?? false,
+                karyawan: options.tab.karyawan ?? false
             },
             activeTab: options.activeTab ?? false
         }
@@ -166,6 +169,17 @@ class Detail {
                     jenisStatus: 'kontrak'
                 }
                 break;
+            case 'perusahaan':
+                this.info = {
+                    nama_perusahaan: this.data.nama_perusahaan ?? '-',
+                    kode_perusahaan: this.data.kode_perusahaan ?? 'Belum memiliki Kode',
+                    npwp_perusahaan: this.data.npwp_perusahaan ?? '-',
+                    email: this.data.email ?? '-',
+                    alamat: this.data.alamat ?? [],
+                    jenisStatus: 'perusahaan',
+                    karyawan: this.data.users ?? []
+                }
+                break;
             default:
 
                 break;
@@ -188,6 +202,9 @@ class Detail {
                     break;
                 case 'surattugas':
                     $('#container-detail').append(this.createInformationSuratTugas());
+                    break;
+                case 'perusahaan':
+                    $('#container-detail').append(this.createInformationPerusahaan());
                     break;
                 default:
                     $('#container-detail').append(this.createInformationPermohonan());
@@ -405,6 +422,42 @@ class Detail {
         return container;
     }
 
+    createInformationPerusahaan() {
+        const container = document.createElement('div');
+        container.className = 'container fs-7';
+
+        $('#titleDetail').text('Detail Perusahaan');
+
+        container.innerHTML = `
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Nama</label>
+                <div class="col-auto">
+                    ${this.info.nama_perusahaan}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Kode perusahaan</label>
+                <div class="col-auto">
+                    ${this.info.kode_perusahaan}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">NPWP</label>
+                <div class="col-auto">
+                    ${this.info.npwp_perusahaan}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">E-mail</label>
+                <div class="col-auto">
+                    ${this.info.email}
+                </div>
+            </div>
+        `;
+
+        return container;
+    }
+
     // membuat tab
 
     createTab() {
@@ -422,6 +475,9 @@ class Detail {
         this.options.tab.bukti && (tabs.bukti = { title: 'Bukti', content: this.createBuktiContent() });
 
         this.options.tab.proses && (tabs.proses = { title: 'Proses Penyelia', content: this.createProsesContent() });
+
+        this.options.tab.alamat && (tabs.alamat = { title: 'Alamat', content: this.createAlamatContent() });
+        this.options.tab.karyawan && (tabs.karyawan = { title: `Karyawan (${this.info?.karyawan?.length ?? 0})`, content: this.createKaryawanContent() });
 
         let htmlTabNav = '';
 
@@ -646,6 +702,42 @@ class Detail {
     }
     createProsesContent() {
         return '<p>Proses content</p>';
+    }
+    createAlamatContent() {
+        const alamatarr = this.info?.alamat ?? [];
+        if(alamatarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada alamat</p>';
+
+        return `
+            <ul class="list-group list-group-flush">
+                ${alamatarr.map((data, i) => {
+                    if(data.status == 1){
+                        return `
+                            <li class="list-group-item">
+                                <div class="fw-bold">${data.jenis}</div>
+                                <div class="text-body-secondary">${data.alamat ?? '-'}</div>
+                            </li>
+                        `;
+                    }
+                }).join('')}
+            </ul>
+        `;
+    }
+    createKaryawanContent() {
+        const karyawanarr = this.info?.karyawan ?? [];
+        if(karyawanarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada karyawan</p>';
+
+        return `
+            <ul class="list-group list-group-flush">
+                ${karyawanarr.map((data, i) => {
+                    return `
+                        <li class="list-group-item">
+                            <div class="fw-bold">${data.name}</div>
+                            <div class="text-body-secondary">${data.email}</div>
+                        </li>
+                    `;
+                }).join('')}
+            </ul>
+        `;
     }
     createTldContent() {
         let listTld = [];

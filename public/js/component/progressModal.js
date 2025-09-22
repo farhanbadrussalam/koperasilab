@@ -62,7 +62,7 @@ function openProgressModal(obj){
         // add rincian TLD
         let htmlRincianTld = '';
         for (const detail of nowSelect.permohonan?.kontrak?.rincian_list_tld) {
-            if(nowSelect.periodenow.count_tld == detail.count_tld){
+            if(nowSelect.periodenow.count_tld == detail.count_tld || nowSelect.periodenow.periode == 0){
                 let html = ``;
                 let inPenyimpanan = detail.status == 5 ? true : false;
                 for (const TLD of detail.tld) {

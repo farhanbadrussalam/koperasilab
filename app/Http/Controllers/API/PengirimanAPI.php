@@ -10,6 +10,7 @@ use App\Traits\RestApi;
 
 use App\Models\Master_tld;
 use App\Models\Master_media;
+use App\Models\Master_pengguna;
 use App\Models\Pengiriman;
 use App\Models\Pengiriman_detail;
 use App\Models\Permohonan;
@@ -406,19 +407,19 @@ class PengirimanAPI extends Controller
 
             // mereset TLD jika di kembalikan
             if($kontrakPeriode->status == 2){
-                // info("================ Prosess Pengembalian TLD ===============");
+                info("================ Prosess Pengembalian TLD ===============");
                 // mengambil TLD dari Kontrak_tld
                 $dataTld = Kontrak_tld::where('id_kontrak', $query->id_kontrak)
                 ->where('count_tld', $kontrakPeriode->count_tld)->get();
 
                 if($dataTld){
                     foreach ($dataTld as $item) {
-                        // info("Prosess update TLD " . $item);
+                        info("Prosess update TLD " . $item);
                         Master_tld::whereIn('id_tld', $item->id_tld)->update(['status' => 0, 'digunakan' => null]);
                     }
                 }
 
-                // info("================ Selesai Pengembalian TLD ===============");
+                info("================ Selesai Pengembalian TLD ===============");
             }
 
             // Mengganti status di kontrak_tld menjadi 2 artinya sudah diterima oleh pelanggan, khusus pengiriman TLD
@@ -439,13 +440,24 @@ class PengirimanAPI extends Controller
             $layanan = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
             $isSewa = in_array($layanan, $this->global['arr_sewa']);
             if ($isComplete) {
+                info("================ Prosess Ketika kontrak complete ===============");
                 $isAktifTld = $kontrak->tld_aktif->count() > 0 ? true : false;
                 if(!$isAktifTld){
+                    info("Semua TLD sudah tidak ada yang aktif");
                     $kontrak->update(['status' => 2]);
                     if($isSewa) {
                         Master_tld::where('digunakan', $kontrak->no_kontrak)->update(['digunakan' => null, 'status' => 0]);
                     }
+
+                    info("Reset Pengguna TLD");
+                    $penggunaInKontrak = Kontrak_tld::where('id_kontrak', $query->id_kontrak)->whereNotNull('id_pengguna')->get();
+                    foreach ($penggunaInKontrak as $item) {
+                        Master_pengguna::where('id_pengguna', $item->id_pengguna)->update(['status' => 1]);
+                    }
+                } else {
+                    info("Masih ada TLD yang aktif");
                 }
+                info("================ Selesai Ketika kontrak complete ===============");
             }
 
             if(count($tmpFilePenerima) != 0){
