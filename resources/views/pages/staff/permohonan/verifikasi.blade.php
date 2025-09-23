@@ -54,6 +54,7 @@
                                         <label class="col-form-label" for="periode-pemakaian">Periode pemakaian selanjutnya</label>
                                         <div class="input-group mb-3">
                                             <input type="text" class="form-control bg-secondary-subtle" id="periode-pemakaian-next" aria-label="Periode pemakaian selanjutnya" value="" readonly>
+                                            <button class="btn btn-outline-secondary" type="button" id="btn-periode-next">Show periode</button>
                                         </div>
                                     </div>
                                     @endif
@@ -208,7 +209,7 @@
                                 <div class="row">
                                     <div class="col-12">
                                         <label for="alamat-utama" class="col-form-label">Alamat Utama</label>
-                                        <textarea name="alamat-utama" id="alamat-utama" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
+                                        <textarea name="alamat-Utama" id="alamat-Utama" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
                                         <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-utama" readonly>
                                     </div>
                                     <div class="col-12">

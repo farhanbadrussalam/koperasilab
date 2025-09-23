@@ -85,4 +85,5 @@
         TLD Badge dengan Ketentuan sebagai berikut:
     </div>
 </div>
+@include('report.template.footer')
 @endsection

@@ -35,7 +35,7 @@
                             <thead>
                                 <th width="5%">No</th>
                                 <th>No Seri TLD</th>
-                                <th width="10%">Jenis</th>
+                                <th width="20%">Jenis</th>
                                 <th width="10%" class="text-center">Status</th>
                                 <th width="15%" class="text-center">Action</th>
                             </thead>

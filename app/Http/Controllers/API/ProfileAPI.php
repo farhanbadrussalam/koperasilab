@@ -22,6 +22,7 @@ use Hash;
 class ProfileAPI extends Controller
 {
     use RestApi;
+    protected $log, $media, $pagination;
 
     public function __construct()
     {
@@ -234,13 +235,18 @@ class ProfileAPI extends Controller
     public function getListPerusahaan(Request $request)
     {
         $search = $request->has('search') ? $request->search : '';
+        $fullSearch = $request->has('fullSearch') ? $request->fullSearch : false;
         $limit = $request->has('limit') ? $request->limit : false;
         $page = $request->has('page') ? $request->page : 1;
 
         DB::beginTransaction();
         try {
-            $query = Perusahaan::with('users')->when($search, function($q, $search){
-                return $q->where('nama_perusahaan', 'like', "%$search%");
+            $query = Perusahaan::with('users')->when($search, function($q, $search) use ($fullSearch){
+                if($fullSearch){
+                    return $q->where('nama_perusahaan', "$search");
+                } else {
+                    return $q->where('nama_perusahaan', 'like', "%$search%");
+                }
             })->orderBy('id_perusahaan', 'desc');
 
             if($limit){
@@ -264,6 +270,21 @@ class ProfileAPI extends Controller
         DB::beginTransaction();
         try {
             $query = Perusahaan::where('kode_perusahaan', $kode)->first();
+
+            return $this->output($query, 200);
+
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function getPerusahaanById($id){
+        DB::beginTransaction();
+        try {
+            $id = decryptor($id);
+            $query = Perusahaan::with('users', 'alamat')->where('id_perusahaan', $id)->first();
 
             return $this->output($query, 200);
 

@@ -14,10 +14,18 @@ class Permohonan_dokumen extends Model
 
     protected $fillable = [
         'id_permohonan',
+        'id_kontrak',
+        'id_doc_template',
+        'periode',
         'nomer',
         'nama',
         'status',
         'jenis',
+        'ttd',
+        'ttd_by',
+        'catatan',
+        'variables',
+        'content_value',
         'created_by',
         'created_at',
     ];
@@ -36,16 +44,28 @@ class Permohonan_dokumen extends Model
         'status' => 'integer',
         'id_dokumen' => 'integer',
         'id_permohonan' => 'integer',
-        'created_by' => 'integer'
+        'id_kontrak' => 'integer',
+        'created_by' => 'integer',
+        'id_doc_template' => 'integer',
+        'content_value' => 'array',
+        'variables' => 'array'
     ];
 
     public function getDokumenHashAttribute()
     {
-        return encryptor($this->id_dokumen);
+        return $this->id_dokumen ? encryptor($this->id_dokumen) : null;
     }
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
+    }
+
+    public function doc_template(){
+        return $this->belongsTo(Documents::class, 'id_doc_template', 'id_doc');
+    }
+
+    public function usersig(){
+        return $this->belongsTo(user::class, 'ttd_by', 'id');
     }
 }

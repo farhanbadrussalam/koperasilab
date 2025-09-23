@@ -9,7 +9,7 @@ $(function () {
                 newTag: true       // Penanda bahwa ini adalah input baru
             }
         },
-        minimumInputLength: 2,
+        minimumInputLength: 3,
         placeholder: "Search Instansi",
         allowClear: true,
         ajax: {
@@ -19,7 +19,8 @@ $(function () {
             delay: 250,
             data: function(params) {
                 let queryParams = {
-                    search: params.term
+                    search: params.term,
+                    fullSearch: true
                 }
                 return queryParams;
             },

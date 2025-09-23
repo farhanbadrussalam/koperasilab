@@ -10,10 +10,13 @@ use App\Traits\RestApi;
 
 use App\Models\Master_tld;
 use App\Models\Master_media;
+use App\Models\Master_pengguna;
 use App\Models\Pengiriman;
 use App\Models\Pengiriman_detail;
 use App\Models\Permohonan;
 use App\Models\Permohonan_pengguna;
+use App\Models\Permohonan_dokumen;
+use App\Models\Documents;
 use App\Models\User;
 use App\Models\Keuangan;
 use App\Models\Penyelia;
@@ -32,6 +35,7 @@ use Log;
 class PengirimanAPI extends Controller
 {
     use RestApi;
+    protected $media, $log, $global, $pagination;
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
@@ -392,6 +396,33 @@ class PengirimanAPI extends Controller
                             ->update(array('status' => $statusPermohonan));
             }
 
+            // cek apakah periode sudah complete seperti Invoice, LHU, TLD sesuai dengan periode nya
+            $kontrakPeriode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->where('periode', $query->periode)->first();
+            if(!$kontrakPeriode->selesai){ // jika value nya null
+                $cekPeriode = cekPeriodeComplete($query->id_kontrak, $query->periode);
+                if($cekPeriode){
+                    $kontrakPeriode->update(['selesai' => 1]);
+                }
+            }
+
+            // mereset TLD jika di kembalikan
+            if($kontrakPeriode->status == 2){
+                info("================ Prosess Pengembalian TLD ===============");
+                // mengambil TLD dari Kontrak_tld
+                $dataTld = Kontrak_tld::where('id_kontrak', $query->id_kontrak)
+                ->where('count_tld', $kontrakPeriode->count_tld)->get();
+
+                if($dataTld){
+                    foreach ($dataTld as $item) {
+                        info("Prosess update TLD " . $item);
+                        Master_tld::whereIn('id_tld', $item->id_tld)->update(['status' => 0, 'digunakan' => null]);
+                    }
+                }
+
+                info("================ Selesai Pengembalian TLD ===============");
+            }
+
+            // Mengganti status di kontrak_tld menjadi 2 artinya sudah diterima oleh pelanggan, khusus pengiriman TLD
             $listTld = array_map('intval', $query->detail->where('jenis', 'tld')->pluck('list_tld')->flatten()->toArray());
             if (!empty($listTld)) {
                 // mengganti status di kontrak_tld menjadi 2 artinya sudah diterima oleh pelanggan
@@ -400,27 +431,33 @@ class PengirimanAPI extends Controller
                         ->where('id_kontrak', $query->id_kontrak)
                         ->update(['status' => 2]);
                 }
-                // Mengganti status di master_tld menjadi 1 artinya tld sedang digunakan
-                if(!$query->detail[0]->periode) {
-                    $kontrak = Kontrak::where('id_kontrak', $query->id_kontrak)->with('jenis_layanan', 'jenis_layanan_parent')->first();
-                    $layanan = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
-                    $isSewa = in_array($layanan, $this->global['arr_sewa']);
-                    $params = array('status' => 0, 'digunakan' => null);
-                    if(!$isSewa){
-                        $params['kepemilikan'] = Auth::user()->perusahaan->id_perusahaan;
-                    }
-                    Master_tld::whereIn('id_tld', $listTld)->update($params);
-                }
             }
 
-            // Mengecek semua proses dan pengiriman selesai semua di periode terakhir
-            // Mengambil last periode
-            $kontrakPeriode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->orderBy('periode', 'desc')->first();
-            if ($kontrakPeriode) {
-                $isLast = $kontrakPeriode->periode == $query->periode ? true : false;
-                if($isLast && $kontrakPeriode->id_permohonan){
-                    Kontrak::where('id_kontrak', $query->id_kontrak)->update(['status' => 2]);
+            // kondisi ketika semua periode complete, dan akan mengganti status di kontrak nya menjadi 2
+            // Mengambil data kontrak
+            $kontrak = Kontrak::with('jenis_layanan', 'jenis_layanan_parent', 'tld_aktif')->where('id_kontrak', $query->id_kontrak)->first();
+            $isComplete = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->where('status', 1)->whereNull('selesai')->exists() ? false : true;
+            $layanan = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
+            $isSewa = in_array($layanan, $this->global['arr_sewa']);
+            if ($isComplete) {
+                info("================ Prosess Ketika kontrak complete ===============");
+                $isAktifTld = $kontrak->tld_aktif->count() > 0 ? true : false;
+                if(!$isAktifTld){
+                    info("Semua TLD sudah tidak ada yang aktif");
+                    $kontrak->update(['status' => 2]);
+                    if($isSewa) {
+                        Master_tld::where('digunakan', $kontrak->no_kontrak)->update(['digunakan' => null, 'status' => 0]);
+                    }
+
+                    info("Reset Pengguna TLD");
+                    $penggunaInKontrak = Kontrak_tld::where('id_kontrak', $query->id_kontrak)->whereNotNull('id_pengguna')->get();
+                    foreach ($penggunaInKontrak as $item) {
+                        Master_pengguna::where('id_pengguna', $item->id_pengguna)->update(['status' => 1]);
+                    }
+                } else {
+                    info("Masih ada TLD yang aktif");
                 }
+                info("================ Selesai Ketika kontrak complete ===============");
             }
 
             if(count($tmpFilePenerima) != 0){
@@ -524,6 +561,31 @@ class PengirimanAPI extends Controller
                         if($kPeriode){
                             if($kPeriode->nomer_surpeng == null){
                                 $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
+                                // mengambil dokumen surat pengantar
+                                $dokumen = Permohonan_dokumen::where("id_kontrak", $idKontrak)
+                                            ->where("periode", $kPeriode->periode)
+                                            ->where("jenis", "surpeng")->first();
+                                if(!$dokumen){
+                                    $template = Documents::with('footer', 'header')
+                                            ->where('jenis', 'body')
+                                            ->where('name', 'SuratPengantar')
+                                            ->where('status', '1')
+                                            ->first();
+
+                                    $dokumen = Permohonan_dokumen::create(array(
+                                        'periode' => $kPeriode->periode,
+                                        'id_kontrak' => $idKontrak,
+                                        'id_doc_template' => $template->id_doc,
+                                        'jenis' => "surpeng",
+                                        "nama" => "Surat Pengantar (Periode ".$kPeriode->periode.")",
+                                        "nomer" => $noSurpeng,
+                                        "created_by" => Auth::user()->id,
+                                        "status" => 1
+                                    ));
+                                } else {
+                                    $dokumen->nomer = $noSurpeng;
+                                    $dokumen->save();
+                                }
                             }else{
                                 // $params['nomer_surpeng'] = $kPeriode->nomer_surpeng;
                             }

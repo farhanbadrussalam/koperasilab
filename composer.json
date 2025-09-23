@@ -8,7 +8,7 @@
         "php": "^8.2",
         "anhskohbo/no-captcha": "^3.5",
         "asdh/laravel-flatpickr": "^2.0",
-        "barryvdh/laravel-dompdf": "^2.0",
+        "barryvdh/laravel-dompdf": "^3.1",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/fortify": "^1.17",
         "laravel/framework": "^10.10",
@@ -16,11 +16,13 @@
         "laravel/socialite": "^5.6",
         "laravel/tinker": "^2.8",
         "laravel/ui": "^4.2",
+        "mews/purifier": "^3.4",
         "pusher/pusher-php-server": "^7.2",
         "spatie/laravel-permission": "^5.10",
         "yajra/laravel-datatables": "10.0"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.1",
         "fakerphp/faker": "^1.9.1",
         "laravel/pint": "^1.0",
         "laravel/sail": "^1.18",

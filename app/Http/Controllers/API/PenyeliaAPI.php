@@ -13,6 +13,7 @@ use App\Models\Penyelia_map;
 use App\Models\User;
 use App\Models\Permohonan;
 use App\Models\Permohonan_dokumen;
+use App\Models\Documents;
 
 use App\Models\Master_jobs;
 use App\Models\Master_tld;
@@ -24,12 +25,13 @@ use App\Models\Kontrak_periode;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
 
-use Auth;
-use DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class PenyeliaAPI extends Controller
 {
     use RestApi;
+    protected $log, $media, $global, $pagination;
 
     public function __construct()
     {
@@ -70,8 +72,6 @@ class PenyeliaAPI extends Controller
             $idPermohonan && $params['id_permohonan'] = $idPermohonan;
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
-            $ttd && $params['ttd'] = $ttd;
-            $ttd_by && $params['ttd_by'] = $ttd_by;
             $file_document && $params['document'] = $file_document->getIdMedia();
 
             $status && $params['status'] = $status;
@@ -176,12 +176,21 @@ class PenyeliaAPI extends Controller
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
             $status && $params['status'] = $status;
-            $ttd_by && $params['ttd_by'] = $ttd_by;
-            $ttd && $params['ttd'] = $ttd;
 
             $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan_parent')->find($idPenyelia);
             if($penyelia){
                 $penyelia->update($params);
+
+
+                // simpan ttd di dokumen
+                if($ttd){
+                    Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)
+                    ->where('jenis', 'surattugas')->where('status', 1)
+                    ->update([
+                        'ttd' => $ttd,
+                        'ttd_by' => $ttd_by
+                    ]);
+                }
 
                 // Menambahkan jobs ke penyelia
                 if($jobsMap && $jobsMapParalel){
@@ -268,12 +277,20 @@ class PenyeliaAPI extends Controller
 
                 if(!$dokumen){
                     // menambahkan dokumen perjanjian
+                    $template = Documents::with('footer', 'header')
+                        ->where('jenis', 'body')
+                        ->where('name', 'SuratTugas')
+                        ->where('status', '1')
+                        ->first();
+
                     $penyeliaData = Penyelia::select('id_permohonan','id_penyelia')->find($idPenyelia);
                     $dataParams = array(
                         'id_permohonan' => $penyeliaData->id_permohonan,
+                        'id_kontrak' => Permohonan::find($penyeliaData->id_permohonan)->id_kontrak,
                         'created_by' => Auth::user()->id,
                         'nama' => 'Surat Tugas Uji',
                         'jenis' => 'surattugas',
+                        'id_doc_template' => $template->id_doc,
                         'status' => 1,
                         'nomer' => generateNoDokumen('surattugas', $penyeliaData->id_penyelia)
                     );
@@ -305,50 +322,19 @@ class PenyeliaAPI extends Controller
             $note = $request->note;
             $nextJobs = $request->nextJobs ? decryptor($request->nextJobs) : false;
             $nowJobs = $request->nowJobs ? decryptor($request->nowJobs) : false;
+            $idPeriodeKontrak = $request->periodeNow ? decryptor($request->periodeNow) : false;
 
-            $penyelia = Penyelia::with(
+            $getPeriodeNow = Kontrak_periode::select('count_tld')->find($idPeriodeKontrak);
+
+            $penyelia = Penyelia::with([
                 'permohonan',
-                'permohonan.kontrak.rincian_list_tld',
+                'permohonan.kontrak.rincian_list_tld' => function($query) use ($getPeriodeNow) {
+                    $query->where('count_tld', $getPeriodeNow->count_tld);
+                },
                 'permohonan.kontrak.jenis_layanan',
                 'permohonan.kontrak.jenis_layanan_parent',
-            )->find($idPenyelia);
+            ])->find($idPenyelia);
             $jobsNow = Penyelia_map::with('jobs')->where('id_map', $nowJobs)->first();
-
-            if($jobsNow->jobs->status == 17){ // Penyimpanan TLD
-                foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
-                    if($value->status == 3) {
-                        // jenis kontraknya bukan evaluasi berarti di update statusnya
-                        // if($penyelia->permohonan->kontrak->jenis_layanan_2 == '3' && $penyelia->permohonan->kontrak->is_have_tld != 0) {
-                        //     if($penyelia->permohonan->kontrak->is_zerocek == 0) {
-                        //         Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
-                        //     }
-                        // }else{
-                        //     Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
-                        // }
-                        Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
-                        Kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 5]);
-
-                        // mengecek jika sudah di periode terakhir
-                        // Mengambil last periode
-                        $kontrakPeriode = Kontrak_periode::where('id_kontrak', $penyelia->permohonan->kontrak->id_kontrak)->orderBy('periode', 'desc')->first();
-                        $isLast = $kontrakPeriode->periode == $penyelia->permohonan->periode ? true : false;
-
-                        if($isLast) {
-                            $layanan = jenislayanan($penyelia->permohonan->kontrak->jenis_layanan_parent, $penyelia->permohonan->kontrak->jenis_layanan);
-                            $isSewa = in_array($layanan, $this->global['arr_sewa']);
-                            if($isSewa){
-                                Master_tld::where('digunakan', $penyelia->permohonan->kontrak->no_kontrak)->update(array('status' => 0, 'digunakan' => null));
-                            }
-                            Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 1));
-                        }
-                    } else if($value->status == 1) {
-                        // if($penyelia->permohonan->is_zerocek == 0) {
-                        //     Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
-                        //     kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 0]);
-                        // }
-                    }
-                }
-            }
 
             $jobsNow->update(array(
                 'status' => $sProgress == 'done' ? 2 : 0,
@@ -373,16 +359,53 @@ class PenyeliaAPI extends Controller
 
             if($sProgress == 'done') {
                 // mencari jobs yang sifatnya paralel
-                $jobsParalel = Penyelia_map::with('jobs')
+                $jobsParalel = Penyelia_map::with('jobs:id_jobs,status')
                     ->where('order', 1)
                     ->where('id_penyelia', $idPenyelia)
                     ->where('point_jobs', $jobsNow->id_jobs)
                     ->first();
 
                 if($jobsParalel){
+                    if($jobsParalel->jobs->status == 17){ // Penyimpanan TLD
+                        foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
+                            if($value->status == 3) {
+                                Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
+                                Kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 5]);
+
+                                // mengecek jika sudah di periode terakhir
+                                // Mengambil last periode
+                                $kontrakPeriode = Kontrak_periode::where('id_kontrak', $penyelia->permohonan->kontrak->id_kontrak)->orderBy('periode', 'desc')->first();
+                                $isLast = $kontrakPeriode->periode == $penyelia->permohonan->periode ? true : false;
+
+                                if($isLast) {
+                                    $layanan = jenislayanan($penyelia->permohonan->kontrak->jenis_layanan_parent, $penyelia->permohonan->kontrak->jenis_layanan);
+                                    $isSewa = in_array($layanan, $this->global['arr_sewa']);
+                                    if($isSewa){
+                                        Master_tld::where('digunakan', $penyelia->permohonan->kontrak->no_kontrak)->update(array('status' => 0, 'digunakan' => null));
+                                    }
+                                    Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 1));
+                                }
+                            } else if($value->status == 1) {
+                                // if($penyelia->permohonan->is_zerocek == 0) {
+                                //     Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
+                                //     kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 0]);
+                                // }
+                            }
+                        }
+                    }
+
                     $jobsParalel->update(array(
                         'status' => 1,
                     ));
+                } else {
+                    if($jobsNow->jobs->status == 17){
+                        foreach($penyelia->permohonan->kontrak->rincian_list_tld as $value){
+                            // kondisi ketika setelah penyimpanan TLD
+                            if($value->status == 5) {
+                                $value->update(['status' => 6]);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -439,7 +462,7 @@ class PenyeliaAPI extends Controller
 
         switch($menu) {
             case 'ttd-surat':
-                $status = [1];
+                $status = [1, 5];
                 $typePencarian = 'not';
                 break;
             case 'penyelialhu':
@@ -483,17 +506,23 @@ class PenyeliaAPI extends Controller
                 'permohonan.jenis_layanan_parent',
                 'permohonan.pelanggan',
                 'permohonan.pelanggan.perusahaan',
+                'permohonan.pelanggan.perusahaan.alamat',
                 'permohonan.kontrak',
                 'permohonan.kontrak.periode',
+                'permohonan.kontrak.rincian_list_tld',
+                'permohonan.kontrak.rincian_list_tld.pengguna',
                 'permohonan.periodenow',
+                'permohonan.dokumen',
+                'permohonan.dokumen.doc_template',
             )
-            ->when($status, function($q, $status) use ($typePencarian) {
+            ->when($status, function($q, $status) use ($typePencarian, $menu) {
                 if($typePencarian == 'not'){
                     return $q->whereNotIn('status', $status);
                 }
 
-                return $q->whereHas('penyelia_map', function ($query) use ($status) {
-                    return $query->whereIn('id_jobs', $status)->where('status', 1)->whereHas('petugas', function ($q) {
+                return $q->whereHas('penyelia_map', function ($query) use ($status, $menu) {
+                    $statusLhu = $menu == 'selesai' ? 2 : 1;
+                    return $query->whereIn('id_jobs', $status)->where('status', $statusLhu)->whereHas('petugas', function ($q) {
                         return $q->where('id_user', Auth::user()->id);
                     });
                 });
@@ -594,6 +623,7 @@ class PenyeliaAPI extends Controller
                 'petugas',
                 'petugas.jobs',
                 'penyelia_map',
+                'periodenow:id_periode,id_permohonan,count_tld,periode',
                 'penyelia_map.jobs:id_jobs,status,name,upload_doc',
                 'usersig:id,name',
                 'permohonan.layanan_jasa:id_layanan,nama_layanan',
@@ -604,6 +634,8 @@ class PenyeliaAPI extends Controller
                 'permohonan.pelanggan.perusahaan',
                 'permohonan.kontrak',
                 'permohonan.kontrak.periode',
+                'permohonan.kontrak.rincian_list_tld',
+                'permohonan.kontrak.rincian_list_tld.pengguna',
                 'permohonan.dokumen',
                 'permohonan.invoice',
                 'permohonan.pengguna',
@@ -764,6 +796,137 @@ class PenyeliaAPI extends Controller
             DB::commit();
 
             return $this->output(array('msg' => 'Surat tugas berhasil dihapus!'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function createPengujian(Request $request)
+    {
+        $idPenyelia = $request->idPenyelia ? decryptor($request->idPenyelia) : false;
+        $status = $request->status ? $request->status : false;
+        $answers = $request->answers ? json_decode($request->answers) : false;
+
+        DB::beginTransaction();
+        try {
+            $penyelia = Penyelia::with('permohonan')->find($idPenyelia);
+
+            $penyelia->update(array(
+                'status' => $status
+            ));
+
+            // mengambil template yg digunakan
+            $template = $penyelia->template_surat->where('name', 'SuratPengujian')->first();
+
+            $answers = array_map(function($answer) {
+                $answer->id = (int) decryptor($answer->id);
+                return $answer;
+            }, $answers);
+
+            // simpan ttd ke permohonan dokumen
+            $document = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'permintaanpengujian')->first();
+
+            if(!$document) {
+                // generate nomer dokumen
+                $nodokumen = generateNoDokumen('permintaanpengujian', $penyelia->id_permohonan);
+
+                // set periode
+                $arrPeriode = array();
+                foreach($penyelia->permohonan->kontrak->periode as $periode) {
+                    $arrPeriode[] = array($periode->start_date, $periode->end_date);
+                }
+
+                $contentValue = array(
+                    'alasan' => $answers,
+                    'periode' => $arrPeriode
+                );
+
+                // Simpan dokumen permintaan pengujian
+                $document = Permohonan_dokumen::create(array(
+                    'id_permohonan' => $penyelia->id_permohonan,
+                    'id_doc_template' => $template->id_doc,
+                    'id_kontrak' => $penyelia->permohonan->id_kontrak,
+                    'created_by' => Auth::user()->id,
+                    'nama' => 'Permintaan Pengujian',
+                    'jenis' => 'SuratPengujian',
+                    'status' => 1,
+                    'nomer' => $nodokumen,
+                    'content_value' => $contentValue,
+                ));
+            }
+
+            // log penyelia
+            $this->log->addLog('penyelia', array(
+                'id_penyelia' => $idPenyelia,
+                'status' => $status,
+                'message' => 'Pengujian dibuat',
+                'note' => '',
+                'created_by' => Auth::user()->id
+            ));
+
+            DB::commit();
+
+            return $this->output(array('msg' => 'Pengujian berhasil buat!'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+    public function approvePengujian(Request $request)
+    {
+        $idPenyelia = $request->idPenyelia ? decryptor($request->idPenyelia) : false;
+        $ttd = $request->ttd ? $request->ttd : false;
+        $catatan = $request->catatan ? $request->catatan : null;
+        $type = $request->type ? $request->type : false;
+        $ttd_by = Auth::user()->id;
+
+        DB::beginTransaction();
+        try {
+            $status = $type == 'approve' ? 1 : 7;
+            $penyelia = Penyelia::with('permohonan')->find($idPenyelia);
+            $penyelia->update(array(
+                'status' => $status
+            ));
+
+            // simpan ttd ke permohonan dokumen
+            $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'SuratPengujian')->first();
+            $dokumen->update(array(
+                'ttd' => $ttd,
+                'ttd_by' => $ttd_by,
+                'catatan' => $type
+            ));
+
+            // mengambil template yg digunakan
+            $template = $penyelia->template_surat->where('name', 'KontrakPengujian')->first();
+
+            // menambahkan dokumen perjanjian kontrak
+            $no_kontrak = generateNoDokumen('KontrakPengujian', $penyelia->id_permohonan);
+            $data = array(
+                'id_kontrak' => $penyelia->permohonan->id_kontrak,
+                'created_by' => Auth::user()->id,
+                'nama' => 'Surat kontrak ('.convert_date($penyelia->permohonan->verify_at, 6).')',
+                'jenis' => 'KontrakPengujian',
+                'id_doc_template' => $template->id_doc,
+                'status' => 1,
+                'nomer' => $no_kontrak
+            );
+            $document = Permohonan_dokumen::create($data);
+
+            // Log penyelia
+            $this->log->addLog('penyelia', array(
+                'id_penyelia' => $idPenyelia,
+                'status' => $status,
+                'message' => $type == 'approve' ? 'Pengujian disetujui' : 'Pengujian ditolak',
+                'note' => $catatan,
+                'created_by' => Auth::user()->id
+            ));
+
+            DB::commit();
+
+            return $this->output(array('msg' => $type == 'approve' ? 'Pengujian disetujui' : 'Pengujian ditolak'));
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

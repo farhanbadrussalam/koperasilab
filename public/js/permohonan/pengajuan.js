@@ -38,7 +38,7 @@ function switchLoadTab(menu){
     thisTab = menu;
     switch (menu) {
         case 1:
-            thisStatus = [1,2,3,4,5];
+            thisStatus = [1,2,3,4,5,90];
             break;
 
         case 2:
@@ -132,11 +132,13 @@ function loadData(page = 1, status) {
                     kontrak: pengajuan.kontrak?.no_kontrak,
                     id: pengajuan.permohonan_hash,
                     is_have_tld: pengajuan.is_have_tld,
-                    is_zerocek: pengajuan.is_zerocek
+                    is_zerocek: pengajuan.is_zerocek,
+                    note: pengajuan.note
                 };
                 const btnAction = `
                     <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
                     ${pengajuan.status == 1 ? btnRemove : ''}
+                    ${pengajuan.status == 90 ? btnEdit : ''}
                 `;
 
                 html += cardComponent(params, {btnAction: btnAction});

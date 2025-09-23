@@ -19,7 +19,7 @@ class Master_pertanyaan extends Model
         'mandatory'
     ];
     protected $hidden = [
-        'id_pertanyaan',
+        // 'id_pertanyaan',
     ];
     protected $appends = [
         'pertanyaan_hash'
@@ -34,6 +34,6 @@ class Master_pertanyaan extends Model
 
     public function getPertanyaanHashAttribute()
     {
-        return encryptor($this->id_pertanyaan);
+        return $this->id_pertanyaan ? encryptor($this->id_pertanyaan) : null;
     }
 }

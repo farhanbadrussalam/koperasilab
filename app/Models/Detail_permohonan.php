@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
 class Detail_permohonan extends Model
 {
     use HasFactory;
@@ -27,9 +26,5 @@ class Detail_permohonan extends Model
     public function getPermohonanLogHashAttribute()
     {
         return encryptor($this->id);
-    }
-
-    public function media(){
-        return $this->belongsTo(tbl_media::class, 'file', 'id');
     }
 }

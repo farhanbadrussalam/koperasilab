@@ -37,12 +37,12 @@ class Master_price extends Model
 
     public function getPriceHashAttribute()
     {
-        return encryptor($this->id_price);
+        return $this->id_price ? encryptor($this->id_price) : null;
     }
 
     public function getJenisTldHashAttribute()
     {
-        return encryptor($this->id_jenisTld);
+        return $this->id_jenisTld ? encryptor($this->id_jenisTld) : null;
     }
 
     public function jenisTld(){

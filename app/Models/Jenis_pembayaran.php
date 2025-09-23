@@ -17,6 +17,7 @@ class Jenis_pembayaran extends Model
         'name',
         'content',
         'status',
+        'variables',
         'created_at',
         'created_by',
         'updated_by'
@@ -34,10 +35,11 @@ class Jenis_pembayaran extends Model
         'created_by' => 'integer',
         'updated_by' => 'integer',
         'id_jenis_pembayaran' => 'integer',
+        'variables' => 'json'
     ];
 
     public function getJenisPembayaranHashAttribute()
     {
-        return encryptor($this->id_jenis_pembayaran);
+        return $this->id_jenis_pembayaran ? encryptor($this->id_jenis_pembayaran) : null;
     }
 }

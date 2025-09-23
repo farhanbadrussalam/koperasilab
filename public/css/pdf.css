@@ -1,0 +1,191 @@
+/* Margin halaman */
+@page {
+  margin: 150px 40px 80px 40px; /* top right bottom left — tambahkan bottom utk ruang footer */
+  size: A4;
+}
+/* @page { margin: 100px 20px 80px 20px; } */
+
+/* “Content styles” – fokus ke output CKEditor, bukan UI editor */
+ h1,  h2,  h3 { margin: 0 0 8px; }
+ p { margin: 0 0 8px; }
+
+/* TABEL (CKEditor bisa menghasilkan figure.table ATAU table langsung) */
+/* Kasus kamu: class="table layout-table ck-table-resized" + colgroup */
+ table { width: 100%; border-collapse: collapse; text-align: left; }
+ th,  td { border: 1px solid #333; padding: 0px; vertical-align: top; word-wrap: break-word; }
+ figure.table { width: 100%; margin: 0 0 8px; }
+ figure.table table { width: 100%; border-collapse: collapse; }
+
+/* Pastikan colgroup dihormati di DomPDF (pakai table-layout: fixed di atas) */
+ table colgroup col { width: auto; }
+
+/* GAMBAR dalam konten CKEditor */
+ .image { margin: 8px 0; }
+img { max-width: 100%; height: auto; }
+
+/* img { max-width: 100%; height: auto; width: inherit !important; } */
+/* CKEditor kadang menambah .image_resized + style width:% di <figure> */
+ figure.image.image_resized { display: inline-block; }
+ figure.image.image_resized > img { width: 100%; height: auto; }
+
+/* Alignment sederhana yang didukung DomPDF */
+ .image-style-align-left  { float: left;  margin: 0 8px 8px 0; }
+ .image-style-align-right { float: right; margin: 0 0 8px 8px; }
+ .image-style-align-center { display: inline-block; margin: 0 auto 8px; }
+
+/* Page break dari editor (kalau kamu pakai fitur PageBreak) */
+ .page-break {
+    page-break-after: always;
+    break-after: page;
+    display: block;
+    /* height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important; */
+    line-height: 0 !important;
+  }
+  /* kalau page-break ada di paling akhir, jangan paksa halaman baru */
+  .cke_pagebreak:last-child,
+  .page-break:last-child {
+    page-break-after: auto !important;
+    break-after: auto !important;
+    display: none; /* opsional, supaya aman */
+  }
+
+/* Jika kamu pakai Style preset untuk line-height (opsi gratis) */
+ .lh-1 { line-height: 1 !important; }
+ .lh-12 { line-height: 1.2 !important; }
+ .lh-16 { line-height: 1.6; }
+ .lh-20 { line-height: 2; }
+
+/* Hindari pecah tabel di tengah halaman */
+table { page-break-inside: auto; }   /* was: avoid */
+tr, td, th { page-break-inside: avoid; } /* cegah pecah di tengah baris, masih OK */
+
+ .text-center {
+    text-align: center !important;
+}
+
+.text-secondary {
+    color: #8d8c8c;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -20px;       /* atau 0; sesuaikan dengan tinggi konten footer */
+  height: 70px;        /* kira-kira tinggi footer kamu */
+}
+
+.header {
+  position: fixed;
+  left: 0;
+  right: 0;
+
+  /* Letakkan header di area margin atas */
+  top: -140px;        /* biasanya ≈ -height; coba -90px terlebih dulu */
+  height: 140px;
+
+  /* Stabilitas layout */
+  z-index: 1;
+}
+
+/* .header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    margin-top: 5px;
+} */
+/*
+.withHeader {
+    margin-top: 200px;
+}
+
+.withFooter {
+    margin-bottom: 100px;
+} */
+
+.payment-notice {
+    border: 1px solid #ff0000;
+    color: #ff0000;
+    padding: 5px;
+    display: inline-block;
+    margin-top: 0px;
+    text-align: center;
+}
+
+.img-stempel {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    margin-left: 10%;
+    z-index: 2; /* Lapisan depan lebih tinggi */
+}
+
+/* Invoice */
+.table-invoice {
+    width: 100%;
+    border-collapse: collapse;
+}
+.table-invoice tr td {
+    padding: 5px 0;
+    border: 0px solid #ccc;
+}
+.table-invoice tr td:first-child {
+    width: 70%;
+}
+.table-invoice tr td:last-child {
+    text-align: right;
+}
+
+/* Tanda Terima */
+.table-tandaterima{
+    width: 100%;
+    margin-bottom: 10px;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.table-tandaterima td {
+    padding: 8px !important;
+    text-align: left !important;
+}
+
+/* Surat Tugas */
+.table-surattugas{
+    width: 100%;
+    margin-bottom: 10px;
+    border-collapse: collapse;
+}
+
+.table-surattugas td, .table-surattugas th {
+    border: 1px solid #000000;
+    padding: 8px;
+}
+
+.table-kwitansi{
+    color: #999999;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12pt;
+    border-collapse: collapse;
+}
+
+.table-kwitansi td, .table-kwitansi th {
+    border: 0px solid #000000;
+    font-weight: bolder;
+}
+
+.table-cell {
+    display: table-cell;
+}
+
+.table-row {
+    display: table-row;
+}
+
+.d-table {
+    display: table;
+}
+
+.border {
+    border: 1px solid #000;
+}

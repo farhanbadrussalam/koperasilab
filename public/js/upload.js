@@ -19,7 +19,13 @@ class UploadComponent {
             allowedFileExtensions: options.allowedFileExtensions ?? [],
             type: options.type ?? 'image',
             urlUpload: options.urlUpload ?? false,
-            multiple: options.multiple ?? true
+            multiple: options.multiple ?? true,
+            maxSize: options.maxSize ?? 10, // default 10MB
+            preview: {
+                width: options.preview?.width ?? 100,
+                height: options.preview?.height ?? 100,
+                fullwidth: options.preview?.fullwidth ?? false
+            }
         }
         this.idElement = idElement;
         this.listFile = options.data ?? [];
@@ -102,6 +108,15 @@ class UploadComponent {
             return;
         }
 
+        // sort agar file gambar tampil di paling terakhir
+        this.listFile.sort((a, b) => {
+            if (a.file_type == 'image/jpeg' || a.file_type == 'image/png' || a.file_type == 'image/gif') {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
+
         this.listFile.forEach((file, index) => {
             if(file.file){
                 const reader = new FileReader();
@@ -143,6 +158,16 @@ class UploadComponent {
         const inputFile = $(`#uploadFile_${this.id}`)[0].files[0];
         if(inputFile){
             spinner('show', $(`#btnTambahFile_${this.id}`));
+
+            // cek size file
+            if(this.checkMaxSize(inputFile) === false){
+                spinner('hide', $(`#btnTambahFile_${this.id}`));
+                Swal.fire({
+                    icon: 'warning',
+                    text: 'Ukuran file tidak boleh melebihi ' + this.options.maxSize + 'MB'
+                })
+                return;
+            }
 
             if(this.options.urlUpload){
                 const params = new FormData();
@@ -193,6 +218,16 @@ class UploadComponent {
         }
     }
 
+
+    checkMaxSize(file){
+        let maxSize = this.options.maxSize;
+        let fileSize = file.size / (1024 * 1024);
+        if(fileSize > maxSize){
+            return false;
+        }
+        return true;
+    }
+
     previewImage(file, index){
         let src = false;
         if(file.media_hash){
@@ -203,14 +238,23 @@ class UploadComponent {
         // ambil gambar dari inputFile
         const divMain = document.createElement('div');
         divMain.className = 'position-relative';
-        divMain.style.width = '100px';
-        divMain.style.height = '100px';
+        if(this.options.preview.fullwidth){
+            divMain.style.width = '100%';
+            divMain.style.height = `${this.options.preview.height}px`;
+        } else {
+            divMain.style.width = `${this.options.preview.width}px`;
+            divMain.style.height = `${this.options.preview.height}px`;
+        }
 
         const preview = document.createElement('img');
         preview.src = src;
         preview.className = 'img-thumbnail';
-        preview.style.width = '100px';
-        preview.style.height = '100px';
+        if(this.options.preview.fullwidth){
+            preview.style.height = '100%';
+        } else {
+            preview.style.width = `${this.options.preview.width}px`;
+            preview.style.height = `${this.options.preview.height}px`;
+        }
         preview.style.cursor = 'pointer';
         preview.onclick = () => {
             $('#modal-preview-image').attr('src', src);
@@ -305,6 +349,7 @@ class UploadComponent {
             btnTambah.classList.add('btn', 'btn-outline-primary');
             btnTambah.id = `btnTambahFile_${this.id}`;
             btnTambah.textContent = 'Tambah';
+            btnTambah.type = 'button';
             btnTambah.onclick = this.tambah.bind(this);
             inputGroup.appendChild(btnTambah);
 
@@ -335,6 +380,24 @@ class UploadComponent {
             progressBar.innerHTML = '<div class="progress-bar" style="width: 0%">0%</div>';
             progressBar.style.display = 'none';
 
+            // menampilkan extension file yang diizinkan
+            const allowedExtensions = this.options.allowedFileExtensions;
+            const textAllowedExtensions = document.createElement('div');
+            if(allowedExtensions.length > 0){
+                const allowedExtension = document.createElement('span');
+                allowedExtension.classList.add('text-submain', 'caption');
+                allowedExtension.innerHTML = `Extension file yang diizinkan: ${allowedExtensions.join(', ')}`;
+                textAllowedExtensions.appendChild(allowedExtension);
+            }
+
+            // menampilkan max size file
+            const maxSize = this.options.maxSize;
+            const textMaxSize = document.createElement('span');
+            textMaxSize.classList.add('text-submain', 'caption');
+            textMaxSize.innerHTML = `<div>Max size file: ${maxSize} MB</div>`;
+            textAllowedExtensions.appendChild(textMaxSize);
+
+            container.appendChild(textAllowedExtensions);
             container.appendChild(inputGroup);
             container.appendChild(progressBar);
         }

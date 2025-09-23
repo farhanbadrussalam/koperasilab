@@ -12,6 +12,7 @@ use App\Models\Master_jenisTLD;
 use App\Models\Master_layanan_jasa;
 use App\Models\Master_divisi;
 
+use App\Models\Perusahaan;
 use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Kontrak;
@@ -23,9 +24,11 @@ use App\Http\Controllers\LogController;
 
 use Auth;
 use DataTables;
+use Log;
 
 class PelangganController extends Controller
 {
+    protected $media, $log, $global;
     public function __construct()
     {
         $this->media = resolve(MediaController::class);
@@ -100,8 +103,12 @@ class PelangganController extends Controller
                 }
             }
 
-            // Mengambil jenis layanan Evaluasi - Dengan kontrak
-            $jenisLayanan= Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
+            if($queryKontrak->jenis_layanan_parent->id_jenisLayanan == 7){
+                $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 9)->first();
+            } else {
+                // Mengambil jenis layanan Evaluasi - Dengan kontrak
+                $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
+            }
 
             // cek apakah permohonan sudah ada atau belum
             $permohonan = Permohonan::select('id_permohonan')
@@ -145,24 +152,47 @@ class PelangganController extends Controller
 
     public function tambahPengajuan()
     {
+        // mengambil perusahaan dari user
+        $perusahaan = Perusahaan::with("alamat")->where('id_perusahaan', Auth::user()->id_perusahaan)->first();
+        if(!$perusahaan){
+            // redirect ke halaman pengajuan dan memberikan pesan error
+            return redirect(Route('permohonan.pengajuan'))->with('warning', 'Anda belum masuk ke perusahaan manapun.');
+        }
+
+        if(!$perusahaan->kode_perusahaan){
+            // redirect ke halaman pengajuan dan memberikan pesan warning
+            return redirect(Route('permohonan.pengajuan'))->with('warning', $perusahaan->nama_perusahaan .' belum memiliki kode perusahaan.');
+        }
+
+        // pengecekan alamat kosong
+        $alamatUtama = $perusahaan->alamat->firstWhere('jenis', 'Utama');
+        if(!$alamatUtama->alamat){
+            // redirect ke halaman pengajuan dan memberikan pesan warning
+            return redirect(Route('permohonan.pengajuan'))->with('warning', 'Data perusahaan belum lengkap.');
+        }
+
         $dataPermohonan = Permohonan::create(array(
             'created_by' => Auth::user()->id,
             'status' => 80,
         ));
+
         return redirect(Route('permohonan.pengajuan.edit', $dataPermohonan->permohonan_hash));
     }
 
     public function editPengajuan($id_permohonan)
     {
         $idPermohonan = decryptor($id_permohonan);
-        $dataPermohonan = Permohonan::with(
+        $dataPermohonan = Permohonan::with([
                             'pelanggan',
+                            'jenisTld',
                             'pelanggan.perusahaan',
-                            'pelanggan.perusahaan.alamat',
+                            'pelanggan.perusahaan.alamat' => function($q){
+                                $q->where('status', 1);
+                            },
                             'layanan_jasa:id_layanan,nama_layanan',
                             'jenis_layanan:id_jenisLayanan,name',
                             'jenis_layanan_parent:id_jenisLayanan,name',
-                        )
+                        ])
                         ->where('id_permohonan', $idPermohonan)->first();
         $data = [
             'title' => 'Buat pengajuan',

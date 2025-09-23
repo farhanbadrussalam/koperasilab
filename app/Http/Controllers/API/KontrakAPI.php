@@ -8,9 +8,6 @@ use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use App\Models\Kontrak;
-use App\Models\Kontrak_pengguna;
-use App\Models\Kontrak_periode;
-use App\Models\Master_tld;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -21,6 +18,7 @@ use DB;
 class KontrakAPI extends Controller
 {
     use RestApi;
+    protected $media, $log, $pagination;
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
@@ -65,7 +63,7 @@ class KontrakAPI extends Controller
                         'pengiriman.permohonan:id_permohonan,periode',
                         'tld_aktif:id_tld,digunakan,no_seri_tld,status',
                         'rincian_list_tld' => function($q) {
-                            $q->where('status', 5);
+                            $q->whereIn('status', [5,6]);
                         }
                     ])
                     ->withCount('periode')

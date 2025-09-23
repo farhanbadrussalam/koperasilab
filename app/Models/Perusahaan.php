@@ -39,11 +39,7 @@ class Perusahaan extends Model
 
     public function getPerusahaanHashAttribute()
     {
-        return encryptor($this->id_perusahaan);
-    }
-
-    public function media(){
-        return $this->belongsTo(tbl_media::class, 'surat_kuasa', 'id');
+        return $this->id_perusahaan ? encryptor($this->id_perusahaan) : null;
     }
 
     public function alamat(){

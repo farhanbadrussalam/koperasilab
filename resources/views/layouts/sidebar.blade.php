@@ -312,6 +312,15 @@
                             <span class="hide-menu">Radiasi</span>
                         </a>
                     </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'document' ? 'active' : '' }}"
+                            href="{{ route('document.index') }}" aria-expanded="false">
+                            <span>
+                                <i class="bi bi-circle"></i>
+                            </span>
+                            <span class="hide-menu">Document</span>
+                        </a>
+                    </li>
                     {{-- <li class="sidebar-item">
                         <a class="sidebar-link {{ $module == 'lab' ? 'active' : '' }}"
                             href="{{ route('lab.index') }}" aria-expanded="false">

@@ -55,7 +55,7 @@ class Master_pengguna extends Model
 
     public function getPenggunaHashAttribute()
     {
-        return encryptor($this->id_pengguna);
+        return $this->id_pengguna ? encryptor($this->id_pengguna) : null;
     }
 
     public function getRadiasiAttribute()

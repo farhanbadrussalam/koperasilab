@@ -1,5 +1,6 @@
 let datatable_ = false;
 let filterComp = false;
+let ktpPenggunaUpload = false;
 const optionsUploadKTP = {
     allowedFileExtensions: ['jpg', 'jpeg', 'png']
 }
@@ -43,7 +44,16 @@ $(function () {
     });
 
     // set dropify
-    setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
+    // setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
+    ktpPenggunaUpload = new UploadComponent('uploadKtpPengguna', {
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
+        camera: false,
+        multiple: false,
+        preview: {
+            fullwidth: true,
+            height: 300
+        }
+    })
 
     $('#tanggal_lahir').flatpickr({
         enableTime: false,
@@ -56,9 +66,10 @@ $(function () {
         if(!formValidate.validate()){
             return spinner('hide', obj.target);
         }
+        const imageKtp = ktpPenggunaUpload.getData();
 
         // cek dropify ada gambar
-        if(!$('#uploadKtpPengguna').val()){
+        if(imageKtp.length === 0){
             Swal.fire({
                 icon: 'warning',
                 title: 'Oops...',
@@ -70,7 +81,7 @@ $(function () {
         const namaPengguna = $('#nama_pengguna').val();
         const divisiPengguna = $('#divisi_pengguna').val();
         const jenisRadiasi = $('#jenis_radiasi').val();
-        const imageKtp = $('#uploadKtpPengguna')[0].files[0];
+        // const imageKtp = $('#uploadKtpPengguna')[0].files[0];
         const nikPengguna = $('#nik_pengguna').val();
         const jenisKelamin = $('#jenis_kelamin').val();
         const tanggalLahir = $('#tanggal_lahir').val();
@@ -85,7 +96,7 @@ $(function () {
         formData.append('jenis_kelamin', jenisKelamin);
         formData.append('tanggal_lahir', tanggalLahir);
         formData.append('tempat_lahir', tempatLahir);
-        formData.append('ktp', imageKtp);
+        formData.append('ktp', imageKtp[0].file);
         formData.append('name', namaPengguna);
         formData.append('divisi', divisiPengguna);
         formData.append('radiasi', JSON.stringify(jenisRadiasi));
@@ -131,3 +142,7 @@ function btnDelete(obj) {
 function reload() {
     datatable_.ajax.reload();
 }
+
+$('#modal-add-pengguna').on('hidden.bs.modal', event => {
+    ktpPenggunaUpload.addData([]);
+});

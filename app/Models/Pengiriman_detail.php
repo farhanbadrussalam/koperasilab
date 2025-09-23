@@ -38,11 +38,11 @@ class Pengiriman_detail extends Model
 
     public function getPengirimanDetailHashAttribute()
     {
-        return encryptor($this->id_pengiriman_detail);
+        return $this->id_pengiriman_detail ? encryptor($this->id_pengiriman_detail) : null;
     }
 
     public function getPengirimanHashAttribute()
     {
-        return encryptor($this->id_pengiriman);
+        return $this->id_pengiriman ? encryptor($this->id_pengiriman) : null;
     }
 }

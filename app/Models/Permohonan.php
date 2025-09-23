@@ -87,12 +87,12 @@ class Permohonan extends Model
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
     }
 
     public function getKontrakHashAttribute()
     {
-        return encryptor($this->id_kontrak);
+        return $this->id_kontrak ? encryptor($this->id_kontrak) : null;
     }
 
     public function jenisTld(){

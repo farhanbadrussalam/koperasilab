@@ -57,7 +57,7 @@
                 <form action="#" method="post" id="form-simpan-pengajuan">
                     @csrf
                     <div class="row g-0 g-md-3">
-                        <div class="col-md-6" id="form-zero-cek">
+                        <div class="col-md-6 d-none" id="form-zero-cek">
                             <label class="col-form-label" for="zero_cek">Pilih zero cek</label>
                             <select name="zero_cek" id="zero_cek" class="form-select">
                                 <option value="">Pilih</option>

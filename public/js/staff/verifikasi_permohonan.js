@@ -1,6 +1,7 @@
 const listDocumenLHU = [];
 let signaturePad = false;
 let periodeJs = false;
+let periodeNextJs = false;
 let jenisLayanan = false;
 let checkedTldValues = [];
 let listTldKontrol = [];
@@ -53,6 +54,35 @@ $(function () {
         } else {
             txtPeriodeNext = arrPeriodeNext.length + ' Periode';
         }
+
+        periodeNextJs = new Periode(arrPeriodeNext, {
+            preview: false,
+            max: arrPeriodeNext.length,
+            id_element: 2
+        });
+
+        $('#btn-periode-next').on('click', () => {
+            periodeNextJs.show();
+        });
+
+        periodeNextJs.on('periode.simpan.2', () => {
+            console.log("simpan periode");
+            const dataPeriode = periodeNextJs.getData();
+            const params = new FormData();
+            params.append('idPermohonan', dataPermohonan.permohonan_hash);
+            params.append('periodeNext', JSON.stringify(dataPeriode));
+            ajaxPost(`api/v1/permohonan/tambahPengajuan`, params, result => {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Update periode successfully',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            });
+        });
     }
 
     $('#periode-pemakaian-next').val(txtPeriodeNext);
@@ -72,14 +102,15 @@ $(function () {
     if(arrPeriode){
         periodeJs = new Periode(arrPeriode, {
             preview: false,
-            max: arrPeriode.length
+            max: arrPeriode.length,
+            id_element: 1
         });
 
         $('#btn-periode').on('click', () => {
             periodeJs.show();
         });
 
-        periodeJs.on('periode.simpan', () => {
+        periodeJs.on('periode.simpan.1', () => {
             const dataPeriode = periodeJs.getData();
             const params = new FormData();
             params.append('idPermohonan', dataPermohonan.permohonan_hash);
@@ -174,7 +205,7 @@ function loadPelanggan() {
         let valAlamat = value.alamat;
         let valKodepos = value.kode_pos;
 
-        if(value.jenis == 'utama'){
+        if(value.jenis == 'Utama'){
             alamatUtama = value.alamat;
             kodeposUtama = value.kode_pos;
         }else{
@@ -182,8 +213,8 @@ function loadPelanggan() {
                 valAlamat = value.alamat;
                 valKodepos = value.kode_pos;
             }else{
-                valAlamat = alamatUtama;
-                valKodepos = kodeposUtama;
+                valAlamat = '';
+                valKodepos = '';
             }
         }
 
@@ -259,14 +290,6 @@ function toggleReason(index, enable) {
 
 function loadTld(){
     ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
-
-        // filter untuk memisahkan antara tld pengguna dan tld kontrol
-        let kPengguna = result.data.tldKontrak ? result.data.tldKontrak?.filter(tld => tld.pengguna) : [];
-        let tldPengguna = [
-            ...result.data.tldPermohonan.filter(tld => tld.pengguna),
-            ...kPengguna,
-        ];
-
         let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
         let tldKontrol = [
             ...result.data.tldPermohonan.filter(tld => !tld.pengguna),
@@ -283,7 +306,11 @@ function loadTldKontrol(tldKontrol){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
         let htmlDisabled = false;
-        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
+        // if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
+        //     htmlDisabled = true;
+        // }
+
+        if(dataPermohonan.is_have_tld){
             htmlDisabled = true;
         }
         let index = 0;
@@ -300,11 +327,9 @@ function loadTldKontrol(tldKontrol){
                 } else if(result.data[index]){
                     tldHash = result.data[index].tld_hash;
                     no_seri_tld = result.data[index].no_seri_tld;
-                    htmlDisabled = false;
                 } else {
                     tldHash = '';
                     no_seri_tld = '';
-                    htmlDisabled = false;
                 }
 
                 tmpArrTld.push({
@@ -345,7 +370,11 @@ function loadPengguna(){
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         let html = '';
         let htmlDisabled = false;
-        if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
+        // if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
+        //     htmlDisabled = true;
+        // }
+
+        if(dataPermohonan.is_have_tld){
             htmlDisabled = true;
         }
 
@@ -368,6 +397,8 @@ function loadPengguna(){
                 tld: tldHash
             });
 
+            let fileKtp = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '';
+
             html += `
                 <tr>
                     ${isCheckedEvaluasi ? `<td><input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${idHash}" aria-label="" id="checkTldPengguna${i}"></td>` : ''}
@@ -384,7 +415,7 @@ function loadPengguna(){
                         </div>
                     </td>
                     <td>
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}">
+                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${fileKtp}" title="Show ktp">
                             <i class="bi bi-file-person-fill"></i>
                         </a>
                     </td>

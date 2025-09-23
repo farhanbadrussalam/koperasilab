@@ -38,7 +38,7 @@ class Master_layanan_jasa extends Model
 
     public function getLayananHashAttribute()
     {
-        return encryptor($this->id_layanan);
+        return $this->id_layanan ? encryptor($this->id_layanan) : null;
     }
 
     public function jobs_pelaksana(){

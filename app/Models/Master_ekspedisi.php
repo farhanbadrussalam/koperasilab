@@ -34,7 +34,7 @@ class Master_ekspedisi extends Model
 
     public function getEkspedisiHashAttribute()
     {
-        return encryptor($this->id_ekspedisi);
+        return $this->id_ekspedisi ? encryptor($this->id_ekspedisi) : null;
     }
 
 }

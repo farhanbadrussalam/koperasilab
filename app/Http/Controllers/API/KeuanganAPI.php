@@ -12,6 +12,7 @@ use App\Models\Permohonan_dokumen;
 use App\Models\Kontrak;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
+use App\Models\Documents;
 
 use App\Models\Jenis_pembayaran;
 
@@ -139,6 +140,7 @@ class KeuanganAPI extends Controller
             $name = $request->has('name') ? $request->name : null;
             $content = $request->has('content') ? $request->content : null;
             $status = $request->has('status') ? (int) $request->status : null;
+            $variables = $request->has('variables') ? json_decode($request->variables) : null;
 
             $data = [];
 
@@ -146,6 +148,7 @@ class KeuanganAPI extends Controller
             $name && $data['name'] = $name;
             $status && $data['status'] = $status;
             $content && $data['content'] = $content;
+            $variables && $data['variables'] = $variables;
 
             if($idJenisPembayaran){
                 $data['updated_by'] = Auth::user()->id;
@@ -293,8 +296,6 @@ class KeuanganAPI extends Controller
             $ppn && $data['ppn'] = $ppn;
             $pph && $data['pph'] = $pph;
             $idPermohonan && $data['id_permohonan'] = $idPermohonan;
-            $ttd && $data['ttd'] = $ttd;
-            $ttd_by && $data['ttd_by'] = $ttd_by;
             $plt && $data['plt'] = $plt;
             $metodePembayaran && $data['id_jenis_pembayaran'] = $metodePembayaran;
             $variabelPembayaran && $data['variabel_jenis_pembayaran'] = $variabelPembayaran;
@@ -308,6 +309,21 @@ class KeuanganAPI extends Controller
             }else{
                 $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
                 $data['created_by'] = Auth::user()->id;
+            }
+
+            if($status == 4) { // sudah di bayar perlu verifikasi
+                $data['paid_at'] = date('Y-m-d H:i:s');
+            }
+
+            if($status == 3) {
+                $dataDocument = array();
+                $ttd && $dataDocument['ttd'] = $ttd;
+                $ttd_by && $dataDocument['ttd_by'] = $ttd_by;
+
+                Permohonan_dokumen::updateOrCreate(
+                    ["nomer" => $invoice->no_invoice],
+                    $dataDocument
+                );
             }
 
             $keuangan = Keuangan::updateOrCreate(
@@ -325,8 +341,16 @@ class KeuanganAPI extends Controller
 
             if($status == 7){
                 // Simpan dokumen Invoice
+                $template = Documents::select('id_doc')->with('footer', 'header')
+                            ->where('jenis', 'body')
+                            ->where('name', 'Invoice')
+                            ->where('status', '1')
+                            ->first();
+
                 $document = Permohonan_dokumen::create(array(
+                    'id_kontrak' => Permohonan::find($keuangan->id_permohonan)->id_kontrak,
                     'id_permohonan' => $keuangan->id_permohonan,
+                    'id_doc_template' => $template->id_doc,
                     'created_by' => Auth::user()->id,
                     'nama' => 'Invoice',
                     'jenis' => 'invoice',
@@ -334,6 +358,30 @@ class KeuanganAPI extends Controller
                     'nomer' => $keuangan->no_invoice
                 ));
             }
+
+            if($status == 5){ // Diterima
+                // Buat dokumen kwitansi
+                $template = Documents::select('id_doc')->with('footer', 'header')
+                            ->where('jenis', 'body')
+                            ->where('name', 'Kwitansi')
+                            ->where('status', '1')
+                            ->first();
+                // ambil ttd invoice
+                $invoice = Permohonan_dokumen::select('ttd', 'ttd_by')->where('nomer', $keuangan->no_invoice)->first();
+                $no_kwitansi = generateNoDokumen('kwitansi', $keuangan->id_permohonan);
+                $document = Permohonan_dokumen::create(array(
+                    'id_kontrak' => Permohonan::find($keuangan->id_permohonan)->id_kontrak,
+                    'id_doc_template' => $template->id_doc,
+                    'created_by' => Auth::user()->id,
+                    'nama' => 'Kwitansi',
+                    'jenis' => 'kwitansi',
+                    'status' => 1,
+                    'nomer' => $no_kwitansi,
+                    'ttd' => $invoice->ttd,
+                    'ttd_by' => $invoice->ttd_by
+                ));
+            }
+
 
             DB::commit();
 

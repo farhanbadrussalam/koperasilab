@@ -21,6 +21,7 @@ class Kontrak_periode extends Model
         'nomer_surpeng',
         'created_surpeng_at',
         'status',
+        'selesai',
         'count_tld',
         'created_by',
         'created_at'
@@ -33,7 +34,8 @@ class Kontrak_periode extends Model
 
     protected $appends = [
         'periode_hash',
-        'permohonan_hash'
+        'permohonan_hash',
+        'tld_in_periode'
     ];
 
     protected $casts = [
@@ -42,17 +44,26 @@ class Kontrak_periode extends Model
         'created_by' => 'integer',
         'id_permohonan' => 'integer',
         'id_kontrak' => 'integer',
-        'count_tld' => 'integer'
+        'count_tld' => 'integer',
+        'selesai' => 'integer'
     ];
 
     public function getPeriodeHashAttribute()
     {
-        return encryptor($this->id_periode);
+        return $this->id_periode ? encryptor($this->id_periode) : null;
     }
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
+    }
+
+    public function getTldInPeriodeAttribute(){
+        $idKontrak = $this->id_kontrak;
+        $countTld = $this->count_tld;
+        $get = Kontrak_tld::with('pengguna')->where('id_kontrak', $idKontrak)->where('count_tld', $countTld)->get();
+
+        return count($get) > 0 ? $get : null;
     }
 
     public function kontrak(){
@@ -65,5 +76,9 @@ class Kontrak_periode extends Model
 
     public function penyelia() {
         return $this->belongsTo(Penyelia::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function getTldInPeriode(){
+        return $this->hasMany(Kontrak_tld::class, 'id_periode', 'id_periode');
     }
 }

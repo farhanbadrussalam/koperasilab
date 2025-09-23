@@ -1,6 +1,7 @@
 const tmpArrEvaluasi = ['KontrakEvaluasi', 'EvaluasiTanpaKontrak'];
 const tmpArrSewa = ['KontrakSewa'];
-const tmpArrZeroCek = [];
+const tmpArrPutus = ['EvaluasiTanpaKontrak', 'ZerocekTanpaKontrak'];
+const StringZerocek = 'ZeroCekTanpaKontrak';
 /**
  * Formats a number into Indonesian Rupiah currency format.
  *
@@ -157,7 +158,6 @@ function dateFormat(tanggal, type = false) {
         case 3:
             // 2023-10-14 18:40
             return `${year}-${month}-${day} ${hour}:${minute}`;
-            break;
         case 4:
             // 14 August 2024
             options = {
@@ -173,6 +173,11 @@ function dateFormat(tanggal, type = false) {
             year: 'numeric'
             };
             break;
+        case 6:
+            // Sep'25
+            month = d.toLocaleString('default', { month: 'short' });
+            year = d.getFullYear().toString().slice(2);
+            return `${month}'${year}`;
         default:
             // sabtu, 14 Okt 2023, 18:40
             options = {
@@ -291,10 +296,7 @@ function statusFormat(feature, status) {
                 break;
             case 90:
                 htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-danger"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Ditolak</span>
-                    </div>
+                    <span class="text-danger ms-2"><i class="bi bi-x-circle"></i> Ditolak</span>
                     `;
                 break;
         }
@@ -361,6 +363,7 @@ function statusFormat(feature, status) {
     } else if (feature == 'penyelia') {
         switch (status){
             case 1:
+            case 5:
                 htmlStatus = `
                     <span class="badge bg-secondary-subtle text-dark border">Pengajuan</span>
                 `;
@@ -373,6 +376,11 @@ function statusFormat(feature, status) {
             case 3:
                 htmlStatus = `
                     <span class="badge bg-success-subtle text-dark border">LHU Selesai</span>
+                `;
+                break;
+            case 6:
+                htmlStatus = `
+                    <span class="badge bg-primary-subtle text-dark border">TTD Pengujian</span>
                 `;
                 break;
             case 11:
@@ -397,7 +405,7 @@ function statusFormat(feature, status) {
                 break;
             case 15:
                 htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Pendatanganan LHU</span>
+                    <span class="badge bg-primary-subtle text-dark border">Proses Penandatanganan LHU</span>
                 `;
                 break;
             case 16:
@@ -1101,15 +1109,16 @@ function contenMetodePembayaran(content, variabels = []){
 }
 
 function getPeriodeAwal(data) {
+    let JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
     let periodeAwal = [];
     if(data.is_zerocek == 1) {
         if(data.is_have_tld == 0){
             periodeAwal = [0];
-        } else if(data.is_have_tld == 1){
+        } else if(data.is_have_tld == 1 && JL != StringZerocek){
             periodeAwal = [1, 2];
         }
     } else if(data.is_zerocek == 0) {
-        if(data.is_have_tld == 1){
+        if(data.is_have_tld == 1 && JL != 'EvaluasiTanpaKontrak'){
             periodeAwal = [1, 2];
         }
     }
@@ -1158,9 +1167,62 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
             if (periodeAwal.includes(data_periode.periode)) continue;
         }
+        if (doc === 'lhu') {
+            if(data_periode.status == 2) continue;
+        }
 
         aktifDokumenKirim.push(doc);
     }
 
     return aktifDokumenKirim;
+}
+
+function extractImgSrcSet(html) {
+  const box = document.createElement('div');
+  box.innerHTML = html;
+  return new Set([...box.querySelectorAll('img')].map(img => img.getAttribute('src')));
+}
+
+function hslToHex(hsl) {
+  const [h, s, l] = hsl.match(/\d+(\.\d+)?/g).map(Number);
+  const a = s * Math.min(l / 100, 1 - l / 100) / 100;
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const color = l/100 - a * Math.max(Math.min(k-3, 9-k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
+// convert semua inline style di HTML
+function convertHslToHex(html) {
+  return html.replace(/hsl\([^)]+\)/g, match => hslToHex(match));
+}
+
+function isReminderPeriod(period, offset, hNow = null, unit = "month") {
+  const periodDate = new Date(period);
+  const now = hNow ? new Date(hNow) : new Date();
+
+  // Hitung H-offset
+  let hMinus = new Date(periodDate);
+
+  switch (unit) {
+    case "month":
+      hMinus.setMonth(hMinus.getMonth() - offset);
+      break;
+    case "week":
+      hMinus.setDate(hMinus.getDate() - offset * 7);
+      break;
+    case "day":
+      hMinus.setDate(hMinus.getDate() - offset);
+      break;
+    default:
+      throw new Error("Unit tidak dikenali. Gunakan 'month', 'week', atau 'day'.");
+  }
+
+  // Batas akhir = sehari sebelum periode
+  let beforePeriod = new Date(periodDate);
+  beforePeriod.setDate(beforePeriod.getDate() - 1);
+
+  return now >= hMinus && now <= beforePeriod;
 }

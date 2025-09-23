@@ -235,10 +235,11 @@ function showModalDiterima(obj){
                     break;
                 case 'tld':
                     let periodeTld = detail.periode === 0 ? 1 : detail.periode;
+                    let findPeriode = data.kontrak.periode.find(periode => periode.periode == periodeTld);
                     htmlJenis += `
                         <li class="list-group-item d-flex justify-content-between align-items-center p-2">
                             <div class="ms-2 me-auto">
-                                <div class="fw-bold">TLD ${periodeTld ? 'Periode '+periodeTld : 'Pengembalian'} <span class="text-secondary fw-normal">- ${data.kontrak.jumlah_pengguna} Pengguna + ${data.kontrak.jumlah_kontrol} Kontrol</span></div>
+                                <div class="fw-bold">TLD ${findPeriode?.status == 2 ? 'Pengembalian' : 'Periode '+periodeTld } <span class="text-secondary fw-normal">- ${data.kontrak.jumlah_pengguna} Pengguna + ${data.kontrak.jumlah_kontrol} Kontrol</span></div>
                                 <div></div>
                             </div>
                             <input type="checkbox" class="form-check-input" name="selectDocument" id="selectDocumentTld"

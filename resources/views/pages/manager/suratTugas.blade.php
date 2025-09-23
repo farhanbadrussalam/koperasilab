@@ -43,10 +43,59 @@
 
             </div>
             <div aria-label="Page navigation example" id="list-pagination">
-                    
+
             </div>
         </div>
     </div>
+</div>
+{{-- Create modal surat persetujuan --}}
+<div class="modal fade" id="verify_modal_surat_pengujian" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Verifikasi surat pengujian</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-md-6 border-end">
+                    <div class="mb-3">
+                        <label for="inputPemilik" class="form-label">Pemilik</label>
+                        <div class="rounded border p-2 overflow-auto max-h-max" id="inputPemilik"></div>
+                        <input type="hidden" name="txt_id_penyelia" id="txt_id_penyelia" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputAlamat" class="form-label">Alamat</label>
+                        <div class="rounded border p-2 overflow-auto max-h-max" id="inputAlamat"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputJenisPengujian" class="form-label">Jenis Pengujian</label>
+                        <div class="rounded border p-2 overflow-auto max-h-max" id="inputJenisPengujian"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="" class="form-label">Nama Sample/Alat</label>
+                        <div class="rounded border p-2 overflow-auto max-h-max" id="list-sample">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="row" id="content-pertanyaan">
+
+                    </div>
+                    <div class="d-flex justify-content-center">
+                        <div class="wrapper" id="content-ttd"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer d-flex justify-content-between">
+          <button type="button" class="btn btn-danger" id="btnDecline">Tolak</button>
+          <button type="button" class="btn btn-primary" id="btnApprove">Setuju</button>
+        </div>
+      </div>
+      <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
 </div>
 @endsection
 

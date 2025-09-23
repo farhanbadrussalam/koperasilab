@@ -30,6 +30,6 @@ class Log_keuangan extends Model
 
     public function getLogKeuanganHashAttribute()
     {
-        return encryptor($this->id);
+        return $this->id ? encryptor($this->id) : null;
     }
 }

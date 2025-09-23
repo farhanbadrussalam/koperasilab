@@ -34,10 +34,9 @@ const modalJenisRadiasi = $('#jenis_radiasi');
 const optionsUploadKTP = {
     allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
 };
-$(function () {
-    // cek jika id_layanan sudah ada
-    cekLayanan();
 
+let ktpPenggunaUpload = false;
+$(function () {
     inventoryTld = new Inventory_tld({preview: true});
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
@@ -55,9 +54,18 @@ $(function () {
         });
     });
 
-    setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
+    // setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
 
-    resetForm();
+    ktpPenggunaUpload = new UploadComponent('uploadKtpPengguna', {
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
+        camera: false,
+        multiple: false,
+        preview: {
+            fullwidth: true,
+            height: 300
+        }
+    });
+
 
     let htmlAlamat = '<option value="">Pilih alamat</option>';
 
@@ -94,7 +102,7 @@ $(function () {
         formTotalHarga.hide();
         formPeriode1.hide();
         formPeriode2.hide();
-        formZeroCek.hide();
+        // formZeroCek.hide();
 
         $('#form-switch').hide();
 
@@ -127,6 +135,8 @@ $(function () {
             $('#jenis_layanan_2').html('<option value="">Pilih</option>');
             return;
         }
+
+        if(dataPermohonan.layanan_jasa) return;
 
         spinner('show', $('#label-jenis-layanan-2'), {place: 'after'});
         ajaxGet(`api/v1/permohonan/getChildJenisLayanan/${jenisLayanan}`, false, (result) => {
@@ -178,11 +188,11 @@ $(function () {
         let valPeriodeNext = $('#periode_next').attr('data-periode');
         let valjumPengguna = $('#jum_pengguna').val();
         let valjumKontrol = $('#jum_kontrol').val();
-        let valpic = $('#pic').val();
-        let valnoHp = $('#nohp').val();
         let valAlamat = $('#selectAlamat').val();
         let valtotalHarga = $('#total_harga').val();
         let valHargaLayanan = window.price;
+        let haveTld = $('#haveTld').is(':checked');
+        let useZeroCek = $('#useZeroCek').is(':checked');
 
         dataPermohonan.pelanggan.perusahaan.alamat[valAlamat] ? valAlamat = dataPermohonan.pelanggan.perusahaan.alamat[valAlamat].alamat_hash : false;
 
@@ -195,15 +205,6 @@ $(function () {
         if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
         if (valjumPengguna == 0) sanityCek.push('Jumlah Pengguna');
         if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
-
-        // Jika layanan evaluasi
-        // if (tmpArrEvaluasi.entries(JL) && arrKontrolTmp.some(value => !value.kode_lencana)) {
-        //     return Swal.fire({
-        //         icon: 'error',
-        //         title: 'Oops...',
-        //         text: 'Kode lencana tidak boleh kosong!'
-        //     });
-        // }
 
         if(sanityCek.length > 0){
             return Swal.fire({
@@ -239,10 +240,10 @@ $(function () {
                 formData.append('jumlahKontrol', valjumKontrol);
                 formData.append('hargaLayanan', valHargaLayanan);
                 formData.append('totalHarga', valtotalHarga);
-                formData.append('haveTld', haveTldChecked ? 1 : 0);
+                formData.append('haveTld', haveTld ? 1 : 0);
                 formData.append('is_zerocek', useZeroCek ? 1 : 0);
 
-                if(haveTldChecked && useZeroCek) {
+                if(haveTld && useZeroCek) {
                     formData.append('periode', 1);
                 } else {
                     formData.append('periode', useZeroCek ? 0 : 1);
@@ -330,9 +331,10 @@ $(function () {
         if(!formValidate.validate()){
             return spinner('hide', obj.target);
         }
+        const imageKtp = ktpPenggunaUpload.getData();
 
         // cek dropify ada gambar
-        if(!$('#uploadKtpPengguna').val()){
+        if(imageKtp.length === 0){
             Swal.fire({
                 icon: 'warning',
                 title: 'Oops...',
@@ -344,7 +346,6 @@ $(function () {
         const namaPengguna = modalNamaPengguna.val();
         const divisiPengguna = $('#divisi_pengguna').val();
         const jenisRadiasi = modalJenisRadiasi.val();
-        const imageKtp = $('#uploadKtpPengguna')[0].files[0];
         const nikPengguna = $('#nik_pengguna').val();
         const jenisKelamin = $('#jenis_kelamin').val();
         const tanggalLahir = $('#tanggal_lahir').val();
@@ -359,7 +360,7 @@ $(function () {
         formData.append('jenis_kelamin', jenisKelamin);
         formData.append('tanggal_lahir', tanggalLahir);
         formData.append('tempat_lahir', tempatLahir);
-        formData.append('ktp', imageKtp);
+        formData.append('ktp', imageKtp[0].file);
         formData.append('name', namaPengguna);
         formData.append('divisi', divisiPengguna);
         formData.append('radiasi', JSON.stringify(jenisRadiasi));
@@ -391,7 +392,8 @@ $(function () {
         $('#jenis_radiasi').val(null).trigger('change');
         $('#noSeriPengguna').val('');
         tmpArrTldPengguna = [];
-        setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
+        // setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
+        ktpPenggunaUpload.addData([]);
     });
 
     $('#btn-close-pengguna').on('click', obj => {
@@ -399,8 +401,8 @@ $(function () {
         $('#nama_pengguna').val('');
         $('#divisi_pengguna').val(null).trigger('change');
         $('#jenis_radiasi').val(null).trigger('change');
-        $('#uploadKtpPengguna').val('');
 
+        ktpPenggunaUpload.addData([]);
         $('#modal-add-tld-pengguna').modal('show');
     });
 
@@ -410,29 +412,30 @@ $(function () {
     });
 
     $('#haveTld').on('change', obj => {
+        let layananActive = jenislayanan({name: $('#jenis_layanan').find(':selected').text()}, {name: $('#jenis_layanan_2').find(':selected').text()});
         if (obj.target.checked) {
-            haveTldChecked = true;
-            useZeroCek = false;
             $('#useZeroCek').prop('checked', false);
-            $('#switch-zerocek').show();
+            if(StringZerocek == layananActive) {
+                $('#useZeroCek').prop('checked', true);
+            } else {
+                $('#switch-zerocek').show();
+            }
         } else {
-            haveTldChecked = false;
-            useZeroCek = true;
-            $('#useZeroCek').prop('checked', false);
-            $('#switch-zerocek').hide();
+            if(StringZerocek == layananActive) {
+                $('#useZeroCek').prop('checked', true);
+            } else {
+                $('#useZeroCek').prop('checked', false);
+                $('#switch-zerocek').hide();
+            }
         }
 
         loadPengguna();
         loadKontrol();
     });
 
-    $('#useZeroCek').on('change', obj => {
-        if (obj.target.checked) {
-            useZeroCek = true;
-        } else {
-            useZeroCek = false;
-        }
-    })
+    resetForm();
+    // cek jika id_layanan sudah ada
+    cekLayanan();
 })
 // js add periode
 let getPeriode = $('#periode-pemakaian').attr('data-periode');
@@ -460,25 +463,29 @@ periodeNextJs.on('periode.simpan.2', simpanPeriodeNext);
 
 function simpanPeriodeNext() {
     const dataPeriode = periodeNextJs.getData();
-    $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
-    if(dataPeriode.length == 1) {
-        $('#periode_next').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
-    } else {
-        $('#periode_next').val(dataPeriode.length + ' Periode');
+    if(dataPeriode){
+        $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
+        if(dataPeriode.length == 1) {
+            $('#periode_next').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+        } else {
+            $('#periode_next').val(dataPeriode.length + ' Periode');
+        }
+        $('#periode_next').attr('data-jumperiode', dataPeriode.length);
+        $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
     }
-    $('#periode_next').attr('data-jumperiode', dataPeriode.length);
-    $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
 }
 function simpanPeriode() {
     const dataPeriode = periodeJs.getData();
-    $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
-    if(dataPeriode.length == 1) {
-        $('#periode-pemakaian').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
-    } else {
-        $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
+    if(dataPeriode){
+        $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
+        if(dataPeriode.length == 1) {
+            $('#periode-pemakaian').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+        } else {
+            $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
+        }
+        $('#periode-pemakaian').attr('data-jumperiode', dataPeriode.length);
+        $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
     }
-    $('#periode-pemakaian').attr('data-jumperiode', dataPeriode.length);
-    $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
 
     calcPrice();
 }
@@ -487,6 +494,7 @@ function loadPengguna(){
     let params = {
         idPermohonan: idPermohonan
     }
+    let haveTld = $('#haveTld').is(':checked');
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         if(result.meta.code == 200){
             let html = '';
@@ -495,6 +503,7 @@ function loadPengguna(){
                     let txtRadiasi = '';
                     value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
                     let pengguna = value.pengguna;
+                    let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
                     let htmlEvaluasi = `
                         <hr class="my-2">
@@ -516,10 +525,10 @@ function loadPengguna(){
                                     </div>
                                 </div>
                                 <div class="col-auto text-end ms-auto">
-                                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
+                                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${fileKtp}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
                                     <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${value.pengguna.pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
                                 </div>
-                                ${tmpArrEvaluasi.includes(JL) && haveTldChecked ? htmlEvaluasi : ``}
+                                ${(tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld ? htmlEvaluasi : ``}
                             </div>
                         </div>
                     `;
@@ -617,6 +626,7 @@ function deleteKontrol(obj){
 </div> */}
 function loadKontrol(){
     let html = '';
+    let haveTld = $('#haveTld').is(':checked');
     ajaxGet(`api/v1/permohonan/loadTld`, {idPermohonan: idPermohonan}, result => {
         // mengambil data kontrol
         arrKontrolTmp = result.data.tldPermohonan.filter(tld => tld.id_divisi || (!tld.id_pengguna && !tld.id_divisi));
@@ -653,7 +663,7 @@ function loadKontrol(){
                         <div class="col-auto text-end">
                             <button type="button" class="btn btn-sm btn-outline-danger" data-id="${kode.permohonan_tld_hash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>
                         </div>
-                        ${tmpArrEvaluasi.includes(JL) && haveTldChecked ? htmlEvaluasi : ''}
+                        ${(tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld ? htmlEvaluasi : ''}
                     </div>
                 </div>
             `;
@@ -765,6 +775,23 @@ function openForm(){
     }else{
         ajaxGet(`api/v1/permohonan/getJenisTld/${layanan}`, false, result => {
             if(result.meta.code == 200){
+                let list = result.data;
+
+                list.forEach(value => {
+                    html += `<option value="${value.jenis_tld.jenis_tld_hash}">${value.jenis_tld.name}</option>`
+                });
+
+                $('#jenis_tld').html(html);
+                if(tmpArrSewa.includes(JL)) {
+                    $('#useZeroCek').prop('checked', true);
+                    $('#haveTld').prop('checked', false);
+                } else {
+                    $('#useZeroCek').prop('checked', false);
+                    $('#haveTld').prop('checked', true);
+                    $('#switch-zerocek').show();
+                    $('#form-switch').show();
+                }
+
                 switch (typeLayanan.toLowerCase()) {
                     case 'kontrak':
                         btnAddPengguna.addClass('d-block').removeClass('d-none');
@@ -776,7 +803,14 @@ function openForm(){
                         formTotalHarga.show();
                         break;
                     case 'evaluasi':
-                        // btnAddPengguna.addClass('d-none').removeClass('d-block');
+                        // load data
+                        $('#jenis_tld').val(dataPermohonan.jenis_tld?.jenis_tld_hash).trigger('change');
+                        periodeJs.addData(dataPermohonan.periode_pemakaian);
+                        simpanPeriode();
+                        periodeNextJs.addData(dataPermohonan.periode_next);
+                        simpanPeriodeNext();
+
+                        // show
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
@@ -784,22 +818,22 @@ function openForm(){
                         formJumPengguna.show();
                         formAlamat.show();
                         formTotalHarga.show();
-                        $('#form-switch').addClass('col-md-6').removeClass('col-md-12');
                         formPeriodeNext.show();
                         periodeJs.maxPeriode = 1;
+                        formJenisTld.addClass('col-md-12').removeClass('col-md-6');
+                        $('#form-switch').hide();
                         break;
                     case 'zero cek':
-                        btnAddPengguna.addClass('d-none').removeClass('d-block');
                         formTipeKontrak.show();
                         formPeriode.show();
                         formJenisTld.show();
                         formJumKontrol.show();
                         formJumPengguna.show();
-                        formPic.show();
-                        formNoHp.show();
                         formAlamat.show();
-                        formPeriodeNext.show();
                         formTotalHarga.show();
+                        periodeJs.maxPeriode = 2;
+                        $('#useZeroCek').prop('checked', true);
+                        $('#switch-zerocek').hide();
                         break;
                     case 'adendum':
                         btnAddPengguna.addClass('d-block').removeClass('d-none');
@@ -819,26 +853,8 @@ function openForm(){
                         formTotalHarga.show();
                         break;
                 }
-                let list = result.data;
-                if(tmpArrSewa.includes(JL)) {
-                    $('#useZeroCek').prop('checked', true);
-                    $('#haveTld').prop('checked', false);
-                    useZeroCek = true;
-                    haveTldChecked = false;
-                } else {
-                    useZeroCek = false;
-                    haveTldChecked = true;
-                    $('#useZeroCek').prop('checked', false);
-                    $('#switch-zerocek').show();
-                    $('#form-switch').show();
-                }
+
                 $('#form-inputan').addClass('d-block').removeClass('d-none');
-
-                list.forEach(value => {
-                    html += `<option value="${value.jenis_tld.jenis_tld_hash}">${value.jenis_tld.name}</option>`
-                });
-
-                $('#jenis_tld').html(html);
             }
         });
     }

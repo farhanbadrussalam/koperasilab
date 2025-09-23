@@ -50,9 +50,7 @@
                     </div>
                     <div>
                         <label for="upload_ktp" class="col-form-label">Upload KTP <span class="text-danger ms-1">*</span></label>
-                        <div class="card mb-0" style="height: 150px;">
-                            <input type="file" name="dokumen" id="uploadKtpPengguna" accept="image/*" class="form-control dropify">
-                        </div>
+                        <div id="uploadKtpPengguna"></div>
                     </div>
                 </form>
             </div>
@@ -176,7 +174,6 @@
             $('#kode_lencana').attr('placeholder', '');
             $('#kode_lencana').removeClass('bg-secondary-subtle');
             $('#kode_lencana').val('');
-            setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
         });
     });
 </script>

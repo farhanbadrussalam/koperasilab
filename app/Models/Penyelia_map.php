@@ -46,12 +46,12 @@ class Penyelia_map extends Model
 
     public function getMapHashAttribute()
     {
-        return encryptor($this->id_map);
+        return $this->id_map ? encryptor($this->id_map) : null;
     }
 
     public function getJobsHashAttribute()
     {
-        return encryptor($this->id_jobs);
+        return $this->id_jobs ? encryptor($this->id_jobs) : null;
     }
 
     public function jobs()

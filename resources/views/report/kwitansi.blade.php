@@ -32,7 +32,7 @@
         <tr>
             <td colspan="3">
                 <b>No.</b>
-                <span class="border-bottom text-secondary">{{ $data->no_invoice }}</span>
+                <span class="border-bottom text-secondary">{{ $data->permohonan->dokumen[0]->nomer }}</span>
             </td>
             <td width="1%" class="text-secondary">
                 LPH
@@ -120,7 +120,7 @@
             </td>
             <td width="50%" class="text-center">
                 <div>
-                    <div>Tangerang Selatan, {{ convert_date($date, 4) }}</div>
+                    <div>Tangerang Selatan, {{ convert_date($data->paid_at, 4) }}</div>
                     <div class="p-2">
                         @if ($data->ttd)
                         <div class="img-stempel">
@@ -138,4 +138,6 @@
     <div style="margin-top: 60px;font-size: 13px;">
         Catatan : Materai Rp. 10.000,- sudah ditempelkan di invoice sehingga kwitansi tidak memerlukan materai.
     </div>
+
+    @include('report.template.footer')
 @endsection

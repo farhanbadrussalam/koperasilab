@@ -20,6 +20,7 @@ use App\Http\Controllers\Management\RolesController;
 use App\Http\Controllers\Management\TldController;
 use App\Http\Controllers\Management\RadiasiController;
 use App\Http\Controllers\Management\PenggunaController;
+use App\Http\Controllers\Management\DocumentController;
 
 use App\Http\Controllers\ReportController;
 
@@ -68,7 +69,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/penyelia', 'indexPenyelia')->name('staff.penyelia');
             Route::get('/penyelia/surat_tugas/c/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.create.surat_tugas');
             Route::get('/penyelia/surat_tugas/e/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
-            Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
+            Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.show.surat_tugas');
 
             Route::get('/lhu', 'indexLhu')->name('staff.lhu');
             Route::get('/lhu/petugas', 'indexPetugas')->name('staff.lhu.petugas');
@@ -92,7 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         });
         Route::controller(StaffController::class)->group(function() {
             Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
-            Route::get('/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
+            Route::get('/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.show');
         });
     });
 
@@ -109,8 +110,10 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/invoice/{id}', 'invoice')->name('laporan.invoice');
             Route::get('/tandaterima/{id}', 'tandaTerima')->name('laporan.tandaterima');
             Route::get('/surpeng/{id}/{periode}', 'suratPengantar')->name('laporan.surpeng');
-            Route::get('/perjanjian/{id}', 'perjanjian')->name('laporan.perjanjian');
+            Route::get('/kontrak/{id}', 'kontrak')->name('laporan.kontrak');
             Route::get('/label/{id}', 'label')->name('laporan.label');
+            Route::get('/SuratPengujian/{id}', 'SuratPengujian')->name('laporan.SuratPengujian');
+            Route::get('/KontrakPengujian/{id}', 'KontrakPengujian')->name('laporan.KontrakPengujian');
         });
     });
 
@@ -136,6 +139,9 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
         Route::resource('userpengguna', PenggunaController::class);
         Route::get('getDataPengguna', [PenggunaController::class, 'getData'])->name('pengguna.getData');
+
+        Route::resource('document', DocumentController::class);
+        Route::post('document/{id}', [DocumentController::class, 'update']);
     });
     // });
 

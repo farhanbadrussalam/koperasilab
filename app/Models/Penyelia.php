@@ -37,7 +37,8 @@ class Penyelia extends Model
         'penyelia_hash',
         'permohonan_hash',
         'status_hash',
-        'media'
+        'media',
+        'template_surat'
     ];
 
     protected $casts = [
@@ -54,17 +55,17 @@ class Penyelia extends Model
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
     }
 
     public function getPenyeliaHashAttribute()
     {
-        return encryptor($this->id_penyelia);
+        return $this->id_penyelia ? encryptor($this->id_penyelia) : null;
     }
 
     public function getStatusHashAttribute()
     {
-        return encryptor($this->status);
+        return $this->status ? encryptor($this->status) : null;
     }
 
     public function getMediaAttribute()
@@ -73,6 +74,10 @@ class Penyelia extends Model
         $decodedIds = is_array($decodedIds) ? $decodedIds : [];
 
         return Master_media::whereIn('id', $decodedIds)->get();
+    }
+
+    public function getTemplateSuratAttribute(){
+        return Documents::whereIn('name', ['SuratPengujian', 'SuratTugas', 'KontrakPengujian'])->where('status', 1)->get();
     }
 
     public function permohonan()
@@ -106,5 +111,13 @@ class Penyelia extends Model
 
     public function createBy(){
         return $this->belongsTo(User::class, 'created_by', 'id');
+    }
+
+    public function dokumen(){
+        return $this->hasMany(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function periodenow(){
+        return $this->belongsTo(Kontrak_periode::class, 'id_permohonan', 'id_permohonan');
     }
 }

@@ -17,6 +17,9 @@ class Detail {
                 bukti: options.tab.bukti ?? false,
                 // Penyelia
                 proses: options.tab.proses ?? false,
+                // Perusahaan
+                alamat: options.tab.alamat ?? false,
+                karyawan: options.tab.karyawan ?? false
             },
             activeTab: options.activeTab ?? false
         }
@@ -166,6 +169,17 @@ class Detail {
                     jenisStatus: 'kontrak'
                 }
                 break;
+            case 'perusahaan':
+                this.info = {
+                    nama_perusahaan: this.data.nama_perusahaan ?? '-',
+                    kode_perusahaan: this.data.kode_perusahaan ?? 'Belum memiliki Kode',
+                    npwp_perusahaan: this.data.npwp_perusahaan ?? '-',
+                    email: this.data.email ?? '-',
+                    alamat: this.data.alamat ?? [],
+                    jenisStatus: 'perusahaan',
+                    karyawan: this.data.users ?? []
+                }
+                break;
             default:
 
                 break;
@@ -188,6 +202,9 @@ class Detail {
                     break;
                 case 'surattugas':
                     $('#container-detail').append(this.createInformationSuratTugas());
+                    break;
+                case 'perusahaan':
+                    $('#container-detail').append(this.createInformationPerusahaan());
                     break;
                 default:
                     $('#container-detail').append(this.createInformationPermohonan());
@@ -405,6 +422,42 @@ class Detail {
         return container;
     }
 
+    createInformationPerusahaan() {
+        const container = document.createElement('div');
+        container.className = 'container fs-7';
+
+        $('#titleDetail').text('Detail Perusahaan');
+
+        container.innerHTML = `
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Nama</label>
+                <div class="col-auto">
+                    ${this.info.nama_perusahaan}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Kode perusahaan</label>
+                <div class="col-auto">
+                    ${this.info.kode_perusahaan}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">NPWP</label>
+                <div class="col-auto">
+                    ${this.info.npwp_perusahaan}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">E-mail</label>
+                <div class="col-auto">
+                    ${this.info.email}
+                </div>
+            </div>
+        `;
+
+        return container;
+    }
+
     // membuat tab
 
     createTab() {
@@ -423,6 +476,9 @@ class Detail {
 
         this.options.tab.proses && (tabs.proses = { title: 'Proses Penyelia', content: this.createProsesContent() });
 
+        this.options.tab.alamat && (tabs.alamat = { title: 'Alamat', content: this.createAlamatContent() });
+        this.options.tab.karyawan && (tabs.karyawan = { title: `Karyawan (${this.info?.karyawan?.length ?? 0})`, content: this.createKaryawanContent() });
+
         let htmlTabNav = '';
 
         for (const tabId in tabs) {
@@ -433,7 +489,7 @@ class Detail {
                 htmlTabNav += `
               <li role="presentation" class="bg-secondary-subtle rounded-3 mb-1 shadow-sm">
                 <div class="link d-flex justify-content-between align-items-center py-2 px-3" id="pills-${tabId}">
-                    <span>${tab.title} ${badge}</span> 
+                    <span>${tab.title} ${badge}</span>
                     <i class="bi bi-chevron-down"></i>
                 </div>
                 <div class="submenu bg-body-secondary p-2 rounded-bottom-3 overflow-auto overflow-x-hidden" style="max-height: 30vh">
@@ -503,12 +559,14 @@ class Detail {
         let dataPermohonan = false;
         switch (this.options.jenis) {
             case 'permohonan':
-                dataDokumen = this.data.dokumen;
+                this.data.kontrak.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
+                dataDokumen = dataDokumen.concat(this.data.dokumen);
                 invoiceData = this.data.invoice;
                 dataPermohonan = this.data;
                 break;
             case 'penyelia':
-                dataDokumen = this.data.permohonan.dokumen;
+                this.data.permohonan.kontrak.document_kontrak && (dataDokumen = this.data.permohonan.kontrak.document_kontrak);
+                dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
                 invoiceData = this.data.permohonan.invoice;
                 dataPermohonan = this.data.permohonan;
                 break;
@@ -520,16 +578,19 @@ class Detail {
             let idHash = false;
             switch (dokumen.jenis) {
                 case 'invoice':
-                    idHash = invoiceData?.permohonan_hash;
+                    idHash = invoiceData?.keuangan_hash;
                     break;
-                case 'perjanjian':
+                case 'kontrak':
+                    idHash = dataPermohonan.kontrak.kontrak_hash;
+                    break;
+                case 'KontrakPengujian':
                     idHash = dataPermohonan.kontrak.kontrak_hash;
                     break;
                 default:
                     idHash = dataPermohonan.permohonan_hash;
                     break;
             }
-            
+
             doc += `
                 <div class="card mb-1">
                     <div class="card-body p-1 px-3 d-flex justify-content-between align-items-center">
@@ -558,7 +619,7 @@ class Detail {
 
     createDokumenLhuContent() {
         if(!this.data.media) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada dokumen</p>';
-        
+
         return printMedia(this.data.media, false, { size: true, date: true, isHtml: true });
     }
     createLogContent() {
@@ -642,6 +703,42 @@ class Detail {
     createProsesContent() {
         return '<p>Proses content</p>';
     }
+    createAlamatContent() {
+        const alamatarr = this.info?.alamat ?? [];
+        if(alamatarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada alamat</p>';
+
+        return `
+            <ul class="list-group list-group-flush">
+                ${alamatarr.map((data, i) => {
+                    if(data.status == 1){
+                        return `
+                            <li class="list-group-item">
+                                <div class="fw-bold">${data.jenis}</div>
+                                <div class="text-body-secondary">${data.alamat ?? '-'}</div>
+                            </li>
+                        `;
+                    }
+                }).join('')}
+            </ul>
+        `;
+    }
+    createKaryawanContent() {
+        const karyawanarr = this.info?.karyawan ?? [];
+        if(karyawanarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada karyawan</p>';
+
+        return `
+            <ul class="list-group list-group-flush">
+                ${karyawanarr.map((data, i) => {
+                    return `
+                        <li class="list-group-item">
+                            <div class="fw-bold">${data.name}</div>
+                            <div class="text-body-secondary">${data.email}</div>
+                        </li>
+                    `;
+                }).join('')}
+            </ul>
+        `;
+    }
     createTldContent() {
         let listTld = [];
         let tldKontrol = false;
@@ -656,7 +753,7 @@ class Detail {
             case 'penyelia':
                 listTld = this.data.permohonan.rincian_list_tld ?? [];
                 break;
-        
+
             default:
                 break;
         }
@@ -664,7 +761,7 @@ class Detail {
         if (listTld.length > 0) {
             return `
                 <ul class="list-group list-group-flush">
-                    ${listTld.map((data, i) => 
+                    ${listTld.map((data, i) =>
                         `<li class="list-group-item d-flex justify-content-between">
                             <div>
                                 <span>${i + 1}. </span>

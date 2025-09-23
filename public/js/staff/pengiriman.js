@@ -163,8 +163,13 @@ function kirimDokumen(obj){
     let idPengiriman = $('#no_pengiriman').val();
     let noResi = $('#noResi').val();
     let idEkspedisi = $('#jasa_kurir').val();
+    let arrImgBukti = buktiPengiriman.getData();
 
     // Check for empty fields and show warning if any
+    if(arrImgBukti.length == 0){
+        Swal.fire({ icon: 'warning', text: 'Bukti pengiriman tidak boleh kosong' });
+        return;
+    }
     if (!idEkspedisi) {
         Swal.fire({ icon: 'warning', text: 'Ekspedisi tidak boleh kosong' });
         return;
@@ -185,8 +190,6 @@ function kirimDokumen(obj){
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            let arrImgBukti = buktiPengiriman.getData();
-
             let data = new FormData();
             data.append('idPengiriman', idPengiriman);
             data.append('noResi', noResi);

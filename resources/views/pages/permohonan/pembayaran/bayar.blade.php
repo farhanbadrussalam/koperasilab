@@ -79,7 +79,7 @@
                             </a>
                         </li>
                         <li class="list-group-item">
-                            <a href="{{ url('laporan/perjanjian/'.$keuangan->permohonan->kontrak_hash) }}" target="_blank" class="text-decoration-none">
+                            <a href="{{ url('laporan/kontrak/'.$keuangan->permohonan->kontrak_hash) }}" target="_blank" class="text-decoration-none">
                                 <i class="bi bi-file-earmark-fill"></i> Kontrak MoU
                             </a>
                         </li>

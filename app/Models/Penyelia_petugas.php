@@ -45,22 +45,22 @@ class Penyelia_petugas extends Model
 
     public function getPetugasHashAttribute()
     {
-        return encryptor($this->id_petugas);
+        return $this->id_petugas ? encryptor($this->id_petugas) : null;
     }
 
     public function getMapHashAttribute()
     {
-        return encryptor($this->id_map);
+        return $this->id_map ? encryptor($this->id_map) : null;
     }
 
     public function getPenyeliaHashAttribute()
     {
-        return encryptor($this->id_penyelia);
+        return $this->id_penyelia ? encryptor($this->id_penyelia) : null;
     }
 
     public function getUserHashAttribute()
     {
-        return encryptor($this->id_user);
+        return $this->id_user ? encryptor($this->id_user) : null;
     }
 
     public function jobs()

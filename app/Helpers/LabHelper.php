@@ -5,10 +5,16 @@ use App\Events\NotifikasiEvent;
 use App\Models\notifikasi;
 use App\Models\User;
 use App\Models\Penyelia;
+use App\Models\Permohonan;
 use App\Models\Permohonan_dokumen;
 use App\Models\Pengiriman_detail;
 use App\Models\Kontrak_periode;
 use Illuminate\Support\Facades\Crypt;
+
+use App\Helpers\TableWidthFixer;
+use App\Models\Keuangan;
+use App\Models\Kontrak;
+use Carbon\Carbon;
 
 if (!function_exists('formatCurrency')) {
     function formatCurrency($amount)
@@ -362,48 +368,60 @@ if (!function_exists('getRomawiBulan')) {
 }
 
 if (!function_exists('angkaKeHuruf')) {
-    function angkaKeHuruf($angka){
-        $bilangan = array(
-            '',
-            'satu',
-            'dua',
-            'tiga',
-            'empat',
-            'lima',
-            'enam',
-            'tujuh',
-            'delapan',
-            'sembilan'
-        );
+    function angkaKeHuruf($angka) {
+        $angka = (int)$angka;
 
-        $ribu = array('', 'ribu', 'juta', 'miliar', 'triliun');
+        $bilangan = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan'];
+        $ribu     = ['', 'ribu', 'juta', 'miliar', 'triliun'];
 
-        if ($angka < 10) {
-            return $bilangan[$angka];
-        } elseif ($angka < 20) {
-            return 'sepuluh ' . angkaKeHuruf($angka - 10);
-        } elseif ($angka < 100) {
-            return $bilangan[floor($angka / 10)] . ' puluh ' . angkaKeHuruf($angka % 10);
-        } elseif ($angka < 1000) {
-            return $bilangan[floor($angka / 100)] . ' ratus ' . angkaKeHuruf($angka % 100);
-        } else {
-            $result = '';
-            $idxRibuan = 0;
-            while ($angka > 0) {
-                if ($angka % 1000 > 0) {
-                    $result = angkaKeHuruf($angka % 1000) . ' ' . $ribu[$idxRibuan] . ' ' . $result;
-                }
-                $angka = floor($angka / 1000);
-                $idxRibuan++;
-            }
-            return $result;
+        if ($angka === 0) return 'nol';
+        if ($angka < 10)  return $bilangan[$angka];
+
+        if ($angka === 10) return 'sepuluh';
+        if ($angka === 11) return 'sebelas';
+        if ($angka < 20)   return $bilangan[$angka - 10] . ' belas';
+
+        if ($angka < 100) {
+            $puluh = intdiv($angka, 10);
+            $sisa  = $angka % 10;
+            return trim($bilangan[$puluh] . ' puluh ' . ($sisa ? angkaKeHuruf($sisa) : ''));
         }
+
+        // ✅ perbaikan di sini
+        if ($angka === 100) return 'seratus';
+        if ($angka < 200)  return trim('seratus ' . angkaKeHuruf($angka - 100));
+
+        if ($angka < 1000) {
+            $ratus = intdiv($angka, 100);
+            $sisa  = $angka % 100;
+            return trim($bilangan[$ratus] . ' ratus ' . ($sisa ? angkaKeHuruf($sisa) : ''));
+        }
+
+        // 1000 ke atas
+        $result = '';
+        $idx = 0;
+        while ($angka > 0) {
+            $chunk = $angka % 1000;
+            if ($chunk) {
+                if ($idx === 1 && $chunk === 1) {
+                    $result = 'seribu ' . $result; // bukan "satu ribu"
+                } else {
+                    $result = trim(angkaKeHuruf($chunk) . ' ' . $ribu[$idx]) . ' ' . $result;
+                }
+            }
+            $angka = intdiv($angka, 1000);
+            $idx++;
+        }
+        return trim(preg_replace('/\s+/', ' ', $result));
     }
+
+
 }
 
 if (!function_exists('generateNoDokumen')) {
     function generateNoDokumen($jenis, $id = false)
     {
+        $appName = 'JKRL';
         // Mengambil bulan sekarang dan mengubah ke dalam format Romawi
         $bulanSekarang = date('n'); // n = format angka bulan tanpa nol
         $romawiBulan = getRomawiBulan($bulanSekarang);
@@ -413,17 +431,17 @@ if (!function_exists('generateNoDokumen')) {
         $lastContractNumber = 1;
 
         // Incremental number
-        if($jenis != 'surpeng'){
-            $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
-                                    ->whereMonth('created_at', $bulanSekarang)
-                                    ->whereYear('created_at', $tahunSekarang)
-                                    ->count(); // Ubah dengan pengambilan nomor terakhir dari database
-        }else{
-            $lastContractNumber = Kontrak_periode::where('nomer_surpeng', '!=', null)
-                                    ->whereMonth('created_at', $bulanSekarang)
-                                    ->whereYear('created_at', $tahunSekarang)
-                                    ->count();
-        }
+        $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
+                                // ->whereMonth('created_at', $bulanSekarang)
+                                // ->whereYear('created_at', $tahunSekarang)
+                                ->count(); // Ubah dengan pengambilan nomor terakhir dari database
+        // if($jenis != 'surpeng'){
+        // }else{
+        //     $lastContractNumber = Kontrak_periode::where('nomer_surpeng', '!=', null)
+        //                             ->whereMonth('created_at', $bulanSekarang)
+        //                             ->whereYear('created_at', $tahunSekarang)
+        //                             ->count();
+        // }
         $increment = str_pad($lastContractNumber + 1, 4, '0', STR_PAD_LEFT);
 
         switch ($jenis) {
@@ -436,14 +454,36 @@ if (!function_exists('generateNoDokumen')) {
                 $satuankerja = Penyelia::with('permohonan', 'permohonan.layanan_jasa', 'permohonan.layanan_jasa.satuankerja')
                 ->where('penyelia.id_penyelia', $id)
                 ->first();
+                $alias = $satuankerja->permohonan->layanan_jasa->satuankerja->alias;
 
-                $noKontrak = "{$increment}/NL-{$satuankerja->permohonan->layanan_jasa->satuankerja->alias}/{$romawiBulan}/{$tahunSekarang}";
+                $noKontrak = "{$increment}/NL-{$alias}/{$romawiBulan}/{$tahunSekarang}";
                 break;
             case 'surpeng':
                 // Format nomor kontrak
-                $noKontrak = "{$increment}/JKRL-B/{$romawiBulan}/{$tahunSekarang}";
+                $noKontrak = "{$increment}/{$appName}-B/{$romawiBulan}/{$tahunSekarang}";
                 break;
+            case 'permintaanpengujian':
+                // Format nomor kontrak
+                $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'KontrakPengujian':
+                // Format nomor kontrak
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = $permohonan->layanan_jasa->alias;
 
+                $noKontrak = "{$increment}/{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'kwitansi':
+                // Format nomor kwitansi
+                $noKontrak = "{$increment}/KW-MZR/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'kontrak':
+                // Format nomor kontrak
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = strtoupper(substr($permohonan->jenis_layanan->name, 0, 1));
+
+                $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                break;
         }
 
 
@@ -492,7 +532,7 @@ if(!function_exists('contenMetodePembayaran')){
             foreach ($variabels as $key => $value) {
                 foreach ($value as $key2 => $value2) {
                     $content = html_entity_decode($content);
-                    $content = str_replace('{{'.$key2.'}}', $value2, $content);
+                    $content = str_replace('@'.$key2, $value2, $content);
                 }
             }
         }
@@ -500,5 +540,328 @@ if(!function_exists('contenMetodePembayaran')){
     }
 }
 
+if(!function_exists('normalizeMentionKey')) {
+    function normalizeMentionKey(string $raw): string {
+        // Hilangkan entity, spasi, marker @ / # / {{ }}
+        $k = html_entity_decode(trim($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        // buang {{VAR}} atau {{ VAR }}
+        // $k = preg_replace('/^\s*\{\{\s*|\s*\}\}\s*$/', '', $k);
+        // buang marker di depan (@, #, $, % ... sesuaikan jika perlu)
+        $k = preg_replace('/^[@#\$%]+/', '', $k);
+        return strtoupper(trim($k)); // konsistenkan ke UPPERCASE
+    }
+}
 
+if(!function_exists('importHtmlFragment')) {
+    function importHtmlFragment(DOMDocument $dom, string $htmlFragment): DOMDocumentFragment {
+        $tmp = new DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $tmp->loadHTML(
+            '<div id="__wrap__">' .
+            $htmlFragment .
+            '</div>',
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
+        libxml_clear_errors();
+
+        $wrap = $tmp->getElementById('__wrap__');
+        $frag = $dom->createDocumentFragment();
+        foreach (iterator_to_array($wrap->childNodes) as $child) {
+            $frag->appendChild($dom->importNode($child, true));
+        }
+        return $frag;
+    }
+}
+
+/**
+ * Render mention CKEditor menjadi nilai.
+ * Opsi:
+ *  - html_keys: daftar KEY yang boleh berisi HTML (akan disisipkan sebagai fragment)
+ *  - allowed_tags: whitelist tag jika ingin pakai strip_tags sederhana
+ *  - sanitizer: callable($html, $key): string  -> gunakan kalau pakai HTML Purifier
+ *  - default: nilai default jika key tidak ada
+ */
+if(!function_exists('renderMentionsToValuesFlexible')) {
+    function renderMentionsToValuesFlexible(string $html = "", array $map = [], array $options = []): string {
+        $htmlKeys    = array_map('strtoupper', $options['html_keys'] ?? []);
+        $allowedTags = $options['allowed_tags'] ?? '<p><br><strong><b><em><i><u><span><div><ul><ol><li><table><thead><tbody><tr><td><th><h1><h2><h3><h4><h5><h6>';
+        $sanitizer   = $options['sanitizer'] ?? null; // contoh: fn($h,$k)=>Purifier::clean($h)
+        $default     = $options['default']   ?? '......................';
+
+        $wrapperStart = '<div id="__root__">';
+        $wrapperEnd = '</div>';
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($wrapperStart . $html . $wrapperEnd, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+
+        $xpath = new DOMXPath($dom);
+
+        // Cari node mention lewat data-mention ATAU class=mention
+        foreach ($xpath->query('//*[@data-mention] | //*[(contains(concat(" ", normalize-space(@class), " "), " mention "))]') as $node) {
+            /** @var DOMElement $node */
+            $rawAttr = $node->getAttribute('data-mention');
+            $rawAttr = html_entity_decode($rawAttr, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+            $key = null;
+
+            // 1) Coba parse JSON {"id":"..."}
+            $data = json_decode($rawAttr, true);
+            if (is_array($data) && isset($data['id'])) {
+                $key = normalizeMentionKey((string)$data['id']);
+            }
+
+            // 2) Jika bukan JSON tapi ada string (mis. "@PERUSAHAAN")
+            if ($key === null && $rawAttr !== '') {
+                $key = normalizeMentionKey($rawAttr);
+            }
+
+            // 3) Fallback: ambil dari teks dalam span (mis. "@PERUSAHAAN")
+            if ($key === null || $key === '') {
+                $key = normalizeMentionKey($node->textContent ?? '');
+            }
+
+            // Ambil value
+            // $value = array_key_exists($key, $map) ? (string)$map[$key] : $default;
+            $has = array_key_exists($key, $map);
+            $valueRaw = $has ? (string)$map[$key] == '' ? $default : (string)$map[$key] : $default;
+
+            if (in_array($key, $htmlKeys, true)) {
+                $value = $valueRaw;
+
+                // Sanitasi (disarankan pakai HTML Purifier di produksi)
+                if (is_callable($sanitizer)) {
+                    $value = (string) $sanitizer($value, $key);
+                } else {
+                    $value = strip_tags($value, $allowedTags);
+                }
+
+                // Ganti node mention dengan fragment HTML
+                $frag = importHtmlFragment($dom, $value);
+                $node->parentNode->replaceChild($frag, $node);
+            } else {
+                // Ganti node mention dengan text node
+                $text = $dom->createTextNode($valueRaw);
+                $node->parentNode->replaceChild($text, $node);
+            }
+
+        }
+
+        // Kembalikan innerHTML
+        $root = $dom->getElementById('__root__');
+        $out = '';
+        foreach (iterator_to_array($root->childNodes) as $child) {
+            $out .= $dom->saveHTML($child);
+        }
+
+        $containerPx = a4ContentWidthPx('portrait', 40, 40, 96); // samakan dgn @page margin & DPI
+        $out = convertTableWidthsToPx($out, $containerPx);
+
+        $out = TableWidthFixer::colgroupToFirstRowCellPx($out, 800);
+        return $out;
+    }
+}
+
+if(!function_exists('a4ContentWidthPx')) {
+    // A4 @ 96 DPI ≈ 794 px lebar. Sesuaikan margin yang kamu pakai di @page.
+    function a4ContentWidthPx(string $orientation='portrait', int $marginLeftPx=40, int $marginRightPx=40, int $dpi=96): int {
+        [$wIn, $hIn] = $orientation === 'portrait' ? [8.268, 11.693] : [11.693, 8.268];
+        $wPx = (int) round($wIn * $dpi);
+        return max(0, $wPx - ($marginLeftPx + $marginRightPx));
+    }
+}
+
+if(!function_exists('convertTableWidthsToPx')) {
+
+    function convertTableWidthsToPx(string $html, int $containerPx): string {
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        $xp = new DOMXPath($dom);
+
+        foreach ($xp->query('//table') as $table) {
+            if($table instanceof DOMElement){
+                // Table width (% → px) di style
+                $style = $table->getAttribute('style');
+                if (preg_match('/width\s*:\s*([\d.]+)%/i', $style, $m)) {
+                    $px = (int) round($containerPx * (float) $m[1] / 100);
+                    $style = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $style);
+                    $table->setAttribute('style', $style);
+                }
+            }
+
+            // colgroup/col
+            foreach ($xp->query('./colgroup/col', $table) as $col) {
+                if($col instanceof DOMElement){
+                    $cs = $col->getAttribute('style');
+                    if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m2)) {
+                        $px = (int) round($containerPx * (float) $m2[1] / 100);
+                        $cs = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $cs);
+                        $col->setAttribute('style', $cs);
+                    }
+                }
+            }
+
+            // th/td
+            foreach ($xp->query('.//th|.//td', $table) as $cell) {
+                if($cell instanceof DOMElement){
+                    $cs = $cell->getAttribute('style');
+                    if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m3)) {
+                        $px = (int) round($containerPx * (float) $m3[1] / 100);
+                        $cs = preg_replace('/width\s*:\s*[\d.]+%/i', "width: {$px}px", $cs);
+                        $cell->setAttribute('style', $cs);
+                    } elseif ($cell->hasAttribute('width') && preg_match('/^\s*([\d.]+)%\s*$/', $cell->getAttribute('width'), $m4)) {
+                        $px = (int) round($containerPx * (float) $m4[1] / 100);
+                        $cell->setAttribute('width', (string) $px); // atribut width px
+                    }
+                }
+            }
+        }
+        return $dom->saveHTML();
+    }
+}
+
+if(!function_exists('calculateInvoice')) {
+    function calculateInvoice($total_harga, $diskon = [], $ppn = false, $pph = false) {
+        $subJumlah = 0;
+
+        foreach ($diskon as $item) {
+            $item->jumDiskon = $total_harga * ($item->diskon / 100);
+            $subJumlah += $item->jumDiskon;
+        }
+
+        $jumAfterDiskon = $total_harga - $subJumlah;
+
+        $jumPph = $pph ? $jumAfterDiskon * ($pph / 100) : 0;
+        $jumAfterPph = $jumAfterDiskon - $jumPph;
+        $jumPpn = $ppn ? $jumAfterPph * ($ppn / 100) : 0;
+        $subTotal = $jumAfterPph + $jumPpn;
+
+        return [
+            'diskon' => $diskon,
+            'jumAfterDiskon' => $jumAfterDiskon,
+            'jumPpn' => $jumPpn,
+            'jumPph' => $jumPph,
+            'subTotal' => $subTotal,
+        ];
+    }
+}
+
+if(!function_exists('isReminderPeriod')) {
+    function isReminderPeriod($period, $offset, $hNow = false) {
+        $period = Carbon::create($period);
+        $hMinus = $period->copy()->sub("month",$offset);
+
+        // hari ini
+        $hNow = $hNow ? Carbon::create($hNow) : Carbon::now();
+
+        return $hNow->between($hMinus, $period->subDay());
+    }
+}
+
+if(!function_exists('isFinishKontrak')) {
+    function isFinishKontrak($id_kontrak) {
+        // ambil kontrak
+        $kontrak = Kontrak::with(
+            'invoice',
+            'periode'
+        )->find($id_kontrak);
+
+        // cek apakah invoice sudah di bayar atau belum
+        $statusInvoice = false;
+        if($kontrak->invoice) {
+            $invoice = $kontrak->invoice;
+            $statusInvoice = $invoice->status == 5 ? true : false; // 5 = sudah di bayar
+        }
+
+        // cek apakah periode udah selesai atau belum
+        $statusPeriode = false;
+        $arrDocument = array('tld', 'lhu');
+        foreach ($kontrak->periode as $periode) {
+            if($periode->status == 2) {
+                $statusPeriode = true;
+                break;
+            }
+        }
+    }
+}
+
+if(!function_exists('getPeriodeAwal')) {
+    function getPeriodeAwal(Kontrak $kontrak) {
+        $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
+
+        $periodeAwal = array();
+        if($kontrak->is_zerocek == 1) {
+            if($kontrak->is_have_tld == 0) {
+                $periodeAwal = array(0);
+            } else if($kontrak->is_have_tld == 1 && $JL != 'ZeroCekTanpaKontrak') {
+                $periodeAwal = array(1, 2);
+            }
+        } else if($kontrak->is_zerocek == 0) {
+            if($kontrak->is_have_tld == 1 && $JL != 'EvaluasiTanpaKontrak') {
+                $periodeAwal = array(1, 2);
+            }
+        }
+
+        return $periodeAwal;
+    }
+}
+
+if(!function_exists('cekPeriodeComplete')) {
+    function cekPeriodeComplete($id_kontrak, $periode) {
+        $period = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode)->first();
+        $kontrak = Kontrak::with([
+            'jenis_layanan',
+            'jenis_layanan_parent',
+            'invoice',
+            'pengiriman' => function($q) use ($periode) {
+                $q->where('periode', $periode);
+            },
+            'pengiriman.detail'
+        ])->find($id_kontrak);
+        $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
+        $periodeAwal = getPeriodeAwal($kontrak);
+        $lastPeriode = $kontrak->periode_all['jml_periode'] == $periode;
+
+        $aktifDokumen = array('invoice','tld', 'lhu');
+        $arr = array();
+        foreach ($aktifDokumen as $dokumen) {
+            if($dokumen === 'invoice' && $period->id_permohonan !== $kontrak->invoice->id_permohonan) continue;
+            if($dokumen === 'tld') {
+                if($JL == 'KontrakSewa' && $lastPeriode) continue;
+                if(in_array($period->id_periode, $periodeAwal)) continue;
+            }
+
+            if($dokumen === 'lhu') {
+                if($period->status == 2) continue; // status 2 = Pengembalian
+            }
+
+            $getPengiriman = false;
+            foreach ($kontrak->pengiriman as $pengiriman) {
+                $cekDokumen = Pengiriman_detail::where('id_pengiriman', $pengiriman->id_pengiriman)->where('jenis', $dokumen)->first();
+                if($cekDokumen) {
+                    $getPengiriman = $pengiriman;
+                    break;
+                }
+            }
+
+            if($dokumen === 'invoice') {
+                if ($kontrak->invoice->status != 5) {
+                    return false;
+                }
+            }
+
+            if($getPengiriman) {
+                if($getPengiriman->status != 2) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
 ?>

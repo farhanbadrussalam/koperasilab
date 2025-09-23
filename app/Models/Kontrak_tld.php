@@ -51,12 +51,12 @@ class Kontrak_tld extends Model
 
     public function getKontrakTldHashAttribute()
     {
-        return encryptor($this->id_kontrak_tld);
+        return $this->id_kontrak_tld ? encryptor($this->id_kontrak_tld) : null;
     }
 
     public function getKontrakHashAttribute()
     {
-        return encryptor($this->id_kontrak);
+        return $this->id_kontrak ? encryptor($this->id_kontrak) : null;
     }
 
     public function getTldAttribute()

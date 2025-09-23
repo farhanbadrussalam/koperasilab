@@ -15,7 +15,7 @@
 
     <div class="content">
         <p>
-            Yang bertandatangan di bawah ini, Manajer/Penyelia Unit {{ $data->lhu->createBy->satuanKerja->name }}, menugaskan
+            Yang bertandatangan di bawah ini, Manajer/Penyelia Unit {{ $data->layanan_jasa->satuankerja->name }}, menugaskan
             kepada yang namanya tersebut di bawah ini untuk melaksanakan pengujian <b>{{ $data->jenis_layanan->name }}</b>
              <b>{{ $data->pelanggan->perusahaan->name }}</b> sejumlah <b>{{ $data->jumlah }}</b> pada tanggal {{ convert_date($data->lhu->start_date, 2) }} sampai
             dengan {{ convert_date($data->lhu->end_date, 2) }}.
@@ -53,9 +53,15 @@
 
         <div style="margin-top: 50px;">
             <div>Tanggal : {{ convert_date($data->lhu->created_at, 2) }}</div>
-            <div>Manajer/Penyelia Unit {{ $data->lhu->createBy->satuanKerja->name }}</div>
+            <div>Manajer/Penyelia Unit {{ $data->layanan_jasa->satuankerja->name }}</div>
+            @if ($data->lhu->ttd)
+            <div class="img-stempel" style="left: 2rem;">
+                <img src="{{ $stempel }}" class="img-fluid" alt="Stempel-Lab">
+            </div>
+            @endif
             <img src="{{ $data->lhu->ttd ? $data->lhu->ttd : $ttd_default }}" alt="ttd" srcset="ttd">
             <div style="margin-top: 10px;">( {{ $data->lhu->usersig ? $data->lhu->usersig->name : '................................' }} )</div>
         </div>
     </div>
+    @include('report.template.footer')
 @endsection

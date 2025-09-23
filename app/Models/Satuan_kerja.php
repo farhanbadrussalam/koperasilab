@@ -26,11 +26,6 @@ class Satuan_kerja extends Model
 
     public function getSatuanHashAttribute()
     {
-        return encryptor($this->id);
-    }
-
-    public function layananJasa()
-    {
-        return $this->hasOne(Layanan_jasa::class);
+        return $this->id ? encryptor($this->id) : null;
     }
 }

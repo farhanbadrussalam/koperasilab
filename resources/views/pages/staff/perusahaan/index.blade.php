@@ -20,7 +20,7 @@
                     </select>
                 </div> --}}
             </div>
-            
+
             <div class="flex-shrink-1">
                 <div class="col-12">
                     <div class="input-group">
@@ -51,10 +51,10 @@
                 @endfor
             </div>
             <div class="body my-3" id="list-container">
-                
+
             </div>
             <div aria-label="Page navigation example" id="list-pagination">
-                    
+
             </div>
         </div>
     </div>

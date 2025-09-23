@@ -16,6 +16,8 @@ use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\FilterAPI;
 use App\Http\Controllers\API\PenggunaAPI;
 
+use App\Http\Controllers\Management\DocumentController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -64,6 +66,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
         Route::post('/tambahPengguna', 'tambahPengguna');
+        Route::get('/createKontrak/{idPermohonan}/{noKontrak}', 'createKontrak');
         Route::post('/action_tld', 'action_tld');
         Route::delete('/destroyPengguna/{idPengguna}', 'destroyPengguna');
         Route::get('/getChildJenisLayanan/{idParent}', 'getChildJenisLayanan');
@@ -117,6 +120,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', 'actionPenyelia');
         Route::post('/actionSuratTugas', 'actionSuratTugas');
         Route::post('/actionJobProses', 'actionJobProses');
+        Route::post('/approvePengujian', 'approvePengujian');
+        Route::post('/createPengujian', 'createPengujian');
         Route::get('/list', 'listPenyelia');
         Route::get('/listPetugas', 'getListPetugas');
         Route::get('/getById/{idPenyelia}', 'getPenyeliaById');
@@ -136,6 +141,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action/perusahaan', 'actionPerusahaan');
         Route::post('/changePassword', 'changePassword');
         Route::get('/getPerusahaan/{kode}', 'getPerusahaanByKode');
+        Route::get('/getPerusahaanById/{idPerusahaan}', 'getPerusahaanById');
     });
 
     Route::prefix("filter")->controller(FilterAPI::class)->group(function () {
@@ -171,5 +177,9 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getDivisi', 'getDivisi');
         Route::get('/getRadiasi', 'getRadiasi');
         Route::delete('/destroy/{id}', 'destroy');
+    });
+
+    Route::prefix('document')->controller(DocumentController::class)->group(function () {
+        Route::post('upload_image', 'upload_image');
     });
 });

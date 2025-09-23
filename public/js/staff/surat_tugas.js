@@ -351,7 +351,11 @@ function ceklistPetugas(obj){
         tmp.isParalel = isParalel;
     }
 
-    tmpArrPetugas.push(tmp);
+    if(obj.checked){
+        tmpArrPetugas.push(tmp);
+    } else {
+        tmpArrPetugas = tmpArrPetugas.filter(item => item.idPetugas !== idPetugas);
+    }
     $('#jumlah-petugas').text($('[name="cekPetugas[]"]:checked').length);
 }
 

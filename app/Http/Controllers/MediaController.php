@@ -36,7 +36,7 @@ class MediaController extends Controller
 
             $idMedia = $media->id;
         }
-        
+
         return new FileUpload($file, $path, $filename, $idMedia);
     }
 
@@ -47,6 +47,11 @@ class MediaController extends Controller
         }
 
         return Master_media::findOrFail($id_media);
+    }
+
+    public function getMediaUrl($id_media){
+        $media = Master_media::findOrFail($id_media);
+        return config('app.url').Storage::url($media->file_path.'/'.$media->file_hash);
     }
 
     public function update($file, $id_media){
@@ -141,6 +146,9 @@ class MediaController extends Controller
                 break;
             case 'pengguna':
                 $path = 'dokumen/pengguna';
+                break;
+            case 'document':
+                $path = 'dokumen/template';
                 break;
             default:
                 $path = 'dokumen';

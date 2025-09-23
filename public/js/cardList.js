@@ -13,6 +13,14 @@ function cardComponent(data, options = {}) {
     if(data.periode && data.is_have_tld && data.is_zerocek) {
         htmlPeriode += ' + Zero cek';
     }
+    let htmlCatatan = ``;
+    if(data.note) {
+        htmlCatatan += `
+            <div class="alert alert-danger mt-2 py-1 px-2 fs-8 mb-0">
+                <i class="bi bi-exclamation-triangle"></i> Catatan: ${data.note}
+            </div>
+        `;
+    }
     const elementList = `
         <div class="card mb-2">
             <div class="card-body row align-items-center py-2 position-relative">
@@ -35,6 +43,9 @@ function cardComponent(data, options = {}) {
                         ${data.created_at ? `<span><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</span>` : ''}
                         ${data.kontrak ? `<div><i class="bi bi-file-text"></i> ${data.kontrak}</div>` : ''}
                     </div>
+
+                    <!-- Catatan -->
+                    ${htmlCatatan}
                 </div>
                 <div class="col-6 col-md-3 text-end ms-auto" data-id='${data.id}'>
                     ${options.btnAction ?? ''}

@@ -9,6 +9,14 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+  * @method \Illuminate\Support\Collection<int,string> getRoleNames()
+  * @method bool hasRole(string|array $roles)
+  * @method bool hasAnyRole(string|array $roles)
+  * @method bool hasAllRoles(array $roles)
+  *
+  * @property-read \Illuminate\Database\Eloquent\Collection<int,\Spatie\Permission\Models\Role> $roles
+  */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
@@ -60,7 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function getUserHashAttribute()
     {
-        return encryptor($this->id);
+        return $this->id ? encryptor($this->id) : null;
     }
 
     public function getSatuankerjaAttribute()
@@ -89,6 +97,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
     }
     public function profile(){
-        return $this->hasOne(profile::class, 'user_id', 'id');
+        return $this->hasOne(Profile::class, 'user_id', 'id');
     }
 }

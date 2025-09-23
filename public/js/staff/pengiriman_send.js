@@ -183,7 +183,7 @@ function load_form() {
                         <input class="form-check-input me-2" type="checkbox"
                             data-jenis="tld" data-id="${informasi.permohonan_hash ?? ''}"
                             id="selectDocumentTld" name="selectDocument" onclick="updateSelectDocument()" ${checkedTld}>
-                        <span class="fw-semibold fs-6">TLD Periode ${periodeTld === false ? 'Pengembalian' : periodeTld}</span>
+                        <span class="fw-semibold fs-6">TLD Periode ${periode_aktif.status === 2 ? 'Pengembalian' : periodeTld}</span>
                         <small class="text-body-tertiary"> - ${informasi.jumlah_pengguna} Pengguna + ${informasi.jumlah_kontrol} Kontrol</small>
                         <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? status_tld.status : false)}</small>
                     </div>

@@ -35,10 +35,6 @@ class Log_permohonan extends Model
 
     public function getLogPermohonanHashAttribute()
     {
-        return encryptor($this->id);
-    }
-
-    public function media(){
-        return $this->belongsTo(tbl_media::class, 'file', 'id');
+        return $this->id ? encryptor($this->id) : null;
     }
 }

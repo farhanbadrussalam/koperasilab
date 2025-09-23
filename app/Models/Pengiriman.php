@@ -58,7 +58,7 @@ class Pengiriman extends Model
 
     public function getPermohonanHashAttribute()
     {
-        return encryptor($this->id_permohonan);
+        return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
     }
 
     public function permohonan()

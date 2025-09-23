@@ -33,6 +33,6 @@ class Master_radiasi extends Model
 
     public function getRadiasiHashAttribute()
     {
-        return encryptor($this->id_radiasi);
+        return $this->id_radiasi ? encryptor($this->id_radiasi) : null;
     }
 }

@@ -19,8 +19,8 @@
                     <div>{{ $penyelia->permohonan->jenis_layanan->name ?? '-' }}</div>
                 </div>
                 <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Pengguna</label>
-                    <div>{{ $penyelia->permohonan->jumlah_pengguna ?? '-' }}</div>
+                    <label class="fw-bolder">Jumlah</label>
+                    <div>{{ $penyelia->permohonan->jumlah_pengguna . ' Pengguna + ' . $penyelia->permohonan->jumlah_kontrol . ' Kontrol'  }}</div>
                 </div>
                 <div class="col-md-6 col-12">
                     <label class="fw-bolder">Tipe Kontrak</label>

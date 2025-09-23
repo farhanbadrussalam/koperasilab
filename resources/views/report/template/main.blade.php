@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,17 +6,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title }}</title>
-    @include('report.template.style')
+    {{-- CKEditor --}}
+    {{-- @include('report.template.style') --}}
+    {{-- @include('report.template.style-main') --}}
     @yield('style')
 </head>
 
 <body>
 
     @yield('header')
+    @yield('footer')
 
     <main class="main">
         @yield('content')
     </main>
+
 
     {{-- @include('report.template.footer') --}}
 </body>

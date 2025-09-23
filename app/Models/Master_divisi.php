@@ -40,7 +40,7 @@ class Master_divisi extends Model
 
     public function getDivisiHashAttribute()
     {
-        return encryptor($this->id_divisi);
+        return $this->id_divisi ? encryptor($this->id_divisi) : null;
     }
 
     public function perusahaan()

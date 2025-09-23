@@ -6,12 +6,11 @@
     $pengembalianEnd = '';
     if(!$periode2Next || !$isSewa){
         $startDate = new DateTime($periodeNow->end_date);
-        $startDate->modify('+4 months');
-        $startDate->modify('first day of this month');
+        // $startDate->modify('first day of this month');
+        $startDate->modify('first day of +4 months');
 
         $endDate = clone $startDate;
-        $endDate->modify('+2 months');
-        $endDate->modify('last day of this month');
+        $endDate->modify('last day of +2 months');
 
         $pengembalianStart = $startDate->format('Y-m-d');
         $pengembalianEnd = $endDate->format('Y-m-d');
