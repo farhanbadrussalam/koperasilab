@@ -70,7 +70,7 @@ if (!function_exists('notifikasi')) {
 
 if(!function_exists('unmask')){
     function unmask($data){
-        $regMask = ['.', ',','-'];
+        $regMask = ['.', ',','-', '_'];
         $unmaskedAmount = str_replace($regMask, '', $data);
 
         return $unmaskedAmount;
