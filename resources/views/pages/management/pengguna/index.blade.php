@@ -10,8 +10,7 @@
                             <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i
                                     class="bi bi-arrow-clockwise"></i> Refresh data</button>
                         </div>
-                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#modal-add-pengguna"><i class="bi bi-plus"></i> Create Pengguna</button>
+                        <button class="btn btn-primary btn-sm" onclick="tambahPengguna()"><i class="bi bi-plus"></i> Create Pengguna</button>
                     </div>
                     <div class="mb-3" id="list-filter"></div>
                     <div class="row mt-2">

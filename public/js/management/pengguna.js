@@ -1,9 +1,5 @@
 let datatable_ = false;
 let filterComp = false;
-let ktpPenggunaUpload = false;
-const optionsUploadKTP = {
-    allowedFileExtensions: ['jpg', 'jpeg', 'png']
-}
 $(function () {
     filterComp = new FilterComponent('list-filter', {
         jenis: 'pengguna',
@@ -42,84 +38,6 @@ $(function () {
     datatable_.on('draw.dt', function () {
         showPopupReload();
     });
-
-    // set dropify
-    // setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
-    ktpPenggunaUpload = new UploadComponent('uploadKtpPengguna', {
-        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
-        camera: false,
-        multiple: false,
-        preview: {
-            fullwidth: true,
-            height: 300
-        }
-    })
-
-    $('#tanggal_lahir').flatpickr({
-        enableTime: false,
-        dateFormat: "Y-m-d"
-    });
-
-    // Event
-    $('#btn-tambah-pengguna').on('click', obj => {
-        spinner('show', obj.target);
-        if(!formValidate.validate()){
-            return spinner('hide', obj.target);
-        }
-        const imageKtp = ktpPenggunaUpload.getData();
-
-        // cek dropify ada gambar
-        if(imageKtp.length === 0){
-            Swal.fire({
-                icon: 'warning',
-                title: 'Oops...',
-                text: 'Data berikut masih kosong: KTP Pengguna'
-            })
-            return spinner('hide', obj.target);
-        }
-
-        const namaPengguna = $('#nama_pengguna').val();
-        const divisiPengguna = $('#divisi_pengguna').val();
-        const jenisRadiasi = $('#jenis_radiasi').val();
-        // const imageKtp = $('#uploadKtpPengguna')[0].files[0];
-        const nikPengguna = $('#nik_pengguna').val();
-        const jenisKelamin = $('#jenis_kelamin').val();
-        const tanggalLahir = $('#tanggal_lahir').val();
-        const tempatLahir = $('#tempat_lahir').val();
-        const kodeLencana = $('#kode_lencana').val();
-        const isAktif = $('#is_aktif').is(':checked') ? 1 : 0;
-
-        const formData = new FormData();
-        formData.append('nik', nikPengguna);
-        formData.append('kode_lencana', kodeLencana);
-        formData.append('is_aktif', isAktif);
-        formData.append('jenis_kelamin', jenisKelamin);
-        formData.append('tanggal_lahir', tanggalLahir);
-        formData.append('tempat_lahir', tempatLahir);
-        formData.append('ktp', imageKtp[0].file);
-        formData.append('name', namaPengguna);
-        formData.append('divisi', divisiPengguna);
-        formData.append('radiasi', JSON.stringify(jenisRadiasi));
-
-        ajaxPost(`api/v1/pengguna/action`, formData, result => {
-            if (result.meta.code == 200) {
-                Swal.fire({
-                    icon: "success",
-                    text: result.data.msg,
-                });
-                reload();
-                spinner('hide', obj.target);
-                $('#modal-add-pengguna').modal('hide');
-            } else {
-                Swal.fire({
-                    icon: "error",
-                    text: result.data.msg,
-                });
-            }
-        }, error => {
-            spinner('hide', obj.target);
-        })
-    });
 })
 
 function btnDelete(obj) {
@@ -142,7 +60,3 @@ function btnDelete(obj) {
 function reload() {
     datatable_.ajax.reload();
 }
-
-$('#modal-add-pengguna').on('hidden.bs.modal', event => {
-    ktpPenggunaUpload.addData([]);
-});

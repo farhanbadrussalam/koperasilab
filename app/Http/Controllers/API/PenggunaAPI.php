@@ -22,6 +22,7 @@ use Auth;
 class PenggunaAPI extends Controller
 {
     use RestApi;
+    protected $media, $log;
 
     public function __construct() {
         $this->media = new MediaController();
@@ -78,7 +79,15 @@ class PenggunaAPI extends Controller
                 }
             }
 
-            $file_ktp = $this->media->upload($ktp, 'pengguna');
+            if($ktp) {
+                $file_ktp = $this->media->upload($ktp, 'pengguna');
+
+                if($id){
+                    $idMedia = Master_pengguna::select('ktp')->where('id_pengguna', $id)->first();
+                    $this->media->destroy($idMedia->ktp);
+                }
+            }
+
 
             $params = array();
 
@@ -86,7 +95,7 @@ class PenggunaAPI extends Controller
             $posisi && $params['id_divisi'] = $posisi;
             $radiasi && $params['id_radiasi'] = $radiasi;
             $ktp && $params['ktp'] = $file_ktp->getIdMedia();
-            $nik && $params['nik'] = $nik;
+            $nik && $params['nik'] = unmask($nik);
             $kodeLencana && $params['kode_lencana'] = str_pad($kodeLencana, 3, '0', STR_PAD_LEFT);
             $jenisKelamin && $params['jenis_kelamin'] = $jenisKelamin;
             $tanggalLahir && $params['tanggal_lahir'] = $tanggalLahir;
@@ -105,7 +114,7 @@ class PenggunaAPI extends Controller
                 $params
             );
 
-            $file_ktp->store();
+            $ktp && $file_ktp->store();
 
             DB::commit();
             return $this->output(array('msg' => 'Pengguna Behasil ditambahkan', 'id' => encryptor($pengguna->id_pengguna)), 200);
@@ -121,7 +130,7 @@ class PenggunaAPI extends Controller
         DB::beginTransaction();
         try {
             $id = decryptor($id);
-            $data = Master_pengguna::with('media_ktp', 'perusahaan')->find($id);
+            $data = Master_pengguna::with('media_ktp', 'perusahaan', 'divisi')->find($id);
 
             // mengambil radiasi dari master_radiasi
             $arr = array();

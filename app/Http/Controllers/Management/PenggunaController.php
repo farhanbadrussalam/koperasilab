@@ -97,11 +97,15 @@ class PenggunaController extends Controller
                 $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
                 $btn = '<div class="btn-group">';
                 $btn .= '<a class="btn btn-sm btn-outline-secondary show-popup-image" href="' . $fileKtp. '"><i class="bi bi-file-person-fill"></i></a>';
-                $type == 'selected' ? '' : $btn .= '<a href="#" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></a>';
+
 
                 if ($type == 'selected') {
                     $btn .= '<button class="btn btn-sm btn-outline-primary" data-id="' . $row->pengguna_hash . '" onclick="btnPilih(this)"><i class="bi bi-check"></i> Pilih</button>' ;
                 } else {
+                    if($row->status != 3){
+                        $btn .= '<button onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></button>';
+                    }
+
                     if($row->status == 1){
                         $btn .= '<button class="btn btn-sm btn-outline-danger" data-id="' . $row->pengguna_hash . '" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>';
                     }
