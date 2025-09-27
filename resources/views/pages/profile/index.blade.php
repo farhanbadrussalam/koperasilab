@@ -46,7 +46,9 @@
                                             <div class="flex-fill">
                                                 <label for="nik_pic" class="form-label">NIK</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2 maskNIK" id="nik_pic" name="nik_pic" placeholder="" disabled autocomplete="true">
+                                                    <input type="text" class="form-control me-2 maskNIK" id="nik_pic" name="nik_pic" placeholder=""
+                                                        data-parsley-errors-container="#message-nik_pic"
+                                                        disabled autocomplete="true" required>
                                                     <div id="btnEditDiv-nik_pic" class="d-block" data-field="nik_pic">
                                                         <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
                                                     </div>
@@ -55,6 +57,7 @@
                                                         <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
                                                     </div>
                                                 </div>
+                                                <div id="message-nik_pic" class="invalid-feedback d-block"></div>
                                             </div>
                                         </div>
                                         <div class="d-flex mb-2">
@@ -161,23 +164,30 @@
                                                 <label for="idPerusahaan" class="form-label">Nama instansi</label>
                                                 <div class="d-flex align-items-center">
                                                     <div class="w-100 me-2">
-                                                        <select name="idPerusahaan" class="form-select" id="idPerusahaan" disabled></select>
+                                                        {{-- <select name="idPerusahaan" class="form-select" id="idPerusahaan" disabled></select> --}}
+                                                        <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" placeholder=""
+                                                            data-parsley-required-message="Nama instansi harus diisi"
+                                                            data-parsley-errors-container="#message-nama_perusahaan"
+                                                            required disabled>
                                                     </div>
-                                                    <div id="btnEditDiv-idPerusahaan" class="d-block" data-field="idPerusahaan">
-                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
+                                                    <div id="btnEditDiv-nama_perusahaan" class="d-block" data-field="nama_perusahaan">
+                                                        <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
                                                     </div>
-                                                    <div id="btnActionDiv-idPerusahaan" class="d-none d-flex" data-field="idPerusahaan">
-                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this)"><i class="bi bi-x"></i></button>
-                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this)"><i class="bi bi-check"></i></button>
+                                                    <div id="btnActionDiv-nama_perusahaan" class="d-none d-flex" data-field="nama_perusahaan">
+                                                        <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
+                                                        <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
                                                     </div>
                                                 </div>
+                                                <div id="message-nama_perusahaan" class="invalid-feedback d-block"></div>
                                             </div>
                                         </div>
                                         <div class="d-flex mb-2">
                                             <div class="flex-fill">
                                                 <label for="email" class="form-label">E-mail</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2" id="email" name="email" placeholder="" disabled>
+                                                    <input type="email" class="form-control me-2" id="email" name="email" placeholder=""
+                                                        data-parsley-errors-container="#message-email"
+                                                        disabled>
                                                     <div id="btnEditDiv-email" class="d-block" data-field="email">
                                                         <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
                                                     </div>
@@ -186,6 +196,7 @@
                                                         <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
                                                     </div>
                                                 </div>
+                                                <div id="message-email" class="invalid-feedback d-block"></div>
                                             </div>
                                         </div>
                                         <div class="d-flex mb-2">

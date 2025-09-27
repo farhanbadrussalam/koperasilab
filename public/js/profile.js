@@ -1,39 +1,5 @@
 let signaturePad;
 $(function() {
-    $('#idPerusahaan').select2({
-        theme: "bootstrap-5",
-        tags: true,
-        createTag: function(params) {
-            return {
-                id: params.term,   // Nilai yang akan disimpan
-                text: params.term, // Text yang ditampilkan
-                newTag: true       // Penanda bahwa ini adalah input baru
-            }
-        },
-        ajax: {
-            url: `${base_url}/api/v1/profile/list/perusahaan`,
-            dataType: 'json',
-            type: 'GET',
-            delay: 250,
-            data: function(params) {
-                let queryParams = {
-                    search: params.term
-                }
-                return queryParams;
-            },
-            processResults: function (data) {
-                return {
-                    results: $.map(data.data, function (item) {
-                        return {
-                            text: item.nama_perusahaan,
-                            id: item.perusahaan_hash
-                        }
-                    })
-                };
-            }
-        }
-    })
-
     loadForm(profile);
 
     $('#btn-upload-ttd').click(function() {
@@ -98,14 +64,6 @@ $(function() {
 function loadForm(data) {
     // Menetapkan default value (pastikan ID ada dalam opsi yang dimuat)
     if(data.perusahaan){
-        let defaultData = {
-            id: data.perusahaan.perusahaan_hash, // ID default yang ingin di-set
-            text: data.perusahaan.nama_perusahaan // Label default
-        };
-
-        // Tambahkan opsi default ke Select2
-        let newOption = new Option(defaultData.text, defaultData.id, true, true);
-        $('#idPerusahaan').append(newOption).trigger('change');
         if(data.perusahaan.kode_perusahaan){
             $('#kode_instansi').removeClass('text-danger border-danger');
             $('#kode_instansi').addClass('text-success border-success');
@@ -126,6 +84,7 @@ function loadForm(data) {
     $('#telepon').val(data.profile.no_hp ? data.profile.no_hp : '-');
     $('#jenis_kelamin').val(data.profile.jenis_kelamin);
     $('#alamat_pic').html(data.profile.alamat ? data.profile.alamat : '-');
+    $('#nama_perusahaan').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
     isPassword ? $('#form-old-password').removeClass('d-none') : $('#form-old-password').addClass('d-none');
 
     document.getElementById('show-ttd').innerHTML = '';
@@ -285,6 +244,9 @@ function batalEdit(obj, tab){
     } else {
         $(`#${inputId}`).attr('disabled', true);
         $(`#${inputId}`).val($(`#btnActionDiv-${inputId}`).data('tmpvalue'));
+        $(`#${inputId}`).parsley().reset();
+        $(`#${inputId}`).removeClass('is-valid is-invalid');
+        $(`#message-${inputId}`).html('');
     }
 }
 
@@ -310,6 +272,13 @@ function simpanEdit(obj, tab){
         $(`#btnEditDiv-${inputId}`).addClass('d-block').removeClass('d-none');
         $(`#btnActionDiv-${inputId}`).addClass('d-none').removeClass('d-block');
     } else{
+        let inputParsley = $(`#${inputId}`).parsley();
+        if(inputParsley){
+            inputParsley.validate();
+            if(!inputParsley.isValid()){
+                return;
+            }
+        }
         spinObj = $(obj).parent().parent().parent().children('label');
         const value = $(`#${inputId}`).val();
 
@@ -322,7 +291,6 @@ function simpanEdit(obj, tab){
 
         if(tab == 'instansi'){
             formParams.append('idPerusahaan', profile.perusahaan?.perusahaan_hash);
-
             ajaxPost(`api/v1/profile/action/perusahaan`, formParams, result => {
                 spinner('hide', $(spinObj));
                 // change form to canedit
@@ -330,6 +298,7 @@ function simpanEdit(obj, tab){
                 // change button to Edit
                 $(`#btnEditDiv-${inputId}`).addClass('d-block').removeClass('d-none');
                 $(`#btnActionDiv-${inputId}`).addClass('d-none').removeClass('d-block');
+                $(`#${inputId}`).removeClass('is-valid is-invalid');
             }, error => {
                 spinner('hide', $(spinObj));
             })
@@ -345,6 +314,7 @@ function simpanEdit(obj, tab){
                 // change button to Edit
                 $(`#btnEditDiv-${inputId}`).addClass('d-block').removeClass('d-none');
                 $(`#btnActionDiv-${inputId}`).addClass('d-none').removeClass('d-block');
+                $(`#${inputId}`).removeClass('is-valid is-invalid');
             }, error => {
                 spinner('hide', $(spinObj));
             })
