@@ -25,7 +25,8 @@ class UploadComponent {
                 width: options.preview?.width ?? 100,
                 height: options.preview?.height ?? 100,
                 fullwidth: options.preview?.fullwidth ?? false
-            }
+            },
+            form: options.form ?? false
         }
         this.idElement = idElement;
         this.listFile = options.data ?? [];
@@ -68,7 +69,11 @@ class UploadComponent {
     }
 
     getData(){
-        return this.listFile;
+        if(this.options.form){
+            return $(`#uploadFile_${this.id}`)[0].files[0] ?? null;
+        } else {
+            return this.listFile;
+        }
     }
 
     addData(data) {
@@ -284,7 +289,7 @@ class UploadComponent {
         div1.className = `d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border mb-2 w-100`;
 
         const linkMedia = document.createElement('a');
-        linkMedia.className = 'd-flex align-items-center w-100';
+        linkMedia.className = 'd-flex align-items-center w-100 text-decoration-none';
         if(file.file_result){
             const url = window.URL.createObjectURL(new Blob([file.file_result], {type: 'application/pdf'}));
             linkMedia.href = url;
@@ -302,7 +307,7 @@ class UploadComponent {
         divImg.append(img);
 
         const divDesc = document.createElement('div');
-        divDesc.className = 'flex-grow-1 ms-2 d-flex flex-column pe-3';
+        divDesc.className = 'flex-grow-1 ms-2 d-flex flex-column pe-3 text-break';
         divDesc.innerHTML = `
             <span class="caption text-main">${file.file_ori}</span>
         `;
@@ -338,6 +343,7 @@ class UploadComponent {
 
             const inputFile = document.createElement('input');
             inputFile.type = 'file';
+            inputFile.name = 'uploadFile';
             inputFile.classList.add('form-control');
             inputFile.id = `uploadFile_${this.id}`;
             inputFile.accept = this.allowedFileExtensions();
@@ -351,7 +357,9 @@ class UploadComponent {
             btnTambah.textContent = 'Tambah';
             btnTambah.type = 'button';
             btnTambah.onclick = this.tambah.bind(this);
-            inputGroup.appendChild(btnTambah);
+            if(this.options.form == false) {
+                inputGroup.appendChild(btnTambah);
+            }
 
             // Tombol Kamera
             const btnKamera = document.createElement('button');
@@ -406,7 +414,9 @@ class UploadComponent {
         const listPreview = document.createElement('div');
         listPreview.id = `listPreview_${this.id}`;
         listPreview.classList.add('mt-2', 'd-flex', 'column-gap-2', 'flex-wrap');
-        container.appendChild(listPreview);
+        if(this.options.form == false) {
+            container.appendChild(listPreview);
+        }
 
         return container;
     }

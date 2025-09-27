@@ -652,7 +652,7 @@ function unmask(data) {
  * @param {Function} [callback=() => {}] - The function to call if the request is successful.
  * @param {Function} [onError=() => {}] - The function to call if the request fails.
  */
-function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgress = false) {
+function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgress = false, onMiddleware = true) {
     params.append('_token', csrf);
     let xhr = onProgress ? {xhr: onProgress} : false;
     $.ajax({
@@ -661,9 +661,9 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgre
         dataType: 'json',
         processData: false,
         contentType: false,
-        headers: {
+        headers: onMiddleware ? {
             'Authorization': `Bearer ${bearer}`
-        },
+        } : {},
         data: params,
         ...xhr
     }).done(callback).fail(error => {
@@ -705,16 +705,16 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgre
  * @param {Function} [callback=() => {}] - The function to call if the request is successful.
  * @param {Function} [onError=() => {}] - The function to call if the request fails.
  */
-function ajaxGet(url, params, callback = () => {}, onError = () => {}) {
+function ajaxGet(url, params, callback = () => {}, onError = () => {}, onMiddleware = true) {
     $.ajax({
         method: 'GET',
         url: `${base_url}/${url}`,
         dataType: 'json',
         processData: true,
-        headers: {
+        headers: onMiddleware ? {
             'Authorization': `Bearer ${bearer}`,
             'Content-Type': 'application/json'
-        },
+        } : {},
         data: params
     }).done(callback).fail(error => {
         const result = error.responseJSON;
@@ -1225,4 +1225,15 @@ function isReminderPeriod(period, offset, hNow = null, unit = "month") {
   beforePeriod.setDate(beforePeriod.getDate() - 1);
 
   return now >= hMinus && now <= beforePeriod;
+}
+
+function showPassword(obj) {
+    const x = $(obj).parent().children('input');
+    if (x[0].type === "password") {
+        x[0].type = "text";
+        obj.innerHTML = '<i class="bi bi-eye-slash"></i>';
+    } else {
+        x[0].type = "password";
+        obj.innerHTML = '<i class="bi bi-eye"></i>';
+    }
 }

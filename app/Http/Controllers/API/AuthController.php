@@ -3,9 +3,13 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Perusahaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Traits\RestApi;
+
+use App\Models\Profile;
+use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -45,5 +49,33 @@ class AuthController extends Controller
         }
 
         return $this->output($tmp);
+    }
+
+    public function search_akun(Request $request){
+        $search = unmask($request->search);
+        $data = Profile::where('nik', $search)->first();
+
+        if($data == null){
+            return $this->output(['message' => 'Data not found'], 'Fail', 200);
+        }
+
+        return $this->output($data);
+    }
+
+    public function checkEmail(Request $request){
+        $email = $request->email;
+        $jenis = $request->jenis;
+
+        if($jenis == 'user'){
+            $data = User::where('email', $email)->first();
+        } else {
+            $data = Perusahaan::where('email', $email)->first();
+        }
+
+        if($data == null){
+            return $this->output(['message' => 'Data not found'], 'Fail', 200);
+        }
+
+        return $this->output($data);
     }
 }

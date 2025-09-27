@@ -17,10 +17,16 @@
                 {{ __('Before proceeding, please check your email for a verification link.') }}
                 {{ __('If you did not receive the email') }}
                 <br><br>
-                <form class="d-inline" method="POST" action="{{ route('verification.send') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-primary p-0 m-0 w-100">{{ __('click here to request another') }}</button>
-                </form>
+                <div class="d-flex flex-column">
+                    <form class="d-inline" method="POST" action="{{ route('verification.send') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-primary p-0 m-0 w-100">{{ __('click here to request another') }}</button>
+                    </form>
+                    <form class="d-inline" method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="btn btn-link p-0 m-0 w-100 text-danger">{{ __('Log Out') }}</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

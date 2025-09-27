@@ -150,6 +150,9 @@ class MediaController extends Controller
             case 'document':
                 $path = 'dokumen/template';
                 break;
+            case 'surat_kuasa':
+                $path = 'dokumen/surat_kuasa';
+                break;
             default:
                 $path = 'dokumen';
                 break;

@@ -9,6 +9,7 @@ use App\Models\Profile;
 use App\Models\Perusahaan;
 use App\Models\Master_alamat;
 
+use App\Traits\RestApi;
 use App\Http\Controllers\MediaController;
 
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -32,6 +33,7 @@ class RegisterController extends Controller
     */
 
     use RegistersUsers;
+    use RestApi;
 
     /**
      * Where to redirect users after registration.
@@ -39,6 +41,8 @@ class RegisterController extends Controller
      * @var string
      */
     protected $redirectTo = RouteServiceProvider::HOME;
+
+    protected $mediaController;
 
     /**
      * Create a new controller instance.
@@ -60,19 +64,8 @@ class RegisterController extends Controller
     protected function validator(array $data)
     {
         $arrValidation = [
-            'nama_instansi' => ['required', 'string', 'max:255'],
-            'alamat_instansi' => ['required'],
-            'email_instansi' => ['required', 'string', 'email', 'max:255'],
-            'kode_pos' => ['required'],
-            'nama_pic' => ['required', 'string', 'max:255'],
-            'nik' => ['required'],
-            'telepon' => ['required'],
-            'jenis_kelamin' => ['required'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
             // 'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',//|max:2048
             'g-recaptcha-response' => ['required', 'captcha'],
-            'alamat' => ['required'],
         ];
 
         $arrMessage = messageSanity($arrValidation);
@@ -94,45 +87,45 @@ class RegisterController extends Controller
     {
         // Pengecekan Instansi
         $dataPerusahaan = false;
-        $idPerusahaan = decryptor($data['nama_instansi']);
 
         DB::beginTransaction();
         try {
-            if(!$idPerusahaan) {
-                $dataPerusahaan = Perusahaan::create([
-                    'nama_perusahaan' => $data['nama_instansi'],
-                    'npwp_perusahaan' => $data['npwp'],
-                    'email' => $data['email_instansi'],
-                    'status' => 1
-                ]);
+            // upload Surat Kuasa
+            $suratKuasa = $this->mediaController->upload($data['uploadFile'], 'surat_kuasa');
 
-                $idPerusahaan = $dataPerusahaan->id_perusahaan;
+            $dataPerusahaan = Perusahaan::create([
+                'nama_perusahaan' => $data['nama_instansi'],
+                'npwp_perusahaan' => $data['npwp'],
+                'email' => $data['email_instansi'],
+                'status' => 1,
+                'surat_kuasa' => $suratKuasa->getIdMedia()
+            ]);
 
-                // set alamat
-                $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
+            $idPerusahaan = $dataPerusahaan->id_perusahaan;
 
-                $arrAlamat = array();
+            // set alamat
+            $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
+
+            $arrAlamat = array();
+            $arrAlamat[] = array(
+                'id_perusahaan' => $idPerusahaan,
+                'jenis' => 'Utama',
+                'status' => 1,
+                'alamat' => $data['alamat_instansi'],
+                'kode_pos' => $data['kode_pos']
+            );
+            foreach ($arrJenisAlamat as $value) {
                 $arrAlamat[] = array(
                     'id_perusahaan' => $idPerusahaan,
-                    'jenis' => 'Utama',
-                    'status' => 1,
-                    'alamat' => $data['alamat_instansi'],
-                    'kode_pos' => $data['kode_pos']
+                    'jenis' => $value,
+                    'status' => 0,
+                    'alamat' => null,
+                    'kode_pos' => null
                 );
-                foreach ($arrJenisAlamat as $key => $value) {
-                    $arrAlamat[] = array(
-                        'id_perusahaan' => $idPerusahaan,
-                        'jenis' => $value,
-                        'status' => 0,
-                        'alamat' => null,
-                        'kode_pos' => null
-                    );
-                }
-
-                Master_alamat::insert($arrAlamat);
-            } else {
-                $dataPerusahaan = Perusahaan::where('id_perusahaan', $idPerusahaan)->first();
             }
+
+            Master_alamat::insert($arrAlamat);
+
             if($dataPerusahaan){
                 $user = User::create([
                     'name' => $data['nama_pic'],
@@ -143,7 +136,7 @@ class RegisterController extends Controller
                     'password' => Hash::make($data['password']),
                 ])->assignRole('Pelanggan');
 
-                $profile = Profile::create([
+                Profile::create([
                     'user_id' => $user->id,
                     'nik' => $data['nik'],
                     'no_hp' => $data['telepon'],
@@ -151,6 +144,8 @@ class RegisterController extends Controller
                     'alamat' => $data['alamat'],
                 ]);
             }
+
+            $suratKuasa->store();
 
             DB::commit();
 

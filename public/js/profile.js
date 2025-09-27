@@ -353,17 +353,6 @@ function simpanEdit(obj, tab){
     }
 }
 
-function showPassword(obj) {
-    const x = $(obj).parent().children('input');
-    if (x[0].type === "password") {
-        x[0].type = "text";
-        obj.innerHTML = '<i class="bi bi-eye-slash"></i>';
-    } else {
-        x[0].type = "password";
-        obj.innerHTML = '<i class="bi bi-eye"></i>';
-    }
-}
-
 function gantiPassword(obj) {
     const oldPassword = $('#old_password').val();
     const newPassword = $('#new_password').val();

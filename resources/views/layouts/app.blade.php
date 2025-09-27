@@ -26,6 +26,13 @@
     <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
 
+    <link rel="stylesheet" href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}"/>
+    <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
+
+    {{-- Parsley --}}
+    <script src="{{ asset('vendor/parsley/parsley.min.js') }}"></script>
+    <script src="{{ asset('vendor/parsley/setting.js') }}"></script>
+
     {{-- Magnific Popup --}}
     <link rel="stylesheet" href="{{ asset('vendor/magnific/magnific-popup.css') }}">
     <script src="{{ asset('vendor/magnific/jquery.magnific-popup.min.js') }}"></script>
@@ -47,7 +54,13 @@
         </main>
     </div>
 
+    <script>
+        const csrf = "{{ csrf_token() }}";
+        const base_url = "{{ url('') }}";
+    </script>
+
     <script src="{{ asset('assets/js/global.js') }}"></script>
+    <script src="{{ asset('js/upload.js') }}"></script>
     @stack('scripts')
 </body>
 </html>

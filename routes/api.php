@@ -38,6 +38,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('v1/')->group(function() {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/encryptor', [AuthController::class, 'encryptor']);
+    Route::post('/search_akun', [AuthController::class, 'search_akun']);
+    Route::post('/check_email', [AuthController::class, 'checkEmail']);
     Route::get('/profile/list/perusahaan', [ProfileAPI::class, 'getListPerusahaan']);
 });
 
