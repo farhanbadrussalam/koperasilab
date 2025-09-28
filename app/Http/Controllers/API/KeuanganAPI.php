@@ -25,6 +25,7 @@ use DB;
 class KeuanganAPI extends Controller
 {
     use RestApi;
+    protected $media, $log, $pagination;
 
     public function __construct()
     {

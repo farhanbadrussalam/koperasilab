@@ -284,10 +284,77 @@ class ProfileAPI extends Controller
         DB::beginTransaction();
         try {
             $id = decryptor($id);
-            $query = Perusahaan::with('users', 'alamat')->where('id_perusahaan', $id)->first();
+            $query = Perusahaan::with('users', 'alamat', 'suratkuasa')->where('id_perusahaan', $id)->first();
 
             return $this->output($query, 200);
 
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function uploadSuratKuasa(Request $request)
+    {
+        $request->validate([
+            'idHash' => 'required'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $idPerusahaan = decryptor($request->idHash);
+            $file = $request->file('file');
+
+            $fileUpload = $this->media->upload($file, 'surat_kuasa');
+            $dataPerusahaan = Perusahaan::find($idPerusahaan);
+
+            if(isset($dataPerusahaan)){
+                $update = $dataPerusahaan->update(array('surat_kuasa' => $fileUpload->getIdMedia()));
+
+                DB::commit();
+
+                if($update){
+                    $fileUpload->store();
+                    // ambil media faktur
+                    $mediaFaktur = $this->media->get($fileUpload->getIdMedia());
+                    return $this->output(array('msg' => 'Surat kuasa berhasil diupload', 'data' => $mediaFaktur));
+                }
+
+                return $this->output(array('msg' => 'Surat kuasa gagal diupload'), 'Fail', 400);
+            }
+
+            return $this->output(array('msg' => 'Surat kuasa gagal diupload'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroySuratKuasa($idHash, $idMedia)
+    {
+        $idMedia = decryptor($idMedia);
+        $idHash = decryptor($idHash);
+
+        DB::beginTransaction();
+        try {
+            $idPerusahaan = $idHash;
+            $dataPerusahaan = Perusahaan::find($idPerusahaan);
+
+            if(isset($dataPerusahaan)){
+                $update = $dataPerusahaan->update(array('surat_kuasa' => null));
+                $this->media->destroy($idMedia);
+                DB::commit();
+
+                if($update){
+                    return $this->output(array('msg' => 'Surat kuasa berhasil dihapus'));
+                }
+
+                return $this->output(array('msg' => 'Surat kuasa gagal dihapus'), 'Fail', 400);
+            }
+
+            return $this->output(array('msg' => 'Surat kuasa gagal dihapus'), 'Fail', 400);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

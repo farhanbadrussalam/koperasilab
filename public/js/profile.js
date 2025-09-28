@@ -1,4 +1,5 @@
 let signaturePad;
+let _uploadSuratKuasa = false;
 $(function() {
     loadForm(profile);
 
@@ -72,6 +73,17 @@ function loadForm(data) {
             $('#kode_instansi').addClass('text-danger border-danger');
         }
     }
+    _uploadSuratKuasa = new UploadComponent("uploadSuratKuasa", {
+        allowedFileExtensions: ['pdf'],
+        camera: false,
+        multiple: false,
+        data: data.perusahaan?.suratkuasa ?? [],
+        urlUpload: {
+            url: 'api/v1/profile/uploadSuratKuasa',
+            urlDestroy: 'api/v1/profile/destroySuratKuasa',
+            idHash: data.perusahaan?.perusahaan_hash
+        }
+    });
 
     $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
     $('#kode_instansi').val(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');

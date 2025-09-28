@@ -214,6 +214,14 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="npwp" class="form-label">Surat Kuasa</label>
+                                                <div class="d-flex align-items-center">
+                                                    <div id="uploadSuratKuasa"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row mt-2" id="form-alamat-perusahaan">

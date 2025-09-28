@@ -49,4 +49,8 @@ class Perusahaan extends Model
     public function users(){
         return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
     }
+
+    public function suratkuasa(){
+        return $this->hasMany(Master_media::class, 'id', 'surat_kuasa');
+    }
 }

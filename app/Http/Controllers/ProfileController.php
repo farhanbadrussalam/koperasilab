@@ -26,7 +26,7 @@ class ProfileController extends Controller
 
     public function index()
     {
-        $profile = user::with('profile', 'perusahaan', 'perusahaan.alamat')->where('id', decryptor(Auth::user()->user_hash))->first();
+        $profile = user::with('profile', 'perusahaan', 'perusahaan.alamat', 'perusahaan.suratkuasa')->where('id', decryptor(Auth::user()->user_hash))->first();
 
         if($profile) {
             $isPassword = $profile->password == null ? false : true;

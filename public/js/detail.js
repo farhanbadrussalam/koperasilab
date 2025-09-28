@@ -19,7 +19,8 @@ class Detail {
                 proses: options.tab.proses ?? false,
                 // Perusahaan
                 alamat: options.tab.alamat ?? false,
-                karyawan: options.tab.karyawan ?? false
+                karyawan: options.tab.karyawan ?? false,
+                surat_kuasa: options.tab.surat_kuasa ?? false
             },
             activeTab: options.activeTab ?? false
         }
@@ -177,7 +178,8 @@ class Detail {
                     email: this.data.email ?? '-',
                     alamat: this.data.alamat ?? [],
                     jenisStatus: 'perusahaan',
-                    karyawan: this.data.users ?? []
+                    karyawan: this.data.users ?? [],
+                    suratkuasa: this.data?.suratkuasa ?? []
                 }
                 break;
             default:
@@ -477,7 +479,8 @@ class Detail {
         this.options.tab.proses && (tabs.proses = { title: 'Proses Penyelia', content: this.createProsesContent() });
 
         this.options.tab.alamat && (tabs.alamat = { title: 'Alamat', content: this.createAlamatContent() });
-        this.options.tab.karyawan && (tabs.karyawan = { title: `Karyawan (${this.info?.karyawan?.length ?? 0})`, content: this.createKaryawanContent() });
+        this.options.tab.karyawan && (tabs.karyawan = { title: `PIC (${this.info?.karyawan?.length ?? 0})`, content: this.createKaryawanContent() });
+        this.options.tab.surat_kuasa && (tabs.surat_kuasa = { title: 'Surat Kuasa', content: this.createSuratKuasaContent() });
 
         let htmlTabNav = '';
 
@@ -738,6 +741,30 @@ class Detail {
                 }).join('')}
             </ul>
         `;
+    }
+    createSuratKuasaContent() {
+        let dokumen = this.info.suratkuasa;
+        if(dokumen.length > 0){
+            return `
+                <div class="card mb-1">
+                    <div class="card-body p-1 px-3 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-3">
+                            <div>
+                                <span class="fw-bolder">${dokumen[0].file_ori}</span>
+                                <div class="text-body-secondary">
+                                    <small>${dateFormat(dokumen[0].created_at, 4)}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <a type="button" class="btn btn-sm btn-outline-primary" target="_blank" href="${base_url}/storage/${dokumen[0].file_path}/${dokumen[0].file_hash}">Lihat</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada surat kuasa</p>';
+        }
     }
     createTldContent() {
         let listTld = [];
