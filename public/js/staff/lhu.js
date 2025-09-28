@@ -140,10 +140,10 @@ function loadData(page = 1) {
                         if(filterPeriodeNext[0].tld_in_periode && filterPeriodeNext[0].tld_in_periode[0].status == 5 || reminderPeriod){
                             btnAction += btnUpdateProgress;
                         } else {
-                            btnAction += showPenyimpanan;
+                            btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
                         }
                     } else {
-                        btnAction += showPenyimpanan;
+                        btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
                     }
                 }
             }
