@@ -293,6 +293,8 @@ function simpanEdit(obj, tab){
                 return;
             }
         }
+        if(inputId == 'nik_pic'){}
+
         spinObj = $(obj).parent().parent().parent().children('label');
         const value = $(`#${inputId}`).val();
 
@@ -320,6 +322,15 @@ function simpanEdit(obj, tab){
             formParams.append('idProfile', profile.user_hash);
 
             ajaxPost(`api/v1/profile/action`, formParams, result => {
+                if(result.meta.message == 'Fail'){
+                    spinner('hide', $(spinObj));
+                    Swal.fire({
+                        icon: 'warning',
+                        text: result.data.msg
+                    });
+                    return;
+                }
+
                 profile = result.data;
                 loadForm(profile);
                 spinner('hide', $(spinObj));

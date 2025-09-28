@@ -4,10 +4,7 @@ $(function () {
     loadData();
     detail = new Detail({
         jenis: 'kontrak',
-        tab: {
-            pengguna: true,
-            tld: true
-        }
+        tab: {}
     });
 
     filterComp = new FilterComponent('list-filter', {

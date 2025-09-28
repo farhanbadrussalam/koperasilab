@@ -147,8 +147,6 @@ class KontrakAPI extends Controller
         DB::beginTransaction();
         try {
             $query = Kontrak::with(
-                        'pengguna',
-                        'pengguna.tld_pengguna',
                         'periode',
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',
@@ -160,10 +158,11 @@ class KontrakAPI extends Controller
                         'jenis_layanan:id_jenisLayanan,name,parent',
                         'jenis_layanan_parent',
                         'pelanggan:id,id_perusahaan,name',
-                        'pelanggan.perusahaan','pengguna.media',
+                        'pelanggan.perusahaan',
                         'pengiriman:id_pengiriman,id_kontrak,no_resi,status',
                         'pengiriman.detail',
                         'pengiriman.permohonan:id_permohonan,periode',
+                        'tld_aktif',
                     )
                     ->where('id_kontrak', $id)
                     ->first();

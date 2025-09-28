@@ -30,9 +30,10 @@
                         <div class="col-md-6 mb-2">
                             <label for="nik" class="form-label">NIK <span class="fw-bold fs-14 text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="input-nik" name="nik" placeholder="" autocomplete="true" readonly>
+                                <input type="text" class="form-control" id="input-nik" name="nik" placeholder="" autocomplete="true" readonly data-parsley-minlength-message="NIK minimal 16 karakter" minlength="16">
                                 <button type="button" class="btn btn-outline-secondary" onclick="changeNik()">Ganti</button>
                             </div>
+                            <div id="message-input-nik" class="invalid-feedback d-block"></div>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label for="email" class="form-label">Email <span class="fw-bold fs-14 text-danger">*</span></label>

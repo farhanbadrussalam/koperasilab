@@ -51,6 +51,14 @@ class ProfileAPI extends Controller
             $paramsProfile = array();
             $result = array();
 
+            // pengecekan apakah nik sudah ada atau belum
+            if ($nik) {
+                $cekNik = Profile::where('nik', $nik)->first();
+                if ($cekNik) {
+                    return $this->output(array('msg' => 'NIK sudah terdaftar'), 'Fail', 200);
+                }
+            }
+
             // Pengecekan perusahaan
             if (!$idPerusahaan) {
                 if($request->idPerusahaan){

@@ -216,7 +216,8 @@ class Detail {
 
         const hasTab = Object.values(this.options.tab).some(tab => tab);
         if (!hasTab) {
-            $('#container-detail').append(`<div class="text-center text-muted mt-3 w-100">Tidak ada tab yang ditampilkan</div>`);
+            // $('#container-detail').append(`<div class="text-center text-muted mt-3 w-100">Tidak ada tab yang ditampilkan</div>`);
+            $('#container-detail').append(``);
         } else {
             $('#container-detail').append(this.createTab());
             showPopupReload();

@@ -46,9 +46,9 @@
                                             <div class="flex-fill">
                                                 <label for="nik_pic" class="form-label">NIK</label>
                                                 <div class="d-flex align-items-center">
-                                                    <input type="text" class="form-control me-2 maskNIK" id="nik_pic" name="nik_pic" placeholder=""
+                                                    <input type="text" class="form-control me-2 maskNIK" id="nik_pic" name="nik_pic"
                                                         data-parsley-errors-container="#message-nik_pic"
-                                                        disabled autocomplete="true" required>
+                                                        disabled autocomplete="true" required data-parsley-minlength-message="NIK minimal 16 karakter" minlength="16">
                                                     <div id="btnEditDiv-nik_pic" class="d-block" data-field="nik_pic">
                                                         <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this)"><i class="bi bi-pencil"></i></button>
                                                     </div>
