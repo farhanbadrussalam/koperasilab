@@ -9,9 +9,15 @@
             <div class="row mt-3">
                 <div class="col-md-12 mb-2">
                     <div class="input-group">
-                        <input type="text" class="form-control maskNIK" placeholder="Masukan NIK Anda" autocomplete="false" id="input-cek-akun">
+                        <input type="text" class="form-control maskNIK" placeholder="Masukan NIK Anda" autocomplete="false" id="input-cek-akun"
+                            required
+                            data-parsley-minlength-message="NIK minimal 16 karakter"
+                            data-parsley-errors-container="#message-input-nik"
+                            minlength="16">
                         <button type="button" class="btn btn-primary" onclick="searchAkun(this)" id="btn-cek-akun">Cari</button>
                     </div>
+                    <div id="message-input-nik" class="invalid-feedback d-block"></div>
+
                 </div>
                 <div class="col-md-12">
                     <div><a class="btn btn-danger" href="{{ route('login') }}">Kembali</a></div>
@@ -30,10 +36,9 @@
                         <div class="col-md-6 mb-2">
                             <label for="nik" class="form-label">NIK <span class="fw-bold fs-14 text-danger">*</span></label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="input-nik" name="nik" placeholder="" autocomplete="true" readonly data-parsley-minlength-message="NIK minimal 16 karakter" minlength="16">
+                                <input type="text" class="form-control" id="input-nik" name="nik" placeholder="" autocomplete="true" readonly>
                                 <button type="button" class="btn btn-outline-secondary" onclick="changeNik()">Ganti</button>
                             </div>
-                            <div id="message-input-nik" class="invalid-feedback d-block"></div>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label for="email" class="form-label">Email <span class="fw-bold fs-14 text-danger">*</span></label>

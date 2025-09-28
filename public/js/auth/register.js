@@ -40,11 +40,10 @@ $(function () {
 function searchAkun(obj){
     let search = $('#input-cek-akun').val();
 
-    if(search.length == 0){
-        return Swal.fire({
-            icon: 'warning',
-            text: `Silahkan masukan NIK Anda terlebih dahulu`
-        });
+    let cekAkun = $('#input-cek-akun').parsley();
+    cekAkun.validate();
+    if(!cekAkun.isValid()){
+        return;
     }
     $('#alert-cek-akun').addClass('d-none');
 
