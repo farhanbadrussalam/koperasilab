@@ -774,8 +774,8 @@ class Detail {
         switch (this.options.jenis) {
             case 'permohonan':
             case 'kontrak':
-                tldKontrol = this.data.tld_kontrol ?? false;
-                tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
+                // tldKontrol = this.data.tld_kontrol ?? false;
+                // tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
                 break;
             case 'penyelia':
                 listTld = this.data.permohonan.rincian_list_tld ?? [];

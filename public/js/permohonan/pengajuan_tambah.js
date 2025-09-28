@@ -35,7 +35,7 @@ const optionsUploadKTP = {
     allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
 };
 
-let ktpPenggunaUpload = false;
+// let ktpPenggunaUpload = false;
 $(function () {
     inventoryTld = new Inventory_tld({preview: true});
     inventoryTld.on('inventory.selected', (e) => {
@@ -55,16 +55,6 @@ $(function () {
     });
 
     // setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
-
-    ktpPenggunaUpload = new UploadComponent('uploadKtpPengguna', {
-        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
-        camera: false,
-        multiple: false,
-        preview: {
-            fullwidth: true,
-            height: 300
-        }
-    });
 
 
     let htmlAlamat = '<option value="">Pilih alamat</option>';
@@ -324,86 +314,6 @@ $(function () {
         }, error => {
             spinner('hide', obj.target);
         });
-    });
-
-    $('#btn-tambah-pengguna').on('click', obj => {
-        spinner('show', obj.target);
-        if(!formValidate.validate()){
-            return spinner('hide', obj.target);
-        }
-        const imageKtp = ktpPenggunaUpload.getData();
-
-        // cek dropify ada gambar
-        if(imageKtp.length === 0){
-            Swal.fire({
-                icon: 'warning',
-                title: 'Oops...',
-                text: 'Data berikut masih kosong: KTP Pengguna'
-            })
-            return spinner('hide', obj.target);
-        }
-
-        const namaPengguna = modalNamaPengguna.val();
-        const divisiPengguna = $('#divisi_pengguna').val();
-        const jenisRadiasi = modalJenisRadiasi.val();
-        const nikPengguna = $('#nik_pengguna').val();
-        const jenisKelamin = $('#jenis_kelamin').val();
-        const tanggalLahir = $('#tanggal_lahir').val();
-        const tempatLahir = $('#tempat_lahir').val();
-        const kodeLencana = $('#kode_lencana').val();
-        const isAktif = $('#is_aktif').is(':checked') ? 1 : 0;
-
-        const formData = new FormData();
-        formData.append('nik', nikPengguna);
-        formData.append('kode_lencana', kodeLencana);
-        formData.append('is_aktif', isAktif);
-        formData.append('jenis_kelamin', jenisKelamin);
-        formData.append('tanggal_lahir', tanggalLahir);
-        formData.append('tempat_lahir', tempatLahir);
-        formData.append('ktp', imageKtp[0].file);
-        formData.append('name', namaPengguna);
-        formData.append('divisi', divisiPengguna);
-        formData.append('radiasi', JSON.stringify(jenisRadiasi));
-
-        ajaxPost(`api/v1/pengguna/action`, formData, result => {
-            if (result.meta.code == 200) {
-                Swal.fire({
-                    icon: "success",
-                    text: result.data.msg,
-                });
-                btnPilih(result.data.id);
-                spinner('hide', obj.target);
-                $('#modal-add-tld-pengguna').modal('hide');
-            } else {
-                Swal.fire({
-                    icon: "error",
-                    text: result.data.msg,
-                });
-                spinner('hide', obj.target);
-            }
-        }, error => {
-            spinner('hide', obj.target);
-        })
-    });
-
-    $('#modal-add-tld-pengguna').on('hidden.bs.modal', event => {
-        $('#nama_pengguna').val('');
-        $('#divisi_pengguna').val('');
-        $('#jenis_radiasi').val(null).trigger('change');
-        $('#noSeriPengguna').val('');
-        tmpArrTldPengguna = [];
-        // setDropify('reset', '#uploadKtpPengguna', optionsUploadKTP);
-        ktpPenggunaUpload.addData([]);
-    });
-
-    $('#btn-close-pengguna').on('click', obj => {
-        $('#modal-add-pengguna').modal('hide');
-        $('#nama_pengguna').val('');
-        $('#divisi_pengguna').val(null).trigger('change');
-        $('#jenis_radiasi').val(null).trigger('change');
-
-        ktpPenggunaUpload.addData([]);
-        $('#modal-add-tld-pengguna').modal('show');
     });
 
     $('#tanggal_lahir').flatpickr({
