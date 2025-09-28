@@ -266,42 +266,62 @@
                                                     id="old_password"
                                                     type="password"
                                                     name="old_password"
+                                                    required
+                                                    data-parsley-required-message="Password Lama harus diisi"
+                                                    data-parsley-errors-container="#error-old-password"
                                                     placeholder="Enter your old password" />
                                                 <div class="input-group-text border-0 bg-body-secondary" onclick="showPassword(this)">
                                                     <i class="bi bi-eye"></i>
                                                 </div>
-                                                <div class="invalid-feedback d-none" id="error-old-password"></div>
                                             </div>
+                                            <div class="invalid-feedback d-block" id="error-old-password"></div>
                                         </div>
-                                        <div class="mb-4 text-start">
-                                            <label for="new_password" class="form-label text-main body-medium">Password Baru</label>
-                                            <div class="input-group mb-2 mt-1">
-                                                <input
-                                                    class="form-control form-control input-login"
-                                                    id="new_password"
-                                                    type="password"
-                                                    name="new_password"
-                                                    placeholder="Enter your new password" />
-                                                <div class="input-group-text border-0 bg-body-secondary" onclick="showPassword(this)">
-                                                    <i class="bi bi-eye"></i>
+                                        <form id="form-change-password" novalidate>
+                                            <div class="mb-4 text-start">
+                                                <label for="new_password" class="form-label text-main body-medium">Password Baru</label>
+                                                <div class="input-group mb-2 mt-1">
+                                                    <input
+                                                        class="form-control form-control input-login"
+                                                        id="new_password"
+                                                        type="password"
+                                                        name="new_password"
+                                                        required
+                                                        data-parsley-trigger="input"
+                                                        data-parsley-minlength="8"
+                                                        data-parsley-lowercase="true"
+                                                        data-parsley-uppercase="true"
+                                                        data-parsley-errors-container="#error-new-password"
+                                                        placeholder="Enter your new password" />
+                                                    <div class="input-group-text border-0 bg-body-secondary" onclick="showPassword(this)">
+                                                        <i class="bi bi-eye"></i>
+                                                    </div>
                                                 </div>
+                                                <ul id="password-rules" class="mt-2 small ps-0">
+                                                </ul>
+                                                <div class="invalid-feedback d-none" id="error-new-password"></div>
                                             </div>
-                                        </div>
-                                        <div class="mb-4 text-start">
-                                            <label for="confirm_password" class="form-label text-main body-medium">Password Konfirmasi</label>
-                                            <div class="input-group mb-2 mt-1">
-                                                <input
-                                                    class="form-control form-control input-login"
-                                                    id="confirm_password"
-                                                    type="password"
-                                                    name="confirm_password"
-                                                    placeholder="Enter your confirm password" />
-                                                <div class="input-group-text border-0 bg-body-secondary rounded-end" onclick="showPassword(this)">
-                                                    <i class="bi bi-eye"></i>
+                                            <div class="mb-4 text-start">
+                                                <label for="confirm_password" class="form-label text-main body-medium">Password Konfirmasi</label>
+                                                <div class="input-group mb-2 mt-1">
+                                                    <input
+                                                        class="form-control form-control input-login"
+                                                        id="confirm_password"
+                                                        type="password"
+                                                        name="confirm_password"
+                                                        required
+                                                        data-parsley-trigger="input"
+                                                        data-parsley-equalto="#new_password"
+                                                        data-parsley-equalto-message="Konfirmasi password tidak sama."
+                                                        data-parsley-required-message="Konfirmasi password wajib diisi."
+                                                        data-parsley-errors-container="#error-confirm-password"
+                                                        placeholder="Enter your confirm password" />
+                                                    <div class="input-group-text border-0 bg-body-secondary" onclick="showPassword(this)">
+                                                        <i class="bi bi-eye"></i>
+                                                    </div>
                                                 </div>
-                                                <div class="invalid-feedback d-none" id="error-confirm-password"></div>
+                                                <div class="invalid-feedback d-block" id="error-confirm-password"></div>
                                             </div>
-                                        </div>
+                                        </form>
                                         <div class="mb-4">
                                             <button class="btn btn-primary" onclick="gantiPassword(this)">Change</button>
                                         </div>

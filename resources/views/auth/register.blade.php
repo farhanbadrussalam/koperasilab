@@ -74,18 +74,26 @@
                             <div class="input-group mb-2 mt-1">
                                 <input type="password" class="form-control" id="input-password" name="password" required
                                     data-parsley-required-message="Password harus diisi"
+                                    data-parsley-trigger="input"
+                                    data-parsley-minlength="8"
+                                    data-parsley-lowercase="true"
+                                    data-parsley-uppercase="true"
                                     data-parsley-errors-container="#password_error">
                                 <div class="input-group-text border-0 bg-body-secondary" onclick="showPassword(this)">
                                     <i class="bi bi-eye"></i>
                                 </div>
                             </div>
-                            <div id="password_error" class="invalid-feedback d-block"></div>
+                            <div id="password_error" class="invalid-feedback d-none"></div>
+                            <ul id="password-rules" class="mt-2 small ps-0" style="list-style: none;"></ul>
                         </div>
                         <div class="col-md-6 mb-2">
                             <label for="password_confirmation" class="form-label">Konfirmasi Password <span class="fw-bold fs-14 text-danger">*</span></label>
                             <div class="input-group mb-2 mt-1">
                                 <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required
-                                    data-parsley-required-message="Konfirmasi Password harus diisi"
+                                    data-parsley-trigger="input"
+                                    data-parsley-equalto="#input-password"
+                                    data-parsley-equalto-message="Konfirmasi password tidak sama."
+                                    data-parsley-required-message="Konfirmasi password wajib diisi."
                                     data-parsley-errors-container="#konfirm_password_error">
                                 <div class="input-group-text border-0 rounded-end bg-body-secondary" onclick="showPassword(this)">
                                     <i class="bi bi-eye"></i>

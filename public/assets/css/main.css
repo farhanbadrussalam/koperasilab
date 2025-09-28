@@ -509,3 +509,7 @@ tl-item.active .tl-dot:before {
 .ck-content .lh-20 { line-height: 2; }
 
 .form-floating .ck-editor__editable[role="textbox"] { max-height: 400px; overflow-y:auto; }
+
+.parsley-errors-list{
+    list-style: circle !important;
+}

@@ -10,19 +10,23 @@ $(function () {
         checkEmail(this, $(this).val(), 'instansi');
     });
 
-    _password = $('#password_confirmation').parsley();
-    $('#password_confirmation').on('input', function(obj) {
-        _password.removeError('manualError');
-        if($(this).val() != $('#input-password').val()){
-            $(this).addClass('is-invalid');
-            if(!_password.errorsMessages || !_password.errorsMessages['passwordMessage']) {
-                _password.addError('manualError', {
-                    message: 'Password tidak sama'
-                });
-            }
-        } else {
-            $(this).removeClass('is-invalid');
-        }
+    const rulesPassword = {
+        minLength: 8,
+        lowerCase: true,
+        upperCase: true,
+    }
+
+    $('#input-password').parsley({
+        trigger: 'input',
+    });
+    $('#password_confirmation').parsley({
+        trigger: 'input',
+    });
+    rules_password('create', rulesPassword, '#password-rules');
+
+    $('#input-password').on('input', function () {
+        const val = $(this).val();
+        rules_password('update', rulesPassword, val);
     });
 
     _upload = new UploadComponent("uploadSuratKuasa", {

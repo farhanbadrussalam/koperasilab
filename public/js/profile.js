@@ -41,25 +41,27 @@ $(function() {
         })
     });
 
-    $('#confirm_password').on('input', function() {
-        if($(this).val() != $('#new_password').val()){
-            $('#confirm_password').addClass('is-invalid');
-            $('#confirm_password').removeClass('is-valid');
-            $('#error-confirm-password').html('Password tidak sama');
-            $('#error-confirm-password').removeClass('d-none');
-        }else if ($(this).val() != ''){
-            $('#confirm_password').addClass('is-valid');
-            $('#confirm_password').removeClass('is-invalid');
-            $('#error-confirm-password').html('');
-            $('#error-confirm-password').addClass('d-none');
-        } else {
-            $('#confirm_password').removeClass('is-valid');
-            $('#confirm_password').removeClass('is-invalid');
-            $('#error-confirm-password').html('');
-            $('#error-confirm-password').addClass('d-none');
-        }
+    $('#old_password').parsley({
+        trigger: 'input'
     });
 
+    const rulesPassword = {
+        minLength: 8,
+        lowerCase: true,
+        upperCase: true,
+    }
+
+    // 3) Saat password berubah, re-validate konfirmasi
+    $('#new_password').on('input', function () {
+        const val = $(this).val();
+        rules_password('update', rulesPassword, val);
+    });
+
+    $('#form-change-password').parsley({
+        trigger: 'input',
+    });
+
+    rules_password('create', rulesPassword, '#password-rules');
 })
 
 function loadForm(data) {
@@ -340,14 +342,10 @@ function gantiPassword(obj) {
     const newPassword = $('#new_password').val();
     const confirmPassword = $('#confirm_password').val();
 
-    if(newPassword == '' || confirmPassword == '') {
-        Swal.fire({
-            icon: "warning",
-            text: "password baru, dan konfirmasi password tidak boleh kosong",
-        })
-        return false;
+    $('#form-change-password').parsley().validate();
+    if(!$('#form-change-password').parsley().isValid()){
+        return;
     }
-
     const formParams = new FormData();
     formParams.append('old_password', oldPassword);
     formParams.append('new_password', newPassword);
