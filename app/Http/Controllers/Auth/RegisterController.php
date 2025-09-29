@@ -97,8 +97,7 @@ class RegisterController extends Controller
                 'nama_perusahaan' => $data['nama_instansi'],
                 'npwp_perusahaan' => $data['npwp'],
                 'email' => $data['email_instansi'],
-                'status' => 1,
-                'surat_kuasa' => $suratKuasa->getIdMedia()
+                'status' => 1
             ]);
 
             $idPerusahaan = $dataPerusahaan->id_perusahaan;
@@ -142,6 +141,7 @@ class RegisterController extends Controller
                     'no_hp' => $data['telepon'],
                     'jenis_kelamin' => $data['jenis_kelamin'],
                     'alamat' => $data['alamat'],
+                    'surat_kuasa' => $suratKuasa->getIdMedia()
                 ]);
             }
 

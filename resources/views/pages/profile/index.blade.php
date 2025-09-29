@@ -138,6 +138,14 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <div class="d-flex mb-2">
+                                            <div class="flex-fill">
+                                                <label for="npwp" class="form-label">Surat Kuasa</label>
+                                                <div class="d-flex align-items-center">
+                                                    <div id="uploadSuratKuasa"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -211,14 +219,6 @@
                                                         <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
                                                         <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex mb-2">
-                                            <div class="flex-fill">
-                                                <label for="npwp" class="form-label">Surat Kuasa</label>
-                                                <div class="d-flex align-items-center">
-                                                    <div id="uploadSuratKuasa"></div>
                                                 </div>
                                             </div>
                                         </div>

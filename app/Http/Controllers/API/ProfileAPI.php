@@ -311,14 +311,14 @@ class ProfileAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $idPerusahaan = decryptor($request->idHash);
+            $idUser = decryptor($request->idHash);
             $file = $request->file('file');
 
             $fileUpload = $this->media->upload($file, 'surat_kuasa');
-            $dataPerusahaan = Perusahaan::find($idPerusahaan);
+            $dataUser = Profile::where('user_id', $idUser);
 
-            if(isset($dataPerusahaan)){
-                $update = $dataPerusahaan->update(array('surat_kuasa' => $fileUpload->getIdMedia()));
+            if(isset($dataUser)){
+                $update = $dataUser->update(array('surat_kuasa' => $fileUpload->getIdMedia()));
 
                 DB::commit();
 
@@ -347,11 +347,11 @@ class ProfileAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $idPerusahaan = $idHash;
-            $dataPerusahaan = Perusahaan::find($idPerusahaan);
+            $idUser = $idHash;
+            $dataUser = Profile::where('user_id', $idUser);
 
-            if(isset($dataPerusahaan)){
-                $update = $dataPerusahaan->update(array('surat_kuasa' => null));
+            if(isset($dataUser)){
+                $update = $dataUser->update(array('surat_kuasa' => null));
                 $this->media->destroy($idMedia);
                 DB::commit();
 

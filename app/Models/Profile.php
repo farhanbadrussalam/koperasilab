@@ -18,15 +18,21 @@ class Profile extends Model
         'alamat',
         'no_hp',
         'jenis_kelamin',
+        'surat_kuasa'
     ];
 
     protected $casts = [
         'id' => 'integer',
         'user_id' => 'integer',
         'avatar' => 'integer',
+        'surat_kuasa' => 'integer'
     ];
 
     public function media(){
         return $this->belongsTo(Master_media::class, 'avatar', 'id');
+    }
+
+    public function suratkuasa(){
+        return $this->belongsTo(Master_media::class, 'surat_kuasa', 'id');
     }
 }

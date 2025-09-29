@@ -126,19 +126,6 @@ function simpan(){
             return;
         }
 
-        // const forms = Array.from(document.getElementById('form-registration').elements);
-
-        // const formDatas = new FormData();
-
-        // forms.forEach(form => {
-        //     if(form.name){
-        //         formDatas.append(form.name, form.value);
-        //     }
-        // });
-
-        // let suratKuasa = _upload.getData();
-        // formDatas.append('surat_kuasa', suratKuasa[0].file);
-
         Swal.fire({
             title: 'Apakah Anda yakin?',
             text: "Apakah Anda ingin mendaftar?",
@@ -149,11 +136,6 @@ function simpan(){
             confirmButtonText: 'Ya, Daftar!'
         }).then((result) => {
             if (result.isConfirmed) {
-                // ajaxPost('register', formDatas, result => {
-
-                // }, error => {
-
-                // }, false, false);
                 $('#form-registration').submit();
             }
         })
