@@ -79,7 +79,7 @@ function loadForm(data) {
         allowedFileExtensions: ['pdf'],
         camera: false,
         multiple: false,
-        data: [data.profile?.suratkuasa] ?? [],
+        data: data.profile?.suratkuasa ? [data.profile?.suratkuasa] : [],
         urlUpload: {
             url: 'api/v1/profile/uploadSuratKuasa',
             urlDestroy: 'api/v1/profile/destroySuratKuasa',
