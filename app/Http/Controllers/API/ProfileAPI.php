@@ -176,19 +176,46 @@ class ProfileAPI extends Controller
             $idPerusahaan = $request->idPerusahaan ? decryptor($request->idPerusahaan) : false;
             $kodePerusahaan = $request->kodePerusahaan ? $request->kodePerusahaan : false;
             $nama_perusahaan = $request->has('nama_perusahaan') ? $request->nama_perusahaan : false;
-            $npwp = $request->has('npwp_perusahaan') ? unmask($request->npwp) : false;
+            $npwp = $request->has('npwp_perusahaan') ? unmask($request->npwp_perusahaan) : false;
             $email = $request->has('email') ? $request->email : false;
-
-            $perusahaan = Perusahaan::findOrFail($idPerusahaan);
+            $alamat = $request->has('alamat') ? $request->alamat : false;
+            $kode_pos = $request->has('kode_pos') ? $request->kode_pos : false;
 
             $params = array();
 
             $kodePerusahaan && $params['kode_perusahaan'] = $kodePerusahaan;
             $nama_perusahaan && $params['nama_perusahaan'] = $nama_perusahaan;
-            $npwp && $params['npwp'] = $npwp;
+            $npwp && $params['npwp_perusahaan'] = $npwp;
             $email && $params['email'] = $email;
 
-            $perusahaan->update($params);
+            if($idPerusahaan){
+                $perusahaan = Perusahaan::findOrFail($idPerusahaan);
+                $perusahaan->update($params);
+            } else {
+                $perusahaan = Perusahaan::create($params);
+
+                $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
+                $arrAlamat = array();
+                $arrAlamat[] = array(
+                    'id_perusahaan' => $perusahaan->id_perusahaan,
+                    'jenis' => 'Utama',
+                    'status' => 1,
+                    'alamat' => $alamat,
+                    'kode_pos' => $kode_pos
+                );
+                foreach ($arrJenisAlamat as $value) {
+                    $arrAlamat[] = array(
+                        'id_perusahaan' => $perusahaan->id_perusahaan,
+                        'jenis' => $value,
+                        'status' => 0,
+                        'alamat' => null,
+                        'kode_pos' => null
+                    );
+                }
+
+                Master_alamat::insert($arrAlamat);
+                Auth::user()->update(['id_perusahaan' => $perusahaan->id_perusahaan]);
+            }
 
             DB::commit();
 

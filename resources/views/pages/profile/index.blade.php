@@ -152,7 +152,7 @@
                         </div>
                     </div>
                     <div class="tab-pane fade show pt-3" id="instansi-tab-pane" role="tabpanel" aria-labelledby="instansi-tab" tabindex="0">
-                        <div class="card border-0 shadow-sm">
+                        <div class="card border-0 shadow-sm" id="card-instansi-aktif">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-4 fw-bolder mb-3">
@@ -234,6 +234,43 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="card border-0 shadow-sm p-2" id="card-instansi-nonaktif">
+                            <form id="form-instansi-nonaktif" novalidate>
+                                <div class="border rounded my-4 p-3 mx-xl-5 position-relative">
+                                    <span class="position-absolute top-0 start-50 translate-middle bg-white px-2 fs-5">
+                                        Data Instansi
+                                    </span>
+                                    <div class="row mt-3">
+                                        <div class="col-md-12 mb-2">
+                                            <label for="nama_instansi_new" class="form-label">Nama Instansi <span class="fw-bold fs-14 text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="nama_instansi_new" name="nama_instansi" required data-parsley-required-message="Nama instansi harus diisi">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="email_instansi_new" class="form-label">Email instansi <span class="fw-bold fs-14 text-danger">*</span></label>
+                                            <input type="email" class="form-control maskEmail" id="email_instansi_new" name="email_instansi" required
+                                                data-parsley-required-message="Email instansi harus diisi"
+                                                data-parsley-errors-container="#email_instansi_error">
+                                            <div id="email_instansi_error" class="invalid-feedback d-block"></div>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <label for="npwp_new" class="form-label">NPWP <span class="fw-bold fs-14 text-danger">*</span></label>
+                                            <input type="text" class="form-control maskNPWP" id="npwp_new" name="npwp" required data-parsley-required-message="NPWP harus diisi">
+                                        </div>
+                                        <div class="col-md-12 mb-2">
+                                            <label for="kode_pos_new" class="form-label">Kode Pos <span class="fw-bold fs-14 text-danger">*</span></label>
+                                            <input type="text" class="form-control maskNumber" id="kode_pos_new" name="kode_pos" placeholder="" autocomplete="true" required data-parsley-required-message="Kode Pos harus diisi">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="alamat_instansi_new" class="form-label">Alamat <span class="fw-bold fs-14 text-danger">*</span></label>
+                                            <textarea name="alamat_instansi" id="alamat_instansi_new" cols="30" rows="5" class="form-control" required data-parsley-required-message="Alamat instansi harus diisi"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" onclick="tambahInstansi(this)" class="btn btn-primary">Simpan</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                     <div class="tab-pane fade show pt-3" id="ttd-tab-pane" role="tabpanel" aria-labelledby="ttd-tab" tabindex="0">

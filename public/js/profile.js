@@ -62,10 +62,62 @@ $(function() {
     });
 
     rules_password('create', rulesPassword, '#password-rules');
+
+    $('#email_instansi_new').on('change', function(){
+        checkEmail(this, $(this).val(), 'instansi');
+    });
 })
+
+function tambahInstansi(obj){
+    let parValidate = $('#form-instansi-nonaktif').parsley();
+
+    let statusForm = true;
+    $('.is-invalid').each(function(){
+        statusForm = false;
+    });
+    if(!statusForm) {
+        Swal.fire({
+            icon: 'warning',
+            text: 'Lengkapi form terlebih dahulu'
+        });
+        return;
+    };
+
+    parValidate.validate();
+    if(!parValidate.isValid()){
+        return;
+    }
+
+    const formParams = new FormData();
+    formParams.append('email', $('#email_instansi_new').val());
+    formParams.append('npwp_perusahaan', $('#npwp_new').val());
+    formParams.append('nama_perusahaan', $('#nama_instansi_new').val());
+    formParams.append('alamat', $('#alamat_instansi_new').val());
+    formParams.append('kode_pos', $('#kode_pos_new').val());
+
+    spinner('show', $(obj));
+
+    ajaxPost(`api/v1/profile/action/perusahaan`, formParams, result => {
+        if(result.meta.code == 200){
+            Swal.fire({
+                icon: 'success',
+                text: 'Instansi berhasil ditambahkan',
+                showConfirmButton: false,
+                timer: 1200,
+                timerProgressBar: true
+            }).then(() => {
+                window.location.reload();
+            });
+        }
+    }, error => {
+        spinner('hide', $(obj));
+    });
+}
 
 function loadForm(data) {
     // Menetapkan default value (pastikan ID ada dalam opsi yang dimuat)
+    $('#card-instansi-aktif').hide();
+    $('#card-instansi-nonaktif').hide();
     if(data.perusahaan){
         if(data.perusahaan.kode_perusahaan){
             $('#kode_instansi').removeClass('text-danger border-danger');
@@ -74,22 +126,32 @@ function loadForm(data) {
             $('#kode_instansi').removeClass('text-success border-success');
             $('#kode_instansi').addClass('text-danger border-danger');
         }
-    }
-    _uploadSuratKuasa = new UploadComponent("uploadSuratKuasa", {
-        allowedFileExtensions: ['pdf'],
-        camera: false,
-        multiple: false,
-        data: data.profile?.suratkuasa ? [data.profile?.suratkuasa] : [],
-        urlUpload: {
-            url: 'api/v1/profile/uploadSuratKuasa',
-            urlDestroy: 'api/v1/profile/destroySuratKuasa',
-            idHash: data.user_hash
-        }
-    });
 
-    $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
-    $('#kode_instansi').val(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
-    $('#email').val(data.perusahaan?.email ? data.perusahaan.email : '-');
+        $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
+        $('#kode_instansi').val(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
+        $('#email').val(data.perusahaan?.email ? data.perusahaan.email : '-');
+        $('#nama_perusahaan').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
+
+        $('#card-instansi-aktif').show();
+    } else {
+        $('#card-instansi-nonaktif').show();
+
+    }
+
+    if(!_uploadSuratKuasa){
+        _uploadSuratKuasa = new UploadComponent("uploadSuratKuasa", {
+            allowedFileExtensions: ['pdf'],
+            camera: false,
+            multiple: false,
+            data: data.profile?.suratkuasa ? [data.profile?.suratkuasa] : [],
+            urlUpload: {
+                url: 'api/v1/profile/uploadSuratKuasa',
+                urlDestroy: 'api/v1/profile/destroySuratKuasa',
+                idHash: data.user_hash
+            }
+        });
+    }
+
 
     $('#nik_pic').val(data.profile.nik ? data.profile.nik : '-');
     $('#nama_pic').val(data.name ? data.name : '-');
@@ -98,7 +160,6 @@ function loadForm(data) {
     $('#telepon').val(data.profile.no_hp ? data.profile.no_hp : '-');
     $('#jenis_kelamin').val(data.profile.jenis_kelamin);
     $('#alamat_pic').html(data.profile.alamat ? data.profile.alamat : '-');
-    $('#nama_perusahaan').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
     isPassword ? $('#form-old-password').removeClass('d-none') : $('#form-old-password').addClass('d-none');
 
     document.getElementById('show-ttd').innerHTML = '';
@@ -393,5 +454,4 @@ function gantiPassword(obj) {
             spinner('hide', $(obj));
         })
     }
-
 }

@@ -75,36 +75,6 @@ function changeNik(){
     $('#registration-form').addClass('d-none');
 }
 
-function checkEmail(obj, email, jenis){
-    // mengecek formatnya email
-    if(!email.match(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)){
-        return;
-    };
-
-    const params = new FormData();
-    params.append('email', email);
-    params.append('jenis', jenis);
-    spinner('show', $(obj).parent().find('.form-label'), {
-        place: 'after'
-    })
-    ajaxPost('api/v1/check_email', params, result => {
-        let _email = $(obj).parsley();
-        if(result.meta.message == 'Fail'){
-            $(obj).removeClass('is-invalid').addClass('is-valid');
-            _email.removeError('emailMessage');
-        } else {
-            $(obj).addClass('is-invalid');
-            _email.addError('emailMessage', {
-                message: 'E-mail sudah terdaftar',
-                updateClass: true
-            });
-        }
-        spinner('hide', $(obj).parent().find('.form-label'));
-    }, error => {
-        console.log(error);
-    }, false, false);
-}
-
 function simpan(){
     let statusForm = true;
     $('.is-invalid').each(function(){
