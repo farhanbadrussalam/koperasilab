@@ -54,14 +54,14 @@ $(function() {
     // 3) Saat password berubah, re-validate konfirmasi
     $('#new_password').on('input', function () {
         const val = $(this).val();
-        rules_password('update', rulesPassword, val);
+        rules_password('update', rulesPassword, val, '2');
     });
 
     $('#form-change-password').parsley({
         trigger: 'input',
     });
 
-    rules_password('create', rulesPassword, '#password-rules');
+    rules_password('create', rulesPassword, '#password-rules', '2');
 
     $('#email_instansi_new').on('change', function(){
         checkEmail(this, $(this).val(), 'instansi');
@@ -206,7 +206,7 @@ function loadForm(data) {
                 <div class="mb-3" data-idalamat="${alamat.alamat_hash}">
                     <div class="d-flex" id="divLabel-${alamat.jenis}">
                         <label class="form-label me-3">Alamat ${jenis}</label>
-                        ${checkbox}
+                        ${statusUser == 1 ? checkbox : ''}
                     </div>
                     <div id="alamat-${alamat.jenis}-inactive" class="${alamat.status == 1 ? 'd-none' : 'd-block'}">
                         <p>Alamat sesuai dengan Alamat Utama</p>
@@ -216,7 +216,7 @@ function loadForm(data) {
                             <textarea name="txt-alamat-${alamat.jenis}" data-field="alamat" id="txt-alamat-${alamat.jenis}" cols="30" rows="3" class="form-control mb-2" disabled>${alamat.alamat ?? ''}</textarea>
                             <input type="text" class="form-control me-2" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-${alamat.jenis}" value="${alamat.kode_pos ?? ''}" disabled>
                         </div>
-                        <div id="btnEditDiv-${alamat.jenis}" class="d-block" data-field="${alamat.jenis}">
+                        <div id="btnEditDiv-${alamat.jenis}" class="d-block ${statusUser == 1 ? 'd-block' : 'd-none'}" data-field="${alamat.jenis}">
                             <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'alamat')"><i class="bi bi-pencil"></i></button>
                         </div>
                         <div id="btnActionDiv-${alamat.jenis}" class="d-none d-flex" data-field="${alamat.jenis}">

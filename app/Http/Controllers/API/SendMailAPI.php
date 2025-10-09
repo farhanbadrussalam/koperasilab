@@ -9,7 +9,7 @@ use App\Traits\RestApi;
 use Spatie\Permission\Models\Permission;
 use App\Models\Petugas_layanan;
 
-use App\Mail\SendVerifikasiPetugas;
+use App\Mail\SendMailCustome;
 use Mail;
 
 class SendMailAPI extends Controller
@@ -23,7 +23,12 @@ class SendMailAPI extends Controller
         $data['id'] = $request->id;
         $data['otorisasi'] = $nameOtorisasi;
 
-        $mail = new SendVerifikasiPetugas($data);
-        Mail::to($dataPetugas->petugas->email)->queue($mail);
+        // $mail = new SendVerifikasiPetugas($data);
+        // Mail::to($dataPetugas->petugas->email)->queue($mail);
+    }
+
+    public function send_mail($msg, $to, $subject) {
+        $mail = new SendMailCustome($subject, $msg);
+        Mail::to($to)->queue($mail);
     }
 }

@@ -1267,3 +1267,27 @@ function checkEmail(obj, email, jenis){
         console.log(error);
     }, false, false);
 }
+
+function checkNIK(obj, nik){
+    const params = new FormData();
+    params.append('nik', nik);
+    spinner('show', $(obj).parent().find('.form-label'), {
+        place: 'after'
+    })
+    ajaxPost('api/v1/check_nik', params, result => {
+        let _nik = $(obj).parsley();
+        if(result.meta.message == 'Fail'){
+            $(obj).removeClass('is-invalid').addClass('is-valid');
+            _nik.removeError('nikMessage');
+        } else {
+            $(obj).addClass('is-invalid');
+            _nik.addError('nikMessage', {
+                message: 'NIK sudah terdaftar',
+                updateClass: true
+            });
+        }
+        spinner('hide', $(obj).parent().find('.form-label'));
+    }, error => {
+        console.log(error);
+    }, false, false);
+}

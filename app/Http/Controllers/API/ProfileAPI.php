@@ -14,6 +14,7 @@ use App\Models\Profile;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\API\SendMailAPI;
 
 use Auth;
 use DB;
@@ -22,12 +23,13 @@ use Hash;
 class ProfileAPI extends Controller
 {
     use RestApi;
-    protected $log, $media, $pagination;
+    protected $log, $media, $pagination, $mail;
 
     public function __construct()
     {
         $this->log = resolve(LogController::class);
         $this->media = resolve(MediaController::class);
+        $this->mail = resolve(SendMailAPI::class);
     }
 
     public function actionProfile(Request $request)
@@ -134,6 +136,114 @@ class ProfileAPI extends Controller
         }
 
         Master_alamat::insert($arrAlamat);
+    }
+
+    private function send_password($password, $to){
+        $contentMail = "
+            <div style='text-align: center; margin: 20px; background-color: #f5f5f5; padding: 20px;'>
+                <h1>Nuklindo Lab</h1>
+                <p>
+                    Harap segera login ke akun anda untuk melakukan verifikasi akun dan mengganti password<br>
+                    Gunanakannya password ini untuk login: <br><br><strong>$password</strong><br><br>
+                    Password ini akan digunakan untuk login ke akun anda.<br>
+                    Mohon untuk tidak merespon email ini, Terimakasih.
+                </p>
+            </div>
+        ";
+        $this->mail->send_mail($contentMail, $to, "Password PIC");
+    }
+
+    public function changePIC(Request $request)
+    {
+        $nik = $request->nik_pic ? $request->nik_pic : false;
+        $name = $request->nama_pic ? $request->nama_pic : false;
+        $jabatan = $request->jabatan ? $request->jabatan : false;
+        $email = $request->email_pic ? $request->email_pic : false;
+        $telepon = $request->telepon ? unmask($request->telepon) : false;
+        $jenis_kelamin = $request->jenis_kelamin ? $request->jenis_kelamin : false;
+        $alamat = $request->has('alamat') ? $request->alamat : false;
+        $password = $request->has('password') ? $request->password : false;
+        $surat_kuasa = $request->has('surat_kuasa_pic') ? $request->surat_kuasa_pic : false;
+        $id_perusahaan = $request->id_perusahaan ? decryptor($request->id_perusahaan) : false;
+
+        DB::beginTransaction();
+        try {
+            $params = array();
+            $fileUpload = $this->media->upload($surat_kuasa, 'surat_kuasa');
+
+            $nik && $params['nik'] = $nik;
+            $name && $params['name'] = $name;
+            $jabatan && $params['jabatan'] = $jabatan;
+            $email && $params['email'] = $email;
+            $telepon && $params['telepon'] = $telepon;
+            $jenis_kelamin && $params['jenis_kelamin'] = $jenis_kelamin;
+            $alamat && $params['alamat'] = $alamat;
+
+            $password && $params['password'] = Hash::make($password);
+
+            //cek role bukan pelanggan
+            if(!Auth::user()->hasRole('Pelanggan')){
+                // buat password random string 8 karakter ada capital dan huruf kecil
+                $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+                $password = '';
+                for ($i = 0; $i < 8; $i++) {
+                    $password .= $characters[rand(0, strlen($characters) - 1)];
+                }
+                $password = str_shuffle($password); // shuffle the string to make it more random
+
+                $params['password'] = Hash::make($password);
+            }
+
+            $params['id_perusahaan'] = $id_perusahaan ? $id_perusahaan : Auth::user()->id_perusahaan;
+            $params['surat_kuasa'] = $fileUpload->getIdMedia();
+
+            $arr_update = [
+                "status" => 2,
+                'selesai_at' => date('Y-m-d H:i:s')
+            ];
+
+            if(Auth::user()->hasRole('Pelanggan')) {
+                Auth::user()->update($arr_update);
+            } else {
+                // mengambil pic yang aktif
+                User::where('id_perusahaan', $params['id_perusahaan'])->where('status', 1)->update($arr_update);
+            }
+
+            $user = User::create([
+                'name' => $params['name'],
+                'id_perusahaan'=> $params['id_perusahaan'],
+                'status' => 1,
+                'jabatan' => $params['jabatan'],
+                'email' => $params['email'],
+                'password' => $params['password'],
+            ])->assignRole('Pelanggan');
+
+            Profile::create([
+                'user_id' => $user->id,
+                'nik' => $params['nik'],
+                'no_hp' => $params['telepon'],
+                'jenis_kelamin' => $params['jenis_kelamin'],
+                'alamat' => $params['alamat'],
+                'surat_kuasa' => $params['surat_kuasa'],
+            ]);
+
+            $fileUpload->store();
+
+            $result['status'] = 'updated';
+            $result['msg'] = 'PIC berhasil diganti';
+
+            DB::commit();
+
+            if(!Auth::user()->hasRole('Pelanggan')) {
+                $this->send_password($password, $email);
+            }
+
+            return $this->output($result);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
     }
 
     public function actionAlamat(Request $request)
@@ -319,7 +429,13 @@ class ProfileAPI extends Controller
         DB::beginTransaction();
         try {
             $id = decryptor($id);
-            $query = Perusahaan::with('users', 'alamat', 'suratkuasa')->where('id_perusahaan', $id)->first();
+            $query = Perusahaan::with(
+                    'users',
+                    'users.profile',
+                    'users.profile.suratkuasa',
+                    'alamat',
+                    'suratkuasa'
+                )->where('id_perusahaan', $id)->first();
 
             return $this->output($query, 200);
 

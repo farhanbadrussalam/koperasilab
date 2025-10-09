@@ -126,6 +126,7 @@
         const permission = @json(Auth::user()->getDirectPermissions());
         const permissionInRole = @json(Auth::user()->getPermissionsViaRoles());
         const envirotment = "{{ config('app.env') }}";
+        const statusUser = @json(Auth::user()->status);
     </script>
     <script src="{{ asset('assets/js/global.js') }}"></script>
     @stack('scripts')

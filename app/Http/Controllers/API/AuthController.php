@@ -78,4 +78,15 @@ class AuthController extends Controller
 
         return $this->output($data);
     }
+
+    public function checkNik(Request $request){
+        $nik = $request->nik;
+        $data = Profile::where('nik', $nik)->first();
+
+        if($data == null){
+            return $this->output(['message' => 'Data not found'], 'Fail', 200);
+        }
+
+        return $this->output($data);
+    }
 }

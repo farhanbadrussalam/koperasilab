@@ -27,7 +27,8 @@ class Perusahaan extends Model
     ];
 
     protected $appends = [
-        'perusahaan_hash'
+        'perusahaan_hash',
+        'pic',
     ];
 
     protected $casts = [
@@ -40,6 +41,11 @@ class Perusahaan extends Model
     public function getPerusahaanHashAttribute()
     {
         return $this->id_perusahaan ? encryptor($this->id_perusahaan) : null;
+    }
+
+    public function getPicAttribute()
+    {
+        return $this->users()->where('status', '1')->first();
     }
 
     public function alamat(){

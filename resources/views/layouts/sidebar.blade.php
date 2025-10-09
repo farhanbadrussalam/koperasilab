@@ -84,7 +84,7 @@
                 @endcan
 
                 @can('Tld')
-                @if(Auth::user()->id_perusahaan)
+                @if(Auth::user()->id_perusahaan && Auth::user()->status == 1)
                 <li class="sidebar-item @if($hiddenPelanggan) d-none @endif">
                     <a class="sidebar-link {{ $module == 'tld' ? 'active' : '' }}"
                         href="{{ route('tld.index') }}" aria-expanded="false">
@@ -96,6 +96,7 @@
                 @endcan
 
                 @can('pengguna')
+                @if(Auth::user()->id_perusahaan && Auth::user()->status == 1)
                 <li class="sidebar-item @if($hiddenPelanggan) d-none @endif">
                     <a class="sidebar-link {{ $module == 'pengguna' ? 'active' : '' }}"
                         href="{{ route('userpengguna.index') }}" aria-expanded="false">
@@ -103,13 +104,14 @@
                         <span class="hide-menu">Pengguna</span>
                     </a>
                 </li>
+                @endif
                 @endcan
 
                 <!-- END MAIN MENU -->
 
                 {{-- PERMOHONAN --}}
                 @role('Pelanggan')
-                @if (!$hiddenPelanggan)
+                @if (!$hiddenPelanggan && Auth::user()->status == 1)
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Permohonan</span>

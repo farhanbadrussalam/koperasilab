@@ -22,11 +22,11 @@ $(function () {
     $('#password_confirmation').parsley({
         trigger: 'input',
     });
-    rules_password('create', rulesPassword, '#password-rules');
+    rules_password('create', rulesPassword, '#password-rules', '1');
 
     $('#input-password').on('input', function () {
         const val = $(this).val();
-        rules_password('update', rulesPassword, val);
+        rules_password('update', rulesPassword, val, '1');
     });
 
     _upload = new UploadComponent("uploadSuratKuasa", {

@@ -40,6 +40,7 @@ Route::prefix('v1/')->group(function() {
     Route::post('/encryptor', [AuthController::class, 'encryptor']);
     Route::post('/search_akun', [AuthController::class, 'search_akun']);
     Route::post('/check_email', [AuthController::class, 'checkEmail']);
+    Route::post('/check_nik', [AuthController::class, 'checkNik']);
     Route::get('/profile/list/perusahaan', [ProfileAPI::class, 'getListPerusahaan']);
 });
 
@@ -141,6 +142,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', 'actionProfile');
         Route::post('/action/alamat', 'actionAlamat');
         Route::post('/action/perusahaan', 'actionPerusahaan');
+        Route::post('/action/change_pic', 'changePIC');
         Route::post('/changePassword', 'changePassword');
         Route::get('/getPerusahaan/{kode}', 'getPerusahaanByKode');
         Route::get('/getPerusahaanById/{idPerusahaan}', 'getPerusahaanById');

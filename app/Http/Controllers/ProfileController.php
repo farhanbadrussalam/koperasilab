@@ -16,6 +16,7 @@ use DB;
 class ProfileController extends Controller
 {
     use RestApi;
+    protected $module;
     /**
      * Display a listing of the resource.
      */
