@@ -209,6 +209,9 @@ class Detail {
                 case 'perusahaan':
                     $('#container-detail').append(this.createInformationPerusahaan());
                     break;
+                case 'history_pic':
+                    $('#container-detail').append(this.createInformationHistoryPic());
+                    break;
                 default:
                     $('#container-detail').append(this.createInformationPermohonan());
                     break;
@@ -457,6 +460,66 @@ class Detail {
                 <div class="col-auto">
                     ${this.info.email}
                 </div>
+            </div>
+        `;
+
+        return container;
+    }
+
+    createInformationHistoryPic() {
+        const container = document.createElement('div');
+        container.className = 'container fs-7';
+
+        let findPic = this.data.find(pic => pic.status == 1);
+        let html = ``;
+        let createLI = function(pic){
+            let periode = dateFormat(pic.created_at, 4);
+            if(pic.selesai_at){
+                periode += ` s/d ${dateFormat(pic.selesai_at, 4)}`;
+            }
+
+            // return `
+            //     <li class="list-group-item d-flex justify-content-between align-items-center p-0">
+            //         <div class="ms-1 me-auto">
+            //             <div>${pic.name}</div>
+            //             <div class="text-body-tertiary">${pic.email}</div>
+            //             <div><small>${periode}</small></div>
+            //         </div>
+            //     </div>
+            // `;
+
+            return `
+                <div class="tl-item ${pic.status == 1 ? 'active' : ''}">
+                    <div class="tl-dot border-primary"></div>
+                    <div class="tl-content w-100 pb-0">
+                        <div class="fw-semibold">${periode}</div>
+                        <div class="d-flex flex-column mt-2">
+                            <div class="me-2">
+                                <span class="fw-normal">Nama : </span>
+                                <span class="text-muted">${pic.name}</span></div>
+                            <div class="me-2">
+                                <span class="fw-normal">E-mail : </span>
+                                <span class="text-muted">${pic.email}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        if(findPic){
+            html += createLI(findPic);
+        }
+        for (const pic of this.data) {
+            if(pic.status != 1) {
+                html += createLI(pic);
+            }
+        }
+
+        $('#titleDetail').text('History PIC');
+
+        container.innerHTML = `
+            <div class="timeline">
+                ${html}
             </div>
         `;
 

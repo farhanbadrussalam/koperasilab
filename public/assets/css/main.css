@@ -401,6 +401,7 @@ a {
 
 .tl-item.active .tl-dot:before {
   border-color: #448bff;
+  background-color: #448bff;
   box-shadow: 0 0 0 4px rgba(68, 139, 255, 0.2);
 }
 

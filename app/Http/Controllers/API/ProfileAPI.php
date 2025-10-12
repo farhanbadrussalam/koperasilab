@@ -512,4 +512,21 @@ class ProfileAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
+
+    public function getHistoryPic($idPerusahaan){
+        DB::beginTransaction();
+        try {
+            $idPerusahaan = decryptor($idPerusahaan);
+            $query = User::where('id_perusahaan', $idPerusahaan)->orderBy('created_at', 'desc')->get();
+
+            DB::commit();
+
+            return $this->output($query);
+
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
 }

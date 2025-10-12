@@ -157,13 +157,13 @@
                                 @if (Auth::user()->status == 1)
                                     <div class="d-flex justify-content-center gap-2 mb-2">
                                         <button class="btn btn-outline-primary btn-sm" type="button" onclick="openModalPic()"><i class="bi bi-person-bounding-box"></i> Ganti PIC</button>
-                                        <button class="btn btn-outline-info btn-sm" type="button"><i class="bi bi-journal-text"></i> History PIC</button>
+                                        <button class="btn btn-outline-info btn-sm" type="button" onclick="openModalHistoryPic()"><i class="bi bi-journal-text"></i> History PIC</button>
                                     </div>
                                 @else
                                     <div class="d-flex gap-2 mb-2">
                                         <div class="alert alert-info d-flex align-items-center w-100" role="alert">
                                             <i class="bi bi-info-circle me-2"></i>
-                                            <div>Anda sudah bukan PIC dari perusahaan ini</div>
+                                            <div>Anda sudah bukan PIC dari perusahaan ini, saat ini PIC anda adalah <b>{{ Auth::user()->perusahaan->pic->name }}</b></div>
                                         </div>
                                     </div>
                                 @endif

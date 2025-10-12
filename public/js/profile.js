@@ -1,5 +1,6 @@
 let signaturePad;
 let _uploadSuratKuasa = false;
+let detail = false;
 $(function() {
     loadForm(profile);
 
@@ -65,6 +66,11 @@ $(function() {
 
     $('#email_instansi_new').on('change', function(){
         checkEmail(this, $(this).val(), 'instansi');
+    });
+
+    detail = new Detail({
+        jenis: 'history_pic',
+        tab: {}
     });
 })
 
@@ -454,4 +460,8 @@ function gantiPassword(obj) {
             spinner('hide', $(obj));
         })
     }
+}
+
+function openModalHistoryPic(){
+    detail.show(`api/v1/profile/getHistoryPic/${profile.perusahaan?.perusahaan_hash}`);
 }

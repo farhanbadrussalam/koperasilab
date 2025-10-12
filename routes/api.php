@@ -148,6 +148,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPerusahaanById/{idPerusahaan}', 'getPerusahaanById');
         Route::post('/uploadSuratKuasa', 'uploadSuratKuasa');
         Route::delete('/destroySuratKuasa/{idPerusahaan}/{idMedia}', 'destroySuratKuasa');
+        Route::get('/getHistoryPic/{idPerusahaan}', 'getHistoryPic');
     });
 
     Route::prefix("filter")->controller(FilterAPI::class)->group(function () {
