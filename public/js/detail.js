@@ -478,28 +478,25 @@ class Detail {
                 periode += ` s/d ${dateFormat(pic.selesai_at, 4)}`;
             }
 
-            // return `
-            //     <li class="list-group-item d-flex justify-content-between align-items-center p-0">
-            //         <div class="ms-1 me-auto">
-            //             <div>${pic.name}</div>
-            //             <div class="text-body-tertiary">${pic.email}</div>
-            //             <div><small>${periode}</small></div>
-            //         </div>
-            //     </div>
-            // `;
-
             return `
                 <div class="tl-item ${pic.status == 1 ? 'active' : ''}">
                     <div class="tl-dot border-primary"></div>
                     <div class="tl-content w-100 pb-0">
-                        <div class="fw-semibold">${periode}</div>
-                        <div class="d-flex flex-column mt-2">
-                            <div class="me-2">
-                                <span class="fw-normal">Nama : </span>
-                                <span class="text-muted">${pic.name}</span></div>
-                            <div class="me-2">
-                                <span class="fw-normal">E-mail : </span>
-                                <span class="text-muted">${pic.email}</span>
+                        <div class="card mb-2 card-hover ${pic.status == 1 ? 'border-primary' : ''}">
+                            <div class="card-header p-2 d-flex justify-content-between align-items-center">
+                                <div class="fw-semibold">${periode}</div>
+                                ${pic.status == 1 ? '<span class="badge text-bg-primary">PIC saat ini</span>' : ''}
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="d-flex flex-column">
+                                    <div class="me-2">
+                                        <span class="fw-normal">Nama : </span>
+                                        <span class="text-muted">${pic.name}</span></div>
+                                    <div class="me-2">
+                                        <span class="fw-normal">E-mail : </span>
+                                        <span class="text-muted">${pic.email}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
