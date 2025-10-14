@@ -82,6 +82,10 @@ class KontrakAPI extends Controller
                         }
                     });
 
+            if(Auth::user()->status == 2){
+                $query = $query->where('status', '2');
+            }
+
             $query = $query->orderBy('status', 'asc')
             ->orderBy('created_at', 'desc')
             ->offset(($page - 1) * $limit)

@@ -84,6 +84,8 @@
         </div>
     </div>
 </div>
+
+@include('pages.profile.component.modal_pic')
 @endsection
 @push('scripts')
     <script src="{{ asset('js/staff/perusahaan.js') }}"></script>

@@ -672,7 +672,12 @@ class PermohonanAPI extends Controller
                     ->when($user, function($q, $user) use ($status) {
                         // Pengecekan role
                         if($user->hasRole('Pelanggan')){
-                            $q->where('created_by', Auth::user()->id);
+                            // mengambil id dari history_pic
+                            $id_pic = array();
+                            foreach (Auth::user()->perusahaan->history_pic as $key => $pic) {
+                                array_push($id_pic, $pic->id);
+                            }
+                            $q->whereIn('created_by', $id_pic);
                             $q->whereIn('status', $status);
                         }else{
                             $q->whereNotIn('status', [80]);
@@ -719,7 +724,12 @@ class PermohonanAPI extends Controller
             $isPelanggan = Auth::user()->hasRole('Pelanggan');
             $_status = Permohonan::selectRaw('count(*) as total, status')
                 ->when($isPelanggan, function($q) {
-                    return $q->where('created_by', Auth::user()->id);
+                    // mengambil id dari history_pic
+                    $id_pic = array();
+                    foreach (Auth::user()->perusahaan->history_pic as $key => $pic) {
+                        array_push($id_pic, $pic->id);
+                    }
+                    return $q->whereIn('created_by', $id_pic);
                 })
                 ->groupBy('status')
                 ->get()

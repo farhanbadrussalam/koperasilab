@@ -27,7 +27,8 @@ class Perusahaan extends Model
     ];
 
     protected $appends = [
-        'perusahaan_hash'
+        'perusahaan_hash',
+        'pic',
     ];
 
     protected $casts = [
@@ -42,6 +43,11 @@ class Perusahaan extends Model
         return $this->id_perusahaan ? encryptor($this->id_perusahaan) : null;
     }
 
+    public function getPicAttribute()
+    {
+        return $this->users()->where('status', '1')->first();
+    }
+
     public function alamat(){
         return $this->hasMany(Master_alamat::class, 'id_perusahaan', 'id_perusahaan');
     }
@@ -52,5 +58,9 @@ class Perusahaan extends Model
 
     public function suratkuasa(){
         return $this->hasMany(Master_media::class, 'id', 'surat_kuasa');
+    }
+
+    public function history_pic(){
+        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
     }
 }

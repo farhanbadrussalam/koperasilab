@@ -1,3 +1,10 @@
+@php
+    $hiddenPelanggan = false;
+    $rolePelanggan = Auth::user()->hasRole('Pelanggan');
+    if($rolePelanggan && (Auth::user()->profile->nik == null || Auth::user()->id_perusahaan == null)) {
+        $hiddenPelanggan = true;
+    }
+@endphp
 <aside class="left-sidebar">
     <!-- Sidebar scroll-->
     <div>
@@ -67,7 +74,7 @@
                 @endcan
 
                 @can('Kontrak')
-                    <li class="sidebar-item">
+                    <li class="sidebar-item @if($hiddenPelanggan) d-none @endif">
                         <a class="sidebar-link {{ $module == 'permohonan-kontrak' ? 'active' : '' }}"
                             href="{{ route('permohonan.kontrak') }}" aria-expanded="false">
                             <span><i class="bi bi-card-list"></i></span>
@@ -77,8 +84,8 @@
                 @endcan
 
                 @can('Tld')
-                @if(Auth::user()->id_perusahaan)
-                <li class="sidebar-item">
+                @if(Auth::user()->id_perusahaan && Auth::user()->status == 1)
+                <li class="sidebar-item @if($hiddenPelanggan) d-none @endif">
                     <a class="sidebar-link {{ $module == 'tld' ? 'active' : '' }}"
                         href="{{ route('tld.index') }}" aria-expanded="false">
                         <span><i class="bi bi-motherboard"></i></span>
@@ -89,19 +96,22 @@
                 @endcan
 
                 @can('pengguna')
-                <li class="sidebar-item">
+                @if(Auth::user()->id_perusahaan && Auth::user()->status == 1)
+                <li class="sidebar-item @if($hiddenPelanggan) d-none @endif">
                     <a class="sidebar-link {{ $module == 'pengguna' ? 'active' : '' }}"
                         href="{{ route('userpengguna.index') }}" aria-expanded="false">
                         <span><i class="bi bi-people"></i></span>
                         <span class="hide-menu">Pengguna</span>
                     </a>
                 </li>
+                @endif
                 @endcan
 
                 <!-- END MAIN MENU -->
 
                 {{-- PERMOHONAN --}}
                 @role('Pelanggan')
+                @if (!$hiddenPelanggan && Auth::user()->status == 1)
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Permohonan</span>
@@ -137,6 +147,7 @@
                     </a>
                 </li>
                 @endcan
+                @endif
                 @endrole
                 {{-- END PERMOHONAN --}}
 

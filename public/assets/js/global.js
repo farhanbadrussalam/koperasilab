@@ -1237,3 +1237,57 @@ function showPassword(obj) {
         obj.innerHTML = '<i class="bi bi-eye"></i>';
     }
 }
+
+function checkEmail(obj, email, jenis){
+    // mengecek formatnya email
+    if(!email.match(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)){
+        return;
+    };
+
+    const params = new FormData();
+    params.append('email', email);
+    params.append('jenis', jenis);
+    spinner('show', $(obj).parent().find('.form-label'), {
+        place: 'after'
+    })
+    ajaxPost('api/v1/check_email', params, result => {
+        let _email = $(obj).parsley();
+        if(result.meta.message == 'Fail'){
+            $(obj).removeClass('is-invalid').addClass('is-valid');
+            _email.removeError('emailMessage');
+        } else {
+            $(obj).addClass('is-invalid');
+            _email.addError('emailMessage', {
+                message: 'E-mail sudah terdaftar',
+                updateClass: true
+            });
+        }
+        spinner('hide', $(obj).parent().find('.form-label'));
+    }, error => {
+        console.log(error);
+    }, false, false);
+}
+
+function checkNIK(obj, nik){
+    const params = new FormData();
+    params.append('nik', nik);
+    spinner('show', $(obj).parent().find('.form-label'), {
+        place: 'after'
+    })
+    ajaxPost('api/v1/check_nik', params, result => {
+        let _nik = $(obj).parsley();
+        if(result.meta.message == 'Fail'){
+            $(obj).removeClass('is-invalid').addClass('is-valid');
+            _nik.removeError('nikMessage');
+        } else {
+            $(obj).addClass('is-invalid');
+            _nik.addError('nikMessage', {
+                message: 'NIK sudah terdaftar',
+                updateClass: true
+            });
+        }
+        spinner('hide', $(obj).parent().find('.form-label'));
+    }, error => {
+        console.log(error);
+    }, false, false);
+}

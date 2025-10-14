@@ -424,9 +424,10 @@ class StaffController extends Controller
             'periode' => $periodeNow ? $periodeNow->periode : false,
             'status_tld' => $statusTld,
             'periode_aktif' => $periodeNow,
-            'tld_pengguna' => $resTldPengguna['data'],
-            'tld_kontrol' => $resTldKontrol['data']
         ];
+
+        $resTldPengguna ? $result['tld_pengguna'] = $resTldPengguna['data'] : null;
+        $resTldKontrol ? $result['tld_kontrol'] = $resTldKontrol['data'] : null;
 
         return view('pages.staff.pengiriman.kirim', $result);
     }

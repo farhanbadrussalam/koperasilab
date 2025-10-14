@@ -7,7 +7,6 @@ $(function () {
         tab: {
             alamat: true,
             karyawan: true,
-            surat_kuasa: true
         }
     });
 
@@ -76,7 +75,7 @@ function loadData(page = 1) {
                         </div>
                         <div class="col-6 col-md-3 text-center ms-auto">
                             <div class="cursoron hover-1">
-                                <span class="text-secondary ms-2"><i class="bi bi-people-fill"></i> ${perusahaan.users?.length ?? 0} PIC</span>
+                                <span class="text-secondary ms-2"><i class="bi bi-people-fill"></i> PIC : ${perusahaan.pic?.name ?? '-'}</span>
                             </div>
                         </div>
                         <div class="d-flex col-md-3 text-end gap-2">

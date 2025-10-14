@@ -179,7 +179,8 @@ class Detail {
                     alamat: this.data.alamat ?? [],
                     jenisStatus: 'perusahaan',
                     karyawan: this.data.users ?? [],
-                    suratkuasa: this.data?.suratkuasa ?? []
+                    suratkuasa: this.data?.suratkuasa ?? [],
+                    id: this.data.perusahaan_hash
                 }
                 break;
             default:
@@ -207,6 +208,9 @@ class Detail {
                     break;
                 case 'perusahaan':
                     $('#container-detail').append(this.createInformationPerusahaan());
+                    break;
+                case 'history_pic':
+                    $('#container-detail').append(this.createInformationHistoryPic());
                     break;
                 default:
                     $('#container-detail').append(this.createInformationPermohonan());
@@ -433,6 +437,7 @@ class Detail {
 
         container.innerHTML = `
             <div class="row mb-2">
+                <input type="hidden" name="id_perusahaan" id="detail_id_hash" value="${this.info.id}">
                 <label class="text-body-tertiary mb-1 col-md-4">Nama</label>
                 <div class="col-auto">
                     ${this.info.nama_perusahaan}
@@ -455,6 +460,63 @@ class Detail {
                 <div class="col-auto">
                     ${this.info.email}
                 </div>
+            </div>
+        `;
+
+        return container;
+    }
+
+    createInformationHistoryPic() {
+        const container = document.createElement('div');
+        container.className = 'container fs-7';
+
+        let findPic = this.data.find(pic => pic.status == 1);
+        let html = ``;
+        let createLI = function(pic){
+            let periode = dateFormat(pic.created_at, 4);
+            if(pic.selesai_at){
+                periode += ` s/d ${dateFormat(pic.selesai_at, 4)}`;
+            }
+
+            return `
+                <div class="tl-item ${pic.status == 1 ? 'active' : ''}">
+                    <div class="tl-dot border-primary"></div>
+                    <div class="tl-content w-100 pb-0">
+                        <div class="card mb-2 card-hover ${pic.status == 1 ? 'border-primary' : ''}">
+                            <div class="card-header p-2 d-flex justify-content-between align-items-center">
+                                <div class="fw-semibold">${periode}</div>
+                                ${pic.status == 1 ? '<span class="badge text-bg-primary">PIC saat ini</span>' : ''}
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="d-flex flex-column">
+                                    <div class="me-2">
+                                        <span class="fw-normal">Nama : </span>
+                                        <span class="text-muted">${pic.name}</span></div>
+                                    <div class="me-2">
+                                        <span class="fw-normal">E-mail : </span>
+                                        <span class="text-muted">${pic.email}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        if(findPic){
+            html += createLI(findPic);
+        }
+        for (const pic of this.data) {
+            if(pic.status != 1) {
+                html += createLI(pic);
+            }
+        }
+
+        $('#titleDetail').text('History PIC');
+
+        container.innerHTML = `
+            <div class="timeline">
+                ${html}
             </div>
         `;
 
@@ -730,13 +792,35 @@ class Detail {
         const karyawanarr = this.info?.karyawan ?? [];
         if(karyawanarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada karyawan</p>';
 
+        karyawanarr.sort((a, b) => {
+            if (a.status > b.status) return 1;
+            if (a.status < b.status) return -1;
+            return 0;
+        });
+
         return `
-            <ul class="list-group list-group-flush">
+            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#add-modal-pic"><span class="bi bi-plus"></span> Tambah pic</button>
+            <ul class="list-group list-group-flush rounded mt-2">
                 ${karyawanarr.map((data, i) => {
+                    let docSuratKuasa = '';
+                    if(data.profile.suratkuasa){
+                        let urlDocumen = `${base_url}/storage/${data.profile.suratkuasa.file_path}/${data.profile.suratkuasa.file_hash}`;
+                        docSuratKuasa = `<a type="button" class="btn btn-sm btn-outline-info" href="${urlDocumen}" target="_blank" title="Dokumen Surat Kuasa"><span class="bi bi-file-earmark-text"></span></a>`;
+                    }
+
+                    let htmlTglKeluar = '';
+                    if(data.selesai_at){
+                        htmlTglKeluar = `| Tgl keluar : ${dateFormat(data.selesai_at, 4)}`;
+                    }
+
                     return `
-                        <li class="list-group-item">
-                            <div class="fw-bold">${data.name}</div>
-                            <div class="text-body-secondary">${data.email}</div>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">${data.name} ${data.status == 1 ? '<span class="badge text-bg-success">Aktif</span>' : '<span class="badge text-bg-secondary">Tidak aktif</span>'}</div>
+                                <div><small class="text-body-secondary">${data.email}</small></div>
+                                <small>Tgl masuk : ${dateFormat(data.created_at, 4)} ${htmlTglKeluar}</small>
+                            </div>
+                            ${docSuratKuasa}
                         </li>
                     `;
                 }).join('')}

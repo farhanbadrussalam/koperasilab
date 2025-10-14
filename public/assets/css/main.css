@@ -401,6 +401,7 @@ a {
 
 .tl-item.active .tl-dot:before {
   border-color: #448bff;
+  background-color: #448bff;
   box-shadow: 0 0 0 4px rgba(68, 139, 255, 0.2);
 }
 
@@ -512,4 +513,12 @@ tl-item.active .tl-dot:before {
 
 .parsley-errors-list{
     list-style: circle !important;
+}
+
+
+.card-hover {
+    cursor: pointer;
+}
+.card-hover:hover {
+    box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0), 0 1px 10px 0 rgba(0,0,0,0.15);
 }

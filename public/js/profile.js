@@ -1,5 +1,6 @@
 let signaturePad;
 let _uploadSuratKuasa = false;
+let detail = false;
 $(function() {
     loadForm(profile);
 
@@ -54,18 +55,75 @@ $(function() {
     // 3) Saat password berubah, re-validate konfirmasi
     $('#new_password').on('input', function () {
         const val = $(this).val();
-        rules_password('update', rulesPassword, val);
+        rules_password('update', rulesPassword, val, '2');
     });
 
     $('#form-change-password').parsley({
         trigger: 'input',
     });
 
-    rules_password('create', rulesPassword, '#password-rules');
+    rules_password('create', rulesPassword, '#password-rules', '2');
+
+    $('#email_instansi_new').on('change', function(){
+        checkEmail(this, $(this).val(), 'instansi');
+    });
+
+    detail = new Detail({
+        jenis: 'history_pic',
+        tab: {}
+    });
 })
+
+function tambahInstansi(obj){
+    let parValidate = $('#form-instansi-nonaktif').parsley();
+
+    let statusForm = true;
+    $('.is-invalid').each(function(){
+        statusForm = false;
+    });
+    if(!statusForm) {
+        Swal.fire({
+            icon: 'warning',
+            text: 'Lengkapi form terlebih dahulu'
+        });
+        return;
+    };
+
+    parValidate.validate();
+    if(!parValidate.isValid()){
+        return;
+    }
+
+    const formParams = new FormData();
+    formParams.append('email', $('#email_instansi_new').val());
+    formParams.append('npwp_perusahaan', $('#npwp_new').val());
+    formParams.append('nama_perusahaan', $('#nama_instansi_new').val());
+    formParams.append('alamat', $('#alamat_instansi_new').val());
+    formParams.append('kode_pos', $('#kode_pos_new').val());
+
+    spinner('show', $(obj));
+
+    ajaxPost(`api/v1/profile/action/perusahaan`, formParams, result => {
+        if(result.meta.code == 200){
+            Swal.fire({
+                icon: 'success',
+                text: 'Instansi berhasil ditambahkan',
+                showConfirmButton: false,
+                timer: 1200,
+                timerProgressBar: true
+            }).then(() => {
+                window.location.reload();
+            });
+        }
+    }, error => {
+        spinner('hide', $(obj));
+    });
+}
 
 function loadForm(data) {
     // Menetapkan default value (pastikan ID ada dalam opsi yang dimuat)
+    $('#card-instansi-aktif').hide();
+    $('#card-instansi-nonaktif').hide();
     if(data.perusahaan){
         if(data.perusahaan.kode_perusahaan){
             $('#kode_instansi').removeClass('text-danger border-danger');
@@ -74,22 +132,32 @@ function loadForm(data) {
             $('#kode_instansi').removeClass('text-success border-success');
             $('#kode_instansi').addClass('text-danger border-danger');
         }
-    }
-    _uploadSuratKuasa = new UploadComponent("uploadSuratKuasa", {
-        allowedFileExtensions: ['pdf'],
-        camera: false,
-        multiple: false,
-        data: [data.profile?.suratkuasa] ?? [],
-        urlUpload: {
-            url: 'api/v1/profile/uploadSuratKuasa',
-            urlDestroy: 'api/v1/profile/destroySuratKuasa',
-            idHash: data.user_hash
-        }
-    });
 
-    $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
-    $('#kode_instansi').val(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
-    $('#email').val(data.perusahaan?.email ? data.perusahaan.email : '-');
+        $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
+        $('#kode_instansi').val(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
+        $('#email').val(data.perusahaan?.email ? data.perusahaan.email : '-');
+        $('#nama_perusahaan').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
+
+        $('#card-instansi-aktif').show();
+    } else {
+        $('#card-instansi-nonaktif').show();
+
+    }
+
+    if(!_uploadSuratKuasa){
+        _uploadSuratKuasa = new UploadComponent("uploadSuratKuasa", {
+            allowedFileExtensions: ['pdf'],
+            camera: false,
+            multiple: false,
+            data: data.profile?.suratkuasa ? [data.profile?.suratkuasa] : [],
+            urlUpload: {
+                url: 'api/v1/profile/uploadSuratKuasa',
+                urlDestroy: 'api/v1/profile/destroySuratKuasa',
+                idHash: data.user_hash
+            }
+        });
+    }
+
 
     $('#nik_pic').val(data.profile.nik ? data.profile.nik : '-');
     $('#nama_pic').val(data.name ? data.name : '-');
@@ -98,7 +166,6 @@ function loadForm(data) {
     $('#telepon').val(data.profile.no_hp ? data.profile.no_hp : '-');
     $('#jenis_kelamin').val(data.profile.jenis_kelamin);
     $('#alamat_pic').html(data.profile.alamat ? data.profile.alamat : '-');
-    $('#nama_perusahaan').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
     isPassword ? $('#form-old-password').removeClass('d-none') : $('#form-old-password').addClass('d-none');
 
     document.getElementById('show-ttd').innerHTML = '';
@@ -145,7 +212,7 @@ function loadForm(data) {
                 <div class="mb-3" data-idalamat="${alamat.alamat_hash}">
                     <div class="d-flex" id="divLabel-${alamat.jenis}">
                         <label class="form-label me-3">Alamat ${jenis}</label>
-                        ${checkbox}
+                        ${statusUser == 1 ? checkbox : ''}
                     </div>
                     <div id="alamat-${alamat.jenis}-inactive" class="${alamat.status == 1 ? 'd-none' : 'd-block'}">
                         <p>Alamat sesuai dengan Alamat Utama</p>
@@ -155,7 +222,7 @@ function loadForm(data) {
                             <textarea name="txt-alamat-${alamat.jenis}" data-field="alamat" id="txt-alamat-${alamat.jenis}" cols="30" rows="3" class="form-control mb-2" disabled>${alamat.alamat ?? ''}</textarea>
                             <input type="text" class="form-control me-2" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-${alamat.jenis}" value="${alamat.kode_pos ?? ''}" disabled>
                         </div>
-                        <div id="btnEditDiv-${alamat.jenis}" class="d-block" data-field="${alamat.jenis}">
+                        <div id="btnEditDiv-${alamat.jenis}" class="d-block ${statusUser == 1 ? 'd-block' : 'd-none'}" data-field="${alamat.jenis}">
                             <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'alamat')"><i class="bi bi-pencil"></i></button>
                         </div>
                         <div id="btnActionDiv-${alamat.jenis}" class="d-none d-flex" data-field="${alamat.jenis}">
@@ -393,5 +460,8 @@ function gantiPassword(obj) {
             spinner('hide', $(obj));
         })
     }
+}
 
+function openModalHistoryPic(){
+    detail.show(`api/v1/profile/getHistoryPic/${profile.perusahaan?.perusahaan_hash}`);
 }

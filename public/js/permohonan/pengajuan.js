@@ -133,7 +133,8 @@ function loadData(page = 1, status) {
                     id: pengajuan.permohonan_hash,
                     is_have_tld: pengajuan.is_have_tld,
                     is_zerocek: pengajuan.is_zerocek,
-                    note: pengajuan.note
+                    note: pengajuan.note,
+                    pelanggan: pengajuan.pelanggan.name
                 };
                 const btnAction = `
                     <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>

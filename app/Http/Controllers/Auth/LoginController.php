@@ -10,6 +10,8 @@ use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Contracts\LogoutResponse;
 use Illuminate\Support\Facades\Session;
 
+use App\Models\User;
+
 class LoginController extends Controller
 {
     /*
@@ -52,9 +54,14 @@ class LoginController extends Controller
         ]);
 
         if($validator){
+            // cek user berdasarkan email
+            $user = User::where('email', $request->email)->first();
+
             // Contoh: Lakukan login menggunakan metode bantu Fortify
-            if (auth()->attempt($request->only('email', 'password'))) {
-                return app(LoginResponse::class);
+            if($user && $user->status != 99){
+                if (auth()->attempt($request->only('email', 'password'))) {
+                    return app(LoginResponse::class);
+                }
             }
 
             // Login gagal, tangani respons sesuai kebutuhan
