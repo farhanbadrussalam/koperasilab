@@ -1200,11 +1200,11 @@ function convertHslToHex(html) {
 }
 
 function isReminderPeriod(period, offset, hNow = null, unit = "month") {
-  const periodDate = new Date(period);
+//   const periodDate = new Date(period);
   const now = hNow ? new Date(hNow) : new Date();
 
   // Hitung H-offset
-  let hMinus = new Date(periodDate);
+  let hMinus = new Date(period);
 
   switch (unit) {
     case "month":
@@ -1221,10 +1221,10 @@ function isReminderPeriod(period, offset, hNow = null, unit = "month") {
   }
 
   // Batas akhir = sehari sebelum periode
-  let beforePeriod = new Date(periodDate);
+  let beforePeriod = new Date(period);
   beforePeriod.setDate(beforePeriod.getDate() - 1);
-
-  return now >= hMinus && now <= beforePeriod;
+//   return now >= hMinus && now <= beforePeriod;
+  return now >= hMinus;
 }
 
 function showPassword(obj) {
@@ -1290,4 +1290,96 @@ function checkNIK(obj, nik){
     }, error => {
         console.log(error);
     }, false, false);
+}
+
+function toUTCDateOnly(d) {
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
+/**
+ * Tambah bulan secara kalender (bukan 30 hari * n).
+ * Jika tanggal tidak ada di bulan tujuan (mis. 31 → Feb), turunkan ke tanggal terakhir di bulan itu.
+ */
+function addCalendarMonths(date, months) {
+  const y = date.getUTCFullYear();
+  const m = date.getUTCMonth();
+  const d = date.getUTCDate();
+  const target = new Date(Date.UTC(y, m + months, 1));
+  // set ke min(tanggal-asal, jumlah-hari-di-bulan-target)
+  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(d, lastDay));
+  return target;
+}
+
+/**
+ * Hitung selisih kalender (bulan & hari) dari from → to.
+ * Mengembalikan { sign: 1|-1|0, months, days } dengan months & days selalu non-negatif.
+ */
+function diffMonthsDays(fromDate, toDate) {
+  const from = toUTCDateOnly(fromDate);
+  const to = toUTCDateOnly(toDate);
+
+  if (from.getTime() === to.getTime()) {
+    return { sign: 0, months: 0, days: 0 };
+  }
+
+  let sign = 1;
+  let start = from, end = to;
+  if (from > to) {
+    sign = -1;
+    start = to;
+    end = from;
+  }
+
+  // Hitung bulan penuh
+  let months = (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + (end.getUTCMonth() - start.getUTCMonth());
+  const anchor = addCalendarMonths(start, months);
+
+  if (anchor > end) {
+    months -= 1;
+  }
+
+  const anchor2 = addCalendarMonths(start, months);
+  const msPerDay = 24 * 60 * 60 * 1000;
+  // Selisih hari kalender; gunakan pembulatan ke atas untuk menghindari efek jam
+  const days = Math.round((toUTCDateOnly(end) - toUTCDateOnly(anchor2)) / msPerDay);
+
+  return { sign, months, days };
+}
+
+/**
+ * Format ke Bahasa Indonesia.
+ * Contoh keluaran:
+ *  - "Sisa 2 bulan 2 hari"
+ *  - "Sisa 5 hari"
+ *  - "Lewat 1 bulan 3 hari" (jika sudah terlampaui)
+ *  - "Hari ini" (jika tepat hari H)
+ *
+ * Opsi:
+ *  - zeroLabel: teks saat 0 bulan 0 hari (default "Hari ini")
+ *  - pastPrefix: "Lewat" | "Terlambat" (default "Lewat")
+ *  - futurePrefix: "Sisa" (default)
+ */
+function formatTimeLeftID(fromDate, toDate, opts = {}) {
+  const { sign, months, days } = diffMonthsDays(fromDate, toDate);
+  const zeroLabel = opts.zeroLabel ?? "Hari ini";
+  const pastPrefix = opts.pastPrefix ?? "Lewat";
+  const futurePrefix = opts.futurePrefix ?? "Sisa";
+
+  if (sign === 0 && months === 0 && days === 0) return zeroLabel;
+
+  const parts = [];
+  if (months) parts.push(`${months} bulan`);
+  if (days) parts.push(`${days} hari`);
+  const core = parts.join(" ");
+
+  if (sign > 0) return `${futurePrefix} ${core}`;
+  return `${pastPrefix} ${core}`;
+}
+
+function timeLeftUntilHMinusOneMonth(targetDate, opts = {}) {
+  const today = new Date("2026-12-01");
+  const target = toUTCDateOnly(targetDate);
+//   const hMinus1 = addCalendarMonths(target, -1);
+  return formatTimeLeftID(today, target, opts);
 }

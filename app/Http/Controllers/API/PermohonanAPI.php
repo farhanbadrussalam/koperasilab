@@ -149,18 +149,15 @@ class PermohonanAPI extends Controller
             }
 
             if($tipeKontrak == 'kontrak lama'){
-                $countTld = null;
                 if($listTld){
                     foreach ($listTld as $value) {
                         $kontrakTld = Kontrak_tld::with('pengguna')->where('id_kontrak_tld', decryptor($value))->first();
                         $kontrakTld->update(['status' => 3]);
-
-                        $countTld = $kontrakTld->count_tld;
                     }
                 }
                 Kontrak_periode::where('id_kontrak', $idKontrak)
                     ->where('periode', $periode)
-                    ->update(array('id_permohonan' => $permohonan->id_permohonan, 'count_tld' => $countTld));
+                    ->update(array('id_permohonan' => $permohonan->id_permohonan));
             }
 
             if($tipeKontrak == 'kontrak baru' && $jenisLayanan2 == 3){ // Evaluasi
@@ -455,7 +452,7 @@ class PermohonanAPI extends Controller
                 Permohonan_tld::where('id_permohonan', $id)->delete();
 
                 if($permohonan->tipe_kontrak == 'kontrak lama') {
-                    Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null, 'count_tld' => null));
+                    Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null));
                     Kontrak_tld::where('id_kontrak', $permohonan->id_kontrak)->where('status', 3)->update(array('status' => 2));
                 }
                 $permohonan->delete();
@@ -1242,13 +1239,21 @@ class PermohonanAPI extends Controller
             foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
                 $periode = $key + 1;
 
+                // cari ganjil genap
+                $countTld = null;
+                if($periode % 2 == 0){ // genap
+                    $countTld = 2;
+                } else { // ganjil
+                    $countTld = 1;
+                }
+
                 $paramsPeriode = array(
                     'id_kontrak' => $dataKontrak->id_kontrak,
                     'periode' => $periode,
                     'start_date' => $value['start_date'],
                     'end_date' => $value['end_date'],
                     'status' => 1,
-                    'count_tld' => $periode == 1 ? 1 : null,
+                    'count_tld' => $countTld,
                     'id_permohonan' => $dataPermohonan->periode == $periode ? $dataPermohonan->id_permohonan : null,
                     'created_by' => Auth::user()->id,
                     'created_at' => date('Y-m-d H:i:s')

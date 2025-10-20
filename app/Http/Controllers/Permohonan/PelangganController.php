@@ -55,8 +55,8 @@ class PelangganController extends Controller
             $periodeNext = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+1)->first();
             $periode2Next = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+2)->first();
             // pengecekan periode sekarang
-            $countTld = $periodeNow->periode % 2 == 1 ? 1 : 2;
-            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', $countTld)->get();
+            // $countTld = $periodeNow->periode % 2 == 1 ? 1 : 2;
+            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', $periodeNow->count_tld)->get();
             if(count($kontrakTld) == 0){
                 $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', 1)->get();
                 foreach($dataKontrakTldSebelum as $val){

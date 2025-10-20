@@ -133,9 +133,10 @@ function loadData(page = 1) {
                 if(!isPenyimpanan){
                     btnAction += btnUpdateProgress;
                 } else {
-                    let filterPeriodeNext = lhu.permohonan.kontrak.periode.filter(d => d.periode == lhu.periode + 1);
+                    let filterPeriodeNext = lhu.permohonan.kontrak.periode.filter(d => d.periode == lhu.periode + 1 && d.status == 1);
+                    // console.log(filterPeriodeNext);
                     if(filterPeriodeNext.length > 0){
-                        let reminderPeriod = isReminderPeriod(filterPeriodeNext[0].start_date, 1);
+                        let reminderPeriod = isReminderPeriod(filterPeriodeNext[0].start_date, 1, "2026-12-01");
 
                         if(filterPeriodeNext[0].tld_in_periode && filterPeriodeNext[0].tld_in_periode[0].status == 5 || reminderPeriod){
                             btnAction += btnUpdateProgress;
@@ -143,11 +144,56 @@ function loadData(page = 1) {
                             btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
                         }
                     } else {
-                        btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
+                        if(envirotment == 'production' && permohonan.kontrak.is_have_tld == 1 && permohonan.kontrak.jenis_layanan.name != 'Sewa') {
+                            let TldPeriodeDigunakan = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode);
+                            // mengambil periode berikutnya
+                            let startDate = new Date(TldPeriodeDigunakan.end_date);
+                            // awal bulan setelah startDate
+                            startDate.setDate(1);
+                            startDate.setMonth(startDate.getMonth() + 4);
+
+                            let reminderPeriod = isReminderPeriod(startDate, 1, "2026-12-01");
+                            if(reminderPeriod){
+                                btnAction += btnUpdateProgress;
+                            } else {
+                                btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
+                            }
+                        } else {
+                            btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
+                        }
                     }
                 }
             }
             isPelabelan ? btnAction += btnLabel : '';
+
+            // mengambil 2 periode
+            let htmlLeftTime = '';
+            if(thisTab == 'progress'){
+                let TldPeriodeDigunakan = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode + 1 && d.status == 1);
+                let time = '';
+                let title = '';
+                if(TldPeriodeDigunakan && envirotment == 'production'){
+                    time = timeLeftUntilHMinusOneMonth(new Date(TldPeriodeDigunakan.start_date));
+                    title = `Sebelum Periode ${TldPeriodeDigunakan.periode}`;
+                } else if(envirotment == 'production' && permohonan.kontrak.is_have_tld == 1 && permohonan.kontrak.jenis_layanan.name != 'Sewa') {
+                    TldPeriodeDigunakan = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode);
+                    // mengambil periode berikutnya
+                    let startDate = new Date(TldPeriodeDigunakan.end_date);
+                    // awal bulan setelah startDate
+                    startDate.setDate(1);
+                    startDate.setMonth(startDate.getMonth() + 4);
+
+                    // let endDate = new Date(startDate);
+                    // endDate.setMonth(endDate.getMonth() + 3);
+                    // endDate.setDate(0);
+
+                    time = timeLeftUntilHMinusOneMonth(startDate);
+                    title = `Sebelum Pengembalian`;
+                }
+                if(time != 'Hari ini' && time != ''){
+                    htmlLeftTime = `<div class="fs-6 text-body-tertiary fw-bold text-end">${time}<br><small>${title}</small></div>`;
+                }
+            }
 
             html += `
                 <div class="card mb-2">
@@ -155,7 +201,7 @@ function loadData(page = 1) {
                         <div class="col-auto">
                             <div class="">
                                 <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
-                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
+                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.kontrak.jenis_layanan_parent.name} - ${permohonan.kontrak.jenis_layanan.name}</span>
                                 <span> | ${htmlStatus}</span>
                             </div>
                             <div class="fs-5 my-2">
@@ -170,8 +216,11 @@ function loadData(page = 1) {
                                 ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                             </div>
                         </div>
-                        <div class="ms-auto col-auto text-center gap-1 d-flex" data-id='${lhu.penyelia_hash}' data-index='${i}'>
-                            ${btnAction}
+                        <div class="ms-auto col-auto">
+                            ${htmlLeftTime}
+                            <div class="text-center gap-1 d-flex" data-id='${lhu.penyelia_hash}' data-index='${i}'>
+                                ${btnAction}
+                            </div>
                         </div>
                         ${divInfoTugas}
                         <div class="col-md-12 collapse" id="timeline-progress-${lhu.penyelia_hash}">

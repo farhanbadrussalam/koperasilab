@@ -511,6 +511,8 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak.periode',
                 'permohonan.kontrak.rincian_list_tld',
                 'permohonan.kontrak.rincian_list_tld.pengguna',
+                'permohonan.kontrak.jenis_layanan:id_jenisLayanan,name,parent',
+                'permohonan.kontrak.jenis_layanan_parent:id_jenisLayanan,name',
                 'permohonan.periodenow',
                 'permohonan.dokumen',
                 'permohonan.dokumen.doc_template',

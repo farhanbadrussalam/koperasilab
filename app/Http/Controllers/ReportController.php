@@ -1054,8 +1054,14 @@ class ReportController extends Controller
         ])->where('id_penyelia', $id)->first();
 
         // mengambil list tld di kontrak
+        $periodeNow = $query->permohonan->periodenow;
+        if($query->permohonan->periodenow->periode == 0){
+            $getKperiode = Kontrak_periode::where('id_kontrak', $query->permohonan->id_kontrak)->where('periode', 1)->first();
+            $periodeNow = $getKperiode;
+        }
+
         $listTld = Kontrak_tld::with('pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
-                    ->where('count_tld', $query->permohonan->periodenow->count_tld)
+                    ->where('count_tld', $periodeNow->count_tld ?? 1)
                     ->orderBy('id_pengguna', 'asc')
                     ->orderBy('id_divisi', 'asc')
                     ->get();
@@ -1070,7 +1076,7 @@ class ReportController extends Controller
         $data['title'] = 'Label';
         $data['data'] = json_decode($listTld);
         $data['penyelia'] = $query;
-        $data['periode'] = $query->permohonan->periodenow;
+        $data['periode'] = $periodeNow;
 
         $pdf = PDF::loadView('report.label', $data);
         $pdf->setPaper('a4', 'landscape');

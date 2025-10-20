@@ -68,7 +68,12 @@ class KontrakAPI extends Controller
                     ])
                     ->withCount('periode')
                     ->when($idPelanggan, function($q, $idPelanggan){
-                        return $q->where('id_pelanggan', $idPelanggan);
+                        // mengambil id dari history_pic
+                        $id_pic = array();
+                        foreach (Auth::user()->perusahaan->history_pic as $key => $pic) {
+                            array_push($id_pic, $pic->id);
+                        }
+                        return $q->where('id_pelanggan', $id_pic);
                     })
                     ->when($filter, function($q, $filter) {
                         foreach ($filter as $key => $value) {

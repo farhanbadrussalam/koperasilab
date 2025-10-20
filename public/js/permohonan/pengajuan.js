@@ -3,7 +3,7 @@ let thisStatus = false;
 let detail = false;
 let filterComp = false;
 $(function () {
-    switchLoadTab(1);
+    switchLoadTab(2);
 
     detail = new Detail({
         jenis: 'permohonan',
