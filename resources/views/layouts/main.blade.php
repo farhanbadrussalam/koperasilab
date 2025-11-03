@@ -159,7 +159,7 @@
         $(function () {
             let user = @json(Auth::user());
 
-            loadNotifikasi();
+            // loadNotifikasi();
             let chanel = window.Echo?.private(`jadwal.${user.id}`).listen('.notif', (result) => {
                 toastr.info(
                     `

@@ -22,8 +22,8 @@ use App\Models\Master_tld;
 use App\Models\Setting_layanan;
 
 use App\Http\Controllers\API\TldAPI;
-
 use App\Http\Controllers\API\PermohonanAPI;
+use App\Http\Controllers\NotifController;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -31,9 +31,10 @@ use Carbon\Carbon;
 
 class StaffController extends Controller
 {
-    protected $permohonan, $tld, $global;
+    protected $permohonan, $tld, $global, $notif;
     public function __construct(){
         $this->permohonan = resolve(PermohonanAPI::class);
+        $this->notif = resolve(NotifController::class);
         $this->tld = resolve(TldAPI::class);
         $this->global = config('customvariabel');
     }
@@ -43,6 +44,7 @@ class StaffController extends Controller
             'title' => 'Keuangan',
             'module' => 'staff-keuangan'
         ];
+        notifRead('Keuangan');
         return view('pages.staff.keuangan.index', $data);
     }
 
@@ -57,6 +59,7 @@ class StaffController extends Controller
 
     public function indexLhu()
     {
+        notifRead('PenyeliaLAB');
         $userJobs = Auth::user()->jobs;
         $listJobs = array();
         if($userJobs != null){
@@ -83,7 +86,7 @@ class StaffController extends Controller
             $dataJobs = Master_jobs::where('status', 14)->first();
             array_push($listJobs, $dataJobs->jobs_hash);
         }
-        // dd($listJobs);
+        notifRead('Penyelia');
         $data = [
             'title' => 'Penyelia',
             'module' => 'staff-penyelia',
@@ -121,6 +124,9 @@ class StaffController extends Controller
 
     public function createSuratTugas($idPenyelia)
     {
+        // cek notifikasi read
+        notifRead('SuratTugas', $idPenyelia);
+
         $idPenyelia = decryptor($idPenyelia);
 
         // Mendapatkan segmen terakhir dari URL
@@ -221,6 +227,7 @@ class StaffController extends Controller
 
     public function indexPengirimanPermohonan()
     {
+        notifRead(['PenyeliaLAB']);
         $data = [
             'title' => 'Permohonan',
             'module' => 'staff-pengiriman-permohonan'
@@ -230,6 +237,7 @@ class StaffController extends Controller
 
     public function verifikasiPermohonan($idPermohonan)
     {
+        notifRead('Permohonan', $idPermohonan);
         $arrTandaTerima = [1,4, 7];
         $id = decryptor($idPermohonan);
         $pertanyaan_tr = false;
@@ -259,7 +267,6 @@ class StaffController extends Controller
 
         $isEvaluasi = in_array($layanan, $this->global['arr_evaluasi']);
 
-        $dataPengguna = Permohonan_pengguna::where('id_permohonan', $id)->first();
         $data = [
             'title' => 'Verifikasi Permohonan',
             'module' => 'staff-permohonan',

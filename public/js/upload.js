@@ -82,7 +82,11 @@ class UploadComponent {
     }
 
     setData(data){
-        this.listFile.push(data);
+        if(this.options.multiple) {
+            this.listFile = data;
+        } else{
+            this.listFile.push(data);
+        }
         this.loadListFile();
     }
 

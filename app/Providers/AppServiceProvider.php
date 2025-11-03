@@ -25,5 +25,17 @@ class AppServiceProvider extends ServiceProvider
 
         // Bagikan ke semua view
         View::share('globalVar', $globalData);
+
+        view()->composer('*', function ($view) {
+            if(auth()->check()){
+                $user = auth()->user();
+
+                // ambil data notifikasi
+                $latestNotification = $user->notifications()->latest()->limit(10)->get();
+
+                // Bagikan ke semua view
+                $view->with('latestNotification', $latestNotification);
+            }
+        });
     }
 }

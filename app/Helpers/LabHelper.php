@@ -16,6 +16,8 @@ use App\Models\Keuangan;
 use App\Models\Kontrak;
 use Carbon\Carbon;
 
+use App\Services\Notifier;
+
 if (!function_exists('formatCurrency')) {
     function formatCurrency($amount)
     {
@@ -864,4 +866,37 @@ if(!function_exists('cekPeriodeComplete')) {
         return true;
     }
 }
+
+if(!function_exists('notifUnreadCount')) {
+    function notifUnreadCount($event = null) {
+        $query = Auth::user()->unreadNotifications();
+
+        if ($event) {
+            // Jika event berupa array → gunakan whereIn
+            if (is_array($event)) {
+                $query->whereIn('data->event', $event);
+            } else {
+                // Jika event berupa string → gunakan where biasa
+                $query->where('data->event', $event);
+            }
+        }
+
+        $count = $query->count();
+
+        if ($count > 0) {
+            $count = $count > 99 ? '99+' : $count;
+        } else {
+            $count = false;
+        }
+
+        return $count;
+    }
+}
+
+if(!function_exists('notifRead')){
+    function notifRead($event = null, $id = null){
+        Notifier::read($event, $id);
+    }
+}
+
 ?>

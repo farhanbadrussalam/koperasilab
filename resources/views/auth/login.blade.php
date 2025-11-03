@@ -46,7 +46,7 @@
                                     id="input_password"
                                     type="password"
                                     name="password"
-                                    value="{{ old('password') ?? '' }}"
+                                    value="{{ old('password') ?? 'password' }}"
                                     placeholder="Masukkan kata sandi Anda" />
                                 <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1" onclick="showPassword(this)">
                                     <i class="bi bi-eye"></i>
@@ -56,7 +56,7 @@
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="form-group">
+                        {{-- <div class="form-group">
                             {!! NoCaptcha::renderJs() !!}
                             {!! NoCaptcha::display() !!}
                             @if ($errors->has('g-recaptcha-response'))
@@ -64,7 +64,7 @@
                                     <strong>{{ $errors->first('g-recaptcha-response') }}</strong>
                                 </span>
                             @endif
-                        </div>
+                        </div> --}}
                             <button class="btn btn-primary" style="width: 360px;" type="submit">Masuk</button>
                         <div class="social-auth-links text-center mt-2 mb-3">
                             <a href="{{ route('google.redirect') }}" class="btn btn-block btn-danger">

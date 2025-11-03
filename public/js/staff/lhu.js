@@ -136,7 +136,7 @@ function loadData(page = 1) {
                     let filterPeriodeNext = lhu.permohonan.kontrak.periode.filter(d => d.periode == lhu.periode + 1 && d.status == 1);
                     // console.log(filterPeriodeNext);
                     if(filterPeriodeNext.length > 0){
-                        let reminderPeriod = isReminderPeriod(filterPeriodeNext[0].start_date, 1, "2026-12-01");
+                        let reminderPeriod = isReminderPeriod(filterPeriodeNext[0].start_date, 1);
 
                         if(filterPeriodeNext[0].tld_in_periode && filterPeriodeNext[0].tld_in_periode[0].status == 5 || reminderPeriod){
                             btnAction += btnUpdateProgress;
@@ -152,7 +152,7 @@ function loadData(page = 1) {
                             startDate.setDate(1);
                             startDate.setMonth(startDate.getMonth() + 4);
 
-                            let reminderPeriod = isReminderPeriod(startDate, 1, "2026-12-01");
+                            let reminderPeriod = isReminderPeriod(startDate, 1);
                             if(reminderPeriod){
                                 btnAction += btnUpdateProgress;
                             } else {
@@ -173,8 +173,12 @@ function loadData(page = 1) {
                 let time = '';
                 let title = '';
                 if(TldPeriodeDigunakan && envirotment == 'production'){
-                    time = timeLeftUntilHMinusOneMonth(new Date(TldPeriodeDigunakan.start_date));
-                    title = `Sebelum Periode ${TldPeriodeDigunakan.periode}`;
+                    if(TldPeriodeDigunakan.periode == 1){
+                        time = '';
+                    } else {
+                        time = timeLeftUntilHMinusOneMonth(new Date(TldPeriodeDigunakan.start_date));
+                        title = `Sebelum Periode ${TldPeriodeDigunakan.periode}`;
+                    }
                 } else if(envirotment == 'production' && permohonan.kontrak.is_have_tld == 1 && permohonan.kontrak.jenis_layanan.name != 'Sewa') {
                     TldPeriodeDigunakan = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode);
                     // mengambil periode berikutnya
@@ -182,10 +186,6 @@ function loadData(page = 1) {
                     // awal bulan setelah startDate
                     startDate.setDate(1);
                     startDate.setMonth(startDate.getMonth() + 4);
-
-                    // let endDate = new Date(startDate);
-                    // endDate.setMonth(endDate.getMonth() + 3);
-                    // endDate.setDate(0);
 
                     time = timeLeftUntilHMinusOneMonth(startDate);
                     title = `Sebelum Pengembalian`;

@@ -25,6 +25,8 @@ use App\Models\Kontrak_pengguna;
 use App\Models\Kontrak_tld;
 use App\Models\Kontrak_periode;
 
+use App\Services\Notifier;
+
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
 
@@ -284,7 +286,7 @@ class PengirimanAPI extends Controller
                 $params['bukti_pengiriman'] = $bukti;
             }
 
-            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna')->where('id_pengiriman', $idPengiriman)->first();
+            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna', 'kontrak.pelanggan')->where('id_pengiriman', $idPengiriman)->first();
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
@@ -330,6 +332,16 @@ class PengirimanAPI extends Controller
                     $this->media->destroy($item);
                 }
                 $pengiriman->update(['bukti_pengiriman' => null]);
+            } else if ($status == 1 && isset($pengiriman->kontrak)) {
+                // mengirim notifikasi ke pelanggan saat di kirim
+                $userQuery = User::where('id_perusahaan', $pengiriman->kontrak->pelanggan->id_perusahaan)->where('status', 1);
+                $dataNotif = array(
+                    'pesan' => 'Pengiriman dengan no resi ' . $noResi . ' telah dikirim',
+                    'url' => "/permohonan/pengiriman",
+                    'event' => 'pengiriman',
+                    'event_id' => $pengiriman->pengiriman_hash,
+                );
+                Notifier::send($userQuery, $dataNotif);
             }
 
             $result['id_pengiriman'] = $query->pengiriman_hash;
