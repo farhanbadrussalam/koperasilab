@@ -336,7 +336,7 @@ class PengirimanAPI extends Controller
                 // mengirim notifikasi ke pelanggan saat di kirim
                 $userQuery = User::where('id_perusahaan', $pengiriman->kontrak->pelanggan->id_perusahaan)->where('status', 1);
                 $dataNotif = array(
-                    'pesan' => 'Pengiriman dengan no resi ' . $noResi . ' telah dikirim',
+                    'pesan' => 'Pengiriman dengan no resi <b>' . $noResi . '</b> telah dikirim',
                     'url' => "/permohonan/pengiriman",
                     'event' => 'pengiriman',
                     'event_id' => $pengiriman->pengiriman_hash,
@@ -409,13 +409,17 @@ class PengirimanAPI extends Controller
             }
 
             // cek apakah periode sudah complete seperti Invoice, LHU, TLD sesuai dengan periode nya
+            info("================ Cek apakah Periode sudah complete ===============");
             $kontrakPeriode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->where('periode', $query->periode)->first();
             if(!$kontrakPeriode->selesai){ // jika value nya null
+                info("Proses pengecekan di periode : " . $query->periode);
                 $cekPeriode = cekPeriodeComplete($query->id_kontrak, $query->periode);
                 if($cekPeriode){
                     $kontrakPeriode->update(['selesai' => 1]);
+                    info("Update Kontrak Periode: selesai = 1");
                 }
             }
+            info("================ Selesai ===============");
 
             // mereset TLD jika di kembalikan
             if($kontrakPeriode->status == 2){

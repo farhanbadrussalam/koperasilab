@@ -86,7 +86,7 @@ class StaffController extends Controller
             $dataJobs = Master_jobs::where('status', 14)->first();
             array_push($listJobs, $dataJobs->jobs_hash);
         }
-        notifRead('Penyelia');
+        notifRead(['Penyelia', 'PenyeliaLAB']);
         $data = [
             'title' => 'Penyelia',
             'module' => 'staff-penyelia',

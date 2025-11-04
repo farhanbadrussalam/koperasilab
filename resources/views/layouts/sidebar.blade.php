@@ -212,7 +212,7 @@
                     href="{{ route('staff.penyelia') }}" aria-expanded="false">
                         <span><i class="bi bi-eyedropper"></i></span>
                         <span class="hide-menu">Penyeliaan</span>
-                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Penyelia')) d-none @endif">{{ notifUnreadCount('Penyelia') }}</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount(['Penyelia', 'PenyeliaLAB'])) d-none @endif">{{ notifUnreadCount(['Penyelia', 'PenyeliaLAB']) }}</span>
                     </a>
                 </li>
                 @endcan

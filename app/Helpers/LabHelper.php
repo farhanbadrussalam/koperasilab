@@ -817,9 +817,7 @@ if(!function_exists('cekPeriodeComplete')) {
             'jenis_layanan',
             'jenis_layanan_parent',
             'invoice',
-            'pengiriman' => function($q) use ($periode) {
-                $q->where('periode', $periode);
-            },
+            'pengiriman',
             'pengiriman.detail'
         ])->find($id_kontrak);
         $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
@@ -841,7 +839,11 @@ if(!function_exists('cekPeriodeComplete')) {
 
             $getPengiriman = false;
             foreach ($kontrak->pengiriman as $pengiriman) {
-                $cekDokumen = Pengiriman_detail::where('id_pengiriman', $pengiriman->id_pengiriman)->where('jenis', $dokumen)->first();
+                $cekDokumen = Pengiriman_detail::where('id_pengiriman', $pengiriman->id_pengiriman)
+                    ->where('jenis', $dokumen)
+                    ->where('periode', $periode)
+                    ->first();
+
                 if($cekDokumen) {
                     $getPengiriman = $pengiriman;
                     break;
