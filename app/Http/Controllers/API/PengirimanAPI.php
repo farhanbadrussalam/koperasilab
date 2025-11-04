@@ -25,6 +25,8 @@ use App\Models\Kontrak_pengguna;
 use App\Models\Kontrak_tld;
 use App\Models\Kontrak_periode;
 
+use App\Services\Notifier;
+
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
 
@@ -284,7 +286,7 @@ class PengirimanAPI extends Controller
                 $params['bukti_pengiriman'] = $bukti;
             }
 
-            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna')->where('id_pengiriman', $idPengiriman)->first();
+            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna', 'kontrak.pelanggan')->where('id_pengiriman', $idPengiriman)->first();
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
@@ -330,6 +332,16 @@ class PengirimanAPI extends Controller
                     $this->media->destroy($item);
                 }
                 $pengiriman->update(['bukti_pengiriman' => null]);
+            } else if ($status == 1 && isset($pengiriman->kontrak)) {
+                // mengirim notifikasi ke pelanggan saat di kirim
+                $userQuery = User::where('id_perusahaan', $pengiriman->kontrak->pelanggan->id_perusahaan)->where('status', 1);
+                $dataNotif = array(
+                    'pesan' => 'Pengiriman dengan no resi <b>' . $noResi . '</b> telah dikirim',
+                    'url' => "/permohonan/pengiriman",
+                    'event' => 'pengiriman',
+                    'event_id' => $pengiriman->pengiriman_hash,
+                );
+                Notifier::send($userQuery, $dataNotif);
             }
 
             $result['id_pengiriman'] = $query->pengiriman_hash;
@@ -397,13 +409,17 @@ class PengirimanAPI extends Controller
             }
 
             // cek apakah periode sudah complete seperti Invoice, LHU, TLD sesuai dengan periode nya
+            info("================ Cek apakah Periode sudah complete ===============");
             $kontrakPeriode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->where('periode', $query->periode)->first();
             if(!$kontrakPeriode->selesai){ // jika value nya null
+                info("Proses pengecekan di periode : " . $query->periode);
                 $cekPeriode = cekPeriodeComplete($query->id_kontrak, $query->periode);
                 if($cekPeriode){
                     $kontrakPeriode->update(['selesai' => 1]);
+                    info("Update Kontrak Periode: selesai = 1");
                 }
             }
+            info("================ Selesai ===============");
 
             // mereset TLD jika di kembalikan
             if($kontrakPeriode->status == 2){

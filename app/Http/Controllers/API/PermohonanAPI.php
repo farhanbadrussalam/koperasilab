@@ -26,10 +26,14 @@ use App\Models\Kontrak;
 use App\Models\Kontrak_pengguna;
 use App\Models\Kontrak_periode;
 use App\Models\Kontrak_tld;
+use App\Models\User;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\NotifController;
 use App\Http\Controllers\API\TldAPI;
+
+use App\Services\Notifier;
 
 use Auth;
 use DB;
@@ -38,12 +42,13 @@ use Log;
 class PermohonanAPI extends Controller
 {
     use RestApi;
-    protected $media, $log, $tld, $global, $pagination;
+    protected $media, $log, $tld, $global, $pagination, $notif;
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
         $this->tld = resolve(TldAPI::class);
+        $this->notif = resolve(NotifController::class);
         $this->global = config('customvariabel');
     }
 
@@ -174,6 +179,20 @@ class PermohonanAPI extends Controller
 
             if($haveTld == 0){
                 Permohonan_tld::where('id_permohonan', $permohonan->id_permohonan)->update(['id_tld' => null]);
+            }
+
+            if($permohonan->status == 1){
+                $userQuery = User::role('Staff Admin');
+                $us = Auth::user();
+                $dataNotif = array(
+                    'pesan' => 'Permohonan baru telah dibuat! Silahkan verifikasi',
+                    'url' => '/permohonan/verifikasi/'.$permohonan->permohonan_hash,
+                    'event_id' => $permohonan->permohonan_hash,
+                    'event' => 'Permohonan',
+                    'user_id' => "{$us->id}|{$us->name}",
+                    'perusahaan_id' => "{$us->id_perusahaan}|{$us->perusahaan->nama_perusahaan}",
+                );
+                Notifier::send($userQuery, $dataNotif);
             }
 
             DB::commit();
@@ -1109,6 +1128,11 @@ class PermohonanAPI extends Controller
                 }
 
                 DB::commit();
+
+                $this->notif->read(new Request([
+                    'event' => 'Permohonan',
+                    'event_id' => $dataPermohonan->permohonan_hash
+                ]));
             }
 
             // $fileLhu && $fileLhu->store();

@@ -16,6 +16,11 @@ class ManagerPengajuanController extends Controller
             'title' => 'Invoice',
             'module' => 'manager-pengajuan'
         ];
+        $cekNotifikasi = Auth::user()->unreadNotifications()->where('data->event', 'Keuangan')->first();
+
+        if($cekNotifikasi) {
+            $cekNotifikasi->markAsRead();
+        }
         return view('pages.manager.pengajuan.index', $data);
     }
 
@@ -25,6 +30,12 @@ class ManagerPengajuanController extends Controller
             'title' => 'Surat tugas',
             'module' => 'manager-suratTugas'
         ];
+
+        $cekNotifikasi = Auth::user()->unreadNotifications()->where('data->event', 'SuratTugas')->first();
+
+        if($cekNotifikasi) {
+            $cekNotifikasi->markAsRead();
+        }
 
         return view('pages.manager.suratTugas', $data);
     }

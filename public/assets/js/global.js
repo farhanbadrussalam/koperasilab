@@ -1378,7 +1378,7 @@ function formatTimeLeftID(fromDate, toDate, opts = {}) {
 }
 
 function timeLeftUntilHMinusOneMonth(targetDate, opts = {}) {
-  const today = new Date("2026-12-01");
+  const today = new Date();
   const target = toUTCDateOnly(targetDate);
 //   const hMinus1 = addCalendarMonths(target, -1);
   return formatTimeLeftID(today, target, opts);

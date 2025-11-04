@@ -19,9 +19,9 @@
                 @endforeach
             </li>
             <li class="nav-item dropdown">
-                <a id="navbarNotif" class="nav-link" data-bs-toggle="dropdown" role="button" href="#" data-bs-auto-close="outside">
+                <a id="navbarNotif" class="nav-link position-relative" data-bs-toggle="dropdown" role="button" href="#" data-bs-auto-close="outside">
                     <i class="bi bi-bell-fill fs-4"></i>
-                    <span class="badge badge-danger" style="font-size: 9px; position: absolute; top: 5px; left: 5px;display: none;" id="count_lonceng">1</span>
+                    <span class="position-absolute translate-middle badge rounded-pill bg-danger {{ !notifUnreadCount() ? 'd-none' : ''}}" style="font-size: 10px; top: 35%; right: 0px;" id="count_lonceng">{{notifUnreadCount()}}</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up position-absolute" style="width: 350px">
                     <div class="text-center text-muted">
@@ -29,7 +29,34 @@
                     </div>
                     <div class="dropdown-divider my-0"></div>
                     <div id="body-notif" class="p-2 overflow-auto bg-body-secondary" style="max-height: 400px;">
+                        @forelse ($latestNotification as $item)
+                            @switch($item->data['event'])
+                                @case('Permohonan')
+                                    <div class="card shadow text-muted mb-1 @if(!$item->read_at) bg-info-subtle @endif" data-id="${notif.id}" role="button" onclick="">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-12"><b>{{ explode('|', $item->data["perusahaan_id"])[1] }}</b> {{ $item->data["pesan"] }}</div>
+                                                <small class="text-muted text-nowrap text-end">{{ $item->created_at->diffForHumans() }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @break
+                                @default
+                                    <div class="card shadow text-muted mb-1 @if(!$item->read_at) bg-info-subtle @endif" data-id="${notif.id}" role="button">
+                                        <a href="{{ url($item->data["url"]) }}" class="text-decoration-none text-muted">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-12">{!! $item->data["pesan"] !!}</div>
+                                                <small class="text-muted text-nowrap text-end">{{ $item->created_at->diffForHumans() }}</small>
+                                            </div>
+                                        </div>
+                                        </a>
+                                    </div>
 
+                            @endswitch
+                        @empty
+                            <span class="dropdown-item text-muted">Tidak ada notifikasi</span>
+                        @endforelse
                     </div>
                     <div class="dropdown-divider my-0"></div>
                     <a href="javascript:void(0)" class="dropdown-item text-center text-muted" onclick="">View All</a>

@@ -16,6 +16,8 @@ use App\Models\Keuangan;
 use App\Models\Kontrak;
 use Carbon\Carbon;
 
+use App\Services\Notifier;
+
 if (!function_exists('formatCurrency')) {
     function formatCurrency($amount)
     {
@@ -815,9 +817,7 @@ if(!function_exists('cekPeriodeComplete')) {
             'jenis_layanan',
             'jenis_layanan_parent',
             'invoice',
-            'pengiriman' => function($q) use ($periode) {
-                $q->where('periode', $periode);
-            },
+            'pengiriman',
             'pengiriman.detail'
         ])->find($id_kontrak);
         $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
@@ -839,7 +839,11 @@ if(!function_exists('cekPeriodeComplete')) {
 
             $getPengiriman = false;
             foreach ($kontrak->pengiriman as $pengiriman) {
-                $cekDokumen = Pengiriman_detail::where('id_pengiriman', $pengiriman->id_pengiriman)->where('jenis', $dokumen)->first();
+                $cekDokumen = Pengiriman_detail::where('id_pengiriman', $pengiriman->id_pengiriman)
+                    ->where('jenis', $dokumen)
+                    ->where('periode', $periode)
+                    ->first();
+
                 if($cekDokumen) {
                     $getPengiriman = $pengiriman;
                     break;
@@ -864,4 +868,37 @@ if(!function_exists('cekPeriodeComplete')) {
         return true;
     }
 }
+
+if(!function_exists('notifUnreadCount')) {
+    function notifUnreadCount($event = null) {
+        $query = Auth::user()->unreadNotifications();
+
+        if ($event) {
+            // Jika event berupa array → gunakan whereIn
+            if (is_array($event)) {
+                $query->whereIn('data->event', $event);
+            } else {
+                // Jika event berupa string → gunakan where biasa
+                $query->where('data->event', $event);
+            }
+        }
+
+        $count = $query->count();
+
+        if ($count > 0) {
+            $count = $count > 99 ? '99+' : $count;
+        } else {
+            $count = false;
+        }
+
+        return $count;
+    }
+}
+
+if(!function_exists('notifRead')){
+    function notifRead($event = null, $id = null){
+        Notifier::read($event, $id);
+    }
+}
+
 ?>

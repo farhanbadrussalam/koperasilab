@@ -147,6 +147,12 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         htmlPeriode += ' + Zero cek';
                     }
 
+                    // range periode
+                    let rangePeriode = '';
+                    if(permohonan.periode) {
+                        rangePeriode = `<span class="fs-8">(${dateFormat(penyelia.permohonan.periodenow.start_date, 4)} - ${dateFormat(penyelia.permohonan.periodenow.end_date, 4)})</span>`;
+                    }
+
                     html += `
                         <div class="card mb-2">
                             <div class="card-body row align-items-center py-2 position-relative">
@@ -161,12 +167,12 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                         <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
                                         <div class="text-body-tertiary fs-7">
                                             <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
+                                            <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
                                         </div>
                                     </div>
                                     <div class="d-flex gap-3 text-body-tertiary fs-7">
                                         <div><i class="bi bi-person-check-fill"></i> ${permohonan.pelanggan.name}</div>
-                                        <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
-                                        <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
+                                        <span><i class="bi bi-calendar-range"></i> ${htmlPeriode} ${rangePeriode}</span>
                                         ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
                                     </div>
                                 </div>

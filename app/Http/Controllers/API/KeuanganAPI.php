@@ -13,11 +13,15 @@ use App\Models\Kontrak;
 use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
 use App\Models\Documents;
+use App\Models\User;
 
 use App\Models\Jenis_pembayaran;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\NotifController;
+
+use App\Services\Notifier;
 
 use Auth;
 use DB;
@@ -25,12 +29,13 @@ use DB;
 class KeuanganAPI extends Controller
 {
     use RestApi;
-    protected $media, $log, $pagination;
+    protected $media, $log, $pagination, $notif;
 
     public function __construct()
     {
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
+        $this->notif = resolve(NotifController::class);
     }
 
     public function listKeuangan(Request $request)
@@ -303,7 +308,7 @@ class KeuanganAPI extends Controller
 
             $data['status'] = $status;
 
-            $invoice = Keuangan::where('id_keuangan', $idKeuangan)->first();
+            $invoice = Keuangan::where('id_keuangan', $idKeuangan)->with('permohonan:id_permohonan,created_by')->first();
             if($invoice){
                 !$invoice->no_invoice && $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
                 !$invoice->created_by && $data['created_by'] = Auth::user()->id;
@@ -314,9 +319,20 @@ class KeuanganAPI extends Controller
 
             if($status == 4) { // sudah di bayar perlu verifikasi
                 $data['paid_at'] = date('Y-m-d H:i:s');
+
+                // notification perlu di verifikasi oleh admin
+                $userQuery = User::role("Staff keuangan");
+                $us = Auth::user();
+                $dataNotif = array(
+                    'pesan' => "Invoice <b>" . $invoice->no_invoice . "</b> telah di bayar, silahkan untuk melakukan verifikasi",
+                    'url' => '/staff/keuangan',
+                    "event_id" => $invoice->keuangan_hash,
+                    'event' => 'Keuangan'
+                );
+                Notifier::send($userQuery, $dataNotif);
             }
 
-            if($status == 3) {
+            if($status == 3) { // sudah di verifikasi
                 $dataDocument = array();
                 $ttd && $dataDocument['ttd'] = $ttd;
                 $ttd_by && $dataDocument['ttd_by'] = $ttd_by;
@@ -325,6 +341,17 @@ class KeuanganAPI extends Controller
                     ["nomer" => $invoice->no_invoice],
                     $dataDocument
                 );
+
+                // notification perlu di bayar oleh user
+                $userQuery = User::where('id', $invoice->permohonan->created_by);
+                $us = Auth::user();
+                $dataNotif = array(
+                    'pesan' => "Invoice <b>" . $invoice->no_invoice . "</b> telah di buat, silahkan untuk melakukan pembayaran",
+                    'url' => '/permohonan/pembayaran/bayar/' . $invoice->keuangan_hash,
+                    "event_id" => $invoice->keuangan_hash,
+                    'event' => 'Keuangan'
+                );
+                Notifier::send($userQuery, $dataNotif);
             }
 
             $keuangan = Keuangan::updateOrCreate(
@@ -340,7 +367,7 @@ class KeuanganAPI extends Controller
                 ));
             }
 
-            if($status == 7){
+            if($status == 7){ // Invoice di buatkan
                 // Simpan dokumen Invoice
                 $template = Documents::select('id_doc')->with('footer', 'header')
                             ->where('jenis', 'body')
@@ -358,6 +385,12 @@ class KeuanganAPI extends Controller
                     'status' => 1,
                     'nomer' => $keuangan->no_invoice
                 ));
+
+                // update notifikasi sudah di read
+                $this->notif->read(new Request(array(
+                    'event' => 'Keuangan',
+                    'event_id' => $keuangan->keuangan_hash
+                )));
             }
 
             if($status == 5){ // Diterima
@@ -383,6 +416,18 @@ class KeuanganAPI extends Controller
                 ));
             }
 
+            if($status == 2) { // faktur pajak sudah di upload
+                // buat notifikasi untuk di tanda tangan oleh manager
+                $userQuery = User::role('Manager Keuangan');
+                $us = Auth::user();
+                $dataNotif = array(
+                    'pesan' => 'Invoice <b>'.$keuangan->no_invoice.'</b> telah di buat oleh <b>'.$us->name . '</b>, silahkan tanda tangan',
+                    'event' => 'Keuangan',
+                    'event_id' => $keuangan->keuangan_hash,
+                    'url' => '/manager/pengajuan'
+                );
+                Notifier::send($userQuery, $dataNotif);
+            }
 
             DB::commit();
 
@@ -408,6 +453,16 @@ class KeuanganAPI extends Controller
                     $kontrak->update(array('id_keuangan' => $keuangan->id_keuangan));
                 }
 
+                // send notifikasi
+                $userQuery = User::role("Staff keuangan");
+                $us = Auth::user();
+                $dataNotif = array(
+                    'pesan' => "Invoice telah diajukan oleh <b>" . $us->name . "</b>.",
+                    'url' => "/staff/keuangan",
+                    "event_id" => $keuangan->keuangan_hash,
+                    "event" => "Keuangan"
+                );
+                Notifier::send($userQuery, $dataNotif);
             } elseif ($keuangan->wasChanged()) {
                 $result['status'] = "updated";
                 $result['msg'] = "Invoice berhasil diedit.";

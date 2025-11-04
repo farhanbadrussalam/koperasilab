@@ -1,7 +1,7 @@
 @php
     $hiddenPelanggan = false;
     $rolePelanggan = Auth::user()->hasRole('Pelanggan');
-    if($rolePelanggan && (Auth::user()->profile->nik == null || Auth::user()->id_perusahaan == null)) {
+    if($rolePelanggan && (isset(Auth::user()->profile) && Auth::user()->profile->nik == null || Auth::user()->id_perusahaan == null)) {
         $hiddenPelanggan = true;
     }
 @endphp
@@ -137,6 +137,7 @@
                         href="{{ route('permohonan.pembayaran') }}" aria-expanded="false">
                         <span><i class="bi bi-cash"></i></span>
                         <span class="hide-menu">Pembayaran</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Keuangan')) d-none @endif">{{ notifUnreadCount('Keuangan') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
@@ -144,6 +145,7 @@
                         href="{{ route('permohonan.pengiriman') }}" aria-expanded="false">
                         <span><i class="bi bi-send"></i></span>
                         <span class="hide-menu">Pengiriman</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('pengiriman')) d-none @endif">{{ notifUnreadCount('pengiriman') }}</span>
                     </a>
                 </li>
                 @endcan
@@ -175,8 +177,9 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-permohonan' ? 'active' : '' }}"
                     href="{{ route('staff.permohonan') }}" aria-expanded="false">
-                    <span><i class="bi bi-file-earmark-text"></i></span>
-                    <span class="hide-menu">Permohonan</span>
+                        <span><i class="bi bi-file-earmark-text"></i></span>
+                        <span class="hide-menu">Permohonan</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Permohonan')) d-none @endif">{{ notifUnreadCount('Permohonan') }}</span>
                     </a>
                 </li>
                 @endcan
@@ -189,8 +192,9 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-pengiriman-permohonan' ? 'active' : '' }}"
                     href="{{ route('staff.pengiriman.permohonan') }}" aria-expanded="false">
-                    <span><i class="bi bi-file-earmark-text"></i></span>
-                    <span class="hide-menu">Daftar Permohonan</span>
+                        <span><i class="bi bi-file-earmark-text"></i></span>
+                        <span class="hide-menu">Daftar Permohonan</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount(['PenyeliaLAB'])) d-none @endif">{{ notifUnreadCount(['PenyeliaLAB']) }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
@@ -206,8 +210,9 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-penyelia' ? 'active' : '' }}"
                     href="{{ route('staff.penyelia') }}" aria-expanded="false">
-                    <span><i class="bi bi-eyedropper"></i></span>
-                    <span class="hide-menu">Penyeliaan</span>
+                        <span><i class="bi bi-eyedropper"></i></span>
+                        <span class="hide-menu">Penyeliaan</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount(['Penyelia', 'PenyeliaLAB'])) d-none @endif">{{ notifUnreadCount(['Penyelia', 'PenyeliaLAB']) }}</span>
                     </a>
                 </li>
                 @endcan
@@ -216,8 +221,9 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-lhu' ? 'active' : '' }}"
                     href="{{ route('staff.lhu') }}" aria-expanded="false">
-                    <span><i class="bi bi-eyedropper"></i></span>
-                    <span class="hide-menu">LHU</span>
+                        <span><i class="bi bi-eyedropper"></i></span>
+                        <span class="hide-menu">LHU</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('PenyeliaLAB')) d-none @endif">{{ notifUnreadCount('PenyeliaLAB') }}</span>
                     </a>
                 </li>
                 @endcan
@@ -226,8 +232,9 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'staff-keuangan' ? 'active' : '' }}"
                     href="{{ route('staff.keuangan') }}" aria-expanded="false">
-                    <i class="bi bi-wallet"></i>
-                    <span class="hide-menu">Keuangan</span>
+                        <i class="bi bi-wallet"></i>
+                        <span class="hide-menu">Keuangan</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Keuangan')) d-none @endif">{{ notifUnreadCount('Keuangan') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">
@@ -252,8 +259,9 @@
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ $module == 'manager-pengajuan' ? 'active' : '' }}"
                         href="{{ route('manager.pengajuan') }}" aria-expanded="false">
-                        <i class="bi bi-file-earmark-ruled"></i>
-                        <span class="hide-menu">Invoice</span>
+                            <i class="bi bi-file-earmark-ruled"></i>
+                            <span class="hide-menu">Invoice</span>
+                            <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Keuangan')) d-none @endif">{{ notifUnreadCount('Keuangan') }}</span>
                         </a>
                     </li>
                 @endcan
@@ -264,6 +272,7 @@
                     href="{{ route('manager.surat_tugas') }}" aria-expanded="false">
                     <i class="bi bi-journal-text"></i>
                     <span class="hide-menu">Surat Tugas</span>
+                    <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('SuratTugas')) d-none @endif">{{ notifUnreadCount('SuratTugas') }}</span>
                     </a>
                 </li>
                 @endcan

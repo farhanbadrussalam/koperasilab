@@ -255,6 +255,9 @@ class PelangganController extends Controller
 
         $data['keuangan'] = $keuangan;
 
+        // cek notifikasi read
+        notifRead('Keuangan',$keuangan->keuangan_hash);
+
         return view('pages.permohonan.pembayaran.bayar', $data);
     }
 
@@ -265,6 +268,7 @@ class PelangganController extends Controller
             'title' => 'Pengiriman',
             'module' => 'permohonan-pengiriman'
         ];
+        notifRead(['pengiriman']);
         return view('pages.permohonan.pengiriman.index', $data);
     }
 }

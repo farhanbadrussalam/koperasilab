@@ -22,6 +22,8 @@ use App\Models\Master_pengguna;
 use App\Models\Kontrak_tld;
 use App\Models\Kontrak_periode;
 
+use App\Services\Notifier;
+
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
 
@@ -84,7 +86,9 @@ class PenyeliaAPI extends Controller
             }
 
             // menambahkan periode
-            $dataPemohonan = Permohonan::select('periode')->where('id_permohonan', $idPermohonan)->first();
+            $dataPemohonan = Permohonan::select('periode', 'id_layanan', 'id_kontrak')
+                ->with('layanan_jasa:id_layanan,satuankerja_id', 'kontrak:id_kontrak,no_kontrak')
+                ->where('id_permohonan', $idPermohonan)->first();
             if($dataPemohonan){
                 $params['periode'] = $dataPemohonan->periode ? $dataPemohonan->periode : 0;
             }
@@ -99,6 +103,17 @@ class PenyeliaAPI extends Controller
             if ($penyelia->wasRecentlyCreated) {
                 $result['status'] = "created";
                 $result['msg'] = "Penyelia berhasil dibuat.";
+
+                // send notification
+                $userQuery = User::role("Staff Penyelia")->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(String) $dataPemohonan->layanan_jasa->satuankerja_id]);
+                $us = Auth::user();
+                $dataNotif = array(
+                    'pesan' => "Permohonan baru telah diajukan oleh <b>".$us->name."</b> no kontrak <b>".$dataPemohonan->kontrak->no_kontrak."</b>, silahkan cek penyelia.",
+                    'url' => "/staff/penyelia",
+                    "event_id" => $penyelia->penyelia_hash,
+                    "event" => "Penyelia",
+                );
+                Notifier::send($userQuery, $dataNotif);
             } elseif ($penyelia->wasChanged()) {
                 $result['status'] = "updated";
                 $result['msg'] = "Penyelia berhasil diedit.";
@@ -177,7 +192,7 @@ class PenyeliaAPI extends Controller
             $endDate && $params['end_date'] = $endDate;
             $status && $params['status'] = $status;
 
-            $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan_parent')->find($idPenyelia);
+            $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan_parent', 'permohonan.layanan_jasa:id_layanan,satuankerja_id', 'permohonan.kontrak')->find($idPenyelia);
             if($penyelia){
                 $penyelia->update($params);
 
@@ -259,10 +274,27 @@ class PenyeliaAPI extends Controller
                     $permohonan->update(array('status' => 3));
 
                     // mengganti status penyelia_map
-                    $subQuery = Penyelia_map::where('id_penyelia', $idPenyelia)->where('order', 1)->where('point_jobs', null)->first();
+                    $subQuery = Penyelia_map::with('jobs')->where('id_penyelia', $idPenyelia)->where('order', 1)->where('point_jobs', null)->first();
                     $subQuery->update(array('status' => 1));
 
-                    Penyelia_map::where('point_jobs', $subQuery->id_jobs)->where('id_penyelia', $idPenyelia)->update(array('status' => 1));
+                    // mengambil id user yang ada di jobs
+                    $petugasUser = Penyelia_petugas::select('id_user')->where('id_map', $subQuery->id_map)->where('id_penyelia', $idPenyelia)->get();
+                    // send notifikasi kepada petugas
+                    $userQuery = array();
+                    $us = Auth::user();
+                    foreach($petugasUser as $value){
+                        array_push($userQuery, $value->id_user);
+                    }
+                    $dataNotif = array(
+                        'pesan' => "Proses <b>{$subQuery->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> di mulai",
+                        'url' => 'staff/lhu',
+                        'event' => 'PenyeliaLAB',
+                        'event_id' => $penyelia->penyelia_hash,
+                    );
+                    Notifier::send($userQuery, $dataNotif);
+
+                    $sideJobs = Penyelia_map::where('point_jobs', $subQuery->id_jobs)->where('id_penyelia', $idPenyelia)->first();
+                    $sideJobs && $sideJobs->update(array('status' => 1));
 
                     // log surat tugas
                     $this->log->addLog('penyelia', array(
@@ -270,6 +302,20 @@ class PenyeliaAPI extends Controller
                         'message' => 'Surat tugas ditandatangani',
                         'created_by' => Auth::user()->id
                     ));
+                }
+
+                // jika status = 2 akan mengirimkan notifikasi kepada manager untuk di tandatangani
+                if($status == 2){
+                    $userQuery = User::role('Manager')->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(String) $penyelia->permohonan->layanan_jasa->satuankerja_id]);
+                    $us = Auth::user();
+                    $dataNotif = array(
+                        'pesan' => 'Surat tugas uji di buat dengan no kontrak <b>'.$penyelia->permohonan->kontrak->no_kontrak.'</b> oleh <b>'.$us->name.'</b>',
+                        'url' => '/manager/surat_tugas/v/'.$penyelia->penyelia_hash,
+                        'event' => 'SuratTugas',
+                        'event_id' => $penyelia->penyelia_hash,
+                    );
+
+                    Notifier::send($userQuery, $dataNotif);
                 }
 
                 // cek dokumen sudah ada atau belum
@@ -355,11 +401,36 @@ class PenyeliaAPI extends Controller
                     'done_by' => null,
                     'done_at' => null
                 ));
+
+                // send notifikasi ke petugas di jobs next
+                $petugasUser = Penyelia_petugas::select('id_user')->where('id_map', $jobsNext->id_map)->get();
+                $userQuery = array();
+                $us = Auth::user();
+                foreach($petugasUser as $value){
+                    array_push($userQuery, $value->id_user);
+                }
+                $dataNotif = array(
+                    'pesan' => "Proses <b>{$jobsNext->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> di mulai",
+                    'url' => 'staff/lhu',
+                    'event' => 'PenyeliaLAB',
+                    'event_id' => $penyelia->penyelia_hash
+                );
+                Notifier::send($userQuery, $dataNotif);
+            } else if($sProgress == 'done') {
+                // kirim notifikasi ke pengiriman LHU telah selesai di upload
+                $dataNotif = array(
+                    'pesan' => "Proses <b>{$jobsNow->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> telah selesai",
+                    'url' => '',
+                    'event' => 'PenyeliaLAB',
+                    'event_id' => $penyelia->penyelia_hash
+                );
+                $userQuery = User::role('Staff Pengiriman');
+                Notifier::send($userQuery, $dataNotif);
             }
 
             if($sProgress == 'done') {
                 // mencari jobs yang sifatnya paralel
-                $jobsParalel = Penyelia_map::with('jobs:id_jobs,status')
+                $jobsParalel = Penyelia_map::with('jobs:id_jobs,status,name')
                     ->where('order', 1)
                     ->where('id_penyelia', $idPenyelia)
                     ->where('point_jobs', $jobsNow->id_jobs)
@@ -397,6 +468,20 @@ class PenyeliaAPI extends Controller
                     $jobsParalel->update(array(
                         'status' => 1,
                     ));
+
+                    // send notifikasi ke petugas di jobs paralel
+                    $petugasUser = Penyelia_petugas::select('id_user')->where('id_map', $jobsParalel->id_map)->get();
+                    $userQuery = array();
+                    foreach($petugasUser as $value){
+                        array_push($userQuery, $value->id_user);
+                    }
+                    $dataNotif = array(
+                        'pesan' => "Proses <b>{$jobsParalel->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> di mulai",
+                        'url' => 'staff/lhu',
+                        'event' => 'PenyeliaLAB',
+                        'event_id' => $penyelia->penyelia_hash
+                    );
+                    Notifier::send($userQuery, $dataNotif);
                 } else {
                     if($jobsNow->jobs->status == 17){
                         foreach($penyelia->permohonan->kontrak->rincian_list_tld as $value){

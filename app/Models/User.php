@@ -64,7 +64,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $appends = [
         'user_hash',
-        'satuankerja'
+        'satuankerja',
+        'profile'
     ];
 
     public function getUserHashAttribute()
@@ -80,6 +81,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return Satuan_kerja::whereIn('id', $decodedIds)->get();
     }
 
+    public function getProfileAttribute()
+    {
+        return Profile::where('user_id', $this->id)->first();
+    }
 
     /**
      * The attributes that should be cast.
