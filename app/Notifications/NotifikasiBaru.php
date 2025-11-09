@@ -5,8 +5,9 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class NotifikasiBaru extends Notification
+class NotifikasiBaru extends Notification // implements ShouldQueue
 {
     use Queueable;
 
@@ -31,7 +32,7 @@ class NotifikasiBaru extends Notification
      */
     public function via(object $notifiable)
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     public function toDatabase(object $notifiable)
@@ -44,5 +45,17 @@ class NotifikasiBaru extends Notification
             'user_id' => $this->user_id,
             'perusahaan_id' => $this->perusahaan_id,
         ];
+    }
+
+    public function toBroadcast(object $notifiable)
+    {
+        return new BroadcastMessage([
+            'pesan' => $this->pesan,
+            'url' => $this->url,
+            'event' => $this->event,
+            'id_event' => $this->id_event,
+            'user_id' => $this->user_id,
+            'perusahaan_id' => $this->perusahaan_id,
+        ]);
     }
 }

@@ -186,7 +186,7 @@ class PermohonanAPI extends Controller
                 $us = Auth::user();
                 $dataNotif = array(
                     'pesan' => 'Permohonan baru telah dibuat! Silahkan verifikasi',
-                    'url' => '/permohonan/verifikasi/'.$permohonan->permohonan_hash,
+                    'url' => 'staff/permohonan/verifikasi/'.$permohonan->permohonan_hash,
                     'event_id' => $permohonan->permohonan_hash,
                     'event' => 'Permohonan',
                     'user_id' => "{$us->id}|{$us->name}",

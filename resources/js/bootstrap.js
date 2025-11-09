@@ -6,9 +6,19 @@ import 'bootstrap';
  */
 
 import axios from 'axios';
+import toastr from "toastr";
+
+import "toastr/build/toastr.min.css";
+
 window.axios = axios;
 
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+axios.defaults.withCredentials = true;
+// window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+// Pastikan axios default punya Accept JSON
+axios.defaults.headers.common['Accept'] = 'application/json';
+// Jika kamu pakai meta tag csrf di blade, ambil tokennya:
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
 
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
@@ -19,15 +29,42 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 import Echo from 'laravel-echo';
 
 import Pusher from 'pusher-js';
+// Pusher.logToConsole = true;
 window.Pusher = Pusher;
-
 window.Echo = new Echo({
-    broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    wsHost: import.meta.env.VITE_PUSHER_HOST ?? `ws-${import.meta.env.VITE_PUSHER_APP_CLUSTER}.pusher.com`,
-    wsPort: import.meta.env.VITE_PUSHER_PORT ?? 80,
-    wssPort: import.meta.env.VITE_PUSHER_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
-    enabledTransports: ['ws', 'wss'],
-    cluster:import.meta.env.VITE_PUSHER_APP_CLUSTER,
+  broadcaster: 'pusher',
+  key: import.meta.env.VITE_PUSHER_APP_KEY,
+  cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+  wsHost: import.meta.env.VITE_PUSHER_HOST ?? `ws-${import.meta.env.VITE_PUSHER_APP_CLUSTER}.pusher.com`,
+  wsPort: import.meta.env.VITE_PUSHER_PORT ?? (window.location.protocol === 'https:' ? 443 : 80),
+  wssPort: import.meta.env.VITE_PUSHER_PORT ?? 443,
+  forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
+  enabledTransports: ['ws', 'wss'],
+  auth: {
+    headers: {
+      'X-CSRF-TOKEN': csrfToken,
+      'X-Requested-With': 'XMLHttpRequest',
+      'Accept': 'application/json',
+      // jika gunakan Bearer token (API) uncomment:
+      // 'Authorization': `Bearer ${localStorage.getItem('api_token')}`
+    }
+  }
 });
+
+
+// Konfigurasi toastr
+toastr.options = {
+    closeButton: true,
+    progressBar: true,
+    positionClass: "toast-bottom-right",
+    showDuration: "300",
+    hideDuration: "1000",
+    timeOut: "5000",
+    extendedTimeOut: "1000",
+    showEasing: "swing",
+    hideEasing: "linear",
+    showMethod: "fadeIn",
+    hideMethod: "fadeOut",
+};
+
+window.toastr = toastr;

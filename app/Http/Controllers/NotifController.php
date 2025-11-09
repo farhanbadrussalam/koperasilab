@@ -7,9 +7,14 @@ use Illuminate\Notifications\DatabaseNotification;
 
 use App\Models\User;
 use App\Models\notifikasi;
+use App\Traits\RestApi;
+
+use DB;
+use Auth;
 
 class NotifController extends Controller
 {
+    use RestApi;
     public function notif() {
         $data = array(
             'to_user' => 7,
@@ -37,5 +42,44 @@ class NotifController extends Controller
         ->update(['read_at' => now()]);
 
         return $notif;
+    }
+
+    public function latestNotification(Request $request){
+        DB::beginTransaction();
+        try {
+            $user = Auth::user();
+            $limit = $request->limit ?? 10;
+            $type = $request->type ?? 'all';
+            $latestNotification = $user->notifications()->latest()
+                ->when($type, function($q, $type) use ($limit) {
+                    if($type == 'unread'){
+                        return $q->whereNull('read_at');
+                    } else {
+                        return $q->limit($limit);
+                    }
+                })->get();
+            $unreadCount = notifUnreadCount();
+            DB::commit();
+            return $this->output(array(
+                'list' => $latestNotification,
+                'unreadCount' => $unreadCount
+            ));
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function markAllAsRead(Request $request){
+        DB::beginTransaction();
+        try {
+            $user = Auth::user();
+            $user->unreadNotifications->markAsRead();
+            DB::commit();
+            return $this->output(array('msg' => 'Notifikasi berhasil dibaca'));
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
     }
 }
