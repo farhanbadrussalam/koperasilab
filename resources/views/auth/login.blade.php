@@ -46,7 +46,7 @@
                                     id="input_password"
                                     type="password"
                                     name="password"
-                                    value="{{ old('password') ?? 'password' }}"
+                                    value="{{ old('password') ?? '' }}"
                                     placeholder="Masukkan kata sandi Anda" />
                                 <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1" onclick="showPassword(this)">
                                     <i class="bi bi-eye"></i>
