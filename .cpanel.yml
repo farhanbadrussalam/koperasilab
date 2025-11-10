@@ -1,0 +1,13 @@
+deployment:
+  tasks:
+    - export DEPLOYMENT_BRANCH='$CPANEL_GIT_DEPLOYMENT_BRANCH'
+    - echo "Deploy branch: $DEPLOYMENT_BRANCH"
+    - cd $CPANEL_GIT_DEPLOYMENT_DIR
+    # Composer (pakai path penuh kalau perlu)
+    - if command -v composer >/dev/null 2>&1; then composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction; else php /home/u0726557/composer.phar install --no-dev --prefer-dist --optimize-autoloader --no-interaction; fi
+    # Node / npm (install + build)
+    - if command -v npm >/dev/null 2>&1; then npm ci; npm run build; fi
+    # Clear cache / set permissions (Laravel contoh)
+    - php artisan migrate --force
+    - php artisan config:cache
+    - php artisan route:cache
