@@ -41,12 +41,12 @@ jobs:
       # --- [ CD: Deployment via Rsync (Rsync adalah SSH yang efisien) ] ---
 
       - name: 🚀 Deploy via Rsync to cPanel
-        uses: easingthemes/ssh-deploy@main # Gunakan action yang berbeda dan aktif
+        uses: burnettk/rsync-deployments@v1.0.0 # Menggunakan Rsync Action
         with:
           # SSH Credentials dari GitHub Secrets
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_PORT: ${{ secrets.SSH_PORT }}
-          SSH_USERNAME: ${{ secrets.SSH_USER }}
+          REMOTE_HOST: ${{ secrets.SSH_HOST }}
+          REMOTE_PORT: ${{ secrets.SSH_PORT }}
+          REMOTE_USER: ${{ secrets.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
           # Source (Folder yang akan di-sync)
