@@ -287,7 +287,7 @@ class PenyeliaAPI extends Controller
                     }
                     $dataNotif = array(
                         'pesan' => "Proses <b>{$subQuery->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> di mulai",
-                        'url' => 'staff/lhu',
+                        'url' => '/staff/lhu',
                         'event' => 'PenyeliaLAB',
                         'event_id' => $penyelia->penyelia_hash,
                     );
@@ -411,7 +411,7 @@ class PenyeliaAPI extends Controller
                 }
                 $dataNotif = array(
                     'pesan' => "Proses <b>{$jobsNext->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> di mulai",
-                    'url' => 'staff/lhu',
+                    'url' => '/staff/lhu',
                     'event' => 'PenyeliaLAB',
                     'event_id' => $penyelia->penyelia_hash
                 );
@@ -477,7 +477,7 @@ class PenyeliaAPI extends Controller
                     }
                     $dataNotif = array(
                         'pesan' => "Proses <b>{$jobsParalel->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> di mulai",
-                        'url' => 'staff/lhu',
+                        'url' => '/staff/lhu',
                         'event' => 'PenyeliaLAB',
                         'event_id' => $penyelia->penyelia_hash
                     );
