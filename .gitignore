@@ -20,3 +20,4 @@ yarn-error.log
 app.js
 stderr.log
 tmp/
+deploy.log
