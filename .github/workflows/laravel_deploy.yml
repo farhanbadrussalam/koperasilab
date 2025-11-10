@@ -41,27 +41,28 @@ jobs:
       # --- [ CD: Deployment via Rsync (Rsync adalah SSH yang efisien) ] ---
 
       - name: 🚀 Deploy via Rsync to cPanel
-        uses: easingthemes/ssh-deploy@main # Gunakan action yang berbeda dan aktif
+        uses: burnettk/rsync-deployments@v1.0.0 # Menggunakan Rsync Action
         with:
           # SSH Credentials dari GitHub Secrets
-          REMOTE_HOST: ${{ secrets.SSH_HOST }}
-          REMOTE_PORT: ${{ secrets.SSH_PORT }}
-          REMOTE_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USERNAME: ${{ secrets.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-          # Source dan Target
-          SOURCE: "." # Mengirim semua file dari root
-          TARGET: ${{ secrets.DEPLOY_PATH }}
+          # Source (Folder yang akan di-sync)
+          source: ./
 
-          # --- TAMBAHKAN INI ---
-          SSH_CMD_ARGS: "-o StrictHostKeyChecking=no"
-          # --- END TAMBAH ---
+          # Target (Path di cPanel)
+          target: ${{ secrets.DEPLOY_PATH }}
 
-          # Exclude files/folders
-          EXCLUDE: ".git,.github,storage,vendor,node_modules"
+          # Exclude files/folders yang TIDAK perlu diunggah
+          # Vendor dan node_modules sudah diinstal di langkah CI, tapi
+          # rsync lebih cepat jika tidak mengunggahnya.
+          # Jika Anda ingin mengunggah vendor/ & node_modules/ yang sudah di-build, hapus exclude ini.
+          exclude: ".git .github storage vendor node_modules"
 
-          # Menggunakan Rsync (penting untuk transfer efisien)
-          ARGS: "-avz --delete --exclude=.env" # --exclude=.env agar file .env server tidak tertimpa
+          # Arguments: -avz untuk mode archive, verbose, dan kompresi
+          rsync_args: "-avz --delete"
 
       # --- [ CD: Post-Deployment Commands (SSH) ] ---
 
