@@ -1,13 +1,21 @@
 deployment:
   tasks:
     - export DEPLOYMENT_BRANCH='$CPANEL_GIT_DEPLOYMENT_BRANCH'
-    - echo "Deploy branch: $DEPLOYMENT_BRANCH"
+    - echo "Deploy started at $(date)" > deploy.log # <-- Mulai Log
+    - echo "Deploy branch: $DEPLOYMENT_BRANCH" >> deploy.log
+
+    # Tambahkan >> deploy.log ke perintah penting lainnya
     - cd $CPANEL_GIT_DEPLOYMENT_DIR
-    # Composer (pakai path penuh kalau perlu)
-    - if command -v composer >/dev/null 2>&1; then composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction; else php /home/u0726557/composer.phar install --no-dev --prefer-dist --optimize-autoloader --no-interaction; fi
-    # Node / npm (install + build)
-    - if command -v npm >/dev/null 2>&1; then npm ci; npm run build; fi
-    # Clear cache / set permissions (Laravel contoh)
-    - php artisan migrate --force
-    - php artisan config:cache
-    - php artisan route:cache
+
+    # Composer
+    - if command -v composer >/dev/null 2>&1; then composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction >> deploy.log 2>&1; else php /home/u0726557/composer.phar install --no-dev --prefer-dist --optimize-autoloader --no-interaction >> deploy.log 2>&1; fi
+
+    # Node / npm
+    - if command -v npm >/dev/null 2>&1; then npm ci >> deploy.log 2>&1; npm run build >> deploy.log 2>&1; fi
+
+    # Clear cache / set permissions
+    - /usr/local/bin/php artisan migrate --force >> deploy.log 2>&1
+    - /usr/local/bin/php artisan config:cache >> deploy.log 2>&1
+    - /usr/local/bin/php artisan route:cache >> deploy.log 2>&1
+
+    - echo "Deploy finished at $(date)" >> deploy.log # <-- Akhir Log
