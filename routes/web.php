@@ -161,6 +161,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::resource('userPerusahaan', userPerusahaanController::class);//->middleware(['permission:Biodata.perusahaan']);
 
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
+    Route::get('/getNotif', [NotifController::class, 'latestNotification'])->name('notif.getNotif');
+    Route::get('/markAllAsRead', [NotifController::class, 'markAllAsRead'])->name('notif.markAllAsRead');
 
 });
 

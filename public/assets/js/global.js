@@ -900,6 +900,7 @@ function spinner(status = 'show', obj, options = {}){
         place: options.place ? options.place : 'before', // after or before
         width: options.width ? options.width : false,
         height: options.height ? options.height : false,
+        margin: options.margin ? options.margin : false,
     }
     if(status == 'show'){
         const spin = document.createElement('span');
@@ -913,6 +914,7 @@ function spinner(status = 'show', obj, options = {}){
             spin.className = `spinner-border spinner-border-sm me-1`;
             $(obj).attr('disabled', true).prepend(spin);
         }
+        spin.style.margin = options.margin;
     }else if(status == 'hide'){
         $(obj).attr('disabled', false).children('.spinner-border').remove();
     }
@@ -1052,7 +1054,7 @@ function diffToday(date) {
         const diffHours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const diffMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
 
-        if (diffDays > 7) {
+        if (diffDays > 1) {
             // Mengembalikan format tanggal jika sudah lebih dari 1 minggu
             return dateFormat(targetDate, 1);
         } else if (diffDays > 0) {

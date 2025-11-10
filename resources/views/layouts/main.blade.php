@@ -22,7 +22,6 @@
 
     {{-- Plugin --}}
     <link rel="stylesheet" href="{{ asset('assets/jquery/jquery-ui.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/toast/toastr.min.css') }}"/>
     <link rel="stylesheet" href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}"/>
     <link rel="stylesheet" href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}"/>
     <link rel="stylesheet" href="{{ asset('assets/dropify/css/dropify.css') }}">
@@ -39,7 +38,6 @@
     <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
-    <script src="{{ asset('assets/toast/toastr.min.js') }}"></script>
     <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
@@ -72,6 +70,7 @@
     <script src="{{ asset('js/filter.js') }}"></script>
     <script src="{{ asset('js/cardList.js') }}"></script>
     <script src="{{ asset('js/inventory_tld.js') }}"></script>
+    <script src="{{ asset('js/notifikasi.js') }}"></script>
 
     {{-- Logo Aplikasi --}}
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
@@ -158,17 +157,18 @@
 
         $(function () {
             let user = @json(Auth::user());
-
-            // loadNotifikasi();
-            let chanel = window.Echo?.private(`jadwal.${user.id}`).listen('.notif', (result) => {
-                toastr.info(
-                    `
-                        <div>${result.data.type.toUpperCase()}</div>
-                        <div>${result.message}</div>
-                    `
-                );
-                loadNotifikasi();
-            })
+            let notifikasi = new WidgetNotifikasi('container-notifikasi',{
+                'channel' : `App.Models.User.${user.id}`,
+                'id' : user.id
+            });
+            // notifikasi.showNotif({
+            //     'pesan' : 'Halo from test',
+            //     'event_id' : 'test',
+            //     'event' : 'test',
+            //     'url' : 'https://google.com',
+            //     'user_id' : 'test',
+            //     'perusahaan_id' : 'test'
+            // });
 
             $('[data-bs-toggle="tooltip"]').attr('data-bs-placement', 'bottom')
             $('[data-bs-toggle="tooltip"]').tooltip()
