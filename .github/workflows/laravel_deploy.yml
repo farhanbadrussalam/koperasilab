@@ -53,6 +53,10 @@ jobs:
           SOURCE: "." # Mengirim semua file dari root
           TARGET: ${{ secrets.DEPLOY_PATH }}
 
+          # --- TAMBAHKAN INI ---
+          SSH_CMD_ARGS: "-o StrictHostKeyChecking=no"
+          # --- END TAMBAH ---
+
           # Exclude files/folders
           EXCLUDE: ".git,.github,storage,vendor,node_modules"
 
