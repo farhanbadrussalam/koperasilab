@@ -7,6 +7,8 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="realtime" content="{{ auth()->user()->realtime_notifications ? '1' : '0' }}">
+    <meta name="auth-id" content="{{ auth()->id() }}">
 
     <title>{{ config('app.name', 'Laravel') }} | {{ count(Auth::user()->getRoleNames()) != 0 ? Auth::user()->getRoleNames()[0] : '' }}</title>
 

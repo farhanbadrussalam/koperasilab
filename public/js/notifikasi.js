@@ -25,6 +25,9 @@ class WidgetNotifikasi {
         $("#list-notif-card").on('click', this.selectNotif.bind(this));
         $("#all-notif").on('click', this.loadNotifikasiList.bind(this));
         $("#unread-notif").on('click', this.loadNotifikasiList.bind(this));
+
+        $("#setting-notif").on('click', this.showSetting.bind(this));
+        $('#realtimeSwitch').on('change', this.realtimeSwitch.bind(this));
     }
 
     showNotif(info) {
@@ -52,12 +55,22 @@ class WidgetNotifikasi {
                         <div class="notif-option" name="select-notif" id="unread-notif" data-type="unread">Belum dibaca</div>
                     </div>
                     <div class="d-flex gap-1">
-                        <div class="notif-option"><i class="bi bi-gear"></i></div>
+                        <div class="notif-option" id="setting-notif" name="select-notif">
+                            <i class="bi bi-gear"></i>
+                        </div>
                     </div>
                 </div>
                 <div class="dropdown-divider my-0"></div>
                 <div id="spinner-notif" class="text-center"></div>
                 <ul id="body-notif" class="list-group list-group-flush overflow-auto mb-2" style="max-height: 400px;"></ul>
+                <div id="body-setting" class="p-3 d-none" style="min-width: 260px;">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="realtimeSwitch"
+                            ${userActive.realtime_notifications == 1 ? 'checked' : ''}>
+                        <label class="form-check-label" for="realtimeSwitch">Aktifkan notifikasi real-time</label>
+                    </div>
+                    <small class="text-muted d-block mt-2 fs-8">Jika nonaktif, notifikasi akan tersimpan di database dan tampil saat refresh / buka halaman.</small>
+                </div>
             </div>
         `;
     }
@@ -69,6 +82,8 @@ class WidgetNotifikasi {
 
             $('[name="select-notif"]').removeClass('active');
             $(d.target).addClass('active');
+            $('#body-setting').addClass('d-none');
+            $('#body-notif').removeClass('d-none');
         }
         spinner('show', $('#spinner-notif'), {
             width: '50px',
@@ -148,5 +163,31 @@ class WidgetNotifikasi {
 
     selectNotif(e){
         console.log(e);
+    }
+
+    showSetting(){
+        $('#body-setting').removeClass('d-none');
+        $('#body-notif').addClass('d-none');
+        $('[name="select-notif"]').removeClass('active');
+        $('#setting-notif').addClass('active');
+    }
+
+    realtimeSwitch(e) {
+        let checked = $(e.target).is(":checked");
+        let formData = new FormData();
+        formData.append('realtime', checked ? 1 : 0);
+        ajaxPost(`settings/notifications/realtime`, formData, result => {
+            if(result.meta.code == 200){
+                Swal.fire({
+                    icon: 'success',
+                    text: result.data.message,
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        });
     }
 }

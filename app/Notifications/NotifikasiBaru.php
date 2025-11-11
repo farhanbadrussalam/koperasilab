@@ -32,7 +32,13 @@ class NotifikasiBaru extends Notification // implements ShouldQueue
      */
     public function via(object $notifiable)
     {
-        return ['database', 'broadcast'];
+        $channels = ['database'];
+
+        if(isset($notifiable->realtime_notifications) && $notifiable->realtime_notifications){
+            $channels[] = 'broadcast';
+        }
+
+        return $channels;
     }
 
     public function toDatabase(object $notifiable)

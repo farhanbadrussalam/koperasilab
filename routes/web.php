@@ -23,6 +23,7 @@ use App\Http\Controllers\Management\PenggunaController;
 use App\Http\Controllers\Management\DocumentController;
 
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SettingsController;
 
 use Illuminate\Support\Facades\Auth;
 
@@ -164,6 +165,12 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('/getNotif', [NotifController::class, 'latestNotification'])->name('notif.getNotif');
     Route::get('/markAllAsRead', [NotifController::class, 'markAllAsRead'])->name('notif.markAllAsRead');
 
+
+    Route::prefix('settings')->group(function () {
+        Route::controller(SettingsController::class)->group(function () {
+            Route::post('notifications/realtime', 'toggleRealtime')->name('settings.realtime.toggle');
+        });
+    });
 });
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
