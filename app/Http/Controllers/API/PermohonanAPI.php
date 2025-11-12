@@ -476,6 +476,12 @@ class PermohonanAPI extends Controller
                 }
                 $permohonan->delete();
 
+                // hapus notifikasi
+                $message = $this->notif->deleteNotification(new Request([
+                    'id_event' => $id,
+                    'event' => 'Permohonan',
+                ]));
+
                 DB::commit();
                 return $this->output(array('msg' => 'Data berhasil dihapus!'));
             }

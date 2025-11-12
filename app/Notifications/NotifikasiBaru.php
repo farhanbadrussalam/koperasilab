@@ -7,7 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class NotifikasiBaru extends Notification // implements ShouldQueue
+use App\Models\User;
+
+class NotifikasiBaru extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -34,7 +36,8 @@ class NotifikasiBaru extends Notification // implements ShouldQueue
     {
         $channels = ['database'];
 
-        if(isset($notifiable->realtime_notifications) && $notifiable->realtime_notifications){
+        $user = User::select('realtime_notifications', 'id', 'name')->where('id',$notifiable->id)->first();
+        if(isset($user->realtime_notifications) && $user->realtime_notifications){
             $channels[] = 'broadcast';
         }
 
@@ -55,6 +58,8 @@ class NotifikasiBaru extends Notification // implements ShouldQueue
 
     public function toBroadcast(object $notifiable)
     {
+        $user = User::select('realtime_notifications', 'id', 'name')->where('id',$notifiable->id)->first();
+        info("send broadcast to : {$user->name}");
         return new BroadcastMessage([
             'pesan' => $this->pesan,
             'url' => $this->url,

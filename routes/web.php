@@ -164,6 +164,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
     Route::get('/getNotif', [NotifController::class, 'latestNotification'])->name('notif.getNotif');
     Route::get('/markAllAsRead', [NotifController::class, 'markAllAsRead'])->name('notif.markAllAsRead');
+    Route::post('/deleteNotification', [NotifController::class, 'deleteNotification'])->name('notif.deleteNotification');
 
 
     Route::prefix('settings')->group(function () {

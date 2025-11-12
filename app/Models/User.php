@@ -42,7 +42,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'google_id',
         'email_verified_at',
         'ttd',
-        'selesai_at'
+        'selesai_at',
+        'realtime_notifications',
     ];
 
     /**
@@ -96,7 +97,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'password' => 'hashed',
         'jobs' => 'json',
         'status' => 'integer',
-        'satuankerja_id' => 'json'
+        'satuankerja_id' => 'json',
+        'realtime_notifications' => 'integer'
     ];
 
     public function perusahaan(){

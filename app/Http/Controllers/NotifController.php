@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Facades\Validator;
 
 use App\Models\User;
 use App\Models\notifikasi;
@@ -77,6 +78,36 @@ class NotifController extends Controller
             $user->unreadNotifications->markAsRead();
             DB::commit();
             return $this->output(array('msg' => 'Notifikasi berhasil dibaca'));
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function deleteNotification(Request $request){
+        DB::beginTransaction();
+        try {
+            $validator = Validator::make($request->all(), [
+                'id_event' => 'required',
+                'event' => 'required',
+            ]);
+
+            if ($validator->fails()) {
+                DB::rollBack();
+                return $this->output(array('msg' => $validator->messages()->first()), "Fail", 422);
+            }
+
+            $idEvent = $request->id_event;
+            $event = $request->event;
+
+            $notifications = DatabaseNotification::where('data->id_event', encryptor($idEvent))
+                ->where('data->event', $event)
+                ->delete();
+
+            DB::commit();
+            info("Notifikasi berhasil dihapus, id_event: $idEvent, event: $event");
+            return $this->output(array('msg' => 'Notifikasi berhasil dihapus'));
+
         } catch (\Exception $ex) {
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
