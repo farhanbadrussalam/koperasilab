@@ -5,6 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property string|null $name
+ * @property array|null $jobs
+ * @property array|null $jobs_paralel
+ * @property int|null $status
+ * @property-read mixed $list_jobs
+ * @property-read mixed $list_jobs_paralel
+ * @property-read mixed $setting_layanan_hash
+ * @method static \Illuminate\Database\Eloquent\Builder|Setting_layanan newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Setting_layanan newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Setting_layanan query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Setting_layanan whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Setting_layanan whereJobs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Setting_layanan whereJobsParalel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Setting_layanan whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Setting_layanan whereStatus($value)
+ * @mixin \Eloquent
+ */
 class Setting_layanan extends Model
 {
     use HasFactory;

@@ -5,6 +5,63 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_keuangan
+ * @property int|null $id_permohonan
+ * @property string|null $id_pengiriman
+ * @property int|null $id_jenis_pembayaran
+ * @property array|null $variabel_jenis_pembayaran
+ * @property string|null $no_invoice
+ * @property int|null $status
+ * @property int|null $ppn
+ * @property int|null $pph
+ * @property array|null $document_faktur
+ * @property array|null $bukti_bayar
+ * @property array|null $bukti_bayar_pph
+ * @property string|null $ttd
+ * @property int|null $ttd_by
+ * @property int|null $plt
+ * @property int|null $total_harga
+ * @property string|null $paid_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Keuangan_diskon> $diskon
+ * @property-read int|null $diskon_count
+ * @property-read mixed $keuangan_hash
+ * @property-read mixed $media
+ * @property-read mixed $media_bukti_bayar
+ * @property-read mixed $media_bukti_bayar_pph
+ * @property-read mixed $permohonan_hash
+ * @property-read \App\Models\Jenis_pembayaran|null $metode_pembayaran
+ * @property-read \App\Models\Pengiriman|null $pengiriman
+ * @property-read \App\Models\Permohonan|null $permohonan
+ * @property-read \App\Models\User|null $usersig
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereBuktiBayar($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereBuktiBayarPph($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereDocumentFaktur($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereIdJenisPembayaran($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereIdKeuangan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereIdPengiriman($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereIdPermohonan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereNoInvoice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan wherePaidAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan wherePlt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan wherePph($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan wherePpn($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereTotalHarga($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereTtd($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereTtdBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereVariabelJenisPembayaran($value)
+ * @mixin \Eloquent
+ */
 class Keuangan extends Model
 {
     use HasFactory;

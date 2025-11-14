@@ -7,6 +7,85 @@ use Illuminate\Database\Eloquent\Model;
 
 use Carbon\Carbon;
 
+/**
+ * @property int $id_kontrak
+ * @property int|null $id_layanan
+ * @property int|null $id_keuangan
+ * @property int|null $jenis_layanan_1
+ * @property int|null $jenis_layanan_2
+ * @property string|null $tipe_kontrak
+ * @property string|null $no_kontrak
+ * @property int|null $jenis_tld
+ * @property string|null $periode_pemakaian
+ * @property array|null $periode_next
+ * @property int|null $jumlah_pengguna
+ * @property int|null $jumlah_kontrol
+ * @property int|null $harga_layanan
+ * @property string|null $ttd
+ * @property int|null $ttd_by
+ * @property int|null $total_harga
+ * @property int $status
+ * @property string|null $note
+ * @property int|null $file_lhu
+ * @property int|null $id_pelanggan
+ * @property int|null $is_have_tld
+ * @property int|null $is_zerocek
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_dokumen> $dokumen
+ * @property-read int|null $dokumen_count
+ * @property-read mixed $data_radiasi
+ * @property-read mixed $document_kontrak
+ * @property-read mixed $kontrak_hash
+ * @property-read mixed $periode_all
+ * @property-read \App\Models\Keuangan|null $invoice
+ * @property-read \App\Models\Master_jenistld|null $jenisTld
+ * @property-read \App\Models\Master_jenisLayanan|null $jenis_layanan
+ * @property-read \App\Models\Master_jenisLayanan|null $jenis_layanan_parent
+ * @property-read \App\Models\Master_layanan_jasa|null $layanan_jasa
+ * @property-read \App\Models\User|null $pelanggan
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Kontrak_tld> $pengguna
+ * @property-read int|null $pengguna_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Pengiriman> $pengiriman
+ * @property-read int|null $pengiriman_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Kontrak_periode> $periode
+ * @property-read int|null $periode_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Kontrak_tld> $rincian_list_tld
+ * @property-read int|null $rincian_list_tld_count
+ * @property-read \App\Models\User|null $signature
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Master_tld> $tld_aktif
+ * @property-read int|null $tld_aktif_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereFileLhu($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereHargaLayanan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereIdKeuangan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereIdKontrak($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereIdLayanan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereIdPelanggan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereIsHaveTld($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereIsZerocek($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereJenisLayanan1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereJenisLayanan2($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereJenisTld($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereJumlahKontrol($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereJumlahPengguna($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereNoKontrak($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereNote($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak wherePeriodeNext($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak wherePeriodePemakaian($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereTipeKontrak($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereTotalHarga($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereTtd($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereTtdBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Kontrak extends Model
 {
     use HasFactory;

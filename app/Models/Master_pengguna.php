@@ -5,6 +5,49 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_pengguna
+ * @property array|null $id_radiasi
+ * @property int|null $id_perusahaan
+ * @property string|null $kode_lencana
+ * @property string|null $nik
+ * @property string|null $name
+ * @property int|null $id_divisi
+ * @property string|null $jenis_kelamin
+ * @property string|null $tempat_lahir
+ * @property string|null $tanggal_lahir
+ * @property int|null $ktp
+ * @property string|null $keterangan
+ * @property int|null $status
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Master_divisi|null $divisi
+ * @property-read mixed $pengguna_hash
+ * @property-read mixed $radiasi
+ * @property-read \App\Models\Master_media|null $media_ktp
+ * @property-read \App\Models\Perusahaan|null $perusahaan
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereIdDivisi($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereIdPengguna($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereIdPerusahaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereIdRadiasi($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereJenisKelamin($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereKeterangan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereKodeLencana($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereKtp($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereNik($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereTanggalLahir($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereTempatLahir($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Master_pengguna extends Model
 {
     use HasFactory;

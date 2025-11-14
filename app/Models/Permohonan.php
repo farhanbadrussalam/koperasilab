@@ -5,6 +5,93 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_permohonan
+ * @property int|null $id_layanan
+ * @property int|null $id_kontrak
+ * @property string|null $id_pengiriman
+ * @property int|null $id_alamat
+ * @property int|null $jenis_layanan_1
+ * @property int|null $jenis_layanan_2
+ * @property string|null $tipe_kontrak
+ * @property int|null $jenis_tld
+ * @property array|null $periode_pemakaian
+ * @property array|null $periode_next
+ * @property int|null $periode Di ambil dari kontrak_periode
+ * @property int|null $jumlah_pengguna
+ * @property int|null $jumlah_kontrol
+ * @property int|null $harga_layanan
+ * @property string|null $pic
+ * @property string|null $no_hp
+ * @property string|null $ttd
+ * @property int|null $ttd_by
+ * @property int|null $total_harga
+ * @property int $status
+ * @property string|null $note
+ * @property \App\Models\Master_media|null $file_lhu
+ * @property int|null $flag_read
+ * @property int|null $is_have_tld
+ * @property int|null $is_zerocek
+ * @property int|null $created_by
+ * @property string|null $verify_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_dokumen> $dokumen
+ * @property-read int|null $dokumen_count
+ * @property-read mixed $kontrak_hash
+ * @property-read mixed $permohonan_hash
+ * @property-read \App\Models\Keuangan|null $invoice
+ * @property-read \App\Models\Master_jenistld|null $jenisTld
+ * @property-read \App\Models\Master_jenisLayanan|null $jenis_layanan
+ * @property-read \App\Models\Master_jenisLayanan|null $jenis_layanan_parent
+ * @property-read \App\Models\Kontrak|null $kontrak
+ * @property-read \App\Models\Master_layanan_jasa|null $layanan_jasa
+ * @property-read \App\Models\Penyelia|null $lhu
+ * @property-read \App\Models\User|null $pelanggan
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_pengguna> $pengguna
+ * @property-read int|null $pengguna_count
+ * @property-read \App\Models\Pengiriman|null $pengiriman
+ * @property-read \App\Models\Kontrak_periode|null $periodenow
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_tld> $rincian_list_tld
+ * @property-read int|null $rincian_list_tld_count
+ * @property-read \App\Models\User|null $signature
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_tandaterima> $tandaterima
+ * @property-read int|null $tandaterima_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereFileLhu($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereFlagRead($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereHargaLayanan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereIdAlamat($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereIdKontrak($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereIdLayanan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereIdPengiriman($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereIdPermohonan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereIsHaveTld($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereIsZerocek($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereJenisLayanan1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereJenisLayanan2($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereJenisTld($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereJumlahKontrol($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereJumlahPengguna($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereNoHp($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereNote($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan wherePeriode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan wherePeriodeNext($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan wherePeriodePemakaian($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan wherePic($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereTipeKontrak($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereTotalHarga($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereTtd($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereTtdBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereVerifyAt($value)
+ * @mixin \Eloquent
+ */
 class Permohonan extends Model
 {
     use HasFactory;

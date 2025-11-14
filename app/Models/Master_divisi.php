@@ -5,6 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_divisi
+ * @property string|null $kode_lencana
+ * @property int|null $id_perusahaan
+ * @property string|null $name
+ * @property int|null $status
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read mixed $divisi_hash
+ * @property-read \App\Models\Perusahaan|null $perusahaan
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereIdDivisi($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereIdPerusahaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereKodeLencana($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Master_divisi extends Model
 {
     use HasFactory;

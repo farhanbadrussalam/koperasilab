@@ -5,6 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_jenisTld
+ * @property string|null $name
+ * @property string|null $order_jobs
+ * @property int|null $status
+ * @property-read mixed $jenis_tld_hash
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld whereIdJenisTld($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld whereOrderJobs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld whereStatus($value)
+ * @mixin \Eloquent
+ */
 class Master_jenistld extends Model
 {
     use HasFactory;

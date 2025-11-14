@@ -5,6 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_tld
+ * @property string|null $no_seri_tld
+ * @property string|null $merk
+ * @property string|null $jenis
+ * @property string|null $tanggal_pengadaan
+ * @property int|null $kepemilikan
+ * @property string|null $digunakan
+ * @property int|null $status
+ * @property-read mixed $tld_hash
+ * @property-read \App\Models\Perusahaan|null $pemilik
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereDigunakan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereIdTld($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereJenis($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereKepemilikan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereMerk($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereNoSeriTld($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereTanggalPengadaan($value)
+ * @mixin \Eloquent
+ */
 class Master_tld extends Model
 {
     use HasFactory;

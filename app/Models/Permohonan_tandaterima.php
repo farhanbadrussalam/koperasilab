@@ -5,6 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_permohonan
+ * @property int $id_pertanyaan
+ * @property string|null $jawaban
+ * @property string|null $note
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read mixed $permohonan_hash
+ * @property-read mixed $pertanyaan_hash
+ * @property-read \App\Models\Master_pertanyaan $pertanyaan
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima whereIdPermohonan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima whereIdPertanyaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima whereJawaban($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima whereNote($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_tandaterima whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Permohonan_tandaterima extends Model
 {
     use HasFactory;

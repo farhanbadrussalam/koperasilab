@@ -136,6 +136,8 @@ class PelangganController extends Controller
 
 
             return view('pages.permohonan.kontrak.evaluasi', $data);
+        } else {
+            abort(404);
         }
     }
 
@@ -194,6 +196,9 @@ class PelangganController extends Controller
                             'jenis_layanan_parent:id_jenisLayanan,name',
                         ])
                         ->where('id_permohonan', $idPermohonan)->first();
+        if(!$dataPermohonan){
+            abort(404);
+        }
         $data = [
             'title' => 'Buat pengajuan',
             'module' => 'permohonan-pengajuan',
@@ -248,6 +253,9 @@ class PelangganController extends Controller
                        'permohonan.kontrak',
                        'metode_pembayaran'
                    )->where('id_keuangan', $idKeuangan)->first();
+
+        if(!$keuangan)
+            abort(404);
 
         if($keuangan->metode_pembayaran){
             $keuangan->metode_pembayaran->content = contenMetodePembayaran($keuangan->metode_pembayaran->content, $keuangan->variabel_jenis_pembayaran);

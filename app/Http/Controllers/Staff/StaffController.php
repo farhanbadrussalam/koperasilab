@@ -169,6 +169,9 @@ class StaffController extends Controller
             'permohonan.pelanggan.perusahaan',
         )->find($idPenyelia);
 
+        if(!$query)
+            abort(404);
+
         // mengambil data jobs
         $listJobs = array();
         $listJobsParalel = array();
@@ -253,6 +256,9 @@ class StaffController extends Controller
                             'pelanggan.perusahaan.alamat',
                             'tandaterima',
                         )->where('id_permohonan', $id)->first();
+
+        if(!$dataPermohonan)
+            abort(404);
 
         if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){
             $pertanyaan_tr = Master_pertanyaan::where('id_layananjasa', $dataPermohonan->layanan_jasa->id_layanan)->get();

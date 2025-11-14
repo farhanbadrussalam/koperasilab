@@ -5,6 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_radiasi
+ * @property string|null $nama_radiasi
+ * @property int|null $status
+ * @property-read mixed $radiasi_hash
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi whereIdRadiasi($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi whereNamaRadiasi($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi whereStatus($value)
+ * @mixin \Eloquent
+ */
 class Master_radiasi extends Model
 {
     use HasFactory;

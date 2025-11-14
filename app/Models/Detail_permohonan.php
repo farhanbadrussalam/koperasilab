@@ -4,6 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+/**
+ * @property-read mixed $permohonan_log_hash
+ * @method static \Illuminate\Database\Eloquent\Builder|Detail_permohonan newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Detail_permohonan newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Detail_permohonan query()
+ * @mixin \Eloquent
+ */
 class Detail_permohonan extends Model
 {
     use HasFactory;

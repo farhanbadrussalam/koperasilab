@@ -5,6 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_jobs
+ * @property int|null $id_layanan
+ * @property string|null $name
+ * @property int|null $order
+ * @property int|null $status
+ * @property int|null $upload_doc
+ * @property-read mixed $jobs_hash
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereIdJobs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereIdLayanan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereOrder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereUploadDoc($value)
+ * @mixin \Eloquent
+ */
 class Master_jobs extends Model
 {
     use HasFactory;

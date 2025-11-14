@@ -46,7 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     // NEW ROUTE
     Route::prefix('permohonan')->group(function () {
         Route::controller(PelangganController::class)->group(function () {
-            Route::get('/pengajuan', 'indexPengajuan')->name('permohonan.pengajuan');
+            Route::get('/pengajuan', 'indexPengajuan')->middleware(['permission:Permohonan/pengajuan'])->name('permohonan.pengajuan');
             Route::get('/pengajuan/tambah', 'tambahPengajuan')->name('permohonan.pengajuan.tambah');
             Route::get('/pengajuan/edit/{id_permohonan}', 'editPengajuan')->name('permohonan.pengajuan.edit');
 
@@ -57,23 +57,23 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
             Route::get('/pengiriman', 'indexPengiriman')->name('permohonan.pengiriman');
 
-            Route::get('/kontrak', 'indexKontrak')->name('permohonan.kontrak');
+            Route::get('/kontrak', 'indexKontrak')->middleware('permission:Kontrak')->name('permohonan.kontrak');
             Route::get('/kontrak/e/{idKontrak}/{idPeriode}', 'evaluasiKontrak')->name('permohonan.kontrak.evaluasi');
         });
     });
 
     Route::prefix('staff')->group(function () {
         Route::controller(StaffController::class)->group(function() {
-            Route::get('/keuangan', 'indexKeuangan')->name('staff.keuangan');
-            Route::get('/permohonan', 'indexPermohonan')->name('staff.permohonan');
+            Route::get('/keuangan', 'indexKeuangan')->middleware(['permission:Staff/keuangan'])->name('staff.keuangan');
+            Route::get('/permohonan', 'indexPermohonan')->middleware(['permission:Staff/permohonan'])->name('staff.permohonan');
             Route::get('/permohonan/verifikasi/{idPermohonan}', 'verifikasiPermohonan')->name('staff.permohonan.verifikasi');
-            Route::get('/penyelia', 'indexPenyelia')->name('staff.penyelia');
+            Route::get('/penyelia', 'indexPenyelia')->middleware(['permission:Staff/penyelia'])->name('staff.penyelia');
             Route::get('/penyelia/surat_tugas/c/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.create.surat_tugas');
             Route::get('/penyelia/surat_tugas/e/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.update.surat_tugas');
             Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.show.surat_tugas');
 
-            Route::get('/lhu', 'indexLhu')->name('staff.lhu');
-            Route::get('/lhu/petugas', 'indexPetugas')->name('staff.lhu.petugas');
+            Route::get('/lhu', 'indexLhu')->middleware(['permission:Staff/lhu'])->name('staff.lhu');
+            Route::get('/lhu/petugas', 'indexPetugas')->middleware(['permission:Staff/lhu/petugas'])->name('staff.lhu.petugas');
 
             Route::get('/pengiriman', 'indexPengiriman')->name('staff.pengiriman');
             Route::get('/pengiriman/permohonan', 'indexPengirimanPermohonan')->name('staff.pengiriman.permohonan');
@@ -82,15 +82,15 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/pengiriman/pengembalian/{idKontrak}', 'buatOrderPengembalian');
             Route::get('/pengiriman/tambah', 'buatCustomPengiriman')->name('staff.pengiriman.tambah');
 
-            Route::get('/perusahaan', 'indexPerusahaan')->name('staff.perusahaan');
+            Route::get('/perusahaan', 'indexPerusahaan')->middleware(['permission:Staff/perusahaan'])->name('staff.perusahaan');
             Route::get('/jenis/pembayaran', 'indexJenisPembayaran')->name('staff.jenis.pembayaran');
         });
     });
 
     Route::prefix('manager')->group(function () {
         Route::controller(ManagerPengajuanController::class)->group(function () {
-            Route::get('/pengajuan', 'index')->name('manager.pengajuan');
-            Route::get('/surat_tugas', 'indexSuratTugas')->name('manager.surat_tugas');
+            Route::get('/pengajuan', 'index')->middleware(['permission:Manager/Keuangan'])->name('manager.pengajuan');
+            Route::get('/surat_tugas', 'indexSuratTugas')->middleware(['permission:Manager/pengajuan'])->name('manager.surat_tugas');
         });
         Route::controller(StaffController::class)->group(function() {
             Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
@@ -118,48 +118,32 @@ Route::middleware(['auth', 'verified'])->group(function() {
         });
     });
 
-
-    // Route::middleware(['permission:User.management'])->group(function () {
-    // Route::group(function () {
-    Route::prefix('management')->group(function () {
-        Route::resource('users', UserController::class);
+    Route::prefix('management')->middleware(['permission:Management|Tld'])->group(function () {
+        Route::resource('users', UserController::class)->middleware('role:Super Admin');
         Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
         Route::get('getById/{id}', [UserController::class, 'getById'])->name('users.getById');
 
-        Route::resource('permission', PermissionController::class);
+        Route::resource('permission', PermissionController::class)->middleware('role:Super Admin');
         Route::get('getDataPermission', [PermissionController::class, 'getData'])->name('permission.getData');
 
-        Route::resource('roles', RolesController::class);
+        Route::resource('roles', RolesController::class)->middleware('role:Super Admin');
         Route::get('getDataRoles', [RolesController::class, 'getData'])->name('roles.getData');
 
         Route::resource('tld', TldController::class);
         Route::get('getDataTld', [TldController::class, 'getData'])->name('tld.getData');
 
-        Route::resource('radiasi', RadiasiController::class);
+        Route::resource('radiasi', RadiasiController::class)->middleware('role:Super Admin');
         Route::get('getDataRadiasi', [RadiasiController::class, 'getData'])->name('radiasi.getData');
 
         Route::resource('userpengguna', PenggunaController::class);
         Route::get('getDataPengguna', [PenggunaController::class, 'getData'])->name('pengguna.getData');
 
-        Route::resource('document', DocumentController::class);
+        Route::resource('document', DocumentController::class)->middleware('role:Super Admin');
         Route::post('document/{id}', [DocumentController::class, 'update']);
     });
-    // });
 
-    // Route::middleware(['permission:Layananjasa'])->group(function () {
-    // Route::group(function () {
-    // });
-
-    // Route::middleware(['permission:Penjadwalan'])->group(function () {
-    // Route::group(function () {
-    // });
-
-    // Route::middleware(['permission:Management.Lab'])->group(function () {
-    // Route::group(function () {
-    // });
-
-    Route::resource('userProfile', ProfileController::class);//->middleware(['permission:Biodata.pribadi']);
-    Route::resource('userPerusahaan', userPerusahaanController::class);//->middleware(['permission:Biodata.perusahaan']);
+    Route::resource('userProfile', ProfileController::class)->middleware(['permission:Profile/pelanggan']);
+    Route::resource('userPerusahaan', userPerusahaanController::class);
 
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
     Route::get('/getNotif', [NotifController::class, 'latestNotification'])->name('notif.getNotif');

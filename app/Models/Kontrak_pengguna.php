@@ -5,6 +5,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_map_pengguna
+ * @property int $id_kontrak
+ * @property int $id_pengguna
+ * @property int|null $id_tld
+ * @property int $status
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read mixed $pengguna_map_hash
+ * @property-read \App\Models\Kontrak_tld|null $kontrak_tld
+ * @property-read \App\Models\Master_pengguna|null $pengguna
+ * @property-read \App\Models\Master_tld|null $tld_pengguna
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereIdKontrak($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereIdMapPengguna($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereIdPengguna($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereIdTld($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Kontrak_pengguna extends Model
 {
     use HasFactory;

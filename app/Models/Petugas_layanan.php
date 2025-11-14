@@ -5,6 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property-read mixed $petugas_hash
+ * @property-read \App\Models\tbl_lab|null $lab
+ * @property-read \App\Models\User|null $petugas
+ * @property-read \App\Models\Satuan_kerja|null $satuankerja
+ * @property-read \App\Models\User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder|Petugas_layanan newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Petugas_layanan newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Petugas_layanan query()
+ * @mixin \Eloquent
+ */
 class Petugas_layanan extends Model
 {
     use HasFactory;

@@ -5,6 +5,38 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_jenisLayanan
+ * @property string|null $name
+ * @property int|null $parent
+ * @property array|null $jobs
+ * @property array|null $jobs_paralel
+ * @property int|null $jobs_paralel_point
+ * @property int|null $status
+ * @property string|null $alias
+ * @property int|null $created_by
+ * @property string|null $created_date
+ * @property string|null $updated_date
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, Master_jenisLayanan> $child
+ * @property-read int|null $child_count
+ * @property-read mixed $jenis_layanan_hash
+ * @property-read mixed $parent_hash
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereAlias($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereCreatedDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereIdJenisLayanan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereJobs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereJobsParalel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereJobsParalelPoint($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereParent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereUpdatedDate($value)
+ * @mixin \Eloquent
+ */
 class Master_jenisLayanan extends Model
 {
     use HasFactory;

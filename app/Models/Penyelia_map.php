@@ -5,6 +5,42 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_map
+ * @property int|null $id_penyelia
+ * @property int|null $id_jobs
+ * @property int|null $order
+ * @property int|null $status 1 = selesai
+ * @property int|null $point_jobs
+ * @property int|null $done_by
+ * @property string|null $done_at
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $doneBy
+ * @property-read mixed $jobs_hash
+ * @property-read mixed $map_hash
+ * @property-read \App\Models\Master_jobs|null $jobs
+ * @property-read \App\Models\Master_jobs|null $jobs_paralel
+ * @property-read \App\Models\Penyelia|null $penyelia
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Penyelia_petugas> $petugas
+ * @property-read int|null $petugas_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereDoneAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereDoneBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereIdJobs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereIdMap($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereIdPenyelia($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereOrder($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map wherePointJobs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Penyelia_map extends Model
 {
     use HasFactory;

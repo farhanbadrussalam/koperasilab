@@ -5,6 +5,51 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id_doc
+ * @property string|null $name
+ * @property string|null $jenis
+ * @property array|null $pertanyaan
+ * @property int|null $status 1 = active, 99 = remove
+ * @property int|null $version
+ * @property int|null $id_doc_version
+ * @property string $content
+ * @property int|null $id_header
+ * @property int|null $id_footer
+ * @property string|null $alias
+ * @property array|null $variables
+ * @property string|null $view
+ * @property string|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read Documents|null $footer
+ * @property-read mixed $data_pertanyaan
+ * @property-read mixed $doc_hash
+ * @property-read mixed $doc_version_hash
+ * @property-read mixed $footer_hash
+ * @property-read mixed $header_hash
+ * @property-read Documents|null $header
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereAlias($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereContent($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereIdDoc($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereIdDocVersion($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereIdFooter($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereIdHeader($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereJenis($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents wherePertanyaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereVariables($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereVersion($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereView($value)
+ * @mixin \Eloquent
+ */
 class Documents extends Model
 {
     use HasFactory;

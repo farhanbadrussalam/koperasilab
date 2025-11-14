@@ -5,7 +5,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 10.48.25.
+ * Generated for Laravel 10.49.1.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -17717,11 +17717,6 @@ namespace Barryvdh\DomPDF\Facade {
 
 namespace Laravel\Socialite\Facades {
             /**
-     * @method array getScopes()
-     * @method \Laravel\Socialite\Contracts\Provider scopes(array|string $scopes)
-     * @method \Laravel\Socialite\Contracts\Provider setScopes(array|string $scopes)
-     * @method \Laravel\Socialite\Contracts\Provider redirectUrl(string $url)
-     * @see \Laravel\Socialite\SocialiteManager
      */        class Socialite {
                     /**
          * Get a driver instance.
