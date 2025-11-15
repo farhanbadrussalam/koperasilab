@@ -18,10 +18,10 @@ $(function () {
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
 
-        $(`#tldNoSeri_${detail.selected}`).val(detail.data_tld.no_seri_tld);
+        $(`#${detail.selected}`).val(detail.data_tld.no_seri_tld);
 
         // reset tmpArrTld
-        let index = tmpArrTld.findIndex(d => d.id == detail.selected);
+        let index = tmpArrTld.findIndex(d => d.index == detail.selected);
 
         if(index > -1){
             tmpArrTld[index].tld = detail.data_tld.tld_hash;
@@ -334,7 +334,8 @@ function loadTldKontrol(tldKontrol){
 
                 tmpArrTld.push({
                     id: `${idHash}|${idx+1}`,
-                    tld: tldHash
+                    tld: tldHash,
+                    index: `tldNoSeri_${idx}_kontrol`
                 });
 
                 let kodeLencana = iKontrol.count > 1 ? `C${idx+1}` : `C`;
@@ -348,8 +349,8 @@ function loadTldKontrol(tldKontrol){
                                 <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${idx}" type="checkbox" value="${iKontrol.kontrak_tld_hash}" aria-label="Checkbox for following text input">
                             </div>
                             ` : ``}
-                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idHash}|${idx+1}" placeholder="Pilih No Seri" readonly>
-                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${idHash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idx}_kontrol" placeholder="Pilih No Seri" readonly>
+                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="tldNoSeri_${idx}_kontrol" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
                         </div>
                     </div>
                 `;
@@ -394,7 +395,8 @@ function loadPengguna(){
 
             tmpArrTld.push({
                 id: idHash,
-                tld: tldHash
+                tld: tldHash,
+                index: `tldNoSeri_${i}_pengguna`
             });
 
             let fileKtp = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '';
@@ -410,8 +412,8 @@ function loadPengguna(){
                     <td>${txtRadiasi}</td>
                     <td>
                         <div class="input-group">
-                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idHash}" placeholder="Pilih No Seri" readonly>
-                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${idHash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
+                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${i}_pengguna" placeholder="Pilih No Seri" readonly>
+                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="tldNoSeri_${i}_pengguna" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
                         </div>
                     </td>
                     <td>
