@@ -704,6 +704,12 @@ function openForm(){
 
                 switch (typeLayanan.toLowerCase()) {
                     case 'kontrak':
+                        // load data
+                        $('#jenis_tld').val(dataPermohonan.jenis_tld?.jenis_tld_hash).trigger('change');
+                        periodeJs.addData(dataPermohonan.periode_pemakaian);
+                        simpanPeriode();
+
+                        // show
                         btnAddPengguna.addClass('d-block').removeClass('d-none');
                         formTipeKontrak.show();
                         formPeriode.show();

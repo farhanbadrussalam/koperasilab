@@ -250,7 +250,7 @@ class StaffController extends Controller
                             'jenisTld:id_jenisTld,name',
                             'jenis_layanan:id_jenisLayanan,name,parent',
                             'jenis_layanan_parent',
-                            'pengguna',
+                            'permohonan_pengguna',
                             'pelanggan',
                             'pelanggan.perusahaan',
                             'pelanggan.perusahaan.alamat',
@@ -335,7 +335,7 @@ class StaffController extends Controller
                 'lhu.pengiriman',
                 'pengiriman',
                 'file_lhu',
-                'pengguna',
+                'permohonan_pengguna',
                 'rincian_list_tld',
                 'rincian_list_tld.pengguna',
                 'rincian_list_tld.divisi'

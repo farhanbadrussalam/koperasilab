@@ -1120,6 +1120,15 @@ class PermohonanAPI extends Controller
                     $arrayUpdate['note'] = $note;
                     $arrayUpdate['status'] = 90; // Pengajuan di tolak oleh front desk
                     $dataPermohonan->update($arrayUpdate);
+
+                    // send notif to pelanggan
+                    $dataNotif = [
+                        'pesan' => 'Permohonan anda pada tanggal ' . convert_date($dataPermohonan->created_at, 1) . ' telah ditolak. ' . $note,
+                        'event' => 'Dikembalikan',
+                        'event_id' => $dataPermohonan->permohonan_hash,
+                        'url' => 'permohonan/dikembalikan'
+                    ];
+                    Notifier::send([$dataPermohonan->created_by], $dataNotif);
                 }
 
                 DB::commit();

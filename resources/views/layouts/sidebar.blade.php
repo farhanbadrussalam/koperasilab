@@ -130,6 +130,7 @@
                         href="{{ route('permohonan.dikembalikan') }}" aria-expanded="false">
                         <span><i class="bi bi-arrow-counterclockwise"></i></span>
                         <span class="hide-menu">Dikembalikan</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Dikembalikan')) d-none @endif">{{ notifUnreadCount('Dikembalikan') }}</span>
                     </a>
                 </li>
                 <li class="sidebar-item">

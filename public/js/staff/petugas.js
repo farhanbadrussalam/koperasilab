@@ -4,7 +4,7 @@ $(function () {
         processing: true,
         serverSide: true,
         ajax: {
-            url: `${base_url}/management/getData`,
+            url: `${base_url}/staff/lhu/petugas/getData`,
             type: 'GET',
             data: function (d) {
                 d.role = ['Staff LHU', 'Staff Penyelia'];

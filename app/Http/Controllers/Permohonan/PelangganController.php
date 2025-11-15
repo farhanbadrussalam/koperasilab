@@ -219,6 +219,7 @@ class PelangganController extends Controller
             'title' => 'Dikembalikan',
             'module' => 'permohonan-dikembalikan'
         ];
+        notifRead(['Dikembalikan']);
         return view('pages.permohonan.dikembalikan.index', $data);
     }
 

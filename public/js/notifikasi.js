@@ -107,12 +107,14 @@ class WidgetNotifikasi {
                     let url = base_url + notif.data.url;
                     switch (notif.data.event) {
                         case 'Permohonan':
-                            let perusahaan = notif.data.perusahaan_id.split('|');
+                            let perusahaan = notif.data.perusahaan_id?.split('|') || [];
+
+                            let text = perusahaan.length > 1 ? `<div class="fw-bold text-dark">${perusahaan[1]}</div>` : '';
                             html += `
                                 <li class="cursor-pointer list-group-item fs-8 list-group-item-action ${!notif.read_at ? 'list-group-item-active' : ''}" data-id="${notif.id}">
                                     <a href="${url}" class="d-flex align-items-center justify-content-between">
                                         <div class="col-10">
-                                            <div class="fw-bold text-dark">${perusahaan[1]}</div>
+                                            ${text}
                                             <div class="text-muted">${notif.data.pesan}</div>
                                             <div class="text-muted fs-9">${diffToday(notif.created_at)}</div>
                                         </div>

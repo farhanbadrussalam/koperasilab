@@ -608,7 +608,6 @@ class Detail {
         return '<p>Items content</p>';
     }
     createPenggunaContent() {
-        console.log(this.info.pengguna);
         if (this.info.pengguna && this.info.pengguna.length > 0) {
             let html = '';
             for (const [i, item] of this.info.pengguna.entries()) {

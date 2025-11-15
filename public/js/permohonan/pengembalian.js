@@ -1,45 +1,71 @@
+let filterComp = false;
 $(function () {
     loadData();
+
+    filterComp = new FilterComponent('pengajuan-filter', {
+        filter : {
+            jenis_tld : true,
+            jenis_layanan : true,
+            search: true,
+            date_range : true,
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 });
 
 function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
-        status: [90]
+        status: [90],
+        filter: {}
     };
+
+    let filterValue = filterComp && filterComp.getAllValue();
+
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan = filterValue.jenis_layanan);
+    filterValue.search && (params.filter.search = filterValue.search);
+    (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $('#list-placeholder').show();
     $('#list-container').hide();
     ajaxGet(`api/v1/permohonan/listPengajuan`, params, result => {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
-            let periode = pengajuan.periode_pemakaian;
-            html += `
-                <div class="card mb-2">
-                    <div class="card-body row align-items-center">
-                        <div class="col-12 col-md-3">
-                            <div class="title">Layanan ${pengajuan.layanan_jasa.nama_layanan}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>${pengajuan.jenis_tld.name}</div>
-                                <div>Periode : ${periode.length} Bulan</div>
-                                <div>Created : ${dateFormat(pengajuan.created_at, 4)}</div>
-                            </small>
-                        </div>
-                        <div class="col-6 col-md-3 my-3">${pengajuan.jenis_layanan_parent.name}-${pengajuan.jenis_layanan.name}</div>
-                        <div class="col-6 col-md-2 my-3 text-end text-md-start">${pengajuan.tipe_kontrak}</div>
-                        <div class="col-6 col-md-2">${statusFormat('permohonan', pengajuan.status)}</div>
-                        <div class="col-6 col-md-2 text-end" data-id="${pengajuan.permohonan_hash}">
-                            <button class="btn btn-sm btn-outline-warning" title="Edit"><i class="bi bi-pencil-square"></i></button>
-                            <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i></button>
-                        </div>
-                        <small class="d-flex justify-content-between bg-body-secondary rounded mt-2 mb-0">
-                            <div>Note : <span class="text-danger">Data permohonan ditolak</span></div>
-                            <a href="#">Show</a>
-                        </small>
-                    </div>
-                </div>
+            const params = {
+                tipeKontrak: pengajuan.tipe_kontrak,
+                jenisLayananParent: pengajuan.jenis_layanan_parent.name,
+                jenisLayanan: pengajuan.jenis_layanan.name,
+                format: 'permohonan',
+                status: pengajuan.status,
+                jenisTld: pengajuan.jenis_tld?.name ?? '-',
+                namaLayanan: pengajuan.layanan_jasa?.nama_layanan ?? '-',
+                periode: pengajuan.periode,
+                created_at: pengajuan.created_at,
+                kontrak: pengajuan.kontrak?.id_kontrak,
+                id: pengajuan.permohonan_hash,
+                is_have_tld: pengajuan.is_have_tld,
+                is_zerocek: pengajuan.is_zerocek,
+                note: pengajuan.note,
+                pelanggan: pengajuan.pelanggan.name,
+            }
+
+            const btnAction = `
+                <a class="btn btn-sm btn-outline-warning" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}"><i class="bi bi-pencil-square"></i> Edit</a>
+                <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i> Remove</button>
             `;
+
+            html += cardComponent(params, {btnAction: btnAction});
         }
 
         if(result.data.length == 0){
@@ -82,4 +108,14 @@ function remove(obj){
             console.error(result.data.msg);
         }
     });
+}
+
+function reload(){
+    loadData();
+}
+
+function clearFilter(){
+    filterComp.clear();
+
+    loadData();
 }

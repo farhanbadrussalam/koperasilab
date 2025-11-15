@@ -44,12 +44,12 @@ function cardComponent(data, options = {}) {
                         ${data.kontrak ? `<div><i class="bi bi-file-text"></i> ${data.kontrak}</div>` : ''}
                     </div>
 
-                    <!-- Catatan -->
-                    ${htmlCatatan}
                 </div>
                 <div class="col-6 col-md-3 text-end ms-auto" data-id='${data.id}'>
                     ${options.btnAction ?? ''}
                 </div>
+                <!-- Catatan -->
+                ${htmlCatatan}
             </div>
         </div>
     `;
