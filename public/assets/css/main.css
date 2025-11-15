@@ -30,6 +30,11 @@ body {
 .hover-2:hover {
   background-color: #858585 !important;
 }
+
+.hover-3:hover {
+  background-color: #f3f3f3 !important;
+}
+
 .hover-text:hover{
   --bs-text-opacity: .7;
 }
@@ -223,7 +228,6 @@ a {
   cursor: pointer;
   color: #4D4D4D;
   font-size: 14px;
-  font-weight: 700;
   -webkit-transition: all 0.4s ease;
   -o-transition: all 0.4s ease;
   transition: all 0.4s ease;
@@ -244,7 +248,8 @@ a {
 }
 
 .accordion-custom li.open .link {
-  color: #AA00FF;
+  color: #000000;
+  font-weight: bolder;
 }
 
 .accordion-custom li.open i.fa-chevron-down {

@@ -7,7 +7,7 @@ $(function () {
         tab: {
             tld: true,
             pengguna: true,
-            periode: true,
+            // periode: true,
             dokumen: true
         }
     });

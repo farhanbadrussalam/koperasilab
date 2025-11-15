@@ -46,6 +46,12 @@ class Detail {
 
     _bindEventListeners() {
         // $('#btnSimpanDetail').on('click', this.simpanDetail.bind(this));
+        // ketika modal ditutup
+        $('#offcanvasDetail').on('hidden.bs.offcanvas', () => {
+            this._initializeProperties();
+            $('#container-detail').empty();
+            $('#loadingDetail').empty();
+        });
     }
 
     _actionAccordion() {
@@ -127,7 +133,10 @@ class Detail {
                     periodeNow: this.data.periode ?? '',
                     layananJasa: this.data.layanan_jasa?.nama_layanan ?? '',
                     jenisTld: this.data.jenis_tld?.name ?? '',
-                    jenisStatus: 'permohonan'
+                    jenisStatus: 'permohonan',
+                    pengguna: this.data.permohonan_pengguna ?? [],
+                    is_have_tld: this.data.is_have_tld ?? false,
+                    is_zerocek: this.data.is_zerocek ?? false
                 }
                 break;
 
@@ -218,6 +227,8 @@ class Detail {
             }
         }
 
+        $('#container-detail').append('<hr/>');
+
         const hasTab = Object.values(this.options.tab).some(tab => tab);
         if (!hasTab) {
             // $('#container-detail').append(`<div class="text-center text-muted mt-3 w-100">Tidak ada tab yang ditampilkan</div>`);
@@ -261,6 +272,10 @@ class Detail {
 
         $('#titleDetail').text(`${this.info.layananJasa} - ${this.info.jenisTld}`);
 
+        let htmlPeriode = !this.info.periodeNow ? `Zero cek` : 'Periode ' + this.info.periodeNow;
+        if(this.info.periodeNow && this.info.is_have_tld && this.info.is_zerocek) {
+            htmlPeriode += ' + Zero cek';
+        }
         container.innerHTML = `
             <div class="row mb-2">
                 <label class="text-body-tertiary mb-1 col-md-4">No kontrak</label>
@@ -291,6 +306,12 @@ class Detail {
                 <label class="text-body-tertiary mb-1 col-md-4">Status</label>
                 <div class="col-auto">
                     ${statusFormat(this.info.jenisStatus, this.info.status)}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Periode</label>
+                <div class="col-auto">
+                    ${htmlPeriode}
                 </div>
             </div>
             <div class="row mb-2">
@@ -528,22 +549,22 @@ class Detail {
     createTab() {
         const container = document.createElement('div');
         const tabs = {};
-        this.options.tab.pengguna && (tabs.pengguna = { title: 'Pengguna', content: this.createPenggunaContent(), badge: this.data?.pengguna?.length ?? 0 });
-        this.options.tab.activitas && (tabs.activitas = { title: 'Aktivitas', content: this.createAktivitasContent() });
-        this.options.tab.periode && (tabs.periode = { title: 'Periode', content: this.createPeriodeContent() });
-        this.options.tab.dokumen && (tabs.dokumen = { title: 'Dokumen', content: this.createDokumenContent() });
-        this.options.tab.dokumen_lhu && (tabs.dokumen_lhu = { title: 'Dokumen LHU', content: this.createDokumenLhuContent() });
-        this.options.tab.log && (tabs.log = { title: 'Log', content: this.createLogContent() });
-        this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent() });
+        this.options.tab.pengguna && (tabs.pengguna = { title: 'Pengguna', content: this.createPenggunaContent(), badge: this.data?.pengguna?.length ?? 0, icon: 'bi bi-person-circle' });
+        this.options.tab.activitas && (tabs.activitas = { title: 'Aktivitas', content: this.createAktivitasContent(), icon: 'bi bi-activity' });
+        this.options.tab.periode && (tabs.periode = { title: 'Periode', content: this.createPeriodeContent(), icon: 'bi bi-calendar-check' });
+        this.options.tab.dokumen && (tabs.dokumen = { title: 'Dokumen', content: this.createDokumenContent(), icon: 'bi bi-folder2-open' });
+        this.options.tab.dokumen_lhu && (tabs.dokumen_lhu = { title: 'Dokumen LHU', content: this.createDokumenLhuContent(), icon: 'bi bi-file-earmark-text' });
+        this.options.tab.log && (tabs.log = { title: 'Log', content: this.createLogContent(), icon: 'bi bi-journal-text' });
+        this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent(), icon: 'bi bi-diagram-3' });
 
-        this.options.tab.items && (tabs.items = { title: 'Items', content: this.createItemsContent() });
-        this.options.tab.bukti && (tabs.bukti = { title: 'Bukti', content: this.createBuktiContent() });
+        this.options.tab.items && (tabs.items = { title: 'Items', content: this.createItemsContent(), icon: 'bi bi-box-seam' });
+        this.options.tab.bukti && (tabs.bukti = { title: 'Bukti', content: this.createBuktiContent(), icon: 'bi bi-check2-square' });
 
-        this.options.tab.proses && (tabs.proses = { title: 'Proses Penyelia', content: this.createProsesContent() });
+        this.options.tab.proses && (tabs.proses = { title: 'Proses Penyelia', content: this.createProsesContent(), icon: 'bi bi-gear-wide-connected' });
 
-        this.options.tab.alamat && (tabs.alamat = { title: 'Alamat', content: this.createAlamatContent() });
-        this.options.tab.karyawan && (tabs.karyawan = { title: `PIC (${this.info?.karyawan?.length ?? 0})`, content: this.createKaryawanContent() });
-        this.options.tab.surat_kuasa && (tabs.surat_kuasa = { title: 'Surat Kuasa', content: this.createSuratKuasaContent() });
+        this.options.tab.alamat && (tabs.alamat = { title: 'Alamat', content: this.createAlamatContent(), icon: 'bi bi-geo-alt' });
+        this.options.tab.karyawan && (tabs.karyawan = { title: `PIC (${this.info?.karyawan?.length ?? 0})`, content: this.createKaryawanContent(), icon: 'bi bi-people-fill' });
+        this.options.tab.surat_kuasa && (tabs.surat_kuasa = { title: 'Surat Kuasa', content: this.createSuratKuasaContent(), icon: 'bi bi-file-earmark-text' });
 
         let htmlTabNav = '';
 
@@ -553,16 +574,19 @@ class Detail {
                 const badge = tab.badge ? `<span class="badge text-bg-secondary">${tab.badge}</span>` : '';
 
                 htmlTabNav += `
-              <li role="presentation" class="bg-secondary-subtle rounded-3 mb-1 shadow-sm">
-                <div class="link d-flex justify-content-between align-items-center py-2 px-3" id="pills-${tabId}">
-                    <span>${tab.title} ${badge}</span>
-                    <i class="bi bi-chevron-down"></i>
-                </div>
-                <div class="submenu bg-body-secondary p-2 rounded-bottom-3 overflow-auto overflow-x-hidden" style="max-height: 30vh">
-                    ${tab.content}
-                </div>
-              </li>
-            `;
+                <li role="presentation" class="rounded-3 mb-1 shadow-sm border">
+                    <div class="link d-flex justify-content-between align-items-center py-2 px-3 hover-3" id="pills-${tabId}">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="${tab.icon}"></span>
+                            <span>${tab.title} ${badge}</span>
+                        </div>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="submenu p-2 rounded-bottom-3 overflow-auto overflow-x-hidden border-top" style="max-height: 30vh">
+                        ${tab.content}
+                    </div>
+                </li>
+                `;
             }
         }
 
@@ -584,27 +608,36 @@ class Detail {
         return '<p>Items content</p>';
     }
     createPenggunaContent() {
-        if (this.data.pengguna && this.data.pengguna.length > 0) {
+        console.log(this.info.pengguna);
+        if (this.info.pengguna && this.info.pengguna.length > 0) {
             let html = '';
-            for (const [i, pengguna] of this.data.pengguna.entries()) {
+            for (const [i, item] of this.info.pengguna.entries()) {
                 let txtRadiasi = '';
-                pengguna.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
+                const pengguna = item.pengguna;
+                pengguna.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
+
+                let btnMedia = '';
+                if(pengguna.media_ktp){
+                    btnMedia = `
+                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
+                    `;
+                }
 
                 html += `
-                    <div class="card mb-2 shadow-sm fs-8">
+                    <div class="card border-bottom border-0 fs-8 mb-1 hover-3">
                         <div class="card-body row align-items-center py-1">
                             <div class="col-auto lh-sm d-flex align-items-center">
                                 <span class="col-form-label me-2">${i + 1}</span>
                                 <div class="mx-2">
-                                    <div>${pengguna.nama}</div>
-                                    <small class="text-body-secondary fw-light">${pengguna.posisi}</small>
+                                    <div>${pengguna.name}</div>
+                                    <small class="text-body-secondary fw-light">${item.divisi?.name ?? '-'}</small>
                                     <div class="d-flex flex-wrap">
                                         ${txtRadiasi}
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-2 text-end ms-auto">
-                                <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media.file_path}/${pengguna.media.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
+                                ${btnMedia}
                             </div>
                         </div>
                     </div>
@@ -612,7 +645,7 @@ class Detail {
             }
             return html;
         } else {
-            return '<p>Tidak ada data pengguna</p>';
+            return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada data pengguna</p>';
         }
     }
     createAktivitasContent() {
@@ -625,13 +658,13 @@ class Detail {
         let dataPermohonan = false;
         switch (this.options.jenis) {
             case 'permohonan':
-                this.data.kontrak.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
+                this.data.kontrak?.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
                 dataDokumen = dataDokumen.concat(this.data.dokumen);
                 invoiceData = this.data.invoice;
                 dataPermohonan = this.data;
                 break;
             case 'penyelia':
-                this.data.permohonan.kontrak.document_kontrak && (dataDokumen = this.data.permohonan.kontrak.document_kontrak);
+                this.data.permohonan.kontrak?.document_kontrak && (dataDokumen = this.data.permohonan.kontrak.document_kontrak);
                 dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
                 invoiceData = this.data.permohonan.invoice;
                 dataPermohonan = this.data.permohonan;

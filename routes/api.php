@@ -71,7 +71,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/tambahPengguna', 'tambahPengguna');
         Route::get('/createKontrak/{idPermohonan}/{noKontrak}', 'createKontrak');
         Route::post('/action_tld', 'action_tld');
-        Route::delete('/destroyPengguna/{idPengguna}', 'destroyPengguna');
+        Route::delete('/destroyPengguna/{idPengguna}/{idPermohonan}', 'destroyPengguna');
         Route::get('/getChildJenisLayanan/{idParent}', 'getChildJenisLayanan');
         Route::get('/getJenisTld/{idJenisLayanan}', 'getJenisTld');
         Route::get('/getPrice', 'getPrice');

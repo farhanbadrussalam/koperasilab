@@ -198,7 +198,7 @@ class Permohonan extends Model
         return $this->belongsTo(Master_layanan_jasa::class, 'id_layanan', 'id_layanan');
     }
 
-    public function pengguna() {
+    public function permohonan_pengguna() {
         return $this->hasMany(Permohonan_pengguna::class, 'id_permohonan', 'id_permohonan');
     }
 

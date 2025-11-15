@@ -43,7 +43,6 @@ class Permohonan_pengguna extends Model
         'id_map_pengguna',
         'id_permohonan',
         'id_pengguna',
-        'id_tld',
         'status',
         'created_by',
         'created_at'
@@ -51,7 +50,7 @@ class Permohonan_pengguna extends Model
 
     protected $hidden = [
         'id_map_pengguna',
-        'id_tld'
+        'id_pengguna',
     ];
 
     protected $appends = [
@@ -62,7 +61,6 @@ class Permohonan_pengguna extends Model
         'id_map_pengguna' => 'integer',
         'id_permohonan' => 'integer',
         'id_pengguna' => 'integer',
-        'id_tld' => 'integer',
         'status' => 'integer',
         'created_by' => 'integer'
     ];
@@ -70,14 +68,6 @@ class Permohonan_pengguna extends Model
     public function getPenggunaMapHashAttribute()
     {
         return $this->id_map_pengguna ? encryptor($this->id_map_pengguna) : null;
-    }
-
-    public function tld_pengguna(){
-        return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
-    }
-
-    public function permohonan_tld(){
-        return $this->belongsTo(Permohonan_tld::class, 'id_map_pengguna', 'id_map_pengguna');
     }
 
     public function pengguna(){

@@ -489,7 +489,7 @@ function loadPengguna(){
 function deletePengguna(obj){
     let idPengguna = $(obj).data('idpengguna');
 
-    ajaxDelete(`api/v1/permohonan/destroyPengguna/${idPengguna}`, result => {
+    ajaxDelete(`api/v1/permohonan/destroyPengguna/${idPengguna}/${idPermohonan}`, result => {
         Swal.fire({
             icon: 'success',
             text: result.data.msg,

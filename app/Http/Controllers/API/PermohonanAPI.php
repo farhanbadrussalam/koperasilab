@@ -229,11 +229,19 @@ class PermohonanAPI extends Controller
             $idPengguna = decryptor($request->idPengguna);
             $idTld = $request->has('idTld') ? decryptor($request->idTld) : null;
 
-            $createTld = Permohonan_tld::create(array(
+            Permohonan_tld::create(array(
                 'id_permohonan' => $idPermohonan,
                 'id_pengguna' => $idPengguna,
                 'id_tld' => $idTld,
                 'count' => 1,
+                'created_by' => Auth::user()->id
+            ));
+
+            // simpan ke tabel permohonan_pengguna
+            Permohonan_pengguna::create(array(
+                'id_permohonan' => $idPermohonan,
+                'id_pengguna' => $idPengguna,
+                'status' => 1,
                 'created_by' => Auth::user()->id
             ));
 
@@ -403,17 +411,20 @@ class PermohonanAPI extends Controller
 
     }
 
-    public function destroyPengguna(string $idPengguna)
+    public function destroyPengguna(string $idPengguna, string $idPermohonan)
     {
         $id = decryptor($idPengguna);
+        $idPermohonan = decryptor($idPermohonan);
 
         DB::beginTransaction();
         try {
             Master_pengguna::where('id_pengguna', $id)->update(['status' => 1]);
 
-            $dataTld = Permohonan_tld::where('id_pengguna', $id)->first();
+            $dataTld = Permohonan_tld::where('id_pengguna', $id)->where('id_permohonan', $idPermohonan)->first();
             $dataTld->id_tld && Master_tld::whereIn('id_tld', $dataTld->id_tld)->update(['status' => 0]);
             $dataTld->delete();
+
+            Permohonan_pengguna::where('id_pengguna', $id)->where('id_permohonan', $idPermohonan)->delete();
 
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil dihapus'));
@@ -843,9 +854,10 @@ class PermohonanAPI extends Controller
                 'kontrak.jenis_layanan',
                 'kontrak.layanan_jasa:id_layanan,nama_layanan',
                 'kontrak.jenisTld:id_jenisTld,name',
-                'pengguna',
-                'pengguna.media',
-                'pengguna.tld_pengguna',
+                'permohonan_pengguna',
+                'permohonan_pengguna.pengguna',
+                'permohonan_pengguna.pengguna.media_ktp:id,file_hash,file_path',
+                'permohonan_pengguna.pengguna.divisi',
                 'tandaterima',
                 'dokumen',
                 'invoice'
@@ -855,29 +867,6 @@ class PermohonanAPI extends Controller
             if(isset($query->list_tld) && count($query->list_tld) > 0){
                 $tldKontrol = Master_tld::whereIn('id_tld', $query->list_tld)->get();
                 $query->tld_kontrol = $tldKontrol;
-            }
-
-            foreach ($query->pengguna as $item) {
-                $id_radiasi_array = $item->id_radiasi; // Decode JSON jadi array
-
-                // Cek apakah ada array yang valid dari JSON
-                if (!empty($id_radiasi_array)) {
-                    // Ambil data dari tabel radiasi berdasarkan array 'id_radiasi'
-                    $arrDataRadiasi = array();
-                    foreach ($id_radiasi_array as $key => $value) {
-                        $nama_radiasi = "";
-                        $radiasi_data = Master_radiasi::select('nama_radiasi')->where('id_radiasi', $value)->first();
-                        if($radiasi_data){
-                            $nama_radiasi = $radiasi_data->nama_radiasi;
-                        }else{
-                            $nama_radiasi = $value;
-                        }
-                        array_push($arrDataRadiasi, $nama_radiasi);
-                    }
-
-                    // Tambahkan hasil radiasi ke dalam response
-                    $item->radiasi = $arrDataRadiasi;
-                }
             }
 
             return $this->output($query);
