@@ -232,6 +232,7 @@ $(function () {
                 formData.append('totalHarga', valtotalHarga);
                 formData.append('haveTld', haveTld ? 1 : 0);
                 formData.append('is_zerocek', useZeroCek ? 1 : 0);
+                formData.append('note', '');
 
                 if(haveTld && useZeroCek) {
                     formData.append('periode', 1);

@@ -83,6 +83,7 @@ class PermohonanAPI extends Controller
             $alamat = $request->alamat ? decryptor($request->alamat) : false;
             $tldPengguna = $request->tldPengguna ? json_decode($request->tldPengguna) : false;
             $listTld = $request->listTld ? json_decode($request->listTld) : false;
+            $note = $request->has('note') ? $request->note : false;
 
             $haveTld = $request->has('haveTld') ? $request->haveTld : 0;
             $isUseZeroCek = $request->has('is_zerocek') ? $request->is_zerocek : 1;
@@ -121,6 +122,7 @@ class PermohonanAPI extends Controller
             $pic && $data['pic'] = $pic;
             $noHp && $data['no_hp'] = $noHp;
             $alamat && $data['id_alamat'] = $alamat;
+            $note != false && $data['note'] = $note;
 
             $data['is_zerocek'] = $isUseZeroCek;
             $data['is_have_tld'] = $haveTld;
@@ -860,7 +862,9 @@ class PermohonanAPI extends Controller
                 'permohonan_pengguna.pengguna.divisi',
                 'tandaterima',
                 'dokumen',
-                'invoice'
+                'invoice',
+                'rincian_list_tld',
+                'rincian_list_tld.pengguna',
             )->where('id_permohonan', $id)->first();
             DB::commit();
 

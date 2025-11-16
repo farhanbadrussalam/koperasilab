@@ -629,7 +629,7 @@ class Detail {
                                 <span class="col-form-label me-2">${i + 1}</span>
                                 <div class="mx-2">
                                     <div>${pengguna.name}</div>
-                                    <small class="text-body-secondary fw-light">${item.divisi?.name ?? '-'}</small>
+                                    <small class="text-body-secondary fw-light">${pengguna.divisi?.name ?? '-'}</small>
                                     <div class="d-flex flex-wrap">
                                         ${txtRadiasi}
                                     </div>
@@ -887,9 +887,9 @@ class Detail {
         let listTld = [];
         let tldKontrol = false;
         let tldPengguna = false;
-
         switch (this.options.jenis) {
             case 'permohonan':
+                listTld = this.data.rincian_list_tld ?? [];
             case 'kontrak':
                 // tldKontrol = this.data.tld_kontrol ?? false;
                 // tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
@@ -903,22 +903,58 @@ class Detail {
         }
 
         if (listTld.length > 0) {
-            return `
-                <ul class="list-group list-group-flush">
-                    ${listTld.map((data, i) =>
-                        `<li class="list-group-item d-flex justify-content-between">
-                            <div>
-                                <span>${i + 1}. </span>
-                                <span>${data.pengguna?.nama ?? 'TLD Kontrol'}</span>
-                            </div>
-                            <span>${data.tld.kode_lencana}</span>
-                        </li>`
-                    ).join('')}
-                </ul>
-            `;
-        }
+            let htmlPengguna = '';
+            let htmlKontrol = '';
 
-        return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada TLD</p>';
+            let arrPengguna = listTld.filter(d => d.pengguna);
+            let arrKontrol = listTld.filter(d => !d.pengguna);
+
+            let i = 1;
+            for (const kontrol of arrKontrol) {
+                if(kontrol.tld){
+                    for (const tld of kontrol.tld) {
+                        htmlKontrol += `
+                            <li class="list-group-item d-flex justify-content-between">
+                                <div>
+                                    <span>${i}. </span>
+                                    <span>${'TLD Kontrol'}</span>
+                                </div>
+                                <span>${tld.no_seri_tld}</span>
+                            </li>
+                        `;
+                        i++;
+                    }
+                }
+            }
+
+            for (const pengguna of arrPengguna) {
+                if(pengguna.tld){
+                    for (const tld of pengguna.tld) {
+                        htmlPengguna += `
+                            <li class="list-group-item d-flex justify-content-between">
+                                <div>
+                                    <span>${i}. </span>
+                                    <span>${pengguna.pengguna.name}</span>
+                                </div>
+                                <span>${tld.no_seri_tld}</span>
+                            </li>
+                        `;
+                        i++;
+                    }
+                }
+            }
+
+            if(htmlKontrol == '' && htmlPengguna == '') {
+                return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada TLD</p>';
+            } else {
+                return `
+                    <ul class="list-group list-group-flush">
+                        ${htmlKontrol}
+                        ${htmlPengguna}
+                    </ul>
+                `;
+            }
+        }
     }
     modalCreate() {
         return `

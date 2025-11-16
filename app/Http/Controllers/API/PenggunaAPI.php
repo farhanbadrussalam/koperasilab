@@ -49,6 +49,10 @@ class PenggunaAPI extends Controller
             if ($radiasi) {
                 $radiasi = array_map(function($value) {
                     if(decryptor($value) == 0) {
+                        if($value == null){
+                            return false;
+                        }
+
                         $dataRadiasi = Master_radiasi::create([
                             'nama_radiasi' => $value,
                             'status' => 1,
@@ -83,12 +87,13 @@ class PenggunaAPI extends Controller
                 $file_ktp = $this->media->upload($ktp, 'pengguna');
 
                 if($id){
+                    info("hapus media lama ". $id);
                     $idMedia = Master_pengguna::select('ktp')->where('id_pengguna', $id)->first();
                     $this->media->destroy($idMedia->ktp);
                 }
             }
 
-
+            info("prepare simpan pengguna");
             $params = array();
 
             $name && $params['name'] = $name;

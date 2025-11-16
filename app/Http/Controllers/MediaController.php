@@ -86,9 +86,10 @@ class MediaController extends Controller
     }
 
     public function destroy($id_media){
-        $media = Master_media::findOrFail($id_media);
+        $media = Master_media::find($id_media);
 
         if($media){
+            info("menghapus media id: ".$id_media);
             $path = 'public/'.$media->file_path.'/'.$media->file_hash;
 
             if(Storage::exists($path)){
@@ -97,6 +98,7 @@ class MediaController extends Controller
 
             $media->delete();
         }
+        info("media id: ".$id_media." tidak ditemukan");
     }
 
     private function filename($name, $extension){
