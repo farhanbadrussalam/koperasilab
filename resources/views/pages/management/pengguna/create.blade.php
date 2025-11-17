@@ -237,7 +237,7 @@
             formData.append('tempat_lahir', tempatLahir);
             formData.append('ktp', imageKtp[0].file);
             formData.append('name', namaPengguna);
-            formData.append('divisi', divisiPengguna);
+            divisiPengguna != 'null' ?? formData.append('divisi', divisiPengguna);
             formData.append('radiasi', JSON.stringify(jenisRadiasi));
 
             if(selectData){
