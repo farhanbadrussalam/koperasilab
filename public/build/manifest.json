@@ -15,12 +15,12 @@
     "css": [
       "assets/app-84535efd.css"
     ],
-    "file": "assets/app-17972ded.js",
+    "file": "assets/app-e15fa531.js",
     "isEntry": true,
     "src": "resources/js/app.js"
   },
   "resources/sass/app.scss": {
-    "file": "assets/app-1984a8be.css",
+    "file": "assets/app-fde030fa.css",
     "isEntry": true,
     "src": "resources/sass/app.scss"
   }
