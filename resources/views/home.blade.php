@@ -6,60 +6,63 @@
         <div class="col-lg-8">
             <div class="row g-2 mb-3">
                 @canany(['Permohonan/pengajuan', 'Staff/permohonan', 'Manager/pengajuan'])
-                <x-dashboard.summary-cards
-                    icon="bi-journal-text"
-                    text="Permohonan"
-                    type="list"
-                    :count="[
-                        array('text' => 'Baru', 'icon' => 'bi-file-earmark-plus', 'count' => 0, 'color' => 'text-primary'),
-                        array('text' => 'Verifikasi', 'icon' => 'bi-shield-check', 'count' => 0, 'color' => 'text-warning-emphasis'),
-                        array('text' => 'Ditolak', 'icon' => 'bi-x-circle', 'count' => 5, 'color' => 'text-danger'),
-                    ]"
-                    color="text-info" />
+                <div id="widget-summary"
+                    class="ajax-widget col-6"
+                    data-url="dashboard/widgets/summary-cards"
+                    data-jenis="permohonan">
+
+                    <x-dashboard.skeleton.summary-skeleton />
+                </div>
                 @endcan
 
                 @canany(['Staff/keuangan','Permohonan/pengajuan'])
-                <x-dashboard.summary-cards
-                    icon="bi-wallet2"
-                    text="Pembayaran"
-                    type="list"
-                    :count="[
-                        array('text' => 'Belum Lunas', 'icon' => 'bi-exclamation-circle', 'count' => 0 , 'color' => 'text-warning-emphasis'),
-                        array('text' => 'Lunas', 'icon' => 'bi-check-circle-fill', 'count' => 15, 'color' => 'text-success'),
-                        array('text' => 'Ditolak', 'icon' => 'bi-dash-circle', 'count' => 5, 'color' => 'text-danger'),
-                    ]"
-                    color="text-warning-emphasis" />
+                <div id="widget-summary"
+                    class="ajax-widget col-6"
+                    data-url="dashboard/widgets/summary-cards"
+                    data-jenis="pembayaran">
+
+                    <x-dashboard.skeleton.summary-skeleton />
+                </div>
                 @endcan
 
                 @canany(['Kontrak'])
-                <x-dashboard.summary-cards icon="bi-clock-history" text="Kontrak Berjalan" count="0" color="text-primary" />
-                <x-dashboard.summary-cards icon="bi-check2-circle" text="Kontrak Selesai" count="0" color="text-success" />
+                <div id="widget-summary"
+                    class="ajax-widget col-6"
+                    data-url="dashboard/widgets/summary-cards"
+                    data-jenis="kontrak">
+
+                    <x-dashboard.skeleton.summary-skeleton />
+                </div>
+                @endcan
+
+                @canany(['Tld'])
+                <div id="widget-summary"
+                    class="ajax-widget col-6"
+                    data-url="dashboard/widgets/summary-cards"
+                    data-jenis="tld">
+
+                    <x-dashboard.skeleton.summary-skeleton />
+                </div>
                 @endcan
 
                 @canany(['Staff/penyelia'])
-                <x-dashboard.summary-cards
-                    icon="bi-people-fill"
-                    text="Penyelia"
-                    type="list"
-                    :count="[
-                        array('text' => 'Baru', 'icon' => 'bi-person-plus-fill', 'count' => 0, 'color' => 'text-primary'),
-                        array('text' => 'TTD', 'icon' => 'bi-pencil-square', 'count' => 0, 'color' => 'text-warning-emphasis'),
-                        array('text' => 'Proses Lab', 'icon' => 'bi-hourglass-split', 'count' => 0, 'color' => 'text-info'),
-                        array('text' => 'Selesai', 'icon' => 'bi-check-circle-fill', 'count' => 0, 'color' => 'text-success'),
-                    ]"
-                    color="text-secondary" />
+                <div id="widget-summary"
+                    class="ajax-widget col-6"
+                    data-url="dashboard/widgets/summary-cards"
+                    data-jenis="penyelia">
+
+                    <x-dashboard.skeleton.summary-skeleton />
+                </div>
                 @endcan
 
                 @canany(['Staff/lhu/petugas'])
-                <x-dashboard.summary-cards
-                    icon="bi-flask"
-                    text="Petugas Lab"
-                    type="list"
-                    :count="[
-                        array('text' => 'Tersedia', 'icon' => 'bi-check-circle-fill', 'count' => 0, 'color' => 'text-success'),
-                        array('text' => 'Bertugas', 'icon' => 'bi-hourglass-split', 'count' => 0, 'color' => 'text-info'),
-                    ]"
-                    color="text-secondary" />
+                <div id="widget-summary"
+                    class="ajax-widget col-6"
+                    data-url="dashboard/widgets/summary-cards"
+                    data-jenis="petugaslab">
+
+                    <x-dashboard.skeleton.summary-skeleton />
+                </div>
                 @endcan
             </div>
             @canany(['Permohonan/pengajuan', 'Staff/permohonan', 'Manager/pengajuan'])
@@ -258,7 +261,7 @@
                     )
                 ]" />
                 @endcan
-                <x-dashboard.monitor-petugas :stafflist="[
+                {{-- <x-dashboard.monitor-petugas :stafflist="[
                     array(
                         'name' => 'Budi Santoso',
                         'active_jobs_count' => 0, // Kosong
@@ -283,9 +286,9 @@
                         'workload_class' => 'text-warning-emphasis',
                         'status_text' => '● Sibuk'
                     ),
-                ]" />
+                ]" /> --}}
 
-                <x-dashboard.monitor-activities :activities="[
+                {{-- <x-dashboard.monitor-activities :activities="[
                     array(
                         'type' => 'approve',
                         'message' => 'Manager menyetujui Surat Tugas #045/LHU',
@@ -301,9 +304,41 @@
                         'message' => 'Surat Tugas #043/LHU telah dikirim ke klien',
                         'time_ago' => '1 jam yang lalu'
                     ),
-                ]" />
+                ]" /> --}}
             </div>
         </div>
 @endsection
 @push('scripts')
+<script>
+    $(document).ready(function() {
+        loadAllWidgets();
+    });
+
+    function loadAllWidgets() {
+        const widgets = document.querySelectorAll('.ajax-widget');
+
+        widgets.forEach(widget => {
+            const url = widget.getAttribute('data-url');
+            const jenis = widget.getAttribute('data-jenis');
+
+            ajaxGet(url, {jenis: jenis}, result => {
+                widget.style.opacity = 0;
+                widget.innerHTML = result.html;
+
+                setTimeout(() => {
+                    widget.style.transition = 'opacity 0.5s ease';
+                    widget.style.opacity = 1;
+                }, 50);
+            }, error => {
+                console.error('Widget Error:', error);
+                // Tampilkan pesan error user friendly
+                widget.innerHTML = `
+                    <div class="alert alert-warning text-center small">
+                        Gagal memuat data. <button class="btn btn-link btn-sm p-0" onclick="location.reload()">Refresh</button>
+                    </div>
+                `;
+            });
+        })
+    }
+</script>
 @endpush

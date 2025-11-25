@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\DashboardWidgetController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
@@ -156,6 +157,12 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::prefix('settings')->group(function () {
         Route::controller(SettingsController::class)->group(function () {
             Route::post('notifications/realtime', 'toggleRealtime')->name('settings.realtime.toggle');
+        });
+    });
+
+    Route::prefix('dashboard/widgets')->name('widgets.')->group(function () {
+        Route::controller(DashboardWidgetController::class)->group(function () {
+            Route::get('/summary-cards', 'summaryCards')->name('summary-cards');
         });
     });
 });
