@@ -48,4 +48,8 @@ class Master_jenistld extends Model
         return $this->id_jenisTld ? encryptor($this->id_jenisTld) : null;
     }
 
+    public function kontrak(){
+        return $this->hasMany(Kontrak::class, 'jenis_tld', 'id_jenisTld');
+    }
+
 }

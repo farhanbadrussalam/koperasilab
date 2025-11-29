@@ -92,7 +92,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::prefix('manager')->group(function () {
         Route::controller(ManagerPengajuanController::class)->group(function () {
-            Route::get('/pengajuan', 'index')->middleware(['permission:Manager/Keuangan'])->name('manager.pengajuan');
+            Route::get('/pengajuan', 'index')->middleware(['permission:Manager/keuangan'])->name('manager.pengajuan');
             Route::get('/surat_tugas', 'indexSuratTugas')->middleware(['permission:Manager/pengajuan'])->name('manager.surat_tugas');
         });
         Route::controller(StaffController::class)->group(function() {
@@ -163,6 +163,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::prefix('dashboard/widgets')->name('widgets.')->group(function () {
         Route::controller(DashboardWidgetController::class)->group(function () {
             Route::get('/summary-cards', 'summaryCards')->name('summary-cards');
+            Route::get('/statistics-layanan', 'statisticsLayanan')->name('statistics-layanan');
+            Route::get('/delivery-stats', 'deliveryStats')->name('delivery-stats');
         });
     });
 });

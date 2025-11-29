@@ -7,6 +7,7 @@ import 'bootstrap';
 
 import axios from 'axios';
 import toastr from "toastr";
+import ApexCharts from 'apexcharts'
 
 import "toastr/build/toastr.min.css";
 
@@ -70,3 +71,5 @@ toastr.options = {
 };
 
 window.toastr = toastr;
+
+window.ApexCharts = ApexCharts;

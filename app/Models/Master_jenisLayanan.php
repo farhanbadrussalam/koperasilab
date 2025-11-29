@@ -83,4 +83,9 @@ class Master_jenisLayanan extends Model
     {
         return $this->hasMany(Master_jenisLayanan::class, 'parent', 'id_jenisLayanan');
     }
+
+    public function kontrak()
+    {
+        return $this->hasMany(Kontrak::class, 'jenis_layanan_1', 'id_jenisLayanan');
+    }
 }

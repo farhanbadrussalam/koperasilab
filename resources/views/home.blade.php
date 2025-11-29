@@ -1,12 +1,15 @@
 @extends('layouts.main')
 
 @section('content')
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Selamat Datang, {{ auth()->user()->name }}</h1>
+    </div>
 
     <div class="row">
         <div class="col-lg-8">
             <div class="row g-2 mb-3">
                 @canany(['Permohonan/pengajuan', 'Staff/permohonan', 'Manager/pengajuan'])
-                <div id="widget-summary"
+                <div id="widget-summary-permohonan"
                     class="ajax-widget col-6"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="permohonan">
@@ -16,7 +19,7 @@
                 @endcan
 
                 @canany(['Staff/keuangan','Permohonan/pengajuan'])
-                <div id="widget-summary"
+                <div id="widget-summary-pembayaran"
                     class="ajax-widget col-6"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="pembayaran">
@@ -26,7 +29,7 @@
                 @endcan
 
                 @canany(['Kontrak'])
-                <div id="widget-summary"
+                <div id="widget-summary-kontrak"
                     class="ajax-widget col-6"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="kontrak">
@@ -36,7 +39,7 @@
                 @endcan
 
                 @canany(['Tld'])
-                <div id="widget-summary"
+                <div id="widget-summary-tld"
                     class="ajax-widget col-6"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="tld">
@@ -46,7 +49,7 @@
                 @endcan
 
                 @canany(['Staff/penyelia'])
-                <div id="widget-summary"
+                <div id="widget-summary-penyelia"
                     class="ajax-widget col-6"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="penyelia">
@@ -56,7 +59,7 @@
                 @endcan
 
                 @canany(['Staff/lhu/petugas'])
-                <div id="widget-summary"
+                <div id="widget-summary-petugaslab"
                     class="ajax-widget col-6"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="petugaslab">
@@ -66,7 +69,7 @@
                 @endcan
             </div>
             @canany(['Permohonan/pengajuan', 'Staff/permohonan', 'Manager/pengajuan'])
-            <x-dashboard.pending-request :requests="[
+            {{-- <x-dashboard.pending-request :requests="[
                 array(
                     'id' => 1,
                     'no_tiket' => '#REQ-2025-001',
@@ -95,10 +98,17 @@
                     'tanggal_pengajuan' => '2025-11-10',
                     'status' => 'pending_admin' // Status Menunggu
                 )
-            ]" />
+            ]" /> --}}
+            <div id="widget-statistics"
+                class="ajax-widget"
+                data-url="dashboard/widgets/statistics-layanan"
+                data-jenis="statisticsLayanan">
+
+                <x-dashboard.skeleton.service-chart-skeleton />
+            </div>
             @endcan
             @canany(['Kontrak'])
-                <x-dashboard.active-contracts :contracts="[
+                {{-- <x-dashboard.active-contracts :contracts="[
                     array(
                         'id' => 1,
                         'nomor_kontrak' => 'C00123',
@@ -147,10 +157,10 @@
                         'status_bayar' => 'paid', // Tidak muncul tombol bayar & badge hijau
                         'status_lab' => 'Dalam Proses Lab'
                     )
-                ]" />
+                ]" /> --}}
             @endcan
 
-            <x-dashboard.my-jobs :jobs="[
+            {{-- <x-dashboard.my-jobs :jobs="[
                 array(
                     'id' => 101,
                     'nomor_surat' => '001/LHU-KOP/XI/2025',
@@ -187,7 +197,7 @@
                     'has_pending_parallel' => false,
                     'status' => 'active'
                 ),
-            ]" />
+            ]" /> --}}
 
             @canany(['Staff/penyelia'])
             <x-dashboard.penyelia-table :tasks="[
@@ -234,7 +244,13 @@
             <div class="sticky-sidebar">
                 <x-dashboard.time-cards />
                 @canany(['Permohonan/pengajuan', 'Staff/pengiriman'])
-                <x-dashboard.tracking :shipments="[
+                <div id="widget-delivery-stats"
+                    class="ajax-widget"
+                    data-url="dashboard/widgets/delivery-stats"
+                >
+                    <x-dashboard.skeleton.delivery-stats-skeleton />
+                </div>
+                {{-- <x-dashboard.tracking :shipments="[
                     array(
                         'id' => 1,
                         'nomor_kontrak' => '#001',
@@ -259,7 +275,7 @@
                         'periode' => 3,
                         'status' => 'shipping'
                     )
-                ]" />
+                ]" /> --}}
                 @endcan
                 {{-- <x-dashboard.monitor-petugas :stafflist="[
                     array(
@@ -318,27 +334,47 @@
         const widgets = document.querySelectorAll('.ajax-widget');
 
         widgets.forEach(widget => {
-            const url = widget.getAttribute('data-url');
-            const jenis = widget.getAttribute('data-jenis');
+            load(widget);
+        });
+    }
 
-            ajaxGet(url, {jenis: jenis}, result => {
-                widget.style.opacity = 0;
-                widget.innerHTML = result.html;
+    function load(widget) {
+        const url = widget.getAttribute('data-url');
+        const jenis = widget.getAttribute('data-jenis');
+        let params = {};
+        jenis && (params.jenis = jenis);
 
-                setTimeout(() => {
-                    widget.style.transition = 'opacity 0.5s ease';
-                    widget.style.opacity = 1;
-                }, 50);
-            }, error => {
-                console.error('Widget Error:', error);
-                // Tampilkan pesan error user friendly
-                widget.innerHTML = `
-                    <div class="alert alert-warning text-center small">
-                        Gagal memuat data. <button class="btn btn-link btn-sm p-0" onclick="location.reload()">Refresh</button>
+        ajaxGet(url, params, result => {
+            widget.style.opacity = 0;
+            widget.innerHTML = result.html;
+
+            executeScripts(widget);
+
+            setTimeout(() => {
+                widget.style.transition = 'opacity 0.5s ease';
+                widget.style.opacity = 1;
+            }, 50);
+        }, error => {
+            // Tampilkan pesan error user friendly
+            widget.innerHTML = `
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center text-muted">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+
+                        <p class="small mb-2">Gagal memuat data</p>
+
+                        <button onclick="refreshData('${widget.id}')" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                            <i class="fas fa-sync-alt me-1"></i> Refresh
+                        </button>
                     </div>
-                `;
-            });
-        })
+                </div>
+            `;
+        },{onErrorPopup: false});
+    }
+
+    function refreshData(idELement){
+        const widget = document.getElementById(idELement);
+        load(widget);
     }
 </script>
 @endpush

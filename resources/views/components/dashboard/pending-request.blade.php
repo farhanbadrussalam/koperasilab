@@ -5,7 +5,7 @@
         <h6 class="m-0 font-weight-bold">
             <i class="bi bi-file-earmark-plus me-2 text-primary"></i>Pengajuan Baru
         </h6>
-        <a href="#" class="btn btn-sm btn-primary shadow-sm rounded-pill px-3">
+        <a href="{{ url('/permohonan/pengajuan/tambah') }}" class="btn btn-sm btn-primary shadow-sm rounded-pill px-3" >
             <i class="bi bi-plus-lg me-1"></i> Buat Baru
         </a>
     </div>
@@ -26,18 +26,23 @@
                     <div class="row align-items-center">
 
                         <div class="col-md-7 mb-2 mb-md-0">
-                            <div class="d-flex align-items-center mb-1">
-                                <span class="badge bg-secondary bg-opacity-10 text-secondary me-2">
+                            <div class="d-flex align-items-center mb-1 gap-2">
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">
                                     {{ $item['no_tiket'] }}
                                 </span>
+                                <span class="vr"></span>
+                                <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">kontrak baru</span>
+                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">Kontrak - Sewa</span>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1" style="font-size: 1.1rem;">
+                                Perorangan (BARC) - Layanan TLD
+                            </h6>
+                            <div>
                                 <small class="text-muted">
                                     <i class="bi bi-calendar3 me-1"></i>
                                     {{ convert_date($item['tanggal_pengajuan'], 2) }}
                                 </small>
                             </div>
-                            <h6 class="fw-bold text-dark mb-1" style="font-size: 1.1rem;">
-                                {{ $item['jenis_layanan'] }}
-                            </h6>
                             @if($isRevisi)
                                 <small class="text-danger fst-italic">
                                     <i class="bi bi-info-circle me-1"></i>Admin: "Mohon upload ulang KTP..."
@@ -48,8 +53,8 @@
                         <div class="col-md-5 text-md-end text-start">
                             <div class="d-flex flex-column align-items-md-end align-items-start justify-content-center h-100">
 
-                                <span class="badge {{ $bgBadge }} mb-2 px-3 py-2 rounded-pill">
-                                    <i class="bi {{ $iconStatus }} me-1"></i> {{ $textStatus }}
+                                <span class="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill">
+                                    Zero cek
                                 </span>
 
                                 <div>
@@ -78,7 +83,7 @@
                 </div>
                 <h6 class="text-muted fw-bold">Belum ada pengajuan</h6>
                 <p class="text-muted small mb-3">Ajukan layanan baru sekarang untuk memulai.</p>
-                <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                <a href="{{ url('/permohonan/pengajuan/tambah') }}" class="btn btn-outline-primary btn-sm rounded-pill px-4">
                     Buat Pengajuan
                 </a>
             </div>

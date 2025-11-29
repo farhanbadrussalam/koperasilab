@@ -6,9 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Kontrak;
+use App\Models\Master_jenisLayanan;
+use App\Models\Master_jenistld;
 use App\Models\Master_tld;
 use App\Models\Penyelia;
-
+use App\Models\Master_layanan_jasa;
+use App\Models\Pengiriman;
 use Auth;
 
 class DashboardWidgetController extends Controller
@@ -182,6 +185,125 @@ class DashboardWidgetController extends Controller
 
         return response()->json([
             'html' => $html
+        ]);
+    }
+
+    public function statisticsLayanan(Request $request){
+        $user = Auth::user();
+        $layanan = Master_layanan_jasa::where('status', 1)->get();
+        $layananNow = null;
+
+        if ($request->has('jenis_layanan')) {
+            $idLayanan = decryptor($request->jenis_layanan);
+            // Find the requested service from the collection we already fetched.
+            $layananNow = $layanan->firstWhere('id_layanan', $idLayanan);
+        }
+
+        // If no service was requested or the requested one wasn't found, default to the first active service.
+        if (!$layananNow) {
+            $layananNow = $layanan->first();
+        }
+
+        $category = [];
+        $value = [];
+
+        if($layananNow->nama_layanan === 'TLD'){
+            $statistik = Master_jenistld::withCount(['kontrak' => function ($query) use ($user, $layananNow) {
+                $query->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                    $q->where('id_pelanggan', $user->id);
+                })
+                ->where('id_layanan', $layananNow->id_layanan);
+            }])->get()
+            ->pluck('kontrak_count', 'name');
+
+            $category = $statistik->keys();
+            $value = $statistik->values();
+        }
+
+        $chart_1 = array(
+            "category" => $category,
+            "value" => $value
+        );
+
+        // Chart 2
+        $statistik_2 = Master_jenisLayanan::whereNull('parent')
+            ->where('status', 1)
+            ->withCount(['kontrak' => function ($query) use ($user) {
+                $query->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                    $q->where('id_pelanggan', $user->id);
+                });
+            }])->get()
+            ->pluck('kontrak_count', 'name');
+
+        $chart_2 = array(
+            "category" => $statistik_2->keys(),
+            "value" => $statistik_2->values()
+        );
+
+        // count layanan
+        return response()->json([
+            'html' => view('components.dashboard.service-chart', [
+                'data_chart_1' => $chart_1,
+                'data_chart_2' => $chart_2,
+                'data_layanan' => $layanan
+            ])->render()
+        ]);
+    }
+
+    public function deliveryStats(Request $request){
+        $user = Auth::user();
+
+        $count = Pengiriman::query()
+            ->with('permohonan')
+            ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                $q->whereHas('permohonan', function ($q) use ($user) {
+                    $q->where('created_by', $user->id);
+                });
+            })
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $ops = $count->get(3) ?? 0;
+        $shipping = $count->get(1) ?? 0;
+        $arrived = $count->get(2) ?? 0;
+
+        $statistics = [];
+        $url = route('permohonan.pengiriman');
+
+        if(!$user->hasRole('Pelanggan')) {
+            $statistics[] = array(
+                "status" => "ops",
+                "count" => $ops,
+                "name" => "On Proses",
+                "color" => "primary",
+                "icon" => "bi-arrow-repeat"
+            );
+
+            $url = route('staff.pengiriman');
+        }
+
+        $statistics[] = array(
+            "status" => "shipping",
+            "count" => $shipping,
+            "name" => "Sedang Jalan",
+            "color" => "info",
+            "icon" => "bi-truck",
+        );
+
+        $statistics[] = array(
+            "status" => "arrived",
+            "count" => $arrived,
+            "name" => "Sampai Tujuan",
+            "color" => "success",
+            "icon" => "bi-check-circle",
+        );
+
+        return response()->json([
+            'html' => view('components.dashboard.delivery-stats', [
+                'dataStatistics' => $statistics,
+                'url' => $url
+            ])->render()
         ]);
     }
 }
