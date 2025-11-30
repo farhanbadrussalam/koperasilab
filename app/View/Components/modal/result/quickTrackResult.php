@@ -1,20 +1,20 @@
 <?php
 
-namespace App\View\Components\dashboard;
+namespace App\View\Components\modal\result;
 
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class timeCards extends Component
+class quickTrackResult extends Component
 {
     /**
      * Create a new component instance.
      */
-    public $timenow;
-    public function __construct()
+    public $data;
+    public function __construct($data)
     {
-        $this->timenow = convert_date(date('d-m-Y'), 4);
+        $this->data = $data;
     }
 
     /**
@@ -22,6 +22,6 @@ class timeCards extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.dashboard.time-cards');
+        return view('components.modal.result.quick-track-result');
     }
 }

@@ -122,6 +122,10 @@ class Pengiriman extends Model
         return $this->belongsTo(Master_alamat::class, 'alamat', 'id_alamat');
     }
 
+    public function alamat_pengiriman(){
+        return $this->belongsTo(Master_alamat::class, 'alamat', 'id_alamat');
+    }
+
     public function kontrak(){
         return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }
@@ -131,6 +135,10 @@ class Pengiriman extends Model
     }
 
     public function tujuan(){
+        return $this->belongsTo(User::class, 'tujuan', 'id');
+    }
+
+    public function tujuan_pengiriman(){
         return $this->belongsTo(User::class, 'tujuan', 'id');
     }
 }

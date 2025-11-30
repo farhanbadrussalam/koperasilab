@@ -6,15 +6,14 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class timeCards extends Component
+class deliveryStats extends Component
 {
     /**
      * Create a new component instance.
      */
-    public $timenow;
     public function __construct()
     {
-        $this->timenow = convert_date(date('d-m-Y'), 4);
+        //
     }
 
     /**
@@ -22,6 +21,6 @@ class timeCards extends Component
      */
     public function render(): View|Closure|string
     {
-        return view('components.dashboard.time-cards');
+        return view('components.dashboard.delivery-stats');
     }
 }

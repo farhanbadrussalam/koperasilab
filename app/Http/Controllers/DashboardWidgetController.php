@@ -306,4 +306,68 @@ class DashboardWidgetController extends Controller
             ])->render()
         ]);
     }
+
+    public function trackSearch(Request $request){
+        $keyword = $request->keyword;
+        $user = Auth::user();
+
+        // 1. Cari Data
+        $pengiriman = Pengiriman::with(
+            'detail',
+            'tujuan_pengiriman:id,name',
+            'alamat_pengiriman:id_alamat,alamat',
+            'ekspedisi',
+            'kontrak:id_kontrak,no_kontrak',
+            'permohonan'
+        )
+        ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+            $q->whereHas('permohonan', function ($q) use ($user) {
+                $q->where('created_by', $user->id);
+            });
+        })->where('no_resi', $keyword)->first();
+
+        if($pengiriman) {
+            $data = (object) array(
+                'nomor_resi' => $pengiriman->no_resi,
+                'kurir' => $pengiriman->ekspedisi->name,
+                'send_at' => $pengiriman->send_at,
+                'status' => $pengiriman->status,
+                'nama_penerima' => $pengiriman->tujuan_pengiriman->name,
+                'alamat_tujuan' => $pengiriman->alamat_pengiriman->alamat,
+                'isi_paket' => $pengiriman->detail->pluck('jenis')->implode(', '),
+                'nomor_kontrak' => $pengiriman->kontrak->no_kontrak,
+                'histories' => []
+            );
+        } else {
+            $data = null;
+        }
+
+        // Simulasi Data Dummy Ditemukan
+        // if ($keyword == 'JP888' || str_contains(strtolower($keyword), 's-001')) {
+        //     $data = (object) [
+        //         'nomor_resi' => 'JP-88219322',
+        //         'kurir' => 'Kurir Internal',
+        //         'estimasi_sampai' => '23 Nov 2025',
+        //         'status' => 'shipping',
+        //         'nama_penerima' => 'Bpk. Hartono (Security)',
+        //         'alamat_tujuan' => 'PT. Nusa Lestari, Gedung A Lt. 1',
+        //         'isi_paket' => 'Dokumen LHU & Invoice',
+        //         'nomor_kontrak' => '#S-001/JKRL/2025',
+        //         'histories' => [
+        //             (object)['status_text' => 'Sedang diantar ke alamat tujuan', 'created_at' => now(), 'lokasi' => 'Jakarta Selatan'],
+        //             (object)['status_text' => 'Paket keluar dari Hub Pusat', 'created_at' => now()->subHours(2), 'lokasi' => 'Gudang Cakung'],
+        //             (object)['status_text' => 'Paket dijemput oleh kurir', 'created_at' => now()->subHours(5), 'lokasi' => 'Kantor Koperasi LAB'],
+        //             (object)['status_text' => 'Paket diantar ke alamat tujuan', 'created_at' => now()->subHours(10), 'lokasi' => 'Jakarta Selatan'],
+        //             (object)['status_text' => 'Paket sampai tujuan', 'created_at' => now()->subHours(12), 'lokasi' => 'Jakarta Selatan'],
+        //         ]
+        //     ];
+        // } else {
+        //     $data = null; // Tidak ketemu
+        // }
+
+        // 2. Render View Modal Body
+        $html = view('components.modal.result.quick-track-result', compact('data'))->render();
+
+        return response()->json(['html' => $html]);
+    }
 }

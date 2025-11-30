@@ -165,6 +165,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/summary-cards', 'summaryCards')->name('summary-cards');
             Route::get('/statistics-layanan', 'statisticsLayanan')->name('statistics-layanan');
             Route::get('/delivery-stats', 'deliveryStats')->name('delivery-stats');
+
+            Route::get('/track-search', 'trackSearch')->name('track-search');
         });
     });
 });

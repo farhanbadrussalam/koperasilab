@@ -17,7 +17,7 @@
                 @foreach($count as $item)
                     <div class="d-flex flex-column mx-3 text-center" title="{{ $item['text'] }}">
                         <div class="d-flex align-items-center gap-2 justify-content-center">
-                            <i class="bi {{ $item['icon'] }} fs-4 {{ isset($item['color']) ? $item['color'] : 'text-muted' }}"></i>
+                            {{-- <i class="bi {{ $item['icon'] }} fs-4 {{ isset($item['color']) ? $item['color'] : 'text-muted' }}"></i> --}}
                             <div class="fs-4 text-sm {{ isset($item['color']) ? $item['color'] : 'text-muted' }}">
                                 {{ $item['count'] }}
                             </div>
