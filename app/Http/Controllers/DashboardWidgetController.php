@@ -12,6 +12,7 @@ use App\Models\Master_tld;
 use App\Models\Penyelia;
 use App\Models\Master_layanan_jasa;
 use App\Models\Pengiriman;
+use App\Models\Master_media;
 use Auth;
 
 class DashboardWidgetController extends Controller
@@ -327,6 +328,13 @@ class DashboardWidgetController extends Controller
         })->where('no_resi', $keyword)->first();
 
         if($pengiriman) {
+            // get media bukti pengiriman
+            $pengiriman->bukti_pengiriman && $pengiriman->media_pengiriman = Master_media::whereIn('id', $pengiriman->bukti_pengiriman)->get();
+
+            // get media bukti penerima
+            $pengiriman->bukti_penerima && $pengiriman->media_penerima = Master_media::whereIn('id', $pengiriman->bukti_penerima)->get();
+
+
             $data = (object) array(
                 'nomor_resi' => $pengiriman->no_resi,
                 'kurir' => $pengiriman->ekspedisi->name,
@@ -336,6 +344,8 @@ class DashboardWidgetController extends Controller
                 'alamat_tujuan' => $pengiriman->alamat_pengiriman->alamat,
                 'isi_paket' => $pengiriman->detail->pluck('jenis')->implode(', '),
                 'nomor_kontrak' => $pengiriman->kontrak->no_kontrak,
+                'bukti_pengiriman' => $pengiriman->media_pengiriman ?? [],
+                'bukti_penerima' => $pengiriman->media_penerima ?? [],
                 'histories' => []
             );
         } else {

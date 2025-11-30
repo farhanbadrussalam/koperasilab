@@ -48,6 +48,66 @@
         </div>
     </div>
 
+    <h6 class="fw-bold border-bottom pb-2 mb-3 mt-4">Dokumen Bukti</h6>
+    <div class="row mb-4">
+
+        @if($data->bukti_pengiriman)
+            <div class="col-md-6 mb-3 mb-md-0">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-2">
+                        <small class="text-muted d-block mb-2 ms-1">
+                            <i class="bi bi-box-seam me-1"></i>Bukti Pengiriman
+                            <span class="badge bg-secondary rounded-pill ms-1">{{ count($data->bukti_pengiriman) }} Foto</span>
+                        </small>
+                        <div class="swiper swiper-shipping rounded bg-light border" style="width: 100%; height: 200px;">
+                            <div class="swiper-wrapper">
+                                @foreach($data->bukti_pengiriman as $imgPengiriman)
+                                    <div class="swiper-slide">
+                                        <div class="swiper-zoom-container">
+                                            <img src="{{ asset('storage/' . $imgPengiriman->file_path . '/' . $imgPengiriman->file_hash) }}" class="object-fit-cover" alt="Bukti Kirim">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        @if(count($data->bukti_penerima) > 0)
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-2">
+                        <small class="text-success fw-bold d-block mb-2 ms-1">
+                            <i class="bi bi-person-check-fill me-1"></i>Bukti Penerima
+                            <span class="badge bg-secondary rounded-pill ms-1">{{ count($data->bukti_penerima) }} Foto</span>
+                        </small>
+
+                        <div class="swiper swiper-receiving rounded bg-light border" style="width: 100%; height: 200px;">
+                            <div class="swiper-wrapper">
+                                @foreach($data->bukti_penerima as $imgPenerimaan)
+                                    <div class="swiper-slide">
+                                        <div class="swiper-zoom-container">
+                                            <img src="{{ asset('storage/' . $imgPenerimaan->file_path . '/' . $imgPenerimaan->file_hash) }}" class="object-fit-cover" alt="Bukti Kirim">
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="swiper-button-next"></div>
+                            <div class="swiper-button-prev"></div>
+                            <div class="swiper-pagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+    </div>
+
     @if($data->histories && count($data->histories) > 0)
     <h6 class="fw-bold border-bottom pb-2 mb-3">Riwayat Perjalanan</h6>
 
@@ -90,3 +150,55 @@
         <p class="text-muted">Nomor resi yang Anda masukkan tidak terdaftar di sistem.</p>
     </div>
 @endif
+
+<script>
+    {
+        $(document).ready(function() {
+            const swiper_shipping = new Swiper('.swiper-shipping', {
+                effect: "coverflow",
+                grabCursor: true,
+                centeredSlides: true,
+                slidesPerView: "auto",
+                zoom: true,
+                coverflowEffect: {
+                    rotate: 50,
+                    stretch: 0,
+                    depth: 100,
+                    modifier: 1,
+                    slideShadows: true,
+                },
+                navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+                pagination: {
+                    el: ".swiper-pagination",
+                },
+                autoplay: {
+                    delay: 2500,
+                    disableOnInteraction: false,
+                },
+            });
+
+            const swiper_receiving = new Swiper('.swiper-receiving', {
+                effect: "coverflow",
+                grabCursor: true,
+                centeredSlides: true,
+                slidesPerView: "auto",
+                zoom: true,
+                coverflowEffect: {
+                    rotate: 50,
+                    stretch: 0,
+                    depth: 100,
+                    modifier: 1,
+                    slideShadows: true,
+                },
+                navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+                pagination: {
+                    el: ".swiper-pagination",
+                },
+                autoplay: {
+                    delay: 2500,
+                    disableOnInteraction: false,
+                },
+            });
+        });
+    }
+</script>

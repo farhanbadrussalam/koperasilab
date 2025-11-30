@@ -8,8 +8,10 @@ import 'bootstrap';
 import axios from 'axios';
 import toastr from "toastr";
 import ApexCharts from 'apexcharts'
+import Swiper from 'swiper/bundle';
 
 import "toastr/build/toastr.min.css";
+import 'swiper/css/bundle';
 
 window.axios = axios;
 
@@ -73,3 +75,5 @@ toastr.options = {
 window.toastr = toastr;
 
 window.ApexCharts = ApexCharts;
+
+window.Swiper = Swiper;
