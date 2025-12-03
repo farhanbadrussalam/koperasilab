@@ -200,44 +200,13 @@
             ]" /> --}}
 
             @canany(['Staff/penyelia'])
-            <x-dashboard.penyelia-table :tasks="[
-                array(
-                    'id' => 1,
-                    'nomor_surat' => '001/NL-UPD/XI/2025',
-                    'nomor_referensi' => 'S-0001/JKRL/XI/2025',
-                    'nama_perusahaan' => 'PT. Nusa Lestari Tbk',
-                    'nama_petugas' => 'Budi Santoso',
-                    'periode' => 'Zero Cek',
-                    'current_step' => 0, // Awal Banget
-                    'step_name' => 'TTD Manager',
-                    'is_labeled' => false,
-                    'is_stored' => false
-                ),
-                array(
-                    'id' => 2,
-                    'nomor_surat' => '002/SM-EXT/XI/2025',
-                    'nomor_referensi' => 'S-0045/JKRL/XI/2025',
-                    'nama_perusahaan' => 'PT. Sumber Makmur',
-                    'nama_petugas' => 'Siti Aminah',
-                    'periode' => 'Periode 1',
-                    'current_step' => 3, // Pertengahan
-                    'step_name' => 'Penerbitan LHU',
-                    'is_labeled' => false, // Kuning (Warning)
-                    'is_stored' => false   // Abu-abu
-                ),
-                array(
-                    'id' => 3,
-                    'nomor_surat' => '003/KA-INT/XI/2025',
-                    'nomor_referensi' => 'S-0099/JKRL/XI/2025',
-                    'nama_perusahaan' => 'CV. Karya Abadi',
-                    'nama_petugas' => 'Joko Anwar',
-                    'periode' => 'Periode 2',
-                    'current_step' => 6, // Hampir Selesai
-                    'step_name' => 'Scan Laporan',
-                    'is_labeled' => true,  // Hijau
-                    'is_stored' => true    // Hijau
-                ),
-            ]" />
+            <div id="widget-jobs-penyelia"
+                class="ajax-widget"
+                data-url="dashboard/widgets/jobs-penyelia"
+            >
+
+                <x-dashboard.skeleton.jobs-penyelia-skeleton />
+            </div>
             @endcan
         </div>
         <div class="col-lg-4">

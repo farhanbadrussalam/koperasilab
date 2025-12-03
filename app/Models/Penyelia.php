@@ -168,6 +168,9 @@ class Penyelia extends Model
     public function dokumen(){
         return $this->hasMany(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan');
     }
+    public function dokumenSuratTugas() {
+        return $this->hasOne(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan')->where('jenis', 'surattugas');
+    }
 
     public function periodenow(){
         return $this->belongsTo(Kontrak_periode::class, 'id_permohonan', 'id_permohonan');

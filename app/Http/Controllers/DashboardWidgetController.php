@@ -380,4 +380,50 @@ class DashboardWidgetController extends Controller
 
         return response()->json(['html' => $html]);
     }
+
+    public function jobsPenyelia(Request $request)
+    {
+
+        $jobs = Penyelia::with([
+            'dokumenSuratTugas:id_dokumen,id_permohonan,nomer',
+            'permohonan.pelanggan.perusahaan:id_perusahaan,nama_perusahaan',
+            'permohonan.kontrak:id_kontrak,no_kontrak',
+            'penyelia_map.jobs:id_jobs,name'
+        ])
+        ->whereNot('status', 1)
+        ->latest() // Urutkan berdasarkan data terbaru
+        ->limit(5)
+        ->get();
+
+        $tasks = $jobs->map(function ($job) {
+            $mainStep = $job->penyelia_map->whereNull('point_jobs');
+            $paralelStep = $job->penyelia_map->whereNotNull('point_jobs')->whereIn('status', [1, 2]);
+
+            $stepNow = $mainStep->where('status', 1)->first();
+
+            $stepName = 'Selesai'; // Default value
+            if ($job->status == 2) {
+                $stepName = 'TTD Manager';
+            } elseif ($stepNow) {
+                $stepName = $stepNow->jobs->name;
+            }
+
+            return [
+                'id' => $job->id,
+                'nomor_surat' => $job->dokumenSuratTugas?->nomer,
+                'nomor_referensi' => $job->permohonan?->kontrak?->no_kontrak,
+                'nama_perusahaan' => $job->permohonan?->pelanggan?->perusahaan?->nama_perusahaan,
+                'nama_petugas' => $job->permohonan?->pelanggan?->name,
+                'periode' => $job->periode === 0 ? 'Zero Cek' : "Periode {$job->periode}",
+                'current_step' => $stepNow?->order ?? 0,
+                'total_step' => $mainStep->count(),
+                'step_name' => $stepName,
+                'paralel' => $paralelStep
+            ];
+        });
+
+        $html = view('components.dashboard.jobs-penyelia', compact('tasks'))->render();
+
+        return response()->json(['html' => $html]);
+    }
 }
