@@ -13,6 +13,8 @@ use App\Models\Penyelia;
 use App\Models\Master_layanan_jasa;
 use App\Models\Pengiriman;
 use App\Models\Master_media;
+use App\Models\Penyelia_petugas;
+use App\Models\User;
 use Auth;
 
 class DashboardWidgetController extends Controller
@@ -168,13 +170,34 @@ class DashboardWidgetController extends Controller
                 ])->render();
                 break;
             case 'petugaslab':
+                // Ambil semua ID petugas lab yang relevan
+                $petugasQuery = User::query()
+                    ->when(!$user->hasRole('Super Admin'), function ($query) use ($user) {
+                        // Kelompokkan kondisi OR dalam satu closure
+                        $query->where(function ($q) use ($user) {
+                            foreach ($user->satuankerja_id as $satuanId) {
+                                $q->orWhereJsonContains('satuankerja_id', $satuanId);
+                            }
+                        });
+                    });
+
+                $totalPetugas = $petugasQuery->count();
+
+                // Hitung petugas yang sedang bertugas
+                // Petugas dianggap bertugas jika terhubung ke penyelia_map dengan status 2
+                $petugasBertugas = $petugasQuery->clone()->whereHas('penyelia_petugas.penyelia_map', function ($q) {
+                    $q->whereNot('status', 2);
+                })->count();
+
+                $petugasTersedia = $totalPetugas - $petugasBertugas;
+
                 $html = view('components.dashboard.summary-cards', [
                     'icon' => 'bi-flask',
                     'text' => 'Petugas Lab',
                     'type' => 'list',
                     'count' => [
-                        array('text' => 'Tersedia', 'icon' => 'bi-check-circle-fill', 'count' => 0, 'color' => 'text-success'),
-                        array('text' => 'Bertugas', 'icon' => 'bi-hourglass-split', 'count' => 0, 'color' => 'text-info'),
+                        ['text' => 'Tersedia', 'icon' => 'bi-check-circle-fill', 'count' => $petugasTersedia, 'color' => 'text-success'],
+                        ['text' => 'Bertugas', 'icon' => 'bi-hourglass-split', 'count' => $petugasBertugas, 'color' => 'text-info'],
                     ],
                     'color' => 'text-secondary'
                 ])->render();
