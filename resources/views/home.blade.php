@@ -1,10 +1,27 @@
 @extends('layouts.main')
+@php
+    $dashboardActive = true;
+    $user = auth()->user();
+    $newPic = null;
+
+    $rolePelanggan = $user->hasRole('Pelanggan');
+    // status 2 = PIC tidak aktif
+    if ($rolePelanggan && $user->status == 2) {
+        $dashboardActive = false;
+        // Cari PIC baru yang aktif (status 1) di perusahaan yang sama.
+        // Pastikan relasi 'perusahaan' dan 'pengguna' sudah terdefinisi di model User.
+        if ($user->perusahaan) {
+            $newPic = $user->perusahaan->pic->name;
+        }
+    }
+@endphp
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Selamat Datang, {{ auth()->user()->name }}</h1>
     </div>
 
+    @if($dashboardActive)
     <div class="row">
         <div class="col-lg-8">
             <div class="row g-2 mb-3">
@@ -160,50 +177,11 @@
                 ]" /> --}}
             @endcan
 
-            {{-- <x-dashboard.my-jobs :jobs="[
-                array(
-                    'id' => 101,
-                    'nomor_surat' => '001/LHU-KOP/XI/2025',
-                    'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
-                    'current_step_name' => 'Anealing',
-                    'deadline' => '28-01-2023',
-                    'has_pending_parallel' => false,
-                    'status' => 'active'
-                ),
-                array(
-                    'id' => 102,
-                    'nomor_surat' => '002/LHU-KOP/XI/2025',
-                    'nama_perusahaan' => 'CV. Maju Terus',
-                    'current_step_name' => 'Cooling',
-                    'deadline' => '30-01-2023',
-                    'has_pending_parallel' => true,
-                    'status' => 'active'
-                ),
-                array(
-                    'id' => 103,
-                    'nomor_surat' => '003/LHU-KOP/XI/2025',
-                    'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
-                    'current_step_name' => 'Anealing',
-                    'deadline' => '28-01-2023',
-                    'has_pending_parallel' => false,
-                    'status' => 'active'
-                ),
-                array(
-                    'id' => 104,
-                    'nomor_surat' => '004/LHU-KOP/XI/2025',
-                    'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
-                    'current_step_name' => 'Anealing',
-                    'deadline' => '28-01-2023',
-                    'has_pending_parallel' => false,
-                    'status' => 'active'
-                ),
-            ]" /> --}}
 
             @canany(['Staff/penyelia'])
             <div id="widget-jobs-penyelia"
                 class="ajax-widget"
-                data-url="dashboard/widgets/jobs-penyelia"
-            >
+                data-url="dashboard/widgets/jobs-penyelia">
 
                 <x-dashboard.skeleton.jobs-penyelia-skeleton />
             </div>
@@ -219,32 +197,6 @@
                 >
                     <x-dashboard.skeleton.delivery-stats-skeleton />
                 </div>
-                {{-- <x-dashboard.tracking :shipments="[
-                    array(
-                        'id' => 1,
-                        'nomor_kontrak' => '#001',
-                        'nomor_resi' => 'JP-88219322',
-                        'detail_paket' => 'Dokumen TLD, Invoice',
-                        'periode' => 1,
-                        'status' => 'shipping'
-                    ),
-                    array(
-                        'id' => 2,
-                        'nomor_kontrak' => '#002',
-                        'nomor_resi' => 'JP-88219323',
-                        'detail_paket' => 'Dokumen Hosting, Invoice',
-                        'periode' => 2,
-                        'status' => 'preparing'
-                    ),
-                    array(
-                        'id' => 3,
-                        'nomor_kontrak' => '#003',
-                        'nomor_resi' => 'JP-88219324',
-                        'detail_paket' => 'Dokumen TLD, Invoice',
-                        'periode' => 3,
-                        'status' => 'shipping'
-                    )
-                ]" /> --}}
                 @endcan
                 {{-- <x-dashboard.monitor-petugas :stafflist="[
                     array(
@@ -273,6 +225,44 @@
                     ),
                 ]" /> --}}
 
+                {{-- <x-dashboard.my-jobs :jobs="[
+                    array(
+                        'id' => 101,
+                        'nomor_surat' => '001/LHU-KOP/XI/2025',
+                        'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
+                        'current_step_name' => 'Anealing',
+                        'deadline' => '28-01-2023',
+                        'has_pending_parallel' => false,
+                        'status' => 'active'
+                    ),
+                    array(
+                        'id' => 102,
+                        'nomor_surat' => '002/LHU-KOP/XI/2025',
+                        'nama_perusahaan' => 'CV. Maju Terus',
+                        'current_step_name' => 'Cooling',
+                        'deadline' => '30-01-2023',
+                        'has_pending_parallel' => true,
+                        'status' => 'active'
+                    ),
+                    array(
+                        'id' => 103,
+                        'nomor_surat' => '003/LHU-KOP/XI/2025',
+                        'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
+                        'current_step_name' => 'Anealing',
+                        'deadline' => '28-01-2023',
+                        'has_pending_parallel' => false,
+                        'status' => 'active'
+                    ),
+                    array(
+                        'id' => 104,
+                        'nomor_surat' => '004/LHU-KOP/XI/2025',
+                        'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
+                        'current_step_name' => 'Anealing',
+                        'deadline' => '28-01-2023',
+                        'has_pending_parallel' => false,
+                        'status' => 'active'
+                    ),
+                ]" /> --}}
                 {{-- <x-dashboard.monitor-activities :activities="[
                     array(
                         'type' => 'approve',
@@ -290,60 +280,84 @@
                         'time_ago' => '1 jam yang lalu'
                     ),
                 ]" /> --}}
+
+
             </div>
         </div>
+    </div>
+    @else
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body text-center p-lg-5">
+                <i class="fas fa-user-tie fa-4x text-primary mb-4"></i>
+                <h4 class="card-title">Pergantian PIC Terdeteksi</h4>
+                <p class="card-text text-muted">
+                    Anda sudah tidak terdaftar sebagai PIC untuk
+                    <strong>{{ $user->perusahaan?->nama_perusahaan ?? 'perusahaan ini' }}</strong>.
+                    <br>
+                    Saat ini PIC yang aktif adalah
+                    <strong>{{ $newPic ?? 'pengguna lain' }}</strong>.
+                </p>
+                <p class="card-text text-muted small mt-4">
+                    Dasbor dan fitur terkait tidak dapat diakses. Silakan hubungi administrator jika Anda merasa ini
+                    adalah sebuah kesalahan.
+                </p>
+            </div>
+        </div>
+    @endif
 @endsection
 @push('scripts')
-<script>
-    $(document).ready(function() {
-        loadAllWidgets();
-    });
+    @if ($dashboardActive)
+        <script>
+            $(document).ready(function() {
+                loadAllWidgets();
+            });
 
-    function loadAllWidgets() {
-        const widgets = document.querySelectorAll('.ajax-widget');
+            function loadAllWidgets() {
+                const widgets = document.querySelectorAll('.ajax-widget');
 
-        widgets.forEach(widget => {
-            load(widget);
-        });
-    }
+                widgets.forEach(widget => {
+                    load(widget);
+                });
+            }
 
-    function load(widget) {
-        const url = widget.getAttribute('data-url');
-        const jenis = widget.getAttribute('data-jenis');
-        let params = {};
-        jenis && (params.jenis = jenis);
+            function load(widget) {
+                const url = widget.getAttribute('data-url');
+                const jenis = widget.getAttribute('data-jenis');
+                let params = {};
+                jenis && (params.jenis = jenis);
 
-        ajaxGet(url, params, result => {
-            widget.style.opacity = 0;
-            widget.innerHTML = result.html;
+                ajaxGet(url, params, result => {
+                    widget.style.opacity = 0;
+                    widget.innerHTML = result.html;
 
-            executeScripts(widget);
+                    executeScripts(widget);
 
-            setTimeout(() => {
-                widget.style.transition = 'opacity 0.5s ease';
-                widget.style.opacity = 1;
-            }, 50);
-        }, error => {
-            // Tampilkan pesan error user friendly
-            widget.innerHTML = `
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-                    <div class="card-body d-flex flex-column align-items-center justify-content-center text-muted">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                    setTimeout(() => {
+                        widget.style.transition = 'opacity 0.5s ease';
+                        widget.style.opacity = 1;
+                    }, 50);
+                }, error => {
+                    // Tampilkan pesan error user friendly
+                    widget.innerHTML = `
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <div class="card-body d-flex flex-column align-items-center justify-content-center text-muted">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                                <p class="small mb-2">Gagal memuat data</p>
+                                <button onclick="refreshData('${widget.id}')" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }, {
+                    onErrorPopup: false
+                });
+            }
 
-                        <p class="small mb-2">Gagal memuat data</p>
-
-                        <button onclick="refreshData('${widget.id}')" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                            <i class="fas fa-sync-alt me-1"></i> Refresh
-                        </button>
-                    </div>
-                </div>
-            `;
-        },{onErrorPopup: false});
-    }
-
-    function refreshData(idELement){
-        const widget = document.getElementById(idELement);
-        load(widget);
-    }
-</script>
+            function refreshData(idELement) {
+                const widget = document.getElementById(idELement);
+                load(widget);
+            }
+        </script>
+    @endif
 @endpush

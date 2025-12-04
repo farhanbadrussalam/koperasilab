@@ -28,7 +28,9 @@ class DashboardWidgetController extends Controller
             case 'permohonan':
                 $counts = Permohonan::query()
                     ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                        $q->where('created_by', $user->id);
+                        $q->whereHas('pelanggan', function ($q) use ($user) {
+                            $q->where('id_perusahaan', $user->id_perusahaan);
+                        });
                     })
                     ->whereIn('status', [1, 2, 3, 4, 5, 90])
                     ->selectRaw('status, count(*) as total')
@@ -45,24 +47,26 @@ class DashboardWidgetController extends Controller
                     'type' => 'list',
                     'count' => [
                         ['text' => 'Baru', 'icon' => 'bi-file-earmark-plus', 'count' => $countBaru, 'color' => 'text-primary'],
-                        ['text' => 'Verifikasi', 'icon' => 'bi-shield-check', 'count' => $countVerifikasi, 'color' => 'text-warning-emphasis'],
+                        ['text' => 'terverifikasi', 'icon' => 'bi-shield-check', 'count' => $countVerifikasi, 'color' => 'text-warning-emphasis'],
                         ['text' => 'Ditolak', 'icon' => 'bi-x-circle', 'count' => $countDitolak, 'color' => 'text-danger'],
                     ],
                     'color' => 'text-info',
+                    'url' => $user->hasRole('Pelanggan') ? route('permohonan.pengajuan') : route('staff.permohonan')
                 ])->render();
                 break;
             case 'pembayaran':
-                $counts = Keuangan::query()
-                            ->with('permohonan')
-                            ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                                $q->whereHas('permohonan', function ($q) use ($user) {
-                                    $q->where('created_by', $user->id);
-                                });
-                            })
-                            ->whereIn('status', [3, 5, 90])
-                            ->selectRaw('status, count(*) as total')
-                            ->groupBy('status')
-                            ->pluck('total', 'status');
+                $counts = Keuangan::query() // Menghapus eager loading yang tidak perlu
+                    ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                        $q->whereHas('permohonan', function ($q) use ($user) {
+                            $q->whereHas('pelanggan', function ($q) use ($user) {
+                                $q->where('id_perusahaan', $user->id_perusahaan); // Menggunakan $user->id_perusahaan
+                            });
+                        });
+                    })
+                    ->whereIn('status', [3, 5, 90])
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
 
                 $countBelumLunas = $counts->get(3, 0);
                 $countLunas = $counts->get(5, 0);
@@ -77,13 +81,16 @@ class DashboardWidgetController extends Controller
                         array('text' => 'Lunas', 'icon' => 'bi-check-circle-fill', 'count' => $countLunas, 'color' => 'text-success'),
                         array('text' => 'Ditolak', 'icon' => 'bi-dash-circle', 'count' => $countDitolak, 'color' => 'text-danger'),
                     ],
-                    'color'=>'text-warning-emphasis'
+                    'color'=>'text-warning-emphasis',
+                    'url' => $user->hasRole('Pelanggan') ? route('permohonan.pembayaran') : route('staff.keuangan')
                 ])->render();
                 break;
             case 'kontrak':
                 $counts = Kontrak::query()
                             ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                                $q->where('id_pelanggan', $user->id);
+                                $q->whereHas('pelanggan', function ($q) use ($user) {
+                                    $q->where('id_perusahaan', $user->id_perusahaan);
+                                });
                             })
                             ->selectRaw('status, count(*) as total')
                             ->groupBy('status')
@@ -101,7 +108,8 @@ class DashboardWidgetController extends Controller
                         array('text' => 'Berjalan', 'icon' => 'bi-hourglass-split', 'count' => $countBerjalan, 'color' => 'text-info'),
                         array('text' => 'Selesai', 'icon' => 'bi-check-circle-fill', 'count' => $countSelesai, 'color' => 'text-success'),
                     ],
-                    'color' => 'text-secondary'
+                    'color' => 'text-secondary',
+                    'url' => route('permohonan.kontrak')
                 ])->render();
                 break;
             case 'tld':
@@ -137,7 +145,8 @@ class DashboardWidgetController extends Controller
                         array('text' => 'Kontrol', 'icon' => 'bi-hourglass-split', 'count' => $countTldKontrol, 'color' => 'text-info'),
                         array('text' => 'Pengguna', 'icon' => 'bi-people-fill', 'count' => $countTldPengguna, 'color' => 'text-warning-emphasis'),
                     ],
-                    'color' => 'text-secondary'
+                    'color' => 'text-secondary',
+                    'url' => url('/management/tld')
                 ])->render();
                 break;
             case 'penyelia':
@@ -158,7 +167,7 @@ class DashboardWidgetController extends Controller
                 $countSelesai = $counts->get(3, 0);
                 $html = view('components.dashboard.summary-cards', [
                     'icon' => 'bi-people-fill',
-                    'text' => 'Penyelia',
+                    'text' => 'Penyeliaan',
                     'type' => 'list',
                     'count' => [
                         array('text' => 'Baru', 'icon' => 'bi-person-plus-fill', 'count' => $countBaru, 'color' => 'text-primary'),
@@ -166,7 +175,8 @@ class DashboardWidgetController extends Controller
                         array('text' => 'Proses Lab', 'icon' => 'bi-hourglass-split', 'count' => $countProsesLab, 'color' => 'text-info'),
                         array('text' => 'Selesai', 'icon' => 'bi-check-circle-fill', 'count' => $countSelesai, 'color' => 'text-success'),
                     ],
-                    'color' => 'text-secondary'
+                    'color' => 'text-secondary',
+                    'url' => route('staff.penyelia')
                 ])->render();
                 break;
             case 'petugaslab':
@@ -199,7 +209,8 @@ class DashboardWidgetController extends Controller
                         ['text' => 'Tersedia', 'icon' => 'bi-check-circle-fill', 'count' => $petugasTersedia, 'color' => 'text-success'],
                         ['text' => 'Bertugas', 'icon' => 'bi-hourglass-split', 'count' => $petugasBertugas, 'color' => 'text-info'],
                     ],
-                    'color' => 'text-secondary'
+                    'color' => 'text-secondary',
+                    'url' => route('staff.lhu.petugas')
                 ])->render();
                 break;
             default:
@@ -234,7 +245,9 @@ class DashboardWidgetController extends Controller
         if($layananNow->nama_layanan === 'TLD'){
             $statistik = Master_jenistld::withCount(['kontrak' => function ($query) use ($user, $layananNow) {
                 $query->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                    $q->where('id_pelanggan', $user->id);
+                    $q->whereHas('pelanggan', function ($q) use ($user) {
+                        $q->where('id_perusahaan', $user->id_perusahaan);
+                    });
                 })
                 ->where('id_layanan', $layananNow->id_layanan);
             }])->get()
@@ -254,7 +267,9 @@ class DashboardWidgetController extends Controller
             ->where('status', 1)
             ->withCount(['kontrak' => function ($query) use ($user) {
                 $query->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                    $q->where('id_pelanggan', $user->id);
+                    $q->whereHas('pelanggan', function ($q) use ($user) {
+                        $q->where('id_perusahaan', $user->id_perusahaan);
+                    });
                 });
             }])->get()
             ->pluck('kontrak_count', 'name');
@@ -281,7 +296,9 @@ class DashboardWidgetController extends Controller
             ->with('permohonan')
             ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                 $q->whereHas('permohonan', function ($q) use ($user) {
-                    $q->where('created_by', $user->id);
+                    $q->whereHas('pelanggan', function ($q) use ($user) {
+                        $q->where('id_perusahaan', $user->id_perusahaan);
+                    });
                 });
             })
             ->selectRaw('status, count(*) as count')
@@ -346,7 +363,9 @@ class DashboardWidgetController extends Controller
         )
         ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
             $q->whereHas('permohonan', function ($q) use ($user) {
-                $q->where('created_by', $user->id);
+                $q->whereHas('pelanggan', function ($q) use ($user) {
+                    $q->where('id_perusahaan', Auth::user()->id_perusahaan);
+                });
             });
         })->where('no_resi', $keyword)->first();
 

@@ -84,7 +84,7 @@
                 @endcan
 
                 @can('Tld')
-                @if(Auth::user()->id_perusahaan && Auth::user()->status == 1)
+                @if(Auth::user()->id_perusahaan && Auth::user()->status == 1 || !Auth::user()->hasRole('Pelanggan'))
                 <li class="sidebar-item @if($hiddenPelanggan) d-none @endif">
                     <a class="sidebar-link {{ $module == 'tld' ? 'active' : '' }}"
                         href="{{ route('tld.index') }}" aria-expanded="false">

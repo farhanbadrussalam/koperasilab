@@ -831,7 +831,7 @@ class Detail {
         });
 
         return `
-            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#add-modal-pic"><span class="bi bi-plus"></span> Tambah pic</button>
+            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#add-modal-pic"><span class="bi bi-plus"></span> Ganti pic</button>
             <ul class="list-group list-group-flush rounded mt-2">
                 ${karyawanarr.map((data, i) => {
                     let docSuratKuasa = '';
