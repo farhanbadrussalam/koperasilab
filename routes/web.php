@@ -166,6 +166,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/statistics-layanan', 'statisticsLayanan')->name('statistics-layanan');
             Route::get('/delivery-stats', 'deliveryStats')->name('delivery-stats');
             Route::get('/jobs-penyelia', 'jobsPenyelia')->name('jobs-penyelia');
+            Route::get('/monitorPenyeliaan', 'monitorPenyeliaan')->name('monitor-penyeliaan');
+            Route::get('myJobsList', 'myJobsList')->name('myJobsList');
 
             Route::get('/track-search', 'trackSearch')->name('track-search');
         });

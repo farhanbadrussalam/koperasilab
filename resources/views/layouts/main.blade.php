@@ -207,6 +207,13 @@
                     document.activeElement.blur(); // Hilangkan fokus dari tombol apapun
                 }
             });
+
+            // Inisialisasi semua tooltip di halaman
+            // let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            // tooltipTriggerList.map(function (tooltipTriggerEl) {
+            //     return new bootstrap.Tooltip(tooltipTriggerEl)
+            // })
+
         })
 
         function loadNotifikasi() {

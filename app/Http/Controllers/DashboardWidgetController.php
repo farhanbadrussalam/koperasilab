@@ -8,6 +8,7 @@ use App\Models\Keuangan;
 use App\Models\Kontrak;
 use App\Models\Master_jenisLayanan;
 use App\Models\Master_jenistld;
+use App\Models\Master_jobs;
 use App\Models\Master_tld;
 use App\Models\Penyelia;
 use App\Models\Master_layanan_jasa;
@@ -464,7 +465,84 @@ class DashboardWidgetController extends Controller
             ];
         });
 
-        $html = view('components.dashboard.jobs-penyelia', compact('tasks'))->render();
+        $html = view('components.dashboard.jobs-chart', compact('tasks'))->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function monitorPenyeliaan(Request $request)
+    {
+        $jobs = Master_jobs::query()
+            ->withCount([
+                'penyelia_map' => function ($q) {
+                    $q->where('status', 1);
+                }
+            ])->get();
+
+        // Hasilkan warna acak untuk setiap data
+        // $colors = $jobs->map(function ($job) {
+        //     // Membuat kode warna hex acak, contoh: #A8D8F7
+        //     return sprintf('#%06x', mt_rand(0, 0xFFFFFF));
+        // });
+        $chartData = array(
+            'category' => $jobs->pluck('name'),
+            'value' => $jobs->pluck('penyelia_map_count'),
+            'color' => $jobs->pluck('color'),
+        );
+
+        $html = view('components.dashboard.jobs-chart', [
+            'chartData' => $chartData
+        ])->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function myJobsList(Request $request) {
+        $user = Auth::user();
+        if($user->hasRole('Staff Penyelia')) {
+            $statusJob = [4];
+        } else {
+            $statusJob = $user->jobs;
+        }
+        $jobsActive = Penyelia::with([
+            'permohonan',
+            'permohonan.kontrak',
+            'permohonan.pelanggan',
+            'penyelia_map',
+            'penyelia_map.jobs',
+            'penyelia_map.jobs_paralel',
+            'petugas',
+            'dokumenSuratTugas'
+        ])->whereHas('penyelia_map', function ($q) use ($statusJob, $user) {
+            $q->whereIn('id_jobs', $statusJob)->where('status', 1)->whereHas('petugas', function ($q) use ($user) {
+                $q->where('id_user', $user->id);
+            });
+        })
+        ->whereHas('permohonan.layanan_jasa', function ($q) use ($user) {
+            $q->whereIn('satuankerja_id', $user->satuankerja_id ? $user->satuankerja_id : [0]);
+        })
+        ->limit(5)
+        ->get();
+
+        $tasks = $jobsActive->map(function ($job) {
+            $mainStep = $job->penyelia_map->where('status', 1)->first();
+            return [
+                'id' => $job->id,
+                'nomor_surat' => $job->dokumenSuratTugas?->nomer,
+                'nomor_referensi' => $job->permohonan?->kontrak?->no_kontrak,
+                'nama_perusahaan' => $job->permohonan?->pelanggan?->perusahaan?->nama_perusahaan,
+                'nama_petugas' => $job->permohonan?->pelanggan?->name,
+                'periode' => $job->periode === 0 ? 'Zero Cek' : "Periode {$job->periode}",
+                'current_step' => $mainStep?->order ?? 0,
+                'deadline' => $job->end_date,
+                'current_step_name' => $mainStep->jobs ? $mainStep->jobs->name : $mainStep->jobs_paralel->name,
+                'status' => 'active',
+            ];
+        });
+
+        $html = view('components.dashboard.my-jobs', [
+            'jobs' => $tasks
+        ])->render();
 
         return response()->json(['html' => $html]);
     }

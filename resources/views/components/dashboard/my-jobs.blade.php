@@ -10,7 +10,7 @@
         @endif
     </div>
 
-    <div class="card-body p-3 custom-scrollbar" style="max-height: 30vh; overflow-y: auto;">
+    <div class="card-body p-3 custom-scrollbar" style="max-height: 40vh; overflow-y: auto;">
 
         @forelse($jobs as $job)
             <div class="card border-0 shadow-sm mb-3 border-start border-primary bg-light">
@@ -33,8 +33,9 @@
                         </div>
 
                         <div class="ms-3">
-                            <a href="javascript:void(0);" class="btn btn-sm btn-primary shadow-sm px-3">
-                                <i class="bi bi-play-fill me-1"></i>Kerjakan
+                            <a href="javascript:void(0);" class="btn btn-sm btn-primary shadow-sm"
+                                 title="Kerjakan">
+                                <i class="bi bi-play-fill me-1"></i>
                             </a>
                         </div>
                     </div>

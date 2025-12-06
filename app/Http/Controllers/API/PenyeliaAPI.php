@@ -574,7 +574,6 @@ class PenyeliaAPI extends Controller
             }
         }
 
-        $user = Auth::user();
         DB::beginTransaction();
         try {
             $query = Penyelia::with(

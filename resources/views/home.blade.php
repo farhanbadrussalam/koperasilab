@@ -178,12 +178,12 @@
             @endcan
 
 
-            @canany(['Staff/penyelia'])
-            <div id="widget-jobs-penyelia"
+            @canany(['Staff/penyelia', 'Staff/lhu'])
+            <div id="widget-monitor-penyelia"
                 class="ajax-widget"
-                data-url="dashboard/widgets/jobs-penyelia">
+                data-url="dashboard/widgets/monitorPenyeliaan">
 
-                <x-dashboard.skeleton.jobs-penyelia-skeleton />
+                <x-dashboard.skeleton.service-chart-skeleton />
             </div>
             @endcan
         </div>
@@ -225,44 +225,14 @@
                     ),
                 ]" /> --}}
 
-                {{-- <x-dashboard.my-jobs :jobs="[
-                    array(
-                        'id' => 101,
-                        'nomor_surat' => '001/LHU-KOP/XI/2025',
-                        'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
-                        'current_step_name' => 'Anealing',
-                        'deadline' => '28-01-2023',
-                        'has_pending_parallel' => false,
-                        'status' => 'active'
-                    ),
-                    array(
-                        'id' => 102,
-                        'nomor_surat' => '002/LHU-KOP/XI/2025',
-                        'nama_perusahaan' => 'CV. Maju Terus',
-                        'current_step_name' => 'Cooling',
-                        'deadline' => '30-01-2023',
-                        'has_pending_parallel' => true,
-                        'status' => 'active'
-                    ),
-                    array(
-                        'id' => 103,
-                        'nomor_surat' => '003/LHU-KOP/XI/2025',
-                        'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
-                        'current_step_name' => 'Anealing',
-                        'deadline' => '28-01-2023',
-                        'has_pending_parallel' => false,
-                        'status' => 'active'
-                    ),
-                    array(
-                        'id' => 104,
-                        'nomor_surat' => '004/LHU-KOP/XI/2025',
-                        'nama_perusahaan' => 'PT. Sumber Makmur Jaya',
-                        'current_step_name' => 'Anealing',
-                        'deadline' => '28-01-2023',
-                        'has_pending_parallel' => false,
-                        'status' => 'active'
-                    ),
-                ]" /> --}}
+                @canany(['Staff/penyelia', 'Staff/lhu'])
+                <div id="widget-my-jobs"
+                    class="ajax-widget"
+                    data-url="dashboard/widgets/myJobsList">
+
+                    <x-dashboard.skeleton.my-jobs-skeleton />
+                </div>
+                @endcan
                 {{-- <x-dashboard.monitor-activities :activities="[
                     array(
                         'type' => 'approve',
