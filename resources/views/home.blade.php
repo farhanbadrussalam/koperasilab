@@ -27,19 +27,21 @@
             <div class="row g-2 mb-3">
                 @canany(['Permohonan/pengajuan', 'Staff/permohonan', 'Manager/pengajuan'])
                 <div id="widget-summary-permohonan"
-                    class="ajax-widget col-6"
+                    class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
-                    data-jenis="permohonan">
+                    data-jenis="permohonan"
+                    data-skeleton="dashboard/skeleton/summary-cards">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
                 @endcan
 
-                @canany(['Staff/keuangan','Permohonan/pengajuan'])
+                @canany(['Permohonan/pengajuan'])
                 <div id="widget-summary-pembayaran"
-                    class="ajax-widget col-6"
+                    class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
-                    data-jenis="pembayaran">
+                    data-jenis="pembayaran"
+                    data-skeleton="dashboard/skeleton/summary-cards">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -47,9 +49,10 @@
 
                 @canany(['Kontrak'])
                 <div id="widget-summary-kontrak"
-                    class="ajax-widget col-6"
+                    class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
-                    data-jenis="kontrak">
+                    data-jenis="kontrak"
+                    data-skeleton="dashboard/skeleton/summary-cards">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -57,9 +60,10 @@
 
                 @canany(['Tld'])
                 <div id="widget-summary-tld"
-                    class="ajax-widget col-6"
+                    class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
-                    data-jenis="tld">
+                    data-jenis="tld"
+                    data-skeleton="dashboard/skeleton/summary-cards">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -67,9 +71,10 @@
 
                 @canany(['Staff/penyelia'])
                 <div id="widget-summary-penyelia"
-                    class="ajax-widget col-6"
+                    class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
-                    data-jenis="penyelia">
+                    data-jenis="penyelia"
+                    data-skeleton="dashboard/skeleton/summary-cards">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -77,14 +82,16 @@
 
                 @canany(['Staff/lhu/petugas'])
                 <div id="widget-summary-petugaslab"
-                    class="ajax-widget col-6"
+                    class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
-                    data-jenis="petugaslab">
+                    data-jenis="petugaslab"
+                    data-skeleton="dashboard/skeleton/summary-cards">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
                 @endcan
             </div>
+
             @canany(['Permohonan/pengajuan', 'Staff/permohonan', 'Manager/pengajuan'])
             {{-- <x-dashboard.pending-request :requests="[
                 array(
@@ -119,11 +126,13 @@
             <div id="widget-statistics"
                 class="ajax-widget"
                 data-url="dashboard/widgets/statistics-layanan"
-                data-jenis="statisticsLayanan">
+                data-jenis="statisticsLayanan"
+                data-skeleton="dashboard/skeleton/statistics-layanan">
 
                 <x-dashboard.skeleton.service-chart-skeleton />
             </div>
             @endcan
+
             @canany(['Kontrak'])
                 {{-- <x-dashboard.active-contracts :contracts="[
                     array(
@@ -177,13 +186,36 @@
                 ]" /> --}}
             @endcan
 
-
             @canany(['Staff/penyelia', 'Staff/lhu'])
             <div id="widget-monitor-penyelia"
                 class="ajax-widget"
-                data-url="dashboard/widgets/monitorPenyeliaan">
+                data-url="dashboard/widgets/monitorPenyeliaan"
+                data-skeleton="dashboard/skeleton/monitorPenyelia">
 
                 <x-dashboard.skeleton.service-chart-skeleton />
+            </div>
+            @endcan
+
+            @canany(['Staff/keuangan'])
+            <div class="row g-4">
+                <div class="col-12">
+                    <div id="widget-finance-inv-active"
+                        class="ajax-widget h-100"
+                        data-url="dashboard/widgets/finance-inv-active"
+                        data-skeleton="dashboard/skeleton/finance-chart-service">
+
+                        <x-dashboard.skeleton.finance-chart-service />
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div id="widget-finance-charts"
+                        class="ajax-widget"
+                        data-url="dashboard/widgets/finance-charts"
+                        data-skeleton="dashboard/skeleton/finance-chart-service">
+
+                        <x-dashboard.skeleton.finance-chart-service />
+                    </div>
+                </div>
             </div>
             @endcan
         </div>
@@ -194,7 +226,7 @@
                 <div id="widget-delivery-stats"
                     class="ajax-widget"
                     data-url="dashboard/widgets/delivery-stats"
-                >
+                    data-skeleton="dashboard/skeleton/delivery-stats">
                     <x-dashboard.skeleton.delivery-stats-skeleton />
                 </div>
                 @endcan
@@ -228,7 +260,8 @@
                 @canany(['Staff/penyelia', 'Staff/lhu'])
                 <div id="widget-my-jobs"
                     class="ajax-widget"
-                    data-url="dashboard/widgets/myJobsList">
+                    data-url="dashboard/widgets/myJobsList"
+                    data-skeleton="dashboard/skeleton/myJobsList">
 
                     <x-dashboard.skeleton.my-jobs-skeleton />
                 </div>
@@ -250,8 +283,24 @@
                         'time_ago' => '1 jam yang lalu'
                     ),
                 ]" /> --}}
+                @canany(['Staff/keuangan'])
+                <div class="col-12">
+                    <div id="widget-finance-chart-service"
+                        class="ajax-widget h-100"
+                        data-url="dashboard/widgets/finance-chart-service"
+                        data-skeleton="dashboard/skeleton/finance-chart-service">
 
+                        <x-dashboard.skeleton.finance-chart-service />
+                    </div>
+                </div>
+                {{-- <div id="widget-finance-side"
+                    class="ajax-widget"
+                    data-url="dashboard/widgets/finance-side"
+                    data-skeleton="dashboard/skeleton/finance-chart-service">
 
+                    <x-dashboard.skeleton.finance-chart-service />
+                </div> --}}
+                @endcan
             </div>
         </div>
     </div>
@@ -279,8 +328,19 @@
     @if ($dashboardActive)
         <script>
             $(document).ready(function() {
+                cekSummaryCard();
                 loadAllWidgets();
             });
+
+            function cekSummaryCard(){
+                const summary = document.querySelectorAll('.summary-active');
+
+                if(summary.length % 2 === 1){
+                    const lastSummary = summary[summary.length - 1];
+                    lastSummary.classList.remove('col-6');
+                    lastSummary.classList.add('col-12');
+                }
+            }
 
             function loadAllWidgets() {
                 const widgets = document.querySelectorAll('.ajax-widget');
@@ -308,17 +368,7 @@
                     }, 50);
                 }, error => {
                     // Tampilkan pesan error user friendly
-                    widget.innerHTML = `
-                        <div class="card border-0 shadow-sm rounded-4 h-100">
-                            <div class="card-body d-flex flex-column align-items-center justify-content-center text-muted">
-                                <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
-                                <p class="small mb-2">Gagal memuat data</p>
-                                <button onclick="refreshData('${widget.id}')" class="btn btn-sm btn-outline-primary rounded-pill px-3">
-                                    <i class="fas fa-sync-alt me-1"></i> Refresh
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                    widget.innerHTML = errorHandler(widget.id);
                 }, {
                     onErrorPopup: false
                 });
@@ -326,7 +376,36 @@
 
             function refreshData(idELement) {
                 const widget = document.getElementById(idELement);
-                load(widget);
+                const urlSkeleton = widget.getAttribute('data-skeleton');
+                ajaxGet(urlSkeleton, {}, result => {
+                    widget.style.opacity = 0;
+                    widget.innerHTML = result.html;
+
+                    setTimeout(() => {
+                        widget.style.transition = 'opacity 0.5s ease';
+                        widget.style.opacity = 1;
+                        load(widget);
+                    }, 50);
+                }, error => {
+                    // Tampilkan pesan error user friendly
+                    widget.innerHTML = errorHandler(widget.id);
+                }, {
+                    onErrorPopup: false
+                })
+            }
+
+            function errorHandler(idELement) {
+                return `
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center text-muted">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                            <p class="small mb-2">Gagal memuat data</p>
+                            <button onclick="refreshData('${idELement}')" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                <i class="fas fa-sync-alt me-1"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
         </script>
     @endif

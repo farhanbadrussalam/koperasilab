@@ -48,7 +48,7 @@ class DashboardWidgetController extends Controller
                     'type' => 'list',
                     'count' => [
                         ['text' => 'Baru', 'icon' => 'bi-file-earmark-plus', 'count' => $countBaru, 'color' => 'text-primary'],
-                        ['text' => 'terverifikasi', 'icon' => 'bi-shield-check', 'count' => $countVerifikasi, 'color' => 'text-warning-emphasis'],
+                        ['text' => 'Terverifikasi', 'icon' => 'bi-shield-check', 'count' => $countVerifikasi, 'color' => 'text-warning-emphasis'],
                         ['text' => 'Ditolak', 'icon' => 'bi-x-circle', 'count' => $countDitolak, 'color' => 'text-danger'],
                     ],
                     'color' => 'text-info',
@@ -280,12 +280,16 @@ class DashboardWidgetController extends Controller
             "value" => $statistik_2->values()
         );
 
+        // cek apakah semua data kosong
+        $isEmpty = $chart_1['value']->sum() === 0 && $chart_2['value']->sum() === 0;
+
         // count layanan
         return response()->json([
             'html' => view('components.dashboard.service-chart', [
                 'data_chart_1' => $chart_1,
                 'data_chart_2' => $chart_2,
-                'data_layanan' => $layanan
+                'data_layanan' => $layanan,
+                'isEmpty' => $isEmpty
             ])->render()
         ]);
     }
@@ -490,6 +494,10 @@ class DashboardWidgetController extends Controller
             'color' => $jobs->pluck('color'),
         );
 
+        // cek apakah semua data kosong
+        $isEmpty = $chartData['value']->sum() === 0;
+        $chartData['isEmpty'] = $isEmpty;
+
         $html = view('components.dashboard.jobs-chart', [
             'chartData' => $chartData
         ])->render();
@@ -543,6 +551,148 @@ class DashboardWidgetController extends Controller
         $html = view('components.dashboard.my-jobs', [
             'jobs' => $tasks
         ])->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function financeCharts() {
+        $user = Auth::user();
+        // --- 1. DATA CASH FLOW (Stacked Bar) ---
+        // Logika: Membandingkan total nominal Lunas vs Belum Lunas per Bulan
+        $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $year = date('Y');
+
+        $query = Keuangan::whereYear('created_at', $year)
+            ->whereIn('status', [3, 4, 5, 90]) // 5: Lunas, [3, 4, 90]: Belum Lunas/Piutang
+            ->selectRaw('MONTH(created_at) as month, status, SUM(total_harga) as total')
+            ->groupBy('month', 'status')
+            ->get();
+
+        $lunasByMonth = $query->where('status', 5)->pluck('total', 'month');
+
+        // Gabungkan total untuk status belum lunas (3, 4, 90) per bulan
+        $piutangByMonth = $query->whereIn('status', [3, 4, 90])
+                            ->groupBy('month')
+                            ->map(function ($group) {
+                                return $group->sum('total');
+                            });
+
+        $lunas = [];
+        $piutang = [];
+
+        for ($i = 1; $i <= 12; $i++) {
+            // Mengambil data per bulan dan membaginya dengan 1 juta untuk grafik
+            $lunas[] = $lunasByMonth->get($i, 0); //( / 1000000);
+            $piutang[] = $piutangByMonth->get($i, 0); //( / 1000000);
+        }
+
+        $cashFlowData = [
+            'categories' => $monthNames,
+            'lunas' => $lunas, // Data dalam jutaan
+            'piutang' => $piutang, // Data dalam jutaan
+            'isEmpty' => $query->isEmpty(),
+        ];
+
+        $html = view('components.dashboard.finance-charts-panel', compact('cashFlowData'))->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function financeInvActive() {
+        $user = Auth::user();
+        // --- 3. DATA STATUS INVOICE (Funnel / Bar Horizontal) ---
+        $counts = Keuangan::query() // Menghapus eager loading yang tidak perlu
+                    ->whereIn('status', [7, 4, 3, 5, 90])
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
+
+        $countBelumLunas = $counts->get(3, 0);
+        $countVerifikasi = $counts->get(4, 0);
+        $countLunas = $counts->get(5, 0);
+        $countFaktur = $counts->get(7, 0);
+        $countDitolak = $counts->get(90, 0);
+
+        // cek apakah semua data kosong
+        $isEmpty = $countBelumLunas === 0 && $countVerifikasi === 0 && $countLunas === 0 && $countFaktur === 0 && $countDitolak === 0;
+
+        // Logika: Menghitung jumlah invoice di setiap tahapan (Faktur -> Bayar -> Verif -> Selesai)
+        $funnelData = [
+            'categories' => ['Faktur Belum Terbit', 'Menunggu Bayar', 'Perlu Verifikasi', 'Selesai/Lunas', 'Ditolak'],
+            'data' => [
+                $countFaktur, // Total Faktur
+                $countBelumLunas, // Yang belum bayar
+                $countVerifikasi,  // Yang sudah bayar tapi belum dicek admin
+                $countLunas,  // Yang sudah beres
+                $countDitolak // Ditolak
+            ],
+            'isEmpty' => $isEmpty
+        ];
+
+        $html = view('components.dashboard.finance-inv-active', compact('funnelData'))->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function financeChartService(Request $request) {
+        $user = Auth::user();
+        $layanan = Master_layanan_jasa::where('status', 1)->get();
+        $layananNow = null;
+
+        if ($request->has('jenis_layanan')) {
+            $idLayanan = decryptor($request->jenis_layanan);
+            // Find the requested service from the collection we already fetched.
+            $layananNow = $layanan->firstWhere('id_layanan', $idLayanan);
+        }
+
+        // If no service was requested or the requested one wasn't found, default to the first active service.
+        if (!$layananNow) {
+            $layananNow = $layanan->first();
+        }
+
+        $statistik = Master_jenistld::withCount(['permohonan' => function ($query) use ($layananNow) {
+            $query->where('id_layanan', $layananNow->id_layanan)
+                  ->whereHas('invoice'); // Hanya hitung permohonan yang punya data di tabel keuangan
+        }])->get()
+        ->pluck('permohonan_count', 'name');
+
+        // --- 2. DATA KOMPOSISI LAYANAN (Donut Chart) ---
+        // Logika: Total pendapatan berdasarkan jenis TLD
+        $serviceData = [
+            'labels' => $statistik->keys(),
+            'series' => $statistik->values()
+        ];
+
+        // apakah semua data kosong
+        $isEmpty = $serviceData['series']->sum() === 0;
+        $serviceData['isEmpty'] = $isEmpty;
+
+        $html = view('components.dashboard.finance-chart-services', compact('serviceData'))->render();
+
+        return response()->json(['html' => $html]);
+    }
+
+    public function financeSide() {
+        // 1. DATA TOP DEBTORS (Siapa yang paling banyak hutang?)
+        // Query: Group by perusahaan, Sum nominal where status = unpaid
+        $topDebtors = collect([
+            (object) [
+                'nama_perusahaan' => 'PT. Nusa Lestari Tbk',
+                'total_invoice' => 3,
+                'total_hutang' => 45000000,
+                'persentase' => 80, // Persen dari limit kredit atau max hutang
+                'no_hp' => '62812345678'
+            ],
+            (object) [
+                'nama_perusahaan' => 'CV. Beton Perkasa',
+                'total_invoice' => 1,
+                'total_hutang' => 12500000,
+                'persentase' => 40,
+                'no_hp' => '62898765432'
+            ]
+        ]);
+
+        $html = view('components.dashboard.finance-side', compact('topDebtors'))->render();
 
         return response()->json(['html' => $html]);
     }

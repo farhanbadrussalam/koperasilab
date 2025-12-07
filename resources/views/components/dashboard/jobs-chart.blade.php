@@ -5,10 +5,20 @@
         </h6>
     </div>
     <div class="card-body">
+        @if(!$chartData['isEmpty'])
         <div id="jobChart" style="width: 100%; min-height: 300px;"></div>
+        @else
+        <div class="text-center pb-3">
+            <div class="mb-3">
+                <i class="bi bi-list-check text-muted opacity-25" style="font-size: 4rem;"></i>
+            </div>
+            <h6 class="text-gray-800 font-weight-bold">Tidak ada data saat ini.</h6>
+        </div>
+        @endif
     </div>
 </div>
 
+@if(!$chartData['isEmpty'])
 <script>
     {
         const chartData = @json($chartData);
@@ -76,50 +86,9 @@
                 }
             }
         };
-        // let options = {
-        //     series: chartData.value,
-        //     labels: chartData.category,
-        //     chart: {
-        //         type: 'donut',
-        //         height: 320,
-        //         fontFamily: 'Nunito, sans-serif' // Sesuaikan font web Anda
-        //     },
-        //     plotOptions: {
-        //         pie: {
-        //             donut: {
-        //                 size: '70%', // Ketebalan donat
-        //                 labels: {
-        //                     show: true,
-        //                     total: {
-        //                         show: true,
-        //                         label: 'Total',
-        //                         formatter: function (w) {
-        //                             // Menjumlahkan semua data
-        //                             return w.globals.seriesTotals.reduce((a, b) => {
-        //                                 return a + b
-        //                             }, 0)
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     },
-        //     dataLabels: {
-        //         enabled: false
-        //     },
-        //     legend: {
-        //         position: 'bottom'
-        //     },
-        //     tooltip: {
-        //         y: {
-        //             formatter: function(value) {
-        //                 return value + " Penyeliaan"
-        //             }
-        //         }
-        //     }
-        // }
 
         let chart = new ApexCharts(document.querySelector("#jobChart"), options1);
         chart.render();
     }
 </script>
+@endif

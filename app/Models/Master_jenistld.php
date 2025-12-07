@@ -52,4 +52,8 @@ class Master_jenistld extends Model
         return $this->hasMany(Kontrak::class, 'jenis_tld', 'id_jenisTld');
     }
 
+    public function permohonan(){
+        return $this->hasMany(Permohonan::class, 'jenis_tld', 'id_jenisTld');
+    }
+
 }

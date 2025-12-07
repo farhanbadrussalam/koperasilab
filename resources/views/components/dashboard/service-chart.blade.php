@@ -14,16 +14,21 @@
     </div>
 
     <div class="card-body d-flex flex-row align-items-center justify-content-center">
+        @if(!$isEmpty)
         <div id="serviceChart_1" style="width: 100%; min-height: 300px;"></div>
         <div id="serviceChart_2" style="width: 100%; min-height: 300px;"></div>
-
-        <div id="emptyChartMessage" class="d-none text-center text-muted py-4">
-            <i class="bi bi-bar-chart opacity-25" style="font-size: 3rem;"></i>
-            <p class="small mt-2">Belum ada data pengajuan masuk.</p>
+        @else
+        <div class="text-center pb-3">
+            <div class="mb-3">
+                <i class="bi bi-pie-chart-fill text-muted opacity-25" style="font-size: 4rem;"></i>
+            </div>
+            <h6 class="text-gray-800 font-weight-bold">Tidak ada data saat ini.</h6>
         </div>
+        @endif
     </div>
 </div>
 
+@if(!$isEmpty)
 <script>
     {
         const data_chart_1 = @json($data_chart_1);
@@ -37,6 +42,7 @@
             chart: {
                 type: 'bar', // Tipe Bar
                 height: 320,
+                stacked: true, // Agar bertumpuk
                 fontFamily: 'Nunito, sans-serif' // Sesuaikan font web Anda
             },
             xaxis: {
@@ -45,6 +51,14 @@
             yaxis: {
                 title: {
                     text: 'Jumlah Kontrak'
+                },
+                labels: {
+                    formatter: function (value) {
+                        // Memastikan hanya angka bulat yang ditampilkan pada sumbu
+                        if (Math.floor(value) === value) {
+                            return value;
+                        }
+                    }
                 }
             },
             plotOptions: {
@@ -123,3 +137,4 @@
         chart2.render();
     }
 </script>
+@endif
