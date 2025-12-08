@@ -259,8 +259,8 @@ class DashboardWidgetController extends Controller
         }
 
         $chart_1 = array(
-            "category" => $category,
-            "value" => $value
+            "category" => $category->toArray(),
+            "value" => array_map('intval', $value->toArray())
         );
 
         // Chart 2
@@ -276,12 +276,12 @@ class DashboardWidgetController extends Controller
             ->pluck('kontrak_count', 'name');
 
         $chart_2 = array(
-            "category" => $statistik_2->keys(),
-            "value" => $statistik_2->values()
+            "category" => $statistik_2->keys()->toArray(),
+            "value" => array_map('intval', $statistik_2->values()->toArray())
         );
 
         // cek apakah semua data kosong
-        $isEmpty = $chart_1['value']->sum() === 0 && $chart_2['value']->sum() === 0;
+        $isEmpty = $value->sum() === 0 && $statistik_2->values()->sum() === 0;
 
         // count layanan
         return response()->json([
@@ -659,12 +659,12 @@ class DashboardWidgetController extends Controller
         // --- 2. DATA KOMPOSISI LAYANAN (Donut Chart) ---
         // Logika: Total pendapatan berdasarkan jenis TLD
         $serviceData = [
-            'labels' => $statistik->keys(),
-            'series' => $statistik->values()
+            'labels' => $statistik->keys()->toArray(),
+            'series' => array_map('intval', $statistik->values()->toArray()),
         ];
 
         // apakah semua data kosong
-        $isEmpty = $serviceData['series']->sum() === 0;
+        $isEmpty = $statistik->values()->sum() === 0;
         $serviceData['isEmpty'] = $isEmpty;
 
         $html = view('components.dashboard.finance-chart-services', compact('serviceData'))->render();
