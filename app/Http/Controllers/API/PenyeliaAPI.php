@@ -632,6 +632,8 @@ class PenyeliaAPI extends Controller
                                     });
                             });
                         });
+                    } else if ($key === 'periode') {
+                        $q->where('periode', $value);
                     } else {
                         $q->whereHas('permohonan', function ($p) use ($key, $value) {
                             $p->where($key, decryptor($value));

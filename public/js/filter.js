@@ -247,6 +247,17 @@ class FilterComponent {
                 }
             });
         }
+
+        if(filterName == 'periode'){
+            $('#filterPeriode').on('keyup', function(event) {
+                if (event.keyCode === 13) {
+                    document.dispatchEvent(self.eventChange);
+                }
+            });
+            $('#cariPeriode').on('click', function() {
+                document.dispatchEvent(self.eventChange);
+            });
+        }
     }
 
     loadFilter() {
@@ -269,6 +280,7 @@ class FilterComponent {
         this.options.filter.perusahaan && this.createPerusahaanContent(html => callback(html), Object.keys(this.options.filter).indexOf('perusahaan'));
         this.options.filter.date_range && this.createDateRangeContent(html => callback(html), Object.keys(this.options.filter).indexOf('date_range'));
         this.options.filter.search && this.createSearchContent(html => callback(html), Object.keys(this.options.filter).indexOf('search'));
+        this.options.filter.periode && this.createPeriodeContent(html => callback(html), Object.keys(this.options.filter).indexOf('periode'));
     }
 
     createJenisTldContent(callback, index) {
@@ -379,6 +391,20 @@ class FilterComponent {
         callback(html);
         self._setupFilter('search');
     }
+    createPeriodeContent(callback, index) {
+        const self = this;
+        let html = `
+            <div class="col-3 order-${index+1}">
+                <div class="input-group">
+                    <label class="input-group-text py-0">Periode</label>
+                    <input type="text" id="filterPeriode" class="form-control form-control-sm" placeholder="All Periode">
+                    <span class="btn btn-outline-primary btn-sm d-flex align-items-center" id="cariPeriode"><i class="bi bi-search"></i></span>
+                </div>
+            </div>
+        `;
+        callback(html);
+        self._setupFilter('periode');
+    }
 
     getAllValue(){
         let allValue = {};
@@ -391,6 +417,7 @@ class FilterComponent {
         this.options.filter.perusahaan && (allValue.perusahaan = this.getValue('perusahaan'));
         this.options.filter.date_range && (allValue.date_range = this.getValue('date_range'));
         this.options.filter.search && (allValue.search = this.getValue('search'));
+        this.options.filter.periode && (allValue.periode = this.getValue('periode'));
 
         return allValue;
     }
@@ -409,6 +436,7 @@ class FilterComponent {
         if (filterName == 'perusahaan') return $('#filterPerusahaan').val();
         if (filterName == 'date_range') return this.fp.selectedDates.map(date => date.toISOString().split('T')[0]);
         if (filterName == 'search') return $('#filterSearch').val();
+        if (filterName == 'periode') return $('#filterPeriode').val();
     }
 
     clear() {
@@ -420,6 +448,7 @@ class FilterComponent {
         this.options.filter.perusahaan && ($('#filterPerusahaan').val('').trigger('change'));
         this.options.filter.date_range && (this.fp.clear());
         this.options.filter.search && $('#filterSearch').val('');
+        this.options.filter.periode && $('#filterPeriode').val('');
     }
 
     on(eventName, callback = () => { }) {
