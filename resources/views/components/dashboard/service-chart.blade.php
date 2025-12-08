@@ -88,7 +88,6 @@
         chart.render();
 
         // Chart 2
-        console.log(data_chart_2);
         let options2 = {
             series: data_chart_2.value, // Contoh: [10, 5, 2]
             labels: data_chart_2.category,

@@ -260,7 +260,7 @@ class DashboardWidgetController extends Controller
 
         $chart_1 = array(
             "category" => $category->toArray(),
-            "value" => $value->toArray()
+            "value" => array_map('intval', $value->toArray())
         );
 
         // Chart 2
@@ -660,11 +660,11 @@ class DashboardWidgetController extends Controller
         // Logika: Total pendapatan berdasarkan jenis TLD
         $serviceData = [
             'labels' => $statistik->keys()->toArray(),
-            'series' => $statistik->values()->toArray()
+            'series' => array_map('intval', $statistik->values()->toArray()),
         ];
 
         // apakah semua data kosong
-        $isEmpty = $serviceData['series']->sum() === 0;
+        $isEmpty = $statistik->values()->sum() === 0;
         $serviceData['isEmpty'] = $isEmpty;
 
         $html = view('components.dashboard.finance-chart-services', compact('serviceData'))->render();
