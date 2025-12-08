@@ -221,7 +221,10 @@
         </div>
         <div class="col-lg-4">
             <div class="sticky-sidebar">
-                <x-dashboard.time-cards />
+                <div id="widget-time-cards">
+                    <x-dashboard.time-cards />
+                </div>
+
                 @canany(['Permohonan/pengajuan', 'Staff/pengiriman'])
                 <div id="widget-delivery-stats"
                     class="ajax-widget"
@@ -344,6 +347,8 @@
 
             function loadAllWidgets() {
                 const widgets = document.querySelectorAll('.ajax-widget');
+
+                if(widgets.length == 0) $('#widget-time-cards').hide();
 
                 widgets.forEach(widget => {
                     load(widget);

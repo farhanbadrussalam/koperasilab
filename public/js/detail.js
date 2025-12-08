@@ -494,28 +494,55 @@ class Detail {
         let findPic = this.data.find(pic => pic.status == 1);
         let html = ``;
         let createLI = function(pic){
-            let periode = dateFormat(pic.created_at, 4);
-            if(pic.selesai_at){
-                periode += ` s/d ${dateFormat(pic.selesai_at, 4)}`;
-            }
-
             return `
-                <div class="tl-item ${pic.status == 1 ? 'active' : ''}">
-                    <div class="tl-dot border-primary"></div>
-                    <div class="tl-content w-100 pb-0">
-                        <div class="card mb-2 card-hover ${pic.status == 1 ? 'border-primary' : ''}">
-                            <div class="card-header p-2 d-flex justify-content-between align-items-center">
-                                <div class="fw-semibold">${periode}</div>
-                                ${pic.status == 1 ? '<span class="badge text-bg-primary">PIC saat ini</span>' : ''}
+                <div class="d-flex mb-2 position-relative" style="z-index: 1;">
+                    <div class="me-3">
+                        ${pic.status == 1 ? `
+                            <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center shadow-sm border border-4 border-white"
+                                 style="width: 40px; height: 40px;">
+                                <i class="bi bi-person-fill"></i>
                             </div>
-                            <div class="card-body p-2">
-                                <div class="d-flex flex-column">
-                                    <div class="me-2">
-                                        <span class="fw-normal">Nama : </span>
-                                        <span class="text-muted">${pic.name}</span></div>
-                                    <div class="me-2">
-                                        <span class="fw-normal">E-mail : </span>
-                                        <span class="text-muted">${pic.email}</span>
+                        ` : `
+                            <div class="rounded-circle bg-white border border-2 border-secondary d-flex justify-content-center align-items-center mt-2 mx-auto"
+                                style="width: 15px; height: 15px;">
+                            </div>
+                        `}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="card shadow-sm card-hover ${ pic.status == 1 ? 'border-0 bg-primary-subtle' : 'border-1 bg-white' } mb-1">
+                            <div class="card-body p-3 py-2">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        ${pic.status == 1 ? `
+                                            <small class="text-primary fw-bold text-uppercase" style="font-size: 0.7rem;">Mulai Menjabat</small>
+                                            <div class="text-dark fw-bold" style="font-size: 0.9rem;">
+                                                ${dateFormat(pic.created_at, 4)}
+                                            </div>
+                                        ` : `
+                                            <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Berakhir pada</small>
+                                            <div class="text-secondary fw-bold" style="font-size: 0.9rem;">
+                                                ${dateFormat(pic.selesai_at, 4)}
+                                            </div>
+                                        `}
+                                    </div>
+
+                                    ${pic.status == 1 ? `<span class="badge bg-primary rounded-pill">PIC Saat Ini</span>` : ''}
+                                </div>
+
+                                <div class="d-flex align-items-center mt-2">
+                                    <div class="rounded-circle ${ pic.status == 1 ? 'bg-white text-primary' : 'bg-secondary-subtle text-secondary' } d-flex justify-content-center align-items-center me-3 fw-bold"
+                                        style="width: 35px; height: 35px; min-width: 35px;">
+                                        ${ pic.name.charAt(0).toUpperCase() }
+                                    </div>
+
+                                    <div style="overflow: hidden;">
+                                        <h6 class="mb-0 fw-bold ${ pic.status == 1 ? 'text-primary' : 'text-dark' } text-truncate">
+                                            ${ pic.name }
+                                        </h6>
+                                        <div class="d-flex align-items-center text-muted small mt-1">
+                                            <i class="bi bi-envelope me-2"></i>
+                                            <span class="text-truncate">${ pic.email }</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -835,7 +862,7 @@ class Detail {
             <ul class="list-group list-group-flush rounded mt-2">
                 ${karyawanarr.map((data, i) => {
                     let docSuratKuasa = '';
-                    if(data.profile.suratkuasa){
+                    if(data.profile?.suratkuasa){
                         let urlDocumen = `${base_url}/storage/${data.profile.suratkuasa.file_path}/${data.profile.suratkuasa.file_hash}`;
                         docSuratKuasa = `<a type="button" class="btn btn-sm btn-outline-info" href="${urlDocumen}" target="_blank" title="Dokumen Surat Kuasa"><span class="bi bi-file-earmark-text"></span></a>`;
                     }
