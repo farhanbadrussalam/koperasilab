@@ -277,7 +277,7 @@ class DashboardWidgetController extends Controller
 
         $chart_2 = array(
             "category" => $statistik_2->keys()->toArray(),
-            "value" => $statistik_2->values()->toArray()
+            "value" => array_map('intval', $statistik_2->values()->toArray())
         );
 
         // cek apakah semua data kosong
