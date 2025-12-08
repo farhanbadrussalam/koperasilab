@@ -7,7 +7,6 @@
 </head>
 <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
     <div class="container">
-        <h1 style="font-size: 80px; margin-bottom: 0; color: #ffc107;">419</h1>
         <h2>Halaman Kedaluwarsa</h2>
         <p style="font-size: 20px;">Sesi Anda telah kedaluwarsa karena tidak ada aktivitas. Silakan coba kembali.</p>
         <p>

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\dashboardSkeletonController;
+use App\Http\Controllers\DashboardWidgetController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\HomeController;
@@ -91,7 +93,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
     Route::prefix('manager')->group(function () {
         Route::controller(ManagerPengajuanController::class)->group(function () {
-            Route::get('/pengajuan', 'index')->middleware(['permission:Manager/Keuangan'])->name('manager.pengajuan');
+            Route::get('/pengajuan', 'index')->middleware(['permission:Manager/keuangan'])->name('manager.pengajuan');
             Route::get('/surat_tugas', 'indexSuratTugas')->middleware(['permission:Manager/pengajuan'])->name('manager.surat_tugas');
         });
         Route::controller(StaffController::class)->group(function() {
@@ -156,6 +158,36 @@ Route::middleware(['auth', 'verified'])->group(function() {
     Route::prefix('settings')->group(function () {
         Route::controller(SettingsController::class)->group(function () {
             Route::post('notifications/realtime', 'toggleRealtime')->name('settings.realtime.toggle');
+        });
+    });
+
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::prefix('widgets')->name('widgets.')->group(function () {
+            Route::controller(DashboardWidgetController::class)->group(function () {
+                Route::get('/summary-cards', 'summaryCards')->name('summary-cards');
+                Route::get('/statistics-layanan', 'statisticsLayanan')->name('statistics-layanan');
+                Route::get('/delivery-stats', 'deliveryStats')->name('delivery-stats');
+                Route::get('/jobs-penyelia', 'jobsPenyelia')->name('jobs-penyelia');
+                Route::get('/monitorPenyeliaan', 'monitorPenyeliaan')->name('monitor-penyeliaan');
+                Route::get('/myJobsList', 'myJobsList')->name('myJobsList');
+                Route::get('/finance-charts', 'financeCharts')->name('finance-charts');
+                Route::get('/finance-inv-active', 'financeInvActive')->name('finance-inv-active');
+                Route::get('/finance-chart-service', 'financeChartService')->name('finance-chart-service');
+                Route::get('/finance-side', 'financeSide')->name('finance-side');
+
+                Route::get('/track-search', 'trackSearch')->name('track-search');
+            });
+        });
+        Route::prefix('skeleton')->name('skeleton.')->group(function () {
+            Route::controller(dashboardSkeletonController::class)->group(function () {
+                Route::get('/summary-cards', 'summaryCards')->name('summary-cards');
+                Route::get('/statistics-layanan', 'statisticsLayanan')->name('statistics-layanan');
+                Route::get('/delivery-stats', 'deliveryStats')->name('delivery-stats');
+                Route::get('/jobs-penyelia', 'jobsPenyelia')->name('jobs-penyelia');
+                Route::get('/monitorPenyeliaan', 'monitorPenyeliaan')->name('monitor-penyeliaan');
+                Route::get('/myJobsList', 'myJobsList')->name('myJobsList');
+                Route::get('/finance-chart-service', 'financeChartService')->name('finance-chart-service');
+            });
         });
     });
 });

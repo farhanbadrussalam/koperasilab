@@ -517,7 +517,7 @@ class ProfileAPI extends Controller
         DB::beginTransaction();
         try {
             $idPerusahaan = decryptor($idPerusahaan);
-            $query = User::where('id_perusahaan', $idPerusahaan)->orderBy('created_at', 'desc')->get();
+            $query = User::where('id_perusahaan', $idPerusahaan)->orderByRaw('selesai_at IS NULL DESC, selesai_at DESC')->get();
 
             DB::commit();
 

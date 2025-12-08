@@ -164,4 +164,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function profile(){
         return $this->hasOne(Profile::class, 'user_id', 'id');
     }
+
+    public function penyelia_petugas(){
+        return $this->hasOne(Penyelia_petugas::class, 'id_user', 'id')->with('map_active');
+    }
 }

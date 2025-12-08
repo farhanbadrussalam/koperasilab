@@ -24,10 +24,11 @@ $(function () {
         filter : {
             jenis_tld : true,
             jenis_layanan : true,
-            date_range: true,
+            // date_range: true,
             no_kontrak : true,
             perusahaan: true,
             status : true,
+            periode: true
         }
     })
 
@@ -66,7 +67,8 @@ function loadData(page = 1, menu = 'penyelialhu') {
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
     filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
-    (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
+    // (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
+    filterValue.periode && (params.filter.periode = filterValue.periode);
 
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);

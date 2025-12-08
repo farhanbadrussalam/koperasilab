@@ -1,47 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.main')
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>403 Akses Dilarang</title>
-
+@section('content')
     <style>
-        body {
-            font-family: sans-serif;
-            text-align: center;
-            padding-top: 50px;
-        }
-
         .container {
             max-width: 600px;
             margin: 0 auto;
         }
-
-        h1 {
-            font-size: 80px;
+        h2 {
             margin-bottom: 0;
             color: #dc3545;
         }
-
         p {
             font-size: 20px;
         }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
     </style>
-</head>
-
-<body>
-    <div class="container">
-        <h1>403</h1>
-        <h2>Akses Dilarang</h2>
-        <p>Maaf, Anda tidak memiliki izin untuk mengakses halaman ini.</p>
-        <p><a href="{{ url('/') }}">Kembali ke Beranda</a></p>
-    </div>
-</body>
-
-</html>
+        <div class="d-flex flex-column align-items-center justify-content-center" style="height: 75vh;">
+            <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+            <h2>Akses Dilarang</h2>
+            <p>Maaf, Anda tidak memiliki izin untuk mengakses halaman ini.</p>
+        </div>
+@endsection

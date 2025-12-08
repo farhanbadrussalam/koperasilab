@@ -34,7 +34,8 @@ class Master_jobs extends Model
     protected $fillable = [
         'name',
         'status',
-        'upload_doc'
+        'upload_doc',
+        'color'
     ];
 
     protected $hidden = [
@@ -55,5 +56,10 @@ class Master_jobs extends Model
     public function getJobsHashAttribute()
     {
         return $this->id_jobs ? encryptor($this->id_jobs) : null;
+    }
+
+    public function penyelia_map()
+    {
+        return $this->hasMany(Penyelia_map::class, 'id_jobs', 'id_jobs');
     }
 }

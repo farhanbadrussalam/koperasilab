@@ -163,7 +163,7 @@
                                     <div class="d-flex gap-2 mb-2">
                                         <div class="alert alert-info d-flex align-items-center w-100" role="alert">
                                             <i class="bi bi-info-circle me-2"></i>
-                                            <div>Anda sudah bukan PIC dari perusahaan ini, saat ini PIC anda adalah <b>{{ Auth::user()->perusahaan->pic->name }}</b></div>
+                                            <div>Anda sudah bukan PIC dari perusahaan <b>{{ Auth::user()->perusahaan->nama_perusahaan }}</b>, saat ini PIC anda adalah <b>{{ Auth::user()->perusahaan->pic->name }}</b></div>
                                         </div>
                                     </div>
                                 @endif

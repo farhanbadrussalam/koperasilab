@@ -574,7 +574,6 @@ class PenyeliaAPI extends Controller
             }
         }
 
-        $user = Auth::user();
         DB::beginTransaction();
         try {
             $query = Penyelia::with(
@@ -633,6 +632,8 @@ class PenyeliaAPI extends Controller
                                     });
                             });
                         });
+                    } else if ($key === 'periode') {
+                        $q->where('periode', $value);
                     } else {
                         $q->whereHas('permohonan', function ($p) use ($key, $value) {
                             $p->where($key, decryptor($value));

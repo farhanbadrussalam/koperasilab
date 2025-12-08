@@ -5,8 +5,8 @@
 /* --- 1. Untuk WebKit Browsers (Chrome, Safari, Edge) --- */
 /* Target semua elemen yang bisa di-scroll, termasuk <body> */
 *::-webkit-scrollbar {
-  width: 8px; /* Atur lebar scroll bar vertikal (atur sesuai keinginan, misal 4px) */
-  height: 8px; /* Atur tinggi scroll bar horizontal */
+  width: 5px; /* Atur lebar scroll bar vertikal (atur sesuai keinginan, misal 4px) */
+  height: 5px; /* Atur tinggi scroll bar horizontal */
 }
 
 /* Track (area di mana scroll bar bergerak) */
@@ -16,13 +16,23 @@
 
 /* Handle (pegangan yang digeser) */
 *::-webkit-scrollbar-thumb {
-  background: #888; /* Warna handle utama */
+  background: lightgray; /* Warna handle utama */
   border-radius: 4px; /* Sudut melengkung pada handle */
 }
 
 /* Handle saat di-hover (diarahkan kursor) */
 *::-webkit-scrollbar-thumb:hover {
-  background: #555; /* Warna handle saat di-hover */
+  background: #b8b8b8; /* Warna handle saat di-hover */
+}
+
+/* Custom Scroll */
+.scroll-light::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scroll-light::-webkit-scrollbar-thumb {
+  background: lightgray;
 }
 
 /* --- 2. Untuk Firefox --- */
@@ -30,7 +40,7 @@
 body {
   background-color: #F2F2F2 !important;
   scrollbar-width: thin; /* 'auto' atau 'thin' */
-  scrollbar-color: #888 #f1f1f1; /* Handle dan Track */
+  /*scrollbar-color: #888 #f1f1f1; /* Handle dan Track */
 }
 
 .cursoron {
@@ -576,4 +586,17 @@ tl-item.active .tl-dot:before {
 .notif-option.active {
     background-color: #f3f3f3 !important;
     font-weight: 500;
+}
+
+/* Custom CSS untuk Sidebar Sticky */
+.sticky-sidebar {
+    /* Fungsi utama agar menempel */
+    position: -webkit-sticky; /* Untuk Safari */
+    position: sticky;
+
+    /* Jarak dari atas layar saat berhenti scroll */
+    top: 85px;
+
+    /* Agar tumpukannya pas (opsional) */
+    z-index: 9;
 }

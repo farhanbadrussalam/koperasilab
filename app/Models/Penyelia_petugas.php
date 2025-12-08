@@ -100,4 +100,9 @@ class Penyelia_petugas extends Model
     {
         return $this->belongsTo(User::class, 'id_user', 'id');
     }
+
+    public function penyelia_map()
+    {
+        return $this->belongsTo(Penyelia_map::class, 'id_map', 'id_map');
+    }
 }

@@ -7,7 +7,6 @@
 </head>
 <body style="font-family: sans-serif; text-align: center; padding-top: 50px;">
     <div class="container">
-        <h1 style="font-size: 80px; margin-bottom: 0; color: #17a2b8;">429</h1>
         <h2>Terlalu Banyak Permintaan</h2>
         <p style="font-size: 20px;">Anda telah mencapai batas permintaan untuk saat ini. Silakan tunggu beberapa saat dan coba lagi.</p>
         <p>

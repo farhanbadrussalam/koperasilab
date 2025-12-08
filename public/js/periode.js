@@ -24,7 +24,11 @@ class Periode {
 
         $("#modal-pilih-periode-"+this.id_element).on("hide.bs.modal", () => {
             this.destroy();
-            this.listPeriode = Array.from(this.masterData);
+            if(this.masterData == null) {
+                this.listPeriode = [];
+            } else {
+                this.listPeriode = Array.from(this.masterData);
+            }
         });
 
         $("#modal-show-periode-" + this.id_element).on("hide.bs.modal", () => {

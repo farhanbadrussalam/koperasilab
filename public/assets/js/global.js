@@ -705,7 +705,10 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgre
  * @param {Function} [callback=() => {}] - The function to call if the request is successful.
  * @param {Function} [onError=() => {}] - The function to call if the request fails.
  */
-function ajaxGet(url, params, callback = () => {}, onError = () => {}, onMiddleware = true) {
+function ajaxGet(url, params, callback = () => {}, onError = () => {}, options = {}) {
+    const onMiddleware = options?.onMiddleware ?? true;
+    const onErrorPopup = options?.onErrorPopup ?? true;
+
     $.ajax({
         method: 'GET',
         url: `${base_url}/${url}`,
@@ -725,10 +728,12 @@ function ajaxGet(url, params, callback = () => {}, onError = () => {}, onMiddlew
             });
             console.error(result.data.msg);
         }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Terjadi kesalahan. Silakan coba lagi.',
-            });
+            if(onErrorPopup){
+                Swal.fire({
+                    icon: "error",
+                    text: 'Terjadi kesalahan. Silakan coba lagi.',
+                });
+            }
             console.error(error);
         }
 
@@ -1384,4 +1389,31 @@ function timeLeftUntilHMinusOneMonth(targetDate, opts = {}) {
   const target = toUTCDateOnly(targetDate);
 //   const hMinus1 = addCalendarMonths(target, -1);
   return formatTimeLeftID(today, target, opts);
+}
+
+// Fungsi Helper untuk menghidupkan script mati
+function executeScripts(container) {
+    // Ambil semua tag <script> yang ada di dalam widget baru
+    const scripts = container.querySelectorAll("script");
+
+    scripts.forEach((oldScript) => {
+        // Buat elemen script baru
+        const newScript = document.createElement("script");
+
+        // Salin isinya
+        if (oldScript.src) {
+            newScript.src = oldScript.src; // Jika script external
+        } else {
+            newScript.textContent = oldScript.textContent; // Jika script inline
+        }
+
+        // Tempel ke document body agar browser mengeksekusinya
+        document.body.appendChild(newScript);
+
+        // (Opsional) Hapus script lama agar tidak double di DOM
+        oldScript.remove();
+
+        // (Opsional) Hapus script baru setelah jalan agar DOM bersih
+        // newScript.remove();
+    });
 }

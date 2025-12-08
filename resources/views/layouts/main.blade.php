@@ -32,10 +32,6 @@
     <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
 
     <!-- Scripts -->
-    {{-- <link rel="stylesheet" href="{{ asset('assets/bootstrap/dist/css/bootstrap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/bootstrap-icons/font/bootstrap-icons.min.css') }}">
-    <script src="{{ asset('assets/bootstrap/dist/js/bootstrap.min.js') }}"></script> --}}
-
     <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
     <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
@@ -81,6 +77,7 @@
 </head>
 
 <body>
+
     <!--  Body Wrapper -->
     <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
         <!-- Main Sidebar Container -->
@@ -104,19 +101,8 @@
     </div>
 
     {{-- modal --}}
-    <div class="modal fade" id="modal-preview-ktp" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="">KTP</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body row justify-content-center">
-                    <img src="#" alt="" class="img-fluid" id="img-preview-ktp">
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-modal.preview-ktp />
+    <x-modal.quick-track />
 
     <script>
         const bearer = "{{ generateToken() }}";
@@ -214,6 +200,20 @@
                 //     }
                 // });
             }, 10000);
+
+            // Menangkap semua event saat modal manapun mulai ditutup
+            document.addEventListener('hide.bs.modal', function (event) {
+                if (document.activeElement) {
+                    document.activeElement.blur(); // Hilangkan fokus dari tombol apapun
+                }
+            });
+
+            // Inisialisasi semua tooltip di halaman
+            // let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            // tooltipTriggerList.map(function (tooltipTriggerEl) {
+            //     return new bootstrap.Tooltip(tooltipTriggerEl)
+            // })
+
         })
 
         function loadNotifikasi() {
