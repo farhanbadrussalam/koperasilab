@@ -103,7 +103,7 @@ class PengirimanAPI extends Controller
     {
         $limit = $request->has('limit') ? $request->limit : 10;
         $page = $request->has('page') ? $request->page : 1;
-        $search = $request->has('search') ? $request->search : '';
+        $filter = $request->has('filter') ? $request->filter : '';
         $idPelanggan = $request->has('idPelanggan') ? decryptor($request->idPelanggan) : '';
 
         DB::beginTransaction();
@@ -118,6 +118,15 @@ class PengirimanAPI extends Controller
                     ->orderBy('recived_at', 'ASC')
                     ->orderBy('created_at', 'DESC')
                     ->offset(($page - 1) * $limit)
+                    ->when($filter, function($q, $filter) {
+                        foreach ($filter as $key => $value) {
+                            if($key == 'no_kontrak') {
+                                $q->where('id_kontrak', decryptor($value));
+                            } else if($key == 'search') {
+                                $q->where('id_pengiriman', $value)->orWhere('no_resi', 'like', "%$value%");
+                            }
+                        }
+                    })
                     // ->when($status, function($q, $status) {
                     //     return $q->whereIn('status', $status);
                     // })

@@ -7,7 +7,7 @@ $(function () {
             jenis_tld : true,
             jenis_layanan : true,
             search: true,
-            date_range : true,
+            periode: true
         }
     })
 
@@ -28,7 +28,8 @@ function loadData(page = 1) {
     filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
     filterValue.jenis_layanan && (params.filter.jenis_layanan = filterValue.jenis_layanan);
     filterValue.search && (params.filter.search = filterValue.search);
-    (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
+    filterValue.periode && (params.filter.periode = filterValue.periode);
+    // (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);

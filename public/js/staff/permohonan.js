@@ -7,7 +7,6 @@ $(function () {
         tab: {
             tld: true,
             pengguna: true,
-            // periode: true,
             dokumen: true
         }
     });
@@ -18,7 +17,8 @@ $(function () {
             jenis_tld : true,
             jenis_layanan : true,
             no_kontrak : true,
-            perusahaan: true
+            perusahaan: true,
+            periode: true
         }
     })
 
@@ -47,6 +47,7 @@ function loadData(page = 1) {
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
     filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
+    filterValue.periode && (params.filter.periode = filterValue.periode);
 
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);

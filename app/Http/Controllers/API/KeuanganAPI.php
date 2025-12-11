@@ -104,6 +104,8 @@ class KeuanganAPI extends Controller
                                 foreach ($filter as $key => $value) {
                                     if($key == 'status') {
                                         $q->where($key, decryptor($value));
+                                    } else if ($key == 'periode') {
+                                        $p->where($key, $value);
                                     }else{
                                         $p->where($key, decryptor($value));
                                     }

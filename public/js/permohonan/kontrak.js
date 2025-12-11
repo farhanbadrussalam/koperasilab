@@ -13,7 +13,8 @@ $(function () {
             status : true,
             jenis_tld : true,
             no_kontrak : true,
-            date_range: true
+            date_range: true,
+            periode: true
         }
     })
 
@@ -41,6 +42,7 @@ function loadData(page = 1) {
     filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.periode && (params.filter.periode = filterValue.periode);
     (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
     if(Object.keys(params.filter).length > 0) {

@@ -81,7 +81,9 @@ class KontrakAPI extends Controller
                                 $q->whereHas('periode', function($p) use ($value) {
                                     $p->whereBetween('start_date', [$value[0], $value[1]])->whereNull('id_permohonan');
                                 });
-                            }else{
+                            } else if ($key == 'periode') {
+
+                            } else{
                                 $q->where($key, decryptor($value));
                             }
                         }
