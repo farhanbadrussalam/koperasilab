@@ -77,17 +77,41 @@ function rules_password(type="create", rules = {}, val = '', id = '') {
                 $(val).append(`<li id="rule-${key}-${id}"></li>`)
             }
         }
-        rules.minLength && $(`#rule-minLength-${id}`).text('❌ Minimal 8 karakter');
-        rules.lowerCase && $(`#rule-lowerCase-${id}`).text('❌ Ada huruf kecil');
-        rules.upperCase && $(`#rule-upperCase-${id}`).text('❌ Ada huruf besar');
-        rules.digit && $(`#rule-digit-${id}`).text('❌ Ada angka');
-        rules.special && $(`#rule-special-${id}`).text('❌ Ada simbol');
+        rules.minLength && $(`#rule-minLength-${id}`).text('▪ Minimal 8 karakter');
+        rules.lowerCase && $(`#rule-lowerCase-${id}`).text('▪ Ada huruf kecil');
+        rules.upperCase && $(`#rule-upperCase-${id}`).text('▪ Ada huruf besar');
+        rules.digit && $(`#rule-digit-${id}`).text('▪ Ada angka');
+        rules.special && $(`#rule-special-${id}`).text('▪ Ada simbol');
     } else {
-        rules.minLength && $(`#rule-minLength-${id}`).text((val.length >= rules.minLength ? '✅' : '❌') + ' Minimal ' + rules.minLength + ' karakter');
-        rules.lowerCase && $(`#rule-lowerCase-${id}`).text((/[a-z]/.test(val) ? '✅' : '❌') + ' Ada huruf kecil');
-        rules.upperCase && $(`#rule-upperCase-${id}`).text((/[A-Z]/.test(val) ? '✅' : '❌') + ' Ada huruf besar');
-        rules.digit && $(`#rule-digit-${id}`).text((/\d/.test(val) ? '✅' : '❌') + ' Ada angka');
-        rules.special && $(`#rule-special-${id}`).text((/[^a-zA-Z0-9]/.test(val) ? '✅' : '❌') + ' Ada simbol');
+        let successCount = 0;
+        const countRule = Object.values(rules).filter(value => value !== false).length;
+
+        const checkRule = (condition, ruleName, text) => {
+            const icon = val === '' ? '▪' : (condition ? '✅' : '❌');
+            $(`#rule-${ruleName}-${id}`).text(`${icon} ${text}`);
+            if (condition) {
+                successCount++;
+            }
+        };
+
+        if (rules.minLength) checkRule(val.length >= rules.minLength, 'minLength', `Minimal ${rules.minLength} karakter`);
+        if (rules.lowerCase) checkRule(/[a-z]/.test(val), 'lowerCase', 'Ada huruf kecil');
+        if (rules.upperCase) checkRule(/[A-Z]/.test(val), 'upperCase', 'Ada huruf besar');
+        if (rules.digit) checkRule(/\d/.test(val), 'digit', 'Ada angka');
+        if (rules.special) checkRule(/[^a-zA-Z0-9]/.test(val), 'special', 'Ada simbol');
+
+        const percentage = (successCount / countRule) * 100;
+
+        let backgroundColor = '';
+        // Tambahkan kelas warna baru berdasarkan kondisi
+        if (percentage === 100) {
+            backgroundColor = 'bg-success';
+        } else if (successCount === countRule - 1 && countRule > 1) {
+            backgroundColor = 'bg-warning';
+        } else {
+            backgroundColor = 'bg-danger';
+        }
+        return { successCount, totalRules: countRule, percentage, backgroundColor }; // Mengembalikan object untuk penggunaan lebih lanjut
     }
 
 }

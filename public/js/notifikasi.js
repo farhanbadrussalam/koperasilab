@@ -38,9 +38,10 @@ class WidgetNotifikasi {
     loadHtml(){
         const container = document.getElementById(this.idElement);
         container.innerHTML = `
-            <a id="navbarNotif" class="nav-link position-relative" data-bs-toggle="dropdown" role="button" href="#" data-bs-auto-close="outside">
-                <i class="bi bi-bell-fill fs-4"></i>
-                <span class="position-absolute translate-middle badge rounded-pill bg-danger" style="font-size: 10px; top: 35%; right: 0px;" id="count_lonceng"></span>
+            <a href="#" class="text-secondary position-relative d-flex align-items-center justify-content-center p-2 rounded-circle hover-bg-light transition-all"
+                id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="width: 40px; height: 40px;">
+                <i class="bi bi-bell-fill fs-5"></i>
+                <span class="position-absolute translate-middle badge rounded-pill bg-danger" style="font-size: 10px;top: 20%;right: -5px;" id="count_lonceng"></span>
             </a>
             <div id="container-notifikasi"
                 class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up position-absolute border-0 rounded-3 shadow py-0"
