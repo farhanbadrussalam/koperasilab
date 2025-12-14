@@ -92,9 +92,22 @@ $(function() {
 
         // Sembunyikan tombol Edit Profil
         this.classList.add('d-none');
-    })
+    });
+
+    $('#btnEditInstansi').click(function(){
+        document.querySelectorAll('input:not([readonly]), textarea, button[title="Hapus File"], select').forEach(el => el.disabled = false);
+        document.getElementById('btnSimpanInstansi').disabled = false;
+        this.classList.add('d-none');
+        $('#btnBackInstansi').show();
+    });
 
     $('#btnCancelEdit').click(function(){
+        window.location.href = window.location.pathname;
+        location.reload();
+    })
+
+    $('#btnBackInstansi').click(function(){
+        window.location.href = window.location.pathname + '#instansi';
         location.reload();
     })
 
@@ -164,7 +177,7 @@ function loadForm(data) {
         }
 
         $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
-        $('#kode_instansi').val(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
+        $('#kode_instansi').html(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
         $('#email').val(data.perusahaan?.email ? data.perusahaan.email : '-');
         $('#nama_perusahaan').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
 
@@ -450,6 +463,47 @@ function simpanEdit(obj, tab){
         }
 
     }
+}
+
+function simpanPerubahanInstansi(obj){
+    const formInstansi = $('#form-instansi');
+    spinner('show', $(obj));
+
+    formInstansi.parsley().validate();
+    if(!formInstansi.parsley().isValid()){
+        return;
+    }
+
+    const formParams = new FormData();
+    for (const element of formInstansi[0]) {
+        let field = $(element).attr('name');
+        formParams.append(field, element.value);
+    }
+    formParams.append('idPerusahaan', profile.perusahaan?.perusahaan_hash);
+
+    ajaxPost(`api/v1/profile/action/perusahaan`, formParams, result => {
+        if(result.meta.message == 'Fail'){
+            spinner('hide', $(obj));
+            Swal.fire({
+                icon: 'warning',
+                text: result.data.msg
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            text: result.data.msg,
+            timer: 1200,
+            timerProgressBar: true,
+            showConfirmButton: false
+        }).then(() => {
+            window.location.href = window.location.pathname + '#instansi';
+            location.reload();
+        })
+    }, error => {
+        spinner('hide', $(obj));
+    });
 }
 function simpanPerubahanBiodata(obj){
     const formBiodata = $('#form-biodata');

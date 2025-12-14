@@ -30,9 +30,11 @@
                                 <div id="detail-tab" class="list-group-item list-group-item-action active border-0 rounded-3 mb-1 cursor-pointer" data-bs-toggle="tab" data-bs-target="#detail-tab-pane" role="tab" aria-controls="detail-tab-pane" aria-selected="true">
                                     <i class="bi bi-person me-2"></i> Biodata Diri
                                 </div>
+                                @if(Auth::user()->hasRole('Pelanggan'))
                                 <div id="instansi-tab" class="list-group-item list-group-item-action border-0 rounded-3 mb-1 cursor-pointer" data-bs-toggle="tab" data-bs-target="#instansi-tab-pane" role="tab" aria-controls="instansi-tab-pane" aria-selected="true">
                                     <i class="bi bi-building me-2"></i> Data Instansi
                                 </div>
+                                @endif
                                 <div id="ttd-tab" class="list-group-item list-group-item-action border-0 rounded-3 mb-1 cursor-pointer" data-bs-toggle="tab" data-bs-target="#ttd-tab-pane" role="tab" aria-controls="ttd-tab-pane" aria-selected="true">
                                     <i class="bi bi-file-earmark-text me-2"></i> Tanda Tangan
                                 </div>
@@ -66,8 +68,12 @@
 
                                             <form id="form-biodata" class="row">
                                                 <div class="col-md-6">
-                                                    <label class="form-label small text-muted fw-bold">NIK</label>
-                                                    <input type="text" class="form-control" name="nik_pic" id="nik_pic" disabled>
+                                                    <label class="form-label small text-muted fw-bold">NIK <span class="fw-bold fs-14 text-danger">*</span></label>
+                                                    <input type="text" class="form-control" name="nik_pic" id="nik_pic"
+                                                        data-parsley-required-message="NIK harus diisi"
+                                                        data-parsley-errors-container="#message-nik-biodata"
+                                                        disabled required>
+                                                    <div id="message-nik-biodata" class="invalid-feedback d-block"></div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <label class="form-label small text-muted fw-bold">Nama Lengkap PIC</label>
@@ -87,8 +93,11 @@
                                                 </div>
 
                                                 <div class="col-md-12">
-                                                    <label class="form-label small text-muted fw-bold">No. Telepon / WA</label>
-                                                    <input type="text" class="form-control" name="telepon" id="telepon" disabled>
+                                                    <label class="form-label small text-muted fw-bold">No. Telepon / WA <span class="fw-bold fs-14 text-danger">*</span></label>
+                                                    <input type="text" class="form-control" name="telepon" id="telepon"
+                                                        data-parsley-errors-container="#message-telepon-biodata"
+                                                        data-parsley-required-message="Telepon harus diisi" required disabled>
+                                                    <div id="message-telepon-biodata" class="invalid-feedback d-block"></div>
                                                 </div>
 
                                                 <div class="col-12">
@@ -97,6 +106,7 @@
                                                 </div>
                                             </form>
 
+                                            @if(Auth::user()->hasRole('Pelanggan'))
                                             <div class="col-12 mt-4">
                                                 <div class="p-3 bg-light rounded-3 border border-dashed">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -122,6 +132,7 @@
                                                     </div> --}}
                                                 </div>
                                             </div>
+                                            @endif
 
                                             <div class="d-none justify-content-end gap-2 mt-4 pt-3 border-top" id="actionButtons">
                                                 <button type="button" class="btn btn-light" id="btnCancelEdit">Batal</button>
@@ -133,144 +144,102 @@
                                 </div>
                             </div>
                             <div class="tab-pane fade show" id="instansi-tab-pane" role="tabpanel" aria-labelledby="instansi-tab" tabindex="0">
-                                <div class="card border-0 shadow-sm" id="card-instansi-aktif">
-                                    <div class="card-body">
-                                        @if (Auth::user()->status == 1)
-                                            <div class="d-flex justify-content-center gap-2 mb-2">
-                                                <button class="btn btn-outline-primary btn-sm" type="button" onclick="openModalPic()"><i class="bi bi-person-bounding-box"></i> Ganti PIC</button>
-                                                <button class="btn btn-outline-info btn-sm" type="button" onclick="openModalHistoryPic()"><i class="bi bi-journal-text"></i> History PIC</button>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm rounded-4">
+                                            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center rounded-top-4">
+                                                <h6 class="m-0 fw-bold text-dark">
+                                                    <i class="bi bi-building me-2 text-primary"></i>Identitas Perusahaan
+                                                </h6>
+                                                @if (Auth::user()->status == 1)
+                                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnEditInstansi">
+                                                    <i class="bi bi-pencil-square me-1"></i> Edit Data
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" id="btnBackInstansi" style="display: none;">
+                                                    <i class="bi bi-x-circle me-1"></i> Batal
+                                                </button>
+                                                @endif
                                             </div>
-                                        @else
-                                            <div class="d-flex gap-2 mb-2">
-                                                <div class="alert alert-info d-flex align-items-center w-100" role="alert">
-                                                    <i class="bi bi-info-circle me-2"></i>
-                                                    <div>Anda sudah bukan PIC dari perusahaan <b>{{ Auth::user()->perusahaan->nama_perusahaan }}</b>, saat ini PIC anda adalah <b>{{ Auth::user()->perusahaan->pic->name }}</b></div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                        <div class="row">
-                                            <div class="col-md-4 fw-bolder mb-3">
-                                                <h2>Detail</h2>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="d-flex mb-2">
-                                                    <div class="flex-fill">
-                                                        <label for="kode_instansi" class="form-label">Kode instansi</label>
-                                                        <div class="d-flex align-items-center">
-                                                            <input type="text" class="form-control me-2" id="kode_instansi" name="kode_instansi" placeholder="" disabled>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex mb-2">
-                                                    <div class="flex-fill">
-                                                        <label for="idPerusahaan" class="form-label">Nama instansi</label>
-                                                        <div class="d-flex align-items-center">
-                                                            <div class="w-100 me-2">
-                                                                {{-- <select name="idPerusahaan" class="form-select" id="idPerusahaan" disabled></select> --}}
-                                                                <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" placeholder=""
-                                                                    data-parsley-required-message="Nama instansi harus diisi"
-                                                                    data-parsley-errors-container="#message-nama_perusahaan"
-                                                                    required disabled>
-                                                            </div>
-                                                            @if(Auth::user()->status == 1)
-                                                            <div id="btnEditDiv-nama_perusahaan" class="d-block" data-field="nama_perusahaan">
-                                                                <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
-                                                            </div>
-                                                            <div id="btnActionDiv-nama_perusahaan" class="d-none d-flex" data-field="nama_perusahaan">
-                                                                <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
-                                                                <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
-                                                            </div>
-                                                            @endif
-                                                        </div>
-                                                        <div id="message-nama_perusahaan" class="invalid-feedback d-block"></div>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex mb-2">
-                                                    <div class="flex-fill">
-                                                        <label for="email" class="form-label">E-mail</label>
-                                                        <div class="d-flex align-items-center">
-                                                            <input type="email" class="form-control me-2" id="email" name="email" placeholder=""
-                                                                data-parsley-errors-container="#message-email"
-                                                                disabled>
-                                                            @if(Auth::user()->status == 1)
-                                                            <div id="btnEditDiv-email" class="d-block" data-field="email">
-                                                                <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
-                                                            </div>
-                                                            <div id="btnActionDiv-email" class="d-none d-flex" data-field="email">
-                                                                <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
-                                                                <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
-                                                            </div>
-                                                            @endif
-                                                        </div>
-                                                        <div id="message-email" class="invalid-feedback d-block"></div>
-                                                    </div>
-                                                </div>
-                                                <div class="d-flex mb-2">
-                                                    <div class="flex-fill">
-                                                        <label for="npwp" class="form-label">NPWP</label>
-                                                        <div class="d-flex align-items-center">
-                                                            <input type="text" class="form-control me-2 maskNPWP" id="npwp" name="npwp" disabled autocomplete="true">
-                                                            @if(Auth::user()->status == 1)
-                                                            <div id="btnEditDiv-npwp" class="d-block" data-field="npwp">
-                                                                <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'instansi')"><i class="bi bi-pencil"></i></button>
-                                                            </div>
-                                                            <div id="btnActionDiv-npwp" class="d-none d-flex" data-field="npwp">
-                                                                <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'instansi')"><i class="bi bi-x"></i></button>
-                                                                <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'instansi')"><i class="bi bi-check"></i></button>
-                                                            </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2" id="form-alamat-perusahaan">
-                                            <hr>
-                                            <div class="col-md-4 fw-bolder mb-3">
-                                                <h2>Alamat Perusahaan</h2>
-                                            </div>
-                                            <div class="col-md-6" id="list-alamat">
 
+                                            <div class="card-body p-4">
+                                                <div class="d-flex align-items-center mb-4 p-3 bg-primary-subtle rounded-3 border border-primary-subtle">
+                                                    <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                                        <i class="bi bi-qr-code"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <small class="text-primary fw-bold text-uppercase d-block">Kode Instansi</small>
+                                                        <span class="fs-5 fw-bold text-dark" id="kode_instansi"></span>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-light text-primary" onclick="copyKode()" title="Salin Kode">
+                                                        <i class="bi bi-clipboard"></i>
+                                                    </button>
+                                                </div>
+
+                                                <form id="form-instansi" novalidate>
+
+                                                    <div class="row g-3">
+                                                        <div class="col-md-6 mt-1">
+                                                            <label class="form-label small fw-bold text-muted">Nama Instansi <span class="fw-bold fs-14 text-danger">*</span></label>
+                                                            <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" placeholder=""
+                                                                        data-parsley-required-message="Nama instansi harus diisi"
+                                                                        data-parsley-errors-container="#message-nama_perusahaan"
+                                                                        required disabled>
+                                                            <div id="message-nama_perusahaan" class="invalid-feedback d-block"></div>
+                                                        </div>
+
+                                                        <div class="col-md-6 mt-1">
+                                                            <label class="form-label small fw-bold text-muted">NPWP <span class="fw-bold fs-14 text-danger">*</span></label>
+                                                            <input type="text" class="form-control me-2 maskNPWP" id="npwp" name="npwp_perusahaan"
+                                                                data-parsley-errors-container="#message-npwp"
+                                                                data-parsley-required-message="NPWP harus diisi"
+                                                                required disabled autocomplete="true">
+                                                            <div id="message-npwp" class="invalid-feedback d-block"></div>
+                                                        </div>
+
+                                                        <div class="col-12 mt-1">
+                                                            <label class="form-label small fw-bold text-muted">Email Resmi <span class="fw-bold fs-14 text-danger">*</span></label>
+                                                            <div class="input-group">
+                                                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
+                                                                <input type="email" class="form-control me-2" id="email" name="email" placeholder=""
+                                                                    data-parsley-errors-container="#message-email"
+                                                                    data-parsley-required-message="Email harus diisi"
+                                                                    required
+                                                                    disabled>
+                                                            </div>
+                                                            <div id="message-email" class="invalid-feedback d-block"></div>
+                                                        </div>
+                                                    </div>
+
+                                                </form>
+
+                                                <div class="mt-4 pt-3 border-top d-flex gap-2">
+                                                    <button id="btnSimpanInstansi" class="btn btn-primary w-100" type="button" onclick="simpanPerubahanInstansi()" disabled>Simpan Perubahan Data</button>
+                                                    @if (Auth::user()->status == 1)
+                                                    <button type="button" class="btn btn-light text-primary border-primary-subtle w-100" onclick="openModalPic()">
+                                                        <i class="bi bi-person-gear me-1"></i> Ganti PIC
+                                                    </button>
+                                                    <button type="button" class="btn btn-light text-secondary border-secondary-subtle w-100" onclick="openModalHistoryPic()">
+                                                        <i class="bi bi-clock-history me-1"></i> History PIC
+                                                    </button>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="card border-0 shadow-sm p-2" id="card-instansi-nonaktif">
-                                    <form id="form-instansi-nonaktif" novalidate>
-                                        <div class="border rounded my-4 p-3 mx-xl-5 position-relative">
-                                            <span class="position-absolute top-0 start-50 translate-middle bg-white px-2 fs-5">
-                                                Data Instansi
-                                            </span>
-                                            <div class="row mt-3">
-                                                <div class="col-md-12 mb-2">
-                                                    <label for="nama_instansi_new" class="form-label">Nama Instansi <span class="fw-bold fs-14 text-danger">*</span></label>
-                                                    <input type="text" class="form-control" id="nama_instansi_new" name="nama_instansi" required data-parsley-required-message="Nama instansi harus diisi">
-                                                </div>
-                                                <div class="col-md-6 mb-2">
-                                                    <label for="email_instansi_new" class="form-label">Email instansi <span class="fw-bold fs-14 text-danger">*</span></label>
-                                                    <input type="email" class="form-control maskEmail" id="email_instansi_new" name="email_instansi" required
-                                                        data-parsley-required-message="Email instansi harus diisi"
-                                                        data-parsley-errors-container="#email_instansi_error">
-                                                    <div id="email_instansi_error" class="invalid-feedback d-block"></div>
-                                                </div>
-                                                <div class="col-md-6 mb-2">
-                                                    <label for="npwp_new" class="form-label">NPWP <span class="fw-bold fs-14 text-danger">*</span></label>
-                                                    <input type="text" class="form-control maskNPWP" id="npwp_new" name="npwp" required data-parsley-required-message="NPWP harus diisi">
-                                                </div>
-                                                <div class="col-md-12 mb-2">
-                                                    <label for="kode_pos_new" class="form-label">Kode Pos <span class="fw-bold fs-14 text-danger">*</span></label>
-                                                    <input type="text" class="form-control maskNumber" id="kode_pos_new" name="kode_pos" placeholder="" autocomplete="true" required data-parsley-required-message="Kode Pos harus diisi">
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="alamat_instansi_new" class="form-label">Alamat <span class="fw-bold fs-14 text-danger">*</span></label>
-                                                    <textarea name="alamat_instansi" id="alamat_instansi_new" cols="30" rows="5" class="form-control" required data-parsley-required-message="Alamat instansi harus diisi"></textarea>
-                                                </div>
+
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                                            <div class="card-header bg-white py-3 border-bottom rounded-top-4">
+                                                <h6 class="m-0 fw-bold text-dark">
+                                                    <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Detail Lokasi
+                                                </h6>
                                             </div>
-                                            <div class="d-flex justify-content-end">
-                                                <button type="button" onclick="tambahInstansi(this)" class="btn btn-primary">Simpan</button>
+
+                                            <div class="card-body p-4">
+                                                <div class="col-md-12" id="list-alamat"></div>
                                             </div>
                                         </div>
-                                    </form>
+                                    </div>
                                 </div>
                             </div>
                             <div class="tab-pane fade show" id="ttd-tab-pane" role="tabpanel" aria-labelledby="ttd-tab" tabindex="0">

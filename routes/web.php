@@ -146,7 +146,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::post('document/{id}', [DocumentController::class, 'update']);
     });
 
-    Route::resource('userProfile', ProfileController::class)->middleware(['permission:Profile/pelanggan']);
+    Route::resource('userProfile', ProfileController::class);
     Route::resource('userPerusahaan', userPerusahaanController::class);
 
     Route::get('/sendNotif', [NotifController::class, 'notif'])->name('notif.send');
