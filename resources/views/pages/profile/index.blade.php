@@ -12,10 +12,10 @@
                                         style="width: 120px; height: 120px; background-color: #55c57a;">
                                     {{ substr($profile->name, 0, 1) }}
                                 </div>
-                                <button class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 border border-2 border-white"
+                                {{-- <button class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 border border-2 border-white"
                                         title="Ganti Foto" style="width: 35px; height: 35px;">
                                     <i class="bi bi-camera-fill"></i>
-                                </button>
+                                </button> --}}
                             </div>
                             <h5 class="fw-bold text-dark mb-1">{{ $profile->name }}</h5>
                             <p class="text-muted small mb-3">{{ $profile->jabatan ?? 'Pelanggan' }}</p>
