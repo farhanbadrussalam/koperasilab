@@ -140,7 +140,7 @@ function loadData(page = 1) {
 }
 
 function showDetail(obj){
-    const idPermohonan = $(obj).parent().data("id");
+    const idPermohonan = $(obj).parent().parent().data("id");
     detail.show(`api/v1/permohonan/getPengajuanById/${idPermohonan}`);
 }
 
