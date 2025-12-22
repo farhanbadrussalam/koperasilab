@@ -657,3 +657,21 @@ tl-item.active .tl-dot:before {
 .border-dashed {
     border-style: dashed !important;
 }
+
+/* Garis pemisah vertikal hanya muncul di layar besar */
+@media (min-width: 992px) {
+    .border-start-lg {
+        border-left: 1px solid #dee2e6 !important;
+    }
+}
+
+
+/* Styling agar Item terasa seperti tombol */
+.hover-bg-light:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+/* Sembunyikan elemen bawaan DataTable yang jelek */
+.dataTables_filter, .dataTables_length, .dataTables_info, thead {
+    display: none !important;
+}

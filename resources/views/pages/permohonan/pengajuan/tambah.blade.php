@@ -205,38 +205,43 @@
     <div class="modal fade" id="modal-add-tld-pengguna" tabindex="-1" aria-labelledby="exampleModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Tambahkan pengguna</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom-0 pb-0 d-block">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="modal-title fw-bold">Tambahkan Pengguna</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="position-relative mb-3">
+                        <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" id="customSearch" class="form-control form-control-lg ps-5 bg-light border-0"
+                            placeholder="Cari nama atau ID karyawan...">
+                    </div>
                 </div>
-                <div class="modal-body g-2 row">
-                    <div class="d-flex justify-content-between mb-2">
-                        <div class="flex-grow-1">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i
-                                    class="bi bi-arrow-clockwise"></i> Refresh data</button>
-                        </div>
-                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modal-add-pengguna"><i
-                                class="bi bi-plus"></i> Tambah pengguna</button>
+                <div class="modal-body p-0 custom-scrollbar" style="max-height: 400px; overflow-y: auto;">
+
+                    <div class="p-2">
+                        <table id="table-user" class="table table-borderless w-100 align-middle">
+                            <thead class="d-none"> <tr>
+                                    <th>User Data</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
-                    <table class="table table-hover w-100 align-middle" id="table-pengguna">
-                        <thead>
-                            <th width="5%">No</th>
-                            <th>Name</th>
-                            <th width="20%">Divisi</th>
-                            <th width="15%" class="text-center">Action</th>
-                        </thead>
-                    </table>
-                    <div id="form-kode-lencana-pengguna">
-                        <label for="kodeLencanaPengguna" class="col-form-label">No Seri TLD</label>
-                        <div class="input-group mb-3">
-                            <input type="text" class="form-control rounded-start" id="noSeriPengguna"
-                                placeholder="Pilih No Seri" readonly>
-                            <button class="btn btn-outline-secondary" type="button"
-                                onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i>
-                                Ganti</button>
-                        </div>
+
+                    <div class="text-center py-5 d-none" id="emptyState">
+                        <i class="bi bi-person-x text-muted opacity-25" style="font-size: 3rem;"></i>
+                        <p class="text-muted small mt-2">Pengguna tidak ditemukan</p>
                     </div>
+                </div>
+                <div class="modal-footer border-top-0 justify-content-between bg-white py-3 rounded-bottom-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-toggle="modal" data-bs-target="#modal-add-pengguna">
+                        <i class="bi bi-person-plus"></i> Tambah Pengguna
+                    </button>
+                    <div id="customPagination"></div>
                 </div>
             </div>
         </div>

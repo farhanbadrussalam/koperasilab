@@ -94,13 +94,20 @@ function loadData(page = 1, status) {
     ajaxGet(`api/v1/permohonan/listPengajuan`, params, result => {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
-            let btnEdit = `<a class="btn btn-sm btn-outline-warning" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}"><i class="bi bi-pencil-square"></i> Edit</a>`;
-            let btnRemove = `<button class="btn btn-sm btn-outline-danger" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i> Remove</button>`;
-
-            let badgeClass = 'bg-primary-subtle';
-            if(pengajuan.tipe_kontrak == 'kontrak lama') {
-                badgeClass = 'bg-success-subtle';
-            }
+            let btnEdit = `
+            <li>
+                <a class="dropdown-item small cursor-pointer" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}">
+                    <i class="bi bi-pencil-square me-2"></i> Edit
+                </a>
+            </li>
+            `;
+            let btnRemove = `
+            <li>
+                <a class="dropdown-item small cursor-pointer text-danger" title="Delete" onclick="remove(this)">
+                    <i class="bi bi-trash me-2"></i> Remove
+                </a>
+            </li>
+            `;
 
             if(thisTab == 6){
                 html += `
@@ -113,9 +120,14 @@ function loadData(page = 1, status) {
                                 </small>
                             </div>
                             <div class="col-auto ms-auto">${statusFormat('permohonan', pengajuan.status)}</div>
-                            <div class="col-auto text-end" data-id="${pengajuan.permohonan_hash}">
-                                ${btnEdit}
-                                ${btnRemove}
+                            <div class="col-auto dropdown d-inline-block ms-2">
+                                <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-1 overflow-hidden" data-id="${pengajuan.permohonan_hash}">
+                                    ${btnEdit}
+                                    ${btnRemove}
+                                </ul>
                             </div>
                         </div>
                     </div>`;
@@ -135,15 +147,19 @@ function loadData(page = 1, status) {
                     is_have_tld: pengajuan.is_have_tld,
                     is_zerocek: pengajuan.is_zerocek,
                     note: pengajuan.note,
-                    pelanggan: pengajuan.pelanggan.name
+                    pelanggan: pengajuan.pelanggan.name,
                 };
                 const btnAction = `
-                    <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
+                    <li>
+                        <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
+                            <i class="bi bi-eye me-2"></i> Detail
+                        </a>
+                    </li>
+                    ${[90, 1].includes(pengajuan.status) ? btnEdit : ''}
                     ${pengajuan.status == 1 ? btnRemove : ''}
-                    ${pengajuan.status == 90 ? btnEdit : ''}
                 `;
 
-                html += cardComponent(params, {btnAction: btnAction});
+                html += cardComponent(params, {btnMenuAction: btnAction});
             }
         }
 
@@ -163,7 +179,7 @@ function loadData(page = 1, status) {
 }
 
 function remove(obj){
-    const idLayanan = $(obj).parent().data("id");
+    const idLayanan = $(obj).parent().parent().data("id");
     ajaxDelete(`api/v1/permohonan/destroyPermohonan/${idLayanan}`, result => {
         Swal.fire({
             icon: 'success',
@@ -193,7 +209,7 @@ function remove(obj){
 }
 
 function showDetail(obj){
-    const idPermohonan = $(obj).parent().data("id");
+    const idPermohonan = $(obj).parent().parent().data("id");
     let url = `api/v1/permohonan/getPengajuanById/${idPermohonan}`;
     detail.show(url);
 }

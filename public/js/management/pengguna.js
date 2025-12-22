@@ -21,12 +21,7 @@ $(function () {
             }
         },
         columns: [
-            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
-            { data: 'name', name: 'name' },
-            { data: 'radiasi', name: 'radiasi', className: 'text-center' },
-            { data: 'divisi', name: 'divisi' },
-            { data: 'status', name: 'status', className: 'text-center' },
-            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
+            { data: 'html', orderable: false },
         ]
     });
 

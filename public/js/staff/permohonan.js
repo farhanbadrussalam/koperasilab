@@ -60,74 +60,74 @@ function loadData(page = 1) {
     $('#list-container').hide();
     ajaxGet(`api/v1/permohonan/listPengajuan`, params, result => {
         let html = '';
-        for (const [i, pengajuan] of result.data.entries()) {
-            let badgeClass = 'bg-primary-subtle';
-            if(pengajuan.tipe_kontrak == 'kontrak lama') {
-                badgeClass = 'bg-success-subtle';
-            }
-
-            let htmlAction = '';
-            if(pengajuan.status == 1){
-                htmlAction = `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/staff/permohonan/verifikasi/${pengajuan.permohonan_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`;
-            }
-
-            // periode
-            let htmlPeriode = !pengajuan.periode ? 'Zero cek' : `Periode ${pengajuan.periode}`;
-
-            let htmlStatusPenyelia = '';
-            if(pengajuan.lhu){
-                htmlStatusPenyelia = " | Progress Penyelia : ";
-                htmlStatusPenyelia += statusFormat('penyelia', pengajuan.lhu.status);
-                aktifJobs = pengajuan.lhu.penyelia_map.filter(d => d.status == 1);
-                aktifJobs.map(d => {
-                    htmlStatusPenyelia += statusFormat('penyelia', d.jobs.status);
-                });
-            }
-
-            if(pengajuan.periode && pengajuan.is_have_tld && pengajuan.is_zerocek) {
-                htmlPeriode += ' + Zero cek';
-            }
-            html += `
-                <div class="card mb-2 smooth-height">
-                    <div class="card-body row align-items-center py-2">
-                        <div class="col-12">
-                            <div class="">
-                                <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${pengajuan.tipe_kontrak}</span>
-                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${pengajuan.jenis_layanan_parent?.name} - ${pengajuan.jenis_layanan?.name}</span>
-                                ${htmlStatusPenyelia}
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="fs-5 my-2">
-                                <span class="fw-bold">${pengajuan.jenis_tld?.name ?? '-'} - Layanan ${pengajuan.layanan_jasa?.nama_layanan}</span>
-                                <div class="text-body-tertiary fs-7">
-                                    <div><i class="bi bi-building-fill"></i> ${pengajuan.pelanggan.perusahaan.nama_perusahaan}</div>
-                                </div>
-                            </div>
-                            <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                <div><i class="bi bi-person-check-fill"></i> ${pengajuan.pelanggan.name}</div>
-                                <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
-                                <div><i class="bi bi-calendar-fill"></i> ${dateFormat(pengajuan.created_at, 4)}</div>
-                                ${pengajuan.kontrak ? `<div><i class="bi bi-file-text"></i> ${pengajuan.kontrak.no_kontrak}</div>` : ''}
-                            </div>
-                        </div>
-                        <div class="col-auto ms-auto">
-                            <div>${statusFormat('permohonan', pengajuan.status)}</div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="d-flex gap-1 flex-wrap justify-content-center" data-id="${pengajuan.permohonan_hash}">
-                                <button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>
-                                ${htmlAction}
-                            </div>
-                        </div>
-                        <div class="p-3" id="listPeriode" style="display:none"></div>
-                    </div>
-                </div>
-            `;
-        }
 
         if(result.data.length == 0){
             html = htmlNoData();
+        } else {
+            for (const [i, pengajuan] of result.data.entries()) {
+                let badgeClass = 'bg-primary-subtle';
+                if(pengajuan.tipe_kontrak == 'kontrak lama') {
+                    badgeClass = 'bg-success-subtle';
+                }
+
+                let btnVerifikasi = '';
+                if(pengajuan.status == 1){
+                    btnVerifikasi = `
+                        <li>
+                            <a class="dropdown-item small cursor-pointer" title="Verifikasi" href="${base_url}/staff/permohonan/verifikasi/${pengajuan.permohonan_hash}">
+                                <i class="bi bi-check2-circle me-2"></i> Verifikasi
+                            </a>
+                        </li>
+                    `;
+                }
+
+                // periode
+                let htmlPeriode = !pengajuan.periode ? 'Zero cek' : `Periode ${pengajuan.periode}`;
+
+                let htmlStatusPenyelia = '';
+                if(pengajuan.lhu){
+                    htmlStatusPenyelia = "Progress Penyelia : ";
+                    htmlStatusPenyelia += statusFormat('penyelia', pengajuan.lhu.status);
+                    aktifJobs = pengajuan.lhu.penyelia_map.filter(d => d.status == 1);
+                    aktifJobs.map(d => {
+                        htmlStatusPenyelia += statusFormat('penyelia', d.jobs.status);
+                    });
+                }
+
+                if(pengajuan.periode && pengajuan.is_have_tld && pengajuan.is_zerocek) {
+                    htmlPeriode += ' + Zero cek';
+                }
+
+                const params = {
+                    tipeKontrak: pengajuan.tipe_kontrak,
+                    jenisLayananParent: pengajuan.jenis_layanan_parent.name,
+                    jenisLayanan: pengajuan.jenis_layanan.name,
+                    format: 'permohonan',
+                    status: pengajuan.status,
+                    jenisTld: pengajuan.jenis_tld?.name ?? '-',
+                    namaLayanan: pengajuan.layanan_jasa?.nama_layanan,
+                    periode: pengajuan.periode,
+                    created_at: pengajuan.created_at,
+                    kontrak: pengajuan.kontrak?.no_kontrak,
+                    id: pengajuan.permohonan_hash,
+                    is_have_tld: pengajuan.is_have_tld,
+                    is_zerocek: pengajuan.is_zerocek,
+                    note: pengajuan.note,
+                    pelanggan: pengajuan.pelanggan.name,
+                    statusPenyelia: htmlStatusPenyelia,
+                };
+
+                const btnAction = `
+                    <li>
+                        <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
+                            <i class="bi bi-eye me-2"></i> Detail
+                        </a>
+                    </li>
+                    ${btnVerifikasi}
+                `;
+
+                html += cardComponent(params, {btnMenuAction: btnAction});
+            }
         }
 
         $('#list-container').html(html);
