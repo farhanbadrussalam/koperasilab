@@ -344,6 +344,8 @@ $(function () {
         loadKontrol();
     });
 
+    $('#customSearch').on('keyup', reload);
+
     resetForm();
     // cek jika id_layanan sudah ada
     cekLayanan();
@@ -464,22 +466,40 @@ function loadPengguna(){
     });
 
     if(!datatable_){
-        datatable_ = $('#table-pengguna').DataTable({
+        datatable_ = $('#table-user').DataTable({
+            dom: 'rt<"p-0"p>',
             processing: true,
             serverSide: true,
             ajax: {
                 url: `${base_url}/management/getDataPengguna`,
                 data: {
-                    type: 'selected'
+                    type: 'selected',
+                    filter : {
+                        name: $('#customSearch').val()
+                    }
                 }
             },
+            bLengthChange: false,
+            bFilter: true,bInfo: false,ordering: false,
             columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
-                { data: 'name', name: 'name' },
-                { data: 'divisi', name: 'divisi' },
-                { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
+                { data: 'html',orderable: false },
             ],
-            pageLength: 5
+            pageLength: 5,
+            // D. Event setelah draw (untuk mindahin pagination & handle empty state)
+            drawCallback: function(settings) {
+                // 1. Pindahkan Pagination ke Footer Modal
+                var pagination = $(this).closest('.dataTables_wrapper').find('.dataTables_paginate');
+                $('#customPagination').html(pagination);
+
+                // 2. Cek Empty State
+                if (settings.aoData.length === 0) {
+                    $('#emptyState').removeClass('d-none'); // Munculkan gambar kosong
+                    $(this).hide(); // Sembunyikan tabel
+                } else {
+                    $('#emptyState').addClass('d-none');
+                    $(this).show();
+                }
+            }
         })
 
         datatable_.on('draw.dt', function () {
@@ -647,6 +667,7 @@ function openInventory(obj, jenis){
 }
 
 function reload(){
+    datatable_.settings()[0].ajax.data.filter.name = $('#customSearch').val();
     datatable_.ajax.reload();
 }
 

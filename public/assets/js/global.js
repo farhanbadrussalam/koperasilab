@@ -956,7 +956,8 @@ function signature(parent, options){
         name: options.name ? options.name : '',
         defaultSig: options.defaultSig ? options.defaultSig : false,
         width: options.width ? options.width : 200,
-        height: options.height ? options.height : 120
+        height: options.height ? options.height : 120,
+        persentage: options.persentage ? options.persentage : false
     };
 
     // Create Element canvas
@@ -986,8 +987,8 @@ function signature(parent, options){
         // Create Element img default
         const img = document.createElement('img');
         img.className = 'rounded border p-0';
-        img.width = options.width;
-        img.height = options.height;
+        img.style.width = options.persentage ? options.width : `${options.width}px`;
+        img.style.height = options.persentage ? options.height : `${options.height}px`;
         img.src = options.defaultSig;
 
         parent.appendChild(img);

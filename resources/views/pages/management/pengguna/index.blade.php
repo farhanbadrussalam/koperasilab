@@ -7,25 +7,21 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
                         <div class="flex-grow-1">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i
                                     class="bi bi-arrow-clockwise"></i> Refresh data</button>
                         </div>
-                        <button class="btn btn-primary btn-sm" onclick="tambahPengguna()"><i class="bi bi-plus"></i> Create Pengguna</button>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="tambahPengguna()"><i class="bi bi-plus"></i> Create Pengguna</button>
                     </div>
                     <div class="mb-3" id="list-filter"></div>
-                    <div class="row mt-2">
-                        <div class="overflow-y-auto">
-                            <table class="table table-hover w-100 align-middle" id="pengguna-table">
-                                <thead>
-                                    <th width="5%">No</th>
-                                    <th>Name</th>
-                                    <th width="25%" class="text-center">Radiasi</th>
-                                    <th width="20%">Posisi</th>
-                                    <th width="10%" class="text-center">Status</th>
-                                    <th width="15%" class="text-center">Action</th>
-                                </thead>
-                            </table>
-                        </div>
+                    <div class="row mt-2" style="min-height: 50vh">
+                        <table class="table table-borderless w-100 align-middle" id="pengguna-table">
+                            <thead class="d-none">
+                                <tr>
+                                    <th>User Data</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
             </div>

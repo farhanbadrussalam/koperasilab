@@ -369,7 +369,7 @@ class FilterComponent {
         let html = `
             <div class="col-3 order-${index+1}">
                 <div class="input-group">
-                    <input type="text" id="filterDateRange" class="form-control form-control-sm" placeholder="All Periode" readonly>
+                    <input type="text" id="filterDateRange" class="form-control form-control-sm" placeholder="All Date" readonly>
                     <span class="btn btn-outline-danger btn-sm" id="clearDateRange"><i class="bi bi-x-lg"></i></span>
                 </div>
             </div>
@@ -397,13 +397,14 @@ class FilterComponent {
             <div class="col-3 order-${index+1}">
                 <div class="input-group">
                     <label class="input-group-text py-0">Periode</label>
-                    <input type="text" id="filterPeriode" class="form-control form-control-sm" placeholder="All Periode">
+                    <input type="text" id="filterPeriode" class="form-control form-control-sm maskNumber" placeholder="All Periode">
                     <span class="btn btn-outline-primary btn-sm d-flex align-items-center" id="cariPeriode"><i class="bi bi-search"></i></span>
                 </div>
             </div>
         `;
         callback(html);
         self._setupFilter('periode');
+        maskReload();
     }
 
     getAllValue(){

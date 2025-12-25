@@ -10,7 +10,8 @@ $(function() {
             status : true,
             jenis_tld : true,
             jenis_layanan : true,
-            no_kontrak : true
+            no_kontrak : true,
+            periode: true
         }
     })
 
@@ -31,6 +32,7 @@ function loadData(page = 1) {
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
     filterValue.status && (params.filter.status = filterValue.status);
+    filterValue.periode && (params.filter.periode = filterValue.periode);
 
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);

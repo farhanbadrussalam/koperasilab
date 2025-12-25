@@ -3,6 +3,7 @@
  */
 let detail = false;
 let buktiPengiriman = false;
+let filterComp = false;
 $(function () {
     loadData(1);
     detail = new Detail({
@@ -12,6 +13,16 @@ $(function () {
             bukti: true
         }
     });
+
+    filterComp = new FilterComponent('list-filter', {
+        jenis: 'pengiriman',
+        filter : {
+            search: true,
+            no_kontrak : true
+        }
+    });
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 
     buktiPengiriman = new UploadComponent('uploadBuktiPengiriman', {
         camera: false,
@@ -31,8 +42,19 @@ $(function () {
 function loadData(page = 1) {
     let params = {
         limit: 10,
-        page: page
+        page: page,
+        filter: {}
     };
+    let filterValue = filterComp && filterComp.getAllValue();
+
+    filterValue.search && (params.filter.search = filterValue.search);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $(`#list-placeholder-pengiriman`).show();
     $(`#list-container-pengiriman`).hide();
@@ -295,4 +317,9 @@ function resetModal(){
     $('#noResi').val('');
     $('#idEkspedisi').val('');
     buktiPengiriman.clearFile();
+}
+
+function clearFilter(){
+    filterComp.clear();
+    loadData();
 }

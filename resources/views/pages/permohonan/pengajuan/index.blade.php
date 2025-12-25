@@ -44,7 +44,8 @@
                 </div>
                 @endfor
             </div>
-            <div class="body my-3" id="pengajuan-list-container"></div>
+            <div class="body my-3" id="pengajuan-list-container">
+            </div>
             <div aria-label="Page navigation example" id="pagination_list"></div>
         </div>
     </div>

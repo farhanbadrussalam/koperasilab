@@ -50,7 +50,7 @@
                 </li>
 
                 @can('Profile/pelanggan')
-                <li class="sidebar-item">
+                {{-- <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'profile-pelanggan' ? 'active' : '' }}"
                         href="{{ route('userProfile.index') }}" aria-expanded="false">
                         <span>
@@ -58,7 +58,7 @@
                         </span>
                         <span class="hide-menu">Profile</span>
                     </a>
-                </li>
+                </li> --}}
                 @endcan
 
                 @can('Staff/perusahaan')

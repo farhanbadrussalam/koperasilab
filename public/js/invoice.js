@@ -348,7 +348,7 @@ class Invoice {
     loadPaymentMethod() {
         $('#methode-pembayaran-select').empty();
         $('#methode-pembayaran-select').append(`
-            <option value="0">Pilih Metode Pembayaran</option>
+            <option value="">Pilih Metode Pembayaran</option>
         `);
         for (const metode of this.methodePembayaran) {
             $('#methode-pembayaran-select').append(`
@@ -660,6 +660,11 @@ class Invoice {
 
         switch (this.invoiceMode) {
             case 'create':
+                let metodePembayaran = $('#methode-pembayaran-select').parsley().validate();
+                if(metodePembayaran){
+                    return;
+                }
+
                 formData.append('idPermohonan', this.dataKeuangan.permohonan_hash);
                 formData.append('diskon', JSON.stringify(this.arrDiskon));
                 formData.append('totalHarga', this.jumTotal);
@@ -774,6 +779,9 @@ class Invoice {
         $('#paymentPphProof').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
         $('#paymentProofImage').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
 
+        // reset parsley
+        $('#methode-pembayaran-select').parsley().reset();
+
         this.uploadFaktur ? this.uploadFaktur.destroy() : '';
         this.uploadFaktur = false;
     }
@@ -810,7 +818,11 @@ class Invoice {
                                 </div>
                                 <div class="row my-2" id="methode-pembayaran" class="d-none">
                                     <div class="col-md-6">
-                                        <select class="form-select" id="methode-pembayaran-select"></select>
+                                        <select class="form-select" id="methode-pembayaran-select"
+                                            data-parsley-required-message="Metode pembayaran harus dipilih"
+                                            data-parsley-errors-container="#message-methode-pembayaran"
+                                            required></select>
+                                        <div class="invalid-feedback" id="message-methode-pembayaran"></div>
                                     </div>
                                     <div class="col-md-12 mt-2">
                                         <div class="collapse" id="collapseMetodePembayaran">

@@ -4,21 +4,14 @@
 <div class="card shadow-sm m-4 mt-2">
     <div class="card-body">
         <div class="d-flex">
-            <div class="flex-grow-1"><button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button></div>
-        </div>
-        <div class="d-flex pb-4">
-            <div class="w-100 d-flex">
-            </div>
-
-            <div class="flex-shrink-1">
-                <div class="col-12">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Search" aria-label="Name petugas" id="inputSearch" aria-describedby="btnSearch">
-                        <button class="btn btn-outline-secondary" type="button" id="btnSearch"><i class="bi bi-search"></i></button>
-                    </div>
-                </div>
+            <div class="flex-grow-1">
+                <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearFilter()">
+                    <i class="bi bi-funnel"></i> Clear Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span>
+                </button>
             </div>
         </div>
+        <div id="list-filter"></div>
         <div class="my-3">
             <div class="body-placeholder my-3" id="list-placeholder-pengiriman"></div>
             <div class="body my-3" id="list-container-pengiriman"></div>

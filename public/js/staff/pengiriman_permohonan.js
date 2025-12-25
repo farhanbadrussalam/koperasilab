@@ -1,14 +1,37 @@
 let dataPermohonan = false;
+let filterComp = false;
 $(function () {
     loadData();
+
+    filterComp = new FilterComponent('list-filter', {
+        filter : {
+            // search: true,
+            // jenis_tld : true,
+            // jenis_layanan : true,
+            // no_kontrak : true,
+            // periode: true
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 });
 
 function loadData(page = 1, menu) {
+    let filterValue = filterComp && filterComp.getAllValue();
     let params = {
         limit: 3,
         page: page,
-        menu: menu
+        menu: menu,
+        filter: {}
     };
+
+    // filterValue.search && (params.filter.search = filterValue.search);
+    // filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    // filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    // filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    // filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    // filterValue.periode && (params.filter.periode = filterValue.periode);
 
     $(`#list-placeholder-list`).show();
     $(`#list-container-list`).hide();

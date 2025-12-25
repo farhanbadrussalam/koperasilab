@@ -726,8 +726,8 @@ class PermohonanAPI extends Controller
                                 $q->whereHas('pelanggan.perusahaan', function ($v) use ($value) {
                                     $v->where('id_perusahaan', decryptor($value));
                                 });
-                            } else if ($key == 'date_range') {
-
+                            } else if ($key == 'periode') {
+                                $q->where($key, $value);
                             }else{
                                 $q->where($key, decryptor($value));
                             }

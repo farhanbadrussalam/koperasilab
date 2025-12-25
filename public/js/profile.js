@@ -4,6 +4,17 @@ let detail = false;
 $(function() {
     loadForm(profile);
 
+    // Cek hash di URL saat halaman dimuat
+    const hash = window.location.hash;
+    if (hash) {
+        // Hapus # dari hash
+        const tabId = hash.substring(1);
+        // Cari tombol tab yang sesuai dan klik
+        const tabButton = $(`#${tabId}-tab`);
+        if (tabButton.length) {
+            tabButton.click();
+        }
+    }
     $('#btn-upload-ttd').click(function() {
         if(signaturePad.isEmpty()){
             return Swal.fire({
@@ -35,6 +46,7 @@ $(function() {
         ajaxPost(`api/v1/profile/action`, formData, result => {
             if(result.meta.code == 200){
                 document.getElementById('show-ttd').innerHTML = '';
+                document.getElementById('ttd-preview').innerHTML = '';
                 profile.ttd = '';
                 loadForm(profile);
                 spinner('hide', $(this));
@@ -55,7 +67,10 @@ $(function() {
     // 3) Saat password berubah, re-validate konfirmasi
     $('#new_password').on('input', function () {
         const val = $(this).val();
-        rules_password('update', rulesPassword, val, '2');
+        let cek = rules_password('update', rulesPassword, val, '2');
+        $('#strengthBar').css('width', cek.percentage + '%');
+
+        document.getElementById('strengthBar').className = 'progress-bar ' + cek.backgroundColor;
     });
 
     $('#form-change-password').parsley({
@@ -67,6 +82,34 @@ $(function() {
     $('#email_instansi_new').on('change', function(){
         checkEmail(this, $(this).val(), 'instansi');
     });
+
+    $('#btnEnableEdit').click(function(){
+        // Aktifkan semua input kecuali email
+        document.querySelectorAll('input:not([readonly]), textarea, button[title="Hapus File"], select').forEach(el => el.disabled = false);
+
+        // Munculkan area upload & tombol simpan
+        document.getElementById('actionButtons').classList.replace('d-none', 'd-flex');
+
+        // Sembunyikan tombol Edit Profil
+        this.classList.add('d-none');
+    });
+
+    $('#btnEditInstansi').click(function(){
+        document.querySelectorAll('input:not([readonly]), textarea, button[title="Hapus File"], select').forEach(el => el.disabled = false);
+        document.getElementById('btnSimpanInstansi').disabled = false;
+        this.classList.add('d-none');
+        $('#btnBackInstansi').show();
+    });
+
+    $('#btnCancelEdit').click(function(){
+        window.location.href = window.location.pathname;
+        location.reload();
+    })
+
+    $('#btnBackInstansi').click(function(){
+        window.location.href = window.location.pathname + '#instansi';
+        location.reload();
+    })
 
     detail = new Detail({
         jenis: 'history_pic',
@@ -134,7 +177,7 @@ function loadForm(data) {
         }
 
         $('#npwp').val(data.perusahaan?.npwp_perusahaan ? data.perusahaan.npwp_perusahaan : '-');
-        $('#kode_instansi').val(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
+        $('#kode_instansi').html(data.perusahaan ? (data.perusahaan.kode_perusahaan ?? 'Belum terverifikasi') : '-');
         $('#email').val(data.perusahaan?.email ? data.perusahaan.email : '-');
         $('#nama_perusahaan').val(data.perusahaan?.nama_perusahaan ? data.perusahaan.nama_perusahaan : '-');
 
@@ -170,17 +213,24 @@ function loadForm(data) {
 
     document.getElementById('show-ttd').innerHTML = '';
     signaturePad = signature(document.getElementById('show-ttd'), {
-        width: 300,
-        height: 220,
-        defaultSig: data.ttd ? data.ttd : false
+        width: 442,
+        height: 298
     });
 
     if(data.ttd){
-        $('#btn-upload-ttd').addClass('d-none');
-        $('#btn-hapus-ttd').removeClass('d-none');
+        document.getElementById('ttd-preview').innerHTML = '';
+        signature(document.getElementById('ttd-preview'), {
+            width: '100%',
+            height: '100%',
+            persentage: true,
+            defaultSig: data.ttd
+        });
+
+        $('#show-ttd-preview').removeClass('d-none');
+        $('#empty-ttd-preview').addClass('d-none');
     }else{
-        $('#btn-upload-ttd').removeClass('d-none');
-        $('#btn-hapus-ttd').addClass('d-none');
+        $('#show-ttd-preview').addClass('d-none');
+        $('#empty-ttd-preview').removeClass('d-none');
     }
 
     let html = '';
@@ -415,6 +465,86 @@ function simpanEdit(obj, tab){
     }
 }
 
+function simpanPerubahanInstansi(obj){
+    const formInstansi = $('#form-instansi');
+    spinner('show', $(obj));
+
+    formInstansi.parsley().validate();
+    if(!formInstansi.parsley().isValid()){
+        return;
+    }
+
+    const formParams = new FormData();
+    for (const element of formInstansi[0]) {
+        let field = $(element).attr('name');
+        formParams.append(field, element.value);
+    }
+    formParams.append('idPerusahaan', profile.perusahaan?.perusahaan_hash);
+
+    ajaxPost(`api/v1/profile/action/perusahaan`, formParams, result => {
+        if(result.meta.message == 'Fail'){
+            spinner('hide', $(obj));
+            Swal.fire({
+                icon: 'warning',
+                text: result.data.msg
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            text: result.data.msg,
+            timer: 1200,
+            timerProgressBar: true,
+            showConfirmButton: false
+        }).then(() => {
+            window.location.href = window.location.pathname + '#instansi';
+            location.reload();
+        })
+    }, error => {
+        spinner('hide', $(obj));
+    });
+}
+function simpanPerubahanBiodata(obj){
+    const formBiodata = $('#form-biodata');
+    spinner('show', $(obj));
+
+    formBiodata.parsley().validate();
+    if(!formBiodata.parsley().isValid()){
+        return;
+    }
+
+    const formParams = new FormData();
+    for (const element of formBiodata[0]) {
+        let field = $(element).attr('name');
+        formParams.append(field, element.value);
+    }
+    formParams.append('idProfile', profile.user_hash);
+
+    ajaxPost(`api/v1/profile/action`, formParams, result => {
+        if(result.meta.message == 'Fail'){
+            spinner('hide', $(obj));
+            Swal.fire({
+                icon: 'warning',
+                text: result.data.msg
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            text: result.data.msg,
+            timer: 1200,
+            timerProgressBar: true,
+            showConfirmButton: false
+        }).then(() => {
+            location.reload();
+        })
+    }, error => {
+        spinner('hide', $(obj));
+    })
+}
+
 function gantiPassword(obj) {
     const oldPassword = $('#old_password').val();
     const newPassword = $('#new_password').val();
@@ -436,26 +566,19 @@ function gantiPassword(obj) {
                 Swal.fire({
                     icon: "success",
                     text: result.data.msg,
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    // Tambahkan hash ke URL dan refresh halaman
+                    window.location.href = window.location.pathname + '#changepassword';
+                    location.reload();
                 });
-
-                $('#old_password').val('');
-                $('#new_password').val('');
-                $('#confirm_password').val('');
-
-                $('#confirm_password').removeClass('is-valid');
-                $('#confirm_password').removeClass('is-invalid');
-                $('#error-confirm-password').addClass('d-none');
-
-                $('#old_password').removeClass('is-valid');
-                $('#old_password').removeClass('is-invalid');
-                $('#error-old-password').html('');
-                $('#error-old-password').addClass('d-none');
             } else {
                 $('#old_password').addClass('is-invalid');
                 $('#error-old-password').html(result.data.msg);
                 $('#error-old-password').removeClass('d-none');
+                spinner('hide', $(obj));
             }
-            spinner('hide', $(obj));
         }, error => {
             spinner('hide', $(obj));
         })

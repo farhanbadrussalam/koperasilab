@@ -1,8 +1,19 @@
 let nowTab = 1;
 let buktiPenerima = false;
 let buktiPengiriman = false;
+let filterComp = false;
 $(function () {
     loadData(1);
+
+    filterComp = new FilterComponent('list-filter', {
+        jenis: 'pengiriman',
+        filter : {
+            search: true,
+            no_kontrak : true
+        }
+    });
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 
     detail = new Detail({
         jenis: 'pengiriman',
@@ -97,8 +108,21 @@ function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
-        idPelanggan: idPelanggan ? idPelanggan : false
+        idPelanggan: idPelanggan ? idPelanggan : false,
+        filter: {}
     };
+
+    let filterValue = filterComp && filterComp.getAllValue();
+
+    filterValue.search && (params.filter.search = filterValue.search);
+    filterValue.no_kontrak && (params.filter.no_kontrak = filterValue.no_kontrak);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $(`#list-placeholder-pengiriman`).show();
     $(`#list-container-pengiriman`).hide();
@@ -304,4 +328,9 @@ function reload(){
 function showDetail(obj){
     const id = $(obj).parent().data("id");
     detail.show(`api/v1/pengiriman/getById/${id}`);
+}
+
+function clearFilter(){
+    filterComp.clear();
+    loadData();
 }
