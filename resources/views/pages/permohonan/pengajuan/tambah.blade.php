@@ -195,7 +195,10 @@
                 <div class="d-flex justify-content-between mt-3">
                     <button class="btn btn-outline-danger" id="hapusPengajuan" onclick="remove()">Hapus
                         pengajuan</button>
-                    <button class="btn btn-primary" id="simpanPengajuan">Simpan pengajuan</button>
+                    <div>
+                        <button class="btn btn-outline-info" id="simpanDraf">Simpan ke Draf</button>
+                        <button class="btn btn-primary" id="simpanPengajuan">Simpan pengajuan</button>
+                    </div>
                 </div>
             </div>
         </div>

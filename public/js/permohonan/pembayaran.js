@@ -96,7 +96,7 @@ function loadData(page = 1) {
 }
 
 function openInvoiceModal(obj, mode) {
-    const keuangan = $(obj).parent().data("id");
+    const keuangan = $(obj).parent().parent().data("id");
     ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
         invoice.addData(result.data);
         invoice.open(mode);

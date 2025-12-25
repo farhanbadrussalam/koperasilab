@@ -2,264 +2,404 @@
 
 @section('content')
 <div class="content-wrapper">
-    <section class="content col-md-12">
-        <div class="container">
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item px-3">
-                    <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="detailPermohonan-tab" onclick="" data-bs-toggle="tab" data-bs-target="#detailPermohonan-tab-pane" type="button" role="tab" aria-controls="detailPermohonan-tab-pane" aria-selected="true">Detail Permohonan</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="detailPelanggan-tab" onclick="" data-bs-toggle="tab" data-bs-target="#detailPelanggan-tab-pane" type="button" role="tab" aria-controls="detailPelanggan-tab-pane" aria-selected="true">Detail Pelanggan</button>
-                </li>
-            </ul>
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="detailPermohonan-tab-pane" role="tabpanel" aria-labelledby="detailPermohonan-tab" tabindex="0">
-                    <div class="card card-default border-0 color-palette-box shadow py-3">
-                        <div class="card-body row">
-                            <div class="col-md-4 col-12">
-                                <h2>Informasi</h2>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <label for="layanan-jasa" class="col-form-label">Layanan jasa</label>
-                                        <input type="text" name="layanan-jasa" id="layanan-jasa" class="form-control bg-secondary-subtle" value="{{ $permohonan->layanan_jasa->nama_layanan }}" readonly>
+    <div class="container-fluid">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h4 class="mb-1 fw-bold text-dark">Rincian Permohonan</h4>
+                {{-- <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 small">
+                        <li class="breadcrumb-item text-muted">Aplikasi</li>
+                        <li class="breadcrumb-item text-muted">Permohonan</li>
+                        <li class="breadcrumb-item active text-primary" aria-current="page">Detail #REQ-001</li>
+                    </ol>
+                </nav> --}}
+            </div>
+            <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-left me-2"></i>Kembali
+            </a>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 rounded-top-4">
+                        <ul class="nav nav-tabs card-header-tabs" id="myTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active fw-bold text-primary border-bottom-0" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detail" type="button">
+                                    <i class="bi bi-file-earmark-text me-2"></i>Informasi Layanan
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link text-muted border-bottom-0" id="customer-tab" data-bs-toggle="tab" data-bs-target="#customer" type="button">
+                                    <i class="bi bi-person me-2"></i>Detail Pelanggan
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="detail" role="tabpanel">
+
+                                <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Klasifikasi Jasa</h6>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-3 border h-100">
+                                            <small class="text-muted d-block mb-1">Layanan Jasa</small>
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded bg-white p-2 me-3 text-primary border shadow-sm">
+                                                    <i class="bi bi-briefcase fs-5"></i>
+                                                </div>
+                                                <h6 class="mb-0 fw-bold text-dark">{{ $permohonan->layanan_jasa->nama_layanan }}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-3 border h-100">
+                                            <small class="text-muted d-block mb-1">Jenis Layanan</small>
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded bg-white p-2 me-3 text-success border shadow-sm">
+                                                    <i class="bi bi-check-circle fs-5"></i>
+                                                </div>
+                                                <h6 class="mb-0 fw-bold text-dark">{{ $permohonan->jenis_layanan_parent->name }} - {{ $permohonan->jenis_layanan->name }}</h6>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-12">
-                                        <label for="jenis-layanan" class="col-form-label">Jenis Layanan</label>
-                                        <input type="text" name="jenis-layanan" id="jenis-layanan" class="form-control bg-secondary-subtle" value="{{ $permohonan->jenis_layanan_parent->name }} - {{ $permohonan->jenis_layanan->name }}" readonly>
+                                        <div class="p-3 bg-light rounded-3 border">
+                                            <small class="text-muted d-block mb-1">Jenis TLD</small>
+                                            <span class="fw-bold text-dark fs-6">{{ $permohonan->jenisTld->name }}</span>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="jenis-tld" class="col-form-label">Jenis TLD</label>
-                                        <input type="text" name="jenis-tld" id="jenis-tld" class="form-control bg-secondary-subtle" value="{{ $permohonan->jenisTld->name }}" readonly>
+                                </div>
+
+                                <hr class="border-secondary opacity-10 my-4">
+
+                                <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Spesifikasi Kontrak</h6>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <div class="d-flex mb-3 align-items-center">
+                                            <i class="bi bi-file-text me-3 text-secondary fs-5"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Tipe Kontrak</small>
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 mt-1">
+                                                    {{ $permohonan->tipe_kontrak }}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="tipe-kontrak" class="col-form-label">Tipe Kontrak</label>
-                                        <input type="text" name="tipe-kontrak" id="tipe-kontrak" class="form-control bg-secondary-subtle" value="{{ $permohonan->tipe_kontrak }}" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="col-form-label" for="periode-pemakaian">Periode pemakaian</label>
-                                        <div class="input-group mb-3">
-                                            <input type="text" class="form-control bg-secondary-subtle" id="periode-pemakaian" aria-label="Periode pemakaian" value="" readonly>
-                                            @if($permohonan->periode_pemakaian)
-                                            <button class="btn btn-outline-secondary" type="button" id="btn-periode">Show periode</button>
-                                            @endif
+                                    <div class="col-md-6">
+                                        <div class="d-flex mb-3 align-items-center">
+                                            <i class="bi bi-calendar-range me-3 text-secondary fs-5"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Periode Pemakaian</small>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="fw-bold text-dark" id="periode-pemakaian">3 Periode</span>
+                                                    <button class="btn btn-xs btn-link text-decoration-none p-0" id="btn-periode">
+                                                        <i class="bi bi-eye"></i> Lihat
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     @if($permohonan->periode_next)
-                                    <div class="col-12">
-                                        <label class="col-form-label" for="periode-pemakaian">Periode pemakaian selanjutnya</label>
-                                        <div class="input-group mb-3">
-                                            <input type="text" class="form-control bg-secondary-subtle" id="periode-pemakaian-next" aria-label="Periode pemakaian selanjutnya" value="" readonly>
-                                            <button class="btn btn-outline-secondary" type="button" id="btn-periode-next">Show periode</button>
+                                    <div class="col-md-6">
+                                        <div class="d-flex mb-3 align-items-center">
+                                            <i class="bi bi-calendar-range me-3 text-secondary fs-5"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Periode Pemakaian Selanjutnya</small>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="fw-bold text-dark" id="periode-pemakaian-next">3 Periode</span>
+                                                    <button class="btn btn-xs btn-link text-decoration-none p-0" id="btn-periode-next">
+                                                        <i class="bi bi-eye"></i> Lihat
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     @endif
                                     <div class="col-md-6">
-                                        <label for="jum-pengguna" class="col-form-label">Jumlah Pengguna</label>
-                                        <input type="text" name="jum-pengguna" id="jum-pengguna" class="form-control bg-secondary-subtle" value="{{ $permohonan->jumlah_pengguna }}" readonly>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="jum-kontrol" class="col-form-label">Jumlah Kontrol</label>
-                                        <input type="text" name="jum-kontrol" id="jum-kontrol" class="form-control bg-secondary-subtle" value="{{ $permohonan->jumlah_kontrol }}" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="jum-kontrol" class="col-form-label">Total harga</label>
-                                        <input type="text" name="jum-kontrol" id="jum-kontrol" class="form-control bg-secondary-subtle" value="{{ formatCurrency($permohonan->total_harga) }}" readonly>
-                                        @if($permohonan->tipe_kontrak == 'kontrak baru')
-                                        <small class="text-info">*Belum termasuk PPN</small>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
-                        <div class="card-body row">
-                            <div class="col-12">
-                                <h2 class="text-center">Daftar nama pemakai TLD</h2>
-                            </div>
-                            <div class="col-12 overflow-auto" style="max-height: 25rem;">
-                                <div class="body-placeholder my-3" id="pengguna-placeholder">
-                                    @for ($i = 1; $i < 4; $i++)
-                                    <div class="card mb-2 shadow-sm border-dark">
-                                        <div class="card-body row align-items-center">
-                                            <div class="placeholder-glow col-md-4 lh-sm d-flex flex-column">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                                <div class="placeholder w-25 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-md-3">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-md-3">
-                                                <div class="placeholder w-50 mb-1"></div>
-                                            </div>
-                                            <div class="placeholder-glow col-md-2 text-end">
-                                                <div class="placeholder w-50 mb-1"></div>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-people me-3 text-secondary fs-5"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Jumlah Pengguna</small>
+                                                <span class="fw-bold text-dark fs-5">{{ $permohonan->jumlah_pengguna }}</span>
+                                                <small class="text-muted">Orang</small>
                                             </div>
                                         </div>
                                     </div>
-                                    @endfor
+                                    <div class="col-md-6">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-speedometer2 me-3 text-secondary fs-5"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Jumlah Kontrol</small>
+                                                <span class="fw-bold text-dark fs-5">{{ $permohonan->jumlah_kontrol }}</span>
+                                                <small class="text-muted">Unit</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <table class="table w-100 d-none" id="pengguna-table">
-                                    <thead>
-                                        <tr>
-                                            <th width="1%" class="{{ !$permohonan->is_have_tld ? 'd-none' : '' }}">
-                                                <input class="form-check-input mt-0" id="checkAllTldPengguna" name="checkAllTldPengguna" type="checkbox" value="" aria-label="Checkbox for following text input">
-                                            </th>
-                                            <th width="1%">No</th>
-                                            <th width="20%">Nama</th>
-                                            <th width="30%">Radiasi</th>
-                                            <th width="30%">No Seri TLD</th>
-                                            <th width="10%">ktp</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="pengguna-list-container" class="align-middle"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
-                        <div class="card-body row">
-                            <div class="col-12">
-                                <h2 class="text-center">TLD Kontrol</h2>
-                            </div>
-                            <div class="col-12 overflow-auto" style="max-height: 25rem;">
-                                <div id="tld-kontrol-content" class="row"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
-                        <div class="card-body">
-                            <input type="hidden" id="status_tandaterima" value="false">
-                            <h2 class="text-center">TANDA TERIMA <span class="text-danger">*</span></h2>
-                            <div id="tambah-tandaterima">
-                                <button type="button" class="btn btn-outline-secondary w-100 border-dashed" id="btn-tandaterima"><i class="bi bi-plus"></i> Tambah Tanda Terima</button>
-                            </div>
-                            <div id="show-tandaterima" class="d-none">
-                                <table class="table w-100 table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th width="1%">No</th>
-                                            <th>Nama</th>
-                                            <th class="text-end">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="tandaterima-list-container" class="align-middle">
-                                        <tr>
-                                            <td>1</td>
-                                            <td>Tanda Terima Pengujian</td>
-                                            <td class="text-end">
-                                                <button type="button" class="btn btn-outline-success btn-sm" id="btn-show-tandaterima"><i class="bi bi-eye"></i></button>
-                                                {{-- <button type="button" class="btn btn-outline-warning btn-sm" id="btn-edit-tandaterima"><i class="bi bi-pencil"></i></button> --}}
-                                                <button type="button" class="btn btn-outline-danger btn-sm" id="btn-delete-tandaterima"><i class="bi bi-trash"></i></button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="tab-pane fade" id="detailPelanggan-tab-pane" role="tabpanel" aria-labelledby="detailPelanggan-tab" tabindex="0">
-                    <div class="card card-default border-0 color-palette-box shadow py-3">
-                        <div class="card-body row">
-                            <div class="col-md-4 col-12">
-                                <h2>Data Pelanggan</h2>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <label for="nama-instansi" class="col-form-label">Nama instansi</label>
-                                        <input type="text" name="nama-instansi" id="nama-instansi" class="form-control bg-secondary-subtle" readonly>
+                                <hr class="border-secondary opacity-10 my-4">
+
+                                <div class="d-flex justify-content-between mb-3 align-items-center">
+                                    <h6 class="text-uppercase text-muted small fw-bold tracking-wide mb-0">Daftar Pemakai TLD</h6>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" id="jumlah-pengguna">
+                                        1 Orang
+                                    </span>
+                                </div>
+
+                                {{-- <div class="row text-muted small fw-bold mb-2 px-3 d-none d-md-flex">
+                                    <div class="col-1">#</div>
+                                    <div class="col-4">Nama Personil</div>
+                                    <div class="col-4">Spesifikasi Alat</div>
+                                    <div class="col-3 text-end">Kode TLD</div>
+                                </div> --}}
+
+                                <div id="pengguna-list-container"></div>
+
+                                <hr class="border-secondary opacity-10 my-4">
+
+                                <div>
+                                    <div class="d-flex justify-content-between mb-2 pe-3 align-items-center">
+                                        <h6 class="text-uppercase text-muted small fw-bold tracking-wide">TLD Kontrol</h6>
+                                        <div class="">
+                                            <i class="bi bi-speedometer"></i>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="nama-pic" class="col-form-label">Nama PIC</label>
-                                        <input type="text" name="nama-pic" id="nama-pic" class="form-control bg-secondary-subtle" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="jabatan-pic" class="col-form-label">Jabatan PIC</label>
-                                        <input type="text" name="jabatan-pic" id="jabatan-pic" class="form-control bg-secondary-subtle" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="email" class="col-form-label">Email</label>
-                                        <input type="text" name="email-pic" id="email-pic" class="form-control bg-secondary-subtle" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="telepon" class="col-form-label">Telepon</label>
-                                        <input type="text" name="telepon-pic" id="telepon-pic" class="form-control bg-secondary-subtle" readonly>
-                                    </div>
-                                    <div class="col-12">
-                                        <label for="npwp" class="col-form-label">NPWP</label>
-                                        <input type="text" name="npwp-pic" id="npwp-pic" class="form-control bg-secondary-subtle" readonly>
+                                    <div class="card bg-light border-0">
+                                        <div id="tld-kontrol-content"></div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="card card-default border-0 color-palette-box shadow py-3 mt-3">
-                        <div class="card-body row">
-                            <div class="col-md-4 col-12">
-                                <h2>Alamat</h2>
-                            </div>
-                            <div class="col-md-6 col-12">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <label for="alamat-utama" class="col-form-label">Alamat Utama</label>
-                                        <textarea name="alamat-Utama" id="alamat-Utama" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
-                                        <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-utama" readonly>
+
+                            <div class="tab-pane fade" id="customer" role="tabpanel">
+                                <div class="row g-4 mb-4">
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded-4 border h-100 position-relative overflow-hidden">
+
+                                            <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">
+                                                <i class="bi bi-person-circle me-1 text-primary"></i>Penanggung Jawab (PIC)
+                                            </h6>
+
+                                            <div class="d-flex align-items-center mb-4">
+                                                <div class="rounded-circle bg-white text-primary border shadow-sm d-flex justify-content-center align-items-center me-3 flex-shrink-0"
+                                                    style="width: 56px; height: 56px; font-size: 1.5rem; font-weight: bold;">
+                                                    S
+                                                </div>
+                                                <div>
+                                                    <h5 class="fw-bold text-dark mb-0" id="nama-pic">Supri</h5>
+                                                    <small class="text-muted" id="jabatan-pic">Bagian Umum / Staff</small>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3">
+                                                <div class="col-12">
+                                                    <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Nomor WhatsApp / Telepon</small>
+                                                    <span class="fw-bold text-dark font-monospace" id="telepon-pic">-</span>
+                                                </div>
+                                                <div class="col-12">
+                                                    <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Email Pribadi</small>
+                                                    <span class="fw-bold text-dark" id="email-pic">supri.driver@gmail.com</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="alamat-tld" class="col-form-label">Alamat TLD</label>
-                                        <textarea name="alamat-tld" id="alamat-tld" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
-                                        <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-tld" readonly>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-white rounded-4 border h-100 shadow-sm">
+                                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                                <h6 class="text-uppercase text-muted small fw-bold tracking-wide">
+                                                    <i class="bi bi-building me-1 text-danger"></i>Data Instansi
+                                                </h6>
+                                                <span class="badge border border-success-subtle rounded-pill" id="status-instansi">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>Terverifikasi
+                                                </span>
+                                            </div>
+
+                                            <h5 class="fw-bold text-dark mb-3" id="nama-instansi">PT. Rachman Abadi</h5>
+                                            <p class="text-muted small mb-3 d-none">Perusahaan Jasa Konstruksi & Umum</p>
+
+                                            <div class="row g-2 p-3 bg-light rounded-3 border">
+                                                <div class="col-6 border-end">
+                                                    <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">Kode Instansi</small>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="fw-bold text-dark font-monospace small me-2" id="kodeInstansi">-</span>
+                                                        <i class="bi bi-copy text-secondary cursor-pointer" style="font-size: 0.8rem;" title="Salin" onclick="copyKode('kodeInstansi')"></i>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6 ps-3">
+                                                    <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">NPWP Perusahaan</small>
+                                                    <span class="fw-bold text-dark font-monospace small" id="npwp-pic"></span>
+                                                </div>
+                                            </div>
+
+                                            <div class="mt-3">
+                                                <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">Email Resmi Instansi</small>
+                                                <a href="#" class="text-decoration-none fw-bold small" id="email-perusahaan">contact@rachman.com</a>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="alamat-lhu" class="col-form-label">Alamat LHU</label>
-                                        <textarea name="alamat-lhu" id="alamat-lhu" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
-                                        <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-lhu" readonly>
+                                </div>
+
+                                <hr class="border-secondary opacity-10 my-4">
+
+                                <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">
+                                    <i class="bi bi-map me-1 text-info"></i>Logistik & Pengiriman
+                                </h6>
+
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="card h-100 border border-primary">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="rounded-circle bg-white p-1 text-secondary me-2 shadow-sm border" style="width: 28px; height: 28px; display:grid; place-items:center;">
+                                                        <i class="bi bi-geo-alt-fill" style="font-size: 0.7rem;"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-dark small">Alamat Kantor Utama</span>
+                                                </div>
+                                                <p class="text-muted small mb-0" style="line-height: 1.4;" id="alamat-Utama">
+                                                    -
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <label for="alamat-invoice" class="col-form-label">Alamat Invoice</label>
-                                        <textarea name="alamat-invoice" id="alamat-invoice" cols="30" rows="3" class="form-control bg-secondary-subtle" readonly></textarea>
-                                        <input type="text" class="form-control mt-2 bg-secondary-subtle" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-invoice" readonly>
+                                    <div class="col-md-4">
+                                        <div class="card h-100 border-0 bg-light">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="rounded-circle bg-white p-1 text-secondary me-2 shadow-sm border" style="width: 28px; height: 28px; display:grid; place-items:center;">
+                                                        <i class="bi bi-geo-alt-fill" style="font-size: 0.7rem;"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-dark small">Alamat TLD</span>
+                                                </div>
+                                                <p class="text-muted small mb-0" style="line-height: 1.4;" id="alamat-tld">
+                                                    -
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card h-100 border-0 bg-light">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="rounded-circle bg-white p-1 text-secondary me-2 shadow-sm border" style="width: 28px; height: 28px; display:grid; place-items:center;">
+                                                        <i class="bi bi-geo-alt-fill" style="font-size: 0.7rem;"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-dark small">Alamat LHU</span>
+                                                </div>
+                                                <p class="text-muted small mb-0" style="line-height: 1.4;" id="alamat-lhu">
+                                                    -
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card h-100 border-0 bg-light">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="rounded-circle bg-white p-1 text-secondary me-2 shadow-sm border" style="width: 28px; height: 28px; display:grid; place-items:center;">
+                                                        <i class="bi bi-receipt" style="font-size: 0.7rem;"></i>
+                                                    </div>
+                                                    <span class="fw-bold text-dark small">Alamat Invoice</span>
+                                                </div>
+                                                <p class="text-muted small mb-0" id="alamat-invoice">Sama dengan alamat utama</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                {{-- @if($permohonan->jenis_layanan->name == 'Sewa')
-                <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
-                    <div class="card-body row">
-                        <div class="mb-3 col-md-12">
-                            <label class="form-label">Upload Document LHU Zero cek<span class="text-danger ml-2">*</span></label>
-                            <div id="uploadDocLHU"></div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-primary text-white mb-3"
+                    style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                    <div class="card-body p-4 text-center">
+                        <small class="text-white-50 text-uppercase fw-bold">Total Estimasi Harga</small>
+                        <h2 class="fw-bold my-2">{{ formatCurrency($permohonan->total_harga) }}</h2>
+                        <span class="badge bg-white bg-opacity-25 text-white fw-normal border border-light border-opacity-25">
+                            Belum Termasuk PPN
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-3">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 rounded-top-4">
+                        <h6 class="fw-bold text-dark m-0">
+                            <i class="bi bi-paperclip me-2 text-danger"></i>Berkas Kelengkapan
+                        </h6>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div id="show-tandaterima" class="d-none p-3 bg-white rounded-3 border border-success border-opacity-25 shadow-sm position-relative overflow-hidden transition-all hover-shadow">
+
+                            <div class="position-absolute top-0 start-0 h-100 bg-success" style="width: 4px;"></div>
+
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1 overflow-hidden me-3">
+                                    <h6 class="mb-0 fw-bold text-dark text-truncate" title="Tanda Terima Pengujian">
+                                        Tanda Terima Pengujian
+                                    </h6>
+                                </div>
+
+                                <div class="d-flex flex-column gap-2">
+                                    <button class="btn btn-sm btn-outline-primary border-0 bg-primary-subtle text-primary"
+                                            title="Lihat File" id="btn-show-tandaterima">
+                                        <i class="bi bi-eye-fill"></i>
+                                    </button>
+
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="btn-delete-tandaterima">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="tambah-tandaterima" class="border-2 border-dashed border-secondary border-opacity-25 rounded-3 p-4 text-center bg-light mb-3">
+                            <i class="bi bi-file-earmark-plus text-muted fs-3 mb-2 d-block"></i>
+                            <h6 class="fw-bold text-dark small mb-1">Tanda Terima *</h6>
+                            <small class="text-muted d-block mb-3" style="font-size: 0.75rem;">Belum ada dokumen</small>
+                            <button id="btn-tandaterima" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                <i class="bi bi-upload me-1"></i> Tambah
+                            </button>
                         </div>
                     </div>
                 </div>
-                @endif --}}
-                <div class="card card-default border-0 color-palette-box shadow py-3 mt-2">
-                    <div class="card-body row">
-                        <div class="col-md-12 d-flex justify-content-center">
-                            <div class="wrapper" id="content-ttd-2"></div>
+
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4 text-center">
+                        <h6 class="fw-bold text-dark small text-uppercase mb-3">Validasi Front Desk</h6>
+
+                        <div class="position-relative d-flex align-items-center justify-content-center ">
+
+                            <div id="content-ttd-2"></div>
+
+                            <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2 text-muted opacity-50 small user-select-none" style="pointer-events: none;">
+                                Tanda tangan di sini
+                            </div>
                         </div>
+
+                        <p class="text-muted small mb-0">Tertanda: <strong>Admin Front Desk</strong></p>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col-6">
-                        <button class="btn btn-danger" onclick="verif_kelengkapan('tidak_lengkap', this)">Data tidak lengkap</button>
-                    </div>
-                    <div class="col-6 text-end">
-                        <button class="btn btn-primary" onclick="verif_kelengkapan('lengkap', this)">Data Lengkap</button>
+
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold mb-3">Tindakan</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary py-2 fw-bold" onclick="verif_kelengkapan('lengkap', this)">
+                                <i class="bi bi-check me-2"></i>Lengkap
+                            </button>
+                            <button class="btn btn-outline-danger py-2" onclick="verif_kelengkapan('tidak_lengkap', this)">
+                                <i class="bi bi-x me-2"></i>Tidak Lengkap
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 </div>
 
 {{-- Modal select tld --}}

@@ -170,7 +170,7 @@
                                                         <small class="text-primary fw-bold text-uppercase d-block">Kode Instansi</small>
                                                         <span class="fs-5 fw-bold text-dark" id="kode_instansi"></span>
                                                     </div>
-                                                    <button type="button" class="btn btn-sm btn-light text-primary" onclick="copyKode()" title="Salin Kode">
+                                                    <button type="button" class="btn btn-sm btn-light text-primary" onclick="copyKode('kode_instansi')" title="Salin Kode">
                                                         <i class="bi bi-clipboard"></i>
                                                     </button>
                                                 </div>

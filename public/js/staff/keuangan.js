@@ -81,23 +81,34 @@ function loadData(page = 1, menu) {
         for (const keuangan of result.data) {
             const permohonan = keuangan.permohonan;
             let btnAction = '';
+            let btnAction2 = '';
             switch (keuangan.status) {
                 case 1:
-                    btnAction = `<button class="btn btn-outline-primary btn-sm" title="Buat Invoice" onclick="openInvoiceModal(this, 'create')"><i class="bi bi-plus"></i> Buat invoice</button>`;
+                    btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Buat Invoice" onclick="openInvoiceModal(this, 'create')"><i class="bi bi-plus"></i> Buat invoice</button>`;
                     break;
                 case 7:
-                    btnAction = `<button class="btn btn-outline-primary btn-sm" title="Upload Faktur" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-upload"></i> Upload Faktur</button>`;
+                    btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Upload Faktur" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-upload"></i> Upload Faktur</button>`;
                     break;
                 case 4:
-                    btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openInvoiceModal(this, 'verifStaff')"><i class="bi bi-check2-circle"></i> Verif Invoice</button>`;
+                    btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Verifikasi" onclick="openInvoiceModal(this, 'verifStaff')"><i class="bi bi-check2-circle"></i> Verif Invoice</button>`;
                     break;
                 default:
-                    btnAction = `<button class="btn btn-outline-info btn-sm" title="Detail Invoice" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-info-circle"></i> Detail invoice</button>`;
+                    btnAction = `
+                        <li>
+                            <a class="dropdown-item small cursor-pointer" title="Detail Invoice" onclick="openInvoiceModal(this, 'detail')">
+                                <i class="bi bi-info-circle me-2"></i> Detail invoice
+                            </a>
+                        </li>`;
                     break;
             }
 
             if(keuangan.status == 5){
-                btnAction += `<a class="btn btn-outline-primary btn-sm ms-1" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi"><i class="bi bi-printer-fill"></i> Kwitansi</a>`;
+                btnAction += `
+                    <li>
+                        <a class="dropdown-item small cursor-pointer" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi">
+                            <i class="bi bi-printer-fill me-2"></i> Kwitansi
+                        </a>
+                    </li>`;
             }
 
             const data = {
@@ -116,7 +127,7 @@ function loadData(page = 1, menu) {
                 is_have_tld: permohonan.kontrak?.is_have_tld,
                 is_zerocek: permohonan.kontrak?.is_zerocek
             }
-            html += cardComponent(data, { btnAction: btnAction });
+            html += cardComponent(data, { btnAction: btnAction2, btnMenuAction: btnAction });
         }
 
         if(result.data.length == 0){
@@ -140,7 +151,7 @@ function loadData(page = 1, menu) {
 }
 
 function openInvoiceModal(obj, mode) {
-    const keuangan = $(obj).parent().data("id");
+    const keuangan = $(obj).parent().parent().data("id");
     ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
         invoice.addData(result.data);
         invoice.open(mode);

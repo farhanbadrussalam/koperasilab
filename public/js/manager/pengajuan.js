@@ -54,15 +54,26 @@ function loadData(page = 1) {
             const permohonan = keuangan.permohonan;
             permohonan.idkeuangan = keuangan.keuangan_hash;
             let btnAction = '';
+            let btnAction2 = '';
 
             if(keuangan.status == 2){
-                btnAction = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiInvoice(this, 'verify')">verifikasi</button>`;
+                btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Verifikasi" onclick="verifikasiInvoice(this, 'verify')">verifikasi</button>`;
             } else {
-                btnAction = `<button class="btn btn-outline-info btn-sm" title="Detail Invoice" onclick="verifikasiInvoice(this, 'detail')"><i class="bi bi-info-circle"></i> Detail invoice</button>`;
+                btnAction = `
+                <li>
+                    <a class="dropdown-item small cursor-pointer" title="Detail Invoice" onclick="verifikasiInvoice(this, 'detail')">
+                        <i class="bi bi-info-circle me-2"></i> Detail invoice
+                    </a>
+                </li>`;
             }
 
             if(keuangan.status == 5) {
-                btnAction += `<a class="btn btn-outline-primary btn-sm ms-1" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi"><i class="bi bi-printer-fill"></i> Kwitansi</a>`;
+                btnAction += `
+                <li>
+                    <a class="dropdown-item small cursor-pointer" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi">
+                        <i class="bi bi-printer-fill me-2"></i> Kwitansi
+                    </a>
+                </li>`;
             }
 
             let badgeClass = 'bg-primary-subtle';
@@ -86,7 +97,7 @@ function loadData(page = 1) {
                 id: keuangan.keuangan_hash
             }
 
-            html += cardComponent(data, {btnAction: btnAction});
+            html += cardComponent(data, {btnMenuAction: btnAction, btnAction: btnAction2});
         }
 
         if(result.data.length == 0){
@@ -115,7 +126,7 @@ $('#list-pagination').on('click', 'a', function (e) {
 });
 
 function verifikasiInvoice(obj, mode){
-    const keuangan = $(obj).parent().data("id");
+    const keuangan = $(obj).parent().parent().data("id");
     ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
         invoice.addData(result.data);
         invoice.open(mode);
