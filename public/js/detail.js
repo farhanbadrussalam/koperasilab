@@ -652,7 +652,7 @@ class Detail {
                 html += `
                     <div class="card border-bottom border-0 fs-8 mb-1 hover-3">
                         <div class="card-body row align-items-center py-1">
-                            <div class="col-auto lh-sm d-flex align-items-center">
+                            <div class="col-md-10 lh-sm d-flex align-items-center">
                                 <span class="col-form-label me-2">${i + 1}</span>
                                 <div class="mx-2">
                                     <div>${pengguna.name}</div>

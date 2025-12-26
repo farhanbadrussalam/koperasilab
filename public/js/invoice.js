@@ -661,7 +661,7 @@ class Invoice {
         switch (this.invoiceMode) {
             case 'create':
                 let metodePembayaran = $('#methode-pembayaran-select').parsley().validate();
-                if(metodePembayaran){
+                if(metodePembayaran !== true){
                     return;
                 }
 

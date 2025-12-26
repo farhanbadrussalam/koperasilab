@@ -223,7 +223,7 @@
                             placeholder="Cari nama atau ID karyawan...">
                     </div>
                 </div>
-                <div class="modal-body p-0 custom-scrollbar" style="max-height: 400px; overflow-y: auto;">
+                <div class="modal-body p-0 custom-scrollbar vh-100" style="max-height: 400px; overflow-y: auto;">
 
                     <div class="p-2">
                         <table id="table-user" class="table table-borderless w-100 align-middle">

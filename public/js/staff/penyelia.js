@@ -124,17 +124,17 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         btnAction += `
                             <li>
                                 <a class="dropdown-item small cursor-pointer" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}">
-                                    <i class="bi bi-eye"></i> Lihat
+                                    <i class="bi bi-eye me-2"></i> Lihat
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item small cursor-pointer" href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}">
-                                    <i class="bi bi-pencil-square"></i> Edit
+                                    <i class="bi bi-pencil-square me-2"></i> Edit
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item small cursor-pointer text-danger" onclick="btnDelete(this)">
-                                    <i class="bi bi-trash"></i> Hapus
+                                    <i class="bi bi-trash me-2"></i> Hapus
                                 </a>
                             </li>
                         `;
