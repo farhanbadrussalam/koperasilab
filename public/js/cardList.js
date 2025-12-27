@@ -79,7 +79,7 @@ function cardComponent(data, options = {}) {
                         </div>
                     </div>
 
-                    <div class="col-lg-2 text-lg-end text-start d-flex align-items-center justify-content-end" data-id='${data.id}'>
+                    <div class="col-lg-2 text-lg-end text-start d-flex align-items-center justify-content-end" data-id='${data.id}' data-index='${data.index ?? ''}'>
                         <div>
                             ${options.btnAction ?? ''}
                         </div>

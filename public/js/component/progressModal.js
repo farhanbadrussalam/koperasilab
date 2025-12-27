@@ -22,7 +22,7 @@ $(function () {
     });
 })
 function openProgressModal(obj){
-    const index = $(obj).parent().data("index");
+    const index = $(obj).parent().parent().data("index");
     ajaxGet(`api/v1/penyelia/getById/${dataPenyelia[index].penyelia_hash}`, false, result => {
         nowSelect = result.data ?? false;
         $('#statusDone').prop('checked', true);

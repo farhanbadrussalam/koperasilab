@@ -65,6 +65,7 @@ function loadData(page = 1) {
             const permohonan = lhu.permohonan;
             let periode = permohonan.periode_pemakaian;
             let btnAction = '';
+            let btnAction2 = '';
             // Mengecek array listJobs apakah ada di jobsAktive
             // Algoritma ini opsional jika dimunculkan semuanya
             /*
@@ -103,8 +104,20 @@ function loadData(page = 1) {
             let htmlStatus = statusFormat('penyelia', lhu.status);
 
             // button action
-            btnAction += `<button class="btn btn-sm btn-outline-secondary" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</button>`;
-            let btnLabel = `<a class="btn btn-outline-info btn-sm" title="Print Label" href="${base_url}/laporan/label/${lhu.penyelia_hash}" target="_blank"><i class="bi bi-printer"></i> Label</a>`;
+            btnAction += `
+                <li>
+                    <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
+                        <i class="bi bi-info-circle"></i> Detail
+                    </a>
+                </li>
+            `;
+            let btnLabel = `
+                <li>
+                    <a class="dropdown-item small cursor-pointer" title="Print Label" href="${base_url}/laporan/label/${lhu.penyelia_hash}" target="_blank">
+                        <i class="bi bi-printer"></i> Cetak Label
+                    </a>
+                </li>
+                `;
 
             if(thisTab == "selesai") {
                 const selesaiJobs = lhu.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 2);
@@ -129,9 +142,15 @@ function loadData(page = 1) {
                 })
 
                 let btnUpdateProgress = `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
-                let showPenyimpanan = `<button class="btn btn-outline-warning btn-sm" title="Lihat Penyimpanan" onclick="openPenyimpananModal(this)"><i class="bi bi-eye"></i> Lihat penyimpanan</button>`;
+                let showPenyimpanan = `
+                    <li>
+                        <a class="dropdown-item small cursor-pointer" title="Lihat Penyimpanan" onclick="openPenyimpananModal(this)">
+                            <i class="bi bi-eye"></i> Lihat penyimpanan
+                        </a>
+                    </li>
+                `;
                 if(!isPenyimpanan){
-                    btnAction += btnUpdateProgress;
+                    btnAction2 += btnUpdateProgress;
                 } else {
                     let filterPeriodeNext = lhu.permohonan.kontrak.periode.filter(d => d.periode == lhu.periode + 1 && d.status == 1);
                     // console.log(filterPeriodeNext);
@@ -139,9 +158,9 @@ function loadData(page = 1) {
                         let reminderPeriod = isReminderPeriod(filterPeriodeNext[0].start_date, 1);
 
                         if(filterPeriodeNext[0].tld_in_periode && filterPeriodeNext[0].tld_in_periode[0].status == 5 || reminderPeriod){
-                            btnAction += btnUpdateProgress;
+                            btnAction2 += btnUpdateProgress;
                         } else {
-                            btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
+                            envirotment == 'production' ? btnAction += showPenyimpanan : btnAction2 += btnUpdateProgress;
                         }
                     } else {
                         if(envirotment == 'production' && permohonan.kontrak.is_have_tld == 1 && permohonan.kontrak.jenis_layanan.name != 'Sewa') {
@@ -156,10 +175,10 @@ function loadData(page = 1) {
                             if(reminderPeriod){
                                 btnAction += btnUpdateProgress;
                             } else {
-                                btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
+                                envirotment == 'production' ? btnAction += showPenyimpanan : btnAction2  += btnUpdateProgress;
                             }
                         } else {
-                            btnAction += envirotment == 'production' ? showPenyimpanan : btnUpdateProgress;
+                            envirotment == 'production' ? btnAction += showPenyimpanan : btnAction2  += btnUpdateProgress;
                         }
                     }
                 }
@@ -195,40 +214,63 @@ function loadData(page = 1) {
                 }
             }
 
-            html += `
-                <div class="card mb-2">
-                    <div class="card-body row align-items-center py-2">
-                        <div class="col-auto">
-                            <div class="">
-                                <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
-                                <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.kontrak.jenis_layanan_parent.name} - ${permohonan.kontrak.jenis_layanan.name}</span>
-                                <span> | ${htmlStatus}</span>
-                            </div>
-                            <div class="fs-5 my-2">
-                                <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
-                                <div class="text-body-tertiary fs-7">
-                                    <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-                                </div>
-                            </div>
-                            <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                <span><i class="bi bi-calendar-range"></i> ${permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`}</span>
-                                <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
-                                ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
-                            </div>
-                        </div>
-                        <div class="ms-auto col-auto">
-                            ${htmlLeftTime}
-                            <div class="text-center gap-1 d-flex" data-id='${lhu.penyelia_hash}' data-index='${i}'>
-                                ${btnAction}
-                            </div>
-                        </div>
-                        ${divInfoTugas}
-                        <div class="col-md-12 collapse" id="timeline-progress-${lhu.penyelia_hash}">
-                            ${timeline.elementCreate()}
-                        </div>
-                    </div>
-                </div>
-            `;
+            const params = {
+                index: i,
+                tipeKontrak: permohonan.tipe_kontrak,
+                jenisLayananParent: permohonan.kontrak.jenis_layanan_parent.name,
+                jenisLayanan: permohonan.kontrak.jenis_layanan.name,
+                format: 'penyelia',
+                status: lhu.status,
+                jenisTld: permohonan.jenis_tld?.name ?? '-',
+                namaLayanan: permohonan.layanan_jasa?.nama_layanan,
+                periode: permohonan.periode,
+                created_at: permohonan.created_at,
+                kontrak: permohonan.kontrak.no_kontrak,
+                id: lhu.penyelia_hash,
+                is_have_tld: permohonan.kontrak.is_have_tld,
+                is_zerocek: permohonan.kontrak.is_zerocek,
+                note: '',
+                pelanggan: permohonan.pelanggan.name,
+                divInfoTugas: divInfoTugas,
+                divTimelineTugas: timeline
+            }
+
+            html += cardComponent(params, {btnMenuAction: btnAction, btnAction: btnAction2});
+
+            // html += `
+            //     <div class="card mb-2">
+            //         <div class="card-body row align-items-center py-2">
+            //             <div class="col-auto">
+            //                 <div class="">
+            //                     <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
+            //                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.kontrak.jenis_layanan_parent.name} - ${permohonan.kontrak.jenis_layanan.name}</span>
+            //                     <span> | ${htmlStatus}</span>
+            //                 </div>
+            //                 <div class="fs-5 my-2">
+            //                     <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
+            //                     <div class="text-body-tertiary fs-7">
+            //                         <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
+            //                     </div>
+            //                 </div>
+            //                 <div class="d-flex gap-3 text-body-tertiary fs-7">
+            //                     <span><i class="bi bi-calendar-range"></i> ${permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`}</span>
+            //                     <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
+            //                     ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
+            //                 </div>
+            //             </div>
+            //             <div class="ms-auto col-auto">
+            //                 ${htmlLeftTime}
+            //                 <div class="text-center gap-1 d-flex" data-id='${lhu.penyelia_hash}' data-index='${i}'>
+            //                     ${btnAction}
+            //                 </div>
+            //             </div>
+            //             ${divInfoTugas}
+            //             <div class="col-md-12 collapse" id="timeline-progress-${lhu.penyelia_hash}">
+            //                 ${timeline.elementCreate()}
+            //             </div>
+            //         </div>
+            //     </div>
+            // `;
         }
 
         if(result.data.length == 0){
@@ -255,7 +297,7 @@ function reload(){
 }
 
 function showDetail(obj){
-    const id = $(obj).parent().data("id");
+    const id = $(obj).parent().parent().data("id");
     detail.show(`api/v1/penyelia/getById/${id}`);
 }
 
