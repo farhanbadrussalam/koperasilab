@@ -1,108 +1,136 @@
 @extends('layouts.main')
 
 @section('content')
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item px-3">
-            <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="icon-link text-danger"><i class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
-        </li>
-    </ul>
+    <div class="content-wrapper">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h4 class="mb-1 fw-bold text-dark">Detail Tagihan & Pembayaran</h4>
+                    <p class="text-muted small mb-0">Invoice #{{ $keuangan->no_invoice }}</p>
+                </div>
+                <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Kembali
+                </a>
+            </div>
 
-    <div class="card shadow-sm m-4">
-        <div class="card-body">
-            <div class="row mx-2">
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">No Invoice</label>
-                    <div id="txtNoInvoice">{{ $keuangan->no_invoice }}</div>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-body p-4">
+                            <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Detail Invoice & Kontrak</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 border h-100">
+                                        <small class="text-muted d-block mb-1">No. Kontrak</small>
+                                        <span class="fw-bold text-primary font-monospace">{{ $keuangan->permohonan->kontrak?->no_kontrak ?? '' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 border h-100">
+                                        <small class="text-muted d-block mb-1">Pelanggan / Instansi</small>
+                                        <span class="fw-bold text-dark d-block">{{ $keuangan->permohonan->pelanggan->name }}</span>
+                                        <small class="text-muted">{{ $keuangan->permohonan->pelanggan->perusahaan->nama_perusahaan }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="p-3 bg-light rounded-3 border h-100">
+                                        <small class="text-muted d-block mb-1">Jenis Layanan</small>
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle">{{ $keuangan->permohonan->jenis_layanan_parent->name }}-{{ $keuangan->permohonan->jenis_layanan->name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 rounded-top-4">
+                            <h6 class="fw-bold text-dark mb-0">Rincian Perhitungan Biaya</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="table-responsive">
+                                <table class="table align-middle w-100">
+                                    <thead class="bg-light border-bottom">
+                                        <tr class="text-muted small text-uppercase">
+                                            <th class="text-start" width="40%">Rincian</th>
+                                            <th>Harga</th>
+                                            <th>Qty</th>
+                                            <th>Periode (Bulan)</th>
+                                            <th>Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="deskripsiInvoice">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold text-dark mb-4">KONFIRMASI PEMBAYARAN</h6>
+
+                            <div class="mb-4">
+                                <label class="small fw-bold text-muted mb-2 text-uppercase">Bukti Bayar Utama *</label>
+                                <div class="" id="uploadBuktiBayar">
+
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="small fw-bold text-muted mb-2 text-uppercase">Bukti Bayar PPH *</label>
+                                <div class="" id="uploadBuktiBayarPph">
+
+                                </div>
+                            </div>
+
+                            <div class="d-grid">
+                                <button class="btn btn-primary py-3 fw-bold rounded-3 shadow" onclick="btnSimpan(this)">
+                                    <i class="bi bi-send-fill me-2"></i>Kirim Konfirmasi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">No Kontrak</label>
-                    <div id="txtNoKontrakInvoice">{{ $keuangan->permohonan->kontrak?->no_kontrak ?? '' }}</div>
+
+                <div class="col-lg-4">
+                    <div class="sticky-sidebar">
+                        <div class="card border-0 shadow-sm rounded-4 mb-3">
+                            <div class="card-body p-4">
+                                <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Dokumen Pendukung</h6>
+                                <div class="d-flex gap-3 flex-column">
+                                    <a href="{{ url('laporan/invoice/'.$keuangan->keuangan_hash) }}" target="_blank"
+                                        class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
+                                        <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
+                                        <span class="fw-bold d-block small">Invoice Penagihan</span>
+                                        <small class="text-muted">PDF</small>
+                                    </a>
+                                    <a href="{{ url('laporan/kontrak/'.$keuangan->permohonan->kontrak_hash) }}" target="_blank"
+                                        class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
+                                        <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
+                                        <span class="fw-bold d-block small">Kontrak MoU</span>
+                                        <small class="text-muted">PDF</small>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card border-0 shadow-sm rounded-4 mb-3">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold mb-3 text-uppercase small opacity-75">Instruksi Pembayaran</h6>
+                                <div class="bg-white bg-opacity-10 border border-white border-opacity-25">
+                                    {!! $keuangan->metode_pembayaran->content !!}
+                                    <p>
+                                        Atas perhatian dan kerjasamanya, diucapkan terima kasih
+                                    </p>
+                                </div>
+                                <p class="small mb-0 opacity-75" style="line-height: 1.4;">
+                                    * Note : Kwitansi asli dan TLD akan kami kirimkan setelah menerima bukti pembayaran. <br>
+                                    (Mohon Bukti Potong PPh 23 dikirimkan kepada kami apabila memotongnya).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Jenis</label>
-                    <div id="txtJenisInvoice">{{ $keuangan->permohonan->jenis_layanan->name }}</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Pengguna</label>
-                    <div id="txtPenggunaInvoice">{{ $keuangan->permohonan->jumlah_pengguna }}</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Tipe Kontrak</label>
-                    <div id="txtTipeKontrakInvoice">{{ $keuangan->permohonan->tipe_kontrak }}</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Pelanggan</label>
-                    <div id="txtPelangganInvoice">{{ $keuangan->permohonan->pelanggan->name }}</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Jenis TLD</label>
-                    <div id="txtJenisTldInvoice">{{ $keuangan->permohonan->jenisTld->name }}</div>
-                </div>
-                <div class="col-md-6 col-12">
-                    <label class="fw-bolder">Instansi</label>
-                    <div id="txtInstansiInvoice">{{ $keuangan->permohonan->pelanggan->perusahaan->nama_perusahaan }}</div>
-                </div>
-            </div>
-            <hr class="my-2">
-            <div class="border rounded p-3 mt-3">
-                <table class="table w-100 text-center">
-                    <thead>
-                        <tr>
-                            <th class="text-start" width="40%">Rincian</th>
-                            <th>Harga</th>
-                            <th>Qty</th>
-                            <th>Periode (Bulan)</th>
-                            <th>Jumlah</th>
-                        </tr>
-                    </thead>
-                    <tbody id="deskripsiInvoice">
-                    </tbody>
-                </table>
-            </div>
-            <div class="border rounded p-3 mt-3">
-                <p>
-                    Note : Kwitansi asli dan TLD akan kami kirimkan setelah menerima bukti pembayaran. <br>
-                    (Mohon Bukti Potong PPh 23 dikirimkan kepada kami apabila memotongnya)<br>
-                    {!! $keuangan->metode_pembayaran->content !!}
-                </p>
-                <p>
-                    Atas perhatian dan kerjasamanya, diucapkan terima kasih
-                </p>
-            </div>
-            <div class="border rounded p-3 mt-3">
-                <h4>Dokumen pendukung</h4>
-                <div class="row">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <a target="_blank" href="{{ url('laporan/invoice/'.$keuangan->keuangan_hash) }}" class="text-decoration-none">
-                                <i class="bi bi-file-earmark-fill"></i> Invoice
-                            </a>
-                        </li>
-                        <li class="list-group-item">
-                            <a href="{{ url('laporan/kontrak/'.$keuangan->permohonan->kontrak_hash) }}" target="_blank" class="text-decoration-none">
-                                <i class="bi bi-file-earmark-fill"></i> Kontrak MoU
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="row my-4">
-                <div class="col-md-6">
-                    <label for="" class="form-label">Upload bukti bayar<span class="text-danger ms-1">*</span></label>
-                    <div id="uploadBuktiBayar"></div>
-                </div>
-                <div class="col-md-6">
-                    <label for="" class="form-label">Upload bukti bayar PPH<span class="text-danger ms-1">*</span></label>
-                    <div id="uploadBuktiBayarPph"></div>
-                </div>
-            </div>
-            {{-- <div class="row my-4">
-                <div class="col-md-12 d-flex justify-content-center">
-                    <div class="wrapper" id="content-ttd-manager"></div>
-                </div>
-            </div> --}}
-            <div class="modal-footer d-flex justify-content-center mt-3">
-                <button type="button" class="btn btn-primary me-2" onclick="btnSimpan()">Kirim bukti bayar</button>
             </div>
         </div>
     </div>

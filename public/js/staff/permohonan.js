@@ -118,7 +118,7 @@ function loadData(page = 1) {
                 const btnAction = `
                     <li>
                         <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
-                            <i class="bi bi-eye me-2"></i> Detail
+                            <i class="bi bi-info-circle me-2"></i> Detail
                         </a>
                     </li>
                 `;

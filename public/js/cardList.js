@@ -74,6 +74,11 @@ function cardComponent(data, options = {}) {
                             </span>
                         </div>
                         ${data.statusPenyelia ? `<div class="my-1">${data.statusPenyelia}</div>` : ``}
+                        ${data.htmlLeftTime ? `
+                            <div class="my-1">
+                                ${data.htmlLeftTime}
+                            </div>
+                        ` : ``}
                         <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
                             PIC: <strong>${data.pelanggan}</strong> • ${dateFormat(data.created_at, 4)}
                         </div>

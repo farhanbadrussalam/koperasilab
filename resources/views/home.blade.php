@@ -93,36 +93,6 @@
             </div>
 
             @canany(['Permohonan/pengajuan', 'Staff/permohonan', 'Manager/pengajuan'])
-            {{-- <x-dashboard.pending-request :requests="[
-                array(
-                    'id' => 1,
-                    'no_tiket' => '#REQ-2025-001',
-                    'jenis_layanan' => 'TLD',
-                    'tanggal_pengajuan' => '2025-11-20',
-                    'status' => 'pending_admin' // Status Menunggu
-                ),
-                array(
-                    'id' => 2,
-                    'no_tiket' => '#REQ-2025-002',
-                    'jenis_layanan' => 'KOP',
-                    'tanggal_pengajuan' => '2025-11-18',
-                    'status' => 'revisi' // Status Revisi
-                ),
-                array(
-                    'id' => 3,
-                    'no_tiket' => '#REQ-2025-003',
-                    'jenis_layanan' => 'TLD',
-                    'tanggal_pengajuan' => '2025-11-15',
-                    'status' => 'pending_verification' // Status Menunggu Verifikasi
-                ),
-                array(
-                    'id' => 4,
-                    'no_tiket' => '#REQ-2025-004',
-                    'jenis_layanan' => 'KOP',
-                    'tanggal_pengajuan' => '2025-11-10',
-                    'status' => 'pending_admin' // Status Menunggu
-                )
-            ]" /> --}}
             <div id="widget-statistics"
                 class="ajax-widget"
                 data-url="dashboard/widgets/statistics-layanan"

@@ -5,6 +5,13 @@ let thisTab = 'progress';
 $(function () {
     loadData();
 
+    // mengambil params url
+    let urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.has('md')) {
+        let md = urlParams.get('md');
+        openProgressModal(false, md);
+    }
+
     detail = new Detail({
         jenis: 'penyelia',
         tab: {
@@ -220,7 +227,7 @@ function loadData(page = 1) {
                 jenisLayananParent: permohonan.kontrak.jenis_layanan_parent.name,
                 jenisLayanan: permohonan.kontrak.jenis_layanan.name,
                 format: 'penyelia',
-                status: lhu.status,
+                statusPenyelia: htmlStatus,
                 jenisTld: permohonan.jenis_tld?.name ?? '-',
                 namaLayanan: permohonan.layanan_jasa?.nama_layanan,
                 periode: permohonan.periode,
@@ -232,7 +239,8 @@ function loadData(page = 1) {
                 note: '',
                 pelanggan: permohonan.pelanggan.name,
                 divInfoTugas: divInfoTugas,
-                divTimelineTugas: timeline
+                divTimelineTugas: timeline,
+                htmlLeftTime: htmlLeftTime
             }
 
             html += cardComponent(params, {btnMenuAction: btnAction, btnAction: btnAction2});

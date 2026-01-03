@@ -14,6 +14,7 @@ $(function () {
         const detail = e.detail;
 
         $(`#tldNoSeri_${$.escapeSelector(detail.selected)}`).val(detail.data_tld.no_seri_tld);
+        $(`#tldNoSeri_${$.escapeSelector(detail.selected)}_view`).html(detail.data_tld.no_seri_tld);
 
         // reset tmpArrTld
         let index = tmpArrTld.findIndex(d => d.id == detail.selected);
@@ -105,10 +106,9 @@ function load_form() {
                     tld: list.tld_hash
                 });
                 htmlKontrol += `
-                    <div class="w-50 pe-1 d-flex flex-column">
-                        <div class="input-group mt-auto mb-3">
-                            <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.no_seri_tld}" data-id="${list.tld_hash}" id="tldNoSeri_${list.tld_hash}" placeholder="Pilih No Seri" readonly>
-                        </div>
+                    <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
+                        <span class="fw-bold me-2">${list.no_seri_tld}</span>
+                        <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.no_seri_tld}" data-id="${list.tld_hash}" id="tldNoSeri_${list.tld_hash}" placeholder="Pilih No Seri" readonly>
                     </div>
                 `;
             }else {
@@ -125,12 +125,11 @@ function load_form() {
                         }
                     }
                     htmlKontrol += `
-                        <div class="w-50 pe-1 d-flex flex-column">
-                            <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}</span>
-                            <div class="input-group mt-auto mb-3">
-                                <input type="text" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
-                                ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
-                            </div>
+                        <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
+                            <small class="text-muted me-2">${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}:</small>
+                            <span class="fw-bold me-2" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}_view">${list.tld ? list.tld[idx].no_seri_tld : ''}</span>
+                            ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info ms-auto" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
+                            <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
                         </div>
                     `;
                 }
@@ -146,10 +145,9 @@ function load_form() {
                     tld: list.tld_hash
                 });
                 htmlPengguna += `
-                    <div class="w-50 pe-1 d-flex flex-column">
-                        <div class="input-group mt-auto mb-3">
-                            <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.no_seri_tld}" data-id="${list.tld_hash}" id="tldNoSeri_${list.tld_hash}" placeholder="Pilih No Seri" readonly>
-                        </div>
+                    <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
+                        <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.no_seri_tld}" data-id="${list.tld_hash}" id="tldNoSeri_${list.tld_hash}" placeholder="Pilih No Seri" readonly>
+                        <span class="fw-bold me-2">${list.no_seri_tld}</span>
                     </div>
                 `;
             } else {
@@ -165,44 +163,45 @@ function load_form() {
                     }
                 }
                 htmlPengguna += `
-                    <div class="w-50 pe-1 d-flex flex-column">
-                        <span>${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}</span>
-                        <div class="input-group mt-auto mb-3">
-                            <input type="text" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.tld ? list.tld[0].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary btn-sm" type="button" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
-                        </div>
+                    <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
+                        <input type="hidden" class="form-control rounded-start form-sm" value="${list.tld ? list.tld[0].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" readonly>
+                        <small class="text-muted me-2">${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}:</small>
+                        <span class="fw-bold me-2">${list.tld ? list.tld[0].no_seri_tld : 'Tidak Ada'}</span>
+                        ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
                     </div>
                 `;
             }
         }
         htmlTld = `
-            <div class="border shadow-sm py-2 rounded mb-2">
-                <div
-                    class="d-flex justify-content-between align-items-center px-2">
-                    <div>
-                        <input class="form-check-input me-2" type="checkbox"
-                            data-jenis="tld" data-id="${informasi.permohonan_hash ?? ''}"
-                            id="selectDocumentTld" name="selectDocument" onclick="updateSelectDocument()" ${checkedTld}>
-                        <span class="fw-semibold fs-6">TLD Periode ${periode_aktif.status === 2 ? 'Pengembalian' : periodeTld}</span>
-                        <small class="text-body-tertiary"> - ${informasi.jumlah_pengguna} Pengguna + ${informasi.jumlah_kontrol} Kontrol</small>
-                        <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? status_tld.status : false)}</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-3 text-secondary">
-                    </div>
-                </div>
-                <div id="listTld" class="row">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="px-4">TLD Pengguna</label>
-                            <div class="px-4 pt-2 flex-wrap d-flex row-gap-2">
-                                ${htmlPengguna}
+            <div class="card border border-primary-subtle rounded-3">
+                <div class="card-body p-3 pb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <div>
+                                <input class="form-check-input" type="checkbox" id="selectDocumentTld"
+                                    data-jenis="tld" name="selectDocument" data-id="${informasi.permohonan_hash ?? ''}"
+                                        onclick="updateSelectDocument()" ${checkedTld}>
+                                <label class="form-check-label fw-bold" for="checkTLD">TLD Periode ${periode_aktif.status === 2 ? 'Pengembalian' : periodeTld}</label>
+                                <span class="badge bg-light text-muted border ms-2">${informasi.jumlah_pengguna} Pengguna + ${informasi.jumlah_kontrol} Kontrol</span>
+                            </div>
+                            <div>
+                                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(informasi.created_at, 4)}</small>
+                                <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? status_tld.status : false)}</small>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="px-4">TLD kontrol</label>
-                            <div class="px-4 pt-2 flex-wrap d-flex row-gap-2">
-                                ${htmlKontrol}
-                            </div>
+                    </div>
+                </div>
+                <div class="row g-2 bg-light p-2 rounded-3 m-2" id="listTld">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.7rem;">TLD Pengguna</small>
+                        <div class="d-flex flex-wrap gap-2">
+                            ${htmlPengguna}
+                        </div>
+                    </div>
+                    <div class="col-md-6 border-start ps-3">
+                        <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.7rem;">TLD Kontrol</small>
+                        <div class="d-flex flex-wrap gap-2">
+                            ${htmlKontrol}
                         </div>
                     </div>
                 </div>
@@ -213,24 +212,31 @@ function load_form() {
 
     // list document invoice
     let htmlInvoice = '';
-    let urlLaporanInvoice = informasi.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${informasi.invoice?.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
+    let urlLaporanInvoice = informasi.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${informasi.invoice?.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i></a>` : '<i class="bi bi-printer-fill"></i>';
     // let checkedInvoice = informasi.invoice?.status == 5 ? (informasi.invoice?.pengiriman ? 'disabled' : 'checked') : 'disabled';
     let checkedInvoice = informasi.invoice?.pengiriman ? 'disabled' : 'checked';
     informasi.invoice ? htmlInvoice = `
-        <div
-            class="border shadow-sm py-2 d-flex justify-content-between align-items-center px-2 rounded mb-2">
-            <div>
-                <input class="form-check-input me-2" type="checkbox"
-                    data-jenis="invoice" data-id="${informasi.invoice.keuangan_hash}"
-                    id="selectDocumentInvoice" name="selectDocument" onclick="updateSelectDocument()" ${checkedInvoice}>
-                <span class="fw-semibold fs-6">Invoice + MoU</span>
-                <small class="text-body-tertiary"> - ${informasi.invoice.no_invoice}</small>
-                <small>${statusFormat('pengiriman', informasi.invoice.pengiriman?.status)}</small>
+        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2 shadow-xs">
+            <div class="form-check">
+                <div class="d-flex align-items-center gap-2">
+                    <input class="form-check-input" type="checkbox"
+                        data-jenis="invoice" data-id="${informasi.invoice.keuangan_hash}"
+                        id="selectDocumentInvoice" name="selectDocument" onclick="updateSelectDocument()" ${checkedInvoice}>
+                    <label class="form-check-label" for="checkInv">
+                        <span class="fw-bold">Invoice + MoU</span>
+                        <small class="text-muted ms-2">#${informasi.invoice.no_invoice}</small>
+                    </label>
+                </div>
+                <div>
+                    <small><i class="bi bi-calendar-fill"></i> ${dateFormat(informasi.invoice.created_at, 4)}</small>
+                    <small>${statusFormat('pengiriman', informasi.invoice.pengiriman?.status)}</small>
+                </div>
             </div>
-            <div class="d-flex align-items-center gap-3 text-secondary">
-                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(informasi.invoice.created_at, 4)}</small>
-                <small>${statusFormat('invoice', informasi.invoice.status)}</small>
-                <small class="bg-body-tertiary rounded-pill ${informasi.invoice.status == 5 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlLaporanInvoice}</small>
+            <div class="d-flex align-items-center gap-2">
+                ${statusFormat('invoice', informasi.invoice.status)}
+                <small class="btn btn-sm btn-outline-primary border-0 bg-primary-subtle text-primary ${informasi.invoice.status == 5 ? "cursoron" : "cursordisable"}">
+                    ${urlLaporanInvoice}
+                </small>
             </div>
         </div>
     ` : false;
@@ -260,21 +266,24 @@ function load_form() {
     }
 
     informasi.lhu ? htmlLhu = `
-        <div class="border shadow-sm py-2 rounded mb-2">
-            <div class="d-flex justify-content-between align-items-center px-2">
-                <div>
-                    <input class="form-check-input me-2" type="checkbox"
+        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2">
+            <div class="form-check">
+                <div class="d-flex align-items-center gap-2">
+                    <input class="form-check-input" type="checkbox"
                         data-jenis="lhu" data-id="${informasi.lhu.penyelia_hash}"
                         id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
-                    <span class="fw-semibold fs-6">LHU ${htmlPeriode}</span>
+                    <label class="form-check-label fw-bold" for="selectDocumentLHU">LHU ${htmlPeriode}</label>
+
                     <small class="text-body-tertiary"> - ${!informasi.lhu.periode ? 'Zero Cek' : `Periode ${informasi.lhu.periode} ${htmlRangeDate}`} </small>
+                </div>
+                <div>
+                    <small><i class="bi bi-calendar-fill"></i> ${dateFormat(informasi.lhu.created_at, 4)}</small>
                     <small>${statusFormat('pengiriman', informasi.lhu.pengiriman?.status)}</small>
                 </div>
-                <div class="d-flex align-items-center gap-3 text-secondary">
-                    <small><i class="bi bi-calendar-fill"></i> ${dateFormat(informasi.lhu.created_at, 4)}</small>
-                    <small>${statusFormat('penyelia', informasi.lhu.status)}</small>
-                    <!-- <small class="bg-body-tertiary rounded-pill ${informasi.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
-                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <small>${statusFormat('penyelia', informasi.lhu.status)}</small>
+                <!-- <small class="bg-body-tertiary rounded-pill ${informasi.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
             </div>
         </div>
     ` : false;
@@ -290,20 +299,20 @@ function load_form() {
     for (const custom of arrDocCustom) {
         let urlDocCustom = custom.media ? `<a href="${base_url}/storage/${custom.media.file_path}/${custom.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Document</a>` : false;
         htmlCustom += `
-            <div class="border shadow-sm py-2 rounded mb-2">
-                <div
-                    class="d-flex justify-content-between align-items-center px-2">
-                    <div>
-                        <input class="form-check-input me-2" type="checkbox"
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2">
+                <div class="form-check">
+                    <div class="d-flex align-items-center gap-2">
+                        <input class="form-check-input" type="checkbox"
                             data-jenis="${custom.jenis}" data-id="${informasi.permohonan_hash}"
                             id="selectDocumentCustom" name="selectDocument" ${checkedCustom} disabled>
-                        <span class="fw-semibold fs-6">${custom.jenis}</span>
-                        <small class="text-body-tertiary"></small>
+                        <label class="form-check-label fw-bold" for="selectDocumentLHU">${custom.jenis}</label>
+                    </div>
+                    <div>
                         <small>${statusFormat('pengiriman', informasi.pengiriman?.status)}</small>
                     </div>
-                    <div class="d-flex align-items-center gap-3 text-secondary">
-                        ${urlDocCustom ? '<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2">'+urlDocCustom+'</small>' : ''}
-                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-3 text-secondary">
+                    ${urlDocCustom ? '<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2">'+urlDocCustom+'</small>' : ''}
                 </div>
             </div>
         `;
@@ -396,7 +405,7 @@ function buatPengiriman(obj){
         if (result.isConfirmed) {
             let dAlamat = informasi.pelanggan.perusahaan.alamat[alamat];
             const params = new FormData();
-            params.append('idPengiriman', $('#no_pengiriman').val());
+            params.append('idPengiriman', $('#no_pengiriman').html());
             params.append('idPermohonan', informasi.permohonan_hash);
             params.append('alamat', dAlamat.alamat_hash);
             params.append('tujuan', informasi.pelanggan.id);

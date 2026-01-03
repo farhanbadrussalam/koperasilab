@@ -21,9 +21,11 @@ $(function () {
         setProses(prosesNow);
     });
 })
-function openProgressModal(obj){
+function openProgressModal(obj = false, idPenyelia = false){
     const index = $(obj).parent().parent().data("index");
-    ajaxGet(`api/v1/penyelia/getById/${dataPenyelia[index].penyelia_hash}`, false, result => {
+    idPenyelia = obj ? dataPenyelia[index].penyelia_hash : idPenyelia;
+
+    ajaxGet(`api/v1/penyelia/getById/${idPenyelia}`, false, result => {
         nowSelect = result.data ?? false;
         $('#statusDone').prop('checked', true);
         // Mengambil proses jobs
