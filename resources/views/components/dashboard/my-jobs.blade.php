@@ -1,4 +1,11 @@
-@props(['jobs'])
+@props(['jobs', 'role_penyelia'])
+@php
+    if($role_penyelia) {
+        $url = url('staff/penyelia').'?tab=jobs&';
+    } else {
+        $url = url('staff/lhu').'?';
+    }
+@endphp
 
 <div class="card border-0 shadow-sm rounded-4 mb-3">
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom rounded-top-4">
@@ -33,7 +40,7 @@
                         </div>
 
                         <div class="ms-3">
-                            <a href="javascript:void(0);" class="btn btn-sm btn-primary shadow-sm"
+                            <a href="{{ $url . 'md='.$job['id_penyelia'] }}" class="btn btn-sm btn-primary shadow-sm"
                                  title="Kerjakan">
                                 <i class="bi bi-play-fill me-1"></i>
                             </a>

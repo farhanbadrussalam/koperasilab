@@ -221,6 +221,9 @@ class Detail {
                 case 'history_pic':
                     $('#container-detail').append(this.createInformationHistoryPic());
                     break;
+                case 'kontrak':
+                    $('#container-detail').append(this.createInformationKontrak());
+                    break;
                 default:
                     $('#container-detail').append(this.createInformationPermohonan());
                     break;
@@ -449,7 +452,6 @@ class Detail {
 
         return container;
     }
-
     createInformationPerusahaan() {
         const container = document.createElement('div');
         container.className = 'container fs-7';
@@ -486,7 +488,6 @@ class Detail {
 
         return container;
     }
-
     createInformationHistoryPic() {
         const container = document.createElement('div');
         container.className = 'container fs-7';
@@ -565,6 +566,60 @@ class Detail {
         container.innerHTML = `
             <div class="timeline">
                 ${html}
+            </div>
+        `;
+
+        return container;
+    }
+    createInformationKontrak() {
+        const container = document.createElement('div');
+        container.className = 'container fs-7';
+
+        $('#titleDetail').text('Informasi Kontrak');
+
+        container.innerHTML = `
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">No kontrak</label>
+                <div class="col-auto">
+                    ${this.info.no_kontrak}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Jenis layanan</label>
+                <div class="col-auto gap-1">
+                    <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
+                    <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Pelanggan</label>
+                <div class="col-auto">
+                    ${this.info.pelanggan}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Perusahaan</label>
+                <div class="col-auto">
+                    ${this.info.perusahaan}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Status</label>
+                <div class="col-auto">
+                    ${statusFormat(this.info.jenisStatus, this.info.status)}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Harga</label>
+                <div class="col-auto">
+                    ${formatRupiah(this.info.total_harga)}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <label class="text-body-tertiary mb-1 col-md-4">Dibuat pada</label>
+                <div class="col-auto">
+                    ${dateFormat(this.info.created_at, 0)}
+                </div>
             </div>
         `;
 
@@ -652,7 +707,7 @@ class Detail {
                 html += `
                     <div class="card border-bottom border-0 fs-8 mb-1 hover-3">
                         <div class="card-body row align-items-center py-1">
-                            <div class="col-auto lh-sm d-flex align-items-center">
+                            <div class="col-md-10 lh-sm d-flex align-items-center">
                                 <span class="col-form-label me-2">${i + 1}</span>
                                 <div class="mx-2">
                                     <div>${pengguna.name}</div>

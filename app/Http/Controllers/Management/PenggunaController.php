@@ -63,12 +63,30 @@ class PenggunaController extends Controller
                 $initial = isset($row->name) ? strtoupper(substr($row->name, 0, 1)) : '?';
 
                 $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
+
+                $btn2 = '';
                 $btn = '<div class="btn-group">';
-                $btn .= '<a class="btn btn-sm btn-outline-secondary show-popup-image align-self-center" href="' . $fileKtp. '"><i class="bi bi-file-person-fill"></i></a>';
+
+                $btn2 .= '
+                    <li>
+                        <a class="dropdown-item small cursor-pointer show-popup-image align-self-center" href="' . $fileKtp. '">
+                            <i class="bi bi-file-person-fill me-2"></i>Lihat Ktp
+                        </a>
+                    </li>
+                ';
+
+                $btnEdit = '
+                    <li>
+                        <a onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="dropdown-item small cursor-pointer">
+                            <i class="bi bi-pencil-square me-2"></i>Edit
+                        </a>
+                    </li>
+                ';
 
                 $status = '';
                 if ($type == 'selected') {
                     $btn .= '<button class="btn btn-sm btn-outline-primary align-self-center" data-id="' . $row->pengguna_hash . '" onclick="btnPilih(this)"> Pilih</button>' ;
+                    $btn2 .= $btnEdit;
                 } else {
                     switch ($row->status) {
                         case 1:
@@ -83,11 +101,16 @@ class PenggunaController extends Controller
                     }
 
                     if($row->status != 3){
-                        $btn .= '<button onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="btn btn-sm btn-outline-primary align-self-center"><i class="bi bi-pencil-square"></i></button>';
+                        $btn2 .= $btnEdit;
                     }
 
                     if($row->status == 1){
-                        $btn .= '<button class="btn btn-sm btn-outline-danger align-self-center" data-id="' . $row->pengguna_hash . '" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>';
+                        $btn2 .= '
+                        <li>
+                            <a class="dropdown-item small cursor-pointer text-danger" data-id="' . $row->pengguna_hash . '" onclick="btnDelete(this)">
+                                <i class="bi bi-trash3-fill me-2"></i>Hapus
+                            </a>
+                        </li>';
                     }
                 }
 
@@ -145,6 +168,15 @@ class PenggunaController extends Controller
                         </div>
 
                         '. $btn .'
+
+                        <div class="d-inline-block ms-2">
+                            <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-1 overflow-hidden">
+                                '. $btn2 .'
+                            </ul>
+                        </div>
                     </div>
                 ';
             })

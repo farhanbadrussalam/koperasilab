@@ -172,6 +172,69 @@ $(function () {
         }
     });
 
+    $('#simpanDraf').on('click', obj => {
+        let valjenisTld = $('#jenis_tld').val();
+        let valperiodePemakaian = $('#periode-pemakaian').attr('data-periode');
+        let valPeriodeNext = $('#periode_next').attr('data-periode');
+        let valjumPengguna = $('#jum_pengguna').val();
+        let valjumKontrol = $('#jum_kontrol').val();
+        let valAlamat = $('#selectAlamat').val();
+        let valtotalHarga = $('#total_harga').val();
+        let valHargaLayanan = window.price;
+        let haveTld = $('#haveTld').is(':checked');
+        let useZeroCek = $('#useZeroCek').is(':checked');
+
+        Swal.fire({
+            text: "Simpan permohonan sebagai draf?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, proceed!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Proceed with the action
+                const formData = new FormData();
+                formData.append('idPermohonan', idPermohonan);
+
+                formData.append('alamat', valAlamat);
+                formData.append('tipeKontrak', 'kontrak baru');
+                formData.append('jenisTld', valjenisTld);
+                formData.append('periodePemakaian', valperiodePemakaian);
+                formData.append('periodeNext', valPeriodeNext);
+                formData.append('jumlahPengguna', valjumPengguna);
+                formData.append('jumlahKontrol', valjumKontrol);
+                formData.append('hargaLayanan', valHargaLayanan);
+                formData.append('totalHarga', valtotalHarga);
+                formData.append('haveTld', haveTld ? 1 : 0);
+                formData.append('is_zerocek', useZeroCek ? 1 : 0);
+                formData.append('note', '');
+                formData.append('status', 80);
+
+                if(haveTld && useZeroCek) {
+                    formData.append('periode', 1);
+                } else {
+                    formData.append('periode', useZeroCek ? 0 : 1);
+                }
+
+                spinner('show', obj.target);
+                ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
+                    Swal.fire({
+                        icon: 'success',
+                        text: 'Pengajuan disimpan sebagai draf',
+                        timer: 1200,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = base_url+"/permohonan/pengajuan";
+                    });
+                }, error => {
+                    spinner('hide', obj.target);
+                });
+            }
+        })
+    })
+
     $('#simpanPengajuan').on('click', obj => {
         let valjenisTld = $('#jenis_tld').val();
         let valperiodePemakaian = $('#periode-pemakaian').attr('data-periode');

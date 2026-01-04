@@ -136,7 +136,7 @@ function loadData(page = 1) {
             let hidden = role.includes('Pelanggan') ? 'd-none' : '';
 
             html += `
-                <div class="card mb-2 smooth-height">
+                <div class="card mb-2 smooth-height hover-effect">
                     <div class="card-body row align-items-center py-2">
                         <div class="col-auto">
                             <div class="">

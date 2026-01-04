@@ -2,66 +2,113 @@
 
 @section('content')
     <div class="content-wrapper">
-        <section class="content col-md-12">
-            <div class="container">
-                <ul class="nav nav-tabs" id="myTab" role="tablist">
-                    <li class="nav-item px-3">
-                        <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="icon-link text-danger"><i
-                                class="bi bi-chevron-left fs-3 fw-bolder h-100"></i> Kembali</a>
-                    </li>
-                </ul>
-                <div class="card card-default border-0 color-palette-box shadow py-3">
-                    <div class="card-body">
-                        <div class="fw-semibold fs-5">Rincian</div>
-                        <div class="row row-gap-3">
-                            <div class="col-md-6">
-                                <label for="" class="form-label">No Pengiriman</label>
-                                <input type="text" name="no_pengiriman" id="no_pengiriman"
-                                    class="form-control bg-secondary-subtle" value="{{ $noPengiriman }}" readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="" class="form-label">Pelanggan</label>
-                                <input type="text" class="form-control bg-secondary-subtle" name="txtPelanggan"
-                                    id="txtPelanggan"
-                                    value="{{ $informasi->pelanggan->perusahaan->nama_perusahaan }} - {{ $informasi->pelanggan->name }}"
-                                    readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="" class="form-label">No kontrak</label>
-                                <input type="text" name="txt_no_kontrak" id="txt_no_kontrak"
-                                    class="form-control bg-secondary-subtle" value="{{ $informasi->kontrak?->no_kontrak ?? $informasi->no_kontrak ?? '-' }}"
-                                    readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="" class="form-label">Jenis</label>
-                                <input type="text" name="txt_jenis" id="txt_jenis"
-                                    class="form-control bg-secondary-subtle"
-                                    value="{{ $informasi->jenis_layanan_parent->name }}-{{ $informasi->jenis_layanan->name }}"
-                                    readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="" class="form-label">Alamat tujuan<span class="text-danger ms-1">*</span></label>
-                                <select name="select_alamat" id="select_alamat" class="form-select">
-                                    <option value="">Pilih alamat</option>
-                                </select>
-                                <textarea name="alamatTujuan" id="alamatTujuan" cols="30" rows="4"
-                                    class="form-control bg-secondary-subtle mt-2" readonly></textarea>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="fw-semibold fs-5">List document</div>
-                        <div class="col-md-12 mt-2 row-gap-2" id="list-document">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h4 class="mb-1 fw-bold text-dark">Rincian Pengiriman</h4>
+                    {{-- <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 small">
+                            <li class="breadcrumb-item text-muted">Logistik</li>
+                            <li class="breadcrumb-item active text-primary" aria-current="page">Buat Pengiriman</li>
+                        </ol>
+                    </nav> --}}
+                </div>
+                <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i>Kembali
+                </a>
+            </div>
 
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm rounded-4 mb-4">
+                        <div class="card-body p-4">
+                            <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Informasi Kontrak & Pelanggan</h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded-3 border h-100">
+                                        <small class="text-muted d-block mb-1">No Pengiriman</small>
+                                        <span class="fw-bold text-dark font-monospace" id="no_pengiriman">{{ $noPengiriman }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded-3 border h-100">
+                                        <small class="text-muted d-block mb-1">Pelanggan</small>
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person-circle me-2 text-primary"></i>
+                                            <span class="fw-bold text-dark">{{ $informasi->pelanggan->perusahaan->nama_perusahaan }} - {{ $informasi->pelanggan->name }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded-3 border h-100">
+                                        <small class="text-muted d-block mb-1">No Kontrak</small>
+                                        <span class="fw-bold text-primary">{{ $informasi->kontrak?->no_kontrak ?? $informasi->no_kontrak ?? '-' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="p-3 bg-light rounded-3 border h-100">
+                                        <small class="text-muted d-block mb-1">Jenis</small>
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle">{{ $informasi->jenis_layanan_parent->name }}-{{ $informasi->jenis_layanan->name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="border-secondary opacity-10 my-4">
+
+                            <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Tujuan Pengiriman</h6>
+                            <div class="form-group mb-3">
+                                <label class="small fw-bold text-muted mb-2">Pilih Alamat Tujuan <span class="text-danger">*</span></label>
+                                <select class="form-select rounded-3 shadow-sm mb-3" id="select_alamat">
+                                    <option selected>Pilih alamat</option>
+                                </select>
+                                <textarea class="form-control rounded-3 bg-light"
+                                    cols="30" rows="4" placeholder="Detail alamat lengkap..."
+                                    id="alamatTujuan" readonly></textarea>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-end mt-3">
-                            <a type="button" class="btn btn-secondary me-3 d-none" id="btnCetakSurat" target="_blank"><i
-                                    class="bi bi-printer-fill"></i> Cetak Surat Pengantar</a>
-                            <button type="button" class="btn btn-primary" onclick="buatPengiriman(this)">Buat pengiriman</button>
+                    </div>
+
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 rounded-top-4">
+                            <h6 class="fw-bold text-dark">
+                                <i class="bi bi-files me-2 text-primary"></i>Daftar Dokumen
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="list-group" id="list-document">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="sticky-sidebar">
+                        <div class="card border-0 shadow-sm rounded-4 mb-3">
+                            <div class="card-body p-4">
+                                <h6 class="fw-bold text-dark mb-3 text-center text-uppercase small tracking-wide">Tindakan Pengiriman</h6>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary py-3 fw-bold rounded-3 shadow-sm" onclick="buatPengiriman(this)">
+                                        <i class="bi bi-box-seam me-2"></i>Buat Pengiriman
+                                    </button>
+                                    <a class="btn btn-outline-secondary py-2 fw-bold rounded-3 d-none" id="btnCetakSurat" target="_blank">
+                                        <i class="bi bi-printer me-2"></i>Cetak Surat Pengantar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm rounded-4 bg-light">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center text-muted mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <small>Pastikan alamat tujuan sudah sesuai dengan lokasi fisik pelanggan.</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     </div>
     <div class="modal fade" id="modal-preview" tabindex="-1" aria-labelledby="modal-searchLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-center">
@@ -75,6 +122,8 @@
             </div>
         </div>
     </div>
+
+    @include('pages.management.tld.create')
 @endsection
 
 @push('scripts')

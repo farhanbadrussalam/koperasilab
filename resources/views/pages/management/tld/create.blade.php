@@ -32,3 +32,37 @@
       </div>
     </div>
 </div>
+
+<script>
+    $(function () {
+        $('#createTldModal').on('hide.bs.modal', resetForm);
+
+        $('#form-create').on("submit", (evt) => {
+            evt.preventDefault();
+            const formData = new FormData(evt.target);
+            spinner('show', $('#btn-create'));
+            ajaxPost(`management/tld`, formData, result => {
+                if (result.meta.code == 200) {
+                    Swal.fire({
+                        icon: 'success',
+                        text: result.data.msg,
+                        timer: 1200,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        $('#createTldModal').modal('hide');
+                        datatable_tld.ajax.reload();
+                        spinner('hide', $('#btn-create'));
+                        resetForm();
+                    })
+                }
+            }, error => {
+                spinner('hide', $('#btn-create'));
+            })
+        });
+    })
+
+    function resetForm() {
+        $('#form-create')[0].reset();
+    }
+</script>

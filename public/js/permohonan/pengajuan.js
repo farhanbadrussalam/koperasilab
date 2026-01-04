@@ -10,7 +10,8 @@ $(function () {
         tab: {
             pengguna: true,
             periode: true,
-            tld: true
+            tld: true,
+            dokumen: true
         }
     });
 
@@ -152,7 +153,7 @@ function loadData(page = 1, status) {
                 const btnAction = `
                     <li>
                         <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
-                            <i class="bi bi-eye me-2"></i> Detail
+                            <i class="bi bi-info-circle me-2"></i> Detail
                         </a>
                     </li>
                     ${[90, 1].includes(pengajuan.status) ? btnEdit : ''}

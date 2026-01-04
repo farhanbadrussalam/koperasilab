@@ -40,7 +40,7 @@ $(function() {
     buktiBayarPph.addData(dataKeuangan.media_bukti_bayar_pph);
 })
 
-function btnSimpan(){
+function btnSimpan(obj){
     let dataBuktiBayar = buktiBayar.getData();
     let dataBuktiBayarPph = buktiBayarPph.getData();
 
@@ -51,6 +51,8 @@ function btnSimpan(){
         });
         return;
     }
+
+    spinner('show', $(obj));
 
     const formData = new FormData();
     formData.append('idKeuangan', dataKeuangan.keuangan_hash);
@@ -70,7 +72,7 @@ function btnSimpan(){
         reverseButtons: true
     }).then(result => {
         if(result.isConfirmed){
-            spinner('show', $('#btn-upload-bukti'));
+            spinner('show', $(obj));
             ajaxPost(`api/v1/keuangan/action`, formData, result => {
                 if(result.meta.code == 200){
                     Swal.fire({
@@ -84,7 +86,7 @@ function btnSimpan(){
                     });
                 }
             }, error => {
-                spinner('hide', $('#btn-upload-bukti'));
+                spinner('hide', $(obj));
             })
         }
     })

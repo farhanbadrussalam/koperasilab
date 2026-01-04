@@ -5,7 +5,20 @@ let filterComp = false;
 let thisTab = 1;
 let modalDoc = false;
 $(function () {
-    switchLoadTab(1);
+    // mengambil params url
+    let urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.has('md') && urlParams.has('tab')) {
+        let md = urlParams.get('md');
+        let tab = urlParams.get('tab');
+
+        if(tab == 'jobs') {
+            $('#penerbitanlhu-tab').click();
+        }
+        openProgressModal(false, md);
+    } else {
+        switchLoadTab(1);
+    }
+
     modalDoc = new ModalDocument({
         title: 'Penerbitan Persetujuan Pengujian',
     });
@@ -93,6 +106,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
             }
 
             let btnAction = '';
+            let btnAction2 = '';
             let divInfoTugas = '';
             let htmlStatus = '';
             let aktifJobs = '';
@@ -104,22 +118,54 @@ function loadData(page = 1, menu = 'penyelialhu') {
             aktifJobs.map(d => {
                 htmlStatus += statusFormat('penyelia', d.jobs.status);
             });
-            btnAction += '<button class="btn btn-sm btn-outline-secondary me-1" title="Show detail" onclick="showDetail(this)"><i class="bi bi-info-circle"></i></button>';
+            btnAction += `
+                <li>
+                    <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
+                        <i class="bi bi-info-circle me-2"></i> Detail
+                    </a>
+                </li>
+            `;
             switch (menu) {
                 case 'surattugas':
                     if(penyelia.status == 1) {
-                        btnAction += `<a class="btn btn-outline-primary btn-sm" title="Buat Surat Tugas" href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"><i class="bi bi-plus"></i> Surat Tugas</a>`;
+                        btnAction2 += `
+                            <a class="btn btn-outline-primary btn-sm text-nowrap" title="Buat Surat Tugas" href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}">
+                                <i class="bi bi-plus"></i> Surat Tugas
+                            </a>
+                        `;
                     }else if(penyelia.status == 2) {
                         btnAction += `
-                            <a class="btn btn-outline-info btn-sm" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Lihat</a>
-                            <a class="btn btn-outline-warning btn-sm" href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"><i class="bi bi-pencil-square"></i> Edit</a>
-                            <button class="btn btn-outline-danger btn-sm mt-1" onclick="btnDelete(this)"><i class="bi bi-trash"></i> Hapus</button>
+                            <li>
+                                <a class="dropdown-item small cursor-pointer" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}">
+                                    <i class="bi bi-eye me-2"></i> Lihat
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item small cursor-pointer" href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}">
+                                    <i class="bi bi-pencil-square me-2"></i> Edit
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item small cursor-pointer text-danger" onclick="btnDelete(this)">
+                                    <i class="bi bi-trash me-2"></i> Hapus
+                                </a>
+                            </li>
                         `;
                     } else if(penyelia.status == 5) {
-                        btnAction += `<button onclick="createPengujian('${penyelia.penyelia_hash}')" class="btn btn-outline-primary btn-sm" title="Buat Surat Pengujian" ><i class="bi bi-plus"></i> Surat Pengujian</button>`;
+                        btnAction += `
+                            <li>
+                                <a onclick="createPengujian('${penyelia.penyelia_hash}')" class="dropdown-item small cursor-pointer" title="Buat Surat Pengujian" >
+                                    <i class="bi bi-plus me-2"></i> Surat Pengujian
+                                </a>
+                            </li>
+                        `;
                     } else if(penyelia.status != 6) {
                         btnAction += `
-                            <a class="btn btn-outline-info btn-sm" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}"><i class="bi bi-eye"></i> Lihat</a>
+                            <li>
+                                <a class="dropdown-item small cursor-pointer" href="${base_url}/staff/penyelia/surat_tugas/s/${penyelia.penyelia_hash}">
+                                    <i class="bi bi-eye me-2"></i> Lihat
+                                </a>
+                            </li>
                         `;
                     }
 
@@ -155,39 +201,25 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         rangePeriode = `<span class="fs-8">(${dateFormat(penyelia.permohonan.periodenow.start_date, 4)} - ${dateFormat(penyelia.permohonan.periodenow.end_date, 4)})</span>`;
                     }
 
-                    html += `
-                        <div class="card mb-2">
-                            <div class="card-body row align-items-center py-2 position-relative">
-                                <div class="position-absolute top-0 end-0 w-auto"></div>
-                                <div class="col-auto">
-                                    <div class="">
-                                        <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
-                                        <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
-                                        <span> | ${htmlStatus}</span>
-                                    </div>
-                                    <div class="fs-5 my-2">
-                                        <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
-                                        <div class="text-body-tertiary fs-7">
-                                            <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-                                            <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                        <div><i class="bi bi-person-check-fill"></i> ${permohonan.pelanggan.name}</div>
-                                        <span><i class="bi bi-calendar-range"></i> ${htmlPeriode} ${rangePeriode}</span>
-                                        ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-3 text-end ms-auto" data-idpenyelia='${penyelia.penyelia_hash}'>
-                                    ${btnAction}
-                                </div>
-                                ${divInfoTugas}
-                                <div class="col-md-12 collapse" id="timeline-progress-${penyelia.penyelia_hash}">
-                                    ${timeLine ? timeLine.elementCreate() : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    const dataS = {
+                        tipeKontrak: permohonan.tipe_kontrak,
+                        jenisLayananParent: permohonan.jenis_layanan_parent.name,
+                        jenisLayanan: permohonan.jenis_layanan.name,
+                        statusPenyelia: htmlStatus,
+                        jenisTld: permohonan.jenis_tld?.name ?? '-',
+                        namaLayanan: permohonan.layanan_jasa?.nama_layanan ?? '-',
+                        periode: htmlPeriode + " " + rangePeriode,
+                        created_at: permohonan.created_at,
+                        kontrak: permohonan.kontrak?.no_kontrak,
+                        id: penyelia.penyelia_hash,
+                        is_have_tld: permohonan.is_have_tld,
+                        is_zerocek: permohonan.is_zerocek,
+                        pelanggan: permohonan.pelanggan.name,
+                        divInfoTugas: divInfoTugas,
+                        divTimelineTugas: timeLine
+                    }
+
+                    html += cardComponent(dataS, {btnMenuAction : btnAction, btnAction: btnAction2});
                     break;
                 case 'penyelialhu':
                     divInfoTugas = `
@@ -212,39 +244,59 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
                         htmlPeriode += ' + Zero cek';
                     }
-                    btnAction += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
+                    btnAction2 += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
 
-                    html += `
-                        <div class="card mb-2">
-                            <div class="card-body row align-items-center py-2">
-                                <div class="col-auto">
-                                    <div class="">
-                                        <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
-                                        <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
-                                        <span> | ${htmlStatus}</span>
-                                    </div>
-                                    <div class="fs-5 my-2">
-                                        <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
-                                        <div class="text-body-tertiary fs-7">
-                                            <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                        <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
-                                        <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
-                                        ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
-                                    </div>
-                                </div>
-                                <div class="ms-auto col-auto text-center gap-1 d-flex" data-id='${penyelia.penyelia_hash}' data-index='${i}'>
-                                    ${btnAction}
-                                </div>
-                                ${divInfoTugas}
-                                <div class="col-md-12 collapse" id="timeline-progress-${penyelia.penyelia_hash}">
-                                    ${timeline.elementCreate()}
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    const dataP = {
+                        tipeKontrak: permohonan.tipe_kontrak,
+                        jenisLayananParent: permohonan.jenis_layanan_parent.name,
+                        jenisLayanan: permohonan.jenis_layanan.name,
+                        statusPenyelia: htmlStatus,
+                        jenisTld: permohonan.jenis_tld?.name ?? '-',
+                        namaLayanan: permohonan.layanan_jasa?.nama_layanan ?? '-',
+                        periode: htmlPeriode,
+                        created_at: permohonan.created_at,
+                        kontrak: permohonan.kontrak?.no_kontrak,
+                        id: penyelia.penyelia_hash,
+                        is_have_tld: permohonan.is_have_tld,
+                        is_zerocek: permohonan.is_zerocek,
+                        pelanggan: permohonan.pelanggan.name,
+                        divInfoTugas: divInfoTugas,
+                        divTimelineTugas: timeline,
+                        index: i
+                    }
+
+                    html += cardComponent(dataP, {btnMenuAction : btnAction, btnAction: btnAction2});
+                    // html += `
+                    //     <div class="card mb-2">
+                    //         <div class="card-body row align-items-center py-2">
+                    //             <div class="col-auto">
+                    //                 <div class="">
+                    //                     <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
+                    //                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
+                    //                     <span> | ${htmlStatus}</span>
+                    //                 </div>
+                    //                 <div class="fs-5 my-2">
+                    //                     <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
+                    //                     <div class="text-body-tertiary fs-7">
+                    //                         <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
+                    //                     </div>
+                    //                 </div>
+                    //                 <div class="d-flex gap-3 text-body-tertiary fs-7">
+                    //                     <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
+                    //                     <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
+                    //                     ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
+                    //                 </div>
+                    //             </div>
+                    //             <div class="ms-auto col-auto text-center gap-1 d-flex" data-id='${penyelia.penyelia_hash}' data-index='${i}'>
+                    //                 ${btnAction}
+                    //             </div>
+                    //             ${divInfoTugas}
+                    //             <div class="col-md-12 collapse" id="timeline-progress-${penyelia.penyelia_hash}">
+                    //                 ${timeline.elementCreate()}
+                    //             </div>
+                    //         </div>
+                    //     </div>
+                    // `;
                     break;
                 default:
                     break;
@@ -320,7 +372,7 @@ function btnDelete(obj) {
 }
 
 function showDetail(obj){
-    const idPenyelia = $(obj).parent().data("idpenyelia");
+    const idPenyelia = $(obj).parent().parent().data("id");
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }
 
