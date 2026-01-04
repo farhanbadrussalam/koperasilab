@@ -36,7 +36,7 @@ function formatRupiah(angka) {
  *   with a specific pattern and placeholder.
  * - `.maskTelepon`: Applies an input mask for telephone numbers with a specific pattern and placeholder.
  */
-function maskReload() {
+function maskReload(value, type = null) {
     $('.rupiah').inputmask('numeric', {
         alias: 'currency',
         prefix: '',
@@ -69,6 +69,19 @@ function maskReload() {
     $('.maskNIK').inputmask('9999999999999999', { "placeholder": "_", "removeMaskOnSubmit": true, "autoUnmask": true });
     $('.maskTelepon').inputmask('9999-9999-9999', { "placeholder": " ", "removeMaskOnSubmit": true, "autoUnmask": true });
     $('.maskEmail').inputmask('email', { "placeholder": " ", "removeMaskOnSubmit": true });
+
+    switch (type) {
+        case 'npwp':
+            return Inputmask.format(value, {
+                mask: '99.999.999.9-999.999',
+            })
+        case 'telepon':
+            return Inputmask.format(value, {
+                mask: '9999-9999-9999',
+            })
+        default:
+            break;
+    }
 }
 maskReload();
 
@@ -1417,4 +1430,11 @@ function executeScripts(container) {
         // (Opsional) Hapus script baru setelah jalan agar DOM bersih
         // newScript.remove();
     });
+}
+
+function copyKode(id) {
+    const text = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(text);
+
+    toastr.info('Kode berhasil disalin', 'Informasi');
 }

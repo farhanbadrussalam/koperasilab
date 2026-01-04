@@ -254,13 +254,19 @@ class ReportController extends Controller
                 $vars = array_merge($vars, $this->contentInvoice($data, $params));
                 break;
             case "TandaTerima":
+                if($data->tipe_kontrak == 'kontrak baru') {
+                    $pemakaian = $data->periode_pemakaian;
+                    $vars["PERIODE_RINCIAN"] = convert_date($pemakaian[0]['start_date'], 7) . " s/d " . convert_date($pemakaian[0]['end_date'], 7);
+                } else {
+                    // $vars["PERIODE_RINCIAN"] =
+                }
                 $vars["JUDUL"] = "TANDA TERIMA PENGUJIAN/KALIBRASI";
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
                 $vars["JENIS_PENGUJIAN"] = $data->periode ? 'Evaluasi TLD' : 'Zero cek';
                 $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol";
-                $vars["PERIODE"] = $data->periode > 0 ? "Periode ". $data->periode : "Periode zero cek";
+                $vars["PERIODE"] = ($data->periode > 0 ? "Periode ". $data->periode : "Periode zero cek");
                 $vars["TGL_PENERIMAAN"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["TGL_SELESAI"] = $params['selesaiPengujian'] ? convert_date($params['selesaiPengujian'], 2) : '';
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);

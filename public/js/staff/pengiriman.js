@@ -70,6 +70,20 @@ function loadData(page = 1) {
                 htmlButton += `<button class="btn btn-outline-danger btn-sm me-1" onclick="batalKirimDokumen(this)">Batal kirim</button>`;
             }
 
+            const params = {
+                tipeKontrak: data.tipe_kontrak,
+                format: 'pengiriman',
+                status: data.status,
+                jenisTld: data.jenis_tld?.name ?? '',
+                namaLayanan: data.jenis_layanan?.nama_layanan ?? '',
+                periode: data.periode,
+                created_at: data.created_at,
+                kontrak: data.kontrak?.no_kontrak ?? '',
+                // id:
+            }
+
+            console.log(params);
+
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center py-2">

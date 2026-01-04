@@ -280,6 +280,7 @@
         $('#form-tambah-pengguna').hide();
 
         $('#modal-add-pengguna').modal('show');
+        $('#modal-add-tld-pengguna').modal('hide');
         ajaxGet(`api/v1/pengguna/getDataById/${id}`, false, result => {
             let data = result.data;
 

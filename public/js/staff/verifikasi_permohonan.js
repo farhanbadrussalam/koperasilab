@@ -19,6 +19,7 @@ $(function () {
         const detail = e.detail;
 
         $(`#${detail.selected}`).val(detail.data_tld.no_seri_tld);
+        $(`#${detail.selected}_view`).html(detail.data_tld.no_seri_tld);
 
         // reset tmpArrTld
         let index = tmpArrTld.findIndex(d => d.index == detail.selected);
@@ -89,7 +90,8 @@ $(function () {
 
     const conten_2 = document.getElementById("content-ttd-2");
     signaturePad = signature(conten_2, {
-        text: 'Front desk'
+        width: 300,
+        height: 120,
     });
     loadTld();
     $('#btn-tandaterima').on('click', () => {
@@ -191,12 +193,24 @@ function loadPelanggan() {
     const pelanggan = dataPermohonan.pelanggan;
     const perusahaan = pelanggan.perusahaan;
 
-    $('#nama-instansi').val(perusahaan.nama_perusahaan);
-    $('#nama-pic').val(pelanggan.name);
-    $('#jabatan-pic').val(pelanggan.jabatan);
-    $('#email-pic').val(pelanggan.email);
-    $('#telepon-pic').val(pelanggan.telepon);
-    $('#npwp-pic').val(perusahaan.npwp_perusahaan);
+    $('#nama-instansi').html(perusahaan.nama_perusahaan);
+    $('#nama-pic').html(pelanggan.name ?? '-');
+    $('#jabatan-pic').html(pelanggan.jabatan ?? '-');
+    $('#email-pic').html(pelanggan.email ?? '-');
+    $('#telepon-pic').html(maskReload(pelanggan.profile.no_hp, 'telepon') ?? '-');
+    $('#npwp-pic').html(maskReload(perusahaan.npwp_perusahaan, 'npwp') ?? '-');
+    $('#kodeInstansi').html(perusahaan.kode_perusahaan ?? '-');
+    $('#email-perusahaan').html(perusahaan.email ?? '-');
+
+    if(perusahaan.kode_perusahaan) {
+        $('#status-instansi').html('Terverifikasi');
+        $('#status-instansi').removeClass('text-danger bg-danger-subtle border-danger-subtle');
+        $('#status-instansi').addClass('text-success bg-success-subtle border-success-subtle');
+    } else {
+        $('#status-instansi').html('Belum terverifikasi');
+        $('#status-instansi').removeClass('text-success bg-success-subtle border-success-subtle');
+        $('#status-instansi').addClass('text-danger bg-danger-subtle border-danger-subtle');
+    }
 
     // Alamat
     let alamatUtama = false;
@@ -218,8 +232,14 @@ function loadPelanggan() {
             }
         }
 
-        $(`#alamat-${value.jenis}`).val(valAlamat);
-        $(`#txt-kode-pos-${value.jenis}`).val(valKodepos);
+        if(valAlamat == '') {
+            $(`#alamat-${value.jenis}`).addClass('fst-italic');
+            $(`#alamat-${value.jenis}`).html("Sama dengan alamat utama");
+        } else {
+            $(`#alamat-${value.jenis}`).removeClass('fst-italic');
+            $(`#alamat-${value.jenis}`).html(valAlamat + "," + valKodepos);
+        }
+
     }
 }
 
@@ -340,20 +360,31 @@ function loadTldKontrol(tldKontrol){
 
                 let kodeLencana = iKontrol.count > 1 ? `C${idx+1}` : `C`;
 
-                html += `
-                    <div class="col-sm-6 mt-2">
-                        <label for="" class="mb-2">Kontrol ${iKontrol.divisi?.name ?? ''} ${kodeLencana}</label>
-                        <div class="input-group mb-3">
-                            ${isCheckedEvaluasi ? `
-                            <div class="input-group-text">
-                                <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${idx}" type="checkbox" value="${iKontrol.kontrak_tld_hash}" aria-label="Checkbox for following text input">
-                            </div>
-                            ` : ``}
-                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idx}_kontrol" placeholder="Pilih No Seri" readonly>
-                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="tldNoSeri_${idx}_kontrol" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
-                        </div>
-                    </div>
-                `;
+                let data = {
+                    name: `Kontrol ${iKontrol.divisi?.name ?? ''} ${kodeLencana}`,
+                    kode: kodeLencana,
+                    isCheckedEvaluasi : isCheckedEvaluasi,
+                    index: idx,
+                    tldHash: iKontrol.kontrak_tld_hash,
+                    no_seri_tld: no_seri_tld,
+                    htmlDisabled: htmlDisabled
+                }
+
+                html += cardKontrolComponent(data);
+                // html += `
+                //     <div class="col-sm-6 mt-2">
+                //         <label for="" class="mb-2">Kontrol ${iKontrol.divisi?.name ?? ''} ${kodeLencana}</label>
+                //         <div class="input-group mb-3">
+                //             ${isCheckedEvaluasi ? `
+                //             <div class="input-group-text">
+                //                 <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${idx}" type="checkbox" value="${iKontrol.kontrak_tld_hash}" aria-label="Checkbox for following text input">
+                //             </div>
+                //             ` : ``}
+                //             <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idx}_kontrol" placeholder="Pilih No Seri" readonly>
+                //             ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="tldNoSeri_${idx}_kontrol" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
+                //         </div>
+                //     </div>
+                // `;
                 index++;
             }
             index++;
@@ -381,6 +412,8 @@ function loadPengguna(){
 
         jmlTldCount += result.data.length;
 
+        $('#jumlah-pengguna').html(jmlTldCount + ' Orang')
+
         for (const [i, value] of result.data.entries()) {
             let txtRadiasi = '';
             // RADIASI
@@ -401,47 +434,45 @@ function loadPengguna(){
 
             let fileKtp = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '';
 
-            html += `
-                <tr>
-                    ${isCheckedEvaluasi ? `<td><input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${idHash}" aria-label="" id="checkTldPengguna${i}"></td>` : ''}
-                    <td>${i + 1}</td>
-                    <td>
-                        <div>${value.pengguna.name}</div>
-                        <small class="text-body-secondary fw-light">${value.pengguna.divisi?.name || ''}</small>
-                    </td>
-                    <td>${txtRadiasi}</td>
-                    <td>
-                        <div class="input-group">
-                            <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${i}_pengguna" placeholder="Pilih No Seri" readonly>
-                            ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="tldNoSeri_${i}_pengguna" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
-                        </div>
-                    </td>
-                    <td>
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${fileKtp}" title="Show ktp">
-                            <i class="bi bi-file-person-fill"></i>
-                        </a>
-                    </td>
-                </tr>
-            `;
-        }
+            let data = {
+                index: i,
+                idHash: idHash,
+                isCheckedEvaluasi: isCheckedEvaluasi,
+                name: value.pengguna.name,
+                divisi: value.pengguna.divisi?.name || '',
+                radiasi: value.radiasi,
+                no_seri_tld: no_seri_tld,
+                htmlDisabled: htmlDisabled,
+                fileKtp: fileKtp
+            }
 
-        if(result.data.length == 0){
-            html = `
-            <tr>
-                <td colspan="5" class="text-center">
-                <div class="d-flex flex-column align-items-center py-3">
-                    <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
-                    <span class="fw-bold mt-3 text-muted">No Data Available</span>
-                </div>
-                </td>
-            </tr>
-            `;
+            html += cardPenggunaComponent(data);
+
+            // html += `
+            //     <tr>
+            //         ${isCheckedEvaluasi ? `<td><input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${idHash}" aria-label="" id="checkTldPengguna${i}"></td>` : ''}
+            //         <td>${i + 1}</td>
+            //         <td>
+            //             <div>${value.pengguna.name}</div>
+            //             <small class="text-body-secondary fw-light">${value.pengguna.divisi?.name || ''}</small>
+            //         </td>
+            //         <td>${txtRadiasi}</td>
+            //         <td>
+            //             <div class="input-group">
+            //                 <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${i}_pengguna" placeholder="Pilih No Seri" readonly>
+            //                 ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="tldNoSeri_${i}_pengguna" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
+            //             </div>
+            //         </td>
+            //         <td>
+            //             <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${fileKtp}" title="Show ktp">
+            //                 <i class="bi bi-file-person-fill"></i>
+            //             </a>
+            //         </td>
+            //     </tr>
+            // `;
         }
 
         $('#pengguna-list-container').html(html);
-
-        $('#pengguna-placeholder').addClass('d-none');
-        $('#pengguna-table').removeClass('d-none');
         showPopupReload();
     })
 

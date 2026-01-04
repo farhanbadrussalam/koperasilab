@@ -532,10 +532,11 @@ class DashboardWidgetController extends Controller
         ->limit(5)
         ->get();
 
-        $tasks = $jobsActive->map(function ($job) {
+        $tasks = $jobsActive->map(function ($job) use ($user) {
             $mainStep = $job->penyelia_map->where('status', 1)->first();
             return [
                 'id' => $job->id,
+                'id_penyelia' => $job->penyelia_hash,
                 'nomor_surat' => $job->dokumenSuratTugas?->nomer,
                 'nomor_referensi' => $job->permohonan?->kontrak?->no_kontrak,
                 'nama_perusahaan' => $job->permohonan?->pelanggan?->perusahaan?->nama_perusahaan,
@@ -544,12 +545,13 @@ class DashboardWidgetController extends Controller
                 'current_step' => $mainStep?->order ?? 0,
                 'deadline' => $job->end_date,
                 'current_step_name' => $mainStep->jobs ? $mainStep->jobs->name : $mainStep->jobs_paralel->name,
-                'status' => 'active',
+                'status' => 'active'
             ];
         });
 
         $html = view('components.dashboard.my-jobs', [
-            'jobs' => $tasks
+            'jobs' => $tasks,
+            'role_penyelia' => $user->hasRole('Staff Penyelia')
         ])->render();
 
         return response()->json(['html' => $html]);

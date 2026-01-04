@@ -661,7 +661,7 @@ class Invoice {
         switch (this.invoiceMode) {
             case 'create':
                 let metodePembayaran = $('#methode-pembayaran-select').parsley().validate();
-                if(metodePembayaran){
+                if(metodePembayaran !== true){
                     return;
                 }
 
@@ -790,99 +790,107 @@ class Invoice {
         return `
             <div class="modal fade" id="invoiceModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="invoiceModalLabel">Invoice</h1>
-                    <button type="button" class="btn-close" aria-label="Close" id="btnInvoiceClose"></button>
-                    </div>
-                    <div class="modal-body px-4">
-                        <div class="row mx-2" id="invoiceDetails">
-                            <!-- Invoice details will be dynamically inserted here -->
+                    <div class="modal-content border-0 shadow rounded-4">
+                        <div class="modal-header border-bottom-0 p-4">
+                            <h5 class="fw-bold mb-0 text-dark">
+                                <i class="bi bi-receipt-cutoff me-2 text-primary"></i>Manajemen Invoice
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" id="btnInvoiceClose"></button>
                         </div>
-                        <hr class="my-2">
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="rincianInvoice-tab" data-bs-toggle="tab" data-bs-target="#rincianInvoice-tab-pane" type="button" role="tab" aria-controls="rincianInvoice-tab-pane" aria-selected="true">Rincian</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="docFaktur-tab" data-bs-toggle="tab" data-bs-target="#docFaktur-tab-pane" type="button" role="tab" aria-controls="docFaktur-tab-pane" aria-selected="true">Dokumen Faktur</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="buktiPayment-tab" data-bs-toggle="tab" data-bs-target="#buktiPayment-tab-pane" type="button" role="tab" aria-controls="buktiPayment-tab-pane" aria-selected="true">Bukti pembayaran</button>
-                            </li>
-                        </ul>
-                        <div class="tab-content" id="myTabContent">
-                            <div class="tab-pane fade show active" id="rincianInvoice-tab-pane" role="tabpanel" aria-labelledby="rincianInvoice-tab" tabindex="0">
-                                <div class="row" id="invoiceActions">
-                                    <!-- Action buttons will be dynamically inserted here -->
-                                </div>
-                                <div class="row my-2" id="methode-pembayaran" class="d-none">
-                                    <div class="col-md-6">
-                                        <select class="form-select" id="methode-pembayaran-select"
-                                            data-parsley-required-message="Metode pembayaran harus dipilih"
-                                            data-parsley-errors-container="#message-methode-pembayaran"
-                                            required></select>
-                                        <div class="invalid-feedback" id="message-methode-pembayaran"></div>
+                        <div class="modal-body p-4">
+                            <div class="row mx-2" id="invoiceDetails">
+                                <!-- Invoice details will be dynamically inserted here -->
+                            </div>
+                            <hr class="my-2">
+                            <ul class="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-3 mb-4" id="myTab" role="tablist" style="border: 1px solid #e9ecef;">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active rounded-3 fw-bold" id="rincianInvoice-tab" data-bs-toggle="tab" data-bs-target="#rincianInvoice-tab-pane" type="button" role="tab">
+                                        <i class="bi bi-list-check me-2"></i>Rincian Tagihan
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link rounded-3 fw-bold" id="docFaktur-tab" data-bs-toggle="tab" data-bs-target="#docFaktur-tab-pane" type="button" role="tab">
+                                        <i class="bi bi-file-earmark-text me-2"></i>Dokumen Faktur
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link rounded-3 fw-bold" id="buktiPayment-tab" data-bs-toggle="tab" data-bs-target="#buktiPayment-tab-pane" type="button" role="tab">
+                                        <i class="bi bi-shield-check me-2"></i>Bukti Pembayaran
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="myTabContent">
+                                <div class="tab-pane fade show active" id="rincianInvoice-tab-pane" role="tabpanel" aria-labelledby="rincianInvoice-tab" tabindex="0">
+                                    <div class="row" id="invoiceActions">
+                                        <!-- Action buttons will be dynamically inserted here -->
                                     </div>
-                                    <div class="col-md-12 mt-2">
-                                        <div class="collapse" id="collapseMetodePembayaran">
-                                            <div class="card card-body mb-2">
-                                                <div id="inputMetodePembayaran" class="mb-2 d-flex gap-2 flex-wrap"></div>
-                                                <div id="showMetodePembayaran"></div>
+                                    <div class="row my-2" id="methode-pembayaran" class="d-none">
+                                        <div class="col-md-6">
+                                            <select class="form-select" id="methode-pembayaran-select"
+                                                data-parsley-required-message="Metode pembayaran harus dipilih"
+                                                data-parsley-errors-container="#message-methode-pembayaran"
+                                                required></select>
+                                            <div class="invalid-feedback" id="message-methode-pembayaran"></div>
+                                        </div>
+                                        <div class="col-md-12 mt-2">
+                                            <div class="collapse" id="collapseMetodePembayaran">
+                                                <div class="card card-body mb-2">
+                                                    <div id="inputMetodePembayaran" class="mb-2 d-flex gap-2 flex-wrap"></div>
+                                                    <div id="showMetodePembayaran"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="border rounded p-3 mt-3">
-                                    <table class="table w-100 text-center">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-start" width="40%">Rincian</th>
-                                                <th>Harga</th>
-                                                <th>Qty</th>
-                                                <th>Periode</th>
-                                                <th>Jumlah</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="deskripsiInvoice">
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="row m-2 d-none" id="plt-div-manager">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="" id="pltChecked">
-                                        <label class="form-check-label" for="pltChecked">
-                                            Plt Manager
-                                        </label>
+                                    <div class="border rounded p-3 mt-3">
+                                        <table class="table w-100 text-center">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-start" width="40%">Rincian</th>
+                                                    <th>Harga</th>
+                                                    <th>Qty</th>
+                                                    <th>Periode</th>
+                                                    <th>Jumlah</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="deskripsiInvoice">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="row m-2 d-none" id="plt-div-manager">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="" id="pltChecked">
+                                            <label class="form-check-label" for="pltChecked">
+                                                Plt Manager
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="row my-2 d-none" id="ttd-div-manager">
+                                        <div class="col-md-12 d-flex justify-content-center">
+                                            <div class="wrapper" id="content-ttd-manager"></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="row my-2 d-none" id="ttd-div-manager">
-                                    <div class="col-md-12 d-flex justify-content-center">
-                                        <div class="wrapper" id="content-ttd-manager"></div>
-                                    </div>
+                                <div class="tab-pane fade" id="docFaktur-tab-pane" role="tabpanel" aria-labelledby="docFaktur-tab" tabindex="0">
+                                    <div id="uploadDocumentFaktur" class="p-3"></div>
                                 </div>
-                            </div>
-                            <div class="tab-pane fade" id="docFaktur-tab-pane" role="tabpanel" aria-labelledby="docFaktur-tab" tabindex="0">
-                                <div id="uploadDocumentFaktur" class="p-3"></div>
-                            </div>
-                            <div class="tab-pane fade" id="buktiPayment-tab-pane" role="tabpanel" aria-labelledby="buktiPayment-tab" tabindex="0">
-                                <div id="paymentProofSection" class="mt-3 row">
-                                    <div class="col-6">
-                                        <h5 class="text-center">Bukti Pembayaran</h5>
-                                        <div id="paymentProofImage"></div>
-                                    </div>
-                                    <div class="col-6">
-                                        <h5 class="text-center">Bukti PPH</h5>
-                                        <div id="paymentPphProof"></div>
+                                <div class="tab-pane fade" id="buktiPayment-tab-pane" role="tabpanel" aria-labelledby="buktiPayment-tab" tabindex="0">
+                                    <div id="paymentProofSection" class="mt-3 row">
+                                        <div class="col-6">
+                                            <h5 class="text-center">Bukti Pembayaran</h5>
+                                            <div id="paymentProofImage"></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <h5 class="text-center">Bukti PPH</h5>
+                                            <div id="paymentPphProof"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <div class="modal-footer d-flex justify-content-center" id="modalFooter">
+                        <!-- Footer buttons will be dynamically inserted here -->
+                        </div>
                     </div>
-                    <div class="modal-footer d-flex justify-content-center" id="modalFooter">
-                    <!-- Footer buttons will be dynamically inserted here -->
-                    </div>
-                </div>
                 </div>
             </div>
 
