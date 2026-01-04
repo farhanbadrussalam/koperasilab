@@ -152,12 +152,10 @@ function loadData(page = 1, menu = 'penyelialhu') {
                             </li>
                         `;
                     } else if(penyelia.status == 5) {
-                        btnAction += `
-                            <li>
-                                <a onclick="createPengujian('${penyelia.penyelia_hash}')" class="dropdown-item small cursor-pointer" title="Buat Surat Pengujian" >
-                                    <i class="bi bi-plus me-2"></i> Surat Pengujian
-                                </a>
-                            </li>
+                        btnAction2 += `
+                            <button onclick="createPengujian('${penyelia.penyelia_hash}')" class="btn btn-outline-primary btn-sm text-nowrap" title="Buat Surat Pengujian" >
+                                <i class="bi bi-plus"></i> Surat Pengujian
+                            </button>
                         `;
                     } else if(penyelia.status != 6) {
                         btnAction += `

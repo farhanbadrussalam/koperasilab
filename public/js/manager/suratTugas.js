@@ -255,7 +255,7 @@ function reload() {
     loadData();
 }
 function showDetail(obj){
-    const idPenyelia = $(obj).parent().parent().data("idpenyelia");
+    const idPenyelia = $(obj).parent().parent().data("id");
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }
 function clearFilter(){}
@@ -270,7 +270,7 @@ function showHideProgress(obj){
 }
 
 function verifikasiPengujian(obj){
-    const idPenyelia = $(obj).parent().data("idpenyelia");
+    const idPenyelia = $(obj).parent().parent().data("id");
     let find = dataPenyelia.find(d => d.penyelia_hash == idPenyelia);
 
     // jenis pengujian
