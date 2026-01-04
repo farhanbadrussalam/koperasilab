@@ -146,7 +146,12 @@ class Inventory_tld {
                     <div class="modal-content">
                         <div class="modal-body row justify-content-center">
                             <div class="d-flex justify-content-between mb-3" id="modal-inventory-tld-action">
-                                <h1 class="modal-title fs-5" id="">Inventory TLD</h1>
+                                <div>
+                                    <h1 class="modal-title fs-5" id="">Inventory TLD</h1>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#createTldModal">
+                                        <i class="bi bi-plus"></i> Tambah TLD
+                                    </button>
+                                </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div id="filter-inventory-tld">

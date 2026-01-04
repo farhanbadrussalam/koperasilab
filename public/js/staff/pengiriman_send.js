@@ -127,7 +127,7 @@ function load_form() {
                     htmlKontrol += `
                         <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
                             <small class="text-muted me-2">${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.count > 1 ? `C${idx+1}` : 'C'}:</small>
-                            <span class="fw-bold me-2" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}_view">${list.tld ? list.tld[idx].no_seri_tld : ''}</span>
+                            <span class="fw-bold me-2" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}_view">${list.tld ? list.tld[idx].no_seri_tld : 'Tidak ada'}</span>
                             ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info ms-auto" data-id="${list.kontrak_tld_hash}|${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
                             <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${list.tld ? list.tld[idx].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}|${idx+1}" id="tldNoSeri_${list.kontrak_tld_hash}|${idx+1}" placeholder="Pilih No Seri" readonly>
                         </div>
@@ -147,7 +147,7 @@ function load_form() {
                 htmlPengguna += `
                     <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
                         <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldPengguna" value="${list.no_seri_tld}" data-id="${list.tld_hash}" id="tldNoSeri_${list.tld_hash}" placeholder="Pilih No Seri" readonly>
-                        <span class="fw-bold me-2">${list.no_seri_tld}</span>
+                        <span class="fw-bold me-2" id="tldNoSeri_${list.tld_hash}_view">${list.no_seri_tld}</span>
                     </div>
                 `;
             } else {
@@ -166,7 +166,7 @@ function load_form() {
                     <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
                         <input type="hidden" class="form-control rounded-start form-sm" value="${list.tld ? list.tld[0].no_seri_tld : ''}" data-id="${list.kontrak_tld_hash}" id="tldNoSeri_${list.kontrak_tld_hash}" readonly>
                         <small class="text-muted me-2">${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.pengguna.kode_lencana}:</small>
-                        <span class="fw-bold me-2">${list.tld ? list.tld[0].no_seri_tld : 'Tidak Ada'}</span>
+                        <span class="fw-bold me-2" id="tldNoSeri_${list.kontrak_tld_hash}_view">${list.tld ? list.tld[0].no_seri_tld : 'Tidak Ada'}</span>
                         ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info" data-id="${list.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
                     </div>
                 `;

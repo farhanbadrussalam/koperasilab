@@ -122,6 +122,8 @@
             </div>
         </div>
     </div>
+
+    @include('pages.management.tld.create')
 @endsection
 
 @push('scripts')
