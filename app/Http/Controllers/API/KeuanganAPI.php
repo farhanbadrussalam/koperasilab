@@ -179,7 +179,7 @@ class KeuanganAPI extends Controller
         DB::beginTransaction();
         try {
             $idJenisPembayaran = decryptor($id);
-            $query = Jenis_pembayaran::where('id_jenis_pembayaran', $idJenisPembayaran)->delete();
+            $query = Jenis_pembayaran::where('id_jenis_pembayaran', $idJenisPembayaran)->get()->each->delete();
             DB::commit();
             return $this->output($query);
         } catch (\Exception $ex) {
@@ -440,13 +440,13 @@ class KeuanganAPI extends Controller
                 $result['msg'] = "Invoice berhasil dibuat.";
 
                 // log keuangan
-                $note = $this->log->noteLog('keuangan', $status);
-                $this->log->addLog('keuangan', array(
-                    'id_keuangan' => $keuangan->id_keuangan,
-                    'status' => $status,
-                    'note' => $note,
-                    'created_by' => Auth::user()->id
-                ));
+                // $note = $this->log->noteLog('keuangan', $status);
+                // $this->log->addLog('keuangan', array(
+                //     'id_keuangan' => $keuangan->id_keuangan,
+                //     'status' => $status,
+                //     'note' => $note,
+                //     'created_by' => Auth::user()->id
+                // ));
 
                 // menambahkan id keuangan ke kontrak
                 $idKontrak = Permohonan::find($idPermohonan)->id_kontrak;

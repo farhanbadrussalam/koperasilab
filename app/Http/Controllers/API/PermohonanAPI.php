@@ -200,15 +200,6 @@ class PermohonanAPI extends Controller
             DB::commit();
 
             if($permohonan) {
-                // tambah log permohonan
-                $note = $this->log->noteLog('permohonan', 1);
-                $this->log->addLog('permohonan', array(
-                    'id_permohonan' => $permohonan->id_permohonan,
-                    'status' => 1,
-                    'note' => $note,
-                    'created_by' => Auth::user()->id
-                ));
-
                 return $this->output(array('msg' => 'Data berhasil disimpan!', 'id' => $permohonan->permohonan_hash));
             }
         } catch (\Exception $ex) {
@@ -426,7 +417,7 @@ class PermohonanAPI extends Controller
             $dataTld->id_tld && Master_tld::whereIn('id_tld', $dataTld->id_tld)->update(['status' => 0]);
             $dataTld->delete();
 
-            Permohonan_pengguna::where('id_pengguna', $id)->where('id_permohonan', $idPermohonan)->delete();
+            Permohonan_pengguna::where('id_pengguna', $id)->where('id_permohonan', $idPermohonan)->get()->each->delete();
 
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil dihapus'));
@@ -480,8 +471,8 @@ class PermohonanAPI extends Controller
 
 
             if($permohonan){
-                Permohonan_pengguna::where('id_permohonan', $id)->delete();
-                Permohonan_tld::where('id_permohonan', $id)->delete();
+                Permohonan_pengguna::where('id_permohonan', $id)->get()->each->delete();
+                Permohonan_tld::where('id_permohonan', $id)->get()->each->delete();
 
                 if($permohonan->tipe_kontrak == 'kontrak lama') {
                     Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null));
@@ -514,8 +505,8 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            Permohonan_dokumen::where('id_permohonan', $id)->where('jenis', 'tandaterima')->delete();
-            $delete = Permohonan_tandaterima::where('id_permohonan', $id)->delete();
+            Permohonan_dokumen::where('id_permohonan', $id)->where('jenis', 'tandaterima')->get()->each->delete();
+            $delete = Permohonan_tandaterima::where('id_permohonan', $id)->get()->each->delete();
             DB::commit();
 
             if($delete){

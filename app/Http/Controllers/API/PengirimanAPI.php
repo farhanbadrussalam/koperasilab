@@ -534,7 +534,7 @@ class PengirimanAPI extends Controller
             // Add to detail
             if($detail){
                 // Remove all detail
-                Pengiriman_detail::where('id_pengiriman', $idPengiriman)->delete();
+                Pengiriman_detail::where('id_pengiriman', $idPengiriman)->get()->each->delete();
 
                 foreach (json_decode($detail) as $key => $value) {
 
@@ -669,7 +669,7 @@ class PengirimanAPI extends Controller
             if($detailTld){
                 Master_tld::whereIn('id_tld', $detailTld->list_tld)->update(['status' => 0]);
             }
-            $delete = Pengiriman::where('id_pengiriman', $id)->delete();
+            $delete = Pengiriman::where('id_pengiriman', $id)->get()->each->delete();
             Kontrak_tld::where('id_kontrak', $fileBukti->id_kontrak)->where('status', 1)->update(['status' => 5]);
 
             // Pengiriman_detail::where('id_pengiriman', $id)->delete();

@@ -57,6 +57,7 @@ class Penyelia_map extends Model
         'created_by',
         'done_by',
         'done_at',
+        'note'
     ];
 
     protected $hidden = [

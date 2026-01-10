@@ -781,8 +781,10 @@ function openForm(){
                     $('#useZeroCek').prop('checked', true);
                     $('#haveTld').prop('checked', false);
                 } else {
-                    $('#useZeroCek').prop('checked', false);
-                    $('#haveTld').prop('checked', true);
+                    dataPermohonan.is_zerocek == 0 ? $('#useZeroCek').prop('checked', false).trigger('change') : $('#useZeroCek').prop('checked', true).trigger('change');
+                    dataPermohonan.is_have_tld == 0 ? $('#haveTld').prop('checked', false).trigger('change') : $('#haveTld').prop('checked', true).trigger('change');
+                    // $('#useZeroCek').prop('checked', false);
+                    // $('#haveTld').prop('checked', true);
                     $('#switch-zerocek').show();
                     $('#form-switch').show();
                 }

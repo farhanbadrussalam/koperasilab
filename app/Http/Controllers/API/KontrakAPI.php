@@ -140,7 +140,7 @@ class KontrakAPI extends Controller
             } else if($action == "edit"){
                 Kontrak::where('id_kontrak', $id)->update($data);
             } else if($action == "delete"){
-                Kontrak::where('id_kontrak', $id)->delete();
+                Kontrak::where('id_kontrak', $id)->get()->each->delete();
             }
 
             DB::commit();

@@ -146,16 +146,6 @@ class PenyeliaAPI extends Controller
 
             // log penyelia
             if($result['status'] != "none" && !$flagSkipLog){
-                $message = $this->log->noteLog('penyelia', $status, $jenisLog);
-                $this->log->addLog('penyelia', array(
-                    'id_penyelia' => $penyelia->id_penyelia,
-                    'status' => $status,
-                    'message' => $message,
-                    'note' => $textNote,
-                    'document' => $file_document ? $file_document->getIdMedia() : null,
-                    'created_by' => Auth::user()->id
-                ));
-
                 if($file_document){
                     $file_document->store();
                 }
@@ -249,7 +239,7 @@ class PenyeliaAPI extends Controller
                     $arr = json_decode($petugas);
 
                     // Menghapus data sebelumnya
-                    Penyelia_petugas::where('id_penyelia', $idPenyelia)->delete();
+                    Penyelia_petugas::where('id_penyelia', $idPenyelia)->get()->each->delete();
 
                     foreach ($arr as $value) {
                         $findMap = Penyelia_map::where('id_jobs', decryptor($value->idJobs))->where('id_penyelia', $idPenyelia)->first();
@@ -296,12 +286,6 @@ class PenyeliaAPI extends Controller
                     $sideJobs = Penyelia_map::where('point_jobs', $subQuery->id_jobs)->where('id_penyelia', $idPenyelia)->first();
                     $sideJobs && $sideJobs->update(array('status' => 1));
 
-                    // log surat tugas
-                    $this->log->addLog('penyelia', array(
-                        'id_penyelia' => $penyelia->id_penyelia,
-                        'message' => 'Surat tugas ditandatangani',
-                        'created_by' => Auth::user()->id
-                    ));
                 }
 
                 // jika status = 2 akan mengirimkan notifikasi kepada manager untuk di tandatangani
@@ -384,6 +368,7 @@ class PenyeliaAPI extends Controller
 
             $jobsNow->update(array(
                 'status' => $sProgress == 'done' ? 2 : 0,
+                'note' => $note,
                 'done_by' => $sProgress == 'done' ? Auth::user()->id : null,
                 'done_at' => $sProgress == 'done' ? date('Y-m-d H:i:s') : null
             ));
@@ -495,13 +480,13 @@ class PenyeliaAPI extends Controller
             }
 
             // menambahkan log penyelia
-            $this->log->addLog('penyelia', array(
-                'id_penyelia' => $penyelia->id_penyelia,
-                'status' => $jobsNow->jobs->status,
-                'message' => $this->log->noteLog('penyelia', $jobsNow->jobs->status),
-                'note' => $note,
-                'created_by' => Auth::user()->id
-            ));
+            // $this->log->addLog('penyelia', array(
+            //     'id_penyelia' => $penyelia->id_penyelia,
+            //     'status' => $jobsNow->jobs->status,
+            //     'message' => $this->log->noteLog('penyelia', $jobsNow->jobs->status),
+            //     'note' => $note,
+            //     'created_by' => Auth::user()->id
+            // ));
 
             // kondisi saat salah satu proses selesai
             if (!$nextJobs && !$jobsNow->point_jobs) {
@@ -515,12 +500,12 @@ class PenyeliaAPI extends Controller
                     $penyelia->update(['status' => 3]);
 
                     // menambahkan log penyelia
-                    $this->log->addLog('penyelia', [
-                        'id_penyelia' => $penyelia->id_penyelia,
-                        'status' => $penyelia->status,
-                        'message' => $this->log->noteLog('penyelia', $penyelia->status),
-                        'created_by' => Auth::user()->id
-                    ]);
+                    // $this->log->addLog('penyelia', [
+                    //     'id_penyelia' => $penyelia->id_penyelia,
+                    //     'status' => $penyelia->status,
+                    //     'message' => $this->log->noteLog('penyelia', $penyelia->status),
+                    //     'created_by' => Auth::user()->id
+                    // ]);
                 // }
             }
 
@@ -857,8 +842,8 @@ class PenyeliaAPI extends Controller
 
         DB::beginTransaction();
         try {
-            Penyelia_petugas::where('id_penyelia', $idPenyelia)->delete();
-            Penyelia_map::where('id_penyelia', $idPenyelia)->delete();
+            Penyelia_petugas::where('id_penyelia', $idPenyelia)->get()->each->delete();
+            Penyelia_map::where('id_penyelia', $idPenyelia)->get()->each->delete();
 
             // update penyelia
             $penyelia = Penyelia::find($idPenyelia);
@@ -869,16 +854,7 @@ class PenyeliaAPI extends Controller
             ));
 
             // hapus dokumen surat tugas
-            Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surattugas')->delete();
-
-            // Log penyelia
-            $this->log->addLog('penyelia', array(
-                'id_penyelia' => $idPenyelia,
-                'status' => 1,
-                'message' => 'Surat tugas dihapus',
-                'note' => '',
-                'created_by' => Auth::user()->id
-            ));
+            Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surattugas')->get()->each->delete();
 
             DB::commit();
 
@@ -1001,15 +977,6 @@ class PenyeliaAPI extends Controller
                 'nomer' => $no_kontrak
             );
             $document = Permohonan_dokumen::create($data);
-
-            // Log penyelia
-            $this->log->addLog('penyelia', array(
-                'id_penyelia' => $idPenyelia,
-                'status' => $status,
-                'message' => $type == 'approve' ? 'Pengujian disetujui' : 'Pengujian ditolak',
-                'note' => $catatan,
-                'created_by' => Auth::user()->id
-            ));
 
             DB::commit();
 

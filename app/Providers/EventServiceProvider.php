@@ -25,6 +25,7 @@ const EXCLUDED_MODELS = [
     'App\Models\Log_penyelia',
     'App\Models\Log_tld',
     'App\Models\Log_pengiriman',
+    'App\Models\Log_proses',
     'App\Models\User',
     'App\Models\Permohonan_tandaterima',
 ];

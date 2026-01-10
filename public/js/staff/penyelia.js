@@ -339,7 +339,7 @@ $('#list-pagination').on('click', 'a', function (e) {
 });
 
 function btnDelete(obj) {
-    const id = $(obj).parent().data('idpenyelia');
+    const id = $(obj).parent().parent().data('id');
     ajaxDelete(`api/v1/penyelia/remove/${id}`, result => {
         Swal.fire({
             icon: 'success',
