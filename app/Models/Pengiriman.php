@@ -60,6 +60,7 @@ class Pengiriman extends Model
     protected $table = 'pengiriman';
     protected $primaryKey = 'id_pengiriman';
     protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = [
         'id_pengiriman',
@@ -96,6 +97,7 @@ class Pengiriman extends Model
         'bukti_penerima' => 'array',
         'status' => 'integer',
         'periode' => 'integer',
+        'id_pengiriman' => 'string',
         'id_ekspedisi' => 'integer',
         'id_permohonan' => 'integer',
         'id_kontrak' => 'integer',

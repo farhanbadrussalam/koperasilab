@@ -23,13 +23,14 @@ return new class extends Migration
 
             // 2. PELAKU (Who?)
             // Menggunakan user_id bisa nullable (karena tamu/gagal login belum tentu punya ID)
-            $table->unsignedBigInteger('causer_id')->nullable();
+            $table->string('causer_id')->nullable();
             $table->string('causer_type')->nullable(); // Contoh: 'App\Models\User'
 
             // 3. TARGET (On What?)
             // Objek apa yang diubah? (Polymorphic)
             // Ini akan membuat kolom 'subject_id' dan 'subject_type'
-            $table->nullableMorphs('subject');
+            $table->string('subject_id')->nullable();
+            $table->string('subject_type')->nullable();
 
             // 4. DESKRIPSI (What happened?)
             $table->text('description');

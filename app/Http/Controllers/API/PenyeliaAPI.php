@@ -696,6 +696,7 @@ class PenyeliaAPI extends Controller
                 'petugas',
                 'petugas.jobs',
                 'penyelia_map',
+                'penyelia_map.log.causer',
                 'periodenow:id_periode,id_permohonan,count_tld,periode',
                 'penyelia_map.jobs:id_jobs,status,name,upload_doc',
                 'usersig:id,name',
@@ -714,8 +715,7 @@ class PenyeliaAPI extends Controller
                 'permohonan.permohonan_pengguna',
                 'permohonan.rincian_list_tld',
                 'permohonan.rincian_list_tld.pengguna',
-                'log',
-                'log.user',
+                'log.causer',
             )->find($idPenyelia);
             DB::commit();
 

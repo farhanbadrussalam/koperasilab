@@ -142,7 +142,8 @@ class Penyelia extends Model
     }
 
     public function log(){
-        return $this->hasMany(Log_penyelia::class, 'id_penyelia', 'id_penyelia')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+        // return $this->hasMany(Log_penyelia::class, 'id_penyelia', 'id_penyelia')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+        return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
     }
 
     // public function media(){

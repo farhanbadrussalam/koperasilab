@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Log_activity;
 use App\Models\Log_proses;
-use App\Models\Master_jobs;
 
 class GlobalObserver
 {
@@ -18,7 +17,11 @@ class GlobalObserver
     public function __construct(Request $request)
     {
         $this->request = $request;
-        $this->EXCLUDED_TABLES = ['keuangan', 'permohonan', 'penyelia', 'penyelia_map'];
+        $this->EXCLUDED_TABLES = [
+            'keuangan', 'permohonan',
+            'penyelia', 'penyelia_map',
+            'pengiriman'
+        ];
     }
     public function created(Model $model)
     {
@@ -95,20 +98,21 @@ class GlobalObserver
             'permohonan'    => $this->getPermohonanLog($status),
             'penyelia'      => $this->getPenyeliaLog($status, $statusBefore),
             'penyelia_map'  => $this->getPenyeliaMapLog($status, $statusBefore),
+            'pengiriman'    => $this->getPengirimanLog($status, $statusBefore),
             default         => 'Aktivitas sistem tidak terdefinisi.',
         };
     }
 
     private function getKeuanganLog($status)
     {
-        // Membersihkan alasan penolakan agar rapi
-
         return match ((int) $status) {
             1 => 'Draf pengajuan keuangan berhasil dibuat.',
             2 => 'Invoice tagihan telah diterbitkan.',
             3 => 'Invoice telah ditandatangani oleh General Manager.',
-            4 => 'Pembayaran tagihan telah diterima dari pelanggan.',
+            4 => 'Pembayaran tagihan telah dikirim dari pelanggan.',
             5 => 'Invoice telah diverifikasi dan diterima.',
+            6 => 'Invoice telah selesai.',
+            7 => 'Terbitkan faktur pajak',
             90, 91 => "Pengajuan invoice ditolak.",
             default => 'Status keuangan tidak dikenali.',
         };
@@ -150,13 +154,35 @@ class GlobalObserver
         };
     }
 
-    private function getPenyeliaMapLog($status)
+    private function getPenyeliaMapLog($status, $statusBefore)
     {
+        if($statusBefore) {
+            if($statusBefore == 1 && $status == 0) {
+                return 'return';
+            }
+        }
+
         return match ((int) $status) {
-            0 => 'return',
+            0 => 'created',
             1 => 'start',
             2 => 'finish',
             default => 'Status penyeliaan tidak dikenali.',
+        };
+    }
+
+    private function getPengirimanLog($status, $statusBefore)
+    {
+        if($statusBefore) {
+            if($statusBefore == 1 && $status == 3) {
+                return 'Pengiriman batal dikirimkan.';
+            }
+        }
+
+        return match ((int) $status) {
+            1 => 'Pengiriman dibuat',
+            2 => 'Pengiriman selesai.',
+            3 => 'Masuk draft.',
+            default => 'Status pengiriman tidak dikenali.',
         };
     }
 }

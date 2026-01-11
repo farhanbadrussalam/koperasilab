@@ -115,4 +115,8 @@ class Penyelia_map extends Model
     {
         return $this->belongsTo(Penyelia::class, 'id_penyelia', 'id_penyelia');
     }
+
+    public function log(){
+        return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
+    }
 }
