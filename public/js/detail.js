@@ -84,6 +84,54 @@ class Detail {
         //  new Accordion($('#pills-tab'), false);
     }
 
+    _actionSwiper() {
+        new Swiper('.swiper-bukti-pengiriman', {
+            effect: "coverflow",
+            grabCursor: true,
+            centeredSlides: true,
+            slidesPerView: "auto",
+            zoom: true,
+            coverflowEffect: {
+                rotate: 50,
+                stretch: 0,
+                depth: 100,
+                modifier: 1,
+                slideShadows: true,
+            },
+            navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+            pagination: {
+                el: ".swiper-pagination",
+            },
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false,
+            },
+        });
+
+        new Swiper('.swiper-bukti-penerima', {
+            effect: "coverflow",
+            grabCursor: true,
+            centeredSlides: true,
+            slidesPerView: "auto",
+            zoom: true,
+            coverflowEffect: {
+                rotate: 50,
+                stretch: 0,
+                depth: 100,
+                modifier: 1,
+                slideShadows: true,
+            },
+            navigation: { nextEl: ".swiper-button-next-penerima", prevEl: ".swiper-button-prev-penerima" },
+            pagination: {
+                el: ".swiper-pagination-penerima",
+            },
+            autoplay: {
+                delay: 2500,
+                disableOnInteraction: false,
+            },
+        });
+    }
+
     _initInformasi() {
         switch (this.options.jenis) {
             case 'surattugas':
@@ -240,6 +288,7 @@ class Detail {
             $('#container-detail').append(this.createTab());
             showPopupReload();
             this._actionAccordion();
+            this._actionSwiper();
         }
     }
 
@@ -640,7 +689,7 @@ class Detail {
         this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent(), icon: 'bi bi-diagram-3' });
 
         this.options.tab.items && (tabs.items = { title: 'Items', content: this.createItemsContent(), icon: 'bi bi-box-seam' });
-        this.options.tab.bukti && (tabs.bukti = { title: 'Bukti', content: this.createBuktiContent(), icon: 'bi bi-check2-square' });
+        this.options.tab.bukti && (tabs.bukti = { title: 'Bukti', content: this.createBuktiContent(), icon: 'bi bi-check2-square', maxHeight: '50vh' });
 
         this.options.tab.proses && (tabs.proses = { title: 'Proses Penyelia', content: this.createProsesContent(), icon: 'bi bi-gear-wide-connected' });
 
@@ -664,7 +713,7 @@ class Detail {
                         </div>
                         <i class="bi bi-chevron-down"></i>
                     </div>
-                    <div class="submenu p-2 rounded-bottom-3 overflow-auto overflow-x-hidden border-top" style="max-height: 30vh">
+                    <div class="submenu p-2 rounded-bottom-3 overflow-auto overflow-x-hidden border-top" style="max-height: ${tab.maxHeight ? tab.maxHeight : '30vh'}">
                         ${tab.content}
                     </div>
                 </li>
@@ -753,9 +802,15 @@ class Detail {
             default:
                 break;
         }
-
+        let exceptDoc = [];
+        if(role.includes('Pelanggan')){
+            exceptDoc = [
+                'surattugas'
+            ];
+        }
         for (const [i, dokumen] of dataDokumen.entries()) {
             let idHash = false;
+            if(exceptDoc.includes(dokumen.jenis)) continue;
             switch (dokumen.jenis) {
                 case 'invoice':
                     idHash = invoiceData?.keuangan_hash;
@@ -807,16 +862,40 @@ class Detail {
         switch (this.options.jenis) {
             case 'penyelia':
             case 'surattugas':
-                this.data.log?.map(log => {
-                    let objLog = {
-                        id: log.log_penyelia_hash,
-                        message: log.message,
-                        note: log.note,
-                        created_at: log.created_at,
-                        user: log.user.name
-                    }
-                    dataLog.push(objLog);
-                })
+                this.data.logs?.forEach(log => {
+                    dataLog.push({
+                        message: log.description,
+                        created_at: log.created_at
+                    });
+                });
+
+                this.data.penyelia_map?.forEach(mapItem => {
+                    mapItem.logs?.forEach(log => {
+                        if (['created', 'start'].includes(log.description)) return;
+
+                        const message = log.description === 'finish'
+                            ? `Proses ${mapItem.jobs.name} selesai`
+                            : '';
+
+                        dataLog.push({
+                            message,
+                            created_at: log.created_at,
+                            user: logs.causer?.name,
+                            note: mapItem.note
+                        });
+                    });
+                });
+
+                // order by created_at
+                dataLog.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                break;
+            default:
+                this.data.logs?.forEach(log => {
+                    dataLog.push({
+                        message: log.description,
+                        created_at: log.created_at
+                    });
+                });
                 break;
         }
         let htmlPointLog = ``;
@@ -827,14 +906,19 @@ class Detail {
                     <div class="tl-content lh-1 w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="me-2">${log.message}</div>
-                            <div class="text-muted">${diffToday(log.created_at)}</div>
+                            <div class="text-muted text-end">${dateFormat(log.created_at, 1)}</div>
                         </div>
-                        <div class="fw-bold mt-1">${log.user}</div>
+                        <div class="fw-bold mt-1">${log.user || ''}</div>
                         ${log.note ? `<div class="text-muted mt-1">Note : ${log.note}</div>` : ''}
                     </div>
                 </div>
             `
-        })
+        });
+
+        if(dataLog.length == 0){
+            return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada log</p>';
+        }
+
         return `
             <div class="timeline">
                 ${htmlPointLog}
@@ -875,10 +959,106 @@ class Detail {
         `;
     }
     createItemsContent() {
-        return '<p>Items content</p>';
+        let data = this.data;
+        let rincian = data.detail;
+        let list = ``;
+        for (const detail of rincian) {
+            let htmlPeriode = !detail.periode ? 'Zero cek' : `Periode ${detail.periode}`;
+
+            list += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0 text-uppercase">${detail.jenis}</h6>
+                        <small class="text-muted">${htmlPeriode}</small>
+                    </div>
+                    ${detail.list_tld?.length > 0 ? `
+                        <span class="badge bg-primary rounded-pill">${detail.list_tld.length} TLD</span>
+                    ` : ''}
+                </li>
+            `;
+        }
+        return `
+            <ul class="list-group list-group-flush">
+                ${list}
+            </ul>
+        `;
     }
     createBuktiContent() {
-        return '<p>Bukti content</p>';
+        let mediaPengiriman = this.data.media_pengiriman ?? [];
+        let mediaPenerima = this.data.media_penerima ?? [];
+
+        let swiperPengiriman = ``;
+        for (const media of mediaPengiriman) {
+            swiperPengiriman += `
+                <div class="swiper-slide">
+                    <div class="swiper-zoom-container p-2">
+                        <img src="${base_url}/storage/${media.file_path}/${media.file_hash}" class="object-fit-cover rounded" alt="Bukti Kirim">
+                    </div>
+                </div>
+            `;
+        }
+
+        let swiperPenerima = ``;
+        for (const media of mediaPenerima) {
+            swiperPenerima += `
+                <div class="swiper-slide">
+                    <div class="swiper-zoom-container p-2">
+                        <img src="${base_url}/storage/${media.file_path}/${media.file_hash}" class="object-fit-cover rounded" alt="Bukti Kirim">
+                    </div>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="card-body">
+                <ul class="nav nav-tabs nav-fill mb-3" id="buktiTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="pengiriman-tab" data-bs-toggle="tab" data-bs-target="#pengiriman" type="button" role="tab">
+                            <i class="bi bi-box-seam me-1"></i> Pengiriman
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="penerimaan-tab" data-bs-toggle="tab" data-bs-target="#penerimaan" type="button" role="tab">
+                            <i class="bi bi-check2-circle me-1"></i> Penerimaan
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="buktiTabContent">
+
+                    <div class="tab-pane fade show active" id="pengiriman" role="tabpanel">
+                        ${mediaPengiriman.length > 0 ? `
+                            <div class="swiper swiper-bukti-pengiriman rounded" style="width: 100%; height: 200px;">
+                                <div class="swiper-wrapper">
+                                    ${swiperPengiriman}
+                                </div>
+                                <div class="swiper-button-next"></div>
+                                <div class="swiper-button-prev"></div>
+                                <div class="swiper-pagination"></div>
+                            </div>
+                        ` : `
+                            <p class="text-muted text-center">Tidak ada bukti pengiriman</p>
+                        `}
+                    </div>
+
+                    <div class="tab-pane fade" id="penerimaan" role="tabpanel">
+                        ${mediaPenerima.length > 0 ? `
+                            <div class="swiper swiper-bukti-penerima rounded" style="width: 100%; height: 200px;">
+                                <div class="swiper-wrapper">
+                                    ${swiperPenerima}
+                                </div>
+                                <div class="swiper-button-next-penerima"></div>
+                                <div class="swiper-button-prev-penerima"></div>
+                                <div class="swiper-pagination-penerima"></div>
+                            </div>
+                        ` : `
+                            <p class="text-muted text-center">Tidak ada bukti penerima</p>
+                        `}
+                    </div>
+
+                </div>
+            </div>
+        `;
     }
     createProsesContent() {
         return '<p>Proses content</p>';

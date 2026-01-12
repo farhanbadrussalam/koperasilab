@@ -152,7 +152,7 @@ function cardPenggunaComponent(data, options = {}) {
 
                     <div class="col-md-3 text-md-end d-flex justify-content-between justify-content-md-end align-items-center">
                         <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border me-2"
-                            id="tldNoSeri_${data.index}_pengguna_view">${data.no_seri_tld ?? 'No Seri'}</span>
+                            id="tldNoSeri_${data.index}_pengguna_view">${data.no_seri_tld ? data.no_seri_tld : 'Tidak Ada'}</span>
 
                         <input type="hidden"
                             class="form-control rounded-start"

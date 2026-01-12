@@ -11,7 +11,8 @@ $(function () {
             pengguna: true,
             periode: true,
             tld: true,
-            dokumen: true
+            dokumen: true,
+            log: true
         }
     });
 

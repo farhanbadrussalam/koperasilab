@@ -20,7 +20,6 @@ use App\Models\Kontrak_periode;
 use App\Models\Kontrak_tld;
 
 use App\Http\Controllers\MediaController;
-use App\Http\Controllers\LogController;
 
 use Auth;
 use DataTables;
@@ -32,7 +31,6 @@ class PelangganController extends Controller
     public function __construct()
     {
         $this->media = resolve(MediaController::class);
-        $this->log = resolve(LogController::class);
         $this->global = config('customvariabel');
     }
 

@@ -18,7 +18,6 @@ use App\Models\User;
 use App\Models\Jenis_pembayaran;
 
 use App\Http\Controllers\MediaController;
-use App\Http\Controllers\LogController;
 use App\Http\Controllers\NotifController;
 
 use App\Services\Notifier;
@@ -34,7 +33,6 @@ class KeuanganAPI extends Controller
     public function __construct()
     {
         $this->media = resolve(MediaController::class);
-        $this->log = resolve(LogController::class);
         $this->notif = resolve(NotifController::class);
     }
 
@@ -179,7 +177,7 @@ class KeuanganAPI extends Controller
         DB::beginTransaction();
         try {
             $idJenisPembayaran = decryptor($id);
-            $query = Jenis_pembayaran::where('id_jenis_pembayaran', $idJenisPembayaran)->delete();
+            $query = Jenis_pembayaran::where('id_jenis_pembayaran', $idJenisPembayaran)->get()->each->delete();
             DB::commit();
             return $this->output($query);
         } catch (\Exception $ex) {
@@ -439,15 +437,6 @@ class KeuanganAPI extends Controller
                 $result['status'] = "created";
                 $result['msg'] = "Invoice berhasil dibuat.";
 
-                // log keuangan
-                $note = $this->log->noteLog('keuangan', $status);
-                $this->log->addLog('keuangan', array(
-                    'id_keuangan' => $keuangan->id_keuangan,
-                    'status' => $status,
-                    'note' => $note,
-                    'created_by' => Auth::user()->id
-                ));
-
                 // menambahkan id keuangan ke kontrak
                 $idKontrak = Permohonan::find($idPermohonan)->id_kontrak;
                 if($idKontrak){
@@ -468,15 +457,6 @@ class KeuanganAPI extends Controller
             } elseif ($keuangan->wasChanged()) {
                 $result['status'] = "updated";
                 $result['msg'] = "Invoice berhasil diedit.";
-
-                // log keuangan
-                $note = $this->log->noteLog('keuangan', $status, $textNote);
-                $this->log->addLog('keuangan', array(
-                    'id_keuangan' => $keuangan->id_keuangan,
-                    'status' => $status,
-                    'note' => $note,
-                    'created_by' => Auth::user()->id
-                ));
             } else {
                 $result['status'] = "none";
                 $result['msg'] = "Nothing has changed.";
