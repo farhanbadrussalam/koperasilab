@@ -143,4 +143,8 @@ class Pengiriman extends Model
     public function tujuan_pengiriman(){
         return $this->belongsTo(User::class, 'tujuan', 'id');
     }
+
+    public function logs(){
+        return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
+    }
 }

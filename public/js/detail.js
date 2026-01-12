@@ -862,7 +862,7 @@ class Detail {
         switch (this.options.jenis) {
             case 'penyelia':
             case 'surattugas':
-                this.data.log?.forEach(log => {
+                this.data.logs?.forEach(log => {
                     dataLog.push({
                         message: log.description,
                         created_at: log.created_at
@@ -870,7 +870,7 @@ class Detail {
                 });
 
                 this.data.penyelia_map?.forEach(mapItem => {
-                    mapItem.log?.forEach(log => {
+                    mapItem.logs?.forEach(log => {
                         if (['created', 'start'].includes(log.description)) return;
 
                         const message = log.description === 'finish'
@@ -880,7 +880,7 @@ class Detail {
                         dataLog.push({
                             message,
                             created_at: log.created_at,
-                            user: log.causer?.name,
+                            user: logs.causer?.name,
                             note: mapItem.note
                         });
                     });
@@ -888,6 +888,14 @@ class Detail {
 
                 // order by created_at
                 dataLog.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                break;
+            default:
+                this.data.logs?.forEach(log => {
+                    dataLog.push({
+                        message: log.description,
+                        created_at: log.created_at
+                    });
+                });
                 break;
         }
         let htmlPointLog = ``;
@@ -898,7 +906,7 @@ class Detail {
                     <div class="tl-content lh-1 w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="me-2">${log.message}</div>
-                            <div class="text-muted">${diffToday(log.created_at)}</div>
+                            <div class="text-muted text-end">${dateFormat(log.created_at, 1)}</div>
                         </div>
                         <div class="fw-bold mt-1">${log.user || ''}</div>
                         ${log.note ? `<div class="text-muted mt-1">Note : ${log.note}</div>` : ''}

@@ -264,37 +264,6 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     }
 
                     html += cardComponent(dataP, {btnMenuAction : btnAction, btnAction: btnAction2});
-                    // html += `
-                    //     <div class="card mb-2">
-                    //         <div class="card-body row align-items-center py-2">
-                    //             <div class="col-auto">
-                    //                 <div class="">
-                    //                     <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
-                    //                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
-                    //                     <span> | ${htmlStatus}</span>
-                    //                 </div>
-                    //                 <div class="fs-5 my-2">
-                    //                     <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
-                    //                     <div class="text-body-tertiary fs-7">
-                    //                         <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-                    //                     </div>
-                    //                 </div>
-                    //                 <div class="d-flex gap-3 text-body-tertiary fs-7">
-                    //                     <span><i class="bi bi-calendar-range"></i> ${htmlPeriode}</span>
-                    //                     <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
-                    //                     ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
-                    //                 </div>
-                    //             </div>
-                    //             <div class="ms-auto col-auto text-center gap-1 d-flex" data-id='${penyelia.penyelia_hash}' data-index='${i}'>
-                    //                 ${btnAction}
-                    //             </div>
-                    //             ${divInfoTugas}
-                    //             <div class="col-md-12 collapse" id="timeline-progress-${penyelia.penyelia_hash}">
-                    //                 ${timeline.elementCreate()}
-                    //             </div>
-                    //         </div>
-                    //     </div>
-                    // `;
                     break;
                 default:
                     break;

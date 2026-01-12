@@ -245,4 +245,8 @@ class Permohonan extends Model
     public function rincian_list_tld(){
         return $this->hasMany(Permohonan_tld::class, 'id_permohonan', 'id_permohonan');
     }
+
+    public function logs(){
+        return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
+    }
 }

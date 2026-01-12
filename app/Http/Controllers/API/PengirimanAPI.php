@@ -168,6 +168,7 @@ class PengirimanAPI extends Controller
                 'permohonan.pelanggan.perusahaan',
                 'permohonan.invoice',
                 'permohonan.lhu',
+                'logs.causer',
             ])->where('id_pengiriman', $id)->first();
 
             // mengambil media pengiriman

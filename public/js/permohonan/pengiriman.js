@@ -19,7 +19,8 @@ $(function () {
         jenis: 'pengiriman',
         tab: {
             items: true,
-            bukti: true
+            bukti: true,
+            log: true
         }
     });
 

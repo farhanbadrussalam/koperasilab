@@ -856,6 +856,7 @@ class PermohonanAPI extends Controller
                 'invoice',
                 'rincian_list_tld',
                 'rincian_list_tld.pengguna',
+                'logs.causer',
             )->where('id_permohonan', $id)->first();
             DB::commit();
 

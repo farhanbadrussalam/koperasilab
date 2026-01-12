@@ -7,7 +7,8 @@ $(function () {
         tab: {
             tld: true,
             pengguna: true,
-            dokumen: true
+            dokumen: true,
+            log: true
         }
     });
 

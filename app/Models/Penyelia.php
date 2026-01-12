@@ -141,7 +141,7 @@ class Penyelia extends Model
         return $this->belongsTo(User::class, 'ttd_by', 'id');
     }
 
-    public function log(){
+    public function logs(){
         // return $this->hasMany(Log_penyelia::class, 'id_penyelia', 'id_penyelia')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
         return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
     }
