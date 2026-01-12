@@ -57,6 +57,7 @@ class Penyelia_map extends Model
         'created_by',
         'done_by',
         'done_at',
+        'note'
     ];
 
     protected $hidden = [
@@ -113,5 +114,9 @@ class Penyelia_map extends Model
     public function penyelia()
     {
         return $this->belongsTo(Penyelia::class, 'id_penyelia', 'id_penyelia');
+    }
+
+    public function logs(){
+        return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
     }
 }

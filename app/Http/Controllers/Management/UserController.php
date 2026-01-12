@@ -339,7 +339,7 @@ class UserController extends Controller
         DB::beginTransaction();
         try {
             $user = User::findOrFail(decryptor($id));
-            Profile::where('user_id', $user->id)->delete();
+            Profile::where('user_id', $user->id)->get()->each->delete();
             // menghapus semua role yang terikat
             $user->getRoleNames()->each(function ($roleName) use ($user) {
                 $user->removeRole($roleName);

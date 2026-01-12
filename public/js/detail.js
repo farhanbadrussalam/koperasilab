@@ -862,16 +862,40 @@ class Detail {
         switch (this.options.jenis) {
             case 'penyelia':
             case 'surattugas':
-                this.data.log?.map(log => {
-                    let objLog = {
-                        id: log.log_penyelia_hash,
-                        message: log.message,
-                        note: log.note,
-                        created_at: log.created_at,
-                        user: log.user.name
-                    }
-                    dataLog.push(objLog);
-                })
+                this.data.logs?.forEach(log => {
+                    dataLog.push({
+                        message: log.description,
+                        created_at: log.created_at
+                    });
+                });
+
+                this.data.penyelia_map?.forEach(mapItem => {
+                    mapItem.logs?.forEach(log => {
+                        if (['created', 'start'].includes(log.description)) return;
+
+                        const message = log.description === 'finish'
+                            ? `Proses ${mapItem.jobs.name} selesai`
+                            : '';
+
+                        dataLog.push({
+                            message,
+                            created_at: log.created_at,
+                            user: logs.causer?.name,
+                            note: mapItem.note
+                        });
+                    });
+                });
+
+                // order by created_at
+                dataLog.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                break;
+            default:
+                this.data.logs?.forEach(log => {
+                    dataLog.push({
+                        message: log.description,
+                        created_at: log.created_at
+                    });
+                });
                 break;
         }
         let htmlPointLog = ``;
@@ -882,14 +906,19 @@ class Detail {
                     <div class="tl-content lh-1 w-100">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="me-2">${log.message}</div>
-                            <div class="text-muted">${diffToday(log.created_at)}</div>
+                            <div class="text-muted text-end">${dateFormat(log.created_at, 1)}</div>
                         </div>
-                        <div class="fw-bold mt-1">${log.user}</div>
+                        <div class="fw-bold mt-1">${log.user || ''}</div>
                         ${log.note ? `<div class="text-muted mt-1">Note : ${log.note}</div>` : ''}
                     </div>
                 </div>
             `
-        })
+        });
+
+        if(dataLog.length == 0){
+            return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada log</p>';
+        }
+
         return `
             <div class="timeline">
                 ${htmlPointLog}
