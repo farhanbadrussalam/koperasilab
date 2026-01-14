@@ -123,9 +123,14 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $appends = [
         'user_hash',
         'satuankerja',
-        'profile'
+        'profile',
+        'ttd_image'
     ];
 
+    public function tld()
+    {
+        return $this->hasOne(Master_ttd::class, 'user_id')->where('status', 1);
+    }
     public function getUserHashAttribute()
     {
         return $this->id ? encryptor($this->id) : null;
@@ -142,6 +147,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getProfileAttribute()
     {
         return Profile::where('user_id', $this->id)->first();
+    }
+
+    public function getTtdImageAttribute()
+    {
+        // Cek apakah user punya record TTD
+        if ($this->ttd) {
+            $ttd = Master_ttd::where('id', $this->ttd)->first();
+            // Convert Binary kembali ke Base64 String
+            if($ttd) {
+                $base64 = $ttd->image_blob;
+                return "data:image/png;base64,{$base64}";
+            }
+        }
+
+        return null; // Atau return path gambar default
     }
 
     /**
@@ -168,4 +188,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function penyelia_petugas(){
         return $this->hasOne(Penyelia_petugas::class, 'id_user', 'id')->with('map_active');
     }
+
+
 }

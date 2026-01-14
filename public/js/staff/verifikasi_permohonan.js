@@ -87,12 +87,30 @@ $(function () {
     }
 
     $('#periode-pemakaian-next').val(txtPeriodeNext);
-
     const conten_2 = document.getElementById("content-ttd-2");
-    signaturePad = signature(conten_2, {
-        width: 300,
-        height: 120,
+
+    $('#validasiFrontDesk').on('change', () => {
+        conten_2.innerHTML = ``;
+        signaturePad = false;
+        if($('#validasiFrontDesk').is(':checked')) {
+            if(userActive.ttd){
+                $(conten_2).removeClass('d-none');
+                $('#ttd-preview').addClass('d-none');
+                signaturePad = signature(conten_2, {
+                    width: 300,
+                    height: 120,
+                    defaultSig: userActive.ttd
+                });
+
+                return true;
+            }
+        }
+
+        $(conten_2).addClass('d-none');
+        $('#ttd-preview').removeClass('d-none');
+        return false;
     });
+
     loadTld();
     $('#btn-tandaterima').on('click', () => {
         if(tandaterima){

@@ -369,16 +369,25 @@
 
                 <div class="sticky-sidebar">
                     <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-body p-4 text-center">
-                            <h6 class="fw-bold text-dark small text-uppercase mb-3">Validasi Front Desk</h6>
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold text-dark small text-uppercase mb-3 text-center">Validasi Front Desk</h6>
 
+                            <div class="form-check text-start">
+                                <input class="form-check-input" type="checkbox" value="" id="validasiFrontDesk" >
+                                <label class="form-check-label" for="validasiFrontDesk">
+                                    Validasi Front Desk
+                                </label>
+                            </div>
                             <div class="position-relative d-flex align-items-center justify-content-center ">
 
-                                <div id="content-ttd-2"></div>
-
-                                <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2 text-muted opacity-50 small user-select-none" style="pointer-events: none;">
-                                    Tanda tangan di sini
+                                <div id="content-ttd-2" class="d-none"></div>
+                                <div id="ttd-preview" class="border-2 border-dashed border-secondary border-opacity-25 rounded-3 p-4 text-center bg-light my-3 w-100">
+                                    <small class="text-muted d-block">Belum ada tanda tangan</small>
                                 </div>
+
+                                {{-- <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2 text-muted opacity-50 small user-select-none" style="pointer-events: none;">
+                                    Tanda tangan di sini
+                                </div> --}}
                             </div>
 
                             <p class="text-muted small mb-0">Tertanda: <strong>Admin Front Desk</strong></p>
