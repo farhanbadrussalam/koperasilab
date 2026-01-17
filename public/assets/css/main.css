@@ -680,3 +680,14 @@ tl-item.active .tl-dot:before {
     border: 1px solid blue !important;
     box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0), 0 1px 10px 0 rgba(0,0,0,0.15);
 }
+
+.bg-soft-success {
+    background-color: #e8fdf5 !important;
+}
+.custom-switch .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+}
+.custom-switch .form-check-input {
+    cursor: pointer;
+}

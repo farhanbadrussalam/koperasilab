@@ -57,6 +57,15 @@
     <script>
         const csrf = "{{ csrf_token() }}";
         const base_url = "{{ url('') }}";
+        window.__APP_ECHO_CONFIG = {
+            broadcaster: "pusher",
+            key: "{{ config('broadcasting.connections.pusher.key') }}",
+            cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
+            host: "{{ env('PUSHER_HOST', '') }}",
+            wsPort: "{{ config('broadcasting.connections.pusher.options.port') }}",
+            wssPort: "{{ config('broadcasting.connections.pusher.options.port') }}",
+            forceTLS: {{ config('broadcasting.connections.pusher.options.useTLS') ? "true" : "false" }},
+        };
     </script>
 
     <script src="{{ asset('assets/js/global.js') }}"></script>

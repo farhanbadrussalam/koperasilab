@@ -90,6 +90,10 @@ class ProfileAPI extends Controller
             $jabatan && $params['jabatan'] = $jabatan;
             $idPerusahaan && $params['id_perusahaan'] = $idPerusahaan;
 
+            if($params['ttd']){
+                $params['ttd'] = uploadSignatur($params['ttd'], Auth::user());
+            }
+
             // profile
             $nik && $paramsProfile['nik'] = $nik;
             $jenis_kelamin && $paramsProfile['jenis_kelamin'] = $jenis_kelamin;

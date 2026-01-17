@@ -62,11 +62,19 @@ function loadData(page = 1) {
             }
 
             const btnAction = `
-                <a class="btn btn-sm btn-outline-warning" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}"><i class="bi bi-pencil-square"></i> Edit</a>
-                <button class="btn btn-sm btn-outline-danger" title="Delete" onclick="remove(this)"><i class="bi bi-trash"></i> Remove</button>
+                <li>
+                    <a class="dropdown-item small cursor-pointer" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}">
+                        <i class="bi bi-pencil-square me-2"></i> Edit
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item small cursor-pointer text-danger" title="Delete" onclick="remove(this)">
+                        <i class="bi bi-trash me-2"></i> Remove
+                    </a>
+                </li>
             `;
 
-            html += cardComponent(params, {btnAction: btnAction});
+            html += cardComponent(params, {btnMenuAction: btnAction});
         }
 
         if(result.data.length == 0){

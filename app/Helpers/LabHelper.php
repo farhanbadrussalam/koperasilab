@@ -9,6 +9,7 @@ use App\Models\Permohonan;
 use App\Models\Permohonan_dokumen;
 use App\Models\Pengiriman_detail;
 use App\Models\Kontrak_periode;
+use App\Models\Master_ttd;
 use Illuminate\Support\Facades\Crypt;
 
 use App\Helpers\TableWidthFixer;
@@ -901,4 +902,31 @@ if(!function_exists('notifRead')){
     }
 }
 
+if(!function_exists('uploadSignatur')) {
+    function uploadSignatur($signed, $user){
+        // 1. Bersihkan header base64 (data:image/png;base64,...)
+        // Agar yang tersisa hanya raw string enkripsinya
+        $imageParts = explode(";base64,", $signed);
+        $imageTypeAux = explode("image/", $imageParts[0]);
+        $imageBase64 = base64_decode($imageParts[1]);
+
+        Master_ttd::where('user_id', $user->id)->update(['status' => 99]);
+
+        $params = [
+            'user_id' => $user->id,
+            'image_blob' => $imageParts[1],
+            'status' => 1,
+            'image_type' => $imageTypeAux[1],
+        ];
+
+        // 2. Simpan ke Tabel master_ttd
+        // Pakai updateOrCreate agar jika sudah ada, dia update. Jika belum, dia create.
+        $result = Master_ttd::create($params);
+        if($result) {
+            return $result->id;
+        }
+
+        return null;
+    }
+}
 ?>

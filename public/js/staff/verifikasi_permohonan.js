@@ -87,12 +87,8 @@ $(function () {
     }
 
     $('#periode-pemakaian-next').val(txtPeriodeNext);
-
     const conten_2 = document.getElementById("content-ttd-2");
-    signaturePad = signature(conten_2, {
-        width: 300,
-        height: 120,
-    });
+
     loadTld();
     $('#btn-tandaterima').on('click', () => {
         if(tandaterima){
@@ -184,6 +180,13 @@ $(function () {
         isCheckedEvaluasi = true;
     }
     // isCheckedEvaluasi = dataPermohonan.is_have_tld || dataPermohonan.is_zerocek == 0;
+
+    signaturePad = new SignatureSelect(document.getElementById('validasi-frontdesk'), {
+        inputId: 'frontdeskVal',
+        label: 'Nyatakan valid & Lengkap',
+        placeholder: 'Menunggu validasi petugas...',
+        signerUser: userActive
+    });
 
     loadPelanggan();
     loadTandaterima();
@@ -371,20 +374,6 @@ function loadTldKontrol(tldKontrol){
                 }
 
                 html += cardKontrolComponent(data);
-                // html += `
-                //     <div class="col-sm-6 mt-2">
-                //         <label for="" class="mb-2">Kontrol ${iKontrol.divisi?.name ?? ''} ${kodeLencana}</label>
-                //         <div class="input-group mb-3">
-                //             ${isCheckedEvaluasi ? `
-                //             <div class="input-group-text">
-                //                 <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${idx}" type="checkbox" value="${iKontrol.kontrak_tld_hash}" aria-label="Checkbox for following text input">
-                //             </div>
-                //             ` : ``}
-                //             <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${idx}_kontrol" placeholder="Pilih No Seri" readonly>
-                //             ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="tldNoSeri_${idx}_kontrol" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ``}
-                //         </div>
-                //     </div>
-                // `;
                 index++;
             }
             index++;
@@ -447,29 +436,6 @@ function loadPengguna(){
             }
 
             html += cardPenggunaComponent(data);
-
-            // html += `
-            //     <tr>
-            //         ${isCheckedEvaluasi ? `<td><input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${idHash}" aria-label="" id="checkTldPengguna${i}"></td>` : ''}
-            //         <td>${i + 1}</td>
-            //         <td>
-            //             <div>${value.pengguna.name}</div>
-            //             <small class="text-body-secondary fw-light">${value.pengguna.divisi?.name || ''}</small>
-            //         </td>
-            //         <td>${txtRadiasi}</td>
-            //         <td>
-            //             <div class="input-group">
-            //                 <input type="text" class="form-control rounded-start" value="${no_seri_tld}" id="tldNoSeri_${i}_pengguna" placeholder="Pilih No Seri" readonly>
-            //                 ${!htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="tldNoSeri_${i}_pengguna" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
-            //             </div>
-            //         </td>
-            //         <td>
-            //             <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${fileKtp}" title="Show ktp">
-            //                 <i class="bi bi-file-person-fill"></i>
-            //             </a>
-            //         </td>
-            //     </tr>
-            // `;
         }
 
         $('#pengguna-list-container').html(html);
@@ -480,6 +446,7 @@ function loadPengguna(){
 
 function verif_kelengkapan(status, obj){
     if(status == 'lengkap'){
+        let [ttdValue, ttdBy] = signaturePad.getValue();
         if(dataPermohonan.tandaterima.length == 0){
             return Swal.fire({
                 icon: "warning",
@@ -487,7 +454,7 @@ function verif_kelengkapan(status, obj){
             });
         }
 
-        if(signaturePad.isEmpty()){
+        if(!ttdValue){
             return Swal.fire({
                 icon: "warning",
                 text: "Harap berikan tanda tangan terlebih dahulu.",
@@ -522,9 +489,9 @@ function verif_kelengkapan(status, obj){
             reverseButtons: true
         }).then(result => {
             if(result.isConfirmed){
-                let ttd = signaturePad.toDataURL();
                 let formData = new FormData();
-                formData.append('ttd', ttd);
+                formData.append('ttd', ttdValue);
+                formData.append('ttd_by', ttdBy);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
                 formData.append('listTld', JSON.stringify(tmpArrTld));

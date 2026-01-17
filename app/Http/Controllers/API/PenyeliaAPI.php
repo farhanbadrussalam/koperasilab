@@ -168,7 +168,7 @@ class PenyeliaAPI extends Controller
             $status = $request->has('status') ? $request->status : false;
             $startDate = $request->has('startDate') ? $request->startDate : false;
             $endDate = $request->has('endDate') ? $request->endDate : false;
-            $ttd = $request->has('ttd') ? $request->ttd : false;
+            $ttd = $request->has('ttd') ? decryptor($request->ttd) : false;
             $ttd_by = $request->has('ttd_by') ? decryptor($request->ttd_by) : false;
 
             $petugas = $request->has('petugas') ? $request->petugas : false;
@@ -181,12 +181,11 @@ class PenyeliaAPI extends Controller
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
             $status && $params['status'] = $status;
+            $ttd && $params['ttd'] = $ttd;
+            $ttd_by && $params['ttd_by'] = $ttd_by;
 
             $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan_parent', 'permohonan.layanan_jasa:id_layanan,satuankerja_id', 'permohonan.kontrak')->find($idPenyelia);
             if($penyelia){
-                $penyelia->update($params);
-
-
                 // simpan ttd di dokumen
                 if($ttd){
                     Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)
@@ -195,7 +194,11 @@ class PenyeliaAPI extends Controller
                         'ttd' => $ttd,
                         'ttd_by' => $ttd_by
                     ]);
+
+                    $params['verify_at'] = date('Y-m-d H:i:s');
                 }
+
+                $penyelia->update($params);
 
                 // Menambahkan jobs ke penyelia
                 if($jobsMap && $jobsMapParalel){
@@ -941,10 +944,10 @@ class PenyeliaAPI extends Controller
     public function approvePengujian(Request $request)
     {
         $idPenyelia = $request->idPenyelia ? decryptor($request->idPenyelia) : false;
-        $ttd = $request->ttd ? $request->ttd : false;
+        $ttd = $request->ttd ? decryptor($request->ttd) : false;
         $catatan = $request->catatan ? $request->catatan : null;
         $type = $request->type ? $request->type : false;
-        $ttd_by = Auth::user()->id;
+        $ttd_by = $request->ttd_by ? decryptor($request->ttd_by) : false;
 
         DB::beginTransaction();
         try {
@@ -974,6 +977,8 @@ class PenyeliaAPI extends Controller
                 'jenis' => 'KontrakPengujian',
                 'id_doc_template' => $template->id_doc,
                 'status' => 1,
+                'ttd' => $ttd,
+                'ttd_by' => $ttd_by,
                 'nomer' => $no_kontrak
             );
             $document = Permohonan_dokumen::create($data);

@@ -288,7 +288,7 @@ class KeuanganAPI extends Controller
             $totalHarga = $request->totalHarga ?? false;
             $ppn = $request->ppn ?? false;
             $pph = $request->pph ?? false;
-            $ttd = $request->ttd ?? false;
+            $ttd = $request->ttd ? decryptor($request->ttd) : false;
             $ttd_by = $request->ttd_by ? decryptor($request->ttd_by) : false;
             $textNote = $request->note ?? '';
             $plt = $request->has('plt') ? $request->plt : false;
@@ -341,6 +341,10 @@ class KeuanganAPI extends Controller
                     ["nomer" => $invoice->no_invoice],
                     $dataDocument
                 );
+
+                $data['ttd'] = $ttd;
+                $data['ttd_by'] = $ttd_by;
+                $data['verif_at'] = date('Y-m-d H:i:s');
 
                 // notification perlu di bayar oleh user
                 $userQuery = User::where('id', $invoice->permohonan->created_by);

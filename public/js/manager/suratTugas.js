@@ -29,8 +29,11 @@ $(function () {
 
     // SIGNATURE
     const canvas = document.getElementById('content-ttd');
-    signaturePad = signature(canvas, {
-        text: 'Manager',
+    signaturePad = new SignatureSelect(canvas, {
+        inputId: 'managerValid',
+        label: 'Nyatakan valid & Benar',
+        placeholder: 'Menunggu validasi petugas...',
+        signerUser: userActive
     });
 
     loadEvent();
@@ -38,7 +41,8 @@ $(function () {
 
 function loadEvent() {
     $('#btnApprove').on('click', (obj) => {
-        if(signaturePad.isEmpty()) {
+        let [ttdValue, ttdBy] = signaturePad.getValue();
+        if(!ttdValue) {
             return Swal.fire({
                 icon: "warning",
                 text: "Harap berikan tanda tangan terlebih dahulu.",
@@ -46,9 +50,9 @@ function loadEvent() {
         }
         spinner('show', $(obj.target));
         const idPenyelia = $('#txt_id_penyelia').val();
-        const ttd = signaturePad.toDataURL();
         const params = new FormData();
-        params.append('ttd', ttd);
+        params.append('ttd', ttdValue);
+        params.append('ttd_by', ttdBy);
         params.append('idPenyelia', idPenyelia);
         params.append('type', 'approve');
         ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
@@ -63,11 +67,18 @@ function loadEvent() {
     });
 
     $('#btnDecline').on('click', (obj) => {
+        let [ttdValue, ttdBy] = signaturePad.getValue();
+        if(!ttdValue) {
+            return Swal.fire({
+                icon: "warning",
+                text: "Harap berikan tanda tangan terlebih dahulu.",
+            });
+        }
         spinner('show', $(obj.target));
         const idPenyelia = $('#txt_id_penyelia').val();
-        const ttd = signaturePad.toDataURL();
         const params = new FormData();
-        params.append('ttd', ttd);
+        params.append('ttd', ttdValue);
+        params.append('ttd_by', ttdBy);
         params.append('idPenyelia', idPenyelia);
         params.append('type', 'decline');
         ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
@@ -116,7 +127,7 @@ function loadData(page=1) {
             let btnAction = `
                 <li>
                     <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
-                        <i class="bi bi-info-circle"></i> Detail
+                        <i class="bi bi-info-circle me-2"></i> Detail
                     </a>
                 </li>
             `;
@@ -125,18 +136,16 @@ function loadData(page=1) {
             if(lhu.status == 2) {
                 btnAction2 += `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/manager/surat_tugas/v/${lhu.penyelia_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`;
             } else if (lhu.status == 6) {
-                btnAction += `
-                    <li>
-                        <a class="dropdown-item small cursor-pointer" title="Verifikasi" onclick="verifikasiPengujian(this)">
-                            <i class="bi bi-check2-circle"></i> Verifikasi Pengujian
-                        </a>
-                    </li>
+                btnAction2 += `
+                    <button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiPengujian(this)">
+                        <i class="bi bi-check2-circle"></i> Verifikasi Pengujian
+                    </button>
                 `;
             }else{
                 btnAction += `
                     <li>
                         <a class="dropdown-item small cursor-pointer" href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}">
-                            <i class="bi bi-eye"></i> Lihat Surat
+                            <i class="bi bi-eye me-2"></i> Lihat Surat
                         </a>
                     </li>
                 `;
@@ -198,39 +207,6 @@ function loadData(page=1) {
             }
 
             html += cardComponent(params, {btnMenuAction: btnAction, btnAction: btnAction2});
-
-            // html += `
-            //     <div class="card mb-2">
-            //         <div class="card-body row align-items-center">
-            //             <div class="col-auto">
-            //                 <div class="">
-            //                     <span class="badge ${badgeClass} fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
-            //                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.jenis_layanan_parent.name} - ${permohonan.jenis_layanan.name}</span>
-            //                     <span> | ${htmlStatus}</span>
-            //                 </div>
-            //                 <div class="fs-5 my-2">
-            //                     <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
-            //                     <div class="text-body-tertiary fs-7">
-            //                         <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-            //                     </div>
-            //                 </div>
-            //                 <div class="d-flex gap-3 text-body-tertiary fs-7">
-            //                     <div><i class="bi bi-person-check-fill"></i> ${permohonan.pelanggan.name}</div>
-            //                     <span><i class="bi bi-calendar-range"></i> ${!permohonan.periode ? `Zero cek` : `Periode ${permohonan.periode}`}</span>
-            //                     <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
-            //                     ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
-            //                 </div>
-            //             </div>
-            //             <div class="col-6 col-md-2 text-center ms-auto d-flex" data-idpenyelia='${lhu.penyelia_hash}' data-surattugas='${lhu.no_surat_tugas}'>
-            //                 ${btnAction}
-            //             </div>
-            //             ${divInfoTugas}
-            //             <div class="col-md-12 collapse" id="timeline-progress-${lhu.penyelia_hash}">
-            //                 ${timeline.elementCreate()}
-            //             </div>
-            //         </div>
-            //     </div>
-            // `;
         }
 
         if(result.data.length == 0){

@@ -57,7 +57,7 @@
                             </div>
                             <div class="mb-3 col-md-6">
                                 <ul class="list-group" id="list-jenis">
-                                    
+
                                 </ul>
                             </div>
                             <div class="mb-3 col-md-6 d-flex flex-wrap" id="list-preview-bukti">

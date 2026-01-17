@@ -251,4 +251,8 @@ class Kontrak extends Model
     public function dokumen(){
         return $this->hasMany(Permohonan_dokumen::class, 'id_kontrak', 'id_kontrak');
     }
+
+    public function permohonan(){
+        return $this->belongsTo(Permohonan::class, 'id_kontrak', 'id_kontrak');
+    }
 }

@@ -368,20 +368,14 @@
                 </div>
 
                 <div class="sticky-sidebar">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-body p-4 text-center">
-                            <h6 class="fw-bold text-dark small text-uppercase mb-3">Validasi Front Desk</h6>
+                    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div class="card-header bg-light border-0 pt-3 pb-2 text-center">
+                            <h6 class="fw-bold text-uppercase text-secondary mb-0">
+                                <i class="fas fa-stamp me-2"></i>Validasi Front Desk
+                            </h6>
+                        </div>
 
-                            <div class="position-relative d-flex align-items-center justify-content-center ">
-
-                                <div id="content-ttd-2"></div>
-
-                                <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2 text-muted opacity-50 small user-select-none" style="pointer-events: none;">
-                                    Tanda tangan di sini
-                                </div>
-                            </div>
-
-                            <p class="text-muted small mb-0">Tertanda: <strong>Admin Front Desk</strong></p>
+                        <div class="card-body p-4 text-center" id="validasi-frontdesk">
                         </div>
                     </div>
 

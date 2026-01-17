@@ -87,6 +87,7 @@ class Keuangan extends Model
         'total_harga',
         'created_at',
         'paid_at',
+        'verif_at',
         'created_by'
     ];
 
@@ -120,7 +121,8 @@ class Keuangan extends Model
         'permohonan_hash',
         'media',
         'media_bukti_bayar',
-        'media_bukti_bayar_pph'
+        'media_bukti_bayar_pph',
+        'ttd_image'
     ];
 
     public function getKeuanganHashAttribute()
@@ -155,6 +157,18 @@ class Keuangan extends Model
         $decodedIds = is_array($decodedIds) ? $decodedIds : [];
 
         return Master_media::whereIn('id', $decodedIds)->get();
+    }
+
+    public function getTtdImageAttribute() {
+        if($this->ttd) {
+            $ttd = Master_ttd::where('id', $this->ttd)->first();
+            if($ttd) {
+                $base64 = $ttd->image_blob;
+                return "data:image/png;base64,{$base64}";
+            }
+        }
+
+        return null;
     }
 
     public function permohonan()

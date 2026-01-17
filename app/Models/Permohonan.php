@@ -142,7 +142,8 @@ class Permohonan extends Model
 
     protected $appends = [
         'permohonan_hash',
-        'kontrak_hash'
+        'kontrak_hash',
+        'ttd_image'
     ];
 
     protected $casts = [
@@ -180,6 +181,18 @@ class Permohonan extends Model
     public function getKontrakHashAttribute()
     {
         return $this->id_kontrak ? encryptor($this->id_kontrak) : null;
+    }
+
+    public function getTtdImageAttribute(){
+        if($this->ttd) {
+            $ttd = Master_ttd::where('id', $this->ttd)->first();
+            if($ttd) {
+                $base64 = $ttd->image_blob;
+                return "data:image/png;base64,{$base64}";
+            }
+        }
+
+        return null;
     }
 
     public function jenisTld(){
