@@ -223,7 +223,7 @@ function loadForm(data) {
             width: '100%',
             height: '100%',
             persentage: true,
-            defaultSig: data.ttd
+            defaultSig: data.ttd_image ? data.ttd_image : data.ttd
         });
 
         $('#show-ttd-preview').removeClass('d-none');

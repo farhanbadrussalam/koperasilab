@@ -124,7 +124,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'user_hash',
         'satuankerja',
         'profile',
-        'ttd_image'
+        'ttd_image',
+        'ttd_hash'
     ];
 
     public function tld()
@@ -142,6 +143,11 @@ class User extends Authenticatable implements MustVerifyEmail
         $decodedIds = is_array($decodedIds) ? $decodedIds : [];
 
         return Satuan_kerja::whereIn('id', $decodedIds)->get();
+    }
+
+    public function getTtdHashAttribute()
+    {
+        return $this->ttd ? encryptor($this->ttd) : null;
     }
 
     public function getProfileAttribute()

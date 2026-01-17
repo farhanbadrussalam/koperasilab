@@ -52,7 +52,15 @@ class GlobalObserver
                     $table_name = 'penyelia';
                 }
 
-                $this->catatLog($model, 'UPDATE', $table_name, $note, null, 'proses');
+                if(in_array('note', array_keys($changes))) {
+                    $detail = json_encode([
+                        'note' => $changes['note']
+                    ]);
+                } else {
+                    $detail = null;
+                }
+
+                $this->catatLog($model, 'UPDATE', $table_name, $note, $detail, 'proses');
             }
         }
 

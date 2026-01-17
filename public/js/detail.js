@@ -891,9 +891,13 @@ class Detail {
                 break;
             default:
                 this.data.logs?.forEach(log => {
+                    let properties = JSON.parse(log.properties);
+
+                    let note = properties?.note || '';
                     dataLog.push({
                         message: log.description,
-                        created_at: log.created_at
+                        created_at: log.created_at,
+                        note: note
                     });
                 });
                 break;
@@ -905,11 +909,13 @@ class Detail {
                     <div class="tl-dot border-primary"></div>
                     <div class="tl-content lh-1 w-100">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="me-2">${log.message}</div>
+                            <div class="me-2 w-50">
+                                ${log.message}
+                                <div class="fw-bold mt-1">${log.user || ''}</div>
+                                ${log.note ? `<div class="text-muted mt-1">Note : ${log.note}</div>` : ''}
+                            </div>
                             <div class="text-muted text-end">${dateFormat(log.created_at, 1)}</div>
                         </div>
-                        <div class="fw-bold mt-1">${log.user || ''}</div>
-                        ${log.note ? `<div class="text-muted mt-1">Note : ${log.note}</div>` : ''}
                     </div>
                 </div>
             `

@@ -76,7 +76,8 @@ class Penyelia extends Model
         'petugas',
         'document',
         'created_by',
-        'created_at'
+        'created_at',
+        'verify_at',
     ];
 
     protected $hidden = [
@@ -90,7 +91,8 @@ class Penyelia extends Model
         'permohonan_hash',
         'status_hash',
         'media',
-        'template_surat'
+        'template_surat',
+        'ttd_image'
     ];
 
     protected $casts = [
@@ -130,6 +132,18 @@ class Penyelia extends Model
 
     public function getTemplateSuratAttribute(){
         return Documents::whereIn('name', ['SuratPengujian', 'SuratTugas', 'KontrakPengujian'])->where('status', 1)->get();
+    }
+
+    public function getTtdImageAttribute(){
+        if($this->ttd) {
+            $ttd = Master_ttd::where('id', $this->ttd)->first();
+            if($ttd) {
+                $base64 = $ttd->image_blob;
+                return "data:image/png;base64,{$base64}";
+            }
+        }
+
+        return null;
     }
 
     public function permohonan()

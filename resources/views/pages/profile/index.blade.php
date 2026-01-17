@@ -248,7 +248,7 @@
                                         <h6 class="m-0 fw-bold text-dark">
                                             <i class="bi bi-pen-fill me-2 text-primary"></i>Update Tanda Tangan
                                         </h6>
-                                        <button type="button" class="btn btn-sm btn-outline-danger" id="btn-hapus-ttd">
+                                        <button type="button" class="btn btn-sm btn-outline-danger d-none" id="btn-hapus-ttd">
                                             <i class="bi bi-eraser me-1"></i> Bersihkan
                                         </button>
                                     </div>

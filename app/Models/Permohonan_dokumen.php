@@ -81,7 +81,8 @@ class Permohonan_dokumen extends Model
 
     protected $appends = [
         'dokumen_hash',
-        'permohonan_hash'
+        'permohonan_hash',
+        'ttd_image',
     ];
 
     protected $casts = [
@@ -103,6 +104,21 @@ class Permohonan_dokumen extends Model
     public function getPermohonanHashAttribute()
     {
         return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
+    }
+
+    public function getTtdImageAttribute()
+    {
+        // Cek apakah user punya record TTD
+        if ($this->ttd) {
+            $ttd = Master_ttd::where('id', $this->ttd)->first();
+            // Convert Binary kembali ke Base64 String
+            if($ttd) {
+                $base64 = $ttd->image_blob;
+                return "data:image/png;base64,{$base64}";
+            }
+        }
+
+        return null; // Atau return path gambar default
     }
 
     public function doc_template(){

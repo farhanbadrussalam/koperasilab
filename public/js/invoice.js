@@ -96,7 +96,7 @@ class Invoice {
     open(mode){
         this.invoiceMode = mode;
         let invoiceClass = this;
-        $('#content-ttd-manager').empty();
+        $('#signature-container').empty();
         $('#ttd-div-manager').addClass('d-none').removeClass('d-block');
         $('#plt-div-manager').addClass('d-none').removeClass('d-block');
         $('#methode-pembayaran').addClass('d-none').removeClass('d-block');
@@ -186,10 +186,17 @@ class Invoice {
             // load metode pembayaran
             this.loadPaymentMethod();
         } else if (mode === 'verify') {
-            // sini
-            this.signaturePad = signature(document.getElementById("content-ttd-manager"), {
-                text: 'Manager'
+            // this.signaturePad = signature(document.getElementById("content-ttd-manager"), {
+            //     text: 'Manager'
+            // });
+
+            this.signaturePad = new SignatureSelect('#signature-container', {
+                inputId: 'invoice-validation-manager',
+                label: 'Nyatakan Valid',
+                placeholderText: 'Menunggu Validasi Manager...',
+                signerUser: userActive
             });
+
             if(this.dataKeuangan.plt) {
                 $('#plt-div-manager input').prop('checked', true);
             } else {
@@ -201,24 +208,22 @@ class Invoice {
             $('#rincianInvoice-tab').click();
             $('#invoiceActions').append(this.btnPrinter());
         } else if (mode === 'detail') {
-            if(this.dataKeuangan.ttd){
-                this.signaturePad = signature(document.getElementById("content-ttd-manager"), {
-                    text: 'Manager',
-                    name: this.dataKeuangan.usersig.name,
-                    defaultSig: this.dataKeuangan.ttd
-                });
-                $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
-            }
+            this.signaturePad = new SignatureSelect('#signature-container', {
+                defaultSig: this.dataKeuangan.ttd_image ? this.dataKeuangan.ttd_image : this.dataKeuangan.ttd,
+                signerUser: this.dataKeuangan.usersig,
+                signedDate: this.dataKeuangan.verif_at
+            });
+            $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
 
             $('#rincianInvoice-tab').click();
             this.showPaymentProof();
             $('#invoiceActions').append(this.btnPrinter());
         } else if (mode === 'verifStaff'){
             if(this.dataKeuangan.ttd){
-                this.signaturePad = signature(document.getElementById("content-ttd-manager"), {
-                    text: 'Manager',
-                    name: this.dataKeuangan.usersig.name,
-                    defaultSig: this.dataKeuangan.ttd
+                this.signaturePad = new SignatureSelect('#signature-container', {
+                    defaultSig: this.dataKeuangan.ttd_image ? this.dataKeuangan.ttd_image : this.dataKeuangan.ttd,
+                    signerUser: this.dataKeuangan.usersig,
+                    signedDate: this.dataKeuangan.verif_at
                 });
                 $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
             }
@@ -683,14 +688,15 @@ class Invoice {
                 textSuccess = 'Invoice berhasil dibuat.';
                 break;
             case 'verify':
-                if(this.signaturePad.isEmpty()){
+                let [ttdValue, ttdBy] = this.signaturePad.getValue();
+                if(!ttdValue){
                     return Swal.fire({
                         icon: "warning",
                         text: "Harap berikan tanda tangan terlebih dahulu.",
                     });
                 }
-                formData.append('ttd', this.signaturePad.toDataURL());
-                formData.append('ttd_by', userActive.user_hash);
+                formData.append('ttd', ttdValue);
+                formData.append('ttd_by', ttdBy);
                 formData.append('status', 3);
                 $('#pltChecked').is(":checked") ? formData.append('plt', 1) : formData.append('plt', 0);
                 textQuestion = 'Apa invoice sudah benar ?';
@@ -715,7 +721,6 @@ class Invoice {
             textQuestion = 'Apa faktur sudah benar ?';
             textSuccess = 'Faktur berhasil diupload.';
         }
-
 
         Swal.fire({
             text: textQuestion,
@@ -775,7 +780,7 @@ class Invoice {
         $('#inputPpn').off('input');
         $('#checkPph').off('change');
         $('#inputPph').off('input');
-        $('#content-ttd-manager').empty();
+        $('#signature-container').empty();
         $('#paymentPphProof').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
         $('#paymentProofImage').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
 
@@ -864,9 +869,9 @@ class Invoice {
                                             </label>
                                         </div>
                                     </div>
-                                    <div class="row my-2 d-none" id="ttd-div-manager">
-                                        <div class="col-md-12 d-flex justify-content-center">
-                                            <div class="wrapper" id="content-ttd-manager"></div>
+                                    <div class="row my-2 d-none d-flex justify-content-center" id="ttd-div-manager">
+                                        <div class="w-50" id="signature-container">
+
                                         </div>
                                     </div>
                                 </div>

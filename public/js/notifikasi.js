@@ -28,6 +28,10 @@ class WidgetNotifikasi {
 
         $("#setting-notif").on('click', this.showSetting.bind(this));
         $('#realtimeSwitch').on('change', this.realtimeSwitch.bind(this));
+
+        $('#container-notifikasi').on('click', function(e) {
+            e.stopPropagation();
+        })
     }
 
     showNotif(info) {

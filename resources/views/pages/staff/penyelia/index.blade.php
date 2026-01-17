@@ -93,8 +93,7 @@
                 </div>
             </div>
         </div>
-        <div class="modal-footer d-flex justify-content-between">
-          <a class="btn btn-secondary" href="#" target="_blank">Lihat surat</a>
+        <div class="modal-footer d-flex justify-content-end">
           <button type="button" class="btn btn-primary" onclick="btnCreatePengujian(this)">Ajukan pengujian</button>
         </div>
       </div>

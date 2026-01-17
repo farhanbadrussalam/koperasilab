@@ -123,6 +123,7 @@ class PermohonanAPI extends Controller
             $noHp && $data['no_hp'] = $noHp;
             $alamat && $data['id_alamat'] = $alamat;
             $note != false && $data['note'] = $note;
+            $status == 1 ? $data['note'] = null : false;
 
             $data['is_zerocek'] = $isUseZeroCek;
             $data['is_have_tld'] = $haveTld;
@@ -973,7 +974,8 @@ class PermohonanAPI extends Controller
             $dataPermohonan = Permohonan::with('jenis_layanan', 'jenis_layanan_parent')->where('id_permohonan', $idPermohonan)->first();
             if($dataPermohonan){
                 if($status == 'lengkap'){
-                    $ttd = $request->ttd ? $request->ttd : null;
+                    $ttd = $request->ttd ? decryptor($request->ttd) : null;
+                    $ttdBy = $request->ttd_by ? decryptor($request->ttd_by) : null;
                     $no_kontrak = null;
 
                     // menambahkan tld
@@ -989,7 +991,7 @@ class PermohonanAPI extends Controller
 
                             $dataTldPermohonan = Permohonan_tld::find($id);
 
-                            $tldData = Master_tld::where('id_tld', $idTld)->update([
+                            Master_tld::where('id_tld', $idTld)->update([
                                 'status' => 1,
                                 'digunakan' => $no_kontrak
                             ]);
@@ -1014,13 +1016,15 @@ class PermohonanAPI extends Controller
 
                     $arrayUpdate['verify_at'] = date('Y-m-d H:i:s');
                     $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
+                    $arrayUpdate['ttd'] = $ttd;
+                    $arrayUpdate['ttd_by'] = $ttdBy;
 
                     // simpan ttd di dokumen
                     Permohonan_dokumen::where('id_permohonan', $idPermohonan)
                     ->where('jenis', 'tandaterima')->where('status', 1)
                     ->update([
                         'ttd' => $ttd,
-                        'ttd_by' => Auth::user()->id
+                        'ttd_by' => $ttdBy
                     ]);
 
                     $dataPermohonan->update($arrayUpdate);
@@ -1321,6 +1325,9 @@ class PermohonanAPI extends Controller
                         ->where('name', 'Kontrak')
                         ->where('status', 1)
                         ->first();
+
+            // mengambil general manager
+            $gm = User::role('General Manager')->first();
 
             $data = array(
                 'id_kontrak' => $dataKontrak->id_kontrak,

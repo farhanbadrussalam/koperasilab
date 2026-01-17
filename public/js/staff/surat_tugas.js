@@ -53,10 +53,10 @@ $(function () {
     }else{
         const conten_2 = document.getElementById("content-ttd-1");
         if(conten_2){
-            signaturePad = signature(conten_2, {
-                text: 'Manager',
-                defaultSig: dataPenyelia.ttd ?? false,
-                name: dataPenyelia?.usersig?.name ?? false
+            signaturePad = new SignatureSelect(conten_2, {
+                inputId: 'managerValid',
+                signerUser: userActive,
+                defaultSig: dataPenyelia.ttd_image ? dataPenyelia.ttd_image : dataPenyelia.ttd
             });
         }
     }
@@ -262,6 +262,7 @@ function validateAllPetugasFilled() {
 function saveSuratTugas(obj){
     let dateStart = $('#date_start').val();
     let dateEnd = $('#date_end').val();
+    let [signature, signatureUser] = signaturePad ? signaturePad.getValue() : [];
 
     if(!['verif', 'show'].includes(typeSurat)){
         if(dateStart == '' || dateEnd == '' || arrJobs.length == 0 || !validateAllPetugasFilled()) {
@@ -271,7 +272,7 @@ function saveSuratTugas(obj){
             });
         }
     }else{
-        if(signaturePad.isEmpty()){
+        if(!signature){
             return Swal.fire({
                 icon: "warning",
                 text: "Harap berikan tanda tangan terlebih dahulu.",
@@ -305,8 +306,8 @@ function saveSuratTugas(obj){
                 params.append('jenisLog', typeSurat == 'tambah' ? 'created' : 'updated');
             }else{
                 params.append('status', 10); // Start Proses LHU
-                params.append('ttd', signaturePad.toDataURL());
-                params.append('ttd_by', userActive.user_hash);
+                params.append('ttd', signature);
+                params.append('ttd_by', signatureUser);
             }
 
             spinner('show', $(obj));

@@ -149,7 +149,11 @@ class ReportController extends Controller
             }
         }
         // TTD Invoice
-        $ttd = $dokumen->ttd ?? "";
+        if($dokumen->ttd_image) {
+            $ttd = $dokumen->ttd_image;
+        } else {
+            $ttd = $dokumen->ttd ?? "";
+        }
         $variables['TTD_IMG'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
@@ -374,6 +378,9 @@ class ReportController extends Controller
                 $vars["LOKASI"] = "Tangerang Selatan";
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["UNIT"] = $data->layanan_jasa->satuankerja->name;
+                if($data->permohonan->lhu->end_date){
+                    $vars['TGL SELESAI'] = convert_date($data->permohonan->lhu->end_date, 2);
+                }
                 $vars = array_merge($vars, $this->contentKontrakPengujian($data, $params));
                 break;
             default:
@@ -440,7 +447,11 @@ class ReportController extends Controller
         }
 
         // TTD KWITANSI
-        $ttd = $dokumen->ttd ?? "";
+        if($dokumen->ttd_image) {
+            $ttd = $dokumen->ttd_image;
+        } else {
+            $ttd = $dokumen->ttd ?? "";
+        }
         $variables['TTD'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
@@ -562,7 +573,11 @@ class ReportController extends Controller
         }
 
         // TTD Invoice
-        $ttd = $dokumen->ttd ?? "";
+        if($dokumen->ttd_image) {
+            $ttd = $dokumen->ttd_image;
+        } else {
+            $ttd = $dokumen->ttd ?? "";
+        }
         $variables['TTD_PENERIMA'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
@@ -571,7 +586,7 @@ class ReportController extends Controller
         " : "<br><br><br>";
         $variables['TTD_PENERIMA_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
 
-        $ttd_pemohon = $query->pelanggan->ttd ?? "";
+        $ttd_pemohon = $query->pelanggan->ttd_image ?? "";
         $variables['TTD_PEMOHON'] = $ttd_pemohon ? "
             <div style='text-align: center;'>
                 <img src='$ttd_pemohon' alt='TTD_PEMOHON' width='100px' height='100px'>
@@ -720,7 +735,11 @@ class ReportController extends Controller
         }
 
         // TTD Surat Tugas
-        $ttd = $dokumen->ttd ?? "";
+        if($dokumen->ttd_image) {
+            $ttd = $dokumen->ttd_image;
+        } else {
+            $ttd = $dokumen->ttd ?? "";
+        }
         $variables["TTD"] = $ttd ? "
             <div>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
@@ -892,7 +911,11 @@ class ReportController extends Controller
             $variables = $this->mappingVars($template, $query, $data);
         }
 
-        $ttd = $query->document_kontrak[0]->ttd ?? "";
+        if($query->document_kontrak[0]->ttd_image) {
+            $ttd = $query->document_kontrak[0]->ttd_image;
+        } else {
+            $ttd = $query->document_kontrak[0]->ttd ?? "";
+        }
         $variables["TTD"] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
@@ -1024,7 +1047,11 @@ class ReportController extends Controller
         }
 
         // TTD
-        $ttd_1 = $query->pelanggan->ttd ?? "";
+        if($query->pelanggan->ttd_image) {
+            $ttd_1 = $query->pelanggan->ttd_image;
+        } else {
+            $ttd_1 = $query->pelanggan->ttd ?? "";
+        }
         $variables["TTD_1"] = $ttd_1 ? "
             <div style='text-align: center;'>
                 <img src='$ttd_1' alt='TTD PIHAK 1' width='100px' height='100px'>
@@ -1135,7 +1162,11 @@ class ReportController extends Controller
         }
 
         // TTD
-        $ttd = $dokumen->ttd ?? "";
+        if($dokumen->ttd_image) {
+            $ttd = $dokumen->ttd_image;
+        } else {
+            $ttd = $dokumen->ttd ?? "";
+        }
         $variables['TTD'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
@@ -1242,6 +1273,8 @@ class ReportController extends Controller
             'pelanggan.perusahaan.alamat',
             'rincian_list_tld',
             'rincian_list_tld.pengguna',
+            'permohonan',
+            'permohonan.lhu',
         ])->where('id_kontrak', $id)->first();
 
         $data['title'] = "Surat Kontrak Pengujian";
@@ -1269,7 +1302,11 @@ class ReportController extends Controller
         }
 
         // TTD
-        $ttd_manajer = $dokumen->ttd ?? "";
+        if($dokumen->ttd_image) {
+            $ttd_manajer = $dokumen->ttd_image;
+        } else {
+            $ttd_manajer = $dokumen->ttd ?? "";
+        }
         $variables['TTD_MANAJER'] = $ttd_manajer ? "
             <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
@@ -1279,10 +1316,13 @@ class ReportController extends Controller
         $variables['TTD_BY_MANAJER'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
 
         // TTD PELANGGAN
-        $ttd_pelanggan = $query->pelanggan->ttd ?? "";
+        if($query->pelanggan->ttd_image) {
+            $ttd_pelanggan = $query->pelanggan->ttd_image;
+        } else {
+            $ttd_pelanggan = $query->pelanggan->ttd ?? "";
+        }
         $variables['TTD_PELANGGAN'] = $ttd_pelanggan ? "
             <div style='text-align: center;'>
-                <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
                 <img src='$ttd_pelanggan' alt='TTD_PENERIMA' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
