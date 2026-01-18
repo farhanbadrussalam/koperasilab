@@ -186,10 +186,6 @@ class Invoice {
             // load metode pembayaran
             this.loadPaymentMethod();
         } else if (mode === 'verify') {
-            // this.signaturePad = signature(document.getElementById("content-ttd-manager"), {
-            //     text: 'Manager'
-            // });
-
             this.signaturePad = new SignatureSelect('#signature-container', {
                 inputId: 'invoice-validation-manager',
                 label: 'Nyatakan Valid',
@@ -208,12 +204,14 @@ class Invoice {
             $('#rincianInvoice-tab').click();
             $('#invoiceActions').append(this.btnPrinter());
         } else if (mode === 'detail') {
-            this.signaturePad = new SignatureSelect('#signature-container', {
-                defaultSig: this.dataKeuangan.ttd_image ? this.dataKeuangan.ttd_image : this.dataKeuangan.ttd,
-                signerUser: this.dataKeuangan.usersig,
-                signedDate: this.dataKeuangan.verif_at
-            });
-            $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
+            if(this.dataKeuangan.ttd){
+                this.signaturePad = new SignatureSelect('#signature-container', {
+                    defaultSig: this.dataKeuangan.ttd_image ? this.dataKeuangan.ttd_image : this.dataKeuangan.ttd,
+                    signerUser: this.dataKeuangan.usersig,
+                    signedDate: this.dataKeuangan.verif_at
+                });
+                $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
+            }
 
             $('#rincianInvoice-tab').click();
             this.showPaymentProof();
@@ -807,7 +805,7 @@ class Invoice {
                                 <!-- Invoice details will be dynamically inserted here -->
                             </div>
                             <hr class="my-2">
-                            <ul class="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-3 mb-4" id="myTab" role="tablist" style="border: 1px solid #e9ecef;">
+                            <ul class="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-3 mb-1" id="myTab" role="tablist" style="border: 1px solid #e9ecef;">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active rounded-3 fw-bold" id="rincianInvoice-tab" data-bs-toggle="tab" data-bs-target="#rincianInvoice-tab-pane" type="button" role="tab">
                                         <i class="bi bi-list-check me-2"></i>Rincian Tagihan

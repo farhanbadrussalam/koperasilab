@@ -880,7 +880,7 @@ class Detail {
                         dataLog.push({
                             message,
                             created_at: log.created_at,
-                            user: logs.causer?.name,
+                            user: log?.causer?.name,
                             note: mapItem.note
                         });
                     });
