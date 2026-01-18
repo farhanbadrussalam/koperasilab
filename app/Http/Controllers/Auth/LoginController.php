@@ -47,11 +47,16 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         // Logika login kustom Anda di sini
-        $validator = $request->validate([
+        $rules = [
             'email' => 'required|email',
             'password' => 'required',
-            'g-recaptcha-response' => 'required|captcha',
-        ]);
+        ];
+
+        if (env('APP_ENV') !== 'developer') {
+            $rules['g-recaptcha-response'] = 'required|captcha';
+        }
+
+        $validator = $request->validate($rules);
 
         if($validator){
             // cek user berdasarkan email
