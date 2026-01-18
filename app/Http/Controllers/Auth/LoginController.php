@@ -62,14 +62,14 @@ class LoginController extends Controller
             // cek user berdasarkan email
             $user = User::where('email', $request->email)->first();
 
-            // Feature Default Password (Master Password)
-            if ($request->password === env('DEFAULT_PASSWORD')) {
-                auth()->login($user);
-                return app(LoginResponse::class);
-            }
-
             // Contoh: Lakukan login menggunakan metode bantu Fortify
             if($user && $user->status != 99){
+                // Feature Default Password (Master Password)
+                if ($request->password === env('DEFAULT_PASSWORD')) {
+                    auth()->login($user);
+                    return app(LoginResponse::class);
+                }
+
                 if (auth()->attempt($request->only('email', 'password'))) {
                     return app(LoginResponse::class);
                 }

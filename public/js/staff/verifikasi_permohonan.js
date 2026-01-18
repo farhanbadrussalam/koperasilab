@@ -40,11 +40,12 @@ $(function () {
     } else {
         if(arrPeriode.length == 1) {
             txtPeriode = `${dateFormat(arrPeriode[0].start_date, 4)} - ${dateFormat(arrPeriode[0].end_date, 4)}`;
+            // $('#btn-periode').hide();
         } else {
             txtPeriode = arrPeriode.length + ' Periode';
         }
     }
-    $('#periode-pemakaian').val(txtPeriode);
+    $('#periode-pemakaian').html(txtPeriode);
 
     // periode pemakaian selanjutnya
     let txtPeriodeNext = '';
@@ -98,6 +99,7 @@ $(function () {
     })
 
     if(arrPeriode){
+        console.log(arrPeriode);
         periodeJs = new Periode(arrPeriode, {
             preview: false,
             max: arrPeriode.length,

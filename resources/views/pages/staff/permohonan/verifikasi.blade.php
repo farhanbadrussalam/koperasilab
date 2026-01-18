@@ -93,11 +93,13 @@
                                             <i class="bi bi-calendar-range me-3 text-secondary fs-5"></i>
                                             <div>
                                                 <small class="text-muted d-block">Periode Pemakaian</small>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="fw-bold text-dark" id="periode-pemakaian">3 Periode</span>
-                                                    <button class="btn btn-xs btn-link text-decoration-none p-0" id="btn-periode">
-                                                        <i class="bi bi-eye"></i> Lihat
-                                                    </button>
+                                                <div class="d-flex gap-1 flex-column">
+                                                    <div class="fw-bold text-dark" id="periode-pemakaian">3 Periode</div>
+                                                    <div>
+                                                        <button class="btn btn-xs btn-link text-decoration-none p-0" id="btn-periode">
+                                                            <i class="bi bi-eye"></i> Lihat
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

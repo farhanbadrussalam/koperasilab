@@ -171,6 +171,13 @@ class PelangganController extends Controller
             return redirect(Route('permohonan.pengajuan'))->with('warning', 'Data perusahaan belum lengkap.');
         }
 
+        // pengecekan ttd user pelanggan
+        $ttd_user = Auth::user()->ttd;
+        if(!$ttd_user){
+            // redirect ke halaman pengajuan dan memberikan pesan warning
+            return redirect(Route('userProfile.index'))->with('warning', 'Anda belum Menambahkan TTD.');
+        }
+
         $dataPermohonan = Permohonan::create(array(
             'created_by' => Auth::user()->id,
             'status' => 80,

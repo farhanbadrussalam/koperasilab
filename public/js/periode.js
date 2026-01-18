@@ -113,6 +113,7 @@ class Periode {
 
     show() {
         this.listPeriode = Array.from(this.masterData || []);
+        console.log(this);
         if (this.canShow) {
             this.previewPeriode();
             $("#modal-show-periode-" + this.id_element).modal("show");
@@ -311,7 +312,7 @@ class Periode {
                 locale: "id",
                 // minDate: lastDate ? lastDate.start_date : "today",
                 maxDate: lastDate ? lastDate.end_date : false,
-                minDate: "today",
+                // minDate: "today",
                 dateFormat: "Y-m-d",
                 altFormat: "j F Y",
                 disable: [
