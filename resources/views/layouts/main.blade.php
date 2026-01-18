@@ -59,7 +59,7 @@
 
     {{-- PeriodeJs --}}
     <script src="{{ asset('js/validation.js') }}"></script>
-    <script src="{{ asset('js/signatureSelect.js') }}"></script>
+    <script src="{{ asset('js/SignatureSelect.js') }}"></script>
     <script src="{{ asset('js/periode.js') }}"></script>
     <script src="{{ asset('js/invoice.js') }}"></script>
     <script src="{{ asset('js/detail.js') }}"></script>
