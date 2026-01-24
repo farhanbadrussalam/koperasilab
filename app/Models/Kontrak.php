@@ -220,6 +220,10 @@ class Kontrak extends Model
         return $this->hasMany(Kontrak_tld::class, 'id_kontrak', 'id_kontrak');
     }
 
+    public function kontrak_tld(){
+        return $this->hasMany(Kontrak_tld::class, 'id_kontrak', 'id_kontrak');
+    }
+
     public function pelanggan() {
         return $this->belongsTo(User::class, 'id_pelanggan', 'id');
     }

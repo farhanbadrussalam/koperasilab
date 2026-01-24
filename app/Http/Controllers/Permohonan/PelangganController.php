@@ -139,6 +139,32 @@ class PelangganController extends Controller
         }
     }
 
+    public function adendumKontrak($idKontrak)
+    {
+        $idKontrak = decryptor($idKontrak);
+
+        if($idKontrak){
+            $data = [
+                'title' => 'Adendum Kontrak',
+                'module' => 'permohonan-kontrak',
+            ];
+
+            $data['kontrak'] = Kontrak::with([
+                'pelanggan',
+                'pelanggan.perusahaan',
+                'layanan_jasa',
+                'jenis_layanan',
+                'jenis_layanan_parent',
+                'jenisTld',
+                'periode'
+            ])->where('id_kontrak', $idKontrak)->first();
+
+            return view('pages.permohonan.kontrak.adendum', $data);
+        } else {
+            abort(404);
+        }
+    }
+
     // FEATURE PENGAJUAN
     public function indexPengajuan()
     {

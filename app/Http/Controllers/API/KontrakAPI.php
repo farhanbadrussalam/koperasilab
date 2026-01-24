@@ -8,6 +8,7 @@ use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use App\Models\Kontrak;
+use App\Models\Kontrak_tld;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
@@ -200,6 +201,26 @@ class KontrakAPI extends Controller
                         ->where('no_kontrak', 'like', '%'.$no_kontrak.'%')
                         ->get();
             }
+
+            DB::commit();
+            return $this->output($data, 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function getKontrakTld(Request $request){
+        $idKontrak = $request->has('id_kontrak') ? decryptor($request->id_kontrak) : false;
+
+        DB::beginTransaction();
+        try {
+            $data = Kontrak_tld::with(
+                'divisi',
+                'pengguna',
+                'pengguna.media_ktp'
+            )->where('id_kontrak', $idKontrak)->get();
 
             DB::commit();
             return $this->output($data, 200);

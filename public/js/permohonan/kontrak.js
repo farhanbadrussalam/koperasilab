@@ -156,6 +156,11 @@ function loadData(page = 1) {
                             </div>
                         </div>
                         <div class="col-auto ms-auto align-self-end">
+                            <div class="mb-2 text-end fs-8 ${data.status == 2 ? 'd-none' : ''}">
+                                <a class="btn btn-sm btn-warning rounded-pill" href="${base_url}/permohonan/kontrak/a/${data.kontrak_hash}">
+                                    <i class="bi bi-pencil"></i> Adendum
+                                </a>
+                            </div>
                             <div class="mb-2 text-end fs-8">
                                 ${statusFormat('kontrak',data.status)}
                             </div>
@@ -220,10 +225,10 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     const isPelanggan = role.includes('Pelanggan');
     let htmlAction = ``;
     let htmlDoc = ``;
-    let periodeAwal = getPeriodeAwal(dataKontrak[index]);
+    // let periodeAwal = getPeriodeAwal(dataKontrak[index]);
 
     // cek apakah sudah bayar atau belum
-    let lastPeriode = (dataKontrak[index].periode_count) == data.periode;
+    // let lastPeriode = (dataKontrak[index].periode_count) == data.periode;
     let statusKirimTld = false;
 
     const JL = jenislayanan(dataKontrak[index].jenis_layanan_parent, dataKontrak[index].jenis_layanan);
@@ -258,6 +263,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
     let htmlBtnEvaluasi = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`;
     let htmlBtnTld = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
+
     if(data.permohonan){
         htmlAction = `
         <div class="d-flex flex-column justify-content-center align-items-end">
@@ -270,7 +276,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         if(evaluasiState.active) {
             if(!data.permohonan){
                 if(data.status == 1) { // bukan status periode pengembalian
-                    htmlAction = htmlBtnEvaluasi;
+                    htmlAction += htmlBtnEvaluasi;
                 }
             }
         }
@@ -296,6 +302,9 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
             if(aktifDokumenKirim.includes('tld')) {
                 if(tldSelesai) {
+                    // if(dataKontrak[index].no_kontrak == 'S-0002/JKRL/I/2026'){
+                    //     console.log(cekStatusPeriode);
+                    // }
                     if(!data.permohonan){
                         if(!statusKirimTld){
                             htmlAction = htmlBtnTld;
@@ -325,7 +334,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                     ${htmlDoc}
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-3 text-secondary">
+            <div class="d-flex align-items-center gap-2 text-secondary">
                 ${htmlAction}
             </div>
         </div>
