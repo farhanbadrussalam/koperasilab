@@ -116,7 +116,6 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/list', 'listKontrak');
         Route::get('/getById/{kontrak_hash}', 'getKontrakById');
         Route::get('/search', 'searchKontrak');
-        Route::get('/getKontrakTld', 'getKontrakTld');
         // Route::delete('/destroy/{kontrak_hash}', 'destroy');
     });
 
