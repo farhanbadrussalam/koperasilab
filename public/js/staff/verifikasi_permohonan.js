@@ -403,8 +403,6 @@ function loadPengguna(){
 
         jmlTldCount += result.data.length;
 
-        $('#jumlah-pengguna').html(jmlTldCount + ' Orang')
-
         for (const [i, value] of result.data.entries()) {
             let txtRadiasi = '';
             // RADIASI
