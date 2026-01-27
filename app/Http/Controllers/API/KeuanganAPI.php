@@ -95,7 +95,7 @@ class KeuanganAPI extends Controller
                         ->when($createBy, function($q, $createBy) {
                             return $q->whereHas('permohonan', function($q) use ($createBy) {
                                 $q->where('created_by', $createBy);
-                            })->whereNotIn('status', [1, 2, 91]);
+                            })->whereNotIn('status', [1, 2, 7, 91]);
                         })
                         ->when($filter, function($q, $filter) {
                             return $q->whereHas('permohonan', function($p) use ($filter, $q) {

@@ -145,9 +145,6 @@
 
                                 <div class="d-flex justify-content-between mb-3 align-items-center">
                                     <h6 class="text-uppercase text-muted small fw-bold tracking-wide mb-0">Daftar Pemakai TLD</h6>
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" id="jumlah-pengguna">
-                                        1 Orang
-                                    </span>
                                 </div>
 
                                 {{-- <div class="row text-muted small fw-bold mb-2 px-3 d-none d-md-flex">
