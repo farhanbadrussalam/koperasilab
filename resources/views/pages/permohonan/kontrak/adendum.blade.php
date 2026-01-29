@@ -25,27 +25,41 @@
                         <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">
                             <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">1</span> Perpanjang Periode
                         </h6>
-                        <div class="row g-3 mb-5">
-                            <div class="input-group mb-3">
-                                <input type="text" class="form-control bg-secondary-subtle" id="periode-pemakaian"
-                                    aria-label="Periode pemakaian" readonly>
-                                <button class="btn btn-outline-danger d-none" type="button"
-                                    id="btn-clear-periode">Clear</button>
-                                <button class="btn btn-outline-secondary" type="button" id="btn-periode">Select
-                                    periode</button>
+                        <div class="row g-3 mb-3">
+                            <div class="input-group mb-3 shadow-sm rounded-3 overflow-hidden ps-0">
+                                <span class="input-group-text bg-white border-end-0 ps-3">
+                                    <i class="bi bi-calendar-range text-primary"></i>
+                                </span>
+                                <input type="text" class="form-control bg-white border-start-0 py-3"
+                                        id="periode-pemakaian"
+                                        placeholder="Pilih rentang tanggal..."
+                                        readonly style="cursor: pointer;">
+                                <button class="btn btn-primary px-4 fw-bold" type="button" id="btn-periode">
+                                    Pilih Tanggal
+                                </button>
                             </div>
+
+                            <button class="btn btn-link text-danger text-decoration-none p-0 d-none small fw-medium mt-0" id="btn-clear-periode">
+                                <i class="bi bi-x-circle me-1"></i> Hapus Periode Terpilih
+                            </button>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-end mb-3">
                             <h6 class="text-uppercase text-muted small fw-bold mb-0 tracking-wide">
                                 <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">2</span> Daftar Pengguna TLD
                             </h6>
-                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-tld">
+                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-pengguna">
                                 <i class="bi bi-plus-lg me-1"></i>Tambah User
                             </button>
                         </div>
 
-                        <div id="tld-pengguna"></div>
+                        <div id="tld-pengguna" class="d-flex flex-column gap-1">
+                            <div class="text-center py-5 bg-light rounded-4 border border-dashed">
+                                <div class="text-muted mb-2"><i class="bi bi-people fs-1 opacity-25"></i></div>
+                                <h6 class="text-muted fw-bold">Belum ada pengguna ditambahkan</h6>
+                                <p class="small text-muted mb-0">Klik tombol "Tambah Pengguna" di atas.</p>
+                            </div>
+                        </div>
 
                         <div class="d-flex justify-content-between align-items-end my-4">
                             <h6 class="text-uppercase text-muted small fw-bold mb-0 tracking-wide">
@@ -119,69 +133,12 @@
     </div>
 </div>
 
+@include('pages.permohonan.pengajuan.tld_pengguna')
+@endsection
+
 @push('scripts')
 <script>
     const dataKontrak = @json($kontrak);
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     const tldContainer = document.getElementById('tld-container');
-    //     const btnAddTld = document.getElementById('btn-add-tld');
-
-    //     // Mulai index dari jumlah data dummy yang ada
-    //     let tldIndex = ;
-
-    //     // 1. Fungsi Tambah Baris
-    //     btnAddTld.addEventListener('click', function() {
-    //         const row = document.createElement('tr');
-    //         row.classList.add('tld-row', 'fade-in-row'); // Class animasi jika ada
-
-    //         row.innerHTML = `
-    //             <td class="ps-3">
-    //                 <input type="text" class="form-control border-0 bg-light"
-    //                        name="tld[${tldIndex}][nama]" placeholder="Nama personil baru..." required>
-    //             </td>
-    //             <td>
-    //                 <input type="text" class="form-control border-0 bg-light"
-    //                        name="tld[${tldIndex}][jabatan]" placeholder="Jabatan">
-    //             </td>
-    //             <td>
-    //                 <select class="form-select border-0 bg-light text-secondary" name="tld[${tldIndex}][jenis]">
-    //                     <option value="TLD Badge">TLD Badge</option>
-    //                     <option value="TLD Ring">TLD Ring</option>
-    //                 </select>
-    //             </td>
-    //             <td class="text-end pe-3">
-    //                 <button type="button" class="btn btn-icon btn-sm text-danger btn-remove-tld hover-bg-danger-subtle rounded-circle">
-    //                     <i class="bi bi-trash"></i>
-    //                 </button>
-    //             </td>
-    //         `;
-
-    //         tldContainer.appendChild(row);
-
-    //         // Focus ke input nama baru
-    //         row.querySelector('input[name*="[nama]"]').focus();
-
-    //         tldIndex++;
-    //     });
-
-    //     // 2. Fungsi Hapus Baris
-    //     tldContainer.addEventListener('click', function(e) {
-    //         // Cek apakah yang diklik adalah tombol trash atau icon di dalamnya
-    //         const btn = e.target.closest('.btn-remove-tld');
-    //         if (btn) {
-    //             const row = btn.closest('tr');
-    //             const rowCount = document.querySelectorAll('.tld-row').length;
-
-    //             if (rowCount > 1) {
-    //                 // Animasi simple sebelum remove (optional)
-    //                 row.style.opacity = '0';
-    //                 setTimeout(() => row.remove(), 200);
-    //             } else {
-    //                 alert('Minimal harus ada satu data pengguna.');
-    //             }
-    //         }
-    //     });
-    // });
 </script>
 
 <script src="{{ asset('js/permohonan/adendum.js') }}"></script>
@@ -201,5 +158,3 @@
     }
 </style>
 @endpush
-
-@endsection

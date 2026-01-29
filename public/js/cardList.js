@@ -113,18 +113,85 @@ function cardComponent(data, options = {}) {
 function cardPenggunaComponent(data, options = {}) {
     let inisial = data.name ? data.name.substring(0, 1) : 'A';
     let txtRadiasi = '';
-    data.radiasi?.map(nama_radiasi => txtRadiasi += `
-        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
-            style="font-size: 0.7rem;">
-            ${nama_radiasi}
-        </span>
-    `)
+    let countSplit = 2;
+    if (data.radiasi && data.radiasi.length > countSplit) {
+        data.radiasi.slice(0, countSplit).map(nama_radiasi => txtRadiasi += `
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
+                style="font-size: 0.7rem;">
+                ${nama_radiasi}
+            </span>
+        `);
+
+        let otherRadiasi = '';
+        data.radiasi.slice(countSplit).map(nama_radiasi => otherRadiasi += `
+            <li><span class="dropdown-item" style="font-size: 0.8rem;">${nama_radiasi}</span></li>
+        `);
+
+        txtRadiasi += `
+        <div class="dropdown d-inline-block">
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle dropdown-toggle cursor-pointer"
+                data-bs-toggle="dropdown" style="font-size: 0.7rem;">
+                +${data.radiasi.length - countSplit}
+            </span>
+            <ul class="dropdown-menu shadow-sm">
+                ${otherRadiasi}
+            </ul>
+        </div>
+    `;
+    } else {
+        data.radiasi?.map(nama_radiasi => txtRadiasi += `
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
+                style="font-size: 0.7rem;">
+                ${nama_radiasi}
+            </span>
+        `)
+    }
+
+    let htmlEval = ``;
+
+    let txtStatus = '';
+    let btnRemove = ``;
+    let btnGantiPengguna = ``;
+    if(options.status == 'baru'){
+        txtStatus += `
+            <span class="badge bg-primary-subtle text-primary-emphasis border-primary-subtle border border-info-subtle rounded-pill fw-normal px-3">
+                Baru
+            </span>
+        `;
+
+        htmlEval = `
+            <hr class="my-3">
+            <div class="col-12">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-sm" value="" placeholder="Pilih No Seri" readonly="">
+                    <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${data.idHash}" title="Change" onclick="openInventory(this, 'pengguna')"><i class="bi bi-pencil"></i> Ganti</button>
+                </div>
+            </div>
+        `;
+
+        btnRemove = `
+            <li>
+                <a class="dropdown-item small  text-danger" href="#">
+                    <i class="bi bi-trash me-2" title="Hapus"></i>Hapus
+                </a>
+            </li>
+        `;
+    } else if(options.status == 'adendum') {
+        btnGantiPengguna = `
+            <li>
+                <a class="dropdown-item small text-warning" href="#">
+                    <i class="bi bi-pencil me-2" title="Ganti Pengguna"></i>Ganti Pengguna
+                </a>
+            </li>
+        `;
+    }
+
 
     const elementList = `
         <div class="card border mb-2 hover-shadow-sm transition-all">
             <div class="card-body p-3">
                 <div class="row align-items-center">
-                    <div class="col-md-5 d-flex align-items-center mb-2 mb-md-0">
+                    <div class="col-auto d-flex align-items-center mb-2 mb-md-0">
                         ${data.isCheckedEvaluasi ? `
                             <div class="p-2">
                                 <input class="form-check-input"
@@ -133,24 +200,22 @@ function cardPenggunaComponent(data, options = {}) {
                                     id="checkTldPengguna${data.index}">
                             </div>` : ``}
 
-                        <span class="fw-bold text-muted me-3" style="width: 20px;">${data.index + 1}</span>
                         <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-light text-primary fw-bold d-flex justify-content-center align-items-center me-2"
+                            <div class="rounded-circle bg-light text-primary fw-bold d-none justify-content-center align-items-center me-2"
                                 style="width: 35px; height: 35px;">${inisial}</div>
-                            <div>
+                            <div class="gap-2>
                                 <h6 class="mb-0 fw-bold text-dark small">${data.name}</h6>
                                 <small class="text-muted d-md-none">${data.divisi}</small>
+
+                                <div class="d-flex flex-wrap gap-1">
+                                    ${txtRadiasi}
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-md-4 mb-2 mb-md-0">
-                        <div class="d-flex flex-wrap gap-1">
-                            ${txtRadiasi}
-                        </div>
-                    </div>
-
-                    <div class="col-md-3 text-md-end d-flex justify-content-between justify-content-md-end align-items-center">
+                    <div class="ms-auto col-auto text-md-end d-flex justify-content-between justify-content-md-end align-items-center gap-1">
+                        ${txtStatus}
                         <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border me-2"
                             id="tldNoSeri_${data.index}_pengguna_view">${data.no_seri_tld ? data.no_seri_tld : 'Tidak Ada'}</span>
 
@@ -174,13 +239,18 @@ function cardPenggunaComponent(data, options = {}) {
                                         </a>
                                     </li>
                                 ` : ``}
+                                ${btnGantiPengguna}
                                 <li>
                                     <a class="dropdown-item small show-popup-image" href="${data.fileKtp}">
                                         <i class="bi bi-person-badge me-2"></i>Lihat KTP
                                     </a>
                                 </li>
+                                ${btnRemove}
                             </ul>
                         </div>
+                    </div>
+                    <div class="col-md-12">
+                        ${htmlEval}
                     </div>
                 </div>
             </div>
