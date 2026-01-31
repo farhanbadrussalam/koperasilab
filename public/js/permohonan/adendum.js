@@ -7,6 +7,7 @@ let arrOption = {
 let arr_pengguna = [];
 let arr_kontrol = [];
 let inventoryTld = false;
+let tmpArrTld = [];
 
 $(function () {
     loadPeriode();
@@ -14,7 +15,17 @@ $(function () {
 
     inventoryTld = new Inventory_tld({preview: true});
     inventoryTld.on('inventory.selected', (e) => {
-        console.log(e);
+        const detail = e.detail;
+
+        $(`#${detail.selected}`).val(detail.data_tld.no_seri_tld);
+        $(`#${detail.selected}_view`).html(detail.data_tld.no_seri_tld);
+
+        // reset tmpArrTld
+        let index = tmpArrTld.findIndex(d => d.index == detail.selected);
+
+        if(index > -1){
+            tmpArrTld[index].tld = detail.data_tld.tld_hash;
+        }
     });
 
     periodeJs = new Periode(false, {
@@ -99,32 +110,19 @@ function loadKontrakTld(){
 }
 
 function loadPengguna(){
-    let htmlPengguna = '';
     // load tld pengguna
     for (const [i, value] of arr_pengguna.entries()) {
-        // Radiasi
-        let radiasi = value.pengguna.radiasi?.map(d => d.nama_radiasi);
-
-        let fileKtp = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '';
-
-        let data = {
-            index: i,
-            idHash: value.kontrak_tld_hash,
-            name: value.pengguna.name,
-            divisi: value.pengguna.divisi?.name || '',
-            isCheckedEvaluasi: false,
-            radiasi: radiasi,
-            fileKtp: fileKtp,
-            no_seri_tld: value.tld[0].no_seri_tld,
-            htmlDisabled: true
-        };
-
-        htmlPengguna += cardPenggunaComponent(data, {
-            status: 'adendum'
+        arrOption.pengguna.push({
+            status: 'adendum',
+            id: id,
+            is_have_tld: dataKontrak.is_have_tld,
+            target: false,
+            id_tld: false,
+            detail: value
         });
     }
 
-    $('#tld-pengguna').html(htmlPengguna);
+    loadHtmlPengguna();
 }
 
 function loadKontrol(){
@@ -162,43 +160,89 @@ function loadKontrol(){
     $('#tld-kontrol').html(htmlKontrol);
 }
 
+function loadHtmlPengguna(){
+    tmpArrTld = [];
+    let htmlPengguna = '';
+    for (const [i, value] of arrOption.pengguna.entries()) {
+        let fileKtp = value.detail.pengguna.media_ktp ? `${base_url}/storage/${value.detail.pengguna.media_ktp.file_path}/${value.detail.pengguna.media_ktp.file_hash}` : '';
+
+        let data = {
+            index: i,
+            idHash: value.detail.pengguna.pengguna_hash,
+            name: value.detail.pengguna.name,
+            divisi: value.detail.pengguna.divisi?.name || '',
+            isCheckedEvaluasi: false,
+            radiasi: value.detail.pengguna.radiasi?.map(d => d.nama_radiasi),
+            fileKtp: fileKtp,
+            no_seri_tld: value.detail.tld ? value.detail.tld[0].no_seri_tld : '',
+            htmlDisabled: true
+        };
+
+        htmlPengguna += cardPenggunaComponent(data, {
+            status: value.status,
+            id: value.id,
+            target: value.target,
+            id_tld: value.id_tld,
+            is_have_tld: value.is_have_tld
+        });
+
+        tmpArrTld.push({
+            id: `${data.idHash}|${i+1}`,
+            tld: value.detail.tld ? value.detail.tld[0].tld_hash : '',
+            index: `tldNoSeri_${i}_pengguna`
+        });
+    }
+    $('#tld-pengguna').html(htmlPengguna);
+
+    showPopupReload();
+}
+
 function btnPilihPengguna(obj) {
     let id = $(obj).data('id');
 
-    arrOption.pengguna.push({
-        status: 'baru',
-        id: id,
-        target: false,
-        id_tld: false
-    });
+    const data = arrOption.pengguna.find(v => v.id == id)
 
-    ajaxGet(`api/v1/pengguna/getDataById/${id}`, false, result => {
-        console.log(result);
-        let lengthPengguna = arrOption.pengguna.length;
-        let data = {
-            index: arr_pengguna.length + lengthPengguna,
-            name: result.data.name,
-            divisi: result.data.divisi?.name || '',
-            isCheckedEvaluasi: false,
-            radiasi: result.data.radiasi?.map(d => d.nama_radiasi),
-            fileKtp: result.data.media_ktp ? `${base_url}/storage/${result.data.media_ktp.file_path}/${result.data.media_ktp.file_hash}` : '',
-            no_seri_tld: false,
-            htmlDisabled: true,
-            idHash: result.data.kontrak_tld_hash
-        };
+    if(!data){
+        ajaxGet(`api/v1/pengguna/getDataById/${id}`, false, result => {
+            arrOption.pengguna.push({
+                status: 'baru',
+                id: id,
+                target: false,
+                id_tld: false,
+                is_have_tld: dataKontrak.is_have_tld,
+                detail: {
+                    pengguna: result.data
+                }
+            });
 
-        $('#tld-pengguna').append(cardPenggunaComponent(data, {
-            status: 'baru',
-            id: id,
-            target: false,
-            id_tld: false
-        }));
+            $('#modal-add-tld-pengguna').modal('hide');
 
+            loadHtmlPengguna();
+        })
+    } else {
         $('#modal-add-tld-pengguna').modal('hide');
-    })
+    }
 }
 
 function openInventory(obj, jenis){
     let id = $(obj).data('id');
-    inventoryTld.show(id, [], jenis);
+    inventoryTld.show(id, tmpArrTld, jenis);
+}
+
+function removePengguna(obj) {
+    let id = $(obj).data('id');
+
+    tmpArrTld.findIndex((value, index) => {
+        let idAdd = value.id.split('|')[0];
+        if(idAdd == id){
+            tmpArrTld.splice(index, 1);
+        }
+    })
+
+    arrOption.pengguna.findIndex((value, index) => {
+        if(value.id == id){
+            arrOption.pengguna.splice(index, 1);
+        }
+    })
+    loadHtmlPengguna();
 }

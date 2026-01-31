@@ -159,19 +159,25 @@ function cardPenggunaComponent(data, options = {}) {
             </span>
         `;
 
-        htmlEval = `
-            <hr class="my-3">
-            <div class="col-12">
-                <div class="input-group">
-                    <input type="text" class="form-control form-control-sm" value="" placeholder="Pilih No Seri" readonly="">
-                    <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${data.idHash}" title="Change" onclick="openInventory(this, 'pengguna')"><i class="bi bi-pencil"></i> Ganti</button>
+        if(options.is_have_tld){
+            htmlEval = `
+                <hr class="my-3">
+                <div class="col-12">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" id="tldNoSeri_${data.index}_pengguna" placeholder="Pilih No Seri" readonly="">
+                        <button type="button"
+                            class="input-group-text btn btn-sm btn-outline-secondary"
+                            data-id="tldNoSeri_${data.index}_pengguna" title="Change" onclick="openInventory(this, 'pengguna')">
+                            <i class="bi bi-pencil"></i> Ganti
+                        </button>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
 
         btnRemove = `
             <li>
-                <a class="dropdown-item small  text-danger" href="#">
+                <a class="dropdown-item small text-danger" href="#" data-id="${data.idHash}" onclick="removePengguna(this)">
                     <i class="bi bi-trash me-2" title="Hapus"></i>Hapus
                 </a>
             </li>
@@ -218,11 +224,6 @@ function cardPenggunaComponent(data, options = {}) {
                         ${txtStatus}
                         <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border me-2"
                             id="tldNoSeri_${data.index}_pengguna_view">${data.no_seri_tld ? data.no_seri_tld : 'Tidak Ada'}</span>
-
-                        <input type="hidden"
-                            class="form-control rounded-start"
-                            value="${data.no_seri_tld}"
-                            id="tldNoSeri_${data.index}_pengguna" placeholder="Pilih No Seri" readonly>
 
                         <div class="dropdown">
                             <button class="btn btn-sm btn-light border-0 rounded-circle" type="button" data-bs-toggle="dropdown">
