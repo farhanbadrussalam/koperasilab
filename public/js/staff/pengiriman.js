@@ -82,7 +82,7 @@ function loadData(page = 1) {
                 // id:
             }
 
-            console.log(params);
+            // console.log(params);
 
             html += `
                 <div class="card mb-2">

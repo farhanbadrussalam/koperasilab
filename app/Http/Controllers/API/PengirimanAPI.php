@@ -427,6 +427,8 @@ class PengirimanAPI extends Controller
                 if($cekPeriode){
                     $kontrakPeriode->update(['selesai' => 1]);
                     info("Update Kontrak Periode: selesai = 1");
+                } else {
+                    info("Periode ". $query->periode ." belum selesai");
                 }
             }
             info("================ Selesai ===============");

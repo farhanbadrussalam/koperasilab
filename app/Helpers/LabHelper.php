@@ -826,6 +826,9 @@ if(!function_exists('cekPeriodeComplete')) {
         $lastPeriode = $kontrak->periode_all['jml_periode'] == $periode;
 
         $aktifDokumen = array('invoice','tld', 'lhu');
+        if($periode == 0) {
+            $aktifDokumen = array_diff($aktifDokumen, array('tld'));
+        }
         $arr = array();
         foreach ($aktifDokumen as $dokumen) {
             if($dokumen === 'invoice' && $period->id_permohonan !== $kontrak->invoice->id_permohonan) continue;
