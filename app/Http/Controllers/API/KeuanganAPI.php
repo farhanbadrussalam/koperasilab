@@ -104,7 +104,9 @@ class KeuanganAPI extends Controller
                                         $q->where($key, decryptor($value));
                                     } else if ($key == 'periode') {
                                         $p->where($key, $value);
-                                    }else{
+                                    } else if ($key == 'date_range') {
+                                        
+                                    } else {
                                         $p->where($key, decryptor($value));
                                     }
                                 }

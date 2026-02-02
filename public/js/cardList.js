@@ -53,12 +53,12 @@ function cardComponent(data, options = {}) {
                                         <i class="bi bi-calendar-range me-1"></i> ${htmlPeriode}
                                     </span>
 
-                                    ${data.perusahaan ? `
-                                        <span>
-                                            <i class="bi bi-building-fill"></i> ${data.perusahaan}
-                                        </span>
-                                    ` : ``}
                                 </div>
+                                ${data.perusahaan ? `
+                                    <div>
+                                        <i class="bi bi-building-fill"></i> ${data.perusahaan}
+                                    </div>
+                                ` : ``}
                             </div>
                         </div>
                     </div>
