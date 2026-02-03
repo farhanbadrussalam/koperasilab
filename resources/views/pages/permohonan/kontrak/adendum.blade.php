@@ -26,29 +26,25 @@
                             <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">1</span> Perpanjang Periode
                         </h6>
                         <div class="row g-3 mb-3">
-                            <div class="input-group mb-3 shadow-sm rounded-3 overflow-hidden ps-0">
+                            <div class="input-group mb-3 shadow-sm rounded-3 overflow-hidden px-0">
                                 <span class="input-group-text bg-white border-end-0 ps-3">
                                     <i class="bi bi-calendar-range text-primary"></i>
                                 </span>
                                 <input type="text" class="form-control bg-white border-start-0 py-3"
                                         id="periode-pemakaian"
-                                        placeholder="Pilih rentang tanggal..."
+                                        placeholder="Pilih Periode..."
                                         readonly style="cursor: pointer;">
                                 <button class="btn btn-primary px-4 fw-bold" type="button" id="btn-periode">
-                                    Pilih Tanggal
+                                    Pilih Periode
                                 </button>
                             </div>
-
-                            <button class="btn btn-link text-danger text-decoration-none p-0 d-none small fw-medium mt-0" id="btn-clear-periode">
-                                <i class="bi bi-x-circle me-1"></i> Hapus Periode Terpilih
-                            </button>
                         </div>
 
                         <div class="d-flex justify-content-between align-items-end mb-3">
                             <h6 class="text-uppercase text-muted small fw-bold mb-0 tracking-wide">
                                 <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">2</span> Daftar Pengguna TLD
                             </h6>
-                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" id="btn-add-pengguna">
+                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 d-none" id="btn-add-pengguna">
                                 <i class="bi bi-plus-lg me-1"></i>Tambah User
                             </button>
                         </div>
@@ -119,20 +115,24 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="mb-0">
-                            <label class="text-uppercase text-muted small fw-bold tracking-wide">Periode Saat Ini</label>
-                            <div class="" id="list-periode">
-
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
+<div class="modal fade" id="modal-pilih-periode" tabindex="-1" aria-labelledby="modal-pilih-periodeLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-pilih-periodeLabel">Periode</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="content-pilih-periode">
+            </div>
+        </div>
+    </div>
+</div>
 @include('pages.permohonan.pengajuan.tld_pengguna')
 @endsection
 

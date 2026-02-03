@@ -8,9 +8,9 @@ let arr_pengguna = [];
 let arr_kontrol = [];
 let inventoryTld = false;
 let tmpArrTld = [];
+let periode_select = false;
 
 $(function () {
-    loadPeriode();
     loadKontrakTld();
 
     inventoryTld = new Inventory_tld({preview: true});
@@ -28,27 +28,33 @@ $(function () {
         }
     });
 
-    periodeJs = new Periode(false, {
-        id_element: 1,
-        defaultDate: dataKontrak.periode[dataKontrak.periode.length - 1].end_date
-    });
+    // periodeJs = new Periode(false, {
+    //     id_element: 1,
+    //     defaultDate: dataKontrak.periode[dataKontrak.periode.length - 1].end_date
+    // });
 
     $('#btn-periode').on('click', obj => {
-        periodeJs.show();
+        $('#modal-pilih-periode').modal('show');
+
+        loadPeriode();
     });
 
-    periodeJs.on('periode.simpan.1', simpanPeriode);
+    // periodeJs.on('periode.simpan.1', simpanPeriode);
 
     $('#btn-clear-periode').on('click', obj => {
         $('#periode-pemakaian').val('');
         $('#periode-pemakaian').attr('data-periode', '');
         $('#periode-pemakaian').attr('data-jumperiode', '');
         $('#btn-clear-periode').addClass('d-none').removeClass('d-block');
-        periodeJs.addData([]);
+        // periodeJs.addData([]);
     });
 
     $('#btn-add-pengguna').click(() => {
         $('#modal-add-tld-pengguna').modal('show');
+    })
+
+    $('#modal-pilih-periode').on('hide.bs.modal', () => {
+        $("#content-pilih-periode").html('');
     })
 
     document.addEventListener('pengguna.pilih', (event) => {
@@ -74,19 +80,34 @@ function simpanPeriode(){
 }
 
 function loadPeriode(){
-    let listPeriode = document.getElementById("list-periode");
+    let listPeriode = document.getElementById("content-pilih-periode");
     let periode = dataKontrak.periode;
+    let aktifPeriode = false;
 
     periode.forEach((data, index) => {
         if(data.periode == 0) return;
+        let htmlAktif = '';
+        if(!data.selesai && !aktifPeriode){
+            aktifPeriode = true;
+            htmlAktif = `<span class="badge bg-info-subtle text-dark">Aktif</span>`;
+        } else {
+            htmlAktif = '';
+        }
+        let btnPilih = '';
+        if(periode_select && periode_select.periode == data.periode){
+            btnPilih = '<span class="text-muted">Dipilih</span>';
+        } else {
+            btnPilih = `<button type="button" class="btn btn-sm btn-primary" data-periode="${index}" onclick="pilihPeriode(this)">Pilih</button>`;
+        }
 
         listPeriode.innerHTML += `
             <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-light rounded-3 border mt-1">
                 <div>
                     <span class="badge bg-secondary mb-1">Periode ${data.periode}</span>
+                    ${htmlAktif}
                     <div class="small fw-bold text-dark">${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)}</div>
                 </div>
-                <i class="bi bi-lock-fill text-secondary fs-5" title="Tidak dapat dihapus"></i>
+                ${btnPilih}
             </div>
         `;
     })
@@ -245,4 +266,23 @@ function removePengguna(obj) {
         }
     })
     loadHtmlPengguna();
+}
+
+function pilihPeriode(obj){
+    const index = $(obj).data('periode');
+    const periode = dataKontrak.periode[index];
+
+    periode_select = periode;
+    $('#periode-pemakaian').val(`Periode ${periode.periode} (${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)})`);
+
+    if(periode.selesai){
+        $('#btn-add-pengguna').removeClass('d-block').addClass('d-none');
+        arrOption.pengguna = arrOption.pengguna.filter(d => d.status != 'baru');
+        loadHtmlPengguna();
+    } else {
+        $('#btn-add-pengguna').removeClass('d-none').addClass('d-block');
+    }
+
+
+    $('#modal-pilih-periode').modal('hide');
 }

@@ -37,6 +37,7 @@ $(function () {
     let txtPeriode = '';
     if(!dataPermohonan.periode_pemakaian){
         txtPeriode = 'Periode ' + dataPermohonan.periode;
+        $('#btn-periode').hide();
     } else {
         if(arrPeriode.length == 1) {
             txtPeriode = `${dateFormat(arrPeriode[0].start_date, 4)} - ${dateFormat(arrPeriode[0].end_date, 4)}`;
@@ -99,7 +100,6 @@ $(function () {
     })
 
     if(arrPeriode){
-        console.log(arrPeriode);
         periodeJs = new Periode(arrPeriode, {
             preview: false,
             max: arrPeriode.length,

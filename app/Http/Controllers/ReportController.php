@@ -262,7 +262,8 @@ class ReportController extends Controller
                     $pemakaian = $data->periode_pemakaian;
                     $vars["PERIODE_RINCIAN"] = convert_date($pemakaian[0]['start_date'], 7) . " s/d " . convert_date($pemakaian[0]['end_date'], 7);
                 } else {
-                    // $vars["PERIODE_RINCIAN"] =
+                    $findPeriode = $data->kontrak->periode->where('periode', $data->periode)->first();
+                    $vars["PERIODE_RINCIAN"] = convert_date($findPeriode->start_date, 7) . " s/d " . convert_date($findPeriode->end_date, 7);
                 }
                 $vars["JUDUL"] = "TANDA TERIMA PENGUJIAN/KALIBRASI";
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
@@ -540,6 +541,7 @@ class ReportController extends Controller
             'pelanggan',
             'pelanggan.perusahaan',
             'kontrak',
+            'kontrak.periode',
             'tandaterima',
             'tandaterima.pertanyaan',
             'jenis_layanan:id_jenisLayanan,name',
