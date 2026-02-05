@@ -31,6 +31,8 @@ const btnAddPengguna = $('#btn-add-pengguna');
 const modalNamaPengguna = $('#nama_pengguna');
 const modalJenisRadiasi = $('#jenis_radiasi');
 
+let tldSelector,penggunaForm;
+
 const optionsUploadKTP = {
     allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
 };
@@ -54,8 +56,28 @@ $(function () {
         });
     });
 
-    // setDropify('init', '#uploadKtpPengguna', optionsUploadKTP);
+    tldSelector = new TldPenggunaSelector({
+        apiUrl: `${base_url}/management/getDataPengguna`,
+        type: 'selected'
+    });
+    penggunaForm = new PenggunaForm();
 
+    $('#btn-add-pengguna').on('click', () => {
+        tldSelector.show();
+    });
+
+    document.addEventListener('pengguna.request_create', () => {
+        penggunaForm.showAdd(); // Buka form create kosong
+    });
+
+    document.addEventListener('pengguna.request_edit', (event) => {
+        penggunaForm.showEdit(event.detail?.data?.id); // Buka form edit
+    });
+
+    document.addEventListener('pengguna.saved', (e) => {
+        tldSelector.reload();
+        tldSelector.show();
+    })
 
     let htmlAlamat = '<option value="">Pilih alamat</option>';
 
@@ -404,7 +426,7 @@ $(function () {
     });
 
     document.addEventListener('pengguna.pilih', (event) => {
-        const obj = event.detail;
+        const obj = event.detail.html;
 
         btnPilihPengguna(obj);
     })
@@ -697,7 +719,6 @@ function btnPilihPengguna(obj){
     ajaxPost(`api/v1/permohonan/tambahPengguna`, params, result => {
         loadPengguna();
         loadKontrol();
-        reload();
         $('#modal-add-tld-pengguna').modal('hide');
         $('#modal-add-pengguna').modal('hide');
         spinner('hide', $(obj));

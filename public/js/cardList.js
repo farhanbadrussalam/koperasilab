@@ -185,7 +185,7 @@ function cardPenggunaComponent(data, options = {}) {
     } else if(options.status == 'adendum') {
         btnGantiPengguna = `
             <li>
-                <a class="dropdown-item small text-warning" href="#">
+                <a class="dropdown-item small text-warning" href="#" data-id="${data.idHash}" onclick="gantiPengguna(this)">
                     <i class="bi bi-pencil me-2" title="Ganti Pengguna"></i>Ganti Pengguna
                 </a>
             </li>

@@ -10,6 +10,8 @@ let inventoryTld = false;
 let tmpArrTld = [];
 let periode_select = false;
 
+let tldSelector;
+
 $(function () {
     loadKontrakTld();
 
@@ -28,38 +30,50 @@ $(function () {
         }
     });
 
-    // periodeJs = new Periode(false, {
-    //     id_element: 1,
-    //     defaultDate: dataKontrak.periode[dataKontrak.periode.length - 1].end_date
-    // });
-
     $('#btn-periode').on('click', obj => {
         $('#modal-pilih-periode').modal('show');
 
         loadPeriode();
     });
 
-    // periodeJs.on('periode.simpan.1', simpanPeriode);
-
     $('#btn-clear-periode').on('click', obj => {
         $('#periode-pemakaian').val('');
         $('#periode-pemakaian').attr('data-periode', '');
         $('#periode-pemakaian').attr('data-jumperiode', '');
         $('#btn-clear-periode').addClass('d-none').removeClass('d-block');
-        // periodeJs.addData([]);
     });
 
     $('#btn-add-pengguna').click(() => {
-        $('#modal-add-tld-pengguna').modal('show');
+        tldSelector.show();
     })
 
     $('#modal-pilih-periode').on('hide.bs.modal', () => {
         $("#content-pilih-periode").html('');
     })
 
-    document.addEventListener('pengguna.pilih', (event) => {
-        const obj = event.detail;
+    tldSelector = new TldPenggunaSelector({
+        apiUrl: `${base_url}/management/getDataPengguna`,
+        type: 'selected'
+    });
 
+    penggunaForm = new PenggunaForm();
+
+    // B. Jika user klik "Buat Baru" di dalam modal pencarian
+    document.addEventListener('pengguna.request_create', () => {
+        penggunaForm.showAdd(); // Buka form create kosong
+    });
+
+    document.addEventListener('pengguna.request_edit', (event) => {
+        penggunaForm.showEdit(event.detail?.data?.id); // Buka form edit
+    });
+
+    document.addEventListener('pengguna.saved', (e) => {
+        tldSelector.reload();
+        tldSelector.show();
+    })
+
+    document.addEventListener('pengguna.pilih', (event) => {
+        const obj = event.detail.html;
         btnPilihPengguna(obj);
     })
 });
@@ -79,28 +93,34 @@ function simpanPeriode(){
     }
 }
 
+/**
+ * Load periode list in modal select periode
+ * @param {Element} listPeriode - Element of periode list
+ * @param {Object} periode - Object of periode data
+ */
 function loadPeriode(){
-    let listPeriode = document.getElementById("content-pilih-periode");
-    let periode = dataKontrak.periode;
+    const listPeriode = document.getElementById("content-pilih-periode");
+    const periode = dataKontrak.periode;
     let aktifPeriode = false;
+    let html = '';
 
     periode.forEach((data, index) => {
         if(data.periode == 0) return;
+
         let htmlAktif = '';
+        let is_aktif = false;
+
         if(!data.selesai && !aktifPeriode){
             aktifPeriode = true;
+            is_aktif = true;
             htmlAktif = `<span class="badge bg-info-subtle text-dark">Aktif</span>`;
-        } else {
-            htmlAktif = '';
-        }
-        let btnPilih = '';
-        if(periode_select && periode_select.periode == data.periode){
-            btnPilih = '<span class="text-muted">Dipilih</span>';
-        } else {
-            btnPilih = `<button type="button" class="btn btn-sm btn-primary" data-periode="${index}" onclick="pilihPeriode(this)">Pilih</button>`;
         }
 
-        listPeriode.innerHTML += `
+        const btnPilih = (periode_select && periode_select.periode == data.periode)
+            ? '<span class="text-muted">Dipilih</span>'
+            : `<button type="button" class="btn btn-sm btn-primary" data-periode="${index}" data-aktif="${is_aktif}" onclick="pilihPeriode(this)">Pilih</button>`;
+
+        html += `
             <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-light rounded-3 border mt-1">
                 <div>
                     <span class="badge bg-secondary mb-1">Periode ${data.periode}</span>
@@ -110,7 +130,9 @@ function loadPeriode(){
                 ${btnPilih}
             </div>
         `;
-    })
+    });
+
+    listPeriode.innerHTML = html;
 }
 
 function loadKontrakTld(){
@@ -135,7 +157,7 @@ function loadPengguna(){
     for (const [i, value] of arr_pengguna.entries()) {
         arrOption.pengguna.push({
             status: 'adendum',
-            id: id,
+            id: false,
             is_have_tld: dataKontrak.is_have_tld,
             target: false,
             id_tld: false,
@@ -146,73 +168,84 @@ function loadPengguna(){
     loadHtmlPengguna();
 }
 
+/**
+ * Load tld kontrol into the page.
+ *
+ * This function will load tld kontrol from the given data into the page.
+ * It will generate the html for the tld kontrol list.
+ * The html will be inserted into the "#tld-kontrol" element.
+ *
+ * @param {Array} arr_kontrol - array of tld kontrol data
+ */
 function loadKontrol(){
-    let htmlKontrol = '';
+    const htmlKontrol = arr_kontrol.map(value => {
+        return Array.from({ length: value.count }, (_, idx) => {
+            const tld = value.tld?.[idx];
+            const no_seri_tld = tld?.no_seri_tld || '';
+            const kodeLencana = value.count > 1 ? `C${idx + 1}` : 'C';
 
-    // load tld kontrol
-    for (const [i, value] of arr_kontrol.entries()) {
-        let tldHash = '';
-        let no_seri_tld = '';
-
-        for (let idx = 0; idx < value.count; idx++) {
-            if(value.tld) {
-                tldHash = value.tld[idx].tld_hash;
-                no_seri_tld = value.tld[idx].no_seri_tld;
-            } else {
-                tldHash = '';
-                no_seri_tld = '';
-            }
-
-            let kodeLencana = value.count > 1 ? `C${idx+1}` : 'C';
-
-            let data = {
+            const data = {
                 name: `Kontrol ${value.divisi?.name ?? ''} ${kodeLencana}`,
                 kode: kodeLencana,
                 index: idx,
                 tldHash: value.kontrak_tld_hash,
                 no_seri_tld: no_seri_tld,
                 htmlDisabled: true
-            }
+            };
 
-            htmlKontrol += cardKontrolComponent(data);
-        }
-    }
+            return cardKontrolComponent(data);
+        }).join('');
+    }).join('');
 
     $('#tld-kontrol').html(htmlKontrol);
 }
 
+/**
+ * Load pengguna into the page.
+ *
+ * This function will load pengguna from the given data into the page.
+ * It will generate the html for the pengguna list.
+ * The html will be inserted into the "#tld-pengguna" element.
+ *
+ * @param {Array} arrOption.pengguna - array of pengguna data
+ * @return {String} htmlPengguna - the generated html for the pengguna list
+ */
 function loadHtmlPengguna(){
     tmpArrTld = [];
-    let htmlPengguna = '';
-    for (const [i, value] of arrOption.pengguna.entries()) {
-        let fileKtp = value.detail.pengguna.media_ktp ? `${base_url}/storage/${value.detail.pengguna.media_ktp.file_path}/${value.detail.pengguna.media_ktp.file_hash}` : '';
 
-        let data = {
+    const htmlPengguna = arrOption.pengguna.map((value, i) => {
+        const { pengguna, tld } = value.detail;
+        const fileKtp = pengguna.media_ktp
+            ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}`
+            : '';
+
+        const data = {
             index: i,
-            idHash: value.detail.pengguna.pengguna_hash,
-            name: value.detail.pengguna.name,
-            divisi: value.detail.pengguna.divisi?.name || '',
+            idHash: pengguna.pengguna_hash,
+            name: pengguna.name,
+            divisi: pengguna.divisi?.name || '',
             isCheckedEvaluasi: false,
-            radiasi: value.detail.pengguna.radiasi?.map(d => d.nama_radiasi),
+            radiasi: pengguna.radiasi?.map(d => d.nama_radiasi),
             fileKtp: fileKtp,
-            no_seri_tld: value.detail.tld ? value.detail.tld[0].no_seri_tld : '',
+            no_seri_tld: tld?.[0]?.no_seri_tld || '',
             htmlDisabled: true
         };
 
-        htmlPengguna += cardPenggunaComponent(data, {
+        tmpArrTld.push({
+            id: `${data.idHash}|${i + 1}`,
+            tld: tld?.[0]?.tld_hash || '',
+            index: `tldNoSeri_${i}_pengguna`
+        });
+
+        return cardPenggunaComponent(data, {
             status: value.status,
             id: value.id,
             target: value.target,
             id_tld: value.id_tld,
             is_have_tld: value.is_have_tld
         });
+    }).join('');
 
-        tmpArrTld.push({
-            id: `${data.idHash}|${i+1}`,
-            tld: value.detail.tld ? value.detail.tld[0].tld_hash : '',
-            index: `tldNoSeri_${i}_pengguna`
-        });
-    }
     $('#tld-pengguna').html(htmlPengguna);
 
     showPopupReload();
@@ -225,16 +258,18 @@ function btnPilihPengguna(obj) {
 
     if(!data){
         ajaxGet(`api/v1/pengguna/getDataById/${id}`, false, result => {
-            arrOption.pengguna.push({
+            let params = {};
+
+            params = {
                 status: 'baru',
-                id: id,
                 target: false,
                 id_tld: false,
                 is_have_tld: dataKontrak.is_have_tld,
                 detail: {
                     pengguna: result.data
                 }
-            });
+            }
+            arrOption.pengguna.push(params);
 
             $('#modal-add-tld-pengguna').modal('hide');
 
@@ -270,12 +305,13 @@ function removePengguna(obj) {
 
 function pilihPeriode(obj){
     const index = $(obj).data('periode');
+    const is_aktif = $(obj).data('aktif');
     const periode = dataKontrak.periode[index];
 
     periode_select = periode;
     $('#periode-pemakaian').val(`Periode ${periode.periode} (${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)})`);
 
-    if(periode.selesai){
+    if(periode.selesai || is_aktif){
         $('#btn-add-pengguna').removeClass('d-block').addClass('d-none');
         arrOption.pengguna = arrOption.pengguna.filter(d => d.status != 'baru');
         loadHtmlPengguna();
@@ -285,4 +321,9 @@ function pilihPeriode(obj){
 
 
     $('#modal-pilih-periode').modal('hide');
+}
+
+function gantiPengguna(obj){
+    let id = $(obj).data('id');
+
 }
