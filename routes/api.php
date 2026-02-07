@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('v1/')->group(function() {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/encryptor', [AuthController::class, 'encryptor']);
+    Route::post('/decryptor', [AuthController::class, 'decryptor']);
     Route::post('/search_akun', [AuthController::class, 'search_akun']);
     Route::post('/check_email', [AuthController::class, 'checkEmail']);
     Route::post('/check_nik', [AuthController::class, 'checkNik']);
@@ -65,7 +66,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::delete('/destroyPermohonan/{id}', 'destroyPermohonan');
         Route::get('/listPengajuan', 'listPengajuan');
         Route::get('/listPengguna', 'listPengguna');
-        Route::get('/loadTld', 'loadTld');
+        Route::get('/listKontrol', 'listKontrol');
         Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
         Route::post('/tambahPengguna', 'tambahPengguna');

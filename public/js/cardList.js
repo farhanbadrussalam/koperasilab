@@ -241,7 +241,9 @@ function cardPenggunaComponent(data, options = {}) {
 }
 
 function cardKontrolComponent(data, options = {}) {
-    let btnRemove, htmlAddKontrol, htmlEvaluasi;
+    let btnRemove = '';
+    let htmlAddKontrol = '';
+    let htmlEvaluasi = '';
     if(options.is_btn_remove){
         btnRemove = `<button type="button" class="btn btn-sm btn-outline-danger" data-id="${data.tldHash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>`;
     }

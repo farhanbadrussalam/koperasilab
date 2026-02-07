@@ -604,9 +604,9 @@ class PermohonanAPI extends Controller
         }
     }
 
-    public function loadTld(Request $request)
+    public function listKontrol(Request $request)
     {
-        $validator = $request->validate([
+        $request->validate([
             'idPermohonan' => 'required'
         ]);
 
@@ -629,6 +629,24 @@ class PermohonanAPI extends Controller
             ->groupBy(function ($item) {
                 return optional($item->entitas)->name ?? 'default';
             });
+
+            if($query){
+                $tld = $this->tld->searchTldNotUsed(new Request(['jenis' => 'kontrol']));
+                $resTld = json_decode($tld->getContent(), true);
+                $noTld = 0;
+
+                foreach ($query as $item) {
+                    // mengecek informasi tld
+                    foreach ($item as $key => $value) {
+                        if($value->tld) {
+                            $value->tld_pengguna = $value->tld;
+                        }else{
+                            $value->tld_pengguna = $resTld['data'][$noTld] ?? null;
+                            $noTld++;
+                        }
+                    }
+                }
+            }
 
             $queryKontrak = false;
             if($permohonan->periode){
@@ -949,7 +967,7 @@ class PermohonanAPI extends Controller
 
     public function verifPermohonan(Request $request)
     {
-        $validator = $request->validate([
+        $request->validate([
             'status' => 'required',
         ]);
         $status = $request->status ? $request->status : 'tidak_lengkap';

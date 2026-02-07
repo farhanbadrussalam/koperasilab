@@ -314,71 +314,54 @@ function toggleReason(index, enable) {
 }
 
 function loadTld(){
-    // ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
-    //     let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
-    //     let tldKontrol = [
-    //         ...result.data.tldPermohonan.filter(tld => !tld.pengguna),
-    //         ...kKontrol,
-    //     ];
-
-    //     return;
-    // });
     loadPengguna();
-    // loadTldKontrol();
+    loadTldKontrol();
 }
 
 function loadTldKontrol(){
-    ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
+    ajaxGet(`api/v1/permohonan/listKontrol`, {idPermohonan: dataPermohonan.permohonan_hash}, result => {
         let html = '';
         let htmlDisabled = false;
-        // if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
-        //     htmlDisabled = true;
-        // }
 
         if(dataPermohonan.is_have_tld){
             htmlDisabled = true;
         }
         let index = 0;
-        jmlTldCount += tldKontrol.length;
-        for(const iKontrol of tldKontrol){
-            let tldHash = '';
-            let no_seri_tld = '';
-            let idHash = iKontrol.permohonan_tld_hash ? iKontrol.permohonan_tld_hash : iKontrol.kontrak_tld_hash;
+        jmlTldCount += result.data.tldPermohonan.length;
+        for (const key in result.data.tldPermohonan) {
+            if (!Object.hasOwn(result.data.tldPermohonan, key)) continue;
+            const kontrol = result.data.tldPermohonan[key];
 
-            for (let idx = 0; idx < iKontrol.count; idx++) {
-                if(iKontrol.tld) {
-                    tldHash = iKontrol.tld[idx].tld_hash;
-                    no_seri_tld = iKontrol.tld[idx].no_seri_tld;
-                } else if(result.data[index]){
-                    tldHash = result.data[index].tld_hash;
-                    no_seri_tld = result.data[index].no_seri_tld;
-                } else {
-                    tldHash = '';
-                    no_seri_tld = '';
-                }
-
+            for (const [i,item] of kontrol.entries()) {
+                let idHash = item.permohonan_detail_hash ? item.permohonan_detail_hash : item.kontrak_detail_hash;
+                let tldHash = item.tld ? item.tld.tld_hash : (item.tld_pengguna?.tld_hash || '');
+                let no_seri_tld = item.tld ? item.tld.no_seri_tld : (item.tld_pengguna?.no_seri_tld || '');
                 tmpArrTld.push({
-                    id: `${idHash}|${idx+1}`,
+                    id: idHash,
                     tld: tldHash,
-                    index: `tldNoSeri_${idx}_kontrol`
+                    index: `tldNoSeri_${index}_kontrol`
                 });
 
-                let kodeLencana = iKontrol.count > 1 ? `C${idx+1}` : `C`;
+                let kodeLencana = i == 0 ? 'C' : `C${i}`;
 
                 let data = {
-                    name: `Kontrol ${iKontrol.divisi?.name ?? ''} ${kodeLencana}`,
+                    name: `Kontrol ${item.entitas?.name ?? ''} ${kodeLencana}`,
                     kode: kodeLencana,
-                    isCheckedEvaluasi : isCheckedEvaluasi,
-                    index: idx,
-                    tldHash: iKontrol.kontrak_tld_hash,
+                    isCheckedEvaluasi: isCheckedEvaluasi,
+                    index: index,
+                    tldHash: tldHash,
                     no_seri_tld: no_seri_tld,
                     htmlDisabled: htmlDisabled
-                }
+                };
 
-                html += cardKontrolComponent(data);
+                html += cardKontrolComponent(data, {
+                    is_btn_remove: false,
+                    label_tld: true,
+                    add_kontrol: false
+                });
+
                 index++;
             }
-            index++;
         }
         $('#tld-kontrol-content').html(html);
     });

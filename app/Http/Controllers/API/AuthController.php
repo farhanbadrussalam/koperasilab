@@ -51,6 +51,18 @@ class AuthController extends Controller
         return $this->output($tmp);
     }
 
+    public function decryptor(Request $request){
+        $allid = $request->id ? $request->id : [];
+
+        $tmp = array();
+
+        foreach ($allid as $key => $id) {
+            array_push($tmp, decryptor($id));
+        }
+
+        return $this->output($tmp);
+    }
+
     public function search_akun(Request $request){
         $search = unmask($request->search);
         $data = Profile::where('nik', $search)->first();

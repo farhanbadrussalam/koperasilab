@@ -611,7 +611,7 @@ function loadKontrol(){
     let html = '';
     let haveTld = $('#haveTld').is(':checked');
     tmpArrTldKontrol = [];
-    ajaxGet(`api/v1/permohonan/loadTld`, {idPermohonan: idPermohonan}, result => {
+    ajaxGet(`api/v1/permohonan/listKontrol`, {idPermohonan: idPermohonan}, result => {
         // mengambil data kontrol
         arrKontrolTmp = result.data.tldPermohonan;
         let jumKontrol = 0;
