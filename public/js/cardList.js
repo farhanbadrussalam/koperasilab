@@ -110,42 +110,20 @@ function cardComponent(data, options = {}) {
     return elementList;
 }
 
+/**
+ * Function to generate a card component for a pengguna given data and options.
+ *
+ * @param {object} data - The data to generate the card component.
+ * @param {object} options - The options to generate the card component.
+ * @param {string} options.status - The status to display on the card component.
+ * @param {string} options.label_tld - The label to display on the card component.
+ * @param {boolean} options.is_have_tld - Whether the card component has a TLD or not.
+ *
+ * @return {string} The HTML string of the card component.
+ */
 function cardPenggunaComponent(data, options = {}) {
     let inisial = data.name ? data.name.substring(0, 1) : 'A';
-    let txtRadiasi = '';
-    let countSplit = 2;
-    if (data.radiasi && data.radiasi.length > countSplit) {
-        data.radiasi.slice(0, countSplit).map(nama_radiasi => txtRadiasi += `
-            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
-                style="font-size: 0.7rem;">
-                ${nama_radiasi}
-            </span>
-        `);
-
-        let otherRadiasi = '';
-        data.radiasi.slice(countSplit).map(nama_radiasi => otherRadiasi += `
-            <li><span class="dropdown-item" style="font-size: 0.8rem;">${nama_radiasi}</span></li>
-        `);
-
-        txtRadiasi += `
-        <div class="dropdown d-inline-block">
-            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle dropdown-toggle cursor-pointer"
-                data-bs-toggle="dropdown" style="font-size: 0.7rem;">
-                +${data.radiasi.length - countSplit}
-            </span>
-            <ul class="dropdown-menu shadow-sm">
-                ${otherRadiasi}
-            </ul>
-        </div>
-    `;
-    } else {
-        data.radiasi?.map(nama_radiasi => txtRadiasi += `
-            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
-                style="font-size: 0.7rem;">
-                ${nama_radiasi}
-            </span>
-        `)
-    }
+    let txtRadiasi = loadRadiasi(data.radiasi, 2);
 
     let htmlEval = ``;
 
@@ -159,30 +137,14 @@ function cardPenggunaComponent(data, options = {}) {
             </span>
         `;
 
-        if(options.is_have_tld){
-            htmlEval = `
-                <hr class="my-3">
-                <div class="col-12">
-                    <div class="input-group">
-                        <input type="text" class="form-control form-control-sm" id="tldNoSeri_${data.index}_pengguna" placeholder="Pilih No Seri" readonly="">
-                        <button type="button"
-                            class="input-group-text btn btn-sm btn-outline-secondary"
-                            data-id="tldNoSeri_${data.index}_pengguna" title="Change" onclick="openInventory(this, 'pengguna')">
-                            <i class="bi bi-pencil"></i> Ganti
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
         btnRemove = `
             <li>
-                <a class="dropdown-item small text-danger" href="#" data-id="${data.idHash}" onclick="removePengguna(this)">
+                <a class="dropdown-item small text-danger" href="javascript:void(0)" data-id="${data.idHash}" onclick="removePengguna(this)">
                     <i class="bi bi-trash me-2" title="Hapus"></i>Hapus
                 </a>
             </li>
         `;
-    } else if(options.status == 'adendum') {
+    } else if(options.status == 'stay') {
         btnGantiPengguna = `
             <li>
                 <a class="dropdown-item small text-warning" href="#" data-id="${data.idHash}" onclick="gantiPengguna(this)">
@@ -192,10 +154,25 @@ function cardPenggunaComponent(data, options = {}) {
         `;
     }
 
+    if(options.is_have_tld){
+        htmlEval = `
+            <hr class="my-1">
+            <div class="col-12">
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-sm" id="tldNoSeri_${data.index}_pengguna" placeholder="Pilih No Seri" readonly="" value="${data.no_seri_tld ?? ''}">
+                    <button type="button"
+                        class="input-group-text btn btn-sm btn-outline-secondary"
+                        data-id="tldNoSeri_${data.index}_pengguna" title="Change" onclick="openInventory(this, 'pengguna')">
+                        <i class="bi bi-pencil"></i> Ganti
+                    </button>
+                </div>
+            </div>
+        `;
+    }
 
     const elementList = `
         <div class="card border mb-2 hover-shadow-sm transition-all">
-            <div class="card-body p-3">
+            <div class="card-body py-2 px-3">
                 <div class="row align-items-center">
                     <div class="col-auto d-flex align-items-center mb-2 mb-md-0">
                         ${data.isCheckedEvaluasi ? `
@@ -222,8 +199,10 @@ function cardPenggunaComponent(data, options = {}) {
 
                     <div class="ms-auto col-auto text-md-end d-flex justify-content-between justify-content-md-end align-items-center gap-1">
                         ${txtStatus}
-                        <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border me-2"
-                            id="tldNoSeri_${data.index}_pengguna_view">${data.no_seri_tld ? data.no_seri_tld : 'Tidak Ada'}</span>
+                        ${options.label_tld ? `
+                            <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border me-2"
+                                id="tldNoSeri_${data.index}_pengguna_view">${data.no_seri_tld ? data.no_seri_tld : 'Tidak Ada'}</span>
+                        ` : ``}
 
                         <div class="dropdown">
                             <button class="btn btn-sm btn-light border-0 rounded-circle" type="button" data-bs-toggle="dropdown">
@@ -262,33 +241,78 @@ function cardPenggunaComponent(data, options = {}) {
 }
 
 function cardKontrolComponent(data, options = {}) {
-    const elementList = `
-        <div class="card-body p-3 d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center">
-                ${data.isCheckedEvaluasi ? `
-                    <div class="p-2">
-                        <input class="form-check-input"
-                            name="checkTldKontrol" type="checkbox"
-                            value="${data.tldHash}" aria-label="Checkbox for following text input"
-                            id="checkTldKontrol${data.index}">
+    let btnRemove, htmlAddKontrol, htmlEvaluasi;
+    if(options.is_btn_remove){
+        btnRemove = `<button type="button" class="btn btn-sm btn-outline-danger" data-id="${data.tldHash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>`;
+    }
+
+    if (options.is_have_tld) {
+        htmlEvaluasi = `<hr class="my-2">`;
+
+        for([i,rincian] of data.rincian.entries()){
+            htmlEvaluasi += `
+                <div class="col-12 mb-2">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-sm" value="${rincian.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
+                        <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="tldNoSeri_${data.index}_${i}_kontrol" title="Change" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil"></i> Ganti</button>
                     </div>
-                ` : ``}
-                <div>
-                    <h6 class="mb-0 fw-bold text-dark small">${data.name}</h6>
-                    <small class="text-muted d-none">Unit Pembanding</small>
+                </div>
+            `;
+        }
+    }
+
+    if(options.add_kontrol){
+        htmlAddKontrol = `
+            <div class="col-auto text-end ms-auto d-flex justify-content-between gap-2">
+                <div class="cursor-pointer rounded-circle" data-id="${data.tldHash}" onclick="changeCountKontrol('plus', ${data.rincian.length}, this)">
+                    <i class="bi bi-plus-circle text-primary"></i>
+                </div>
+                <div>${data.rincian.length}</div>
+                <div class="cursor-pointer rounded-circle" data-id="${data.tldHash}" onclick="changeCountKontrol('minus', ${data.rincian.length}, this)">
+                    <i class="bi bi-dash-circle text-danger"></i>
                 </div>
             </div>
-            <div class="d-flex align-items-center">
-                <input type="hidden" class="form-control rounded-start" value="${data.no_seri_tld}" id="tldNoSeri_${data.index}_kontrol" placeholder="Pilih No Seri" readonly>
-                <span class="font-monospace fw-bold text-dark bg-white px-3 py-1 rounded border shadow-sm" id="tldNoSeri_${data.index}_kontrol_view">${data.no_seri_tld ?? 'No Seri'}</span>
-                ${!data.htmlDisabled ? `
-                    <button type="button"
-                        class="btn btn-sm btn-link text-decoration-none ms-2"
-                        data-id="tldNoSeri_${data.index}_kontrol"
-                        onclick="openInventory(this, 'kontrol')">Ganti</button>
-                ` : ``}
+        `;
+    }
+
+    const elementList = `
+    <div class="card border mb-1 hover-shadow-sm transition-all">
+        <div class="card-body p-3 ">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    ${data.isCheckedEvaluasi ? `
+                        <div class="p-2">
+                            <input class="form-check-input"
+                                name="checkTldKontrol" type="checkbox"
+                                value="${data.tldHash}" aria-label="Checkbox for following text input"
+                                id="checkTldKontrol${data.index}">
+                        </div>
+                    ` : ``}
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark small">${data.name}</h6>
+                        <small class="text-muted d-none">Unit Pembanding</small>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="hidden" class="form-control rounded-start" value="${data.no_seri_tld}" id="tldNoSeri_${data.index}_kontrol" placeholder="Pilih No Seri" readonly>
+                    ${options.label_tld ? `
+                        <span class="font-monospace fw-bold text-dark bg-white px-3 py-1 rounded border shadow-sm" id="tldNoSeri_${data.index}_kontrol_view">${data.no_seri_tld ?? 'No Seri'}</span>
+                    ` : ``}
+                    ${htmlAddKontrol}
+                    ${btnRemove}
+                    ${!data.htmlDisabled ? `
+                        <button type="button"
+                            class="btn btn-sm btn-link text-decoration-none ms-2"
+                            data-id="tldNoSeri_${data.index}_kontrol"
+                            onclick="openInventory(this, 'kontrol')">Ganti</button>
+                    ` : ``}
+                </div>
+            </div>
+            <div class="col-12">
+                ${htmlEvaluasi ?? ''}
             </div>
         </div>
+    </div>
     `;
 
     return elementList;

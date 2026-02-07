@@ -3,11 +3,13 @@
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom-0 pb-0 d-block">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="modal-title fw-bold">Tambahkan Pengguna</h5>
-                    <div class="d-flex gap-2 align-items-center">
-                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" id="btn-trigger-create-user">
+                    <div>
+                        <h5 class="modal-title fw-bold">Tambahkan Pengguna</h5>
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" id="btn-trigger-create-user">
                             <i class="bi bi-plus-lg me-1"></i> Buat Baru
                         </button>
+                    </div>
+                    <div class="d-flex gap-2">
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                 </div>

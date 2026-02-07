@@ -262,4 +262,8 @@ class Permohonan extends Model
     public function logs(){
         return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
     }
+
+    public function permohonan_detail(){
+        return $this->hasMany(Permohonan_detail::class, 'id_permohonan', 'id_permohonan');
+    }
 }

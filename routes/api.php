@@ -81,7 +81,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::delete('/destroyTandaterima/{idPermohonan}', 'destroyTandaterima');
         Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');
         Route::delete('/destroyLhuZero/{idPermohonan}/{idMedia}', 'destroyLhuZero');
-        Route::delete('/destroyKontrol/{id}', 'destroyKontrol');
+        Route::delete('/destroyKontrol/{idPermohonan}/{id}', 'destroyKontrol');
     });
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {

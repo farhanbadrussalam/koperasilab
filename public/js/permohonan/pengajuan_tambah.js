@@ -11,6 +11,7 @@ let useZeroCek = true;
 
 let inventoryTldPengguna = false;
 let tmpArrTldPengguna = [];
+let tmpArrTldKontrol = [];
 
 const formInputan = $('#form-inputan');
 const formTipeKontrak = $('#form-tipe-kontrak');
@@ -42,17 +43,30 @@ $(function () {
     inventoryTld = new Inventory_tld({preview: true});
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
-        const split = detail.selected.split('|');
+        const split = detail.selected;
 
         const params = new FormData();
-        params.append('id_permohonan_tld', split[0]);
-        params.append('id_tld', detail.data_tld.tld_hash);
-        split[1] ? params.append('index', split[1]) : false;
 
+        if(detail.data_tld.jenis == 'pengguna'){
+            let index = tmpArrTldPengguna.findIndex(d => d.index == split);
+            if(index > -1){
+                params.append('id', tmpArrTldPengguna[index].id);
+            }
+        } else {
+            let index = tmpArrTldKontrol.findIndex(d => d.index == split);
+            if(index > -1){
+                params.append('id', tmpArrTldKontrol[index].id);
+            }
+        }
+
+        params.append('id_tld', detail.data_tld.tld_hash);
 
         ajaxPost(`api/v1/permohonan/action_tld`, params, result => {
-           loadPengguna();
-           loadKontrol();
+            if(detail.data_tld.jenis == 'pengguna'){
+                loadPengguna();
+            } else {
+                loadKontrol();
+            }
         });
     });
 
@@ -275,7 +289,7 @@ $(function () {
         if (!valjenisTld) sanityCek.push('Jenis TLD');
         if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
         if (valjumPengguna == 0) sanityCek.push('Jumlah Pengguna');
-        if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
+        // if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
 
         if(sanityCek.length > 0){
             return Swal.fire({
@@ -492,44 +506,38 @@ function loadPengguna(){
     let params = {
         idPermohonan: idPermohonan
     }
+    tmpArrTldPengguna = [];
     let haveTld = $('#haveTld').is(':checked');
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         if(result.meta.code == 200){
             let html = '';
             if(result.data){
                 for (const [i, value] of result.data.entries()) {
-                    let txtRadiasi = '';
-                    value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
-                    let pengguna = value.pengguna;
+                    let pengguna = value.entitas;
                     let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
-                    let htmlEvaluasi = `
-                        <hr class="my-2">
-                        <div class="col-12">
-                            <div class="input-group">
-                                <input type="text" class="form-control form-control-sm" value="${value.tld && value.tld[0] ? value.tld[0].no_seri_tld : ''}" placeholder="Pilih No Seri" readonly>
-                                <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${value.permohonan_tld_hash}" title="Change" onclick="openInventory(this, 'pengguna')"><i class="bi bi-pencil"></i> Ganti</button>
-                            </div>
-                        </div>
-                    `;
-                    html += `
-                        <div class="card mb-1 shadow-sm p-1">
-                            <div class="card-body row align-items-center p-1 px-3">
-                                <div class="col-md-7 lh-sm align-items-center">
-                                    <div>${pengguna.name}</div>
-                                    <small class="text-body-secondary fw-light">${pengguna.divisi?.name ?? ''}</small>
-                                    <div class="d-flex flex-wrap">
-                                        ${txtRadiasi}
-                                    </div>
-                                </div>
-                                <div class="col-auto text-end ms-auto">
-                                    <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${fileKtp}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-idpengguna="${value.pengguna.pengguna_hash}" onclick="deletePengguna(this)" title="Delete"><i class="bi bi-trash"></i></button>
-                                </div>
-                                ${(tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld ? htmlEvaluasi : ``}
-                            </div>
-                        </div>
-                    `;
+                    const dataCard = {
+                        index: i,
+                        idHash: value.permohonan_detail_hash,
+                        name: pengguna.name,
+                        divisi: pengguna.divisi?.name || '',
+                        isCheckedEvaluasi: false,
+                        radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
+                        fileKtp: fileKtp,
+                        no_seri_tld: value.tld?.no_seri_tld || '',
+                        htmlDisabled: true
+                    }
+
+                    html += cardPenggunaComponent(dataCard, {
+                        is_have_tld: (tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld,
+                        status: value.type,
+                        label_tld: false
+                    });
+
+                    tmpArrTldPengguna.push({
+                        id: value.permohonan_detail_hash,
+                        index: `tldNoSeri_${i}_pengguna`
+                    });
                 }
             }
 
@@ -544,14 +552,12 @@ function loadPengguna(){
 
             calcPrice();
             $('#pengguna-list-container').html(html);
-            // $('#pengguna-placeholder').hide();
-            // $('#pengguna-list-container').show();
             showPopupReload();
         }
     });
 }
-function deletePengguna(obj){
-    let idPengguna = $(obj).data('idpengguna');
+function removePengguna(obj){
+    let idPengguna = $(obj).data('id');
 
     ajaxDelete(`api/v1/permohonan/destroyPengguna/${idPengguna}/${idPermohonan}`, result => {
         Swal.fire({
@@ -573,9 +579,12 @@ function deletePengguna(obj){
 }
 
 function deleteKontrol(obj){
-    let idKontrol = $(obj).data('id');
+    let idDivisi = $(obj).data('id');
 
-    ajaxDelete(`api/v1/permohonan/destroyKontrol/${idKontrol}`, result => {
+    if(!idDivisi){
+        idDivisi = 'default';
+    }
+    ajaxDelete(`api/v1/permohonan/destroyKontrol/${idPermohonan}/${idDivisi}`, result => {
         Swal.fire({
             icon: 'success',
             text: result.data.msg,
@@ -601,49 +610,42 @@ function deleteKontrol(obj){
 function loadKontrol(){
     let html = '';
     let haveTld = $('#haveTld').is(':checked');
+    tmpArrTldKontrol = [];
     ajaxGet(`api/v1/permohonan/loadTld`, {idPermohonan: idPermohonan}, result => {
         // mengambil data kontrol
-        arrKontrolTmp = result.data.tldPermohonan.filter(tld => tld.id_divisi || (!tld.id_pengguna && !tld.id_divisi));
+        arrKontrolTmp = result.data.tldPermohonan;
         let jumKontrol = 0;
-        for (const [i,kode] of arrKontrolTmp.entries()) {
-            let htmlEvaluasi = `<hr class="my-2">`;
+        for (const [key, value] of Object.entries(arrKontrolTmp)) {
+            let firstData = value[0];
 
-            for (let index = 0; index < kode.count; index++) {
-                htmlEvaluasi += `
-                    <div class="col-12 mb-2">
-                        <div class="input-group">
-                            <input type="text" class="form-control form-control-sm" value="${kode.tld && kode.tld[index] ? kode.tld[index].no_seri_tld : ''}" placeholder="Pilih No Seri" readonly>
-                            <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="${kode.permohonan_tld_hash}|${index}" title="Change" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil"></i> Ganti</button>
-                        </div>
-                    </div>
-                `;
-            }
+            let data = {
+                index: key,
+                name: `Kontrol ${firstData.entitas?.name ?? ''} C`,
+                kode: 'C',
+                isCheckedEvaluasi: false,
+                tldHash: firstData.id_pengguna_divisi,
+                no_seri_tld: firstData.tld?.no_seri_tld || false,
+                htmlDisabled: true,
+                rincian: value
+            };
 
-            html += `
-                <div class="card mb-1 shadow-sm p-1">
-                    <div class="card-body row align-items-center p-1 px-3">
-                        <div class="col-md-7 lh-sm align-items-center">
-                            <label class="form-label col-form-label fw-bold">Kontrol ${kode.divisi?.name ?? ''}<small class="text-body-secondary fw-light"> - ${kode.divisi?.kode_lencana ?? 'C'}</small></label>
-                        </div>
-                        <div class="col-auto text-end ms-auto d-flex justify-content-between gap-2">
-                            <div class="cursor-pointer rounded-circle" data-id="${kode.permohonan_tld_hash}" onclick="changeCountKontrol('plus', ${kode.count}, this)">
-                                <i class="bi bi-plus-circle text-primary"></i>
-                            </div>
-                            <div>${kode.count}</div>
-                            <div class="cursor-pointer rounded-circle" data-id="${kode.permohonan_tld_hash}" onclick="changeCountKontrol('minus', ${kode.count}, this)">
-                                <i class="bi bi-dash-circle text-danger"></i>
-                            </div>
-                        </div>
-                        <div class="col-auto text-end">
-                            <button type="button" class="btn btn-sm btn-outline-danger" data-id="${kode.permohonan_tld_hash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>
-                        </div>
-                        ${(tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld ? htmlEvaluasi : ''}
-                    </div>
-                </div>
-            `;
+            html += cardKontrolComponent(data, {
+                is_btn_remove: true,
+                label_tld: false,
+                add_kontrol: true,
+                is_have_tld: (tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld
+            });
 
-            jumKontrol += kode.count;
+            value.map((info, i) => {
+                tmpArrTldKontrol.push({
+                    id: info.permohonan_detail_hash,
+                    index: `tldNoSeri_${key}_${i}_kontrol`
+                });
+            })
+
+            jumKontrol += value.length;
         }
+
         if(arrKontrolTmp.length == 0){
             html = `
                 <div class="d-flex flex-column align-items-center py-4">
@@ -658,16 +660,7 @@ function loadKontrol(){
     });
 }
 function addFormKontrol(obj = false) {
-    if(obj){
-        const index = $(obj).data('index');
-
-        arrKontrolTmp[index].kode_lencana = $(obj).val();
-    }else{
-        arrKontrolTmp.push({
-            "kode_lencana": ""
-        });
-        loadKontrol();
-    }
+    $('#modal-add-kontrol').modal('show');
 
 }
 function removeFormKontrol(obj){
@@ -706,7 +699,13 @@ function showHideCollapse(obj){
 
 function openInventory(obj, jenis){
     let id = $(obj).data('id');
-    inventoryTld.show(id, tmpArrTldPengguna, jenis);
+    let arr = [];
+    if(jenis == 'pengguna'){
+        arr = tmpArrTldPengguna;
+    } else if(jenis == 'kontrol'){
+        arr = tmpArrTldKontrol;
+    }
+    inventoryTld.show(id, arr, jenis);
 }
 
 function btnPilihPengguna(obj){
@@ -730,7 +729,6 @@ function btnPilihPengguna(obj){
 function openForm(){
     const layanan = $('#jenis_layanan_2').val();
     let html = '<option value="">Pilih</option>';
-    $('#btnTambahKontrol').hide();
     $('#form-kode-lencana-pengguna').hide();
     arrKontrolTmp = [];
 
@@ -754,6 +752,8 @@ function openForm(){
                 if(tmpArrSewa.includes(JL)) {
                     $('#useZeroCek').prop('checked', true);
                     $('#haveTld').prop('checked', false);
+                    loadKontrol();
+                    loadPengguna();
                 } else {
                     dataPermohonan.is_zerocek == 0 ? $('#useZeroCek').prop('checked', false).trigger('change') : $('#useZeroCek').prop('checked', true).trigger('change');
                     dataPermohonan.is_have_tld == 0 ? $('#haveTld').prop('checked', false).trigger('change') : $('#haveTld').prop('checked', true).trigger('change');
@@ -835,8 +835,6 @@ function openForm(){
             }
         });
     }
-    loadKontrol();
-    loadPengguna();
     return;
 }
 
@@ -888,14 +886,30 @@ function remove(){
 }
 
 function changeCountKontrol(type, count, obj){
-    if(type == 'minus') {
-        if (count < 1) return;
-    }
-    count += type === 'plus' ? 1 : -1;
-
+    let id = $(obj).data('id');
     const params = new FormData();
-    params.append('id_permohonan_tld', $(obj).data('id'));
-    params.append('count', count);
+    if(type == 'plus'){
+        params.append('aksi', 'tambah');
+    } else {
+        if(count == 1){
+            Swal.fire({
+                icon: 'warning',
+                text: 'Kontrol tidak bisa dihapus',
+                timer: 1200,
+                timerProgressBar: true,
+                showConfirmButton: false
+            })
+            return;
+        }
+        params.append('aksi', 'hapus');
+    }
+
+    params.append('id_permohonan', idPermohonan);
+    if(id)
+        params.append('id_divisi', id);
+
+    params.append('jenis', 'kontrol');
+    params.append('type', 'baru');
 
     ajaxPost('api/v1/permohonan/action_tld', params, result => {
         loadKontrol();

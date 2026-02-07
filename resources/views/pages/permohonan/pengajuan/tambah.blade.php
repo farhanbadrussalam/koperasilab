@@ -113,10 +113,9 @@
                             </div>
                             <input type="text" name="jum_pengguna" id="jum_pengguna"
                                 class="form-control bg-secondary-subtle" readonly>
-                            <div id="pengguna-list-container"
-                                class="border border-opacity-50 rounded p-1 bg-body-tertiary overflow-y-auto overflow-x-hidden collapse show"
-                                style="max-height: 40vh;">
 
+                            <div id="pengguna-list-container"
+                                class="border border-opacity-50 rounded p-1 bg-body-tertiary collapse show">
                             </div>
                             <div class="d-flex justify-content-end">
                                 <a class="text-decoration-none cursor-pointer text-primary-emphasis hover-text"
@@ -129,17 +128,13 @@
                         </div>
                         <div class="col-md-6" id="form-jum-kontrol">
                             <div class="d-flex justify-content-between">
-                                <label class="col-form-label" for="jum_kontrol">Kontrol<span
-                                        class="text-danger ms-1">*</span></label>
-                                <a id="btnTambahKontrol"
-                                    class="text-decoration-none cursor-pointer text-primary hover-text pt-2"
-                                    onclick="addFormKontrol()"><i class="bi bi-plus-circle"></i> Tambah</a>
+                                <label class="col-form-label" for="jum_kontrol">Kontrol</label>
                             </div>
                             <input type="number" name="jum_kontrol" id="jum_kontrol"
                                 class="form-control bg-secondary-subtle" oninput="calcPrice()" readonly>
                             <div id="divKontrolEvaluasi">
                                 <div id="kontrol-list-container"
-                                    class="border border-opacity-50 rounded p-1 bg-body-tertiary overflow-y-auto overflow-x-hidden collapse show"
+                                    class="border border-opacity-50 rounded p-1 bg-body-tertiary collapse show"
                                     style="max-height: 40vh;">
 
                                 </div>
@@ -205,6 +200,7 @@
     </div>
 
     @include('pages.permohonan.pengajuan.tld_pengguna')
+    @include('pages.management.tld.create')
 @endsection
 @push('scripts')
     <script>

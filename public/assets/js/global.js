@@ -1438,3 +1438,41 @@ function copyKode(id) {
 
     toastr.info('Kode berhasil disalin', 'Informasi');
 }
+
+function loadRadiasi(data_radiasi, count_split = 2) {
+    let txtRadiasi = '';
+    if (data_radiasi && data_radiasi.length > count_split) {
+        data_radiasi.slice(0, count_split).map(nama_radiasi => txtRadiasi += `
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
+                style="font-size: 0.7rem;">
+                ${nama_radiasi}
+            </span>
+        `);
+
+        let otherRadiasi = '';
+        data_radiasi.slice(count_split).map(nama_radiasi => otherRadiasi += `
+            <li><span class="dropdown-item" style="font-size: 0.8rem;">${nama_radiasi}</span></li>
+        `);
+
+        txtRadiasi += `
+        <div class="dropdown d-inline-block">
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle dropdown-toggle cursor-pointer"
+                data-bs-toggle="dropdown" style="font-size: 0.7rem;">
+                +${data_radiasi.length - count_split}
+            </span>
+            <ul class="dropdown-menu shadow-sm">
+                ${otherRadiasi}
+            </ul>
+        </div>
+    `;
+    } else {
+        data_radiasi?.map(nama_radiasi => txtRadiasi += `
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
+                style="font-size: 0.7rem;">
+                ${nama_radiasi}
+            </span>
+        `)
+    }
+
+    return txtRadiasi
+}

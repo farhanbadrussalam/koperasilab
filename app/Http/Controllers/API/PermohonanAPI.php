@@ -12,6 +12,7 @@ use App\Models\Permohonan_dokumen;
 use App\Models\Permohonan_pengguna;
 use App\Models\Permohonan_tandaterima;
 use App\Models\Permohonan_tld;
+use App\Models\Permohonan_detail;
 
 use App\Models\Documents;
 use App\Models\Master_layanan_jasa;
@@ -37,6 +38,7 @@ use App\Services\Notifier;
 
 use Auth;
 use DB;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Log;
 
 class PermohonanAPI extends Controller
@@ -181,7 +183,12 @@ class PermohonanAPI extends Controller
             }
 
             if($haveTld == 0){
-                Permohonan_tld::where('id_permohonan', $permohonan->id_permohonan)->update(['id_tld' => null]);
+                Permohonan_detail::where('id_permohonan', $permohonan->id_permohonan)->get()->each(function ($item) {
+                    if($item->id_tld){
+                        Master_tld::where('id_tld', $item->id_tld)->update(['status' => 0]);
+                    }
+                    $item->update(['id_tld' => null]);
+                });
             }
 
             if($permohonan->status == 1){
@@ -223,30 +230,29 @@ class PermohonanAPI extends Controller
             $idPengguna = decryptor($request->idPengguna);
             $idTld = $request->has('idTld') ? decryptor($request->idTld) : null;
 
-            Permohonan_tld::create(array(
+            Permohonan_detail::create(array(
                 'id_permohonan' => $idPermohonan,
-                'id_pengguna' => $idPengguna,
-                'id_tld' => $idTld,
-                'count' => 1,
-                'created_by' => Auth::user()->id
-            ));
-
-            // simpan ke tabel permohonan_pengguna
-            Permohonan_pengguna::create(array(
-                'id_permohonan' => $idPermohonan,
-                'id_pengguna' => $idPengguna,
+                'jenis' => 'pengguna',
+                'type' => 'baru',
+                'id_pengguna_divisi' => $idPengguna,
                 'status' => 1,
                 'created_by' => Auth::user()->id
             ));
 
             // pengecekan divisi pengguna
             $dataPengguna = Master_pengguna::where('id_pengguna', $idPengguna)->first();
-            $permohonanTld = Permohonan_tld::where('id_permohonan', $idPermohonan)->whereNull('id_pengguna')->where('id_divisi', $dataPengguna->id_divisi)->first();
+            $permohonanTld = Permohonan_detail::where('id_permohonan', $idPermohonan)
+                ->where('jenis', 'kontrol')
+                ->where('id_pengguna_divisi', $dataPengguna->id_divisi)
+                ->first();
+
             if(!$permohonanTld) {
-                Permohonan_tld::create(array(
+                Permohonan_detail::create(array(
                     'id_permohonan' => $idPermohonan,
-                    'id_divisi' => $dataPengguna->id_divisi,
-                    'count' => 1,
+                    'jenis' => 'kontrol',
+                    'type' => 'baru',
+                    'id_pengguna_divisi' => $dataPengguna->id_divisi,
+                    'status' => 1,
                     'created_by' => Auth::user()->id
                 ));
             }
@@ -265,47 +271,50 @@ class PermohonanAPI extends Controller
 
     public function action_tld(Request $request)
     {
-        $validator = $request->validate([
-            'id_permohonan_tld' => 'required'
-        ]);
-
         DB::beginTransaction();
         try {
-            $idPermohonanTld = decryptor($request->id_permohonan_tld);
-            $idTld = $request->id_tld ? decryptor($request->id_tld) : false;
-            $count = $request->count ? $request->count : false;
-            $index = $request->index ? (int) $request->index : 0;
+            $id = decryptor($request->id);
+            $idTld = $request->id_tld ? (int) decryptor($request->id_tld) : false;
+            $idPermohonan = $request->id_permohonan ? decryptor($request->id_permohonan) : false;
+            $idDivisi = $request->id_divisi ? $request->id_divisi : false;
+            $jenis = $request->jenis ? $request->jenis : false;
+            $type = $request->type ? $request->type : false;
+            $aksi = $request->aksi;
 
-            $dataTld = Permohonan_tld::where('id_permohonan_tld', $idPermohonanTld)->first();
+            $dataTld = Permohonan_detail::find($id);
 
-            $updateParams = array();
-            $count ? $updateParams['count'] = $count : false;
-
-            $arrayTld = array();
-            if($idTld) {
-                if($dataTld->id_tld) {
-                    $arrayTld = $dataTld->id_tld;
-                    isset($arrayTld[$index]) ? Master_tld::where('id_tld', $arrayTld[$index])->update(['status' => 0]) : false;
-                } else {
-                    for ($i=0; $i < $dataTld->count; $i++) {
-                        $arrayTld[] = 0;
-                    }
+            if($idTld){
+                if($dataTld->id_tld){
+                    Master_tld::where('id_tld', $dataTld->id_tld)->update(['status' => 0]);
                 }
-
+                $dataTld->update([
+                    'id_tld' => $idTld,
+                ]);
                 Master_tld::where('id_tld', $idTld)->update(['status' => 1]);
-                $arrayTld[$index] = (int) $idTld;
-                $updateParams['id_tld'] = $arrayTld;
             }
 
-            if($dataTld->id_tld && $count) {
-                if(count($dataTld->id_tld) > $count) {
-                    Master_tld::whereIn('id_tld', $dataTld->id_tld)->update(['status' => 0]);
-                    $updateParams['id_tld'] = array_slice($dataTld->id_tld, 0, $count);
-                    Master_tld::whereIn('id_tld', $updateParams['id_tld'])->update(['status' => 1]);
-                }
-            }
+            $arr_body = array();
+            $idDivisi ? $arr_body['id_pengguna_divisi'] = $idDivisi : false;
+            $jenis ? $arr_body['jenis'] = $jenis : false;
+            $type ? $arr_body['type'] = $type : false;
+            $idPermohonan ? $arr_body['id_permohonan'] = $idPermohonan : false;
 
-            $dataTld->update($updateParams);
+            if($aksi == 'tambah'){
+                $arr_body['status'] = 1;
+                $arr_body['created_by'] = Auth::user()->id;
+                $dataTld = Permohonan_detail::create($arr_body);
+            } else if($aksi == 'hapus') {
+                Permohonan_detail::where('id_permohonan', $idPermohonan)
+                    ->where('jenis', $jenis)
+                    ->when($idDivisi, function ($query) use ($idDivisi) {
+                        return $query->where('id_pengguna_divisi', $idDivisi);
+                    }, function ($query) {
+                        return $query->whereNull('id_pengguna_divisi');
+                    })
+                    ->orderBy('id', 'desc')
+                    ->limit(1)
+                    ->delete();
+            }
 
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil disimpan!'));
@@ -412,18 +421,14 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            Master_pengguna::where('id_pengguna', $id)->update(['status' => 1]);
+            $detail = Permohonan_detail::find($id);
+            Master_pengguna::where('id_pengguna', $detail->id_pengguna_divisi)->update(['status' => 1]);
 
-            $dataTld = Permohonan_tld::where('id_pengguna', $id)->where('id_permohonan', $idPermohonan)->first();
-            $dataTld->id_tld && Master_tld::whereIn('id_tld', $dataTld->id_tld)->update(['status' => 0]);
-            $dataTld->delete();
-
-            Permohonan_pengguna::where('id_pengguna', $id)->where('id_permohonan', $idPermohonan)->get()->each->delete();
+            $detail->id_tld && Master_tld::where('id_tld', $detail->id_tld)->update(['status' => 0]);
+            $detail->delete();
 
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil dihapus'));
-
-            // return $this->output(array('msg' => 'Data gagal dihapus'), 'Fail', 400);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -432,15 +437,24 @@ class PermohonanAPI extends Controller
 
     }
 
-    public function destroyKontrol(string $id)
+    public function destroyKontrol(string $idPermohonan, string $id)
     {
-        $id = decryptor($id);
+        $idPermohonan = decryptor($idPermohonan);
+        $id = $id == 'default' ? null : $id;
 
         DB::beginTransaction();
         try {
-            $dataPermohonanTld = Permohonan_tld::where('id_permohonan_tld', $id)->first();
-            $dataPermohonanTld->id_tld && Master_tld::whereIn('id_tld', $dataPermohonanTld->id_tld)->update(['status' => 0]);
-            $dataPermohonanTld->delete();
+            $permohonanDetail = Permohonan_detail::where('id_permohonan', $idPermohonan)
+                ->when($id, function ($query) use ($id) {
+                    return $query->where('id_pengguna_divisi', $id);
+                }, function ($query) {
+                    return $query->whereNull('id_pengguna_divisi');
+                })->where('jenis', 'kontrol')->get();
+
+            foreach ($permohonanDetail as $key => $value) {
+                $value->id_tld && Master_tld::where('id_tld', $value->id_tld)->update(['status' => 0]);
+                $value->delete();
+            }
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil dihapus'));
         } catch (\Exception $ex) {
@@ -459,12 +473,12 @@ class PermohonanAPI extends Controller
             // menghilangkan id_permohonan yang ada di tabel kontrak periode
             Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null));
 
-            $dataTld = Permohonan_tld::with('pengguna')->where('id_permohonan', $id)->get();
+            $dataTld = Permohonan_detail::where('id_permohonan', $id)->get();
             $permohonan = Permohonan::where('id_permohonan', $id)->first();
             if($dataTld && !$permohonan->id_kontrak) {
                 foreach ($dataTld as $item) {
-                    if($item->pengguna) {
-                        Master_pengguna::where('id_pengguna', $item->pengguna->id_pengguna)->update(['status' => 1]);
+                    if($item->jenis == 'pengguna') {
+                        Master_pengguna::where('id_pengguna', $item->id_pengguna_divisi)->update(['status' => 1]);
                     }
                     Master_tld::where('id_tld', $item->id_tld)->update(['status' => 0]);
                 }
@@ -473,7 +487,7 @@ class PermohonanAPI extends Controller
 
             if($permohonan){
                 Permohonan_pengguna::where('id_permohonan', $id)->get()->each->delete();
-                Permohonan_tld::where('id_permohonan', $id)->get()->each->delete();
+                Permohonan_detail::where('id_permohonan', $id)->get()->each->delete();
 
                 if($permohonan->tipe_kontrak == 'kontrak lama') {
                     Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null));
@@ -482,7 +496,7 @@ class PermohonanAPI extends Controller
                 $permohonan->delete();
 
                 // hapus notifikasi
-                $message = $this->notif->deleteNotification(new Request([
+                $this->notif->deleteNotification(new Request([
                     'id_event' => $id,
                     'event' => 'Permohonan',
                 ]));
@@ -539,18 +553,17 @@ class PermohonanAPI extends Controller
             // mengambil tipe_kontrak yang ada di tabel permohonan untuk di kondisikan
             // jika kontrak baru akan menggunakan permohonan_pengguna jika kontrak lama akan menggunakan kontrak_pengguna
             $permohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
-            $query = Permohonan_tld::with(
-                'pengguna',
-                'pengguna.media_ktp:id,file_hash,file_path',
-                'pengguna.divisi'
-            )
+            $query = Permohonan_detail::with([
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
+                'tld'
+            ])
             ->where('id_permohonan', $idPermohonan)
-            ->whereNotNull('id_pengguna')
+            ->where('jenis', 'pengguna')
             ->get();
-
-            foreach($query as $item){
-                $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
-            }
 
             $queryKontrak = false;
             if($permohonan->tipe_kontrak == 'kontrak lama'){
@@ -564,7 +577,6 @@ class PermohonanAPI extends Controller
                 ->whereNotNull('id_tld')
                 ->get();
 
-                $arrKontrak = $queryKontrak->toArray();
                 $query = $query->merge($queryKontrak);
             }
 
@@ -581,30 +593,6 @@ class PermohonanAPI extends Controller
                 }else{
                     $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
                     $noTld++;
-                }
-
-                // mengambil data radiasi
-                if($item->pengguna){
-                    $id_radiasi_array = $item->pengguna->id_radiasi; // Decode JSON jadi array
-
-                    // Cek apakah ada array yang valid dari JSON
-                    if (!empty($id_radiasi_array)) {
-                        // Ambil data dari tabel radiasi berdasarkan array 'id_radiasi'
-                        $arrDataRadiasi = array();
-                        foreach ($id_radiasi_array as $key => $value) {
-                            $nama_radiasi = "";
-                            $radiasi_data = Master_radiasi::select('nama_radiasi')->where('id_radiasi', $value)->first();
-                            if($radiasi_data){
-                                $nama_radiasi = $radiasi_data->nama_radiasi;
-                            }else{
-                                $nama_radiasi = $value;
-                            }
-                            array_push($arrDataRadiasi, $nama_radiasi);
-                        }
-
-                        // Tambahkan hasil radiasi ke dalam response
-                        $item->radiasi = $arrDataRadiasi;
-                    }
                 }
             }
             DB::commit();
@@ -628,21 +616,19 @@ class PermohonanAPI extends Controller
         try {
             $permohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
 
-            $query = Permohonan_tld::with(
-                'pengguna',
-                'divisi'
-            )->where('id_permohonan', $idPermohonan)->get();
-
-            foreach($query as $item){
-                if($item->id_tld){
-                    $item->tld = array();
-                    $item->tld = array_map(function($id_tld) {
-                        return Master_tld::find($id_tld);
-                    }, $item->id_tld);
-                }else{
-                    $item->tld = null;
-                }
-            }
+            // $query = Permohonan_tld::with(
+            //     'pengguna',
+            //     'divisi'
+            // )->where('id_permohonan', $idPermohonan)->get();
+            $query = Permohonan_detail::with([
+                'entitas',
+                'tld'
+            ])->where('id_permohonan', $idPermohonan)
+            ->where('jenis', 'kontrol')
+            ->get()
+            ->groupBy(function ($item) {
+                return optional($item->entitas)->name ?? 'default';
+            });
 
             $queryKontrak = false;
             if($permohonan->periode){
@@ -836,7 +822,7 @@ class PermohonanAPI extends Controller
         DB::beginTransaction();
         try {
             $id = decryptor($id);
-            $query = Permohonan::with(
+            $query = Permohonan::with([
                 'layanan_jasa:id_layanan,nama_layanan',
                 'jenisTld:id_jenisTld,name',
                 'jenis_layanan:id_jenisLayanan,name,parent',
@@ -848,17 +834,18 @@ class PermohonanAPI extends Controller
                 'kontrak.jenis_layanan',
                 'kontrak.layanan_jasa:id_layanan,nama_layanan',
                 'kontrak.jenisTld:id_jenisTld,name',
-                'permohonan_pengguna',
-                'permohonan_pengguna.pengguna',
-                'permohonan_pengguna.pengguna.media_ktp:id,file_hash,file_path',
-                'permohonan_pengguna.pengguna.divisi',
+                'permohonan_detail',
+                'permohonan_detail.tld',
+                'permohonan_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
                 'tandaterima',
                 'dokumen',
                 'invoice',
-                'rincian_list_tld',
-                'rincian_list_tld.pengguna',
                 'logs.causer',
-            )->where('id_permohonan', $id)->first();
+            ])->where('id_permohonan', $id)->first();
             DB::commit();
 
             if(isset($query->list_tld) && count($query->list_tld) > 0){

@@ -182,7 +182,7 @@ class Detail {
                     layananJasa: this.data.layanan_jasa?.nama_layanan ?? '',
                     jenisTld: this.data.jenis_tld?.name ?? '',
                     jenisStatus: 'permohonan',
-                    pengguna: this.data.permohonan_pengguna ?? [],
+                    detail: this.data.permohonan_detail ?? [],
                     is_have_tld: this.data.is_have_tld ?? false,
                     is_zerocek: this.data.is_zerocek ?? false
                 }
@@ -739,39 +739,29 @@ class Detail {
         return '<p>Items content</p>';
     }
     createPenggunaContent() {
-        if (this.info.pengguna && this.info.pengguna.length > 0) {
+        let list_pengguna = this.info.detail?.filter(d => d.jenis == 'pengguna');
+        if (list_pengguna && list_pengguna.length > 0) {
             let html = '';
-            for (const [i, item] of this.info.pengguna.entries()) {
-                let txtRadiasi = '';
-                const pengguna = item.pengguna;
-                pengguna.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
+            for (const [i, item] of list_pengguna.entries()) {
+                const pengguna = item.entitas;
+                let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
-                let btnMedia = '';
-                if(pengguna.media_ktp){
-                    btnMedia = `
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
-                    `;
+                const dataCard = {
+                    index: i,
+                    idHash: item.permohonan_detail_hash,
+                    name: pengguna.name,
+                    divisi: pengguna.divisi?.name || '',
+                    isCheckedEvaluasi: false,
+                    radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
+                    fileKtp: fileKtp,
+                    no_seri_tld: item.tld?.no_seri_tld || '',
+                    htmlDisabled: true
                 }
 
-                html += `
-                    <div class="card border-bottom border-0 fs-8 mb-1 hover-3">
-                        <div class="card-body row align-items-center py-1">
-                            <div class="col-md-10 lh-sm d-flex align-items-center">
-                                <span class="col-form-label me-2">${i + 1}</span>
-                                <div class="mx-2">
-                                    <div>${pengguna.name}</div>
-                                    <small class="text-body-secondary fw-light">${pengguna.divisi?.name ?? '-'}</small>
-                                    <div class="d-flex flex-wrap">
-                                        ${txtRadiasi}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-2 text-end ms-auto">
-                                ${btnMedia}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                html += cardPenggunaComponent(dataCard, {
+                    is_have_tld: false,
+                    label_tld: false
+                });
             }
             return html;
         } else {
@@ -1157,7 +1147,7 @@ class Detail {
         let tldPengguna = false;
         switch (this.options.jenis) {
             case 'permohonan':
-                listTld = this.data.rincian_list_tld ?? [];
+                listTld = this.data.permohonan_detail ?? [];
             case 'kontrak':
                 // tldKontrol = this.data.tld_kontrol ?? false;
                 // tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
@@ -1174,41 +1164,37 @@ class Detail {
             let htmlPengguna = '';
             let htmlKontrol = '';
 
-            let arrPengguna = listTld.filter(d => d.pengguna);
-            let arrKontrol = listTld.filter(d => !d.pengguna);
+            let arrPengguna = listTld.filter(d => d.jenis == 'pengguna');
+            let arrKontrol = listTld.filter(d => d.jenis == 'kontrol');
 
             let i = 1;
             for (const kontrol of arrKontrol) {
                 if(kontrol.tld){
-                    for (const tld of kontrol.tld) {
-                        htmlKontrol += `
-                            <li class="list-group-item d-flex justify-content-between">
-                                <div>
-                                    <span>${i}. </span>
-                                    <span>${'TLD Kontrol'}</span>
-                                </div>
-                                <span>${tld.no_seri_tld}</span>
-                            </li>
-                        `;
-                        i++;
-                    }
+                    htmlKontrol += `
+                        <li class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <span>${i}. </span>
+                                <span>${'TLD Kontrol'}</span>
+                            </div>
+                            <span>${kontrol.tld.no_seri_tld}</span>
+                        </li>
+                    `;
+                    i++;
                 }
             }
 
             for (const pengguna of arrPengguna) {
                 if(pengguna.tld){
-                    for (const tld of pengguna.tld) {
-                        htmlPengguna += `
-                            <li class="list-group-item d-flex justify-content-between">
-                                <div>
-                                    <span>${i}. </span>
-                                    <span>${pengguna.pengguna.name}</span>
-                                </div>
-                                <span>${tld.no_seri_tld}</span>
-                            </li>
-                        `;
-                        i++;
-                    }
+                    htmlPengguna += `
+                        <li class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <span>${i}. </span>
+                                <span>${pengguna.entitas.name}</span>
+                            </div>
+                            <span>${pengguna.tld.no_seri_tld}</span>
+                        </li>
+                    `;
+                    i++;
                 }
             }
 

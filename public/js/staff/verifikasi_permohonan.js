@@ -314,20 +314,20 @@ function toggleReason(index, enable) {
 }
 
 function loadTld(){
-    ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
-        let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
-        let tldKontrol = [
-            ...result.data.tldPermohonan.filter(tld => !tld.pengguna),
-            ...kKontrol,
-        ];
+    // ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
+    //     let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
+    //     let tldKontrol = [
+    //         ...result.data.tldPermohonan.filter(tld => !tld.pengguna),
+    //         ...kKontrol,
+    //     ];
 
-        loadPengguna();
-        loadTldKontrol(tldKontrol);
-        return;
-    });
+    //     return;
+    // });
+    loadPengguna();
+    // loadTldKontrol();
 }
 
-function loadTldKontrol(tldKontrol){
+function loadTldKontrol(){
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
         let html = '';
         let htmlDisabled = false;
@@ -393,9 +393,6 @@ function loadPengguna(){
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         let html = '';
         let htmlDisabled = false;
-        // if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
-        //     htmlDisabled = true;
-        // }
 
         if(dataPermohonan.is_have_tld){
             htmlDisabled = true;
@@ -406,14 +403,11 @@ function loadPengguna(){
         $('#jumlah-pengguna').html(jmlTldCount + ' Orang')
 
         for (const [i, value] of result.data.entries()) {
-            let txtRadiasi = '';
-            // RADIASI
-            value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
-
+            const pengguna = value.entitas;
             // TLD PENGGUNA
-            let idHash = value.permohonan_tld_hash ? value.permohonan_tld_hash : value.kontrak_tld_hash;
-            let tldHash = value.tld ? value.tld[0].tld_hash : (value.tld_pengguna?.tld_hash || '');
-            let no_seri_tld = value.tld ? value.tld[0].no_seri_tld : (value.tld_pengguna?.no_seri_tld || '');
+            let idHash = value.permohonan_detail_hash ? value.permohonan_detail_hash : value.kontrak_detail_hash;
+            let tldHash = value.tld ? value.tld.tld_hash : (value.tld_pengguna?.tld_hash || '');
+            let no_seri_tld = value.tld ? value.tld.no_seri_tld : (value.tld_pengguna?.no_seri_tld || '');
 
             if(!value.tld) htmlDisabled = false;
 
@@ -423,21 +417,23 @@ function loadPengguna(){
                 index: `tldNoSeri_${i}_pengguna`
             });
 
-            let fileKtp = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '';
+            let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
             let data = {
                 index: i,
                 idHash: idHash,
                 isCheckedEvaluasi: isCheckedEvaluasi,
-                name: value.pengguna.name,
-                divisi: value.pengguna.divisi?.name || '',
+                name: pengguna.name,
+                divisi: pengguna.divisi?.name || '',
                 radiasi: value.radiasi,
                 no_seri_tld: no_seri_tld,
                 htmlDisabled: htmlDisabled,
                 fileKtp: fileKtp
             }
 
-            html += cardPenggunaComponent(data);
+            html += cardPenggunaComponent(data, {
+                label_tld: true
+            });
         }
 
         $('#pengguna-list-container').html(html);

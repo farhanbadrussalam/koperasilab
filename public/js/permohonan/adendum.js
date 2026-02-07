@@ -156,12 +156,16 @@ function loadPengguna(){
     // load tld pengguna
     for (const [i, value] of arr_pengguna.entries()) {
         arrOption.pengguna.push({
-            status: 'adendum',
-            id: false,
+            status: 'stay',
             is_have_tld: dataKontrak.is_have_tld,
-            target: false,
-            id_tld: false,
-            detail: value
+            detail_lama: {
+                pengguna: value.pengguna,
+                tld: value.tld
+            },
+            detail_baru: {
+                pengguna: false,
+                tld: false
+            }
         });
     }
 
@@ -214,7 +218,18 @@ function loadHtmlPengguna(){
     tmpArrTld = [];
 
     const htmlPengguna = arrOption.pengguna.map((value, i) => {
-        const { pengguna, tld } = value.detail;
+        let pengguna = false;
+        let tld = false;
+        switch (value.status) {
+            case 'baru':
+                pengguna = value.detail_baru.pengguna;
+                tld = value.detail_baru.tld;
+                break;
+            case 'stay':
+                pengguna = value.detail_lama.pengguna;
+                tld = value.detail_lama.tld;
+                break;
+        }
         const fileKtp = pengguna.media_ktp
             ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}`
             : '';
@@ -239,9 +254,6 @@ function loadHtmlPengguna(){
 
         return cardPenggunaComponent(data, {
             status: value.status,
-            id: value.id,
-            target: value.target,
-            id_tld: value.id_tld,
             is_have_tld: value.is_have_tld
         });
     }).join('');
@@ -262,11 +274,14 @@ function btnPilihPengguna(obj) {
 
             params = {
                 status: 'baru',
-                target: false,
-                id_tld: false,
                 is_have_tld: dataKontrak.is_have_tld,
-                detail: {
-                    pengguna: result.data
+                detail_lama: {
+                    pengguna: false,
+                    tld: false
+                },
+                detail_baru: {
+                    pengguna: result.data,
+                    tld: false
                 }
             }
             arrOption.pengguna.push(params);
