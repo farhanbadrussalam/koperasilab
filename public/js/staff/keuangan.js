@@ -125,7 +125,8 @@ function loadData(page = 1, menu) {
                 created_at: permohonan.created_at,
                 kontrak: permohonan.kontrak?.no_kontrak,
                 is_have_tld: permohonan.kontrak?.is_have_tld,
-                is_zerocek: permohonan.kontrak?.is_zerocek
+                is_zerocek: permohonan.kontrak?.is_zerocek,
+                perusahaan: permohonan.pelanggan?.perusahaan?.nama_perusahaan
             }
             html += cardComponent(data, { btnAction: btnAction2, btnMenuAction: btnAction });
         }

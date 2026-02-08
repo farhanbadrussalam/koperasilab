@@ -868,7 +868,7 @@ class Invoice {
                                         </div>
                                     </div>
                                     <div class="row my-2 d-none d-flex justify-content-center" id="ttd-div-manager">
-                                        <div class="w-50" id="signature-container">
+                                        <div class="w-50 text-center" id="signature-container">
 
                                         </div>
                                     </div>

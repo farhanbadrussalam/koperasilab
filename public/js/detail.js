@@ -189,6 +189,7 @@ class Detail {
                 break;
 
             case 'penyelia':
+                console.log(this.data);
                 this.info = {
                     no_kontrak: this.data.permohonan.kontrak?.no_kontrak ?? '-',
                     tipe_kontrak: this.data.permohonan.tipe_kontrak ?? '-',
@@ -204,7 +205,8 @@ class Detail {
                     periodeNow: this.data.permohonan.periode ?? '',
                     layananJasa: this.data.permohonan.layanan_jasa?.nama_layanan ?? '',
                     jenisTld: this.data.permohonan.jenis_tld?.name ?? '',
-                    jenisStatus: 'penyelia'
+                    jenisStatus: 'penyelia',
+                    detail: this.data.permohonan.permohonan_detail ?? [],
                 }
                 break;
 
@@ -1142,23 +1144,7 @@ class Detail {
         }
     }
     createTldContent() {
-        let listTld = [];
-        let tldKontrol = false;
-        let tldPengguna = false;
-        switch (this.options.jenis) {
-            case 'permohonan':
-                listTld = this.data.permohonan_detail ?? [];
-            case 'kontrak':
-                // tldKontrol = this.data.tld_kontrol ?? false;
-                // tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
-                break;
-            case 'penyelia':
-                listTld = this.data.permohonan.rincian_list_tld ?? [];
-                break;
-
-            default:
-                break;
-        }
+        let listTld = this.info.detail ?? [];
 
         if (listTld.length > 0) {
             let htmlPengguna = '';

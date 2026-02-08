@@ -379,7 +379,7 @@ class KeuanganAPI extends Controller
                             ->where('status', '1')
                             ->first();
 
-                $document = Permohonan_dokumen::create(array(
+                Permohonan_dokumen::create(array(
                     'id_kontrak' => Permohonan::find($keuangan->id_permohonan)->id_kontrak,
                     'id_permohonan' => $keuangan->id_permohonan,
                     'id_doc_template' => $template->id_doc,
@@ -407,7 +407,7 @@ class KeuanganAPI extends Controller
                 // ambil ttd invoice
                 $invoice = Permohonan_dokumen::select('ttd', 'ttd_by')->where('nomer', $keuangan->no_invoice)->first();
                 $no_kwitansi = generateNoDokumen('kwitansi', $keuangan->id_permohonan);
-                $document = Permohonan_dokumen::create(array(
+                Permohonan_dokumen::create(array(
                     'id_kontrak' => Permohonan::find($keuangan->id_permohonan)->id_kontrak,
                     'id_doc_template' => $template->id_doc,
                     'created_by' => Auth::user()->id,

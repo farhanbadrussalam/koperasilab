@@ -26,7 +26,7 @@ use App\Services\Notifier;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
-
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -694,7 +694,7 @@ class PenyeliaAPI extends Controller
         try {
             $idPenyelia = decryptor($idPenyelia);
 
-            $query = Penyelia::with(
+            $query = Penyelia::with([
                 'permohonan',
                 'petugas',
                 'petugas.jobs',
@@ -716,10 +716,17 @@ class PenyeliaAPI extends Controller
                 'permohonan.dokumen',
                 'permohonan.invoice',
                 'permohonan.permohonan_pengguna',
+                'permohonan.permohonan_detail',
+                'permohonan.permohonan_detail.tld',
+                'permohonan.permohonan_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
                 'permohonan.rincian_list_tld',
                 'permohonan.rincian_list_tld.pengguna',
                 'logs.causer',
-            )->find($idPenyelia);
+            ])->find($idPenyelia);
             DB::commit();
 
             if(isset($query->permohonan->rincian_list_tld) && count($query->permohonan->rincian_list_tld) > 0){

@@ -26,9 +26,10 @@ $(function () {
     detail = new Detail({
         jenis: 'penyelia',
         tab: {
+            pengguna: true,
+            tld: true,
             dokumen: true,
-            log: true,
-            tld: true
+            log: true
         }
     });
 
@@ -214,7 +215,8 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         is_zerocek: permohonan.is_zerocek,
                         pelanggan: permohonan.pelanggan.name,
                         divInfoTugas: divInfoTugas,
-                        divTimelineTugas: timeLine
+                        divTimelineTugas: timeLine,
+                        perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
                     }
 
                     html += cardComponent(dataS, {btnMenuAction : btnAction, btnAction: btnAction2});
@@ -260,7 +262,8 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         pelanggan: permohonan.pelanggan.name,
                         divInfoTugas: divInfoTugas,
                         divTimelineTugas: timeline,
-                        index: i
+                        index: i,
+                        perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
                     }
 
                     html += cardComponent(dataP, {btnMenuAction : btnAction, btnAction: btnAction2});

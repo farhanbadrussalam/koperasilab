@@ -9,8 +9,8 @@ $(function () {
         jenis: 'permohonan',
         tab: {
             pengguna: true,
-            periode: true,
             tld: true,
+            periode: true,
             dokumen: true,
             log: true
         }

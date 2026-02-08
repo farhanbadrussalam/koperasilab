@@ -33,7 +33,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\NotifController;
 use App\Http\Controllers\API\TldAPI;
-
+use App\Models\Kontrak_detail;
 use App\Services\Notifier;
 
 use Auth;
@@ -44,13 +44,15 @@ use Log;
 class PermohonanAPI extends Controller
 {
     use RestApi;
-    protected $media, $log, $tld, $global, $pagination, $notif;
+    protected $media, $log, $tld, $global, $pagination, $notif, $keuangan, $penyelia;
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
         $this->tld = resolve(TldAPI::class);
         $this->notif = resolve(NotifController::class);
+        $this->keuangan = resolve(KeuanganAPI::class);
+        $this->penyelia = resolve(PenyeliaAPI::class);
         $this->global = config('customvariabel');
     }
 
@@ -990,31 +992,17 @@ class PermohonanAPI extends Controller
                         $listTld = $request->listTld ? json_decode($request->listTld) : [];
 
                         foreach ($listTld as $item) {
-                            $split_id =explode('|', $item->id);
                             $idTld = (int) decryptor($item->tld);
-                            $id = decryptor($split_id[0]);
+                            $id = decryptor($item->id);
 
-                            $dataTldPermohonan = Permohonan_tld::find($id);
-
+                            // update master tld
                             Master_tld::where('id_tld', $idTld)->update([
                                 'status' => 1,
                                 'digunakan' => $no_kontrak
                             ]);
 
-                            $tmpTld = array();
-                            if(isset($dataTldPermohonan->id_tld)) {
-                                $tmpTld = $dataTldPermohonan->id_tld;
-                                if(isset($split_id[1])){
-                                    $tmpTld[(int) $split_id[1] - 1] = $idTld;
-                                } else {
-                                    $tmpTld = [$idTld];
-                                }
-                            } else {
-                                $tmpTld = [$idTld];
-                            }
-
-                            Permohonan_tld::where('id_permohonan_tld', $id)->update([
-                                'id_tld' => $tmpTld
+                            Permohonan_detail::where('id', $id)->update([
+                                'id_tld' => $idTld
                             ]);
                         }
                     }
@@ -1039,7 +1027,7 @@ class PermohonanAPI extends Controller
                         'jenis_layanan_parent',
                         'jenisTld',
                         'layanan_jasa',
-                        'rincian_list_tld'
+                        'permohonan_detail'
                     )->find($idPermohonan);
 
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
@@ -1091,10 +1079,15 @@ class PermohonanAPI extends Controller
                     $arrValidInvoice = [2, 3, 6, 9];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidInvoice)){
                         if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                            $invoiceData = $this->createInvoice($dataPermohonan->permohonan_hash);
+                            $invoiceData = $this->keuangan->keuanganAction(new Request([
+                                'idPermohonan' => $dataPermohonan->permohonan_hash,
+                                'status'    => 1
+                            ]));
 
-                            if(!$invoiceData){
-                                throw new \Exception('Gagal membuat invoice');
+                            if($invoiceData->getStatusCode() != 200){
+                                $content = json_decode($invoiceData->getContent());
+                                Log::error("Invoice creation failed: ".$content->msg);
+                                throw new \Exception($content->msg ?? 'Gagal membuat invoice');
                             }
                         }
                     }
@@ -1113,10 +1106,15 @@ class PermohonanAPI extends Controller
                             $status = 1;
                         }
 
-                        $penyeliaData = $this->createPenyelia($dataPermohonan->permohonan_hash, $status);
+                        $penyeliaData = $this->penyelia->actionPenyelia(new Request([
+                            'idPermohonan' => $dataPermohonan->permohonan_hash,
+                            'status'    => $status
+                        ]));
 
-                        if(!$penyeliaData){
-                            throw new \Exception('Gagal membuat penyelia');
+                        if($penyeliaData->getStatusCode() != 200){
+                            $content = json_decode($penyeliaData->getContent());
+                            Log::error("Penyelia creation failed: ".$content->msg);
+                            throw new \Exception($content->msg ?? 'Gagal membuat penyelia');
                         }
                     }
 
@@ -1223,11 +1221,8 @@ class PermohonanAPI extends Controller
     {
         $idPermohonan = decryptor($idPermohonan);
         $dataPermohonan = Permohonan::with(
-            'kontrak',
             'jenis_layanan_parent',
-            'jenisTld',
-            'layanan_jasa',
-            'rincian_list_tld'
+            'permohonan_detail'
         )->find($idPermohonan);
         $params = array(
             'id_layanan' => $dataPermohonan->id_layanan,
@@ -1295,28 +1290,24 @@ class PermohonanAPI extends Controller
             }
         }
 
-        // menambahkan permohonan TLD
-        if($dataPermohonan->rincian_list_tld){
-            foreach ($dataPermohonan->rincian_list_tld as $key => $value) {
-                $kontrakPenggunaId = null;
-                if(isset($value->id_pengguna)){
-                    // mengaktifkan status master_pengguna
-                    // kondisi ketika permohonan di verifikasi
-                    Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 3));
-                }
-                $paramsTld = array(
-                    'id_kontrak' => $dataKontrak->id_kontrak,
-                    'id_tld' => $value->id_tld,
-                    'id_pengguna' => $value->id_pengguna,
-                    'id_divisi' => $value->id_divisi,
-                    // 'periode' => $dataPermohonan->periode ? $dataPermohonan->periode : 1,
-                    'status' => $dataPermohonan->is_have_tld == 1 ? 3 : 5,
-                    'count' => $value->count,
-                    'count_tld' => 1,
-                    'created_by' => Auth::user()->id
-                );
-                Kontrak_tld::create($paramsTld);
+        // menambahkan permohonan Detail
+        foreach ($dataPermohonan->permohonan_detail as $key => $value) {
+            if($value->jenis == 'pengguna') {
+                Master_pengguna::where('id_pengguna', $value->id_pengguna_divisi)->update(array('status' => 3));
             }
+
+            $dataPermohonanDetail = array(
+                'id_kontrak' => $dataKontrak->id_kontrak,
+                'id_pengguna_divisi' => $value->id_pengguna_divisi,
+                'jenis' => $value->jenis,
+                'status' => 1,
+                'type' => $value->type,
+                'created_by' => Auth::user()->id,
+                'tld_1' => $value->id_tld,
+                'status_tld_1' => $dataPermohonan->is_have_tld == 1 ? 3 : 5
+            );
+
+            Kontrak_detail::create($dataPermohonanDetail);
         }
 
         // Menambahkan id_kontrak ke table permohonan
@@ -1343,7 +1334,7 @@ class PermohonanAPI extends Controller
                 'status' => 1,
                 'nomer' => $no_kontrak
             );
-            $document = Permohonan_dokumen::create($data);
+            Permohonan_dokumen::create($data);
         }
     }
 
@@ -1376,71 +1367,6 @@ class PermohonanAPI extends Controller
             $noKontrak = "{$type}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
 
             return $noKontrak;
-        }
-    }
-
-    private function createInvoice($idPermohonan){
-        $params = [
-            'idPermohonan' => $idPermohonan,
-            'status' => 1
-        ];
-
-        // Make a request to your keuanganAction endpoint
-        $keuanganResponse = app()->handle(Request::create(url('api/v1/keuangan/action'), 'POST', $params));
-
-        // Check the response for success/failure
-        if ($keuanganResponse->getStatusCode() == 200) {
-            // Invoice creation successful - you can log or further process if needed
-            $invoiceData = json_decode($keuanganResponse->getContent(), true);
-            // ... process $invoiceData
-            return $invoiceData;
-        } else {
-            // Handle invoice creation failure appropriately (log, rollback, etc.)
-            Log::error("Invoice creation failed: " . $keuanganResponse->getContent());
-            // ... consider throwing an exception or other error handling
-        }
-    }
-
-    private function createPenyelia($idPermohonan, $status){
-        $params = [
-            'idPermohonan' => $idPermohonan,
-            'status' => $status
-        ];
-
-        // Make a request to your keuanganAction endpoint
-        $penyeliaResponse = app()->handle(Request::create(url('api/v1/penyelia/action'), 'POST', $params));
-
-        // Check the response for success/failure
-        if ($penyeliaResponse->getStatusCode() == 200) {
-            // Invoice creation successful - you can log or further process if needed
-            $penyeliaData = json_decode($penyeliaResponse->getContent(), true);
-            // ... process $penyeliaData
-            return $penyeliaData;
-        } else {
-            // Handle invoice creation failure appropriately (log, rollback, etc.)
-            Log::error("Penyelia creation failed: " . $penyeliaResponse->getContent());
-            // ... consider throwing an exception or other error handling
-        }
-
-    }
-
-    private function searchTldNotUsed($jenis){
-        $params = [
-            'jenis' => $jenis
-        ];
-        // Make a request to your keuanganAction endpoint
-        $TldResponse = app()->handle(Request::create(url('api/v1/tld/searchTldNotUsed'), 'GET', $params));
-
-        // Check the Tldresponse for success/failure
-        if ($TldResponse->getStatusCode() == 200) {
-            // Invoice creation successful - you can log or further process if needed
-            $TldData = json_decode($TldResponse->getContent(), true);
-            // ... process $TldData
-            return $TldData;
-        } else {
-            // Handle invoice creation failure appropriately (log, rollback, etc.)
-            Log::error("failed: " . $TldResponse->getContent());
-            // ... consider throwing an exception or other error handling
         }
     }
 }

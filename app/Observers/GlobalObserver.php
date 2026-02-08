@@ -107,7 +107,19 @@ class GlobalObserver
             'penyelia'      => $this->getPenyeliaLog($status, $statusBefore),
             'penyelia_map'  => $this->getPenyeliaMapLog($status, $statusBefore),
             'pengiriman'    => $this->getPengirimanLog($status, $statusBefore),
+            'kontrak_detail' => $this->getKontrakDetailLog($status, $statusBefore),
             default         => 'Aktivitas sistem tidak terdefinisi.',
+        };
+    }
+
+    private function getKontrakDetailLog($status, $statusBefore)
+    {
+        return match ((int) $status) {
+            1 => 'Permohonan layanan baru berhasil didaftarkan.',
+            2 => 'Dokumen permohonan telah diverifikasi oleh admin.',
+            3 => 'Permohonan sedang dalam tahap penyeliaan.',
+            4 => 'Permohonan telah selesai.',
+            default => 'Status permohonan tidak dikenali.',
         };
     }
 
