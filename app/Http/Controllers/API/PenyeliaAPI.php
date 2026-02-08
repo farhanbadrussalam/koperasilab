@@ -26,6 +26,7 @@ use App\Services\Notifier;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
+use App\Models\Kontrak_detail;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -344,7 +345,7 @@ class PenyeliaAPI extends Controller
     public function actionJobProses(Request $request){
         DB::beginTransaction();
         try {
-            $validate = $request->validate([
+            $request->validate([
                 'idPenyelia' => 'required',
                 'note' => 'required',
                 'sProgress' => 'required',
@@ -361,8 +362,13 @@ class PenyeliaAPI extends Controller
 
             $penyelia = Penyelia::with([
                 'permohonan',
-                'permohonan.kontrak.rincian_list_tld' => function($query) use ($getPeriodeNow) {
-                    $query->where('count_tld', $getPeriodeNow->count_tld);
+                'permohonan.kontrak.kontrak_detail',
+                'permohonan.kontrak.kontrak_detail.tld_1',
+                'permohonan.kontrak.kontrak_detail.tld_2',
+                'permohonan.kontrak.kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
                 },
                 'permohonan.kontrak.jenis_layanan',
                 'permohonan.kontrak.jenis_layanan_parent',
@@ -393,7 +399,6 @@ class PenyeliaAPI extends Controller
                 // send notifikasi ke petugas di jobs next
                 $petugasUser = Penyelia_petugas::select('id_user')->where('id_map', $jobsNext->id_map)->get();
                 $userQuery = array();
-                $us = Auth::user();
                 foreach($petugasUser as $value){
                     array_push($userQuery, $value->id_user);
                 }
@@ -426,10 +431,23 @@ class PenyeliaAPI extends Controller
 
                 if($jobsParalel){
                     if($jobsParalel->jobs->status == 17){ // Penyimpanan TLD
-                        foreach($penyelia->permohonan->kontrak->rincian_list_tld as $key => $value){
-                            if($value->status == 3) {
-                                Master_tld::whereIn('id_tld', $value->id_tld)->update(array('status' => 0));
-                                Kontrak_tld::where('id_kontrak_tld', $value->id_kontrak_tld)->update(['status' => 5]);
+                        $isPeriodOne = $getPeriodeNow->count_tld == 1 || $penyelia->periode == 0;
+
+                        foreach($penyelia->permohonan->kontrak->kontrak_detail as $key => $value){
+                            $tld = $isPeriodOne ? $value->tld_1 : $value->tld_2;
+                            $tld_status = $isPeriodOne ? $value->status_tld_1 : $value->status_tld_2;
+
+                            if($tld_status == 3) {
+                                Master_tld::where('id_tld', $tld)->update(array('status' => 0));
+
+                                $dataDetail = array();
+
+                                if($isPeriodOne) {
+                                    $dataDetail['status_tld_1'] = 5;
+                                } else {
+                                    $dataDetail['status_tld_2'] = 5;
+                                }
+                                Kontrak_detail::where('id', $value->id)->update($dataDetail);
 
                                 // mengecek jika sudah di periode terakhir
                                 // Mengambil last periode
@@ -482,34 +500,12 @@ class PenyeliaAPI extends Controller
                 }
             }
 
-            // menambahkan log penyelia
-            // $this->log->addLog('penyelia', array(
-            //     'id_penyelia' => $penyelia->id_penyelia,
-            //     'status' => $jobsNow->jobs->status,
-            //     'message' => $this->log->noteLog('penyelia', $jobsNow->jobs->status),
-            //     'note' => $note,
-            //     'created_by' => Auth::user()->id
-            // ));
-
             // kondisi saat salah satu proses selesai
             if (!$nextJobs && !$jobsNow->point_jobs) {
-                // $condition = $jobsNow->point_jobs ? 'whereNull' : 'whereNotNull';
-                // $jobsParalel = Penyelia_map::where('status', 1)->$condition('point_jobs')->where('id_penyelia', $idPenyelia)->first();
+                $permohonan = Permohonan::find($penyelia->id_permohonan);
+                $permohonan->update(['status' => 4]); // ketika proses lhu selesai
 
-                // if (!$jobsParalel) {
-                    $permohonan = Permohonan::find($penyelia->id_permohonan);
-                    $permohonan->update(['status' => 4]); // ketika proses lhu selesai
-
-                    $penyelia->update(['status' => 3]);
-
-                    // menambahkan log penyelia
-                    // $this->log->addLog('penyelia', [
-                    //     'id_penyelia' => $penyelia->id_penyelia,
-                    //     'status' => $penyelia->status,
-                    //     'message' => $this->log->noteLog('penyelia', $penyelia->status),
-                    //     'created_by' => Auth::user()->id
-                    // ]);
-                // }
+                $penyelia->update(['status' => 3]);
             }
 
 
@@ -711,8 +707,14 @@ class PenyeliaAPI extends Controller
                 'permohonan.pelanggan.perusahaan',
                 'permohonan.kontrak',
                 'permohonan.kontrak.periode',
-                'permohonan.kontrak.rincian_list_tld',
-                'permohonan.kontrak.rincian_list_tld.pengguna',
+                'permohonan.kontrak.kontrak_detail',
+                'permohonan.kontrak.kontrak_detail.tld_1',
+                'permohonan.kontrak.kontrak_detail.tld_2',
+                'permohonan.kontrak.kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
                 'permohonan.dokumen',
                 'permohonan.invoice',
                 'permohonan.permohonan_pengguna',
@@ -723,8 +725,6 @@ class PenyeliaAPI extends Controller
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
                     ]);
                 },
-                'permohonan.rincian_list_tld',
-                'permohonan.rincian_list_tld.pengguna',
                 'logs.causer',
             ])->find($idPenyelia);
             DB::commit();

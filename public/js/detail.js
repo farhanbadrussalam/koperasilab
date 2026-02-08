@@ -189,7 +189,6 @@ class Detail {
                 break;
 
             case 'penyelia':
-                console.log(this.data);
                 this.info = {
                     no_kontrak: this.data.permohonan.kontrak?.no_kontrak ?? '-',
                     tipe_kontrak: this.data.permohonan.tipe_kontrak ?? '-',
@@ -867,7 +866,7 @@ class Detail {
 
                         const message = log.description === 'finish'
                             ? `Proses ${mapItem.jobs.name} selesai`
-                            : '';
+                            : `Proses ${mapItem.jobs.name} di kembalikan`;
 
                         dataLog.push({
                             message,

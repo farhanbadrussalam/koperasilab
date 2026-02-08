@@ -15,6 +15,8 @@ $(function () {
     detail = new Detail({
         jenis: 'penyelia',
         tab: {
+            pengguna: true,
+            tld: true,
             dokumen: true,
             log: true
         }
@@ -240,45 +242,11 @@ function loadData(page = 1) {
                 pelanggan: permohonan.pelanggan.name,
                 divInfoTugas: divInfoTugas,
                 divTimelineTugas: timeline,
-                htmlLeftTime: htmlLeftTime
+                htmlLeftTime: htmlLeftTime,
+                perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan
             }
 
             html += cardComponent(params, {btnMenuAction: btnAction, btnAction: btnAction2});
-
-            // html += `
-            //     <div class="card mb-2">
-            //         <div class="card-body row align-items-center py-2">
-            //             <div class="col-auto">
-            //                 <div class="">
-            //                     <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
-            //                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.kontrak.jenis_layanan_parent.name} - ${permohonan.kontrak.jenis_layanan.name}</span>
-            //                     <span> | ${htmlStatus}</span>
-            //                 </div>
-            //                 <div class="fs-5 my-2">
-            //                     <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
-            //                     <div class="text-body-tertiary fs-7">
-            //                         <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-            //                     </div>
-            //                 </div>
-            //                 <div class="d-flex gap-3 text-body-tertiary fs-7">
-            //                     <span><i class="bi bi-calendar-range"></i> ${permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`}</span>
-            //                     <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
-            //                     ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
-            //                 </div>
-            //             </div>
-            //             <div class="ms-auto col-auto">
-            //                 ${htmlLeftTime}
-            //                 <div class="text-center gap-1 d-flex" data-id='${lhu.penyelia_hash}' data-index='${i}'>
-            //                     ${btnAction}
-            //                 </div>
-            //             </div>
-            //             ${divInfoTugas}
-            //             <div class="col-md-12 collapse" id="timeline-progress-${lhu.penyelia_hash}">
-            //                 ${timeline.elementCreate()}
-            //             </div>
-            //         </div>
-            //     </div>
-            // `;
         }
 
         if(result.data.length == 0){
