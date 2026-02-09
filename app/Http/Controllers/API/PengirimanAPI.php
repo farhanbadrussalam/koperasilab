@@ -29,7 +29,7 @@ use App\Services\Notifier;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
-
+use App\Models\Kontrak_detail;
 use Auth;
 use DB;
 use Log;
@@ -541,37 +541,42 @@ class PengirimanAPI extends Controller
 
                 foreach (json_decode($detail) as $key => $value) {
 
+                    $valPeriode = $value->periode;
                     $params = array(
                         'id_pengiriman' => $idPengiriman,
                         'jenis' => $value->jenis,
                         'periode' => $value->periode ?? null,
                     );
 
+                    $periodePengiriman = isset($value->periode) ? $value->periode : null;
+                    $periodeTld = $periodePengiriman === 0 ? 1 : $periodePengiriman;
+                    $kPeriode = Kontrak_periode::where('id_kontrak', $idKontrak)
+                        ->where('periode', $periodeTld)->first();
 
                     if($value->listTld){
                         $params['list_tld'] = [];
+                        // $isPeriodOne =
                         foreach ($value->listTld as $val) {
                             // mengambil data kontrak_tld
-                            $splitTld = explode('|', $val->id);
+                            $idKontrakDetail = (int) decryptor($val->id);
                             $idTld = (int) decryptor($val->tld);
-                            $kontrakTld = Kontrak_tld::with('pengguna', 'kontrak:id_kontrak,no_kontrak')->where('id_kontrak_tld', decryptor($splitTld[0]))->first();
+                            $kontrakTld = Kontrak_detail::with([
+                                'kontrak:id_kontrak,no_kontrak',
+                            ])->where('id', $idKontrakDetail)->first();
 
                             // Log::info("message: " . json_encode($kontrakTld->id_tld));
                             if($kontrakTld) {
-                                // if(!$kontrakTld->id_tld){
-                                    $tmp = $kontrakTld->id_tld ? $kontrakTld->id_tld : [];
+                                $isPeriodOne = $kPeriode->count_tld == 1 || $valPeriode == 0;
 
-                                    // Log::info("message-1: " . json_encode($tmp));
-                                    if($kontrakTld->count > 1) {
-                                        $tmp[(int) $splitTld[1] - 1] = $idTld;
-                                    } else {
-                                        $tmp = [$idTld];
-                                    }
-
-                                    $kontrakTld->update(array('id_tld' => $tmp));
-                                // }
-
-                                $kontrakTld->update(array('status' => 1));
+                                $dataDetail = array();
+                                if($isPeriodOne) {
+                                    $dataDetail['tld_1'] = $idTld;
+                                    $dataDetail['status_tld_1'] = 1;
+                                } else {
+                                    $dataDetail['tld_2'] = $idTld;
+                                    $dataDetail['status_tld_2'] = 1;
+                                }
+                                $kontrakTld->update($dataDetail);
                                 Master_tld::where('id_tld', $idTld)->update(['status' => 1, 'digunakan' => $kontrakTld->kontrak->no_kontrak]);
                             }
                             $params['list_tld'][] = (int) $idTld;
@@ -579,13 +584,11 @@ class PengirimanAPI extends Controller
                     }
 
                     if($value->jenis == 'tld') {
-                        $periodePengiriman = isset($value->periode) ? $value->periode : null;
-                        $periodeTld = $periodePengiriman === 0 ? 1 : $periodePengiriman;
+
                         $params['periode'] = $periodeTld;
                         $noSurpeng = generateNoDokumen('surpeng');
 
-                        $kPeriode = Kontrak_periode::where('id_kontrak', $idKontrak)
-                        ->where('periode', $periodeTld)->first();
+
                         if($kPeriode){
                             if($kPeriode->nomer_surpeng == null){
                                 $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
