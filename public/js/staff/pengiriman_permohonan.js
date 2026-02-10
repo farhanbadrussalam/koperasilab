@@ -6,9 +6,10 @@ $(function () {
     filterComp = new FilterComponent('list-filter', {
         filter : {
             // search: true,
-            // jenis_tld : true,
-            // jenis_layanan : true,
-            // no_kontrak : true,
+            jenis_tld : true,
+            jenis_layanan : true,
+            perusahaan: true,
+            no_kontrak : true,
             // periode: true
         }
     })
@@ -27,11 +28,19 @@ function loadData(page = 1, menu) {
     };
 
     // filterValue.search && (params.filter.search = filterValue.search);
-    // filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
-    // filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
-    // filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
-    // filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
     // filterValue.periode && (params.filter.periode = filterValue.periode);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $(`#list-placeholder-list`).show();
     $(`#list-container-list`).hide();
@@ -69,10 +78,9 @@ function loadData(page = 1, menu) {
 
             // Data layanan jasa (TLD)
             let htmlTld = '';
-            data.periode == null ? data.periode = 1 : data.periode;
-            let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.detail.find(c => c.jenis == 'tld' && c.periode == data.periode));
-            let htmlStatus = '';
             let periodeTld = data.periode === 0 ? 1 : data.periode;
+            let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.detail.find(c => c.jenis == 'tld' && c.periode == periodeTld));
+            let htmlStatus = '';
             const periodeAwal = getPeriodeAwal(data.kontrak);
 
             if( periodeTld !== null && (!periodeAwal.includes(periodeTld))) {
@@ -246,6 +254,12 @@ function cekLastPeriode(periode_kontrak, periode_now){
 }
 
 function reload(){
+    loadData();
+}
+
+function clearFilter(){
+    filterComp.clear();
+
     loadData();
 }
 

@@ -130,54 +130,28 @@ function loadData(page = 1) {
     ajaxGet(`api/v1/pengiriman/list`, params, result => {
         let html = '';
         for (const [i, data] of result.data.entries()) {
-            let htmlButton = '';
+            let htmlButton = '<button class="btn btn-outline-info btn-sm mb-2" onclick="showDetail(this)">Detail</button>';
             if(data.status == 1){
-                htmlButton = `<button class="btn btn-outline-primary btn-sm mb-2" onclick="showModalDiterima(this)">Dokumen diterima</button>`;
+                htmlButton += `<button class="btn btn-outline-primary btn-sm mb-2" onclick="showModalDiterima(this)">Diterima</button>`;
             }
 
-            html += `
-                <div class="card mb-2">
-                    <div class="card-body row align-items-center py-2">
-                        <div class="col-12 col-md-3">
-                            <div class="fw-bolder">${data.id_pengiriman}</div>
-                            <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-md">
-                                <div>${data.kontrak?.no_kontrak ?? ''}</div>
-                                <div>created at ${dateFormat(data.created_at, 1)}</div>
-                            </small>
-                        </div>
-                        <div class="col-6 col-md-1">
-                            ${data.detail.length} Item
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
-                                    Alamat ${data.alamat.jenis}
-                                </div>
-                            </small>
-                        </div>
-                        <div class="col-6 col-md-2 text-center">
-                            ${statusFormat('pengiriman', data.status)}
-                        </div>
-                        <div class="col-6 col-md-2 text-center">
-                            <div class="row">
-                                <span>Dikirim</span>
-                                <small class="subdesc text-body-secondary fw-light lh-sm">
-                                    ${data.send_at ? dateFormat(data.send_at, 4) : '-'}
-                                </small>
-                                <span>Diterima</span>
-                                <small class="subdesc text-body-secondary fw-light lh-sm">
-                                    ${data.recived_at ? dateFormat(data.recived_at, 4) : '-'}
-                                </small>
-                            </div>
-                        </div>
-                        <div class="col-6 col-md-2 text-center" data-id="${data.id_pengiriman}">
-                            <button class="btn btn-outline-info btn-sm mb-2" onclick="showDetail(this)">Detail</button>
-                            ${htmlButton}
-                        </div>
-                    </div>
-                </div>
-            `;
+            const dataCard = {
+                id: data.id_pengiriman,
+                format: 'pengiriman',
+                status: data.status,
+                kontrak: data.kontrak?.no_kontrak,
+                title: data.id_pengiriman,
+                no_resi: data.no_resi,
+                items: data.detail,
+                alamat: data.alamat,
+                send_at: data.send_at,
+                recived_at: data.recived_at
+            }
+            console.log(data);
+
+            html += cardComponent(dataCard, {
+                btnAction: htmlButton
+            });
         }
         if(result.data.length == 0){
             html = `
@@ -203,7 +177,7 @@ function loadData(page = 1) {
  * @param {Object} obj - The DOM element that triggered the function.
  */
 function showModalDiterima(obj){
-    const id = $(obj).parent().data('id');
+    const id = $(obj).parent().parent().data('id');
     ajaxGet(`api/v1/pengiriman/getById/${id}`, false, result => {
         const data = result.data;
         $('#idPengiriman').val(id);
@@ -327,7 +301,7 @@ function reload(){
 }
 
 function showDetail(obj){
-    const id = $(obj).parent().data("id");
+    const id = $(obj).parent().parent().data("id");
     detail.show(`api/v1/pengiriman/getById/${id}`);
 }
 

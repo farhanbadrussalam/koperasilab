@@ -1,37 +1,121 @@
 /**
- * Function to generate a card component given data and options.
+ * Function to generate a card component for a given data and options.
  *
  * @param {object} data - The data to generate the card component.
  * @param {object} options - The options to generate the card component.
- * @param {string} options.btnAction - The button to display on the card component.
- * @param {string} options.btnMenuAction - The menu button to display on the card component.
+ * @param {string} options.btnAction - The button action to generate on the card component.
+ * @param {string} options.btnMenuAction - The button menu action to generate on the card component.
+ * @param {string} options.status - The status to display on the card component.
+ * @param {string} options.format - The format of the status to display on the card component.
  *
  * @return {string} The HTML string of the card component.
  */
 function cardComponent(data, options = {}) {
-    const badgeClass = data.tipeKontrak == 'kontrak lama' ? 'bg-success-subtle text-success-emphasis border-success-subtle' : 'bg-primary-subtle text-primary-emphasis border-primary-subtle';
-    let htmlPeriode = !data.periode ? `Zero cek` : 'Periode ' + data.periode;
-    if(data.periode && data.is_have_tld && data.is_zerocek) {
-        htmlPeriode += ' + Zero cek';
-    }
-    let htmlCatatan = ``;
-    if(data.note) {
-        htmlCatatan += `
-            <div class="alert alert-danger mt-2 py-1 px-2 fs-8 mb-0">
-                <i class="bi bi-exclamation-triangle"></i> Catatan: ${data.note}
-            </div>
-        `;
-    }
+    const htmlTipeKontrak = data.tipeKontrak !== undefined ? `
+        <span class="badge ${data.tipeKontrak == 'kontrak lama' ? 'bg-success-subtle text-success-emphasis border-success-subtle' : 'bg-primary-subtle text-primary-emphasis border-primary-subtle'} border border-info-subtle rounded-pill fw-normal px-3">
+            ${data.tipeKontrak}
+        </span>
+    ` : '';
 
-    let jobsPenyelia = ``;
-    if(data.divTimelineTugas){
-        jobsPenyelia += data.divInfoTugas;
-        jobsPenyelia += `
-            <div class="col-md-12 collapse" id="timeline-progress-${data.id}">
-                ${data.divTimelineTugas.elementCreate()}
-            </div>
+    const htmlPeriode = data.periode !== undefined ? (() => {
+        let per = !data.periode ? `Zero cek` : 'Periode ' + data.periode;
+        if(data.periode && data.is_have_tld && data.is_zerocek) {
+            per += ' + Zero cek';
+        }
+        return `
+            <span>
+                <i class="bi bi-calendar-range me-1"></i> ${per}
+            </span>
         `;
-    }
+    })() : '';
+
+    const htmlCatatan = data.note ? `
+        <div class="alert alert-danger mt-2 py-1 px-2 fs-8 mb-0">
+            <i class="bi bi-exclamation-triangle"></i> Catatan: ${data.note}
+        </div>
+    ` : '';
+
+    // `data.title` takes precedence. `??` handles `null` or `undefined` gracefully.
+    const htmlTitle = data.title ?? (data.jenisTld !== undefined ? `${data.jenisTld} - Layanan ${data.namaLayanan}` : '');
+
+    const htmlKontrak = data.kontrak !== undefined ? `
+        <span class="font-monospace fw-bold text-dark">
+            <i class="bi bi-hash me-1 text-secondary"></i>${data.kontrak}
+        </span>
+    ` : '';
+
+    const htmlPerusahaan = data.perusahaan !== undefined ? `
+        <div>
+            <span>
+                <i class="bi bi-building-fill"></i> ${data.perusahaan}
+            </span>
+        </div>
+    ` : '';
+
+    const htmlStatus = data.status !== undefined ? statusFormat(data.format, data.status) : '';
+
+    const htmlJenisLayanan = data.jenisLayanan !== undefined ? `
+        <span class="badge bg-light text-secondary border rounded-pill fw-normal px-3">
+            ${data.jenisLayananParent} - ${data.jenisLayanan}
+        </span>
+    ` : '';
+
+    const htmlStatusPenyelia = data.statusPenyelia !== undefined ? `<div class="my-1">${data.statusPenyelia}</div>` : '';
+
+    const htmlLeftTime = data.htmlLeftTime !== undefined ? `
+        <div class="my-1">
+            ${data.htmlLeftTime}
+        </div>
+    ` : '';
+
+    const htmlNoResi = data.no_resi !== undefined ? `
+        <div class="my-1">
+            <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
+        </div>
+    ` : '';
+
+    const htmlItemsPengiriman = data.items !== undefined ? `
+        <span class="fw-light">Items : ${data.items?.length ?? 'Belum ada'}</span>
+    ` : '';
+
+    const htmlAlamatPengiriman = data.alamat !== undefined ? `
+         • <small class="subdesc text-body-secondary fw-light lh-sm">
+            <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
+                Alamat ${data.alamat.jenis}
+            </div>
+        </small>
+    ` : '';
+
+    const htmlPelanggan = data.pelanggan !== undefined ? `
+        <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
+            PIC: <strong>${data.pelanggan}</strong> • ${dateFormat(data.created_at, 4)}
+        </div>
+    ` : '';
+
+    const htmlDurasi = data.send_at !== undefined ? `
+        <div class="mt-1 d-flex align-items-center">
+            <div class="row">
+                <span>Dikirim</span>
+                <small class="subdesc text-body-secondary fw-light lh-sm">
+                    ${data.send_at ? dateFormat(data.send_at, 4) : '-'}
+                </small>
+            </div>
+            <div class="row">
+                <span>Diterima</span>
+                <small class="subdesc text-body-secondary fw-light lh-sm">
+                    ${data.recived_at ? dateFormat(data.recived_at, 4) : '-'}
+                </small>
+            </div>
+        </div>
+    ` : '';
+
+    const jobsPenyelia = data.divTimelineTugas !== undefined ? `
+        ${data.divInfoTugas}
+        <div class="col-md-12 collapse" id="timeline-progress-${data.id}">
+            ${data.divTimelineTugas.elementCreate()}
+        </div>
+    ` : '';
+
     const elementList = `
         <div class="card border-1  shadow-sm rounded-3 mb-3 hover-effect transition-all">
             <div class="card-body p-3">
@@ -40,54 +124,34 @@ function cardComponent(data, options = {}) {
                     <div class="col-lg-5 mb-3 mb-lg-0">
                         <div class="d-flex align-items-start gap-3">
                             <div>
-                                <h6 class="fw-bold text-dark mb-1 text-truncate" style="max-width: 280px;">${data.jenisTld} - Layanan ${data.namaLayanan}</h6>
-
+                                <h6 class="fw-bold text-dark mb-1 text-truncate" style="max-width: 280px;">${htmlTitle}</h6>
+                                ${htmlNoResi}
                                 <div class="d-flex align-items-center flex-wrap gap-2 text-muted small">
-                                    ${data.kontrak ? `
-                                        <span class="font-monospace fw-bold text-dark">
-                                            <i class="bi bi-hash me-1 text-secondary"></i>${data.kontrak}
-                                        </span>
-                                    ` : ''}
-
-                                    <span>
-                                        <i class="bi bi-calendar-range me-1"></i> ${htmlPeriode}
-                                    </span>
-
+                                    ${htmlKontrak}
+                                    ${htmlPeriode}
                                 </div>
-                                ${data.perusahaan ? `
-                                    <div>
-                                        <span>
-                                            <i class="bi bi-building-fill"></i> ${data.perusahaan}
-                                        </span>
-                                    </div>
-                                ` : ``}
+                                ${htmlPerusahaan}
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-5 mb-3 mb-lg-0 border-start-lg ps-lg-4">
                         <small class="text-muted fw-bold d-block mb-2" style="font-size: 0.7rem;">LABEL & STATUS</small>
-                        <div class="my-1">${statusFormat(data.format, data.status)}</div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <span class="badge ${badgeClass} border border-info-subtle rounded-pill fw-normal px-3">
-                                ${data.tipeKontrak}
-                            </span>
-                            <span class="badge bg-light text-secondary border rounded-pill fw-normal px-3">
-                                ${data.jenisLayananParent} - ${data.jenisLayanan}
-                            </span>
+                        <div class="my-1">${htmlStatus}</div>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            ${htmlItemsPengiriman}
+                            ${htmlAlamatPengiriman}
+
+                            ${htmlTipeKontrak}
+                            ${htmlJenisLayanan}
                         </div>
-                        ${data.statusPenyelia ? `<div class="my-1">${data.statusPenyelia}</div>` : ``}
-                        ${data.htmlLeftTime ? `
-                            <div class="my-1">
-                                ${data.htmlLeftTime}
-                            </div>
-                        ` : ``}
-                        <div class="mt-2 text-muted small" style="font-size: 0.75rem;">
-                            PIC: <strong>${data.pelanggan}</strong> • ${dateFormat(data.created_at, 4)}
-                        </div>
+                        ${htmlStatusPenyelia}
+                        ${htmlLeftTime}
+                        ${htmlPelanggan}
+                        ${htmlDurasi}
                     </div>
 
                     <div class="col-lg-2 text-lg-end text-start d-flex align-items-center justify-content-end" data-id='${data.id}' data-index='${data.index ?? ''}'>
-                        <div>
+                        <div class="d-flex align-items-center gap-1">
                             ${options.btnAction ?? ''}
                         </div>
 
@@ -242,6 +306,18 @@ function cardPenggunaComponent(data, options = {}) {
     return elementList;
 }
 
+/**
+ * Generate card component for kontrol.
+ *
+ * @param {object} data - The data to generate the card component.
+ * @param {object} options - The options to generate the card component.
+ * @param {boolean} options.is_btn_remove - Whether the card component has a remove button or not.
+ * @param {boolean} options.is_have_tld - Whether the card component has a TLD or not.
+ * @param {boolean} options.add_kontrol - Whether the card component has an add kontrol button or not.
+ * @param {string} options.label_tld - The label to display on the card component.
+ *
+ * @return {string} The HTML string of the card component.
+ */
 function cardKontrolComponent(data, options = {}) {
     let btnRemove = '';
     let htmlAddKontrol = '';

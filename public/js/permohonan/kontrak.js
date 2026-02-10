@@ -135,6 +135,14 @@ function loadData(page = 1) {
 
             let hidden = role.includes('Pelanggan') ? 'd-none' : '';
 
+            let btnAdendum = role.includes('Pelanggan') ? `
+                <div class="mb-2 text-end fs-8 ${data.status == 2 ? 'd-none' : ''}">
+                    <a class="btn btn-sm btn-warning rounded-pill" href="${base_url}/permohonan/kontrak/a/${data.kontrak_hash}">
+                        <i class="bi bi-pencil"></i> Adendum
+                    </a>
+                </div>
+            ` : '';
+
             html += `
                 <div class="card mb-2 smooth-height hover-effect">
                     <div class="card-body row align-items-center py-2">
@@ -156,11 +164,7 @@ function loadData(page = 1) {
                             </div>
                         </div>
                         <div class="col-auto ms-auto align-self-end">
-                            <div class="mb-2 text-end fs-8 ${data.status == 2 ? 'd-none' : ''}">
-                                <a class="btn btn-sm btn-warning rounded-pill" href="${base_url}/permohonan/kontrak/a/${data.kontrak_hash}">
-                                    <i class="bi bi-pencil"></i> Adendum
-                                </a>
-                            </div>
+                            ${btnAdendum}
                             <div class="mb-2 text-end fs-8">
                                 ${statusFormat('kontrak',data.status)}
                             </div>
