@@ -137,7 +137,7 @@ class PermohonanAPI extends Controller
 
             // jika tipe kontraknya adalah "kontrak lama" akan mengambil data dari kontrak sebelumnya
             if($tipeKontrak == 'kontrak lama'){
-                $kontrak = Kontrak::with('pengguna','periode')->find($idKontrak);
+                $kontrak = Kontrak::with('periode')->find($idKontrak);
                 if($kontrak){
                     $data['id_layanan'] = $kontrak->id_layanan;
                     $data['jenis_tld'] = $kontrak->jenis_tld;
@@ -163,8 +163,7 @@ class PermohonanAPI extends Controller
             if($tipeKontrak == 'kontrak lama'){
                 if($listTld){
                     foreach ($listTld as $value) {
-                        $kontrakTld = Kontrak_tld::with('pengguna')->where('id_kontrak_tld', decryptor($value))->first();
-                        $kontrakTld->update(['status' => 3]);
+                        Kontrak_detail::find(decryptor($value))->update(['status' => 3]);
                     }
                 }
                 Kontrak_periode::where('id_kontrak', $idKontrak)

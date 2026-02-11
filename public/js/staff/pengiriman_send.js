@@ -29,7 +29,7 @@ $(function () {
 
     $('#select_alamat').on('change', obj => {
         if (informasi) {
-            const perusahaan = data_permohonan.pelanggan.perusahaan;
+            const perusahaan = informasi.pelanggan.perusahaan;
 
             if(perusahaan.alamat[obj.target.value].alamat){
                 $('#alamatTujuan').val(perusahaan.alamat[obj.target.value].alamat + ", " + perusahaan.alamat[obj.target.value].kode_pos);
@@ -50,7 +50,7 @@ function openInventory(obj, jenis){
 function load_form() {
     // Inisialisasi Alamat
     let htmlAlamat = '<option value="">Pilih alamat</option>';
-    for (const [i, value] of data_permohonan.pelanggan.perusahaan.alamat.entries()) {
+    for (const [i, value] of informasi.pelanggan.perusahaan.alamat.entries()) {
         if(value.status) {
             htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
         }
@@ -99,7 +99,7 @@ function load_form() {
             }
             htmlKontrol += `
                 <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
-                    <small class="text-muted me-2">${data_permohonan.pelanggan.perusahaan.kode_perusahaan}-${i > 1 ? `C${i+1}` : 'C'}:</small>
+                    <small class="text-muted me-2">${informasi.pelanggan.perusahaan.kode_perusahaan}-${i > 1 ? `C${i+1}` : 'C'}:</small>
                     <span class="fw-bold me-2" id="tldNoSeri_${list.kontrak_detail_hash}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak ada'}</span>
                     ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info ms-auto" data-id="${list.kontrak_detail_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
                     <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${list.kontrak_detail_hash}" id="tldNoSeri_${list.kontrak_detail_hash}" placeholder="Pilih No Seri" readonly>
@@ -125,7 +125,7 @@ function load_form() {
             htmlPengguna += `
                 <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
                     <input type="hidden" class="form-control rounded-start form-sm" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${list.kontrak_detail_hash}" id="tldNoSeri_${list.kontrak_detail_hash}" readonly>
-                    <small class="text-muted me-2">${data_permohonan.pelanggan.perusahaan.kode_perusahaan}-${list.entitas.kode_lencana}:</small>
+                    <small class="text-muted me-2">${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.entitas.kode_lencana}:</small>
                     <span class="fw-bold me-2" id="tldNoSeri_${list.kontrak_detail_hash}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak Ada'}</span>
                     ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info" data-id="${list.kontrak_detail_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
                 </div>
@@ -138,13 +138,13 @@ function load_form() {
                         <div class="form-check">
                             <div>
                                 <input class="form-check-input" type="checkbox" id="selectDocumentTld"
-                                    data-jenis="tld" name="selectDocument" data-id="${data_permohonan.permohonan_hash ?? ''}"
+                                    data-jenis="tld" name="selectDocument" data-id="${informasi.permohonan_hash ?? ''}"
                                         onclick="updateSelectDocument()" ${checkedTld}>
                                 <label class="form-check-label fw-bold" for="checkTLD">TLD Periode ${periode_aktif.status === 2 ? 'Pengembalian' : periodeTld}</label>
-                                <span class="badge bg-light text-muted border ms-2">${data_permohonan.jumlah_pengguna} Pengguna + ${data_permohonan.jumlah_kontrol} Kontrol</span>
+                                <span class="badge bg-light text-muted border ms-2">${informasi.jumlah_pengguna} Pengguna + ${informasi.jumlah_kontrol} Kontrol</span>
                             </div>
                             <div>
-                                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.created_at, 4)}</small>
+                                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(informasi.created_at, 4)}</small>
                                 <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? status_tld.status : false)}</small>
                             </div>
                         </div>
@@ -171,112 +171,118 @@ function load_form() {
 
     // list document invoice
     let htmlInvoice = '';
-    let urlLaporanInvoice = data_permohonan.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data_permohonan.invoice?.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i></a>` : '<i class="bi bi-printer-fill"></i>';
-    // let checkedInvoice = informasi.invoice?.status == 5 ? (informasi.invoice?.pengiriman ? 'disabled' : 'checked') : 'disabled';
-    let checkedInvoice = data_permohonan.invoice?.pengiriman ? 'disabled' : 'checked';
-    data_permohonan.invoice ? htmlInvoice = `
-        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2 shadow-xs">
-            <div class="form-check">
+    if(data_permohonan){
+        let urlLaporanInvoice = data_permohonan.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data_permohonan.invoice?.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i></a>` : '<i class="bi bi-printer-fill"></i>';
+        // let checkedInvoice = informasi.invoice?.status == 5 ? (informasi.invoice?.pengiriman ? 'disabled' : 'checked') : 'disabled';
+        let checkedInvoice = data_permohonan.invoice?.pengiriman ? 'disabled' : 'checked';
+        data_permohonan.invoice ? htmlInvoice = `
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2 shadow-xs">
+                <div class="form-check">
+                    <div class="d-flex align-items-center gap-2">
+                        <input class="form-check-input" type="checkbox"
+                            data-jenis="invoice" data-id="${data_permohonan.invoice.keuangan_hash}"
+                            id="selectDocumentInvoice" name="selectDocument" onclick="updateSelectDocument()" ${checkedInvoice}>
+                        <label class="form-check-label" for="checkInv">
+                            <span class="fw-bold">Invoice + MoU</span>
+                            <small class="text-muted ms-2">#${data_permohonan.invoice.no_invoice}</small>
+                        </label>
+                    </div>
+                    <div>
+                        <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.invoice.created_at, 4)}</small>
+                        <small>${statusFormat('pengiriman', data_permohonan.invoice.pengiriman?.status)}</small>
+                    </div>
+                </div>
                 <div class="d-flex align-items-center gap-2">
-                    <input class="form-check-input" type="checkbox"
-                        data-jenis="invoice" data-id="${data_permohonan.invoice.keuangan_hash}"
-                        id="selectDocumentInvoice" name="selectDocument" onclick="updateSelectDocument()" ${checkedInvoice}>
-                    <label class="form-check-label" for="checkInv">
-                        <span class="fw-bold">Invoice + MoU</span>
-                        <small class="text-muted ms-2">#${data_permohonan.invoice.no_invoice}</small>
-                    </label>
-                </div>
-                <div>
-                    <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.invoice.created_at, 4)}</small>
-                    <small>${statusFormat('pengiriman', data_permohonan.invoice.pengiriman?.status)}</small>
+                    ${statusFormat('invoice', data_permohonan.invoice.status)}
+                    <small class="btn btn-sm btn-outline-primary border-0 bg-primary-subtle text-primary ${data_permohonan.invoice.status == 5 ? "cursoron" : "cursordisable"}">
+                        ${urlLaporanInvoice}
+                    </small>
                 </div>
             </div>
-            <div class="d-flex align-items-center gap-2">
-                ${statusFormat('invoice', data_permohonan.invoice.status)}
-                <small class="btn btn-sm btn-outline-primary border-0 bg-primary-subtle text-primary ${data_permohonan.invoice.status == 5 ? "cursoron" : "cursordisable"}">
-                    ${urlLaporanInvoice}
-                </small>
-            </div>
-        </div>
-    ` : false;
-    $('#list-document').append(htmlInvoice);
+        ` : false;
+        $('#list-document').append(htmlInvoice);
+    }
 
     // List Document LHU
     let htmlLhu = '';
-    let checkedLhu = 'disabled';
-    let urlDocLhu = '<i class="bi bi-printer-fill"></i> Cetak LHU';
+    if(data_permohonan){
+        let checkedLhu = 'disabled';
+        let urlDocLhu = '<i class="bi bi-printer-fill"></i> Cetak LHU';
 
-    if(data_permohonan.lhu?.status == 3){
-        checkedLhu = 'checked';
-        urlDocLhu = `<a href="${base_url}/storage/${data_permohonan.lhu.media.file_path}/${data_permohonan.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>`;
-    }
-
-    if(data_permohonan.lhu?.pengiriman){
-        checkedLhu = 'disabled';
-    }
-
-    let htmlRangeDate = `(${data_permohonan.kontrak_periode?.start_date ? dateFormat(data_permohonan.kontrak_periode.start_date, 4) : '-'} - ${data_permohonan.kontrak_periode?.end_date ? dateFormat(data_permohonan.kontrak_periode.end_date, 4) : '-'})`;
-
-    let htmlPeriode = "";
-    if(data_permohonan.lhu){
-        if(data_permohonan.lhu.periode == 1 && data_permohonan.is_zerocek == 1 && data_permohonan.is_have_tld == 1) {
-            htmlPeriode += ' + Zero Cek';
+        if(data_permohonan.lhu?.status == 3){
+            checkedLhu = 'checked';
+            urlDocLhu = `<a href="${base_url}/storage/${data_permohonan.lhu.media.file_path}/${data_permohonan.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>`;
         }
-    }
 
-    data_permohonan.lhu ? htmlLhu = `
-        <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2">
-            <div class="form-check">
-                <div class="d-flex align-items-center gap-2">
-                    <input class="form-check-input" type="checkbox"
-                        data-jenis="lhu" data-id="${data_permohonan.lhu.penyelia_hash}"
-                        id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
-                    <label class="form-check-label fw-bold" for="selectDocumentLHU">LHU ${htmlPeriode}</label>
+        if(data_permohonan.lhu?.pengiriman){
+            checkedLhu = 'disabled';
+        }
 
-                    <small class="text-body-tertiary"> - ${!data_permohonan.lhu.periode ? 'Zero Cek' : `Periode ${data_permohonan.lhu.periode} ${htmlRangeDate}`} </small>
-                </div>
-                <div>
-                    <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.lhu.created_at, 4)}</small>
-                    <small>${statusFormat('pengiriman', data_permohonan.lhu.pengiriman?.status)}</small>
-                </div>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <small>${statusFormat('penyelia', data_permohonan.lhu.status)}</small>
-                <!-- <small class="bg-body-tertiary rounded-pill ${data_permohonan.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
-            </div>
-        </div>
-    ` : false;
-    $('#list-document').append(htmlLhu);
+        let htmlRangeDate = `(${data_permohonan.kontrak_periode?.start_date ? dateFormat(data_permohonan.kontrak_periode.start_date, 4) : '-'} - ${data_permohonan.kontrak_periode?.end_date ? dateFormat(data_permohonan.kontrak_periode.end_date, 4) : '-'})`;
 
-    // List document custom (akan mengikat ke id pengiriman yang ada di permohonannya)
-    let htmlCustom = '';
-    let checkedCustom = data_permohonan.pengiriman ? 'disabled' : 'checked';
-    if(data_permohonan.file_lhu){
-        arrDocCustom.push({jenis: "lhu zero cek", media: data_permohonan.file_lhu});
-    }
+        let htmlPeriode = "";
+        if(data_permohonan.lhu){
+            if(data_permohonan.lhu.periode == 1 && data_permohonan.is_zerocek == 1 && data_permohonan.is_have_tld == 1) {
+                htmlPeriode += ' + Zero Cek';
+            }
+        }
 
-    for (const custom of arrDocCustom) {
-        let urlDocCustom = custom.media ? `<a href="${base_url}/storage/${custom.media.file_path}/${custom.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Document</a>` : false;
-        htmlCustom += `
+        data_permohonan.lhu ? htmlLhu = `
             <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2">
                 <div class="form-check">
                     <div class="d-flex align-items-center gap-2">
                         <input class="form-check-input" type="checkbox"
-                            data-jenis="${custom.jenis}" data-id="${data_permohonan.permohonan_hash}"
-                            id="selectDocumentCustom" name="selectDocument" ${checkedCustom} disabled>
-                        <label class="form-check-label fw-bold" for="selectDocumentLHU">${custom.jenis}</label>
+                            data-jenis="lhu" data-id="${data_permohonan.lhu.penyelia_hash}"
+                            id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
+                        <label class="form-check-label fw-bold" for="selectDocumentLHU">LHU ${htmlPeriode}</label>
+
+                        <small class="text-body-tertiary"> - ${!data_permohonan.lhu.periode ? 'Zero Cek' : `Periode ${data_permohonan.lhu.periode} ${htmlRangeDate}`} </small>
                     </div>
                     <div>
-                        <small>${statusFormat('pengiriman', data_permohonan.pengiriman?.status)}</small>
+                        <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.lhu.created_at, 4)}</small>
+                        <small>${statusFormat('pengiriman', data_permohonan.lhu.pengiriman?.status)}</small>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-3 text-secondary">
-                    ${urlDocCustom ? '<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2">'+urlDocCustom+'</small>' : ''}
+                <div class="d-flex align-items-center gap-2">
+                    <small>${statusFormat('penyelia', data_permohonan.lhu.status)}</small>
+                    <!-- <small class="bg-body-tertiary rounded-pill ${data_permohonan.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
                 </div>
             </div>
-        `;
+        ` : false;
+        $('#list-document').append(htmlLhu);
     }
-    $('#list-document').append(htmlCustom);
+
+    // List document custom (akan mengikat ke id pengiriman yang ada di permohonannya)
+    let htmlCustom = '';
+    if(data_permohonan){
+        let checkedCustom = data_permohonan.pengiriman ? 'disabled' : 'checked';
+        if(data_permohonan.file_lhu){
+            arrDocCustom.push({jenis: "lhu zero cek", media: data_permohonan.file_lhu});
+        }
+
+        for (const custom of arrDocCustom) {
+            let urlDocCustom = custom.media ? `<a href="${base_url}/storage/${custom.media.file_path}/${custom.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Document</a>` : false;
+            htmlCustom += `
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2">
+                    <div class="form-check">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input" type="checkbox"
+                                data-jenis="${custom.jenis}" data-id="${data_permohonan.permohonan_hash}"
+                                id="selectDocumentCustom" name="selectDocument" ${checkedCustom} disabled>
+                            <label class="form-check-label fw-bold" for="selectDocumentLHU">${custom.jenis}</label>
+                        </div>
+                        <div>
+                            <small>${statusFormat('pengiriman', data_permohonan.pengiriman?.status)}</small>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 text-secondary">
+                        ${urlDocCustom ? '<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2">'+urlDocCustom+'</small>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+        $('#list-document').append(htmlCustom);
+    }
 
     updateSelectDocument();
 }
@@ -362,12 +368,12 @@ function buatPengiriman(obj){
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            let dAlamat = data_permohonan.pelanggan.perusahaan.alamat[alamat];
+            let dAlamat = informasi.pelanggan.perusahaan.alamat[alamat];
             const params = new FormData();
             params.append('idPengiriman', $('#no_pengiriman').html());
-            params.append('idPermohonan', data_permohonan.permohonan_hash);
+            params.append('idPermohonan', data_permohonan?.permohonan_hash);
             params.append('alamat', dAlamat.alamat_hash);
-            params.append('tujuan', data_permohonan.pelanggan.id);
+            params.append('tujuan', informasi.pelanggan.id);
             params.append('status', 3);
             params.append('detail', JSON.stringify(arrSelectDocument));
             periode_aktif ? params.append('periode', periode_aktif.periode) : false

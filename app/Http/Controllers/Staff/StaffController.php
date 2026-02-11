@@ -331,6 +331,9 @@ class StaffController extends Controller
                 'periode' => function ($q) use ($idPeriode) {
                     $q->where('id_periode', $idPeriode);
                 },
+                'pelanggan',
+                'pelanggan.perusahaan',
+                'pelanggan.perusahaan.alamat',
                 'periode.permohonan',
                 'periode.permohonan.invoice',
                 'periode.permohonan.invoice.pengiriman',
@@ -342,40 +345,6 @@ class StaffController extends Controller
                 'periode.permohonan.pelanggan.perusahaan',
                 'periode.permohonan.pelanggan.perusahaan.alamat',
             ])->find($id);
-            // $data = Permohonan::with([
-            //     'layanan_jasa:id_layanan,nama_layanan',
-            //     'jenisTld:id_jenisTld,name',
-            //     'jenis_layanan:id_jenisLayanan,name,parent',
-            //     'jenis_layanan_parent',
-            //     'pelanggan:id,id_perusahaan,name',
-            //     'pelanggan.perusahaan',
-            //     'pelanggan.perusahaan.alamat',
-            //     'kontrak',
-            //     'kontrak.periode',
-            //     'kontrak.jenis_layanan',
-            //     'kontrak.jenis_layanan_parent',
-            //     'kontrak.kontrak_detail',
-            //     'kontrak.kontrak_detail.tld_1',
-            //     'kontrak.kontrak_detail.tld_2',
-            //     'kontrak.kontrak_detail.entitas' => function (MorphTo $morphTo) {
-            //         $morphTo->morphWith([
-            //             Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-            //         ]);
-            //     },
-            //     'invoice',
-            //     'invoice.pengiriman',
-            //     'lhu',
-            //     'lhu.pengiriman',
-            //     'pengiriman',
-            //     'file_lhu',
-            //     'permohonan_detail',
-            //     'permohonan_detail.tld',
-            //     'permohonan_detail.entitas' => function (MorphTo $morphTo) {
-            //         $morphTo->morphWith([
-            //             Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-            //         ]);
-            //     }
-            // ])->find($id);
 
             // cek tld apakah sudah di kirim atau belum
             $statusTld = Pengiriman::with([
@@ -384,19 +353,8 @@ class StaffController extends Controller
                 },
                 'permohonan',
             ])->where('id_kontrak', $id)
-            ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode)
+            ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode[0]->periode)
             ->first();
-
-            // cek apakah sudah di periode terakhir atau belum
-            // $lastPeriode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->orderBy('periode', 'desc')->first();
-            // $isLast = $lastPeriode->periode == $data->periode ? true : false;
-
-            // if(!$isLast) {
-                // Membuat kontrak_tld
-            // }
-
-            // mengambil periode dari kontrak_periode
-            // $data->kontrak_periode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
         }else{
             // $idKontrak = decryptor($idHash) ?? false;
             // if($periodeNow){

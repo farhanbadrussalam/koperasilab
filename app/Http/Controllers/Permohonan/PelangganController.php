@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Permohonan;
 
+use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
@@ -20,18 +21,20 @@ use App\Models\Kontrak_periode;
 use App\Models\Kontrak_tld;
 
 use App\Http\Controllers\MediaController;
-
+use App\Models\Master_pengguna;
 use Auth;
 use DataTables;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Log;
 
 class PelangganController extends Controller
 {
-    protected $media, $log, $global;
+    protected $media, $log, $global, $tld;
     public function __construct()
     {
         $this->media = resolve(MediaController::class);
         $this->global = config('customvariabel');
+        $this->tld = resolve(TldAPI::class);
     }
 
     // FEATURE KONTRAK
@@ -52,26 +55,7 @@ class PelangganController extends Controller
             $periodeBefore = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->first();
             $periodeNext = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+1)->first();
             $periode2Next = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+2)->first();
-            // pengecekan periode sekarang
-            // $countTld = $periodeNow->periode % 2 == 1 ? 1 : 2;
-            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', $periodeNow->count_tld)->get();
-            if(count($kontrakTld) == 0){
-                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', 1)->get();
-                foreach($dataKontrakTldSebelum as $val){
-                    $arr = array(
-                        'id_kontrak' => $idKontrak,
-                        'id_pengguna' => $val->id_pengguna,
-                        'id_divisi' => $val->id_divisi,
-                        'periode' => $periodeNow->periode,
-                        'count_tld' => 2,
-                        'status' => 2,
-                        'count' => $val->count,
-                        'created_by' => Auth::user()->id
-                    );
-                    Kontrak_tld::create($arr);
-                }
-            }
-            $tldUsed = $periodeNow->periode % 2 == 1 ? 1 : 2;
+
             // Mengambil Kontrak
             $queryKontrak = Kontrak::with([
                 'layanan_jasa',
@@ -82,12 +66,14 @@ class PelangganController extends Controller
                 'pelanggan',
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
-                'rincian_list_tld' => function($q) use ($tldUsed){
-                    return $q->where('status', 2)->where('count_tld', $tldUsed); // TLD ada di pelanggan untuk evaluasi kontrak
-                },
-                'rincian_list_tld.pengguna',
-                'rincian_list_tld.pengguna.media_ktp',
-                'rincian_list_tld.pengguna.divisi'
+                'kontrak_detail',
+                'kontrak_detail.tld_1',
+                'kontrak_detail.tld_2',
+                'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                }
             ])->where('id_kontrak', $idKontrak)->first();
 
             $layanan = jenislayanan($queryKontrak->jenis_layanan_parent, $queryKontrak->jenis_layanan);
@@ -108,16 +94,56 @@ class PelangganController extends Controller
                 $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
             }
 
+            // $tld_pengguna = $this->tld->searchTldNotUsed(new Request(['jenis' => 'pengguna']));
+            // $resTld_pengguna = json_decode($tld_pengguna->getContent(), true);
+            // $noTld_pengguna = 0;
+
+            // $tld_kontrol = $this->tld->searchTldNotUsed(new Request(['jenis' => 'kontrol']));
+            // $resTld_kontrol = json_decode($tld_kontrol->getContent(), true);
+            // $noTld_kontrol = 0;
+
+            // foreach ($queryKontrak as $item) {
+            //     if($item->jenis == 'pengguna'){
+            //         if($item->tld_1 && $isPeriodOne){
+            //             $item->tld_pengguna = $item->tld_1;
+            //         } else {
+            //             $item->tld_pengguna = $resTld_pengguna['data'][$noTld_pengguna] ?? null;
+            //             $noTld_pengguna++;
+            //         }
+
+            //         if($item->tld_2 && !$isPeriodOne){
+            //             $item->tld_pengguna = $item->tld_2;
+            //         } else {
+            //             $item->tld_pengguna = $resTld_pengguna['data'][$noTld_pengguna] ?? null;
+            //             $noTld_pengguna++;
+            //         }
+            //     } else if($item->jenis == 'kontrol'){
+            //         if($item->tld_1 && $isPeriodOne){
+            //             $item->tld_pengguna = $item->tld_1;
+            //         } else {
+            //             $item->tld_pengguna = $resTld_kontrol['data'][$noTld_kontrol] ?? null;
+            //             $noTld_kontrol++;
+            //         }
+
+            //         if($item->tld_2 && !$isPeriodOne){
+            //             $item->tld_pengguna = $item->tld_2;
+            //         } else {
+            //             $item->tld_pengguna = $resTld_kontrol['data'][$noTld_kontrol] ?? null;
+            //             $noTld_kontrol++;
+            //         }
+            //     }
+            // }
+
             // cek apakah permohonan sudah ada atau belum
-            $permohonan = Permohonan::select('id_permohonan')
-                ->with(
-                    'rincian_list_tld.pengguna',
-                    'rincian_list_tld.pengguna.media_ktp',
-                    )
-                ->where('status', 11)
-                ->where('id_kontrak', decryptor($idKontrak))
-                ->where('periode', $periodeNow->periode)
-                ->first();
+            // $permohonan = Permohonan::select('id_permohonan')
+            //     ->with(
+            //         'rincian_list_tld.pengguna',
+            //         'rincian_list_tld.pengguna.media_ktp',
+            //         )
+            //     ->where('status', 11)
+            //     ->where('id_kontrak', decryptor($idKontrak))
+            //     ->where('periode', $periodeNow->periode)
+            //     ->first();
 
             $data = [
                 'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
@@ -128,7 +154,7 @@ class PelangganController extends Controller
                 'periodeNext' => $periodeNext,
                 'periode2Next' => $periode2Next,
                 'jenisLayanan' => $jenisLayanan,
-                'permohonan' => $permohonan,
+                // 'permohonan' => $permohonan,
                 'isSewa' => $isSewa
             ];
 
