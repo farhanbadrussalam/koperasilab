@@ -94,7 +94,7 @@
                                             <div>
                                                 <small class="text-muted d-block">Periode Pemakaian</small>
                                                 <div class="d-flex gap-1 flex-column">
-                                                    <div class="fw-bold text-dark" id="periode-pemakaian">3 Periode</div>
+                                                    <div class="fw-bold text-dark" id="periode-pemakaian">-</div>
                                                     <div>
                                                         <button class="btn btn-xs btn-link text-decoration-none p-0" id="btn-periode">
                                                             <i class="bi bi-eye"></i> Lihat
@@ -149,13 +149,6 @@
                                         1 Orang
                                     </span>
                                 </div>
-
-                                {{-- <div class="row text-muted small fw-bold mb-2 px-3 d-none d-md-flex">
-                                    <div class="col-1">#</div>
-                                    <div class="col-4">Nama Personil</div>
-                                    <div class="col-4">Spesifikasi Alat</div>
-                                    <div class="col-3 text-end">Kode TLD</div>
-                                </div> --}}
 
                                 <div id="pengguna-list-container"></div>
 
@@ -321,7 +314,11 @@
                     style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
                     <div class="card-body p-4 text-center">
                         <small class="text-white-50 text-uppercase fw-bold">Total Estimasi Harga</small>
+                        @if($permohonan->tipe_kontrak == 'kontrak baru')
                         <h2 class="fw-bold my-2">{{ formatCurrency($permohonan->total_harga) }}</h2>
+                        @else
+                        <h2 class="fw-bold my-2">{{ formatCurrency($permohonan->kontrak->total_harga) }}</h2>
+                        @endif
                         <span class="badge bg-white bg-opacity-25 text-white fw-normal border border-light border-opacity-25">
                             Belum Termasuk PPN
                         </span>

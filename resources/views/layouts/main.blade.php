@@ -153,7 +153,6 @@
             wssPort: "{{ config('broadcasting.connections.pusher.options.port') }}",
             forceTLS: {{ config('broadcasting.connections.pusher.options.useTLS') ? "true" : "false" }},
         };
-        // console.log('Reatime Notifikasi : ', window.__APP_ECHO_CONFIG);
         $(function () {
             let user = @json(Auth::user());
             let notifikasi = new WidgetNotifikasi('container-notifikasi',{

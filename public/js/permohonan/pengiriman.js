@@ -147,7 +147,6 @@ function loadData(page = 1) {
                 send_at: data.send_at,
                 recived_at: data.recived_at
             }
-            console.log(data);
 
             html += cardComponent(dataCard, {
                 btnAction: htmlButton

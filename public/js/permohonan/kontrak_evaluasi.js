@@ -77,9 +77,11 @@ function loadTldKontrol(tldKontrol) {
        let noTld = 0;
        for (const [i, list] of tldKontrol.entries()) {
            let dataTld = null;
+           let type = 'baru';
            if(isPeriodOne){
                if(list.tld_1){
                    dataTld = list.tld_1;
+                   type = 'lama';
                } else {
                    dataTld = tldNotUsed[noTld];
                    noTld++;
@@ -87,6 +89,7 @@ function loadTldKontrol(tldKontrol) {
            } else {
                if(list.tld_2){
                    dataTld = list.tld_2;
+                   type = 'lama';
                } else {
                    dataTld = tldNotUsed[noTld];
                    noTld++;
@@ -95,13 +98,15 @@ function loadTldKontrol(tldKontrol) {
           tmpArrTld.push({
               id: list.kontrak_detail_hash,
               tld: dataTld.tld_hash,
-              index: `tldNoSeri_${i}_kontrol`
+              index: `tldNoSeri_${i}_kontrol`,
+              type
           });
 
           let kodeLencana = i == 0 ? 'C' : `C${i}`;
 
           const dataCard = {
             index: i,
+            idHash: list.kontrak_detail_hash,
             name: `Kontrol ${list.entitas?.name ?? ''} ${kodeLencana}`,
             kode: kodeLencana,
             isCheckedEvaluasi: true,
@@ -130,9 +135,11 @@ function loadPengguna(tldPengguna){
             let fileKtp = pengguna.entitas?.media_ktp ? `${base_url}/storage/${pengguna.entitas.media_ktp.file_path}/${pengguna.entitas.media_ktp.file_hash}` : '';
 
             let dataTld = null;
+            let type = 'baru';
             if(isPeriodOne){
                if(value.tld_1){
                    dataTld = value.tld_1;
+                   type = 'lama';
                } else {
                    dataTld = tldNotUsed[noTld];
                    noTld++;
@@ -140,6 +147,7 @@ function loadPengguna(tldPengguna){
            } else {
                if(value.tld_2){
                    dataTld = value.tld_2;
+                   type = 'lama';
                } else {
                    dataTld = tldNotUsed[noTld];
                    noTld++;
@@ -149,12 +157,14 @@ function loadPengguna(tldPengguna){
             tmpArrTld.push({
                 id: value.kontrak_detail_hash,
                 tld: dataTld.tld_hash,
-                index: `tldNoSeri_${i}_pengguna`
+                index: `tldNoSeri_${i}_pengguna`,
+                type
             });
 
             const dataCard = {
                 index: i,
                 idHash: value.kontrak_detail_hash,
+                tldHash: dataTld.tld_hash,
                 name: pengguna.entitas.name,
                 divisi: pengguna.entitas.divisi?.name || '',
                 isCheckedEvaluasi: true,

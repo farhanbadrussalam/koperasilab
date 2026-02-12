@@ -218,7 +218,7 @@ function load_form() {
             checkedLhu = 'disabled';
         }
 
-        let htmlRangeDate = `(${data_permohonan.kontrak_periode?.start_date ? dateFormat(data_permohonan.kontrak_periode.start_date, 4) : '-'} - ${data_permohonan.kontrak_periode?.end_date ? dateFormat(data_permohonan.kontrak_periode.end_date, 4) : '-'})`;
+        let htmlRangeDate = `(${periode_aktif.start_date ? dateFormat(periode_aktif.start_date, 4) : '-'} - ${periode_aktif.end_date ? dateFormat(periode_aktif.end_date, 4) : '-'})`;
 
         let htmlPeriode = "";
         if(data_permohonan.lhu){

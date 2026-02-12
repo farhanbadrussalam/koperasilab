@@ -162,7 +162,6 @@ function loadData(page = 1) {
                     btnAction2 += btnUpdateProgress;
                 } else {
                     let filterPeriodeNext = lhu.permohonan.kontrak.periode.filter(d => d.periode == lhu.periode + 1 && d.status == 1);
-                    // console.log(filterPeriodeNext);
                     if(filterPeriodeNext.length > 0){
                         let reminderPeriod = isReminderPeriod(filterPeriodeNext[0].start_date, 1);
 

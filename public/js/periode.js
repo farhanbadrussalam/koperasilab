@@ -37,7 +37,6 @@ class Periode {
         });
 
         $("#btn-simpan-periode-" + this.id_element).on("click", () => {
-            // console.log("simpan periode");
             this.simpanPeriode();
         });
     }

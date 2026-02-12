@@ -69,7 +69,6 @@ $(function () {
         });
 
         periodeNextJs.on('periode.simpan.2', () => {
-            console.log("simpan periode");
             const dataPeriode = periodeNextJs.getData();
             const params = new FormData();
             params.append('idPermohonan', dataPermohonan.permohonan_hash);

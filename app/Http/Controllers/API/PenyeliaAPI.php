@@ -490,10 +490,23 @@ class PenyeliaAPI extends Controller
                     Notifier::send($userQuery, $dataNotif);
                 } else {
                     if($jobsNow->jobs->status == 17){
-                        foreach($penyelia->permohonan->kontrak->rincian_list_tld as $value){
+                        $isPeriodOne = $getPeriodeNow->count_tld == 1 || $penyelia->periode == 0;
+                        foreach($penyelia->permohonan->kontrak->kontrak_detail as $value){
                             // kondisi ketika setelah penyimpanan TLD
-                            if($value->status == 5) {
-                                $value->update(['status' => 6]);
+                            $tld = $isPeriodOne ? $value->tld_1 : $value->tld_2;
+                            $tld_status = $isPeriodOne ? $value->status_tld_1 : $value->status_tld_2;
+
+                            if($tld_status == 5) {
+                                Master_tld::where('id_tld', $tld)->update(array('status' => 1));
+
+                                $dataDetail = array();
+
+                                if($isPeriodOne) {
+                                    $dataDetail['status_tld_1'] = 6;
+                                } else {
+                                    $dataDetail['status_tld_2'] = 6;
+                                }
+                                Kontrak_detail::where('id', $value->id)->update($dataDetail);
                             }
                         }
                     }

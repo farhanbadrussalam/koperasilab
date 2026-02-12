@@ -109,7 +109,7 @@ function cardComponent(data, options = {}) {
         </div>
     ` : '';
 
-    const jobsPenyelia = data.divTimelineTugas !== undefined ? `
+    const jobsPenyelia = data.divTimelineTugas !== undefined && data.divTimelineTugas ? `
         ${data.divInfoTugas}
         <div class="col-md-12 collapse" id="timeline-progress-${data.id}">
             ${data.divTimelineTugas.elementCreate()}
@@ -364,7 +364,7 @@ function cardKontrolComponent(data, options = {}) {
                         <div class="p-2">
                             <input class="form-check-input"
                                 name="checkTldKontrol" type="checkbox"
-                                value="${data.tldHash}" aria-label="Checkbox for following text input"
+                                value="${data.idHash}" aria-label="Checkbox for following text input"
                                 id="checkTldKontrol${data.index}">
                         </div>
                     ` : ``}

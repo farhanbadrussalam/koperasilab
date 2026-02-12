@@ -306,9 +306,6 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
             if(aktifDokumenKirim.includes('tld')) {
                 if(tldSelesai) {
-                    // if(dataKontrak[index].no_kontrak == 'S-0002/JKRL/I/2026'){
-                    //     console.log(cekStatusPeriode);
-                    // }
                     if(!data.permohonan){
                         if(!statusKirimTld){
                             htmlAction = htmlBtnTld;
@@ -373,7 +370,6 @@ function buttonTLD(data_periode, data_kontrak, active){
     let btnEvaluasi = '';
     if(!data_periode.permohonan) {
         result = active;
-        console.log(result);
     }
 
     return result;
