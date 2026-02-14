@@ -13,8 +13,7 @@ $(function () {
             status : true,
             jenis_tld : true,
             no_kontrak : true,
-            date_range: true,
-            periode: true
+            date_range: true
         }
     })
 

@@ -21,7 +21,7 @@ $(function () {
             jenis_tld : true,
             jenis_layanan : true,
             no_kontrak : true,
-            periode: true
+            date_range: true
         }
     })
 
@@ -81,8 +81,8 @@ function loadData(page = 1, status) {
     filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
     filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
-    filterValue.periode && (params.filter.periode = filterValue.periode);
-    // (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
+    // filterValue.periode && (params.filter.periode = filterValue.periode);
+    (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
@@ -150,6 +150,7 @@ function loadData(page = 1, status) {
                     is_zerocek: pengajuan.is_zerocek,
                     note: pengajuan.note,
                     pelanggan: pengajuan.pelanggan.name,
+                    perusahaan: pengajuan.pelanggan.perusahaan.nama_perusahaan
                 };
                 const btnAction = `
                     <li>

@@ -720,7 +720,9 @@ class PermohonanAPI extends Controller
                                 });
                             } else if ($key == 'periode') {
                                 $q->where($key, $value);
-                            }else{
+                            } else if ($key == 'date_range') {
+                                $q->whereBetween('created_at', [$value[0], $value[1]]);
+                            } else {
                                 $q->where($key, decryptor($value));
                             }
                         }
