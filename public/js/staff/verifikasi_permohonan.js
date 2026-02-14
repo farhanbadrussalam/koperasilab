@@ -376,7 +376,7 @@ function loadPengguna(){
         let html = '';
         let htmlDisabled = false;
 
-        if(dataPermohonan.is_have_tld){
+        if(dataPermohonan.is_have_tld || dataPermohonan.tipe_kontrak == 'adendum'){
             htmlDisabled = true;
         }
 
@@ -391,7 +391,7 @@ function loadPengguna(){
             let tldHash = value.tld ? value.tld.tld_hash : (value.tld_pengguna?.tld_hash || '');
             let no_seri_tld = value.tld ? value.tld.no_seri_tld : (value.tld_pengguna?.no_seri_tld || '');
 
-            if(!value.tld) htmlDisabled = false;
+            if(!value.tld && dataPermohonan.tipe_kontrak != 'adendum') htmlDisabled = false;
 
             tmpArrTld.push({
                 id: idHash,
@@ -407,14 +407,22 @@ function loadPengguna(){
                 isCheckedEvaluasi: isCheckedEvaluasi,
                 name: pengguna.name,
                 divisi: pengguna.divisi?.name || '',
-                radiasi: value.radiasi,
+                radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
                 no_seri_tld: no_seri_tld,
                 htmlDisabled: htmlDisabled,
                 fileKtp: fileKtp
             }
 
+            if(value.type == 'ganti'){
+                data['name'] = value.pengguna_lama?.name;
+                data['pengguna_baru'] = {
+                    name: pengguna.name,
+                }
+            }
+
             html += cardPenggunaComponent(data, {
-                label_tld: true
+                label_tld: dataPermohonan.tipe_kontrak == 'adendum' ? false : true,
+                status: value.type
             });
         }
 
@@ -427,7 +435,7 @@ function loadPengguna(){
 function verif_kelengkapan(status, obj){
     if(status == 'lengkap'){
         let [ttdValue, ttdBy] = signaturePad.getValue();
-        if(dataPermohonan.tandaterima.length == 0){
+        if(dataPermohonan.tandaterima.length == 0 && dataPermohonan.tipe_kontrak != 'adendum'){
             return Swal.fire({
                 icon: "warning",
                 text: "Harap tambah tandaterima terlebih dahulu.",
@@ -474,22 +482,39 @@ function verif_kelengkapan(status, obj){
                 formData.append('ttd_by', ttdBy);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
-                formData.append('listTld', JSON.stringify(tmpArrTld));
 
                 spinner('show', obj);
-                ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Permohonan terverifikasi',
-                        timer: 1200,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = base_url+"/staff/permohonan";
+                if(dataPermohonan.tipe_kontrak == 'adendum'){
+                    ajaxPost(`api/v1/permohonan/verifikasi/adendum`, formData, result => {
+                        Swal.fire({
+                            icon: 'success',
+                            text: 'Permohonan terverifikasi',
+                            timer: 1200,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = base_url+"/staff/permohonan";
+                        });
+                    }, error => {
+                        spinner('hide', obj);
                     });
-                }, error => {
-                    spinner('hide', obj);
-                });
+                } else {
+                    formData.append('listTld', JSON.stringify(tmpArrTld));
+
+                    ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
+                        Swal.fire({
+                            icon: 'success',
+                            text: 'Permohonan terverifikasi',
+                            timer: 1200,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = base_url+"/staff/permohonan";
+                        });
+                    }, error => {
+                        spinner('hide', obj);
+                    });
+                }
             }
         })
     }else if(status == 'tidak_lengkap'){

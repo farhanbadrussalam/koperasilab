@@ -77,6 +77,17 @@
 
                                 <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Spesifikasi Kontrak</h6>
                                 <div class="row g-4">
+                                    <div class="col-md-12 {{ $permohonan->kontrak ? '' : 'd-none' }}">
+                                        <div class="d-flex mb-3 align-items-center">
+                                            <i class="bi bi-hash me-3 text-secondary fs-5"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Nomer Kontrak</small>
+                                                <span class="font-monospace fw-bold text-dark">
+                                                    {{ $permohonan->kontrak->no_kontrak }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="col-md-6">
                                         <div class="d-flex mb-3 align-items-center">
                                             <i class="bi bi-file-text me-3 text-secondary fs-5"></i>
@@ -314,7 +325,7 @@
                     style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
                     <div class="card-body p-4 text-center">
                         <small class="text-white-50 text-uppercase fw-bold">Total Estimasi Harga</small>
-                        @if($permohonan->tipe_kontrak == 'kontrak baru')
+                        @if($permohonan->tipe_kontrak == 'kontrak baru' || $permohonan->tipe_kontrak == 'adendum')
                         <h2 class="fw-bold my-2">{{ formatCurrency($permohonan->total_harga) }}</h2>
                         @else
                         <h2 class="fw-bold my-2">{{ formatCurrency($permohonan->kontrak->total_harga) }}</h2>
@@ -325,7 +336,7 @@
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm rounded-4 mb-3">
+                <div class="card border-0 shadow-sm rounded-4 mb-3 {{ $permohonan->tipe_kontrak == 'adendum' ? 'd-none' : '' }}">
                     <div class="card-header bg-white border-bottom-0 pt-4 px-4 rounded-top-4">
                         <h6 class="fw-bold text-dark m-0">
                             <i class="bi bi-paperclip me-2 text-danger"></i>Berkas Kelengkapan

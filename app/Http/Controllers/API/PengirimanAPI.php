@@ -472,7 +472,7 @@ class PengirimanAPI extends Controller
                         ? ['status_tld_1' => 2]
                         : ['status_tld_2' => 2];
 
-                Kontrak_detail::where('id_kontrak', $query->id_kontrak)->update($updateData);
+                Kontrak_detail::where('id_kontrak', $query->id_kontrak)->where('status', 1)->update($updateData);
             }
 
             // kondisi ketika semua periode complete, dan akan mengganti status di kontrak nya menjadi 2
@@ -607,7 +607,7 @@ class PengirimanAPI extends Controller
                 $update['status_tld_2'] = 5;
             }
 
-            Kontrak_detail::where('id_kontrak', $fileBukti->id_kontrak)->update($update);
+            Kontrak_detail::where('id_kontrak', $fileBukti->id_kontrak)->where('status', 1)->update($update);
 
             // update id_pengiriman di invoice, lhu, dan tld
             Keuangan::where('id_pengiriman', $id)->update(['id_pengiriman' => null]);

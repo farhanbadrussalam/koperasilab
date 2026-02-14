@@ -20,6 +20,8 @@ class TldPenggunaSelector {
         // Internal state
         this.datatable = null;
 
+        this.dataSelected = [];
+
         // Initialize
         this._initDataTable();
         this._bindEvents();
@@ -42,6 +44,8 @@ class TldPenggunaSelector {
                     d.filter = {
                         name: $(self.searchId).val()
                     };
+
+                    self.dataSelected.length > 0 && (d.selected = self.dataSelected);
                     d.type = self.type;
                 }
             },
@@ -121,6 +125,10 @@ class TldPenggunaSelector {
 
             this._dispatchSelectEvent(btn, userData, 'pengguna.request_edit');
         })
+
+        $(this.modalId).on('hidden.bs.modal', () => {
+            this._dispatchSelectEvent(null, null, 'pengguna.hide');
+        })
     }
 
     /**
@@ -139,7 +147,8 @@ class TldPenggunaSelector {
     /**
      * Public Method: Menampilkan Modal & Reload Data
      */
-    show() {
+    show(dataSelected = []) {
+        this.dataSelected = dataSelected;
         this.reload(); // Refresh data terbaru
         $(this.modalId).modal('show');
     }

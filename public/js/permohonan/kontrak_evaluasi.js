@@ -62,7 +62,15 @@ $(function () {
 })
 
 function loadTld() {
-    let tldPengguna = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'pengguna');
+    let isPeriodOne = dataPeriodeNow.count_tld == 1;
+    let tldPengguna = dataKontrak.kontrak_detail.filter(tld => {
+        if(tmpArrSewa.includes(JL)){
+            return tld.jenis == 'pengguna' && (isPeriodOne ? tld.tld_1 : tld.tld_2);
+        } else {
+            return tld.jenis == 'pengguna';
+        }
+    });
+    console.log(tldPengguna)
     let tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol');
 
     loadTldKontrol(tldKontrol);

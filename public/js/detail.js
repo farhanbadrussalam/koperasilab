@@ -225,7 +225,8 @@ class Detail {
                     periodeNow: this.data.periode ?? '',
                     layananJasa: this.data.layanan_jasa?.nama_layanan ?? '',
                     jenisTld: this.data.jenis_tld?.name ?? '',
-                    jenisStatus: 'kontrak'
+                    jenisStatus: 'kontrak',
+                    detail: this.data.kontrak_detail ?? [],
                 }
                 break;
             case 'perusahaan':
@@ -747,6 +748,7 @@ class Detail {
                 const pengguna = item.entitas;
                 let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
+
                 const dataCard = {
                     index: i,
                     idHash: item.permohonan_detail_hash,
@@ -759,9 +761,17 @@ class Detail {
                     htmlDisabled: true
                 }
 
+                if(item.type == 'ganti' && this.options.jenis == 'permohonan'){
+                    dataCard['name'] = item.pengguna_lama?.name;
+                    dataCard['pengguna_baru'] = {
+                        name: pengguna.name,
+                    }
+                }
+
                 html += cardPenggunaComponent(dataCard, {
                     is_have_tld: false,
-                    label_tld: false
+                    label_tld: false,
+                    status: item.type
                 });
             }
             return html;
@@ -777,18 +787,26 @@ class Detail {
         let dataDokumen = [];
         let invoiceData = false;
         let dataPermohonan = false;
+        let kontrak_hash = false;
         switch (this.options.jenis) {
             case 'permohonan':
                 this.data.kontrak?.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
                 dataDokumen = dataDokumen.concat(this.data.dokumen);
                 invoiceData = this.data.invoice;
                 dataPermohonan = this.data;
+                kontrak_hash = this.data.kontrak.kontrak_hash;
                 break;
             case 'penyelia':
                 this.data.permohonan.kontrak?.document_kontrak && (dataDokumen = this.data.permohonan.kontrak.document_kontrak);
                 dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
                 invoiceData = this.data.permohonan.invoice;
                 dataPermohonan = this.data.permohonan;
+                kontrak_hash = this.data.permohonan.kontrak.kontrak_hash;
+                break
+            case 'kontrak':
+                console.log(this.data);
+                this.data?.document_kontrak && (dataDokumen = this.data.document_kontrak);
+                kontrak_hash = this.data.kontrak_hash;
                 break;
             default:
                 break;
@@ -807,10 +825,10 @@ class Detail {
                     idHash = invoiceData?.keuangan_hash;
                     break;
                 case 'kontrak':
-                    idHash = dataPermohonan.kontrak.kontrak_hash;
+                    idHash = kontrak_hash;
                     break;
                 case 'KontrakPengujian':
-                    idHash = dataPermohonan.kontrak.kontrak_hash;
+                    idHash = kontrak_hash;
                     break;
                 default:
                     idHash = dataPermohonan.permohonan_hash;
@@ -925,30 +943,50 @@ class Detail {
     createPeriodeContent() {
         let htmlPeriode = '';
         let data = this.data;
-        if (this.data.tipe_kontrak == 'kontrak lama') {
+        if (this.data.tipe_kontrak == 'kontrak lama' || this.data.tipe_kontrak == 'adendum') {
             let findPeriode = data.kontrak?.periode.find(periode => periode.periode == data.periode);
-            htmlPeriode = `
-                <div class="card mb-1">
-                    <div class="card-body p-1 px-3">
-                        <div>Periode ${data.periode}</div>
-                        <div class="text-body-secondary">
-                            <small>${dateFormat(findPeriode.start_date, 4)} - ${dateFormat(findPeriode.end_date, 4)}</small>
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            for (const [i, periode] of data.periode_pemakaian.entries()) {
-                htmlPeriode += `
+            if(findPeriode){
+                htmlPeriode = `
                     <div class="card mb-1">
                         <div class="card-body p-1 px-3">
-                            <div>Periode ${i + 1}</div>
+                            <div>Periode ${data.periode}</div>
                             <div class="text-body-secondary">
-                                <small>${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)}</small>
+                                <small>${dateFormat(findPeriode.start_date, 4)} - ${dateFormat(findPeriode.end_date, 4)}</small>
                             </div>
                         </div>
                     </div>
                 `;
+            } else {
+                htmlPeriode = `<span class="text-danger">Periode tidak ditemukan</span>`;
+            }
+        } else {
+            if(this.info.periodePemakaian && this.info.periodePemakaian.length > 0){
+                for (const [i, periode] of this.info.periodePemakaian.entries()) {
+                    htmlPeriode += `
+                        <div class="card mb-1">
+                            <div class="card-body p-1 px-3">
+                                <div>Periode ${i + 1}</div>
+                                <div class="text-body-secondary">
+                                    <small>${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                for (const [i, periode] of this.info.periodeNow.entries()) {
+                    if(periode.periode == 0) continue;
+                    htmlPeriode += `
+                        <div class="card mb-1">
+                            <div class="card-body p-1 px-3">
+                                <div>Periode ${periode.periode}</div>
+                                <div class="text-body-secondary">
+                                    <small>${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             }
         }
         return `

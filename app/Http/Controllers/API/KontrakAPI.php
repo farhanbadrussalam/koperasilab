@@ -12,9 +12,11 @@ use App\Models\Kontrak_tld;
 
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
-
+use App\Models\Kontrak_detail;
+use App\Models\Master_pengguna;
 use Auth;
 use DB;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class KontrakAPI extends Controller
 {
@@ -158,7 +160,7 @@ class KontrakAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Kontrak::with(
+            $query = Kontrak::with([
                         'periode',
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',
@@ -175,7 +177,15 @@ class KontrakAPI extends Controller
                         'pengiriman.detail',
                         'pengiriman.permohonan:id_permohonan,periode',
                         'tld_aktif',
-                    )
+                        'kontrak_detail',
+                        'kontrak_detail.tld_1',
+                        'kontrak_detail.tld_2',
+                        'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                            $morphTo->morphWith([
+                                Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                            ]);
+                        },
+                    ])
                     ->where('id_kontrak', $id)
                     ->first();
 
@@ -216,11 +226,13 @@ class KontrakAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $data = Kontrak_tld::with(
-                'divisi',
-                'pengguna',
-                'pengguna.media_ktp'
-            )->where('id_kontrak', $idKontrak)->get();
+            $data = Kontrak_detail::with([
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                }
+            ])->where('id_kontrak', $idKontrak)->where('status', 1)->get();
 
             DB::commit();
             return $this->output($data, 200);

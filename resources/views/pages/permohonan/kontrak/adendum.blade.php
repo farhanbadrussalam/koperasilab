@@ -23,7 +23,7 @@
 
                     <div class="card-body p-4">
                         <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">
-                            <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">1</span> Perpanjang Periode
+                            <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">1</span> Periode
                         </h6>
                         <div class="row g-3 mb-3">
                             <div class="input-group mb-3 shadow-sm rounded-3 overflow-hidden px-0">
@@ -61,6 +61,9 @@
                             <h6 class="text-uppercase text-muted small fw-bold mb-0 tracking-wide">
                                 <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">3</span> Daftar Kontrol TLD
                             </h6>
+                            <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 d-none" id="btn-add-kontrol">
+                                <i class="bi bi-plus-lg me-1"></i>Tambah Kontrol
+                            </button>
                         </div>
 
                         <div class="card bg-light border-0">
@@ -69,13 +72,20 @@
 
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Catatan Tambahan</label>
-                            <textarea class="form-control bg-light border-0" rows="3" placeholder="Tuliskan keterangan jika ada perubahan khusus..."></textarea>
+                            <textarea class="form-control bg-light border-0" id="catatan" rows="3" placeholder="Tuliskan keterangan jika ada perubahan khusus..."></textarea>
+                        </div>
+
+                        <div class="mb-3" id="form-zero-cek">
+                            <div class="form-check form-switch" id="switch-zerocek">
+                                <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
+                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero cek</label>
+                            </div>
                         </div>
                     </div>
 
                     <div class="card-footer bg-white border-top-0 p-4 text-end rounded-bottom-4">
                         <button type="button" class="btn btn-light rounded-pill px-4 me-2 text-muted">Batal</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm">
+                        <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold shadow-sm" onclick="simpanAdendum(this)">
                             Simpan Perubahan
                         </button>
                     </div>
@@ -83,35 +93,47 @@
             </div>
 
             <div class="col-lg-4">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 rounded-top-4">
-                        <h5 class="fw-bold text-primary mb-0">
-                            <i class="bi bi-info-circle me-2"></i>Rincian Kontrak
-                        </h5>
+                <div class="sticky-sidebar">
+                    <div class="card border-0 shadow-sm rounded-4 bg-primary text-white mb-3"
+                        style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                        <div class="card-body p-4 text-center">
+                            <small class="text-white-50 text-uppercase fw-bold">Total Estimasi Harga</small>
+                            <h2 class="fw-bold my-2" id="total-harga">{{ formatCurrency(0) }}</h2>
+                            <span class="badge bg-white bg-opacity-25 text-white fw-normal border border-light border-opacity-25">
+                                Belum Termasuk PPN
+                            </span>
+                        </div>
                     </div>
-                    <div class="card-body p-4">
-                        <div class="mb-4">
-                            <label class="text-uppercase text-muted small fw-bold tracking-wide">Nomor Kontrak</label>
-                            <div class="p-3 bg-light rounded-3 border mt-1">
-                                <span class="fw-bold text-dark">{{ $kontrak->no_kontrak }}</span>
-                            </div>
+                    <div class="card border-0 shadow-sm rounded-4">
+                        <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 rounded-top-4">
+                            <h5 class="fw-bold text-primary mb-0">
+                                <i class="bi bi-info-circle me-2"></i>Rincian Kontrak
+                            </h5>
                         </div>
-
-                        <div class="mb-4">
-                            <label class="text-uppercase text-muted small fw-bold tracking-wide">Pelanggan</label>
-                            <div class="p-3 bg-light rounded-3 border mt-1">
-                                <div class="fw-bold">{{ $kontrak->pelanggan->perusahaan->nama_perusahaan }}</div>
-                                <div class="small">PIC: <b>{{ $kontrak->pelanggan->name }}</b></div>
-                                <div class="small text-muted">{{ $kontrak->pelanggan->perusahaan->alamat[0]->alamat }}</div>
+                        <div class="card-body p-4">
+                            <div class="mb-4">
+                                <label class="text-uppercase text-muted small fw-bold tracking-wide">Nomor Kontrak</label>
+                                <div class="p-3 bg-light rounded-3 border mt-1">
+                                    <span class="fw-bold text-dark">{{ $kontrak->no_kontrak }}</span>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="mb-4">
-                            <label class="text-uppercase text-muted small fw-bold tracking-wide">Layanan</label>
-                            <div class="p-3 bg-light rounded-3 border mt-1">
-                                <div>{{ $kontrak->jenisTld->name }} - Layanan {{ $kontrak->layanan_jasa->nama_layanan }}</div>
-                                <div class="badge bg-light text-dark border rounded-pill fw-normal px-3">
-                                    {{ $kontrak->jenis_layanan->name }} - {{ $kontrak->jenis_layanan_parent->name }}
+                            <div class="mb-4">
+                                <label class="text-uppercase text-muted small fw-bold tracking-wide">Pelanggan</label>
+                                <div class="p-3 bg-light rounded-3 border mt-1">
+                                    <div class="fw-bold">{{ $kontrak->pelanggan->perusahaan->nama_perusahaan }}</div>
+                                    <div class="small">PIC: <b>{{ $kontrak->pelanggan->name }}</b></div>
+                                    <div class="small text-muted">{{ $kontrak->pelanggan->perusahaan->alamat[0]->alamat }}</div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="text-uppercase text-muted small fw-bold tracking-wide">Layanan</label>
+                                <div class="p-3 bg-light rounded-3 border mt-1">
+                                    <div>{{ $kontrak->jenisTld->name }} - Layanan {{ $kontrak->layanan_jasa->nama_layanan }}</div>
+                                    <div class="badge bg-light text-dark border rounded-pill fw-normal px-3">
+                                        {{ $kontrak->jenis_layanan->name }} - {{ $kontrak->jenis_layanan_parent->name }}
+                                    </div>
                                 </div>
                             </div>
                         </div>

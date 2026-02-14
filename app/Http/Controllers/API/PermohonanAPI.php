@@ -56,6 +56,62 @@ class PermohonanAPI extends Controller
         $this->global = config('customvariabel');
     }
 
+    public function tambahAdendum(Request $request){
+        DB::beginTransaction();
+        try {
+            $note = $request->note ? $request->note : null;
+            $pengguna = $request->pengguna ? json_decode($request->pengguna) : false;
+            $kontrol = $request->kontrol ? json_decode($request->kontrol) : false;
+            $idPeriode = $request->idPeriode ? decryptor($request->idPeriode) : false;
+            $idKontrak = $request->id_kontrak ? decryptor($request->id_kontrak) : false;
+            $totalHarga = $request->sub_total ? $request->sub_total : false;
+
+            $dataKontrak = Kontrak::find($idKontrak);
+            $dataPeriode = Kontrak_periode::find($idPeriode);
+
+            $jumPenggunaBaru = count(array_filter($pengguna, function($item) {
+                return $item->status == 'baru';
+            }));
+
+            $jumKontrolBaru = count(array_filter($kontrol, function($item) {
+                return $item->status == 'baru';
+            }));
+
+            $data = array();
+
+            $data['id_layanan'] = $dataKontrak->id_layanan;
+            $data['jenis_layanan_1'] = $dataKontrak->jenis_layanan_1;
+            $data['jenis_layanan_2'] = $dataKontrak->jenis_layanan_2;
+            $data['tipe_kontrak'] = 'adendum';
+            $data['id_kontrak'] = $idKontrak;
+            $data['periode'] = $dataPeriode->periode;
+            $data['jenis_tld'] = $dataKontrak->jenis_tld;
+            $data['jumlah_pengguna'] = $jumPenggunaBaru;
+            $data['jumlah_kontrol'] = $jumKontrolBaru;
+            $data['total_harga'] = $totalHarga;
+            $data['harga_layanan'] = $dataKontrak->harga_layanan;
+            $data['note'] = $note;
+            $data['is_zerocek'] = $dataKontrak->is_zerocek;
+            $data['is_have_tld'] = $dataKontrak->is_have_tld;
+            $data['status'] = 1;
+            $data['created_by'] = Auth::user()->id;
+
+            $permohonan = Permohonan::create($data);
+
+            if($permohonan) {
+                $this->saveTldAdendum($permohonan->id_permohonan, $pengguna, $kontrol);
+            }
+
+            DB::commit();
+
+            return $this->output(array('msg' => 'Adendum berhasil disimpan'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -359,6 +415,31 @@ class PermohonanAPI extends Controller
         }
     }
 
+    private function saveTldAdendum($idPermohonan, $tldPengguna, $tldKontrol){
+        foreach ($tldPengguna as $value) {
+            $idPengguna = null;
+            $idPenggunaLama = null;
+            if($value->status == 'baru'){
+                $idPengguna = (int) decryptor($value->pengguna);
+            } else if($value->status == 'ganti'){
+                $idPengguna = (int) decryptor($value->pengguna_baru);
+                $idPenggunaLama = (int) decryptor($value->pengguna);
+            }
+            $data = array(
+                'id_permohonan' => $idPermohonan,
+                'id_pengguna_divisi' => $idPengguna,
+                'jenis' => 'pengguna',
+                'status' => 1,
+                'type' => $value->status,
+                'pengguna_lama' => $idPenggunaLama,
+                'created_by' => Auth::user()->id
+            );
+
+            Permohonan_detail::create($data);
+            Master_pengguna::where('id_pengguna', $idPengguna)->update(['status' => 2]);
+        }
+    }
+
     public function tambahTandaterima(Request $request)
     {
         $validator = $request->validate([
@@ -468,7 +549,7 @@ class PermohonanAPI extends Controller
         try {
             $dataTld = Permohonan_detail::where('id_permohonan', $id)->get();
             $permohonan = Permohonan::where('id_permohonan', $id)->first();
-            if($dataTld && !$permohonan->id_kontrak) {
+            if($dataTld && (!$permohonan->id_kontrak || $permohonan->tipe_kontrak == 'adendum')) {
                 foreach ($dataTld as $item) {
                     if($item->jenis == 'pengguna') {
                         Master_pengguna::where('id_pengguna', $item->id_pengguna_divisi)->update(['status' => 1]);
@@ -560,7 +641,8 @@ class PermohonanAPI extends Controller
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
                     ]);
                 },
-                'tld'
+                'tld',
+                'pengguna_lama'
             ])
             ->where('id_permohonan', $idPermohonan)
             ->where('jenis', 'pengguna')
@@ -855,6 +937,7 @@ class PermohonanAPI extends Controller
                 'kontrak.jenisTld:id_jenisTld,name',
                 'permohonan_detail',
                 'permohonan_detail.tld',
+                'permohonan_detail.pengguna_lama',
                 'permohonan_detail.entitas' => function (MorphTo $morphTo) {
                     $morphTo->morphWith([
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
@@ -959,6 +1042,97 @@ class PermohonanAPI extends Controller
                 DB::commit();
 
             return $this->output($price);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function verifAdendum(Request $request){
+
+        DB::beginTransaction();
+        try {
+            $ttd = $request->ttd ? decryptor($request->ttd) : null;
+            $ttdBy = $request->ttd_by ? decryptor($request->ttd_by) : null;
+            $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+
+            $dataPermohonan = Permohonan::with([
+                'permohonan_detail',
+                'permohonan_detail.entitas' =>function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
+                'permohonan_detail.tld',
+            ])->where('id_permohonan', $idPermohonan)->first();
+
+            if($dataPermohonan){
+                // menonaktifkan pengguna yang sudah diganti di kontrak
+                foreach($dataPermohonan->permohonan_detail as $detail){
+                    $dataDetail = array(
+                        'status' => 1,
+                        'id_pengguna_divisi' => $detail->id_pengguna_divisi,
+                        'jenis' => $detail->jenis,
+                        'type' => $detail->type,
+                        'id_kontrak' => $dataPermohonan->id_kontrak,
+                        'created_by' => Auth::user()->id
+                    );
+
+                    if($detail->type == 'ganti'){
+                        $kontrakDetail = kontrak_detail::where('id_kontrak', $dataPermohonan->id_kontrak)
+                            ->where('id_pengguna_divisi', $detail->pengguna_lama)
+                            ->where('status', 1)
+                            ->first();
+
+                        $dataDetail['tld_1'] = $kontrakDetail->tld_1;
+                        $dataDetail['status_tld_1'] = $kontrakDetail->status_tld_1;
+                        $dataDetail['tld_2'] = $kontrakDetail->tld_2;
+                        $dataDetail['status_tld_2'] = $kontrakDetail->status_tld_2;
+                        $dataDetail['pengguna_lama'] = $detail->pengguna_lama;
+
+                        $kontrakDetail->update(['status' => 2]);
+
+                        Master_pengguna::where('id_pengguna', $detail->pengguna_lama)->update(['status' => 1]);
+                    }
+
+                    Kontrak_detail::create($dataDetail);
+                    Master_pengguna::where('id_pengguna', $detail->id_pengguna_divisi)->update(['status' => 3]);
+                }
+
+                $dataPermohonan->update(array(
+                    'ttd' => $ttd,
+                    'ttd_by' => $ttdBy,
+                    'verify_at' => date('Y-m-d H:i:s'),
+                    'status' => 2
+                ));
+
+                // buatkan invoice jika total harga lebih besar dari 0
+                if($dataPermohonan->total_harga > 0){
+                    $kontrak = Kontrak::where('id_kontrak', $dataPermohonan->id_kontrak)->first();
+                    $totalharga = $kontrak->total_harga + $dataPermohonan->total_harga;
+
+                    $kontrak->update(array(
+                        'total_harga' => $totalharga
+                    ));
+
+                    $invoiceData = $this->keuangan->keuanganAction(new Request([
+                        'idPermohonan' => $dataPermohonan->id_permohonan,
+                        'status' => 1
+                    ]));
+
+                    if($invoiceData->getStatusCode() != 200){
+                        $content = json_decode($invoiceData->getContent());
+                        Log::error("Invoice creation failed: ".$content->msg);
+                        throw new \Exception($content->msg ?? 'Gagal membuat invoice');
+                    }
+                }
+
+                DB::commit();
+                return $this->output(array('msg' => 'Permohonan berhasil diverifikasi'), 'Success', 200);
+            }else{
+                return $this->output(array('msg' => 'Permohonan tidak ditemukan'), 'Fail', 404);
+            }
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

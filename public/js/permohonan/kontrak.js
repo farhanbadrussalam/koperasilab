@@ -4,7 +4,11 @@ $(function () {
     loadData();
     detail = new Detail({
         jenis: 'kontrak',
-        tab: {}
+        tab: {
+            pengguna: true,
+            periode: true,
+            dokumen: true
+        }
     });
 
     filterComp = new FilterComponent('list-filter', {

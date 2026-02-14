@@ -35,6 +35,7 @@ class PenggunaController extends Controller
     public function getData(Request $request)
     {
         $filter = $request->has('filter') ? $request->filter : [];
+        $selected = $request->has('selected') ? $request->selected : [];
         $role = Auth::user()->getRoleNames()->toArray();
         $pengguna = Master_pengguna::with('media_ktp', 'divisi')
                     ->when($filter, function($q, $filter) {
@@ -59,7 +60,7 @@ class PenggunaController extends Controller
 
         return DataTables::of($pengguna)
             ->addIndexColumn()
-            ->addColumn('html', function ($row) use ($type) {
+            ->addColumn('html', function ($row) use ($type, $selected) {
                 $initial = isset($row->name) ? strtoupper(substr($row->name, 0, 1)) : '?';
 
                 $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
@@ -85,7 +86,14 @@ class PenggunaController extends Controller
 
                 $status = '';
                 if ($type == 'selected') {
-                    $btn .= '<button class="btn btn-sm btn-outline-primary align-self-center btn-pilih-user" data-id="' . $row->pengguna_hash . '"> Pilih</button>' ;
+                    $find = Arr::first($selected, function ($value, $key) use ($row) {
+                        return $value == $row->pengguna_hash;
+                    });
+                    if($find) {
+                        $btn .= '<span class="text-success"><i class="bi bi-check"></i> Terpilih</span>';
+                    } else {
+                        $btn .= '<button class="btn btn-sm btn-outline-primary align-self-center btn-pilih-user" data-id="' . $row->pengguna_hash . '"> Pilih</button>' ;
+                    }
                     $btn2 .= $btnEdit;
                 } else {
                     switch ($row->status) {

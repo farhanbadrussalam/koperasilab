@@ -194,6 +194,7 @@ function cardPenggunaComponent(data, options = {}) {
     let htmlEval = ``;
 
     let txtStatus = '';
+    let htmlPergantian = '';
     let btnRemove = ``;
     let btnGantiPengguna = ``;
     if(options.status == 'baru'){
@@ -203,20 +204,42 @@ function cardPenggunaComponent(data, options = {}) {
             </span>
         `;
 
-        btnRemove = `
-            <li>
-                <a class="dropdown-item small text-danger" href="javascript:void(0)" data-id="${data.idHash}" onclick="removePengguna(this)">
-                    <i class="bi bi-trash me-2" title="Hapus"></i>Hapus
-                </a>
-            </li>
-        `;
-    } else if(options.status == 'stay') {
+        if(options.is_adendum){
+            btnRemove = `
+                <li>
+                    <a class="dropdown-item small text-danger" href="javascript:void(0)" data-id="${data.idHash}" onclick="removePengguna(this)">
+                        <i class="bi bi-trash me-2" title="Hapus"></i>Hapus
+                    </a>
+                </li>
+            `;
+        }
+    } else if(options.status == 'lama') {
         btnGantiPengguna = `
             <li>
                 <a class="dropdown-item small text-warning" href="#" data-id="${data.idHash}" onclick="gantiPengguna(this)">
                     <i class="bi bi-pencil me-2" title="Ganti Pengguna"></i>Ganti Pengguna
                 </a>
             </li>
+        `;
+    }
+
+    if(data.pengguna_baru){
+        txtStatus += `
+            <span class="badge bg-warning-subtle text-warning-emphasis border-warning-subtle border border-info-subtle rounded-pill fw-normal px-3">
+                Ganti
+            </span>
+        `;
+
+        if(data.pengguna_baru.pengguna_hash){
+            txtStatus += `
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-id="${data.pengguna_baru.pengguna_hash}" onclick="deletePergantian(this)" title="Delete">Batal</button>
+
+            `;
+        }
+
+        htmlPergantian += `
+            <span><i class="bi bi-arrow-right"></i></span>
+            <span class="fw-bold">${data.pengguna_baru.name}</span>
         `;
     }
 
@@ -253,8 +276,10 @@ function cardPenggunaComponent(data, options = {}) {
                             <div class="rounded-circle bg-light text-primary fw-bold d-none justify-content-center align-items-center me-2"
                                 style="width: 35px; height: 35px;">${inisial}</div>
                             <div class="gap-2>
-                                <h6 class="mb-0 fw-bold text-dark small">${data.name}</h6>
-                                <small class="text-muted d-md-none">${data.divisi}</small>
+                                <h6 class="mb-0 fw-bold text-dark small d-flex gap-2 align-items-center">${data.name} ${htmlPergantian}</h6>
+                                <div>
+                                    <small class="text-muted">${data.divisi}</small>
+                                </div>
 
                                 <div class="d-flex flex-wrap gap-1">
                                     ${txtRadiasi}

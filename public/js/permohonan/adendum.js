@@ -2,33 +2,19 @@ let periodeJs = false;
 let arrOption = {
     periode: [],
     pengguna: [],
-    note: false
+    kontrol: [],
+    subTotal: 0
 };
 let arr_pengguna = [];
 let arr_kontrol = [];
-let inventoryTld = false;
 let tmpArrTld = [];
-let periode_select = false;
+let pengguna_selected = [];
+let pengguna_old = false;
 
 let tldSelector;
 
 $(function () {
     loadKontrakTld();
-
-    inventoryTld = new Inventory_tld({preview: true});
-    inventoryTld.on('inventory.selected', (e) => {
-        const detail = e.detail;
-
-        $(`#${detail.selected}`).val(detail.data_tld.no_seri_tld);
-        $(`#${detail.selected}_view`).html(detail.data_tld.no_seri_tld);
-
-        // reset tmpArrTld
-        let index = tmpArrTld.findIndex(d => d.index == detail.selected);
-
-        if(index > -1){
-            tmpArrTld[index].tld = detail.data_tld.tld_hash;
-        }
-    });
 
     $('#btn-periode').on('click', obj => {
         $('#modal-pilih-periode').modal('show');
@@ -44,7 +30,14 @@ $(function () {
     });
 
     $('#btn-add-pengguna').click(() => {
-        tldSelector.show();
+        tldSelector.show(pengguna_selected);
+    })
+
+    $('#btn-add-kontrol').click(() => {
+        arrOption.kontrol.push({
+            kontrol: '',
+            id: ''
+        })
     })
 
     $('#modal-pilih-periode').on('hide.bs.modal', () => {
@@ -76,7 +69,79 @@ $(function () {
         const obj = event.detail.html;
         btnPilihPengguna(obj);
     })
+
+    document.addEventListener('pengguna.hide', (event) => {
+        pengguna_old = false;
+    })
 });
+
+function simpanAdendum(obj){
+    const note = $('#catatan').val();
+
+    // Validasi
+    if(arrOption.periode.length == 0){
+        return Swal.fire({
+            icon: 'warning',
+            text: 'Tolong pilih periode!'
+        })
+    }
+
+    const arrPengguna = arrOption.pengguna
+        .filter(d => d.status != 'lama')
+        .map(value => ({
+            pengguna: value.pengguna.pengguna_hash,
+            pengguna_baru: value.pengguna_baru?.pengguna_hash,
+            status: value.status
+        }));
+
+    const arrKontrol = arrOption.kontrol
+        .filter(d => d.status != 'lama')
+        .map(value => ({
+            kontrol: value.kontrol.kontrol_hash,
+            kontrol_baru: value.kontrol_baru?.kontrol_hash,
+            status: value.status
+        }));
+
+    const periode = arrOption.periode;
+    const subTotal = arrOption.subTotal;
+
+    const params = new FormData();
+    params.append('note', note);
+    params.append('pengguna', JSON.stringify(arrPengguna));
+    params.append('kontrol', JSON.stringify(arrKontrol));
+    params.append('idPeriode', periode.periode_hash);
+    params.append('sub_total', subTotal);
+    params.append('id_kontrak', dataKontrak.kontrak_hash);
+
+    spinner('show', $(obj));
+    Swal.fire({
+            title: 'Apa kamu yakin?',
+            text: "Apakah Anda ingin melanjutkan tindakan ini?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, proceed!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                ajaxPost('api/v1/permohonan/tambahAdendum', params, result => {
+                    Swal.fire({
+                        icon: 'success',
+                        text: 'Adendum berhasil disimpan',
+                        timer: 1200,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = base_url+"/permohonan/pengajuan";
+                    })
+                }, error => {
+                    spinner('hide', $(obj));
+                })
+            } else {
+                spinner('hide', $(obj));
+            }
+        })
+}
 
 function simpanPeriode(){
     const dataPeriode = periodeJs.getData();
@@ -116,9 +181,9 @@ function loadPeriode(){
             htmlAktif = `<span class="badge bg-info-subtle text-dark">Aktif</span>`;
         }
 
-        const btnPilih = (periode_select && periode_select.periode == data.periode)
+        const btnPilih = (arrOption.periode && arrOption.periode.periode == data.periode)
             ? '<span class="text-muted">Dipilih</span>'
-            : `<button type="button" class="btn btn-sm btn-primary" data-periode="${index}" data-aktif="${is_aktif}" onclick="pilihPeriode(this)">Pilih</button>`;
+            : `<button type="button" class="btn btn-sm btn-primary ${is_aktif ? 'd-none' : 'd-block'}" data-periode="${index}" data-aktif="${is_aktif}" onclick="pilihPeriode(this)">Pilih</button>`;
 
         html += `
             <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-light rounded-3 border mt-1">
@@ -142,8 +207,8 @@ function loadKontrakTld(){
 
     ajaxGet(`api/v1/kontrak/getKontrakTld`, params, result => {
         // pisahkan pengguna dan kontrol
-        arr_pengguna = result.data.filter(tld => tld.pengguna);
-        arr_kontrol = result.data.filter(tld => !tld.pengguna);
+        arr_pengguna = result.data.filter(d => d.jenis == 'pengguna');
+        arr_kontrol = result.data.filter(d => d.jenis == 'kontrol');
 
         loadPengguna();
         loadKontrol();
@@ -156,16 +221,9 @@ function loadPengguna(){
     // load tld pengguna
     for (const [i, value] of arr_pengguna.entries()) {
         arrOption.pengguna.push({
-            status: 'stay',
-            is_have_tld: dataKontrak.is_have_tld,
-            detail_lama: {
-                pengguna: value.pengguna,
-                tld: value.tld
-            },
-            detail_baru: {
-                pengguna: false,
-                tld: false
-            }
+            status: 'lama',
+            pengguna: value.entitas,
+            pengguna_baru: false
         });
     }
 
@@ -182,26 +240,15 @@ function loadPengguna(){
  * @param {Array} arr_kontrol - array of tld kontrol data
  */
 function loadKontrol(){
-    const htmlKontrol = arr_kontrol.map(value => {
-        return Array.from({ length: value.count }, (_, idx) => {
-            const tld = value.tld?.[idx];
-            const no_seri_tld = tld?.no_seri_tld || '';
-            const kodeLencana = value.count > 1 ? `C${idx + 1}` : 'C';
-
-            const data = {
-                name: `Kontrol ${value.divisi?.name ?? ''} ${kodeLencana}`,
-                kode: kodeLencana,
-                index: idx,
-                tldHash: value.kontrak_tld_hash,
-                no_seri_tld: no_seri_tld,
-                htmlDisabled: true
-            };
-
-            return cardKontrolComponent(data);
-        }).join('');
+    arr_kontrol.map((value, idx) => {
+        arrOption.kontrol.push({
+            status: 'lama',
+            divisi: value.entitas?.name ?? '',
+            id: value.kontrak_detail_hash
+        });
     }).join('');
 
-    $('#tld-kontrol').html(htmlKontrol);
+    loadHtmlKontrol();
 }
 
 /**
@@ -216,78 +263,105 @@ function loadKontrol(){
  */
 function loadHtmlPengguna(){
     tmpArrTld = [];
-
     const htmlPengguna = arrOption.pengguna.map((value, i) => {
-        let pengguna = false;
-        let tld = false;
-        switch (value.status) {
-            case 'baru':
-                pengguna = value.detail_baru.pengguna;
-                tld = value.detail_baru.tld;
-                break;
-            case 'stay':
-                pengguna = value.detail_lama.pengguna;
-                tld = value.detail_lama.tld;
-                break;
-        }
+        let pengguna = value.pengguna;
+
         const fileKtp = pengguna.media_ktp
             ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}`
             : '';
 
-        const data = {
-            index: i,
-            idHash: pengguna.pengguna_hash,
-            name: pengguna.name,
-            divisi: pengguna.divisi?.name || '',
-            isCheckedEvaluasi: false,
-            radiasi: pengguna.radiasi?.map(d => d.nama_radiasi),
-            fileKtp: fileKtp,
-            no_seri_tld: tld?.[0]?.no_seri_tld || '',
-            htmlDisabled: true
-        };
+        const findPergantian = arrOption.pengguna.find(d => d.status == 'ganti' && d.pengguna.pengguna_hash == pengguna.pengguna_hash);
+        if(value.status != 'ganti'){
+            const data = {
+                index: i,
+                idHash: pengguna.pengguna_hash,
+                name: pengguna.name,
+                divisi: pengguna.divisi?.name || '',
+                isCheckedEvaluasi: false,
+                radiasi: pengguna.radiasi?.map(d => d.nama_radiasi),
+                fileKtp: fileKtp,
+                htmlDisabled: true,
+                pengguna_baru: findPergantian?.pengguna_baru || false,
+            };
 
-        tmpArrTld.push({
-            id: `${data.idHash}|${i + 1}`,
-            tld: tld?.[0]?.tld_hash || '',
-            index: `tldNoSeri_${i}_pengguna`
-        });
-
-        return cardPenggunaComponent(data, {
-            status: value.status,
-            is_have_tld: value.is_have_tld
-        });
+            return cardPenggunaComponent(data, {
+                status: value.status,
+                is_have_tld: false,
+                label_tld: false,
+                is_adendum: true
+            });
+        }
     }).join('');
 
     $('#tld-pengguna').html(htmlPengguna);
 
     showPopupReload();
+    calcPrice();
+}
+
+function loadHtmlKontrol(){
+    const htmlKontrol = arrOption.kontrol.map((value, idx) => {
+        const kodeLencana = idx >= 1 ? `C${idx}` : 'C';
+        const data = {
+            name: `Kontrol ${value.divisi} ${kodeLencana}`,
+            kode: kodeLencana,
+            index: idx,
+            tldHash: value.id,
+            htmlDisabled: true
+        };
+
+        return cardKontrolComponent(data, {
+            label_tld: false
+        });
+    })
+
+    $('#tld-kontrol').html(htmlKontrol);
+    calcPrice();
 }
 
 function btnPilihPengguna(obj) {
     let id = $(obj).data('id');
 
-    const data = arrOption.pengguna.find(v => v.id == id)
+    const data = arrOption.pengguna.find(v => v.pengguna.pengguna_hash == id)
 
     if(!data){
         ajaxGet(`api/v1/pengguna/getDataById/${id}`, false, result => {
             let params = {};
 
-            params = {
-                status: 'baru',
-                is_have_tld: dataKontrak.is_have_tld,
-                detail_lama: {
-                    pengguna: false,
-                    tld: false
-                },
-                detail_baru: {
-                    pengguna: result.data,
-                    tld: false
+            if(pengguna_old){
+                // hapus pengguna baru yang double
+                arrOption.pengguna.findIndex((value, index) => {
+                    if(value?.pengguna?.pengguna_hash == pengguna_old.pengguna_hash && value.status == 'ganti'){
+                        pengguna_selected.findIndex((value_2, index) => {
+                            if(value_2 == value.pengguna_baru.pengguna_hash){
+                                pengguna_selected.splice(index, 1);
+                                return false;
+                            }
+                        })
+                        arrOption.pengguna.splice(index, 1);
+                        return false;
+                    }
+                })
+
+                params = {
+                    status: 'ganti',
+                    pengguna: pengguna_old,
+                    pengguna_baru: result.data
                 }
+            } else {
+                params = {
+                    status: 'baru',
+                    pengguna: result.data,
+                    pengguna_baru: false
+                }
+
             }
+
             arrOption.pengguna.push(params);
 
             $('#modal-add-tld-pengguna').modal('hide');
 
+            pengguna_selected.push(result.data.pengguna_hash);
             loadHtmlPengguna();
         })
     } else {
@@ -295,24 +369,20 @@ function btnPilihPengguna(obj) {
     }
 }
 
-function openInventory(obj, jenis){
-    let id = $(obj).data('id');
-    inventoryTld.show(id, tmpArrTld, jenis);
-}
-
 function removePengguna(obj) {
     let id = $(obj).data('id');
 
-    tmpArrTld.findIndex((value, index) => {
-        let idAdd = value.id.split('|')[0];
-        if(idAdd == id){
-            tmpArrTld.splice(index, 1);
+    arrOption.pengguna.findIndex((value, index) => {
+        if(value){
+            if(value.pengguna.pengguna_hash == id){
+                arrOption.pengguna.splice(index, 1);
+            }
         }
     })
 
-    arrOption.pengguna.findIndex((value, index) => {
-        if(value.id == id){
-            arrOption.pengguna.splice(index, 1);
+    pengguna_selected.findIndex((value, index) => {
+        if(value == id){
+            pengguna_selected.splice(index, 1);
         }
     })
     loadHtmlPengguna();
@@ -323,15 +393,17 @@ function pilihPeriode(obj){
     const is_aktif = $(obj).data('aktif');
     const periode = dataKontrak.periode[index];
 
-    periode_select = periode;
+    arrOption.periode = periode;
     $('#periode-pemakaian').val(`Periode ${periode.periode} (${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)})`);
 
     if(periode.selesai || is_aktif){
         $('#btn-add-pengguna').removeClass('d-block').addClass('d-none');
+        // $('#btn-add-kontrol').removeClass('d-block').addClass('d-none');
         arrOption.pengguna = arrOption.pengguna.filter(d => d.status != 'baru');
         loadHtmlPengguna();
     } else {
         $('#btn-add-pengguna').removeClass('d-none').addClass('d-block');
+        // $('#btn-add-kontrol').removeClass('d-none').addClass('d-block');
     }
 
 
@@ -341,4 +413,38 @@ function pilihPeriode(obj){
 function gantiPengguna(obj){
     let id = $(obj).data('id');
 
+    let find = arrOption.pengguna.find(d => d.pengguna.pengguna_hash == id);
+
+    pengguna_old = find.pengguna;
+    tldSelector.show(pengguna_selected);
+}
+
+function deletePergantian(obj){
+    let id = $(obj).data('id');
+    arrOption.pengguna.findIndex((value, index) => {
+        if(value.pengguna_baru.pengguna_hash == id){
+            arrOption.pengguna.splice(index, 1);
+        }
+    })
+    pengguna_selected.findIndex((value, index) => {
+        if(value == id){
+            pengguna_selected.splice(index, 1);
+        }
+    })
+    loadHtmlPengguna();
+}
+
+function calcPrice(){
+    let hargaLayanan = Number(dataKontrak.harga_layanan);
+    let jumPengguna = arrOption.pengguna.filter(d => d.status == 'baru').length;
+    let jumKontrol = arrOption.kontrol.filter(d => d.status == 'baru').length;
+    let jumlahPenambahan = jumPengguna + jumKontrol;
+    let jumPeriode = dataKontrak.periode_all.jml_periode;
+
+    let subTotal = hargaLayanan * jumPeriode;
+
+    subTotal *= jumlahPenambahan;
+    $('#total-harga').html(formatRupiah(subTotal));
+
+    arrOption.subTotal = subTotal;
 }

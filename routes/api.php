@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/listKontrol', 'listKontrol');
         Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
+        Route::post('/tambahAdendum', 'tambahAdendum');
         Route::post('/tambahPengguna', 'tambahPengguna');
         Route::get('/createKontrak/{idPermohonan}/{noKontrak}', 'createKontrak');
         Route::post('/action_tld', 'action_tld');
@@ -78,6 +79,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPrice', 'getPrice');
         Route::get('/getPengajuanById/{id}', 'getPengajuanById');
         Route::post('/verifikasi/cek', 'verifPermohonan');
+        Route::post('/verifikasi/adendum', 'verifAdendum');
         Route::post('/verifikasi/tambahTandaterima', 'tambahTandaterima');
         Route::delete('/destroyTandaterima/{idPermohonan}', 'destroyTandaterima');
         Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');
