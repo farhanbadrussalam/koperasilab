@@ -41,8 +41,8 @@ class KontrakAPI extends Controller
             $query = Kontrak::with([
                         'pengguna',
                         'periode' => function($q) use ($filter) {
-                            if(isset($filter['date_range']))
-                                $q->whereBetween('start_date', [$filter['date_range'][0], $filter['date_range'][1]])->whereNull('id_permohonan');
+                            // if(isset($filter['date_range']))
+                            //     $q->whereBetween('start_date', [$filter['date_range'][0], $filter['date_range'][1]])->whereNull('id_permohonan');
                         },
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',
