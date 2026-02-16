@@ -70,7 +70,6 @@ function loadTld() {
             return tld.jenis == 'pengguna';
         }
     });
-    console.log(tldPengguna)
     let tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol');
 
     loadTldKontrol(tldKontrol);

@@ -1,19 +1,36 @@
 let periodeJs = false;
 let arrOption = {
-    periode: [],
+    periode: false,
     pengguna: [],
     kontrol: [],
     subTotal: 0
 };
 let arr_pengguna = [];
 let arr_kontrol = [];
-let tmpArrTld = [];
 let pengguna_selected = [];
 let pengguna_old = false;
+let inventoryTld = false;
 
+let tmpArrTldPengguna = [];
+let tmpArrTldKontrol = [];
 let tldSelector;
 
 $(function () {
+    inventoryTld = new Inventory_tld({preview: true});
+    inventoryTld.on('inventory.selected', (e) => {
+        const detail = e.detail;
+
+        $(`#${detail.selected}`).val(detail.data_tld.no_seri_tld);
+        $(`#${detail.selected}_view`).html(detail.data_tld.no_seri_tld);
+
+        if(detail.data_tld.jenis == 'pengguna'){
+            let tldPengguna = tmpArrTldPengguna.find(d => d.index == detail.selected);
+            arrOption.pengguna[tldPengguna.id].id_tld = detail.data_tld.tld_hash;
+            arrOption.pengguna[tldPengguna.id].text_tld = detail.data_tld.no_seri_tld;
+            tldPengguna.tld = detail.data_tld.tld_hash;
+            tldPengguna.text_tld = detail.data_tld.no_seri_tld;
+        }
+    })
     loadKontrakTld();
 
     $('#btn-periode').on('click', obj => {
@@ -35,9 +52,11 @@ $(function () {
 
     $('#btn-add-kontrol').click(() => {
         arrOption.kontrol.push({
-            kontrol: '',
-            id: ''
-        })
+            status: 'baru',
+            divisi: ''
+        });
+
+        loadHtmlKontrol();
     })
 
     $('#modal-pilih-periode').on('hide.bs.modal', () => {
@@ -223,7 +242,9 @@ function loadPengguna(){
         arrOption.pengguna.push({
             status: 'lama',
             pengguna: value.entitas,
-            pengguna_baru: false
+            pengguna_baru: false,
+            id_tld: false,
+            text_tld: false
         });
     }
 
@@ -244,7 +265,9 @@ function loadKontrol(){
         arrOption.kontrol.push({
             status: 'lama',
             divisi: value.entitas?.name ?? '',
-            id: value.kontrak_detail_hash
+            id: value.kontrak_detail_hash,
+            id_tld: false,
+            text_tld: false
         });
     }).join('');
 
@@ -263,6 +286,7 @@ function loadKontrol(){
  */
 function loadHtmlPengguna(){
     tmpArrTld = [];
+    tmpArrTldPengguna = [];
     const htmlPengguna = arrOption.pengguna.map((value, i) => {
         let pengguna = value.pengguna;
 
@@ -281,13 +305,37 @@ function loadHtmlPengguna(){
                 radiasi: pengguna.radiasi?.map(d => d.nama_radiasi),
                 fileKtp: fileKtp,
                 htmlDisabled: true,
-                pengguna_baru: findPergantian?.pengguna_baru || false,
+                pengguna_baru: findPergantian?.pengguna_baru || false
             };
+
+            let haveTld = false;
+            if(arrOption.periode) {
+                let findTldPengguna = arr_pengguna.find(d => d.entitas.pengguna_hash == pengguna.pengguna_hash && d.jenis == 'pengguna');
+                data['no_seri_tld'] = arrOption.periode.count_tld == 1 ? findTldPengguna?.tld_1?.no_seri_tld : findTldPengguna?.tld_2?.no_seri_tld;
+                haveTld = dataKontrak.is_have_tld == 1 ? true : false;
+            }
+
+            if(value.status == 'lama'){
+                haveTld = false;
+            }
+
+            if(value.status == 'baru'){
+                tmpArrTldPengguna.push({
+                    id: i,
+                    index: `tldNoSeri_${i}_pengguna`,
+                    tld: value.id_tld,
+                    text_tld: value.text_tld
+                });
+
+                if(value.id_tld){
+                    data['no_seri_tld'] = value.text_tld;
+                }
+            }
 
             return cardPenggunaComponent(data, {
                 status: value.status,
-                is_have_tld: false,
-                label_tld: false,
+                is_have_tld: haveTld,
+                label_tld: arrOption.periode ? true : false,
                 is_adendum: true
             });
         }
@@ -300,18 +348,43 @@ function loadHtmlPengguna(){
 }
 
 function loadHtmlKontrol(){
+    tmpArrTldKontrol = [];
     const htmlKontrol = arrOption.kontrol.map((value, idx) => {
         const kodeLencana = idx >= 1 ? `C${idx}` : 'C';
         const data = {
             name: `Kontrol ${value.divisi} ${kodeLencana}`,
             kode: kodeLencana,
             index: idx,
-            tldHash: value.id,
+            tldHash: idx,
             htmlDisabled: true
         };
 
+        let haveTld = false;
+        if(arrOption.periode) {
+            let findTldKontrol = arr_kontrol.find(d => d.kontrak_detail_hash == value.id && d.jenis == 'kontrol');
+            data['no_seri_tld'] = arrOption.periode.count_tld == 1 ? findTldKontrol?.tld_1?.no_seri_tld : findTldKontrol?.tld_2?.no_seri_tld;
+            haveTld = dataKontrak.is_have_tld == 1 ? true : false;
+            data['rincian'] = [
+                value
+            ]
+        }
+
+        if(value.status == 'lama'){
+            haveTld = false;
+        }
+
+        if(value.status == 'baru'){
+            tmpArrTldKontrol.push({
+                id: idx,
+                index: `tldNoSeri_${idx}_kontrol`
+            });
+        }
+
         return cardKontrolComponent(data, {
-            label_tld: false
+            label_tld: arrOption.periode ? true : false,
+            is_btn_remove: value.status == 'baru' ? true : false,
+            is_have_tld: haveTld,
+            status: value.status
         });
     })
 
@@ -331,15 +404,19 @@ function btnPilihPengguna(obj) {
             if(pengguna_old){
                 // hapus pengguna baru yang double
                 arrOption.pengguna.findIndex((value, index) => {
-                    if(value?.pengguna?.pengguna_hash == pengguna_old.pengguna_hash && value.status == 'ganti'){
-                        pengguna_selected.findIndex((value_2, index) => {
-                            if(value_2 == value.pengguna_baru.pengguna_hash){
-                                pengguna_selected.splice(index, 1);
-                                return false;
-                            }
-                        })
-                        arrOption.pengguna.splice(index, 1);
-                        return false;
+                    if(value){
+                        if(value?.pengguna?.pengguna_hash == pengguna_old.pengguna_hash && value.status == 'ganti'){
+                            pengguna_selected.findIndex((value_2, index) => {
+                                if(value_2){
+                                    if(value_2 == value.pengguna_baru.pengguna_hash){
+                                        pengguna_selected.splice(index, 1);
+                                        return false;
+                                    }
+                                }
+                            })
+                            arrOption.pengguna.splice(index, 1);
+                            return false;
+                        }
                     }
                 })
 
@@ -352,9 +429,10 @@ function btnPilihPengguna(obj) {
                 params = {
                     status: 'baru',
                     pengguna: result.data,
-                    pengguna_baru: false
+                    pengguna_baru: false,
+                    id_tld: false,
+                    text_tld: false
                 }
-
             }
 
             arrOption.pengguna.push(params);
@@ -381,7 +459,7 @@ function removePengguna(obj) {
     })
 
     pengguna_selected.findIndex((value, index) => {
-        if(value == id){
+        if(value && value == id){
             pengguna_selected.splice(index, 1);
         }
     })
@@ -398,15 +476,25 @@ function pilihPeriode(obj){
 
     if(periode.selesai || is_aktif){
         $('#btn-add-pengguna').removeClass('d-block').addClass('d-none');
-        // $('#btn-add-kontrol').removeClass('d-block').addClass('d-none');
+        $('#btn-add-kontrol').removeClass('d-block').addClass('d-none');
+        arrOption.pengguna.map(d => {
+            if(d.status == 'baru') {
+                pengguna_selected.findIndex((value, index) => {
+                    if(value && value == d.pengguna.pengguna_hash){
+                        pengguna_selected.splice(index, 1);
+                    }
+                })
+            }
+        })
         arrOption.pengguna = arrOption.pengguna.filter(d => d.status != 'baru');
-        loadHtmlPengguna();
+        arrOption.kontrol = arrOption.kontrol.filter(d => d.status != 'baru');
     } else {
         $('#btn-add-pengguna').removeClass('d-none').addClass('d-block');
-        // $('#btn-add-kontrol').removeClass('d-none').addClass('d-block');
+        $('#btn-add-kontrol').removeClass('d-none').addClass('d-block');
     }
 
-
+    loadHtmlKontrol();
+    loadHtmlPengguna();
     $('#modal-pilih-periode').modal('hide');
 }
 
@@ -422,12 +510,15 @@ function gantiPengguna(obj){
 function deletePergantian(obj){
     let id = $(obj).data('id');
     arrOption.pengguna.findIndex((value, index) => {
-        if(value.pengguna_baru.pengguna_hash == id){
-            arrOption.pengguna.splice(index, 1);
+        if(value){
+            if(value.pengguna_baru.pengguna_hash == id){
+                arrOption.pengguna.splice(index, 1);
+                return false;
+            }
         }
     })
     pengguna_selected.findIndex((value, index) => {
-        if(value == id){
+        if(value && value == id){
             pengguna_selected.splice(index, 1);
         }
     })
@@ -439,7 +530,7 @@ function calcPrice(){
     let jumPengguna = arrOption.pengguna.filter(d => d.status == 'baru').length;
     let jumKontrol = arrOption.kontrol.filter(d => d.status == 'baru').length;
     let jumlahPenambahan = jumPengguna + jumKontrol;
-    let jumPeriode = dataKontrak.periode_all.jml_periode;
+    let jumPeriode = dataKontrak.periode.filter(item => item.periode >= arrOption.periode.periode).length;
 
     let subTotal = hargaLayanan * jumPeriode;
 
@@ -447,4 +538,30 @@ function calcPrice(){
     $('#total-harga').html(formatRupiah(subTotal));
 
     arrOption.subTotal = subTotal;
+
+    if(subTotal > 0){
+        $('#useZeroCek').prop('checked', true);
+        $('#useZeroCek').prop('disabled', true);
+    } else {
+        $('#useZeroCek').prop('checked', false);
+        $('#useZeroCek').prop('disabled', false);
+    }
+}
+
+function deleteKontrol(obj){
+    let id = $(obj).data('id');
+
+    arrOption.kontrol.splice(id, 1);
+    loadHtmlKontrol();
+}
+
+function openInventory(obj, jenis){
+    let id = $(obj).data('id');
+    let arr = [];
+    if(jenis == 'pengguna'){
+        arr = tmpArrTldPengguna;
+    } else if(jenis == 'kontrol'){
+        arr = tmpArrTldKontrol;
+    }
+    inventoryTld.show(id, arr, jenis);
 }

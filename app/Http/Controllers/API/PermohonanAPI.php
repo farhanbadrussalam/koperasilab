@@ -1116,16 +1116,16 @@ class PermohonanAPI extends Controller
                         'total_harga' => $totalharga
                     ));
 
-                    $invoiceData = $this->keuangan->keuanganAction(new Request([
-                        'idPermohonan' => $dataPermohonan->id_permohonan,
-                        'status' => 1
-                    ]));
+                    // $invoiceData = $this->keuangan->keuanganAction(new Request([
+                    //     'idPermohonan' => $dataPermohonan->id_permohonan,
+                    //     'status' => 1
+                    // ]));
 
-                    if($invoiceData->getStatusCode() != 200){
-                        $content = json_decode($invoiceData->getContent());
-                        Log::error("Invoice creation failed: ".$content->msg);
-                        throw new \Exception($content->msg ?? 'Gagal membuat invoice');
-                    }
+                    // if($invoiceData->getStatusCode() != 200){
+                        // $content = json_decode($invoiceData->getContent());
+                        // Log::error("Invoice creation failed: ".$content->msg);
+                    //     throw new \Exception($content->msg ?? 'Gagal membuat invoice');
+                    // }
                 }
 
                 DB::commit();

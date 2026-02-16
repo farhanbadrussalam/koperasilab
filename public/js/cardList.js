@@ -380,6 +380,15 @@ function cardKontrolComponent(data, options = {}) {
         `;
     }
 
+    let txtStatus = '';
+    if(options.status == 'baru'){
+        txtStatus += `
+            <span class="badge bg-primary-subtle text-primary-emphasis border-primary-subtle border border-info-subtle rounded-pill fw-normal px-3">
+                Baru
+            </span>
+        `;
+    }
+
     const elementList = `
     <div class="card border mb-1 hover-shadow-sm transition-all">
         <div class="card-body p-3 ">
@@ -400,8 +409,9 @@ function cardKontrolComponent(data, options = {}) {
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <input type="hidden" class="form-control rounded-start" value="${data.no_seri_tld}" id="tldNoSeri_${data.index}_kontrol" placeholder="Pilih No Seri" readonly>
+                    ${txtStatus}
                     ${options.label_tld ? `
-                        <span class="font-monospace fw-bold text-dark bg-white px-3 py-1 rounded border shadow-sm" id="tldNoSeri_${data.index}_kontrol_view">${data.no_seri_tld ?? 'No Seri'}</span>
+                        <span class="font-monospace fw-bold text-dark bg-white px-3 py-1 rounded border shadow-sm" id="tldNoSeri_${data.index}_kontrol_view">${data.no_seri_tld ?? 'Tidak ada'}</span>
                     ` : ``}
                     ${htmlAddKontrol}
                     ${btnRemove}

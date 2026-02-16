@@ -231,7 +231,9 @@ class KontrakAPI extends Controller
                     $morphTo->morphWith([
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
                     ]);
-                }
+                },
+                'tld_1',
+                'tld_2'
             ])->where('id_kontrak', $idKontrak)->where('status', 1)->get();
 
             DB::commit();

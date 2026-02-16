@@ -57,6 +57,13 @@
                             </div>
                         </div>
 
+                        <div class="mb-3 d-flex justify-content-center" id="form-zero-cek">
+                            <div class="form-check form-switch" id="switch-zerocek">
+                                <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
+                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero cek</label>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-between align-items-end my-4">
                             <h6 class="text-uppercase text-muted small fw-bold mb-0 tracking-wide">
                                 <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">3</span> Daftar Kontrol TLD
@@ -73,13 +80,6 @@
                         <div class="mb-3">
                             <label class="form-label small fw-bold">Catatan Tambahan</label>
                             <textarea class="form-control bg-light border-0" id="catatan" rows="3" placeholder="Tuliskan keterangan jika ada perubahan khusus..."></textarea>
-                        </div>
-
-                        <div class="mb-3" id="form-zero-cek">
-                            <div class="form-check form-switch" id="switch-zerocek">
-                                <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
-                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero cek</label>
-                            </div>
                         </div>
                     </div>
 
@@ -156,6 +156,7 @@
     </div>
 </div>
 @include('pages.permohonan.pengajuan.tld_pengguna')
+@include('pages.management.tld.create')
 @endsection
 
 @push('scripts')

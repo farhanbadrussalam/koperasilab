@@ -77,7 +77,8 @@
 
                                 <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Spesifikasi Kontrak</h6>
                                 <div class="row g-4">
-                                    <div class="col-md-12 {{ $permohonan->kontrak ? '' : 'd-none' }}">
+                                    @if($permohonan->kontrak)
+                                    <div class="col-md-12">
                                         <div class="d-flex mb-3 align-items-center">
                                             <i class="bi bi-hash me-3 text-secondary fs-5"></i>
                                             <div>
@@ -88,6 +89,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    @endif
                                     <div class="col-md-6">
                                         <div class="d-flex mb-3 align-items-center">
                                             <i class="bi bi-file-text me-3 text-secondary fs-5"></i>
