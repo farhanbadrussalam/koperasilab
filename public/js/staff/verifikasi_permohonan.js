@@ -189,6 +189,14 @@ $(function () {
         signerUser: userActive
     });
 
+    $('#tanggal-selesai').flatpickr({
+        altInput: true,
+        locale: "id",
+        minDate: new Date(),
+        dateFormat: "Y-m-d",
+        altFormat: "j F Y",
+    });
+
     loadPelanggan();
     loadTandaterima();
 });
@@ -362,6 +370,14 @@ function loadTldKontrol(){
                 index++;
             }
         }
+
+        if(result.data.tldPermohonan.length == 0){
+            html += `
+                <div class="col-sm-12 text-center my-3">
+                    <label for="">Tidak ada TLD Kontrol</label>
+                </div>
+            `;
+        }
         $('#tld-kontrol-content').html(html);
     });
 }
@@ -391,7 +407,7 @@ function loadPengguna(){
             let tldHash = value.tld ? value.tld.tld_hash : (value.tld_pengguna?.tld_hash || '');
             let no_seri_tld = value.tld ? value.tld.no_seri_tld : (value.tld_pengguna?.no_seri_tld || '');
 
-            if(!value.tld && dataPermohonan.tipe_kontrak != 'adendum') htmlDisabled = false;
+            if(!value.tld) htmlDisabled = false;
 
             tmpArrTld.push({
                 id: idHash,
@@ -421,9 +437,17 @@ function loadPengguna(){
             }
 
             html += cardPenggunaComponent(data, {
-                label_tld: dataPermohonan.tipe_kontrak == 'adendum' ? false : true,
+                label_tld: true,
                 status: value.type
             });
+        }
+
+        if(result.data.length == 0){
+            html += `
+                <div class="col-sm-12 text-center my-3">
+                    <label for="">Tidak ada Pengguna</label>
+                </div>
+            `;
         }
 
         $('#pengguna-list-container').html(html);
@@ -463,6 +487,13 @@ function verif_kelengkapan(status, obj){
             }
         }
 
+        if($('#tanggal-selesai').val() == ''){
+            return Swal.fire({
+                icon: "warning",
+                text: "Harap pilih tanggal selesai terlebih dahulu.",
+            });
+        }
+
         Swal.fire({
             icon: 'warning',
             title: 'Apakah data sudah lengkap?',
@@ -482,6 +513,7 @@ function verif_kelengkapan(status, obj){
                 formData.append('ttd_by', ttdBy);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
+                formData.append('tanggal_selesai', $('#tanggal-selesai').val());
 
                 spinner('show', obj);
                 if(dataPermohonan.tipe_kontrak == 'adendum'){

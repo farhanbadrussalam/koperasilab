@@ -65,10 +65,29 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-12">
+                                    <div class="col-6">
                                         <div class="p-3 bg-light rounded-3 border">
                                             <small class="text-muted d-block mb-1">Jenis TLD</small>
                                             <span class="fw-bold text-dark fs-6">{{ $permohonan->jenisTld->name }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column">
+                                            <div class="text-muted fs-6">
+                                                @if($permohonan->is_zerocek)
+                                                <i class="bi bi-check-circle text-success me-2"></i>
+                                                @else
+                                                <i class="bi bi-x-circle text-danger me-2"></i>
+                                                @endif ZeroCek
+                                            </div>
+
+                                            <div class="text-muted fs-6">
+                                                @if($permohonan->is_have_tld)
+                                                <i class="bi bi-check-circle text-success me-2"></i> Mempunyai
+                                                @else
+                                                <i class="bi bi-x-circle text-danger me-2"></i> Tidak Mempunyai
+                                                @endif TLD
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -338,7 +357,7 @@
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm rounded-4 mb-3 {{ $permohonan->tipe_kontrak == 'adendum' ? 'd-none' : '' }}">
+                <div class="card border-0 shadow-sm rounded-4 mb-3">
                     <div class="card-header bg-white border-bottom-0 pt-4 px-4 rounded-top-4">
                         <h6 class="fw-bold text-dark m-0">
                             <i class="bi bi-paperclip me-2 text-danger"></i>Berkas Kelengkapan
@@ -375,6 +394,22 @@
                             <button id="btn-tandaterima" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                                 <i class="bi bi-upload me-1"></i> Tambah
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-3">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 rounded-top-4">
+                        <h6 class="fw-bold text-dark m-0">
+                            <i class="bi bi-calendar-event me-2"></i>Tanggal Selesai <span class="text-danger">*</span>
+                        </h6>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1 overflow-hidden me-3">
+                                <input type="text" id="tanggal-selesai"
+                                    class="form-control" placeholder="Pilih tanggal selesai" readonly>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -65,6 +65,7 @@ class PermohonanAPI extends Controller
             $idPeriode = $request->idPeriode ? decryptor($request->idPeriode) : false;
             $idKontrak = $request->id_kontrak ? decryptor($request->id_kontrak) : false;
             $totalHarga = $request->sub_total ? $request->sub_total : false;
+            $isZeroCek = $request->is_zerocek ? 1 : 0;
 
             $dataKontrak = Kontrak::find($idKontrak);
             $dataPeriode = Kontrak_periode::find($idPeriode);
@@ -91,7 +92,7 @@ class PermohonanAPI extends Controller
             $data['total_harga'] = $totalHarga;
             $data['harga_layanan'] = $dataKontrak->harga_layanan;
             $data['note'] = $note;
-            $data['is_zerocek'] = $dataKontrak->is_zerocek;
+            $data['is_zerocek'] = $isZeroCek;
             $data['is_have_tld'] = $dataKontrak->is_have_tld;
             $data['status'] = 1;
             $data['created_by'] = Auth::user()->id;
@@ -419,8 +420,10 @@ class PermohonanAPI extends Controller
         foreach ($tldPengguna as $value) {
             $idPengguna = null;
             $idPenggunaLama = null;
+            $idTld = null;
             if($value->status == 'baru'){
                 $idPengguna = (int) decryptor($value->pengguna);
+                $idTld = isset($value->tld) ? (int) decryptor($value->tld) : null;
             } else if($value->status == 'ganti'){
                 $idPengguna = (int) decryptor($value->pengguna_baru);
                 $idPenggunaLama = (int) decryptor($value->pengguna);
@@ -432,11 +435,29 @@ class PermohonanAPI extends Controller
                 'status' => 1,
                 'type' => $value->status,
                 'pengguna_lama' => $idPenggunaLama,
-                'created_by' => Auth::user()->id
+                'created_by' => Auth::user()->id,
+                'id_tld' => $idTld
             );
 
             Permohonan_detail::create($data);
             Master_pengguna::where('id_pengguna', $idPengguna)->update(['status' => 2]);
+            Master_tld::where('id_tld', $idTld)->update(['status' => 1]);
+        }
+
+        foreach($tldKontrol as $value){
+            $idTld = (int) decryptor($value->tld);
+            $data = array(
+                'id_permohonan' => $idPermohonan,
+                'id_pengguna_divisi' => null,
+                'jenis' => 'kontrol',
+                'status' => 1,
+                'type' => 'baru',
+                'created_by' => Auth::user()->id,
+                'id_tld' => $idTld
+            );
+
+            Permohonan_detail::create($data);
+            Master_tld::where('id_tld', $idTld)->update(['status' => 1]);
         }
     }
 
@@ -1050,7 +1071,6 @@ class PermohonanAPI extends Controller
     }
 
     public function verifAdendum(Request $request){
-
         DB::beginTransaction();
         try {
             $ttd = $request->ttd ? decryptor($request->ttd) : null;

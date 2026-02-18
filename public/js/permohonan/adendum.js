@@ -20,15 +20,18 @@ $(function () {
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
 
-        $(`#${detail.selected}`).val(detail.data_tld.no_seri_tld);
-        $(`#${detail.selected}_view`).html(detail.data_tld.no_seri_tld);
-
         if(detail.data_tld.jenis == 'pengguna'){
             let tldPengguna = tmpArrTldPengguna.find(d => d.index == detail.selected);
-            arrOption.pengguna[tldPengguna.id].id_tld = detail.data_tld.tld_hash;
-            arrOption.pengguna[tldPengguna.id].text_tld = detail.data_tld.no_seri_tld;
-            tldPengguna.tld = detail.data_tld.tld_hash;
-            tldPengguna.text_tld = detail.data_tld.no_seri_tld;
+            arrOption.pengguna[tldPengguna.id].tld = detail.data_tld;
+            tldPengguna.tld = detail.data_tld;
+
+            loadHtmlPengguna();
+        } else if (detail.data_tld.jenis == 'kontrol') {
+            let tldKontrol = tmpArrTldKontrol.find(d => d.index == detail.selected);
+            arrOption.kontrol[tldKontrol.id].tld = detail.data_tld;
+            tldKontrol.tld = detail.data_tld;
+
+            loadHtmlKontrol();
         }
     })
     loadKontrakTld();
@@ -53,7 +56,8 @@ $(function () {
     $('#btn-add-kontrol').click(() => {
         arrOption.kontrol.push({
             status: 'baru',
-            divisi: ''
+            divisi: '',
+            tld: false
         });
 
         loadHtmlKontrol();
@@ -98,7 +102,7 @@ function simpanAdendum(obj){
     const note = $('#catatan').val();
 
     // Validasi
-    if(arrOption.periode.length == 0){
+    if(!arrOption.periode){
         return Swal.fire({
             icon: 'warning',
             text: 'Tolong pilih periode!'
@@ -110,16 +114,25 @@ function simpanAdendum(obj){
         .map(value => ({
             pengguna: value.pengguna.pengguna_hash,
             pengguna_baru: value.pengguna_baru?.pengguna_hash,
-            status: value.status
+            status: value.status,
+            tld: value.tld.tld_hash
         }));
 
     const arrKontrol = arrOption.kontrol
         .filter(d => d.status != 'lama')
         .map(value => ({
-            kontrol: value.kontrol.kontrol_hash,
-            kontrol_baru: value.kontrol_baru?.kontrol_hash,
-            status: value.status
+            status: value.status,
+            tld: value.tld.tld_hash
         }));
+
+    if(arrPengguna.length == 0 && arrKontrol.length == 0){
+        return Swal.fire({
+            icon: 'warning',
+            text: 'Pengguna atau Kontrol tidak ada perubahan!'
+        })
+    }
+
+    const zerocek = $('#useZeroCek').is(':checked');
 
     const periode = arrOption.periode;
     const subTotal = arrOption.subTotal;
@@ -129,37 +142,38 @@ function simpanAdendum(obj){
     params.append('pengguna', JSON.stringify(arrPengguna));
     params.append('kontrol', JSON.stringify(arrKontrol));
     params.append('idPeriode', periode.periode_hash);
-    params.append('sub_total', subTotal);
     params.append('id_kontrak', dataKontrak.kontrak_hash);
+    params.append('sub_total', subTotal);
+    params.append('is_zerocek', zerocek);
 
     spinner('show', $(obj));
     Swal.fire({
-            title: 'Apa kamu yakin?',
-            text: "Apakah Anda ingin melanjutkan tindakan ini?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, proceed!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                ajaxPost('api/v1/permohonan/tambahAdendum', params, result => {
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Adendum berhasil disimpan',
-                        timer: 1200,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = base_url+"/permohonan/pengajuan";
-                    })
-                }, error => {
-                    spinner('hide', $(obj));
+        title: 'Apa kamu yakin?',
+        text: "Apakah Anda ingin melanjutkan tindakan ini?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, proceed!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            ajaxPost('api/v1/permohonan/tambahAdendum', params, result => {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Adendum berhasil disimpan',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = base_url+"/permohonan/pengajuan";
                 })
-            } else {
+            }, error => {
                 spinner('hide', $(obj));
-            }
-        })
+            })
+        } else {
+            spinner('hide', $(obj));
+        }
+    })
 }
 
 function simpanPeriode(){
@@ -243,8 +257,7 @@ function loadPengguna(){
             status: 'lama',
             pengguna: value.entitas,
             pengguna_baru: false,
-            id_tld: false,
-            text_tld: false
+            tld: false
         });
     }
 
@@ -266,8 +279,7 @@ function loadKontrol(){
             status: 'lama',
             divisi: value.entitas?.name ?? '',
             id: value.kontrak_detail_hash,
-            id_tld: false,
-            text_tld: false
+            tld: false
         });
     }).join('');
 
@@ -323,12 +335,11 @@ function loadHtmlPengguna(){
                 tmpArrTldPengguna.push({
                     id: i,
                     index: `tldNoSeri_${i}_pengguna`,
-                    tld: value.id_tld,
-                    text_tld: value.text_tld
+                    tld: value.tld?.tld_hash
                 });
 
-                if(value.id_tld){
-                    data['no_seri_tld'] = value.text_tld;
+                if(value.tld){
+                    data['no_seri_tld'] = value.tld.no_seri_tld;
                 }
             }
 
@@ -376,8 +387,13 @@ function loadHtmlKontrol(){
         if(value.status == 'baru'){
             tmpArrTldKontrol.push({
                 id: idx,
-                index: `tldNoSeri_${idx}_kontrol`
+                index: `tldNoSeri_${idx}_0_kontrol`,
+                tld: value.tld?.tld_hash,
             });
+
+            if(value.tld){
+                data['no_seri_tld'] = value.tld.no_seri_tld;
+            }
         }
 
         return cardKontrolComponent(data, {
@@ -423,15 +439,15 @@ function btnPilihPengguna(obj) {
                 params = {
                     status: 'ganti',
                     pengguna: pengguna_old,
-                    pengguna_baru: result.data
+                    pengguna_baru: result.data,
+                    tld: false
                 }
             } else {
                 params = {
                     status: 'baru',
                     pengguna: result.data,
                     pengguna_baru: false,
-                    id_tld: false,
-                    text_tld: false
+                    tld: false
                 }
             }
 
@@ -507,24 +523,6 @@ function gantiPengguna(obj){
     tldSelector.show(pengguna_selected);
 }
 
-function deletePergantian(obj){
-    let id = $(obj).data('id');
-    arrOption.pengguna.findIndex((value, index) => {
-        if(value){
-            if(value.pengguna_baru.pengguna_hash == id){
-                arrOption.pengguna.splice(index, 1);
-                return false;
-            }
-        }
-    })
-    pengguna_selected.findIndex((value, index) => {
-        if(value && value == id){
-            pengguna_selected.splice(index, 1);
-        }
-    })
-    loadHtmlPengguna();
-}
-
 function calcPrice(){
     let hargaLayanan = Number(dataKontrak.harga_layanan);
     let jumPengguna = arrOption.pengguna.filter(d => d.status == 'baru').length;
@@ -548,6 +546,23 @@ function calcPrice(){
     }
 }
 
+function deletePergantian(obj){
+    let id = $(obj).data('id');
+    arrOption.pengguna.findIndex((value, index) => {
+        if(value){
+            if(value.pengguna_baru.pengguna_hash == id){
+                arrOption.pengguna.splice(index, 1);
+                return false;
+            }
+        }
+    })
+    pengguna_selected.findIndex((value, index) => {
+        if(value && value == id){
+            pengguna_selected.splice(index, 1);
+        }
+    })
+    loadHtmlPengguna();
+}
 function deleteKontrol(obj){
     let id = $(obj).data('id');
 

@@ -358,7 +358,7 @@ function cardKontrolComponent(data, options = {}) {
             htmlEvaluasi += `
                 <div class="col-12 mb-2">
                     <div class="input-group">
-                        <input type="text" class="form-control form-control-sm" value="${rincian.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
+                        <input type="text" class="form-control form-control-sm" id="tldNoSeri_${data.index}_${i}_kontrol" value="${rincian.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
                         <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="tldNoSeri_${data.index}_${i}_kontrol" title="Change" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil"></i> Ganti</button>
                     </div>
                 </div>

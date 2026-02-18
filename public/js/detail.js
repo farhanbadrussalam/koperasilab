@@ -794,7 +794,7 @@ class Detail {
                 dataDokumen = dataDokumen.concat(this.data.dokumen);
                 invoiceData = this.data.invoice;
                 dataPermohonan = this.data;
-                kontrak_hash = this.data.kontrak.kontrak_hash;
+                kontrak_hash = this.data.kontrak?.kontrak_hash;
                 break;
             case 'penyelia':
                 this.data.permohonan.kontrak?.document_kontrak && (dataDokumen = this.data.permohonan.kontrak.document_kontrak);
