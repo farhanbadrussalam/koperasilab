@@ -231,6 +231,14 @@ class ReportController extends Controller
         $vars = array();
         switch ($template->name) {
             case 'Invoice':
+                $typeDateStart = 6;
+                $typeDateEnd = 6;
+                // jika tahun antara start_date dan end_date sama
+                if (substr($params['periode_start']['start_date'], 0, 4) == substr($params['periode_end']['end_date'], 0, 4)) {
+                    $typeDateStart = 12;
+                    $typeDateEnd = 6;
+                }
+
                 $vars["NOMOR"] = $data->no_invoice;
                 $vars["LAMPIRAN"] = "Faktur Pajak";
                 $vars["PERIHAL"] = "Invoice " . $data->permohonan->jenis_layanan_parent->name . " " . $data->permohonan->layanan_jasa->nama_layanan . " " . $data->permohonan->jenisTld->name;
@@ -243,8 +251,8 @@ class ReportController extends Controller
                 $vars["JENIS_LAYANAN"] = $data->permohonan->jenis_layanan_parent->name;
                 $vars["LAYANAN_JASA"] = $data->permohonan->layanan_jasa->nama_layanan;
                 $vars["JENIS_TLD"] = $data->permohonan->jenisTld->name;
-                $vars["PERIODE_MULAI"] = convert_date($params['periode_start']['start_date'], 6);
-                $vars["PERIODE_SELESAI"] = convert_date($params['periode_end']['end_date'], 6);
+                $vars["PERIODE_MULAI"] = convert_date($params['periode_start']['start_date'], $typeDateStart);
+                $vars["PERIODE_SELESAI"] = convert_date($params['periode_end']['end_date'], $typeDateEnd);
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["RINCIAN"] = "";
                 $vars["TERBILANG"] = "";
@@ -325,20 +333,27 @@ class ReportController extends Controller
                 $vars = array_merge($vars, $this->contentSuratTugas($data, $params));
                 break;
             case "SuratPengantar":
-                $vars["NOMOR"] = $data["dokumen"]->nomer;
+                $zerocek = '';
+                if($params['permohonan']->is_zerocek == 1){
+                    $zerocek = " & Hasil Zero Cek";
+                }
+
+                $vars["NOMOR"] = $params["dokumen"]->nomer;
+                $vars["PERIODE_AWAL"] = convert_date($params['kontrak_periode']->start_date, 6);
+                $vars["PERIODE_SELESAI"] = convert_date($params['kontrak_periode']->end_date, 6);
+                $vars["PERIODE_NOW"] = $params['kontrak_periode']->status == 2 ? "periode pengembalian" : "periode {$params['kontrak_periode']->periode}";
+                $vars["TGL_BUAT"] = convert_date($params["dokumen"]->created_at, 2);
+
                 $vars["JML_UNIT"] = $data->jumlah_pengguna + $data->jumlah_kontrol;
                 $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
+                $vars["ZEROCEK"] = $zerocek;
                 $vars["JENIS_TLD"] = $data->jenisTld->name;
-                $vars["TGL_BUAT"] = convert_date($data["dokumen"]->created_at, 2);
                 $vars["PETUGAS"] = $data->pelanggan->name;
                 $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
                 $vars["TELEPON"] = $data->pelanggan->profile->no_hp;
                 $vars["PETUGAS_DIVISI"] = $data->pelanggan->jabatan;
                 $vars["JML_P"] = $data->jumlah_pengguna;
                 $vars["JML_K"] = $data->jumlah_kontrol;
-                $vars["PERIODE_AWAL"] = convert_date($data->periode[0]->start_date, 6);
-                $vars["PERIODE_SELESAI"] = convert_date($data->periode[0]->end_date, 6);
-                $vars["PERIODE_NOW"] = $data->periode[0]->status == 2 ? "periode pengembalian" : "periode {$data->periode[0]->periode}";
                 $vars["NO_KONTRAK"] = $data->no_kontrak;
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars= array_merge($vars, $this->contentSuratPengantar($data, $params));
@@ -842,10 +857,12 @@ class ReportController extends Controller
  * @return \Illuminate\Http\Response The PDF stream response.
  */
 
-    public function suratPengantar($id  = null, $periode = null)
+    public function suratPengantar($id  = null, $periode_ = null)
     {
         $id = decryptor($id);
-        $periode = $periode == 0 ? 1 : $periode;
+        // mengambil id permohonan
+        $id_permohonan = Kontrak_periode::select('id_permohonan')->where('id_kontrak', $id)->where('periode', $periode_)->first()->id_permohonan;
+        $periode = $periode_ == 0 ? 1 : $periode_;
 
         if($id == null){
             return redirect()->back();
@@ -857,15 +874,15 @@ class ReportController extends Controller
             'pelanggan.perusahaan',
             'layanan_jasa:id_layanan,nama_layanan',
             'jenis_layanan:id_jenisLayanan,name',
-            'periode' => function($query) use ($periode) {
-                return $query->where('periode', $periode);
-            },
             'signature:id,name',
         ])->find($id);
 
+        // ambil periode kontrak saat ini
+        $kontrakPeriode = Kontrak_periode::where('id_kontrak', $id)->where('periode', $periode)->first();
+
         // mengambil dokumen surat pengantar
         $dokumen = Permohonan_dokumen::where("id_kontrak", $id)
-                    ->where("periode", $periode)
+                    ->where("periode", $periode_)
                     ->where("jenis", "surpeng")->first();
 
         $template = Documents::with('footer', 'header')
@@ -874,17 +891,18 @@ class ReportController extends Controller
                 ->where('status', '1')
                 ->first();
 
-        if($query->periode[0]->nomer_surpeng == null){
+        if($kontrakPeriode->nomer_surpeng == null){
             $noSurpeng = generateNoDokumen('surpeng');
-            $query->periode[0]->nomer_surpeng = $noSurpeng;
-            $query->periode[0]->created_surpeng_at = Carbon::now()->format('Y-m-d');
-            $query->periode[0]->save();
+            $kontrakPeriode->nomer_surpeng = $noSurpeng;
+            $kontrakPeriode->created_surpeng_at = Carbon::now()->format('Y-m-d');
+            $kontrakPeriode->save();
 
             if(!$dokumen){
-                $textPeriode = $query->periode[0]->status == 2 ? "Pengembalian" : "Periode $periode";
+                $textPeriode = $kontrakPeriode->status == 2 ? "Pengembalian" : "Periode $periode";
                 $dokumen = Permohonan_dokumen::create(array(
-                    'periode' => $periode,
+                    'periode' => $periode_,
                     'id_kontrak' => $id,
+                    'id_permohonan' => $id_permohonan ?? null,
                     'id_doc_template' => $template->id_doc,
                     'jenis' => "surpeng",
                     "nama" => "Surat Pengantar ($textPeriode)",
@@ -900,11 +918,13 @@ class ReportController extends Controller
 
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Surat Pengantar';
-        $data['data'] = $query;
         $data['ttd_default'] = $this->global['urlTtdDefault'];
         $data['stempel'] = $this->global['urlStempel'];
 
-        $query["dokumen"] = $dokumen;
+        $data["dokumen"] = $dokumen;
+        $data["kontrak_periode"] = $kontrakPeriode ?? null;
+
+        $data["permohonan"] = Permohonan::where('id_permohonan', $id_permohonan)->first();
         if($dokumen->variables){
             $variables = $dokumen->variables ?? [];
         } else {
@@ -930,28 +950,26 @@ class ReportController extends Controller
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
         return $bytes->stream($filename);
-        // return response($bytes, 200, [
-        //     'Content-Type'        => 'application/pdf',
-        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        // ]);
     }
 
     private function contentSuratPengantar($data, $params){
         $html = '';
         $no = 1;
-        $count = 1;
         $countKontrol = 0;
-        foreach ($data->periode[0]->tld_in_periode as $value) {
-            if($value->pengguna){
+        $kontrakDetail = Kontrak_detail::with([
+            'entitas'
+        ])->where('id_kontrak', $data->id_kontrak)->get();
+        foreach ($kontrakDetail as $value) {
+            if($value->jenis == 'pengguna'){
                 $html .= '
                     <tr>
                         <td class="text-center">'.$no++.'.</td>
-                        <td style="padding-left: 5px">'.$value->pengguna->name.'</td>
-                        <td style="padding-left: 5px">'.$value->keterangan ?? ''.'</td>
+                        <td style="padding-left: 5px">'.$value->entitas->name.'</td>
+                        <td style="padding-left: 5px">'.$value->type ?? ''.'</td>
                     </tr>
                 ';
             } else {
-                $countKontrol += $value->count;
+                $countKontrol++;
             }
         }
         return [
@@ -985,7 +1003,6 @@ class ReportController extends Controller
             'jenis_layanan:id_jenisLayanan,name',
             'jenis_layanan_parent:id_jenisLayanan,name',
             'layanan_jasa:id_layanan,nama_layanan',
-            'invoice',
             'pelanggan',
             'pelanggan.profile',
             'pelanggan.perusahaan',
@@ -995,29 +1012,33 @@ class ReportController extends Controller
             }
         ])->find($id);
 
-        $listTld = false;
-
-        if($query && count($query->periode) > 0) {
-            $listTld = Kontrak_tld::with('pengguna', 'divisi')
-            ->where('id_kontrak', $query->id_kontrak)
-            ->where('count_tld', $query->periode[0]->count_tld)->get();
-        }
+        $listTld = Kontrak_detail::with([
+            'entitas' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                ]);
+            }
+        ])->where('id_kontrak', $query->id_kontrak)->get();
 
         // Memisahkan radiasi yang digunakan
         $listRadiasi = false;
-        if(count($listTld) > 0) {
-            foreach ($listTld as $key => $tld) {
-                if(isset($tld->pengguna)){
-                    foreach($tld->pengguna->radiasi as $item) {
-                        $listRadiasi[$item->id_radiasi] = $item;
-                    }
+        foreach ($listTld as $key => $tld) {
+            if($tld->jenis == 'pengguna'){
+                foreach($tld->entitas->radiasi as $item) {
+                    $listRadiasi[$item->id_radiasi] = $item;
                 }
             }
         }
 
+        // mengambil invoice dari permohonan pertama
+        $kontrakPeriode = Kontrak_periode::with('permohonan', 'permohonan.invoice')->where('id_kontrak', $id)->orderBy('periode', 'asc')->first();
+        $invoice = false;
+        if($kontrakPeriode){
+            $invoice = $kontrakPeriode->permohonan->invoice;
+        }
+
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Surat Kontrak';
-        $data['data'] = $query;
         $data['list_tld'] = $listTld;
         $data['radiasi'] = $listRadiasi;
         $data['ttd_default'] = $this->global['urlTtdDefault'];
@@ -1035,11 +1056,11 @@ class ReportController extends Controller
             // kondisi jika invoice belum dibuat
             // 1 = Pengajuan
             // 2 = TTD General Manager
-            if(!in_array($query->invoice->status, [1,2])) {
-                $total = $query->total_harga + ($query->total_harga * ($query->invoice->ppn / 100));
+            if(!in_array($invoice->status, [1,2])) {
+                $total = $query->total_harga + ($query->total_harga * ($invoice->ppn / 100));
                 $variables['INVOICE'] = "
                     ".$variables['JML_UNIT']." buah ". $variables['LAYANAN_JASA']. " " . $variables['JENIS_TLD'] . " x " . $variables['PERIODE_JML'] . " Periode x " . formatCurrency($query->harga_layanan) . ",- = " . formatCurrency($query->total_harga) . ",-
-                    ditambah PPN " . $query->invoice->ppn . "% total biaya yang harus dibayar sebesar " . formatCurrency($total) . ",-
+                    ditambah PPN " . $invoice->ppn . "% total biaya yang harus dibayar sebesar " . formatCurrency($total) . ",-
                 ";
                 $variables["INVOICE_HRF"] = angkaKeHuruf($total);
                 $dokumen->update(['variables' => $variables]);
@@ -1066,10 +1087,6 @@ class ReportController extends Controller
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
         return $bytes->stream($filename);
-        // return response($bytes, 200, [
-        //     'Content-Type'        => 'application/pdf',
-        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        // ]);
     }
 
     public function label($id = null){
@@ -1179,10 +1196,6 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
         return $bytes->stream($filename);
-        // $pdf = PDF::loadView('report.permintaanPengujian', $data);
-        // $pdf->render();
-
-        // return $pdf->stream();
     }
 
     private function contentSuratPengujian($data, $params = null) {

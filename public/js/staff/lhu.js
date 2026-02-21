@@ -119,6 +119,11 @@ function loadData(page = 1) {
                         <i class="bi bi-info-circle"></i> Detail
                     </a>
                 </li>
+                <li>
+                    <a class="dropdown-item small cursor-pointer" title="Lihat Surat Pengantar" href="${base_url}/laporan/surpeng/${lhu.permohonan.kontrak.kontrak_hash}/${lhu.permohonan.periode}" target="_blank">
+                        <i class="bi bi-eye"></i> Surat Pengantar
+                    </a>
+                </li>
             `;
             let btnLabel = `
                 <li>

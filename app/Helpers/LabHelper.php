@@ -316,6 +316,10 @@ if (!function_exists('convert_date')) {
                 $format = 'M';
                 $month3 = true;
                 break;
+            case 12:
+                # September
+                $format = 'M';
+                break;
         }
 
         $new_tanggal = date($format, strtotime($tanggal));
@@ -818,7 +822,9 @@ if(!function_exists('getPeriodeAwal')) {
 
 if(!function_exists('cekPeriodeComplete')) {
     function cekPeriodeComplete($id_kontrak, $periode) {
-        $period = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode)->first();
+        $period = Kontrak_periode::with('permohonan', 'permohonan.invoice')->where('id_kontrak', $id_kontrak)
+                    ->where('periode', $periode)
+                    ->first();
         $kontrak = Kontrak::with([
             'jenis_layanan',
             'jenis_layanan_parent',
@@ -834,9 +840,8 @@ if(!function_exists('cekPeriodeComplete')) {
         if($periode == 0) {
             $aktifDokumen = array_diff($aktifDokumen, array('tld'));
         }
-        $arr = array();
         foreach ($aktifDokumen as $dokumen) {
-            if($dokumen === 'invoice' && $period->id_permohonan !== $kontrak->invoice->id_permohonan) continue;
+            if($dokumen === 'invoice' && $period->permohonan?->invoice) continue;
             if($dokumen === 'tld') {
                 if($JL == 'KontrakSewa' && $lastPeriode) continue;
                 if(in_array($period->id_periode, $periodeAwal)) continue;

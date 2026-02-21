@@ -788,6 +788,7 @@ class Detail {
         let invoiceData = false;
         let dataPermohonan = false;
         let kontrak_hash = false;
+        let periode = false;
         switch (this.options.jenis) {
             case 'permohonan':
                 this.data.kontrak?.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
@@ -802,11 +803,19 @@ class Detail {
                 invoiceData = this.data.permohonan.invoice;
                 dataPermohonan = this.data.permohonan;
                 kontrak_hash = this.data.permohonan.kontrak.kontrak_hash;
+                periode = this.data.permohonan.periode;
                 break
             case 'kontrak':
-                console.log(this.data);
                 this.data?.document_kontrak && (dataDokumen = this.data.document_kontrak);
                 kontrak_hash = this.data.kontrak_hash;
+                break;
+            case 'pengiriman':
+                this.data?.kontrak.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
+                dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
+                dataPermohonan = this.data.permohonan;
+                kontrak_hash = this.data.kontrak.kontrak_hash;
+                periode = this.data.periode;
+                invoiceData = this.data.permohonan.invoice;
                 break;
             default:
                 break;
@@ -829,6 +838,9 @@ class Detail {
                     break;
                 case 'KontrakPengujian':
                     idHash = kontrak_hash;
+                    break;
+                case 'surpeng':
+                    idHash = kontrak_hash+'/'+periode;
                     break;
                 default:
                     idHash = dataPermohonan.permohonan_hash;

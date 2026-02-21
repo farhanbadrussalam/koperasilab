@@ -11,7 +11,8 @@ $(function () {
         tab: {
             items: true,
             bukti: true,
-            log: true
+            log: true,
+            dokumen: true
         }
     });
 
