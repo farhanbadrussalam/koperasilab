@@ -170,7 +170,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
 
                     divInfoTugas = '';
                     let timeLine = false;
-                    if(penyelia.start_date && penyelia.end_date){
+                    if(penyelia.start_date && penyelia.end_date && penyelia.penyelia_map.length > 0) {
                         divInfoTugas = `
                             <div class="col-md-12 mt-2 fs-7">
                                 <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
@@ -232,13 +232,16 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         </div>
                     `;
 
-                    const timeline = new Timeline({
-                        timeline: penyelia.penyelia_map,
-                        status: penyelia.status,
-                        id: penyelia.penyelia_hash
-                    });
+                    let timeline = false;
+                    if(penyelia.start_date && penyelia.end_date && penyelia.penyelia_map.length > 0) {
+                        timeline = new Timeline({
+                            timeline: penyelia.penyelia_map,
+                            status: penyelia.status,
+                            id: penyelia.penyelia_hash
+                        });
+                        divTimelineTugas.push(timeline);
+                    }
 
-                    divTimelineTugas.push(timeline);
 
                     htmlPeriode = permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`;
                     if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {

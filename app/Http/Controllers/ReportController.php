@@ -22,8 +22,10 @@ use App\Models\Penyelia;
 use App\Models\Master_tld;
 
 use App\Models\Documents;
-
+use App\Models\Kontrak_detail;
+use App\Models\Master_pengguna;
 use Auth;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Log;
 
 class ReportController extends Controller
@@ -602,10 +604,6 @@ class ReportController extends Controller
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
         return $bytes->stream($filename);
-        // return response($bytes, 200, [
-        //     'Content-Type'        => 'application/pdf',
-        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        // ]);
     }
 
     private function contentTandaTerima($data, $params = null) {
@@ -1095,15 +1093,15 @@ class ReportController extends Controller
             $periodeNow = $getKperiode;
         }
 
-        $listTld = Kontrak_tld::with('pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
-                    ->where('count_tld', $periodeNow->count_tld ?? 1)
-                    ->orderBy('id_pengguna', 'asc')
-                    ->orderBy('id_divisi', 'asc')
-                    ->get();
-
-        $listTld->each(function($item) {
-            $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
-        });
+        $listTld = Kontrak_detail::with([
+            'entitas' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                ]);
+            },
+            'tld_1',
+            'tld_2'
+        ])->where('id_kontrak', $query->permohonan->id_kontrak)->get();
 
         $data = array();
 

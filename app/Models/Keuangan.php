@@ -181,14 +181,6 @@ class Keuangan extends Model
         return $this->hasMany(Keuangan_diskon::class, 'id_keuangan', 'id_keuangan');
     }
 
-    // public function media_bayar(){
-    //     return $this->belongsTo(Master_media::class, 'bukti_bayar', 'id');
-    // }
-
-    // public function media_bayar_pph(){
-    //     return $this->belongsTo(Master_media::class, 'bukti_bayar_pph', 'id');
-    // }
-
     public function usersig(){
         return $this->belongsTo(user::class, 'ttd_by', 'id');
     }

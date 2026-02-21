@@ -1183,7 +1183,7 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
 
     let aktifDokumenKirim = [];
     for (const doc of arrFindDokumen) {
-        if (doc === 'invoice' && data_periode.permohonan_hash !== kontrak.invoice?.permohonan_hash) continue;
+        if (doc === 'invoice' && !data_periode.permohonan?.invoice) continue;
         if (doc === 'tld') {
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
             if (periodeAwal.includes(data_periode.periode)) continue;

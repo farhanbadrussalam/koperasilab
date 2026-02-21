@@ -1076,6 +1076,31 @@ class PermohonanAPI extends Controller
             $ttd = $request->ttd ? decryptor($request->ttd) : null;
             $ttdBy = $request->ttd_by ? decryptor($request->ttd_by) : null;
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            $listTld = $request->listTld ? json_decode($request->listTld) : [];
+            $tglSelesai = $request->tanggal_selesai ? $request->tanggal_selesai : null;
+
+            $dataPermohonan = Permohonan::with([
+                'kontrak:id_kontrak,no_kontrak'
+            ])->where('id_permohonan', $idPermohonan)->first();
+
+            if($dataPermohonan){
+                foreach($listTld as $item){
+                    $idTld = (int) decryptor($item->tld);
+                    $id = decryptor($item->id);
+
+                    // update master tld
+                    Master_tld::where('id_tld', $idTld)->update([
+                        'status' => 1,
+                        'digunakan' => $dataPermohonan->kontrak->no_kontrak
+                    ]);
+
+                    Permohonan_detail::where('id', $id)->update([
+                        'id_tld' => $idTld
+                    ]);
+                }
+
+                $dataPermohonan = null;
+            }
 
             $dataPermohonan = Permohonan::with([
                 'permohonan_detail',
@@ -1085,18 +1110,23 @@ class PermohonanAPI extends Controller
                     ]);
                 },
                 'permohonan_detail.tld',
+                'kontrak:id_kontrak,no_kontrak'
             ])->where('id_permohonan', $idPermohonan)->first();
 
             if($dataPermohonan){
+                // mengambil periode kontrak
+                $kontrakperiode = Kontrak_periode::where('id_kontrak', $dataPermohonan->id_kontrak)->where('periode', $dataPermohonan->periode)->first();
+
                 // menonaktifkan pengguna yang sudah diganti di kontrak
                 foreach($dataPermohonan->permohonan_detail as $detail){
                     $dataDetail = array(
-                        'status' => 1,
+                        'status' => 2,
                         'id_pengguna_divisi' => $detail->id_pengguna_divisi,
                         'jenis' => $detail->jenis,
                         'type' => $detail->type,
                         'id_kontrak' => $dataPermohonan->id_kontrak,
-                        'created_by' => Auth::user()->id
+                        'created_by' => Auth::user()->id,
+                        'periode' => $dataPermohonan->periode
                     );
 
                     if($detail->type == 'ganti'){
@@ -1111,9 +1141,17 @@ class PermohonanAPI extends Controller
                         $dataDetail['status_tld_2'] = $kontrakDetail->status_tld_2;
                         $dataDetail['pengguna_lama'] = $detail->pengguna_lama;
 
-                        $kontrakDetail->update(['status' => 2]);
-
                         Master_pengguna::where('id_pengguna', $detail->pengguna_lama)->update(['status' => 1]);
+                    } else if($detail->type == 'baru'){
+                        $isPeriodOne = $kontrakperiode->count_tld == 1;
+
+                        if($isPeriodOne){
+                            $dataDetail['tld_1'] = $detail->id_tld;
+                            $dataDetail['status_tld_1'] = $dataPermohonan->is_have_tld ? 1 : 5;
+                        } else {
+                            $dataDetail['tld_2'] = $detail->id_tld;
+                            $dataDetail['status_tld_2'] = $dataPermohonan->is_have_tld ? 1 : 5;
+                        }
                     }
 
                     Kontrak_detail::create($dataDetail);
@@ -1136,16 +1174,29 @@ class PermohonanAPI extends Controller
                         'total_harga' => $totalharga
                     ));
 
-                    // $invoiceData = $this->keuangan->keuanganAction(new Request([
-                    //     'idPermohonan' => $dataPermohonan->id_permohonan,
-                    //     'status' => 1
-                    // ]));
+                    $invoiceData = $this->keuangan->keuanganAction(new Request([
+                        'idPermohonan' => $dataPermohonan->permohonan_hash,
+                        'status' => 1
+                    ]));
 
-                    // if($invoiceData->getStatusCode() != 200){
-                        // $content = json_decode($invoiceData->getContent());
-                        // Log::error("Invoice creation failed: ".$content->msg);
-                    //     throw new \Exception($content->msg ?? 'Gagal membuat invoice');
-                    // }
+                    if($invoiceData->getStatusCode() != 200){
+                        $content = json_decode($invoiceData->getContent());
+                        Log::error("Invoice creation failed: ".$content->msg);
+                        throw new \Exception($content->msg ?? 'Gagal membuat invoice');
+                    }
+
+                    $penyeliaData = $this->penyelia->actionPenyelia(new Request([
+                        'idPermohonan' => $dataPermohonan->permohonan_hash,
+                        'status' => 1,
+                        'endDate' => $tglSelesai,
+                        'startDate' => date('Y-m-d H:i:s')
+                    ]));
+
+                    if($penyeliaData->getStatusCode() != 200){
+                        $content = json_decode($penyeliaData->getContent());
+                        Log::error("Penyelia creation failed: ".$content->msg);
+                        throw new \Exception($content->msg ?? 'Gagal membuat penyelia');
+                    }
                 }
 
                 DB::commit();
@@ -1160,12 +1211,21 @@ class PermohonanAPI extends Controller
         }
     }
 
+
+/**
+ * Verifikasi permohonan yang sebelumnya di ajukan oleh front desk
+ *
+ * @param Request $request
+ * @return Response
+ * @throws Exception
+ */
     public function verifPermohonan(Request $request)
     {
         $request->validate([
             'status' => 'required',
         ]);
         $status = $request->status ? $request->status : 'tidak_lengkap';
+        $tglSelesai = $request->tanggal_selesai ? $request->tanggal_selesai : null;
 
         DB::beginTransaction();
         try {
@@ -1301,7 +1361,9 @@ class PermohonanAPI extends Controller
 
                         $penyeliaData = $this->penyelia->actionPenyelia(new Request([
                             'idPermohonan' => $dataPermohonan->permohonan_hash,
-                            'status'    => $status
+                            'status'    => $status,
+                            'endDate'  => $tglSelesai,
+                            'startDate' => date('Y-m-d H:i:s')
                         ]));
 
                         if($penyeliaData->getStatusCode() != 200){
@@ -1417,6 +1479,7 @@ class PermohonanAPI extends Controller
             'jenis_layanan_parent',
             'permohonan_detail'
         )->find($idPermohonan);
+
         $params = array(
             'id_layanan' => $dataPermohonan->id_layanan,
             'jenis_layanan_1' => $dataPermohonan->jenis_layanan_1,

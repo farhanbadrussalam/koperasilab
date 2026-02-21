@@ -442,11 +442,11 @@ class KeuanganAPI extends Controller
                 $result['msg'] = "Invoice berhasil dibuat.";
 
                 // menambahkan id keuangan ke kontrak
-                $idKontrak = Permohonan::find($idPermohonan)->id_kontrak;
-                if($idKontrak){
-                    $kontrak = Kontrak::find($idKontrak);
-                    $kontrak->update(array('id_keuangan' => $keuangan->id_keuangan));
-                }
+                // $idKontrak = Permohonan::find($idPermohonan)->id_kontrak;
+                // if($idKontrak){
+                //     $kontrak = Kontrak::find($idKontrak);
+                //     $kontrak->update(array('id_keuangan' => $keuangan->id_keuangan));
+                // }
 
                 // send notifikasi
                 $userQuery = User::role("Staff keuangan");

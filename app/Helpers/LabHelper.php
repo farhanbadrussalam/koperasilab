@@ -311,6 +311,11 @@ if (!function_exists('convert_date')) {
             case 10:
                 $format = 'Y';
                 break;
+            case 11:
+                # Sep
+                $format = 'M';
+                $month3 = true;
+                break;
         }
 
         $new_tanggal = date($format, strtotime($tanggal));

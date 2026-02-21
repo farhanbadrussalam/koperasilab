@@ -514,6 +514,7 @@ function verif_kelengkapan(status, obj){
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
                 formData.append('tanggal_selesai', $('#tanggal-selesai').val());
+                formData.append('listTld', JSON.stringify(tmpArrTld));
 
                 spinner('show', obj);
                 if(dataPermohonan.tipe_kontrak == 'adendum'){
@@ -531,8 +532,6 @@ function verif_kelengkapan(status, obj){
                         spinner('hide', obj);
                     });
                 } else {
-                    formData.append('listTld', JSON.stringify(tmpArrTld));
-
                     ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
                         Swal.fire({
                             icon: 'success',

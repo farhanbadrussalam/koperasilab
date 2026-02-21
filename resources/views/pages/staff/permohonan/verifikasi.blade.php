@@ -401,7 +401,7 @@
                 <div class="card border-0 shadow-sm rounded-4 mb-3">
                     <div class="card-header bg-white border-bottom-0 pt-4 px-4 rounded-top-4">
                         <h6 class="fw-bold text-dark m-0">
-                            <i class="bi bi-calendar-event me-2"></i>Tanggal Selesai <span class="text-danger">*</span>
+                            <i class="bi bi-calendar-event me-2"></i>Tanggal Selesai LAB <span class="text-danger">*</span>
                         </h6>
                     </div>
                     <div class="card-body px-4 pb-4">
