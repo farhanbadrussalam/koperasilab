@@ -14,6 +14,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
 use App\Models\Kontrak_detail;
 use App\Models\Master_pengguna;
+use App\Models\Permohonan;
 use Auth;
 use DB;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -107,8 +108,20 @@ class KontrakAPI extends Controller
 
             $this->pagination = Arr::except($arr, 'data');
 
-            DB::commit();
+            // mencari adendum di setiap periode
+            $kontrakIds = $query->pluck('id_kontrak');
+            $adendums = Permohonan::whereIn('id_kontrak', $kontrakIds)
+                ->where('tipe_kontrak', 'adendum')
+                ->get()
+                ->groupBy(['id_kontrak', 'periode']);
 
+            foreach ($query->items() as $value) {
+                foreach ($value->periode as $v) {
+                    $v->adendum = $adendums->get($value->id_kontrak)?->get($v->periode) ?? collect();
+                }
+            }
+
+            DB::commit();
             return $this->output($query, 200);
         } catch (\Exception $ex) {
             info($ex);

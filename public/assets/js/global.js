@@ -180,10 +180,10 @@ function dateFormat(tanggal, type = false) {
             };
             break;
         case 5:
-            // Okt 2023
+            // Oktober 2023
             options = {
-            month: 'long',
-            year: 'numeric'
+                month: 'long',
+                year: 'numeric'
             };
             break;
         case 6:
@@ -191,6 +191,19 @@ function dateFormat(tanggal, type = false) {
             month = d.toLocaleString('default', { month: 'short' });
             year = d.getFullYear().toString().slice(2);
             return `${month}'${year}`;
+        case 7:
+            // Okt
+            options = {
+                month: 'short'
+            };
+            break;
+        case 8:
+            // 14 Okt
+            options = {
+                month: 'short',
+                year: 'numeric'
+            };
+            break;
         default:
             // sabtu, 14 Okt 2023, 18:40
             options = {
@@ -205,6 +218,34 @@ function dateFormat(tanggal, type = false) {
     }
 
     return `${d.toLocaleString('id-ID', options)}`;
+}
+
+function range_date(start, end, type) {
+    let typeDateStart;
+    let typeDateEnd;
+
+    // Inisialisasi default berdasarkan type
+    if (type === 1) {
+        typeDateStart = 8;
+        typeDateEnd = 8;
+    } else if (type === 2) {
+        typeDateStart = 6;
+        typeDateEnd = 6;
+    }
+
+    // Jika tahun antara start dan end sama (mengambil 4 karakter pertama)
+    if (start.substring(0, 4) === end.substring(0, 4)) {
+        if (type === 1) {
+            typeDateStart = 7;
+        } else if (type === 2) {
+            typeDateStart = 12;
+        }
+    }
+
+    return {
+        start: dateFormat(start, typeDateStart),
+        end: dateFormat(end, typeDateEnd)
+    };
 }
 
 /**

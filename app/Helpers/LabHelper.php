@@ -666,7 +666,7 @@ if(!function_exists('renderMentionsToValuesFlexible')) {
             $out .= $dom->saveHTML($child);
         }
 
-        $containerPx = a4ContentWidthPx('portrait', 40, 40, 96); // samakan dgn @page margin & DPI
+        $containerPx = a4ContentWidthPx($options['orientation'], 40, 40, 96); // samakan dgn @page margin & DPI
         $out = convertTableWidthsToPx($out, $containerPx);
 
         $out = TableWidthFixer::colgroupToFirstRowCellPx($out, 800);
@@ -940,6 +940,32 @@ if(!function_exists('uploadSignatur')) {
         }
 
         return null;
+    }
+}
+
+if(!function_exists('range_date')) {
+    function range_date($start, $end, $type) {
+        if($type == 1) {
+            $typeDateStart = 7;
+            $typeDateEnd = 7;
+        } else if($type == 2) {
+            $typeDateStart = 6;
+            $typeDateEnd = 6;
+        }
+
+        // jika tahun antara start_date dan end_date sama
+        if (substr($start, 0, 4) == substr($end, 0, 4)) {
+            if($type == 1) {
+                $typeDateStart = 11;
+            } else if($type == 2) {
+                $typeDateStart = 12;
+            }
+        }
+
+        return [
+            'start' => convert_date($start, $typeDateStart),
+            'end' => convert_date($end, $typeDateEnd)
+        ];
     }
 }
 ?>

@@ -1141,7 +1141,7 @@ class PermohonanAPI extends Controller
                         $dataDetail['status_tld_2'] = $kontrakDetail->status_tld_2;
                         $dataDetail['pengguna_lama'] = $detail->pengguna_lama;
 
-                        Master_pengguna::where('id_pengguna', $detail->pengguna_lama)->update(['status' => 1]);
+                        // Master_pengguna::where('id_pengguna', $detail->pengguna_lama)->update(['status' => 1]);
                     } else if($detail->type == 'baru'){
                         $isPeriodOne = $kontrakperiode->count_tld == 1;
 

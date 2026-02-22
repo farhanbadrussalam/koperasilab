@@ -18,18 +18,11 @@
     // membagi $data menjadi 6 bagian
     $arrTmp = array();
     foreach ($data as $item) {
-        $typeDateStart = 7;
-        $typeDateEnd = 7;
-
-        // jika tahun antara start_date dan end_date sama
-        if (substr($periode->start_date, 0, 4) == substr($periode->end_date, 0, 4)) {
-            $typeDateStart = 11;
-            $typeDateEnd = 7;
-        }
+        $rangeDate = range_date($item->start_date, $item->end_date, 1);
 
         $tld = array(
             'pengguna' => null,
-            'periode' => convert_date($periode->start_date, $typeDateStart) . ' - ' . convert_date($periode->end_date, $typeDateEnd)
+            'periode' => $rangeDate['start'] . ' - ' . $rangeDate['end'],
         );
 
         if($item->jenis == 'pengguna') {

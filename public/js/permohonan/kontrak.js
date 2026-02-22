@@ -237,6 +237,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
     let aktifDokumenKirim = periodeMapDocument(data, dataKontrak[index], arrFind);
 
+
     for (const doc of aktifDokumenKirim) {
         let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
 
@@ -326,6 +327,9 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         }
     }
 
+    if(data.periode == 2){
+        console.log(data);
+    }
     let textPeriode = !data.periode ? 'Zero cek' : 'Periode ' + data.periode;
 
     if(dataKontrak[index].is_have_tld && dataKontrak[index].is_zerocek && data.periode == 1) {
@@ -336,11 +340,22 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         textPeriode = 'Pengembalian TLD';
     }
 
+    let htmlRangeDate = ``;
+    if(data.periode != 0) {
+        let rangeDate = range_date(data.start_date, data.end_date, 1);
+        htmlRangeDate = `<small class="text-body-tertiary"> - (${rangeDate.start} - ${rangeDate.end})</small>`;
+    }
+
+    let htmlAdendum = ``;
+    if(data.adendum.length > 0) {
+        htmlAdendum = `<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2">${data.adendum.length} Adendum</small>`;
+    }
+
     return `
         <div class="border-top py-2 d-flex justify-content-between align-items-center">
             <div class="px-2">
                 <span class="fw-semibold fs-6">${textPeriode}</span>
-                ${data.periode == 0 ? '' : `<small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>`}
+                ${htmlRangeDate} ${htmlAdendum}
                 <div class="d-flex gap-3 flex-wrap">
                     ${htmlDoc}
                 </div>

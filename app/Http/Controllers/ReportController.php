@@ -45,30 +45,13 @@ class ReportController extends Controller
             'html_keys' => $htmlKeys,
             'sanitizer' => fn($h,$k) => Purifier::clean($h, 'ckpdf'), // pakai jika ada mews/purifier
             'allowed_tags'=> '<p><br><strong><b><em><i><u><span><div><img>',
+            'orientation' => $template->orientation,
         ];
 
         $result['header'] = $template->header ? renderMentionsToValuesFlexible($template->header->content, $variables, $options) : '';
         $result['footer'] = $template->footer ? renderMentionsToValuesFlexible($template->footer->content, $variables, $options) : '';
-        $classHeader = $template->header ? 'withHeader' : '';
-        $classFooter = $template->footer ? 'withFooter' : '';
+
         $result['body'] = renderMentionsToValuesFlexible($template->content, $variables, $options);
-
-        // dd(TableWidthFixer::colgroupToFirstRowCellPx($result['header'], 800));
-        // dd($result["body"]);
-        // $html = view('report.index', $result)->render();
-
-        // $b = Browsershot::html($html)
-        //     ->emulateMedia('screen')
-        //     ->showBackground()                 // penting agar warna/background ikut tercetak
-        //     ->setOption('displayHeaderFooter', false) // penting!
-        //     ->format('A4')
-        //     ->margins(0, 0, 0, 0)         // mm: top,right,bottom,left
-        //     ->waitUntilNetworkIdle()          // tunggu asset selesai dimuat
-        //     ->addChromiumArguments(['--allow-file-access-from-files']) // kadang perlu
-        //     ->setOption('waitUntil', 'networkidle0')
-        //     ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']); // untuk banyak server Linux
-
-        //     $bytes = $b->pdf();
 
         $bytes = Pdf::loadView('report.index', $result);
 
@@ -231,13 +214,7 @@ class ReportController extends Controller
         $vars = array();
         switch ($template->name) {
             case 'Invoice':
-                $typeDateStart = 6;
-                $typeDateEnd = 6;
-                // jika tahun antara start_date dan end_date sama
-                if (substr($params['periode_start']['start_date'], 0, 4) == substr($params['periode_end']['end_date'], 0, 4)) {
-                    $typeDateStart = 12;
-                    $typeDateEnd = 6;
-                }
+                $rangeDate = range_date($params['periode_start']['start_date'], $params['periode_end']['end_date'], 2);
 
                 $vars["NOMOR"] = $data->no_invoice;
                 $vars["LAMPIRAN"] = "Faktur Pajak";
@@ -251,8 +228,8 @@ class ReportController extends Controller
                 $vars["JENIS_LAYANAN"] = $data->permohonan->jenis_layanan_parent->name;
                 $vars["LAYANAN_JASA"] = $data->permohonan->layanan_jasa->nama_layanan;
                 $vars["JENIS_TLD"] = $data->permohonan->jenisTld->name;
-                $vars["PERIODE_MULAI"] = convert_date($params['periode_start']['start_date'], $typeDateStart);
-                $vars["PERIODE_SELESAI"] = convert_date($params['periode_end']['end_date'], $typeDateEnd);
+                $vars["PERIODE_MULAI"] = $rangeDate['start'];
+                $vars["PERIODE_SELESAI"] = $rangeDate['end'];
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["RINCIAN"] = "";
                 $vars["TERBILANG"] = "";
