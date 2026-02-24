@@ -683,12 +683,11 @@ class Detail {
         const container = document.createElement('div');
         const tabs = {};
         this.options.tab.pengguna && (tabs.pengguna = { title: 'Pengguna', content: this.createPenggunaContent(), badge: this.data?.pengguna?.length ?? 0, icon: 'bi bi-person-circle' });
+        this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent(), icon: 'bi bi-diagram-3' });
         this.options.tab.activitas && (tabs.activitas = { title: 'Aktivitas', content: this.createAktivitasContent(), icon: 'bi bi-activity' });
         this.options.tab.periode && (tabs.periode = { title: 'Periode', content: this.createPeriodeContent(), icon: 'bi bi-calendar-check' });
         this.options.tab.dokumen && (tabs.dokumen = { title: 'Dokumen', content: this.createDokumenContent(), icon: 'bi bi-folder2-open' });
         this.options.tab.dokumen_lhu && (tabs.dokumen_lhu = { title: 'Dokumen LHU', content: this.createDokumenLhuContent(), icon: 'bi bi-file-earmark-text' });
-        this.options.tab.log && (tabs.log = { title: 'Log', content: this.createLogContent(), icon: 'bi bi-journal-text' });
-        this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent(), icon: 'bi bi-diagram-3' });
 
         this.options.tab.items && (tabs.items = { title: 'Items', content: this.createItemsContent(), icon: 'bi bi-box-seam' });
         this.options.tab.bukti && (tabs.bukti = { title: 'Bukti', content: this.createBuktiContent(), icon: 'bi bi-check2-square', maxHeight: '50vh' });
@@ -699,6 +698,7 @@ class Detail {
         this.options.tab.karyawan && (tabs.karyawan = { title: `PIC (${this.info?.karyawan?.length ?? 0})`, content: this.createKaryawanContent(), icon: 'bi bi-people-fill' });
         this.options.tab.surat_kuasa && (tabs.surat_kuasa = { title: 'Surat Kuasa', content: this.createSuratKuasaContent(), icon: 'bi bi-file-earmark-text' });
 
+        this.options.tab.log && (tabs.log = { title: 'Log', content: this.createLogContent(), icon: 'bi bi-journal-text' });
         let htmlTabNav = '';
 
         for (const tabId in tabs) {
@@ -748,7 +748,6 @@ class Detail {
                 const pengguna = item.entitas;
                 let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
-
                 const dataCard = {
                     index: i,
                     idHash: item.permohonan_detail_hash,
@@ -761,7 +760,8 @@ class Detail {
                     htmlDisabled: true
                 }
 
-                if(item.type == 'ganti' && this.options.jenis == 'permohonan'){
+                let adendumActive = ['permohonan', 'penyelia'];
+                if(item.type == 'ganti' && adendumActive.includes(this.options.jenis)){
                     dataCard['name'] = item.pengguna_lama?.name;
                     dataCard['pengguna_baru'] = {
                         name: pengguna.name,

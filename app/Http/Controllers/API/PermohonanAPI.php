@@ -1095,7 +1095,8 @@ class PermohonanAPI extends Controller
                     ]);
 
                     Permohonan_detail::where('id', $id)->update([
-                        'id_tld' => $idTld
+                        'id_tld' => $idTld,
+                        'status' => $dataPermohonan->is_have_tld ? 1 : 5
                     ]);
                 }
 
@@ -1137,8 +1138,8 @@ class PermohonanAPI extends Controller
 
                         $dataDetail['tld_1'] = $kontrakDetail->tld_1;
                         $dataDetail['status_tld_1'] = $kontrakDetail->status_tld_1;
-                        $dataDetail['tld_2'] = $kontrakDetail->tld_2;
-                        $dataDetail['status_tld_2'] = $kontrakDetail->status_tld_2;
+                        $dataDetail['tld_2'] = $kontrakDetail->tld_2 ? $kontrakDetail->tld_2 : $detail->id_tld;
+                        $dataDetail['status_tld_2'] = $kontrakDetail->status_tld_2 ? $kontrakDetail->status_tld_2 : ($dataPermohonan->is_have_tld ? 1 : 5);
                         $dataDetail['pengguna_lama'] = $detail->pengguna_lama;
 
                         // Master_pengguna::where('id_pengguna', $detail->pengguna_lama)->update(['status' => 1]);
@@ -1255,7 +1256,8 @@ class PermohonanAPI extends Controller
                             ]);
 
                             Permohonan_detail::where('id', $id)->update([
-                                'id_tld' => $idTld
+                                'id_tld' => $idTld,
+                                'status' => $dataPermohonan->is_have_tld ? 1 : 5
                             ]);
                         }
                     }
@@ -1286,37 +1288,6 @@ class PermohonanAPI extends Controller
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
                         $this->createdKontrak($request->idPermohonan, $no_kontrak);
                     }
-
-                    if($dataPermohonan->jenis_layanan_2 == 5){
-                        // Membuat kontrak_tld
-                        // $kontrakTld = Kontrak_tld::where('id_kontrak', $dataPermohonan->id_kontrak)->where('status', 3)->get();
-                        // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
-                        // if(count($kontrakTld) == 0){
-                        //     $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $dataPermohonan->id_kontrak)->where('periode', $dataPermohonan->periode-1)->get();
-                        //     foreach($dataKontrakTldSebelum as $val){
-                        //         Kontrak_tld::create([
-                        //             'id_kontrak' => $dataPermohonan->id_kontrak,
-                        //             'id_pengguna' => $val->id_pengguna,
-                        //             'periode' => $dataPermohonan->periode,
-                        //             'id_tld' => $val->id_tld,
-                        //             'id_divisi' => $val->id_divisi,
-                        //             'count' => $val->count,
-                        //             'status' => 1,
-                        //             'created_by' => Auth::user()->id
-                        //         ]);
-                        //     }
-                        // } else {
-                        //     foreach($dataPermohonan->rincian_list_tld as $val){
-                        //         Kontrak_tld::where('id_kontrak_tld', $val->id_kontrak_tld)->update([
-                        //             'id_tld' => $val->id_tld
-                        //         ]);
-
-                        //         // mengaktifkan status master_tld
-                        //         Master_tld::whereIn('id_tld', $val->id_tld)->update(array('digunakan' => $dataPermohonan->kontrak->no_kontrak, 'status' => 1));
-                        //     }
-                        // }
-                    }
-
                     /*
                         JENIS LAYANAN
 

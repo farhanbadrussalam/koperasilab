@@ -327,9 +327,6 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         }
     }
 
-    if(data.periode == 2){
-        console.log(data);
-    }
     let textPeriode = !data.periode ? 'Zero cek' : 'Periode ' + data.periode;
 
     if(dataKontrak[index].is_have_tld && dataKontrak[index].is_zerocek && data.periode == 1) {

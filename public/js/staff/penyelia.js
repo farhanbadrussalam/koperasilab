@@ -99,8 +99,6 @@ function loadData(page = 1, menu = 'penyelialhu') {
         dataPenyelia = result.data;
         for (const [i, penyelia] of result.data.entries()) {
             const permohonan = penyelia.permohonan;
-            let arrPeriode = permohonan.kontrak?.periode ?? permohonan.periode_pemakaian.map((d, i) => ({...d, periode: i + 1}));
-            let tgl_periode = arrPeriode.find(d => d.periode == penyelia.periode);
             let badgeClass = 'bg-primary-subtle';
             if(permohonan.tipe_kontrak == 'kontrak lama') {
                 badgeClass = 'bg-success-subtle';
@@ -189,15 +187,15 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         divTimelineTugas.push(timeLine);
                     }
 
-                    htmlPeriode = !permohonan.periode ? 'Zero cek' : 'Periode '+permohonan.periode;
+                    htmlPeriode = !permohonan.periode ? 'Zero cek' : permohonan.periode;
                     if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
                         htmlPeriode += ' + Zero cek';
                     }
 
                     // range periode
                     let rangePeriode = '';
-                    if(permohonan.periode) {
-                        rangePeriode = `<span class="fs-8">(${dateFormat(penyelia.permohonan.periodenow.start_date, 4)} - ${dateFormat(penyelia.permohonan.periodenow.end_date, 4)})</span>`;
+                    if(permohonan.periode && permohonan.periodenow) {
+                        rangePeriode = `<span class="fs-8">(${dateFormat(permohonan.periodenow.start_date, 4)} - ${dateFormat(permohonan.periodenow.end_date, 4)})</span>`;
                     }
 
                     const dataS = {
@@ -207,7 +205,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         statusPenyelia: htmlStatus,
                         jenisTld: permohonan.jenis_tld?.name ?? '-',
                         namaLayanan: permohonan.layanan_jasa?.nama_layanan ?? '-',
-                        periode: htmlPeriode + " " + rangePeriode,
+                        periode: permohonan.periode,
                         created_at: permohonan.created_at,
                         kontrak: permohonan.kontrak?.no_kontrak,
                         id: penyelia.penyelia_hash,
@@ -242,11 +240,6 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         divTimelineTugas.push(timeline);
                     }
 
-
-                    htmlPeriode = permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`;
-                    if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
-                        htmlPeriode += ' + Zero cek';
-                    }
                     btnAction2 += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
 
                     const dataP = {
@@ -256,7 +249,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         statusPenyelia: htmlStatus,
                         jenisTld: permohonan.jenis_tld?.name ?? '-',
                         namaLayanan: permohonan.layanan_jasa?.nama_layanan ?? '-',
-                        periode: htmlPeriode,
+                        periode: permohonan.periode,
                         created_at: permohonan.created_at,
                         kontrak: permohonan.kontrak?.no_kontrak,
                         id: penyelia.penyelia_hash,

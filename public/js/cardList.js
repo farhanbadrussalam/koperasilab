@@ -11,15 +11,30 @@
  * @return {string} The HTML string of the card component.
  */
 function cardComponent(data, options = {}) {
-    const htmlTipeKontrak = data.tipeKontrak !== undefined ? `
-        <span class="badge ${data.tipeKontrak == 'kontrak lama' ? 'bg-success-subtle text-success-emphasis border-success-subtle' : 'bg-primary-subtle text-primary-emphasis border-primary-subtle'} border border-info-subtle rounded-pill fw-normal px-3">
-            ${data.tipeKontrak}
-        </span>
-    ` : '';
+    let htmlTipeKontrak = '';
+    if(data.tipeKontrak !== undefined){
+        let classBadge = '';
+        switch(data.tipeKontrak){
+            case 'kontrak lama':
+                classBadge = 'bg-success-subtle text-success-emphasis border-success-subtle';
+                break;
+            case 'adendum':
+                classBadge = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+                break;
+            default:
+                classBadge = 'bg-primary-subtle text-primary-emphasis border-primary-subtle';
+                break;
+        }
+        htmlTipeKontrak = `
+            <span class="badge ${classBadge} border border-info-subtle rounded-pill fw-normal px-3">
+                ${data.tipeKontrak}
+            </span>
+        `;
+    }
 
     const htmlPeriode = data.periode !== undefined ? (() => {
-        let per = !data.periode ? `Zero cek` : 'Periode ' + data.periode;
-        if(data.periode && data.is_have_tld && data.is_zerocek) {
+        let per = data.periode == 0 ? `Zero cek` : 'Periode ' + data.periode;
+        if(data.periode == 1 && data.is_have_tld && data.is_zerocek) {
             per += ' + Zero cek';
         }
         return `
@@ -204,7 +219,7 @@ function cardPenggunaComponent(data, options = {}) {
             </span>
         `;
 
-        if(options.is_adendum){
+        if(options.is_adendum || options.is_btn_remove){
             btnRemove = `
                 <li>
                     <a class="dropdown-item small text-danger" href="javascript:void(0)" data-id="${data.idHash}" onclick="removePengguna(this)">

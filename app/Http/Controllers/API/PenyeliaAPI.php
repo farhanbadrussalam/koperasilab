@@ -356,9 +356,8 @@ class PenyeliaAPI extends Controller
             $note = $request->note;
             $nextJobs = $request->nextJobs ? decryptor($request->nextJobs) : false;
             $nowJobs = $request->nowJobs ? decryptor($request->nowJobs) : false;
-            $idPeriodeKontrak = $request->periodeNow ? decryptor($request->periodeNow) : false;
 
-            $getPeriodeNow = Kontrak_periode::select('count_tld')->find($idPeriodeKontrak);
+            // $idPeriodeKontrak = $request->periodeNow ? decryptor($request->periodeNow) : false;
 
             $penyelia = Penyelia::with([
                 'permohonan',
@@ -373,6 +372,12 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak.jenis_layanan',
                 'permohonan.kontrak.jenis_layanan_parent',
             ])->find($idPenyelia);
+
+            $getPeriodeNow = Kontrak_periode::select('count_tld')
+                ->where('id_kontrak', $penyelia->permohonan->id_kontrak)
+                ->where('periode', $penyelia->permohonan->periode)
+                ->first();
+
             $jobsNow = Penyelia_map::with('jobs')->where('id_map', $nowJobs)->first();
 
             $jobsNow->update(array(
@@ -733,6 +738,7 @@ class PenyeliaAPI extends Controller
                 'permohonan.permohonan_pengguna',
                 'permohonan.permohonan_detail',
                 'permohonan.permohonan_detail.tld',
+                'permohonan.permohonan_detail.pengguna_lama',
                 'permohonan.permohonan_detail.entitas' => function (MorphTo $morphTo) {
                     $morphTo->morphWith([
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']

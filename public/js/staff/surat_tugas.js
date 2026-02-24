@@ -23,7 +23,7 @@ $(function () {
         $('#date_start').flatpickr({
             altInput: true,
             locale: "id",
-            minDate: 'today',
+            // minDate: 'today',
             dateFormat: "Y-m-d",
             altFormat: "j F Y",
             onChange: (selectedDates, dateStr, instance) => {

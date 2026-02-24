@@ -49,6 +49,10 @@ function loadData(page = 1, menu) {
         dataPermohonan = result.data;
         let html = '';
         for (const [i, data] of result.data.entries()) {
+            // jika adendum bukan zerocek
+            if(data.tipe_kontrak === 'adendum' && data.is_zerocek === 0)
+                continue;
+
             let arrPeriode = data.kontrak?.periode ?? data.periode_pemakaian;
             let urlLaporanInvoice = data.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data.invoice.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
             let urlDocLhu = data.lhu?.status == 3 ? `<a href="${base_url}/storage/${data.lhu.media.file_path}/${data.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>` : '<i class="bi bi-printer-fill"></i> Cetak LHU';
@@ -83,7 +87,18 @@ function loadData(page = 1, menu) {
             let htmlStatus = '';
             const periodeAwal = getPeriodeAwal(data.kontrak);
 
-            if( periodeTld !== null && (!periodeAwal.includes(periodeTld))) {
+            if(data.tipe_kontrak == 'adendum'){
+                htmlTld = `
+                    <div class="col-md-12 mt-2">
+                        <div class="border-top py-2 d-flex justify-content-between align-items-center">
+                            <div class="px-2">
+                                <span class="fw-semibold fs-6">Adendum Periode ${periodeTld}</span>
+                                <small class="text-body-tertiary"> - ${data.jumlah_pengguna} Pengguna + ${data.jumlah_kontrol} Kontrol</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if ( periodeTld !== null && (!periodeAwal.includes(periodeTld))) {
                 htmlTld = `
                     <div class="col-md-12 mt-2">
                         <div class="border-top py-2 d-flex justify-content-between align-items-center">
@@ -181,12 +196,34 @@ function loadData(page = 1, menu) {
             if(!isComplete){
                 htmlBtn += `<a class="btn btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.kontrak.kontrak_hash}/${kontrak_periode.periode_hash}"><i class="bi bi-send-fill"></i> Kirim document</a>`;
             }
+
+            let htmlTipeKontrak = '';
+            if(data.tipe_kontrak !== undefined){
+                let classBadge = '';
+                switch(data.tipe_kontrak){
+                    case 'kontrak lama':
+                        classBadge = 'bg-success-subtle text-success-emphasis border-success-subtle';
+                        break;
+                    case 'adendum':
+                        classBadge = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+                        break;
+                    default:
+                        classBadge = 'bg-primary-subtle text-primary-emphasis border-primary-subtle';
+                        break;
+                }
+                htmlTipeKontrak = `
+                    <span class="badge ${classBadge} border border-info-subtle rounded-pill fw-normal px-3">
+                        ${data.tipe_kontrak}
+                    </span>
+                `;
+            }
+
             html += `
                 <div class="card mb-2">
                     <div class="card-body row align-items-center py-2">
                         <div class="col-9">
                             <div class="">
-                                <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.tipe_kontrak}</span>
+                                ${htmlTipeKontrak}
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
                             </div>
                             <div class="fs-5 my-2"><span class="fw-bold">${data.jenis_tld.name} - ${data.pelanggan.perusahaan.nama_perusahaan}</span> <span class="text-body-tertiary">${data.kontrak ? "#"+data.kontrak.no_kontrak : ''}</span></div>

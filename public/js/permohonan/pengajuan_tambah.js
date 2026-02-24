@@ -531,7 +531,8 @@ function loadPengguna(){
                     html += cardPenggunaComponent(dataCard, {
                         is_have_tld: (tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld,
                         status: value.type,
-                        label_tld: false
+                        label_tld: false,
+                        is_btn_remove: true
                     });
 
                     tmpArrTldPengguna.push({

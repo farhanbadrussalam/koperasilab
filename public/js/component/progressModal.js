@@ -101,14 +101,17 @@ function initDatePicker(data) {
  */
 function renderTldList(data) {
     let htmlRincianTld = '';
-    const details = data.permohonan?.kontrak?.kontrak_detail || [];
-    const isPeriodOne = data.periodenow.count_tld == 1 || data.periodenow.periode == 0;
+    const details = data.permohonan?.permohonan_detail.filter(d => d.type == 'baru');
+    // const details = data.permohonan?.kontrak?.kontrak_detail || [];
+    // const isPeriodOne = data.periodenow.count_tld == 1 || data.periodenow.periode == 0;
 
     details.forEach(detail => {
-        const tld = isPeriodOne ? detail.tld_1 : detail.tld_2;
-        if (!tld) return;
+        // const tld = isPeriodOne ? detail.tld_1 : detail.tld_2;
+        // if (!tld) return;
+        const tld = detail.tld;
 
-        const status = isPeriodOne ? detail.status_tld_1 : detail.status_tld_2;
+        // const status = isPeriodOne ? detail.status_tld_1 : detail.status_tld_2;
+        const status = detail.status;
         const inPenyimpanan = status == 5;
 
         const cardHtml = `
@@ -216,7 +219,7 @@ function simpanProgress(obj){
     form.append('idPenyelia', nowSelect?.penyelia_hash);
     form.append('nextJobs', nextJobs);
     form.append('nowJobs', nowJobs);
-    form.append('periodeNow',nowSelect.periodenow.periode_hash);
+    form.append('periodeNow',nowSelect.periodenow?.periode_hash);
     form.append('note', note);
     form.append('sProgress', sProgress);
 
