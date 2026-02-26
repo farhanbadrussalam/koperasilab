@@ -62,9 +62,9 @@ class KontrakAPI extends Controller
                         'jenis_layanan_parent',
                         'pelanggan:id,id_perusahaan,name',
                         'pelanggan.perusahaan',
-                        'pengiriman:id_pengiriman,id_kontrak,no_resi,status',
+                        'pengiriman:id_pengiriman,id_kontrak,no_resi,status,id_permohonan',
                         'pengiriman.detail',
-                        'pengiriman.permohonan:id_permohonan,periode',
+                        'pengiriman.permohonan:id_permohonan,periode,tipe_kontrak',
                         'tld_aktif:id_tld,digunakan,no_seri_tld,status',
                         'rincian_list_tld' => function($q) {
                             $q->whereIn('status', [5,6]);

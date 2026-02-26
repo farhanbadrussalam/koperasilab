@@ -316,122 +316,78 @@ class StaffController extends Controller
         $statusTld = false;
         $resTldPengguna = false;
         $resTldKontrol = false;
-        // if($periode){
-            // $idPeriode = decryptor($periode) ?? false;
-            // mengambil periode sekarang
-            // $periodeNow = Kontrak_periode::find($idPeriode);
-            // dd($periodeNow);
-            // mencari apakah ada permohonan di periode sekarang
-            // $permohonan = Permohonan::select('id_permohonan')->where('id_kontrak', $id)->where('periode', $periodeNow->periode)->first();
-            // $id = $permohonan ? $permohonan->id_permohonan : false;
-        // }
 
         if($id){
-            $data = Kontrak::with([
+            $data = Permohonan::with([
                 'layanan_jasa:id_layanan,nama_layanan',
                 'jenisTld:id_jenisTld,name',
                 'jenis_layanan:id_jenisLayanan,name,parent',
                 'jenis_layanan_parent',
-                'kontrak_detail',
-                'kontrak_detail.tld_1',
-                'kontrak_detail.tld_2',
-                'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                'kontrak',
+                'kontrak.periode',
+                'permohonan_detail',
+                'permohonan_detail.entitas' => function (MorphTo $morphTo) {
                     $morphTo->morphWith([
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
                     ]);
                 },
-                'periode' => function ($q) use ($idPeriode) {
-                    $q->where('id_periode', $idPeriode);
-                },
-                'pelanggan',
+                'permohonan_detail.tld',
+                'invoice',
+                'invoice.pengiriman',
+                'lhu',
+                'lhu.pengiriman',
+                'lhu.penyelia_map',
+                'lhu.penyelia_map.jobs',
+                'pengiriman',
+                'pengiriman.detail',
+                'file_lhu',
+                'pelanggan:id,id_perusahaan,name',
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
-                'periode.permohonan',
-                'periode.permohonan.invoice',
-                'periode.permohonan.invoice.pengiriman',
-                'periode.permohonan.lhu',
-                'periode.permohonan.lhu.pengiriman',
-                'periode.permohonan.pengiriman',
-                'periode.permohonan.file_lhu',
-                'periode.permohonan.pelanggan:id,id_perusahaan,name',
-                'periode.permohonan.pelanggan.perusahaan',
-                'periode.permohonan.pelanggan.perusahaan.alamat',
             ])->find($id);
-
-            // cek tld apakah sudah di kirim atau belum
-            $statusTld = Pengiriman::with([
-                'detail' => function($q){
-                    return $q->where('jenis', 'tld');
-                },
-                'permohonan',
-            ])->where('id_kontrak', $id)
-            ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode[0]->periode)
-            ->first();
-        }else{
-            // $idKontrak = decryptor($idHash) ?? false;
-            // if($periodeNow){
-            //     $countTld = $periodeNow->periode % 2 == 1 ? 1 : 2;
-            //     $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', $countTld)->get();
-            //     // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
-            //     if(count($kontrakTld) == 0){
-            //         $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', 1)->get();
-            //         foreach($dataKontrakTldSebelum as $val){
-            //             // Mengecek tld yang sedang di simpan di 2 periode sebelum dan digunakan lagi di periode ini
-            //             $arr = array(
-            //                 'id_kontrak' => $idKontrak,
-            //                 'id_pengguna' => $val->id_pengguna,
-            //                 'id_divisi' => $val->id_divisi,
-            //                 'count_tld' => $countTld,
-            //                 'status' => 6,
-            //                 'count' => $val->count,
-            //                 'created_by' => Auth::user()->id
-            //             );
-            //             Kontrak_tld::create($arr);
-            //         }
-            //     }
-            // }
 
             // $data = Kontrak::with([
             //     'layanan_jasa:id_layanan,nama_layanan',
             //     'jenisTld:id_jenisTld,name',
             //     'jenis_layanan:id_jenisLayanan,name,parent',
             //     'jenis_layanan_parent',
-            //     'pelanggan:id,id_perusahaan,name',
+            //     'kontrak_detail',
+            //     'kontrak_detail.tld_1',
+            //     'kontrak_detail.tld_2',
+            //     'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+            //         $morphTo->morphWith([
+            //             Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+            //         ]);
+            //     },
+            //     'periode' => function ($q) use ($idPeriode) {
+            //         $q->where('id_periode', $idPeriode);
+            //     },
+            //     'pelanggan',
             //     'pelanggan.perusahaan',
             //     'pelanggan.perusahaan.alamat',
-            //     'rincian_list_tld' => function ($query) use ($periodeNow) {
-            //         $query->where('status', 6)->when($periodeNow, function ($q) use ($periodeNow) {
-            //             return $q->where('count_tld', $periodeNow->periode % 2 == 1 ? 1 : 2);
-            //         });
+            //     'periode.permohonan',
+            //     'periode.permohonan.invoice',
+            //     'periode.permohonan.invoice.pengiriman',
+            //     'periode.permohonan.lhu',
+            //     'periode.permohonan.lhu.pengiriman',
+            //     'periode.permohonan.pengiriman',
+            //     'periode.permohonan.file_lhu',
+            //     'periode.permohonan.pelanggan:id,id_perusahaan,name',
+            //     'periode.permohonan.pelanggan.perusahaan',
+            //     'periode.permohonan.pelanggan.perusahaan.alamat',
+            // ])->find($id);
+
+            // cek tld apakah sudah di kirim atau belum
+            // $statusTld = Pengiriman::with([
+            //     'detail' => function($q){
+            //         return $q->where('jenis', 'tld');
             //     },
-            //     'rincian_list_tld.pengguna',
-            //     'periode'
-            // ])->find($idKontrak);
-
-            // $tld_pengguna = $this->tld->searchTldNotUsed(new Request(['jenis' => 'pengguna']));
-            // $tld_kontrol = $this->tld->searchTldNotUsed(new Request(['jenis' => 'kontrol']));
-
-            // $resTldPengguna = json_decode($tld_pengguna->getContent(), true);
-            // $resTldKontrol = json_decode($tld_kontrol->getContent(), true);
-
-            // $indexPengguna = 0;
-            // $indexKontrol = 0;
-
-            // $data->rincian_list_tld->each(function($item) use (&$resTldPengguna, &$resTldKontrol, &$indexPengguna, &$indexKontrol) {
-            //     if (!$item->id_tld) {
-            //         if ($item->id_pengguna) {
-            //             $item->tld = isset($resTldPengguna['data'][$indexPengguna]) ? [$resTldPengguna['data'][$indexPengguna]] : null;
-            //             $indexPengguna++;
-            //         } else {
-            //             $tmp = [];
-            //             for ($i = 0; $i < $item->count; $i++) {
-            //                 $tmp[] = isset($resTldKontrol['data'][$indexKontrol]) ? $resTldKontrol['data'][$indexKontrol] : null;
-            //                 $indexKontrol++;
-            //             }
-            //             $item->tld = $tmp;
-            //         }
-            //     }
-            // });
+            //     'permohonan',
+            // ])->where('id_kontrak', $id)
+            // ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode[0]->periode)
+            // ->first();
+        }else{
+            return redirect()->back();
         }
 
         // membuat permohonan
@@ -439,12 +395,8 @@ class StaffController extends Controller
             'title' => 'Buat Pengiriman',
             'module' => 'staff-pengiriman-permohonan',
             'noPengiriman' => $this->generateNoPengiriman(),
-            'informasi' => $data,
-            'status_tld' => $statusTld
+            'informasi' => $data
         ];
-
-        $resTldPengguna ? $result['tld_pengguna'] = $resTldPengguna['data'] : null;
-        $resTldKontrol ? $result['tld_kontrol'] = $resTldKontrol['data'] : null;
 
         return view('pages.staff.pengiriman.kirim', $result);
     }

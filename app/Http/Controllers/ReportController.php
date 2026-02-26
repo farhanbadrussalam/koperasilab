@@ -77,6 +77,7 @@ class ReportController extends Controller
             'permohonan.pelanggan.perusahaan',
             'permohonan.pelanggan.perusahaan.alamat',
             'permohonan.kontrak',
+            'permohonan.kontrak.periode',
             'permohonan.dokumen' => function($q){
                 $q->where('jenis', 'invoice');
             },
@@ -94,13 +95,31 @@ class ReportController extends Controller
         $data['ttd_default'] = $this->global['urlTtdDefault'];
         $data['stempel'] = $this->global['urlStempel'];
         $data['is_catatan'] = !in_array($JL, $this->global['catatan_invoice']);
-
         $periodePemakaian = $query->permohonan->periode_pemakaian;
 
-        if($query->permohonan && count($periodePemakaian) > 0){
-            $data['periode_start'] = $periodePemakaian[0];
-            $data['periode_end'] = $periodePemakaian[count($periodePemakaian) - 1] ?? null;
+        if($query->permohonan->tipe_kontrak == 'adendum') {
+            $periodePemakaian = $query->permohonan->kontrak->periode->filter(function($item) use ($query) {
+                return $item->periode >= $query->permohonan->periode;
+            })->values();
+
+            $data['periode_start'] = array(
+                'start_date' => $periodePemakaian[0]->start_date,
+                'end_date' => $periodePemakaian[0]->end_date,
+            );
+             $data['periode_end'] = array(
+                'start_date' => $periodePemakaian[count($periodePemakaian) - 1]->start_date,
+                'end_date' => $periodePemakaian[count($periodePemakaian) - 1]->end_date,
+            );
+
+            $data['count_periode'] = count($periodePemakaian);
+        } else {
+            if($query->permohonan && count($periodePemakaian) > 0){
+                $data['periode_start'] = $periodePemakaian[0];
+                $data['periode_end'] = $periodePemakaian[count($periodePemakaian) - 1] ?? null;
+                $data['count_periode'] = count($periodePemakaian);
+            }
         }
+
 
         // mengambil template invoice
         $dokumen = $query->permohonan->dokumen->first();
@@ -164,7 +183,7 @@ class ReportController extends Controller
         foreach ($dataKeuangan['diskon'] as $item) {
             $htmlDiskon .= '<tr>
                 <td>' . $item->name . ' ' . $item->diskon . '%</td>
-                <td>( ' . formatCurrency($item->jumDiskon) . ' )</td>
+                <td>- ' . formatCurrency($item->jumDiskon) . '</td>
             </tr>';
         }
 
@@ -180,7 +199,7 @@ class ReportController extends Controller
         if ($data->pph) {
             $htmlPph .= '<tr>
                 <td>PPH ' . $data->pph . '%</td>
-                <td>( ' . formatCurrency($dataKeuangan['jumPph']) . ' )</td>
+                <td>( - ' . formatCurrency($dataKeuangan['jumPph']) . ' )</td>
             </tr>';
         }
 
@@ -189,7 +208,7 @@ class ReportController extends Controller
             "RINCIAN" => '<table class="table-invoice">
                     <tr>
                         <td>' . $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol.' Unit
-                            ' . $data->permohonan->jenisTld->name . ' x ' . count($data->permohonan->periode_pemakaian) . ' Periode x
+                            ' . $data->permohonan->jenisTld->name . ' x ' . $params['count_periode'] . ' Periode x
                             ' . formatCurrency($data->permohonan->harga_layanan) . '</td>
                         <td>' . formatCurrency($data->permohonan->total_harga) . '</td>
                     </tr>

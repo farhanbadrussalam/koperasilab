@@ -309,6 +309,7 @@ class PelangganController extends Controller
                        'permohonan.pelanggan',
                        'permohonan.pelanggan.perusahaan',
                        'permohonan.kontrak',
+                       'permohonan.kontrak.periode',
                        'metode_pembayaran'
                    )->where('id_keuangan', $idKeuangan)->first();
 

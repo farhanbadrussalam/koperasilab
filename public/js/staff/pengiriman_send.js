@@ -3,13 +3,13 @@ const arrDocCustom = [];
 let inventoryTld = false;
 let mPeriode = false;
 const tmpArrTld = [];
-const periode_aktif = informasi.periode[0] ? informasi.periode[0] : null;
-const data_permohonan = periode_aktif?.permohonan;
+const data_permohonan = informasi;
+const periode_aktif = data_permohonan.kontrak.periode.find(k => k.periode == data_permohonan.periode);
 
 $(function () {
     inventoryTld = new Inventory_tld({
         preview: true,
-        no_kontrak: informasi.no_kontrak
+        no_kontrak: data_permohonan.kontrak.no_kontrak
     });
 
     inventoryTld.on('inventory.selected', (e) => {
@@ -28,8 +28,8 @@ $(function () {
     load_form();
 
     $('#select_alamat').on('change', obj => {
-        if (informasi) {
-            const perusahaan = informasi.pelanggan.perusahaan;
+        if (data_permohonan) {
+            const perusahaan = data_permohonan.pelanggan.perusahaan;
 
             if(perusahaan.alamat[obj.target.value].alamat){
                 $('#alamatTujuan').val(perusahaan.alamat[obj.target.value].alamat + ", " + perusahaan.alamat[obj.target.value].kode_pos);
@@ -50,7 +50,7 @@ function openInventory(obj, jenis){
 function load_form() {
     // Inisialisasi Alamat
     let htmlAlamat = '<option value="">Pilih alamat</option>';
-    for (const [i, value] of informasi.pelanggan.perusahaan.alamat.entries()) {
+    for (const [i, value] of data_permohonan.pelanggan.perusahaan.alamat.entries()) {
         if(value.status) {
             htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
         }
@@ -59,35 +59,24 @@ function load_form() {
 
     $('#list-document').empty();
 
-    // if(informasi.kontrak){ // jika ada permohonannya
-    //     tldPengguna = informasi.kontrak.kontrak_detail.filter(p => p.jenis == 'pengguna');
-    //     tldKontrol = informasi.kontrak.kontrak_detail.filter(p => p.jenis == 'kontrol');
-    //     kontrakPeriode = informasi.kontrak.periode;
-    //     JL = jenislayanan(informasi.kontrak.jenis_layanan_parent, informasi.kontrak.jenis_layanan);
-    //     periodeAwal = getPeriodeAwal(informasi.kontrak);
-    //     periodeNow = informasi.periode;
-    // }else{ // jika tidak ada permohonannya
-    let tldPengguna = informasi.kontrak_detail.filter(p => p.jenis == 'pengguna');
-    let tldKontrol = informasi.kontrak_detail.filter(p => p.jenis == 'kontrol');
-    let kontrakPeriode = informasi.periode;
-    let periodeAwal = getPeriodeAwal(informasi);
-    let JL = jenislayanan(informasi.jenis_layanan_parent, informasi.jenis_layanan);
-    // }
+    let tldPengguna = data_permohonan.permohonan_detail.filter(p => p.jenis == 'pengguna');
+    let tldKontrol = data_permohonan.permohonan_detail.filter(p => p.jenis == 'kontrol');
+    // let kontrakPeriode = data_permohonan.periode;
+    let periodeAwal = getPeriodeAwal(data_permohonan);
+    let JL = jenislayanan(data_permohonan.jenis_layanan_parent, data_permohonan.jenis_layanan);
 
     // list document TLD
     // Mengecek apakah sudah last periode atau belum
     let htmlDisabled = false;
-    let periodeTld = periode_aktif.periode === 0 ? 1 : periode_aktif.periode;
+    let periodeTld = data_permohonan.periode === 0 ? 1 : data_permohonan.periode;
 
-    if(!periodeAwal.includes(periodeTld)){
-        const perAktif = kontrakPeriode.find(p => p.periode == periode_aktif.periode);
-        let isPeriodOne = perAktif.count_tld == 1 || periode_aktif.periode == 0;
-        let checkedTld = status_tld?.detail?.find(d => d.jenis == 'tld') ? 'disabled' : 'checked';
+    if(!periodeAwal.includes(periodeTld) && data_permohonan.tipe_kontrak != 'adendum'){
+        let checkedTld = data_permohonan.pengiriman?.detail?.find(d => d.jenis == 'tld') ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const [i, list] of tldKontrol.entries()) {
-            const tldActive = isPeriodOne ? list.tld_1 : list.tld_2;
+            const tldActive = list.tld;
             tmpArrTld.push({
-                id: `${list.kontrak_detail_hash}`,
+                id: `${list.permohonan_detail_hash}`,
                 tld: tldActive?.tld_hash
             });
             if(!list.tld){
@@ -99,10 +88,10 @@ function load_form() {
             }
             htmlKontrol += `
                 <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
-                    <small class="text-muted me-2">${informasi.pelanggan.perusahaan.kode_perusahaan}-${i > 1 ? `C${i+1}` : 'C'}:</small>
-                    <span class="fw-bold me-2" id="tldNoSeri_${list.kontrak_detail_hash}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak ada'}</span>
-                    ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info ms-auto" data-id="${list.kontrak_detail_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
-                    <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${list.kontrak_detail_hash}" id="tldNoSeri_${list.kontrak_detail_hash}" placeholder="Pilih No Seri" readonly>
+                    <small class="text-muted me-2">${data_permohonan.pelanggan.perusahaan.kode_perusahaan}-${i > 1 ? `C${i+1}` : 'C'}:</small>
+                    <span class="fw-bold me-2" id="tldNoSeri_${list.permohonan_detail_hash}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak ada'}</span>
+                    ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info ms-auto" data-id="${list.permohonan_detail_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
+                    <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${list.permohonan_detail_hash}" id="tldNoSeri_${list.permohonan_detail_hash}" placeholder="Pilih No Seri" readonly>
                 </div>
             `;
         }
@@ -110,9 +99,9 @@ function load_form() {
         // Mengambil tld Pengguna dari kontrak
         let htmlPengguna = ``;
         for (const list of tldPengguna){
-            const tldActive = isPeriodOne ? list.tld_1 : list.tld_2;
+            const tldActive = list.tld;
             tmpArrTld.push({
-                id: list.kontrak_detail_hash,
+                id: list.permohonan_detail_hash,
                 tld: tldActive ? tldActive.tld_hash : null
             })
             if(!list.tld){
@@ -124,13 +113,14 @@ function load_form() {
             }
             htmlPengguna += `
                 <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
-                    <input type="hidden" class="form-control rounded-start form-sm" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${list.kontrak_detail_hash}" id="tldNoSeri_${list.kontrak_detail_hash}" readonly>
-                    <small class="text-muted me-2">${informasi.pelanggan.perusahaan.kode_perusahaan}-${list.entitas.kode_lencana}:</small>
-                    <span class="fw-bold me-2" id="tldNoSeri_${list.kontrak_detail_hash}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak Ada'}</span>
-                    ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info" data-id="${list.kontrak_detail_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
+                    <input type="hidden" class="form-control rounded-start form-sm" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${list.permohonan_detail_hash}" id="tldNoSeri_${list.permohonan_detail_hash}" readonly>
+                    <small class="text-muted me-2">${data_permohonan.pelanggan.perusahaan.kode_perusahaan}-${list.entitas.kode_lencana}:</small>
+                    <span class="fw-bold me-2" id="tldNoSeri_${list.permohonan_detail_hash}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak Ada'}</span>
+                    ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info" data-id="${list.permohonan_detail_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
                 </div>
             `;
         }
+
         htmlTld = `
             <div class="card border border-primary-subtle rounded-3">
                 <div class="card-body p-3 pb-0">
@@ -138,14 +128,14 @@ function load_form() {
                         <div class="form-check">
                             <div>
                                 <input class="form-check-input" type="checkbox" id="selectDocumentTld"
-                                    data-jenis="tld" name="selectDocument" data-id="${informasi.permohonan_hash ?? ''}"
+                                    data-jenis="tld" name="selectDocument" data-id="${data_permohonan.permohonan_hash ?? ''}"
                                         onclick="updateSelectDocument()" ${checkedTld}>
                                 <label class="form-check-label fw-bold" for="checkTLD">TLD Periode ${periode_aktif.status === 2 ? 'Pengembalian' : periodeTld}</label>
-                                <span class="badge bg-light text-muted border ms-2">${informasi.jumlah_pengguna} Pengguna + ${informasi.jumlah_kontrol} Kontrol</span>
+                                <span class="badge bg-light text-muted border ms-2">${data_permohonan.jumlah_pengguna} Pengguna + ${data_permohonan.jumlah_kontrol} Kontrol</span>
                             </div>
                             <div>
-                                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(informasi.created_at, 4)}</small>
-                                <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? status_tld.status : false)}</small>
+                                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.created_at, 4)}</small>
+                                <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? data_permohonan.pengiriman.status : false)}</small>
                             </div>
                         </div>
                     </div>
@@ -227,6 +217,14 @@ function load_form() {
             }
         }
 
+        let aktifJobsLhu = data_permohonan.lhu?.penyelia_map.filter(d => d.status == 1);
+        let htmlStatusLhu = statusFormat('penyelia', data_permohonan.lhu?.status);
+        if(aktifJobsLhu && data_permohonan.lhu.status == 10) {
+            aktifJobsLhu.map(d => {
+                htmlStatusLhu += statusFormat('penyelia', d.jobs.status);
+            });
+        }
+
         data_permohonan.lhu ? htmlLhu = `
             <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2">
                 <div class="form-check">
@@ -244,7 +242,7 @@ function load_form() {
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <small>${statusFormat('penyelia', data_permohonan.lhu.status)}</small>
+                    <small>${htmlStatusLhu}</small>
                     <!-- <small class="bg-body-tertiary rounded-pill ${data_permohonan.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
                 </div>
             </div>
@@ -302,7 +300,7 @@ function updateSelectDocument(){
                 break;
             case 'tld':
                 if(doc.checked){
-                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${informasi.kontrak_hash}/${periode_aktif ? periode_aktif.periode : (data_permohonan.periode ? data_permohonan.periode : 1)}`);
+                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${data_permohonan.kontrak.kontrak_hash}/${data_permohonan.periode == 0 ? 1 : data_permohonan.periode}`);
                     $('#btnCetakSurat').addClass('d-block').removeClass('d-none');
                 }else{
                     $('#btnCetakSurat').attr('href', ``);
@@ -310,10 +308,6 @@ function updateSelectDocument(){
                 }
 
                 periode = periode_aktif.periode;
-
-                // if(periodeNow){
-                //     periode = periodeNow;
-                // }
 
                 if(doc.checked){
                     $('#listTld').addClass('d-flex').removeClass('d-none');
@@ -368,17 +362,16 @@ function buatPengiriman(obj){
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            let dAlamat = informasi.pelanggan.perusahaan.alamat[alamat];
+            let dAlamat = data_permohonan.pelanggan.perusahaan.alamat[alamat];
             const params = new FormData();
             params.append('idPengiriman', $('#no_pengiriman').html());
             params.append('idPermohonan', data_permohonan?.permohonan_hash);
             params.append('alamat', dAlamat.alamat_hash);
-            params.append('tujuan', informasi.pelanggan.id);
+            params.append('tujuan', data_permohonan.pelanggan.id);
             params.append('status', 3);
             params.append('detail', JSON.stringify(arrSelectDocument));
             periode_aktif ? params.append('periode', periode_aktif.periode) : false
-            // periodeNow ? params.append('periode', periodeNow) : ();
-            informasi.kontrak_hash ? params.append('idKontrak', informasi.kontrak_hash) : false;
+            data_permohonan.kontrak.kontrak_hash ? params.append('idKontrak', data_permohonan.kontrak.kontrak_hash) : false;
 
             spinner('show', $(obj));
             ajaxPost('api/v1/pengiriman/buatPengiriman', params, result => {

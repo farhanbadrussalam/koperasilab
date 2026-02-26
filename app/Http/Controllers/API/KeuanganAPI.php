@@ -85,7 +85,8 @@ class KeuanganAPI extends Controller
                             'permohonan.jenis_layanan_parent',
                             'permohonan.pelanggan',
                             'permohonan.pelanggan.perusahaan',
-                            'permohonan.kontrak'
+                            'permohonan.kontrak',
+                            'permohonan.kontrak.periode'
                         )
                         ->orderBy('created_at','DESC')
                         ->offset(($page - 1) * $limit)
@@ -263,7 +264,8 @@ class KeuanganAPI extends Controller
                 'permohonan.jenis_layanan_parent',
                 'permohonan.pelanggan',
                 'permohonan.pelanggan.perusahaan',
-                'permohonan.kontrak'
+                'permohonan.kontrak',
+                'permohonan.kontrak.periode',
             )->find($idKeuangan);
 
             DB::commit();

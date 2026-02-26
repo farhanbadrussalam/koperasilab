@@ -129,7 +129,6 @@
 @push('scripts')
     <script>
         const informasi = @json($informasi);
-        const status_tld = @json($status_tld);
     </script>
     <script src="{{ asset('js/staff/pengiriman_send.js') }}"></script>
 @endpush

@@ -411,7 +411,11 @@ class Invoice {
         const hargaLayanan = permohonan.harga_layanan;
         const qty = permohonan.jumlah_kontrol + permohonan.jumlah_pengguna;
         const jumLayanan = permohonan.total_harga;
-        const periode = permohonan.periode_pemakaian;
+        let periode = permohonan.periode_pemakaian;
+
+        if(permohonan.tipe_kontrak === 'adendum'){
+            periode = permohonan.kontrak.periode.filter(item => item.periode >= permohonan.periode);
+        }
 
         let jumDiskon = 0;
         let jumPph = 0;

@@ -60,6 +60,7 @@ function loadData(page = 1) {
     $(`#list-container`).hide();
     ajaxGet(`api/v1/kontrak/list`, params, result => {
         dataKontrak = result.data;
+
         let html = '';
         for (const [i, data] of result.data.entries()) {
             let arrPeriode = data.periode;
@@ -97,7 +98,8 @@ function loadData(page = 1) {
                         jenis: d.jenis,
                         periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
                         status: pengiriman.status,
-                        no_resi: pengiriman.no_resi ?? false
+                        no_resi: pengiriman.no_resi ?? false,
+                        tipe_kontrak: pengiriman.permohonan ? pengiriman.permohonan.tipe_kontrak : false
                     }));
                 }
             }
@@ -227,7 +229,6 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     const isPelanggan = role.includes('Pelanggan');
     let htmlAction = ``;
     let htmlDoc = ``;
-    // let periodeAwal = getPeriodeAwal(dataKontrak[index]);
 
     // cek apakah sudah bayar atau belum
     // let lastPeriode = (dataKontrak[index].periode_count) == data.periode;
@@ -237,9 +238,8 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
     let aktifDokumenKirim = periodeMapDocument(data, dataKontrak[index], arrFind);
 
-
     for (const doc of aktifDokumenKirim) {
-        let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
+        let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc && cek.tipe_kontrak != 'adendum');
 
         // pengecekan TLD
         if(doc === 'tld') {

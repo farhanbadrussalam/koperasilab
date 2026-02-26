@@ -118,7 +118,6 @@ function loadData(page = 1, menu) {
             // Data LHU
             let htmlLhu = '';
             let htmlStatusLhu = statusFormat('penyelia', data.lhu?.status);
-            // let htmlStatusLhu = data.lhu ? statusFormat('penyelia', data.lhu.status) : '';
             if(aktifJobsLhu && data.lhu.status == 10) {
                 aktifJobsLhu.map(d => {
                     htmlStatusLhu += statusFormat('penyelia', d.jobs.status);
@@ -191,10 +190,9 @@ function loadData(page = 1, menu) {
             }
             const dokumenAktif = periodeMapDocument(data, data.kontrak, arrFind);
             const isComplete = cekComplete(data, detailPengiriman, dokumenAktif);
-            const kontrak_periode = data.kontrak.periode.find(d => d.periode == data.periode);
 
             if(!isComplete){
-                htmlBtn += `<a class="btn btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.kontrak.kontrak_hash}/${kontrak_periode.periode_hash}"><i class="bi bi-send-fill"></i> Kirim document</a>`;
+                htmlBtn += `<a class="btn btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan_hash}"><i class="bi bi-send-fill"></i> Kirim document</a>`;
             }
 
             let htmlTipeKontrak = '';
@@ -302,14 +300,5 @@ function clearFilter(){
 
 function cekComplete(data_periode, detail_pengiriman, arrFindDokumen) {
     return arrFindDokumen.every(doc => detail_pengiriman.some(cek => cek.periode === data_periode.periode && cek.jenis === doc));
-    for (const doc of arrFindDokumen) {
-        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
-
-        if(!findPeriode) {
-            return false;
-        }
-    }
-
-    return true;
 }
 

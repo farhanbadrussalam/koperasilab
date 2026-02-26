@@ -825,6 +825,7 @@ if(!function_exists('cekPeriodeComplete')) {
         $period = Kontrak_periode::with('permohonan', 'permohonan.invoice')->where('id_kontrak', $id_kontrak)
                     ->where('periode', $periode)
                     ->first();
+
         $kontrak = Kontrak::with([
             'jenis_layanan',
             'jenis_layanan_parent',
@@ -832,6 +833,7 @@ if(!function_exists('cekPeriodeComplete')) {
             'pengiriman',
             'pengiriman.detail'
         ])->find($id_kontrak);
+
         $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
         $periodeAwal = getPeriodeAwal($kontrak);
         $lastPeriode = $kontrak->periode_all['jml_periode'] == $periode;

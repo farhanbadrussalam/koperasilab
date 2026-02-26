@@ -397,7 +397,7 @@ class PengirimanAPI extends Controller
                 $params['bukti_penerima'] = $tmpBuktiPenerima;
             }
 
-            $query = Pengiriman::with('detail', 'kontrak')->where('id_pengiriman', $idPengiriman)->first();
+            $query = Pengiriman::with('detail', 'kontrak', 'permohonan')->where('id_pengiriman', $idPengiriman)->first();
             $query->update($params);
 
             // jika LHU sudah dikirim
@@ -411,7 +411,10 @@ class PengirimanAPI extends Controller
             $kontrakPeriode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->where('periode', $query->periode)->first();
             if(!$kontrakPeriode->selesai){ // jika value nya null
                 info("Proses pengecekan di periode : " . $query->periode);
-                $cekPeriode = cekPeriodeComplete($query->id_kontrak, $query->periode);
+                $cekPeriode = false;
+                if($query->permohonan->tipe_kontrak != 'adendum') {
+                    $cekPeriode = cekPeriodeComplete($query->id_kontrak, $query->periode);
+                }
                 if($cekPeriode){
                     $kontrakPeriode->update(['selesai' => 1]);
                     info("Update Kontrak Periode: selesai = 1");

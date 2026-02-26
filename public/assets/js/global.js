@@ -1228,6 +1228,7 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
         if (doc === 'tld') {
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
             if (periodeAwal.includes(data_periode.periode)) continue;
+            if (data_periode.tipe_kontrak == 'adendum') continue;
         }
         if (doc === 'lhu') {
             if(data_periode.status == 2) continue;
