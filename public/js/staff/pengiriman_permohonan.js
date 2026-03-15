@@ -183,12 +183,13 @@ function loadData(page = 1, menu) {
                             jenis: d.jenis,
                             periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
                             status: pengiriman.status,
-                            no_resi: pengiriman.no_resi ?? false
+                            no_resi: pengiriman.no_resi ?? false,
+                            tipe_kontrak: pengiriman.permohonan ? pengiriman.permohonan.tipe_kontrak : false
                         }));
                     }
                 }
             }
-            const dokumenAktif = periodeMapDocument(data, data.kontrak, arrFind);
+            const dokumenAktif = periodeMapDocument_pengiriman(data, data.kontrak, arrFind);
             const isComplete = cekComplete(data, detailPengiriman, dokumenAktif);
 
             if(!isComplete){
@@ -217,7 +218,7 @@ function loadData(page = 1, menu) {
             }
 
             html += `
-                <div class="card mb-2">
+                <div class="card mb-2" id="${data.permohonan_hash}">
                     <div class="card-body row align-items-center py-2">
                         <div class="col-9">
                             <div class="">
@@ -226,7 +227,7 @@ function loadData(page = 1, menu) {
                             </div>
                             <div class="fs-5 my-2"><span class="fw-bold">${data.jenis_tld.name} - ${data.pelanggan.perusahaan.nama_perusahaan}</span> <span class="text-body-tertiary">${data.kontrak ? "#"+data.kontrak.no_kontrak : ''}</span></div>
                             <div class="d-flex gap-3 text-body-tertiary">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})">${data.is_zerocek == 1 ? arrPeriode.length - 1 : arrPeriode.length} Periode</div>
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 d-none border border-dark-subtle px-2" onclick="showPeriode(${i})">${data.is_zerocek == 1 ? arrPeriode.length - 1 : arrPeriode.length} Periode</div>
                                 <div><i class="bi bi-person-check-fill"></i> ${data.pelanggan.name}</div>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
                             </div>
@@ -299,6 +300,40 @@ function clearFilter(){
 }
 
 function cekComplete(data_periode, detail_pengiriman, arrFindDokumen) {
-    return arrFindDokumen.every(doc => detail_pengiriman.some(cek => cek.periode === data_periode.periode && cek.jenis === doc));
+    // Filter pengiriman yang relevan: periode sama dan bukan adendum
+    const pengirimanRelevan = detail_pengiriman.filter(item => {
+        if (data_periode.tipe_kontrak == 'adendum') {
+            return item.periode === data_periode.periode && item.tipe_kontrak == 'adendum';
+        }
+        return item.periode === data_periode.periode;
+    });
+
+    // Ambil jenis dokumen yang sudah ada
+    const jenisDokumenAda = pengirimanRelevan.map(item => item.jenis);
+
+    // Pastikan semua dokumen yang dicari ada di dalam jenisDokumenAda
+    return arrFindDokumen.every(doc => jenisDokumenAda.includes(doc));
 }
 
+function periodeMapDocument_pengiriman(data_periode, kontrak, arrFindDokumen){
+    const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
+    const periodeAwal = getPeriodeAwal(kontrak);
+    let lastPeriode = (kontrak.periode_count) == data_periode.periode;
+
+    let aktifDokumenKirim = [];
+    for (const doc of arrFindDokumen) {
+        if (doc === 'invoice' && !data_periode?.invoice) continue;
+        if (doc === 'tld') {
+            if (lastPeriode && tmpArrSewa.includes(JL)) continue;
+            if (periodeAwal.includes(data_periode.periode)) continue;
+            if (data_periode.tipe_kontrak == 'adendum') continue;
+        }
+        if (doc === 'lhu') {
+            if(data_periode.status == 2) continue;
+        }
+
+        aktifDokumenKirim.push(doc);
+    }
+
+    return aktifDokumenKirim;
+}

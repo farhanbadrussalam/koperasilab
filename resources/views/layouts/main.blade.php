@@ -159,14 +159,11 @@
                 'channel' : `App.Models.User.${user.id}`,
                 'id' : user.id
             });
-            // notifikasi.showNotif({
-            //     'pesan' : 'Halo from test',
-            //     'event_id' : 'test',
-            //     'event' : 'test',
-            //     'url' : 'https://google.com',
-            //     'user_id' : 'test',
-            //     'perusahaan_id' : 'test'
-            // });
+
+            $("#container-time-now").html(dateFormat(new Date(), 1));
+            setInterval(() => {
+                $("#container-time-now").html(dateFormat(new Date(), 1));
+            }, 5000);
 
             $('[data-bs-toggle="tooltip"]').attr('data-bs-placement', 'bottom')
             $('[data-bs-toggle="tooltip"]').tooltip()

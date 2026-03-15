@@ -3,13 +3,62 @@ const arrDocCustom = [];
 let inventoryTld = false;
 let mPeriode = false;
 const tmpArrTld = [];
-const data_permohonan = informasi;
-const periode_aktif = data_permohonan.kontrak.periode.find(k => k.periode == data_permohonan.periode);
+let dataOrderPengiriman = {};
+if(informasi.sumber == 'permohonan') {
+    const periode_aktif = informasi.kontrak.periode.find(k => k.periode == informasi.periode);
+    dataOrderPengiriman = {
+        sumber: 'permohonan',
+        no_kontrak: informasi.kontrak.no_kontrak,
+        pelanggan: informasi.pelanggan,
+        detail: informasi.permohonan_detail,
+        jenis_layanan: informasi.jenis_layanan,
+        jenis_layanan_parent: informasi.jenis_layanan_parent,
+        tipe_kontrak: informasi.tipe_kontrak,
+        jumlah_pengguna: informasi.jumlah_pengguna,
+        jumlah_kontrol: informasi.jumlah_kontrol,
+        pengiriman: informasi.pengiriman,
+        id_hash: informasi.permohonan_hash,
+        kontrak_hash: informasi.kontrak.kontrak_hash,
+        created_at: informasi.created_at,
+        invoice: informasi.invoice,
+        lhu: informasi.lhu,
+        is_zerocek: informasi.is_zerocek,
+        is_have_tld: informasi.is_have_tld,
+        file_lhu: informasi.file_lhu,
+        periode_aktif: periode_aktif,
+        adendum: false,
+        periode_all: informasi.kontrak.periode_all
+    }
+} else {
+    dataOrderPengiriman = {
+        sumber: 'kontrak',
+        no_kontrak: informasi.no_kontrak,
+        pelanggan: informasi.pelanggan,
+        detail: informasi.kontrak_detail,
+        jenis_layanan: informasi.jenis_layanan,
+        jenis_layanan_parent: informasi.jenis_layanan_parent,
+        tipe_kontrak: informasi.tipe_kontrak,
+        jumlah_pengguna: informasi.jumlah_pengguna,
+        jumlah_kontrol: informasi.jumlah_kontrol,
+        pengiriman: false,
+        id_hash: false,
+        kontrak_hash: informasi.kontrak_hash,
+        created_at: informasi.created_at,
+        invoice: false,
+        lhu: false,
+        is_zerocek: informasi.is_zerocek,
+        is_have_tld: informasi.is_have_tld,
+        file_lhu: false,
+        periode_aktif: informasi.periode[0],
+        adendum: informasi.adendum,
+        periode_all: informasi.periode_all
+    }
+}
 
 $(function () {
     inventoryTld = new Inventory_tld({
         preview: true,
-        no_kontrak: data_permohonan.kontrak.no_kontrak
+        no_kontrak: dataOrderPengiriman.no_kontrak
     });
 
     inventoryTld.on('inventory.selected', (e) => {
@@ -28,15 +77,13 @@ $(function () {
     load_form();
 
     $('#select_alamat').on('change', obj => {
-        if (data_permohonan) {
-            const perusahaan = data_permohonan.pelanggan.perusahaan;
+        const perusahaan = dataOrderPengiriman.pelanggan.perusahaan;
 
-            if(perusahaan.alamat[obj.target.value].alamat){
-                $('#alamatTujuan').val(perusahaan.alamat[obj.target.value].alamat + ", " + perusahaan.alamat[obj.target.value].kode_pos);
-            } else {
-                const alamatUtama = perusahaan.alamat.find(a => a.jenis == 'utama');
-                $('#alamatTujuan').val(alamatUtama.alamat + ", " + alamatUtama.kode_pos);
-            }
+        if(perusahaan.alamat[obj.target.value].alamat){
+            $('#alamatTujuan').val(perusahaan.alamat[obj.target.value].alamat + ", " + perusahaan.alamat[obj.target.value].kode_pos);
+        } else {
+            const alamatUtama = perusahaan.alamat.find(a => a.jenis == 'utama');
+            $('#alamatTujuan').val(alamatUtama.alamat + ", " + alamatUtama.kode_pos);
         }
     });
 
@@ -50,7 +97,7 @@ function openInventory(obj, jenis){
 function load_form() {
     // Inisialisasi Alamat
     let htmlAlamat = '<option value="">Pilih alamat</option>';
-    for (const [i, value] of data_permohonan.pelanggan.perusahaan.alamat.entries()) {
+    for (const [i, value] of dataOrderPengiriman.pelanggan.perusahaan.alamat.entries()) {
         if(value.status) {
             htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
         }
@@ -59,39 +106,69 @@ function load_form() {
 
     $('#list-document').empty();
 
-    let tldPengguna = data_permohonan.permohonan_detail.filter(p => p.jenis == 'pengguna');
-    let tldKontrol = data_permohonan.permohonan_detail.filter(p => p.jenis == 'kontrol');
-    // let kontrakPeriode = data_permohonan.periode;
-    let periodeAwal = getPeriodeAwal(data_permohonan);
-    let JL = jenislayanan(data_permohonan.jenis_layanan_parent, data_permohonan.jenis_layanan);
+    let tldPengguna = dataOrderPengiriman.detail.filter(p => p.jenis == 'pengguna');
+    let tldKontrol = dataOrderPengiriman.detail.filter(p => p.jenis == 'kontrol');
+
+    // jika ada dendum yang baru akan di masukkan ke tldPengguna atau tldKontrol sesuai dengan jenisnya
+    if(dataOrderPengiriman.adendum) {
+        let adendumPengguna = dataOrderPengiriman.adendum.filter(p => p.jenis == 'pengguna');
+        let adendumKontrol = dataOrderPengiriman.adendum.filter(p => p.jenis == 'kontrol');
+
+        // di adendum ini ada type baru dan ganti type lama jadi type baru, untuk type baru akan langsung di masukkan ke list tld pengguna atau kontrol, sedangkan untuk type ganti akan mengganti data yang lama dengan yang baru berdasarkan column pengguna_lama
+        for (const [i, value] of adendumPengguna.entries()) {
+            if(value.type == 'ganti'){
+                let index = tldPengguna.findIndex(p => p.id_pengguna_divisi == value.pengguna_lama);
+                if(index > -1){
+                    tldPengguna[index] = value;
+                }
+            } else {
+                tldPengguna.push(value);
+            }
+        }
+        tldKontrol = tldKontrol.concat(adendumKontrol);
+    }
+
+    let periodeAwal = getPeriodeAwal(dataOrderPengiriman);
+    let JL = jenislayanan(dataOrderPengiriman.jenis_layanan_parent, dataOrderPengiriman.jenis_layanan);
 
     // list document TLD
     // Mengecek apakah sudah last periode atau belum
     let htmlDisabled = false;
-    let periodeTld = data_permohonan.periode === 0 ? 1 : data_permohonan.periode;
+    let periodeTld = dataOrderPengiriman.periode_aktif.periode === 0 ? 1 : dataOrderPengiriman.periode_aktif.periode;
+    // di ganti sebelumnya saya mengambil kontrak.periode bukan kontrak.periode_all
+    let isLastPeriode = dataOrderPengiriman.periode_all >= periodeTld;
 
-    if(!periodeAwal.includes(periodeTld) && data_permohonan.tipe_kontrak != 'adendum'){
-        let checkedTld = data_permohonan.pengiriman?.detail?.find(d => d.jenis == 'tld') ? 'disabled' : 'checked';
+    if(!periodeAwal.includes(periodeTld) && dataOrderPengiriman.tipe_kontrak != 'adendum' && !isLastPeriode) {
+        let checkedTld = dataOrderPengiriman.pengiriman?.detail?.find(d => d.jenis == 'tld') ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const [i, list] of tldKontrol.entries()) {
-            const tldActive = list.tld;
+            let tldActive = false;
+            if(dataOrderPengiriman.sumber == 'permohonan') {
+                tldActive = list.tld;
+            } else {
+                let isPeriodOne = dataOrderPengiriman.periode_aktif.count_tld == 1;
+                tldActive = isPeriodOne ? list.tld_1 : list.tld_2;
+            }
+
+            let id = dataOrderPengiriman.sumber == 'permohonan' ? list.permohonan_detail_hash : list.kontrak_detail_hash;
+
             tmpArrTld.push({
-                id: `${list.permohonan_detail_hash}`,
+                id: `${id}`,
                 tld: tldActive?.tld_hash
             });
-            if(!list.tld){
+            if(!tldActive){
                 htmlDisabled = false;
             } else {
-                if(data_permohonan.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && data_permohonan.is_have_tld == 1)){
+                if(dataOrderPengiriman.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && dataOrderPengiriman.is_have_tld == 1)){
                     htmlDisabled = true;
                 }
             }
             htmlKontrol += `
                 <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
-                    <small class="text-muted me-2">${data_permohonan.pelanggan.perusahaan.kode_perusahaan}-${i > 1 ? `C${i+1}` : 'C'}:</small>
-                    <span class="fw-bold me-2" id="tldNoSeri_${list.permohonan_detail_hash}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak ada'}</span>
-                    ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info ms-auto" data-id="${list.permohonan_detail_hash}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
-                    <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${list.permohonan_detail_hash}" id="tldNoSeri_${list.permohonan_detail_hash}" placeholder="Pilih No Seri" readonly>
+                    <small class="text-muted me-2">${dataOrderPengiriman.pelanggan.perusahaan.kode_perusahaan}-${i > 1 ? `C${i+1}` : 'C'}:</small>
+                    <span class="fw-bold me-2" id="tldNoSeri_${id}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak ada'}</span>
+                    ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info ms-auto" data-id="${id}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
+                    <input type="hidden" class="form-control rounded-start form-sm" name="kodeTldKontrol" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${id}" id="tldNoSeri_${id}" placeholder="Pilih No Seri" readonly>
                 </div>
             `;
         }
@@ -99,24 +176,33 @@ function load_form() {
         // Mengambil tld Pengguna dari kontrak
         let htmlPengguna = ``;
         for (const list of tldPengguna){
-            const tldActive = list.tld;
+            let tldActive = false;
+            if(dataOrderPengiriman.sumber == 'permohonan') {
+                tldActive = list.tld;
+            } else {
+                let isPeriodOne = dataOrderPengiriman.periode_aktif.count_tld == 1;
+                tldActive = isPeriodOne ? list.tld_1 : list.tld_2;
+            }
+
+            let id = dataOrderPengiriman.sumber == 'permohonan' ? list.permohonan_detail_hash : list.kontrak_detail_hash;
+
             tmpArrTld.push({
-                id: list.permohonan_detail_hash,
+                id: id,
                 tld: tldActive ? tldActive.tld_hash : null
             })
-            if(!list.tld){
+            if(!tldActive){
                 htmlDisabled = false;
             } else {
-                if(data_permohonan.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && data_permohonan.is_have_tld == 1)){
+                if(dataOrderPengiriman.tipe_kontrak == 'kontrak lama' || (tmpArrEvaluasi.includes(JL) && dataOrderPengiriman.is_have_tld == 1)){
                     htmlDisabled = true;
                 }
             }
             htmlPengguna += `
                 <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
-                    <input type="hidden" class="form-control rounded-start form-sm" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${list.permohonan_detail_hash}" id="tldNoSeri_${list.permohonan_detail_hash}" readonly>
-                    <small class="text-muted me-2">${data_permohonan.pelanggan.perusahaan.kode_perusahaan}-${list.entitas.kode_lencana}:</small>
-                    <span class="fw-bold me-2" id="tldNoSeri_${list.permohonan_detail_hash}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak Ada'}</span>
-                    ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info" data-id="${list.permohonan_detail_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
+                    <input type="hidden" class="form-control rounded-start form-sm" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${id}" id="tldNoSeri_${id}" readonly>
+                    <small class="text-muted me-2">${dataOrderPengiriman.pelanggan.perusahaan.kode_perusahaan}-${list.entitas.kode_lencana}:</small>
+                    <span class="fw-bold me-2" id="tldNoSeri_${id}_view">${tldActive ? tldActive.no_seri_tld : 'Tidak Ada'}</span>
+                    ${!htmlDisabled ? `<button class="btn btn-sm btn-link p-0 text-info" data-id="${id}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i></button>` : ``}
                 </div>
             `;
         }
@@ -128,14 +214,14 @@ function load_form() {
                         <div class="form-check">
                             <div>
                                 <input class="form-check-input" type="checkbox" id="selectDocumentTld"
-                                    data-jenis="tld" name="selectDocument" data-id="${data_permohonan.permohonan_hash ?? ''}"
+                                    data-jenis="tld" name="selectDocument" data-id="${dataOrderPengiriman.id_hash ?? ''}"
                                         onclick="updateSelectDocument()" ${checkedTld}>
-                                <label class="form-check-label fw-bold" for="checkTLD">TLD Periode ${periode_aktif.status === 2 ? 'Pengembalian' : periodeTld}</label>
-                                <span class="badge bg-light text-muted border ms-2">${data_permohonan.jumlah_pengguna} Pengguna + ${data_permohonan.jumlah_kontrol} Kontrol</span>
+                                <label class="form-check-label fw-bold" for="checkTLD">TLD Periode ${dataOrderPengiriman.periode_aktif.status === 2 ? 'Pengembalian' : periodeTld}</label>
+                                <span class="badge bg-light text-muted border ms-2">${dataOrderPengiriman.jumlah_pengguna} Pengguna + ${dataOrderPengiriman.jumlah_kontrol} Kontrol</span>
                             </div>
                             <div>
-                                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.created_at, 4)}</small>
-                                <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? data_permohonan.pengiriman.status : false)}</small>
+                                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(dataOrderPengiriman.created_at, 4)}</small>
+                                <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? dataOrderPengiriman.pengiriman.status : false)}</small>
                             </div>
                         </div>
                     </div>
@@ -161,30 +247,30 @@ function load_form() {
 
     // list document invoice
     let htmlInvoice = '';
-    if(data_permohonan){
-        let urlLaporanInvoice = data_permohonan.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data_permohonan.invoice?.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i></a>` : '<i class="bi bi-printer-fill"></i>';
+    if(dataOrderPengiriman.invoice){
+        let urlLaporanInvoice = dataOrderPengiriman.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${dataOrderPengiriman.invoice?.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i></a>` : '<i class="bi bi-printer-fill"></i>';
         // let checkedInvoice = informasi.invoice?.status == 5 ? (informasi.invoice?.pengiriman ? 'disabled' : 'checked') : 'disabled';
-        let checkedInvoice = data_permohonan.invoice?.pengiriman ? 'disabled' : 'checked';
-        data_permohonan.invoice ? htmlInvoice = `
+        let checkedInvoice = dataOrderPengiriman.invoice?.pengiriman ? 'disabled' : 'checked';
+        dataOrderPengiriman.invoice ? htmlInvoice = `
             <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2 shadow-xs">
                 <div class="form-check">
                     <div class="d-flex align-items-center gap-2">
                         <input class="form-check-input" type="checkbox"
-                            data-jenis="invoice" data-id="${data_permohonan.invoice.keuangan_hash}"
+                            data-jenis="invoice" data-id="${dataOrderPengiriman.invoice.keuangan_hash}"
                             id="selectDocumentInvoice" name="selectDocument" onclick="updateSelectDocument()" ${checkedInvoice}>
                         <label class="form-check-label" for="checkInv">
                             <span class="fw-bold">Invoice + MoU</span>
-                            <small class="text-muted ms-2">#${data_permohonan.invoice.no_invoice}</small>
+                            <small class="text-muted ms-2">#${dataOrderPengiriman.invoice.no_invoice}</small>
                         </label>
                     </div>
                     <div>
-                        <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.invoice.created_at, 4)}</small>
-                        <small>${statusFormat('pengiriman', data_permohonan.invoice.pengiriman?.status)}</small>
+                        <small><i class="bi bi-calendar-fill"></i> ${dateFormat(dataOrderPengiriman.invoice.created_at, 4)}</small>
+                        <small>${statusFormat('pengiriman', dataOrderPengiriman.invoice.pengiriman?.status)}</small>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    ${statusFormat('invoice', data_permohonan.invoice.status)}
-                    <small class="btn btn-sm btn-outline-primary border-0 bg-primary-subtle text-primary ${data_permohonan.invoice.status == 5 ? "cursoron" : "cursordisable"}">
+                    ${statusFormat('invoice', dataOrderPengiriman.invoice.status)}
+                    <small class="btn btn-sm btn-outline-primary border-0 bg-primary-subtle text-primary ${dataOrderPengiriman.invoice.status == 5 ? "cursoron" : "cursordisable"}">
                         ${urlLaporanInvoice}
                     </small>
                 </div>
@@ -195,55 +281,55 @@ function load_form() {
 
     // List Document LHU
     let htmlLhu = '';
-    if(data_permohonan){
+    if(dataOrderPengiriman.lhu){
         let checkedLhu = 'disabled';
         let urlDocLhu = '<i class="bi bi-printer-fill"></i> Cetak LHU';
 
-        if(data_permohonan.lhu?.status == 3){
+        if(dataOrderPengiriman.lhu?.status == 3){
             checkedLhu = 'checked';
-            urlDocLhu = `<a href="${base_url}/storage/${data_permohonan.lhu.media.file_path}/${data_permohonan.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>`;
+            urlDocLhu = `<a href="${base_url}/storage/${dataOrderPengiriman.lhu.media.file_path}/${dataOrderPengiriman.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>`;
         }
 
-        if(data_permohonan.lhu?.pengiriman){
+        if(dataOrderPengiriman.lhu?.pengiriman){
             checkedLhu = 'disabled';
         }
 
-        let htmlRangeDate = `(${periode_aktif.start_date ? dateFormat(periode_aktif.start_date, 4) : '-'} - ${periode_aktif.end_date ? dateFormat(periode_aktif.end_date, 4) : '-'})`;
+        let htmlRangeDate = `(${dataOrderPengiriman.periode_aktif.start_date ? dateFormat(dataOrderPengiriman.periode_aktif.start_date, 4) : '-'} - ${dataOrderPengiriman.periode_aktif.end_date ? dateFormat(dataOrderPengiriman.periode_aktif.end_date, 4) : '-'})`;
 
         let htmlPeriode = "";
-        if(data_permohonan.lhu){
-            if(data_permohonan.lhu.periode == 1 && data_permohonan.is_zerocek == 1 && data_permohonan.is_have_tld == 1) {
+        if(dataOrderPengiriman.lhu){
+            if(dataOrderPengiriman.lhu.periode == 1 && dataOrderPengiriman.is_zerocek == 1 && dataOrderPengiriman.is_have_tld == 1) {
                 htmlPeriode += ' + Zero Cek';
             }
         }
 
-        let aktifJobsLhu = data_permohonan.lhu?.penyelia_map.filter(d => d.status == 1);
-        let htmlStatusLhu = statusFormat('penyelia', data_permohonan.lhu?.status);
-        if(aktifJobsLhu && data_permohonan.lhu.status == 10) {
+        let aktifJobsLhu = dataOrderPengiriman.lhu?.penyelia_map.filter(d => d.status == 1);
+        let htmlStatusLhu = statusFormat('penyelia', dataOrderPengiriman.lhu?.status);
+        if(aktifJobsLhu && dataOrderPengiriman.lhu.status == 10) {
             aktifJobsLhu.map(d => {
                 htmlStatusLhu += statusFormat('penyelia', d.jobs.status);
             });
         }
 
-        data_permohonan.lhu ? htmlLhu = `
+        dataOrderPengiriman.lhu ? htmlLhu = `
             <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border mb-2">
                 <div class="form-check">
                     <div class="d-flex align-items-center gap-2">
                         <input class="form-check-input" type="checkbox"
-                            data-jenis="lhu" data-id="${data_permohonan.lhu.penyelia_hash}"
+                            data-jenis="lhu" data-id="${dataOrderPengiriman.lhu.penyelia_hash}"
                             id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
                         <label class="form-check-label fw-bold" for="selectDocumentLHU">LHU ${htmlPeriode}</label>
 
-                        <small class="text-body-tertiary"> - ${!data_permohonan.lhu.periode ? 'Zero Cek' : `Periode ${data_permohonan.lhu.periode} ${htmlRangeDate}`} </small>
+                        <small class="text-body-tertiary"> - ${!dataOrderPengiriman.lhu.periode ? 'Zero Cek' : `Periode ${dataOrderPengiriman.lhu.periode} ${htmlRangeDate}`} </small>
                     </div>
                     <div>
-                        <small><i class="bi bi-calendar-fill"></i> ${dateFormat(data_permohonan.lhu.created_at, 4)}</small>
-                        <small>${statusFormat('pengiriman', data_permohonan.lhu.pengiriman?.status)}</small>
+                        <small><i class="bi bi-calendar-fill"></i> ${dateFormat(dataOrderPengiriman.lhu.created_at, 4)}</small>
+                        <small>${statusFormat('pengiriman', dataOrderPengiriman.lhu.pengiriman?.status)}</small>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <small>${htmlStatusLhu}</small>
-                    <!-- <small class="bg-body-tertiary rounded-pill ${data_permohonan.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
+                    <!-- <small class="bg-body-tertiary rounded-pill ${dataOrderPengiriman.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
                 </div>
             </div>
         ` : false;
@@ -252,10 +338,10 @@ function load_form() {
 
     // List document custom (akan mengikat ke id pengiriman yang ada di permohonannya)
     let htmlCustom = '';
-    if(data_permohonan){
-        let checkedCustom = data_permohonan.pengiriman ? 'disabled' : 'checked';
-        if(data_permohonan.file_lhu){
-            arrDocCustom.push({jenis: "lhu zero cek", media: data_permohonan.file_lhu});
+    if(dataOrderPengiriman){
+        let checkedCustom = dataOrderPengiriman.pengiriman ? 'disabled' : 'checked';
+        if(dataOrderPengiriman.file_lhu){
+            arrDocCustom.push({jenis: "lhu zero cek", media: dataOrderPengiriman.file_lhu});
         }
 
         for (const custom of arrDocCustom) {
@@ -265,12 +351,12 @@ function load_form() {
                     <div class="form-check">
                         <div class="d-flex align-items-center gap-2">
                             <input class="form-check-input" type="checkbox"
-                                data-jenis="${custom.jenis}" data-id="${data_permohonan.permohonan_hash}"
+                                data-jenis="${custom.jenis}" data-id="${dataOrderPengiriman.id_hash}"
                                 id="selectDocumentCustom" name="selectDocument" ${checkedCustom} disabled>
                             <label class="form-check-label fw-bold" for="selectDocumentLHU">${custom.jenis}</label>
                         </div>
                         <div>
-                            <small>${statusFormat('pengiriman', data_permohonan.pengiriman?.status)}</small>
+                            <small>${statusFormat('pengiriman', dataOrderPengiriman.pengiriman?.status)}</small>
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-3 text-secondary">
@@ -296,18 +382,18 @@ function updateSelectDocument(){
 
         switch (jenis) {
             case 'lhu':
-                periode = data_permohonan.lhu.periode;
+                periode = dataOrderPengiriman.lhu?.periode;
                 break;
             case 'tld':
                 if(doc.checked){
-                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${data_permohonan.kontrak.kontrak_hash}/${data_permohonan.periode == 0 ? 1 : data_permohonan.periode}`);
+                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/${dataOrderPengiriman.periode_aktif.periode == 0 ? 1 : dataOrderPengiriman.periode_aktif.periode}`);
                     $('#btnCetakSurat').addClass('d-block').removeClass('d-none');
                 }else{
                     $('#btnCetakSurat').attr('href', ``);
                     $('#btnCetakSurat').addClass('d-none').removeClass('d-block');
                 }
 
-                periode = periode_aktif.periode;
+                periode = dataOrderPengiriman.periode_aktif.periode;
 
                 if(doc.checked){
                     $('#listTld').addClass('d-flex').removeClass('d-none');
@@ -318,7 +404,7 @@ function updateSelectDocument(){
                 listTld = tmpArrTld;
                 break;
             default:
-                periode = periode_aktif.periode;
+                periode = dataOrderPengiriman.periode_aktif.periode;
                 break;
         }
 
@@ -362,16 +448,16 @@ function buatPengiriman(obj){
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            let dAlamat = data_permohonan.pelanggan.perusahaan.alamat[alamat];
+            let dAlamat = dataOrderPengiriman.pelanggan.perusahaan.alamat[alamat];
             const params = new FormData();
             params.append('idPengiriman', $('#no_pengiriman').html());
-            params.append('idPermohonan', data_permohonan?.permohonan_hash);
+            params.append('idPermohonan', dataOrderPengiriman.id_hash);
+            params.append('idKontrak', dataOrderPengiriman.kontrak_hash)
             params.append('alamat', dAlamat.alamat_hash);
-            params.append('tujuan', data_permohonan.pelanggan.id);
+            params.append('tujuan', dataOrderPengiriman.pelanggan.id);
             params.append('status', 3);
             params.append('detail', JSON.stringify(arrSelectDocument));
-            periode_aktif ? params.append('periode', periode_aktif.periode) : false
-            data_permohonan.kontrak.kontrak_hash ? params.append('idKontrak', data_permohonan.kontrak.kontrak_hash) : false;
+            params.append('periode', dataOrderPengiriman.periode_aktif.periode);
 
             spinner('show', $(obj));
             ajaxPost('api/v1/pengiriman/buatPengiriman', params, result => {

@@ -28,7 +28,7 @@ function createTabel(data, jenis){
             <tr>
                 <td>${index+1}</td>
                 <td>${value.name}</td>
-                <td class="text-center">
+                <td class="text-end">
                     <a href="${urlEdit}" class="btn btn-sm btn-warning"><i class="bi bi-pencil-square"></i></a>
                     ${btnDelete}
                 </td>

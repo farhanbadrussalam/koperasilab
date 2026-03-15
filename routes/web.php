@@ -120,6 +120,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/label/{id}', 'label')->name('laporan.label');
             Route::get('/SuratPengujian/{id}', 'SuratPengujian')->name('laporan.SuratPengujian');
             Route::get('/KontrakPengujian/{id}', 'KontrakPengujian')->name('laporan.KontrakPengujian');
+            Route::get('/adendum/{id}', 'adendum')->name('laporan.adendum');
         });
     });
 
@@ -143,7 +144,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('userpengguna', PenggunaController::class);
         Route::get('getDataPengguna', [PenggunaController::class, 'getData'])->name('pengguna.getData');
 
-        Route::resource('document', DocumentController::class)->middleware('role:Super Admin');
+        Route::resource('document', DocumentController::class);
         Route::post('document/{id}', [DocumentController::class, 'update']);
     });
 

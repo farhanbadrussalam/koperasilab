@@ -5,6 +5,7 @@ namespace App\View\Components\dashboard;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
+use Illuminate\Support\Carbon;
 
 class timeCards extends Component
 {
@@ -14,7 +15,7 @@ class timeCards extends Component
     public $timenow;
     public function __construct()
     {
-        $this->timenow = convert_date(date('d-m-Y'), 4);
+        $this->timenow = convert_date(Carbon::now(), 4);
     }
 
     /**

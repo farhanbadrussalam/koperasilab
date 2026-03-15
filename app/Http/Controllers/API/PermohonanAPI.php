@@ -239,7 +239,7 @@ class PermohonanAPI extends Controller
 
             if($tipeKontrak == 'kontrak baru' && $jenisLayanan2 == 3){ // Evaluasi
                 // Simpan dokumen Permohonan
-                $document = Permohonan_dokumen::create(array(
+                Permohonan_dokumen::create(array(
                     'id_permohonan' => $permohonan->id_permohonan,
                     'created_by' => Auth::user()->id,
                     'nama' => 'Permohonan Evaluasi TLD',
@@ -445,7 +445,7 @@ class PermohonanAPI extends Controller
         }
 
         foreach($tldKontrol as $value){
-            $idTld = (int) decryptor($value->tld);
+            $idTld = isset($value->tld) ? (int) decryptor($value->tld) : null;
             $data = array(
                 'id_permohonan' => $idPermohonan,
                 'id_pengguna_divisi' => null,
@@ -459,6 +459,24 @@ class PermohonanAPI extends Controller
             Permohonan_detail::create($data);
             Master_tld::where('id_tld', $idTld)->update(['status' => 1]);
         }
+
+        // buat dokumen surat adendum
+        $template = Documents::where('jenis', 'body')
+            ->where('name', 'PermohonanAdendum')
+            ->where('status', 1)
+            ->first();
+
+        $dataParams = array(
+            'id_permohonan' => $idPermohonan,
+            'created_by' => Auth::user()->id,
+            'nama' => 'Permohonan Adendum',
+            'jenis' => 'adendum',
+            'id_doc_template' => $template->id_doc,
+            'status' => 1,
+            'nomer' => generateNoDokumen('adendum', $idPermohonan)
+        );
+
+        Permohonan_dokumen::create($dataParams);
     }
 
     public function tambahTandaterima(Request $request)
@@ -587,7 +605,7 @@ class PermohonanAPI extends Controller
                 if($permohonan->tipe_kontrak == 'kontrak lama') {
                     $kontrakPeriode = Kontrak_periode::where('id_permohonan', $id)->first();
                     if($kontrakPeriode){
-                        $kontrakDetail = Kontrak_detail::where('id_kontrak', $permohonan->id_kontrak);
+                        $kontrakDetail = Kontrak_detail::where('id_kontrak', $permohonan->id_kontrak)->where('status', 1);
                         if($kontrakPeriode->count_tld === 1) {
                             $kontrakDetail->update(array('status_tld_1' => 2));
                         } else {
@@ -595,6 +613,8 @@ class PermohonanAPI extends Controller
                         }
                         $kontrakPeriode->update(array('id_permohonan' => null));
                     }
+                } else if($permohonan->tipe_kontrak == 'adendum') {
+                    Permohonan_dokumen::where('id_permohonan', $id)->where('jenis', 'adendum')->get()->each->delete();
                 }
                 $permohonan->delete();
 
@@ -663,7 +683,7 @@ class PermohonanAPI extends Controller
                     ]);
                 },
                 'tld',
-                'pengguna_lama'
+                'penggunaLama'
             ])
             ->where('id_permohonan', $idPermohonan)
             ->where('jenis', 'pengguna')
@@ -958,7 +978,7 @@ class PermohonanAPI extends Controller
                 'kontrak.jenisTld:id_jenisTld,name',
                 'permohonan_detail',
                 'permohonan_detail.tld',
-                'permohonan_detail.pengguna_lama',
+                'permohonan_detail.penggunaLama',
                 'permohonan_detail.entitas' => function (MorphTo $morphTo) {
                     $morphTo->morphWith([
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
@@ -1149,9 +1169,11 @@ class PermohonanAPI extends Controller
                         if($isPeriodOne){
                             $dataDetail['tld_1'] = $detail->id_tld;
                             $dataDetail['status_tld_1'] = $dataPermohonan->is_have_tld ? 1 : 5;
+                            $dataDetail['periode_tld_1'] = $dataPermohonan->periode;
                         } else {
                             $dataDetail['tld_2'] = $detail->id_tld;
                             $dataDetail['status_tld_2'] = $dataPermohonan->is_have_tld ? 1 : 5;
+                            $dataDetail['periode_tld_2'] = $dataPermohonan->periode;
                         }
                     }
 
@@ -1168,12 +1190,15 @@ class PermohonanAPI extends Controller
 
                 // buatkan invoice jika total harga lebih besar dari 0
                 if($dataPermohonan->total_harga > 0){
-                    $kontrak = Kontrak::where('id_kontrak', $dataPermohonan->id_kontrak)->first();
-                    $totalharga = $kontrak->total_harga + $dataPermohonan->total_harga;
+                    // untuk menghitung total harga kontrak,
+                    // di komen karena sementara tidak perlu
 
-                    $kontrak->update(array(
-                        'total_harga' => $totalharga
-                    ));
+                    // $kontrak = Kontrak::where('id_kontrak', $dataPermohonan->id_kontrak)->first();
+                    // $totalharga = $kontrak->total_harga + $dataPermohonan->total_harga;
+
+                    // $kontrak->update(array(
+                    //     'total_harga' => $totalharga
+                    // ));
 
                     $invoiceData = $this->keuangan->keuanganAction(new Request([
                         'idPermohonan' => $dataPermohonan->permohonan_hash,
@@ -1531,7 +1556,8 @@ class PermohonanAPI extends Controller
                 'type' => $value->type,
                 'created_by' => Auth::user()->id,
                 'tld_1' => $value->id_tld,
-                'status_tld_1' => $dataPermohonan->is_have_tld == 1 ? 3 : 5
+                'status_tld_1' => $dataPermohonan->is_have_tld == 1 ? 3 : 5,
+                'periode_tld_1' => 1,
             );
 
             Kontrak_detail::create($dataPermohonanDetail);

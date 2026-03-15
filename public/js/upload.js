@@ -26,7 +26,11 @@ class UploadComponent {
                 height: options.preview?.height ?? 100,
                 fullwidth: options.preview?.fullwidth ?? false
             },
-            form: options.form ?? false
+            form: options.form ?? false,
+            template: {
+                url: options.template?.url ?? null,
+                name: options.template?.name ?? null
+            }
         }
         this.idElement = idElement;
         this.listFile = options.data ?? [];
@@ -409,9 +413,22 @@ class UploadComponent {
             textMaxSize.innerHTML = `<div>Max size file: ${maxSize} MB</div>`;
             textAllowedExtensions.appendChild(textMaxSize);
 
+            // menampilkan template jika ada
+            const template = document.createElement('div');
+            if(this.options.template.url){
+                template.classList.add('mt-2', 'text-end');
+                const linkTemplate = document.createElement('a');
+                linkTemplate.href = this.options.template.url;
+                linkTemplate.download = this.options.template.name;
+                linkTemplate.classList.add('btn', 'btn-outline-light', 'btn-sm', 'border', 'text-primary');
+                linkTemplate.innerHTML = `<i class="bi bi-download me-2"></i>${this.options.template.name}`;
+                template.appendChild(linkTemplate);
+            }
+
             container.appendChild(textAllowedExtensions);
             container.appendChild(inputGroup);
             container.appendChild(progressBar);
+            container.appendChild(template);
         }
 
         // Elemen untuk daftar preview

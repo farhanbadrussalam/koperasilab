@@ -126,7 +126,7 @@ function cardComponent(data, options = {}) {
 
     const jobsPenyelia = data.divTimelineTugas !== undefined && data.divTimelineTugas ? `
         ${data.divInfoTugas}
-        <div class="col-md-12 collapse" id="timeline-progress-${data.id}">
+        <div class="col-md-12 ${data.status == 3 ? 'collapse' : ''}" id="timeline-progress-${data.id}">
             ${data.divTimelineTugas.elementCreate()}
         </div>
     ` : '';
@@ -229,13 +229,15 @@ function cardPenggunaComponent(data, options = {}) {
             `;
         }
     } else if(options.status == 'lama') {
-        btnGantiPengguna = `
-            <li>
-                <a class="dropdown-item small text-warning" href="#" data-id="${data.idHash}" onclick="gantiPengguna(this)">
-                    <i class="bi bi-pencil me-2" title="Ganti Pengguna"></i>Ganti Pengguna
-                </a>
-            </li>
-        `;
+        if(options.is_adendum){
+            btnGantiPengguna = `
+                <li>
+                    <a class="dropdown-item small text-warning" href="#" data-id="${data.idHash}" onclick="gantiPengguna(this)">
+                        <i class="bi bi-pencil me-2" title="Ganti Pengguna"></i>Ganti Pengguna
+                    </a>
+                </li>
+            `;
+        }
     }
 
     if(data.pengguna_baru){

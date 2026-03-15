@@ -60,4 +60,9 @@ class Kontrak_detail extends Model
     {
         return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }
+
+    public function penggunaLama()
+    {
+        return $this->hasOne(Master_pengguna::class, 'id_pengguna', 'pengguna_lama');
+    }
 }

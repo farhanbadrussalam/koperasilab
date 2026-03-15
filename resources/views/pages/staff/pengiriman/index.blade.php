@@ -158,7 +158,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="submit" form="formKirimDokumen" class="btn btn-primary" onclick="kirimDokumen(this)">Kirim</button>
+                <button type="submit" form="formKirimDokumen" id="btn-kirim" class="btn btn-primary" onclick="kirimDokumen(this)">Kirim</button>
             </div>
         </div>
     </div>

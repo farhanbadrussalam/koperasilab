@@ -329,7 +329,7 @@ class PenyeliaAPI extends Controller
                         'nomer' => generateNoDokumen('surattugas', $penyeliaData->id_penyelia)
                     );
 
-                    $document = Permohonan_dokumen::create($dataParams);
+                    Permohonan_dokumen::create($dataParams);
                 }
             }
 
@@ -651,6 +651,7 @@ class PenyeliaAPI extends Controller
             ->whereHas('permohonan.layanan_jasa', function ($q) {
                 return $q->whereIn('satuankerja_id', Auth::user()->satuankerja_id ? Auth::user()->satuankerja_id : [0]);
             })
+            ->orderByRaw('FIELD(status, 1, 5, 2, 6, 10, 7, 3)')
             ->orderBy('id_penyelia','DESC')
             ->offset(($page - 1) * $limit)
             ->limit($limit)
@@ -738,7 +739,7 @@ class PenyeliaAPI extends Controller
                 'permohonan.permohonan_pengguna',
                 'permohonan.permohonan_detail',
                 'permohonan.permohonan_detail.tld',
-                'permohonan.permohonan_detail.pengguna_lama',
+                'permohonan.permohonan_detail.penggunaLama',
                 'permohonan.permohonan_detail.entitas' => function (MorphTo $morphTo) {
                     $morphTo->morphWith([
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']

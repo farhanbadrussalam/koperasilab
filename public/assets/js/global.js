@@ -1190,7 +1190,9 @@ function getPeriodeAwal(data) {
 function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen){
     const periodeAwal = getPeriodeAwal(data_kontrak);
     // Pengecekan Invoice apakah sudah di bayar atau belum
-    if (data_kontrak.invoice?.status != 5) return false;
+    if(data_periode.permohonan?.invoice){
+        if (data_periode.permohonan.invoice.status != 5) return false;
+    }
 
     // pengecekan jenis layanan
     for (const doc of arrFindDokumen) {
@@ -1228,7 +1230,7 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
         if (doc === 'tld') {
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
             if (periodeAwal.includes(data_periode.periode)) continue;
-            if (data_periode.tipe_kontrak == 'adendum') continue;
+            // if (data_periode.tipe_kontrak == 'adendum') continue;
         }
         if (doc === 'lhu') {
             if(data_periode.status == 2) continue;

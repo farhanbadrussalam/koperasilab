@@ -496,6 +496,13 @@ if (!function_exists('generateNoDokumen')) {
 
                 $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
                 break;
+            case 'adendum':
+                // Format nomor
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = 'A';
+
+                $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                break;
         }
 
 
@@ -843,7 +850,7 @@ if(!function_exists('cekPeriodeComplete')) {
             $aktifDokumen = array_diff($aktifDokumen, array('tld'));
         }
         foreach ($aktifDokumen as $dokumen) {
-            if($dokumen === 'invoice' && $period->permohonan?->invoice) continue;
+            if($dokumen === 'invoice' && $period->permohonan?->invoice == null) continue;
             if($dokumen === 'tld') {
                 if($JL == 'KontrakSewa' && $lastPeriode) continue;
                 if(in_array($period->id_periode, $periodeAwal)) continue;
@@ -866,11 +873,11 @@ if(!function_exists('cekPeriodeComplete')) {
                 }
             }
 
-            if($dokumen === 'invoice') {
-                if ($kontrak->invoice->status != 5) {
-                    return false;
-                }
-            }
+            // if($dokumen === 'invoice') {
+            //     if ($kontrak->invoice->status != 5) {
+            //         return false;
+            //     }
+            // }
 
             if($getPengiriman) {
                 if($getPengiriman->status != 2) {

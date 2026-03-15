@@ -93,7 +93,7 @@
         <div class="card shadow-sm border-0 h-100">
             <div class="card-body d-flex flex-column">
                 <h5 class="card-title text-center mb-3">TLD Kontrol</h5>
-                <div class="overflow-auto flex-grow-1" style="max-height: 25rem;">
+                <div class="overflow-auto flex-grow-1 overflow-x-hidden" style="max-height: 25rem;">
                     <div id="tld-kontrol-content" class="row g-3 px-2"></div>
                 </div>
             </div>

@@ -29,6 +29,10 @@ $(function () {
         }
     });
 
+    if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
+        $('#total-harga').hide();
+    }
+
     JL = jenislayanan(dataPermohonan.jenis_layanan_parent, dataPermohonan.jenis_layanan);
 
     const arrPeriode = dataPermohonan.periode_pemakaian;
@@ -370,6 +374,7 @@ function loadTldKontrol(){
                 index++;
             }
         }
+        $('#jumlah-info-kontrol').html(index);
 
         if(result.data.tldPermohonan.length == 0){
             html += `
@@ -398,7 +403,8 @@ function loadPengguna(){
 
         jmlTldCount += result.data.length;
 
-        $('#jumlah-pengguna').html(jmlTldCount + ' Orang')
+        $('#jumlah-pengguna').html(result.data.length + ' Orang')
+        $('#jumlah-info-pengguna').html(result.data.length)
 
         for (const [i, value] of result.data.entries()) {
             const pengguna = value.entitas;
@@ -430,7 +436,7 @@ function loadPengguna(){
             }
 
             if(value.type == 'ganti'){
-                data['name'] = value.pengguna_lama?.name;
+                data['name'] = value.penggunaLama?.name;
                 data['pengguna_baru'] = {
                     name: pengguna.name,
                 }
@@ -438,7 +444,8 @@ function loadPengguna(){
 
             html += cardPenggunaComponent(data, {
                 label_tld: true,
-                status: value.type
+                status: value.type,
+                is_adendum: false
             });
         }
 

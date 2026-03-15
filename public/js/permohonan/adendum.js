@@ -199,24 +199,31 @@ function simpanPeriode(){
 function loadPeriode(){
     const listPeriode = document.getElementById("content-pilih-periode");
     const periode = dataKontrak.periode;
-    let aktifPeriode = false;
     let html = '';
+
+    // Cari nomor periode yang aktif saat ini berdasarkan tanggal
+    const now = Date.now();
+    const activePeriodeObj = periode.find(p => p.periode != 0 && now >= new Date(p.start_date) && now <= new Date(p.end_date));
+    const activePeriodeNum = activePeriodeObj ? activePeriodeObj.periode : null;
 
     periode.forEach((data, index) => {
         if(data.periode == 0) return;
 
         let htmlAktif = '';
-        let is_aktif = false;
+        let is_aktif = (activePeriodeNum !== null && data.periode === activePeriodeNum);
+        let is_berdekatan = (activePeriodeNum !== null && data.periode === activePeriodeNum + 1);
+        let is_berdekatan_belakang = (activePeriodeNum !== null && data.periode <= activePeriodeNum - 1);
 
-        if(!data.selesai && !aktifPeriode){
-            aktifPeriode = true;
-            is_aktif = true;
+        if(is_aktif){
             htmlAktif = `<span class="badge bg-info-subtle text-dark">Aktif</span>`;
         }
 
-        const btnPilih = (arrOption.periode && arrOption.periode.periode == data.periode)
-            ? '<span class="text-muted">Dipilih</span>'
-            : `<button type="button" class="btn btn-sm btn-primary ${is_aktif ? 'd-none' : 'd-block'}" data-periode="${index}" data-aktif="${is_aktif}" onclick="pilihPeriode(this)">Pilih</button>`;
+        let btnPilih = '';
+        if (arrOption.periode && arrOption.periode.periode == data.periode) {
+            btnPilih = '<span class="text-muted">Dipilih</span>';
+        } else if (is_aktif || is_berdekatan || is_berdekatan_belakang) {
+            btnPilih = `<button type="button" class="btn btn-sm btn-primary" data-periode="${index}" data-aktif="${is_aktif}" onclick="pilihPeriode(this)">Pilih</button>`;
+        }
 
         html += `
             <div class="d-flex justify-content-between align-items-center p-2 mb-2 bg-light rounded-3 border mt-1">
@@ -490,7 +497,7 @@ function pilihPeriode(obj){
     arrOption.periode = periode;
     $('#periode-pemakaian').val(`Periode ${periode.periode} (${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)})`);
 
-    if(periode.selesai || is_aktif){
+    if(periode.selesai){
         $('#btn-add-pengguna').removeClass('d-block').addClass('d-none');
         $('#btn-add-kontrol').removeClass('d-block').addClass('d-none');
         arrOption.pengguna.map(d => {

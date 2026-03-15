@@ -20,6 +20,8 @@ class DocumentController extends Controller
 {
     use RestApi;
 
+    private $media;
+
     public function __construct(){
         $this->media = resolve(MediaController::class);
     }
@@ -40,7 +42,7 @@ class DocumentController extends Controller
             'title' => 'Tambah '. $type .' Document',
             'module' => 'document',
             'type' => $type,
-            'headers' => Documents::where('jenis', 'header')->where('status', 1)->get(),
+            'headers' => Documents::where('jenis', 'header')->whereNull('id_perusahaan')->where('status', 1)->get(),
             'footers' => Documents::where('jenis', 'footer')->where('status', 1)->get(),
         ];
 
@@ -53,33 +55,44 @@ class DocumentController extends Controller
             'module' => 'document',
             'type' => $request->type,
             'data' => Documents::findOrFail(decryptor($id)),
-            'headers' => Documents::where('jenis', 'header')->where('status', 1)->get(),
+            'headers' => Documents::where('jenis', 'header')->whereNull('id_perusahaan')->where('status', 1)->get(),
             'footers' => Documents::where('jenis', 'footer')->where('status', 1)->get()
         ];
 
         return view('pages.management.document.tambah', $data);
     }
 
-    public function show(Request $request){
+    public function show(Request $request, $id){
         $limit = $request->has('limit') ? $request->limit : 10;
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
         $jenis = $request->has('jenis') ? $request->jenis : '';
+        $idPerusahaan = $request->has('idPerusahaan') ? decryptor($request->idPerusahaan) : null;
+        $idDocument = decryptor($id);
 
         DB::beginTransaction();
         try {
-            $query = Documents::where('jenis', $jenis)
-            ->when($search, function($q, $search){
-                $q->where('name', 'like', '%'.$search.'%');
-            })
-            ->orderBy('created_at', 'desc')
-            ->offset(($page - 1) * $limit)
-            ->where('status', 1)
-            ->limit($limit)
-            ->paginate($limit);
+            if($idDocument){
+                $query = Documents::findOrFail($idDocument);
+            } else {
+                $query = Documents::where('jenis', $jenis)
+                ->when($search, function($q, $search){
+                    $q->where('name', 'like', '%'.$search.'%');
+                })
+                ->when($idPerusahaan, function($q, $idPerusahaan){
+                    $q->where('id_perusahaan', $idPerusahaan);
+                }, function($q){
+                    $q->whereNull('id_perusahaan');
+                })
+                ->orderBy('created_at', 'desc')
+                ->offset(($page - 1) * $limit)
+                ->where('status', 1)
+                ->limit($limit)
+                ->paginate($limit);
 
-            $arr = $query->toArray();
-            $this->pagination = Arr::except($arr, 'data');
+                $arr = $query->toArray();
+                $this->pagination = Arr::except($arr, 'data');
+            }
             DB::commit();
 
             return $this->output($query);
@@ -117,6 +130,25 @@ class DocumentController extends Controller
             $data['id_header'] = $header;
             $data['id_footer'] = $footer;
 
+            // cek apakah role pelanggan
+            if(Auth::user()->hasRole('Pelanggan')) {
+                // masukkan id perusahaan
+                $data['id_perusahaan'] = Auth::user()->id_perusahaan;
+                $data['orientation'] = 'portrait';
+
+                $isActive = $request->isActive;
+
+                // deactive semua dokumen jika aktive
+                if($isActive) {
+                    Documents::where('id_perusahaan', Auth::user()->id_perusahaan)
+                        ->where('status', 1)
+                        ->update(['view' => 0]);
+                }
+
+                // aktif dokumen
+                $data['view'] = $isActive;
+            }
+
             Documents::create($data);
 
             DB::commit();
@@ -140,7 +172,6 @@ class DocumentController extends Controller
             } else {
                 $pisahVariable = null;
             }
-            $used  = collect($request->input('used_images', []));
             $header = $request->header ? decryptor($request->header) : null;
             $footer = $request->footer ? decryptor($request->footer) : null;
 
@@ -153,6 +184,20 @@ class DocumentController extends Controller
             ];
             $data['id_header'] = $header;
             $data['id_footer'] = $footer;
+
+            // cek apakah role pelanggan
+            if(Auth::user()->hasRole('Pelanggan')) {
+                $isActive = $request->isActive;
+
+                // deactive semua dokumen jika aktive
+                if($isActive) {
+                    Documents::where('id_perusahaan', Auth::user()->id_perusahaan)
+                        ->where('status', 1)
+                        ->update(['view' => 0]);
+                }
+
+                $data['view'] = $isActive;
+            }
 
             Documents::where('id_doc', decryptor($id))->update($data);
 

@@ -97,7 +97,7 @@ function loadData(page = 1, status) {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
             let btnEdit = '';
-            if(pengajuan.tipe_kontrak == 'kontrak baru'){
+            if(pengajuan.tipe_kontrak == 'kontrak baru' || pengajuan.status == 80){
                 btnEdit = `
                     <li>
                         <a class="dropdown-item small cursor-pointer" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}">
@@ -161,7 +161,7 @@ function loadData(page = 1, status) {
                             <i class="bi bi-info-circle me-2"></i> Detail
                         </a>
                     </li>
-                    ${[90, 1].includes(pengajuan.status) ? btnEdit : ''}
+                    ${[80, 1].includes(pengajuan.status) ? btnEdit : ''}
                     ${pengajuan.status == 1 ? btnRemove : ''}
                 `;
 

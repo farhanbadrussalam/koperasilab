@@ -762,7 +762,7 @@ class Detail {
 
                 let adendumActive = ['permohonan', 'penyelia'];
                 if(item.type == 'ganti' && adendumActive.includes(this.options.jenis)){
-                    dataCard['name'] = item.pengguna_lama?.name;
+                    dataCard['name'] = item.penggunaLama?.name;
                     dataCard['pengguna_baru'] = {
                         name: pengguna.name,
                     }
@@ -811,11 +811,18 @@ class Detail {
                 break;
             case 'pengiriman':
                 this.data?.kontrak.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
-                dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
+                if(this.data.permohonan){
+                    dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
+                }
+
+                if(this.data.dokumen){
+                    dataDokumen = dataDokumen.concat(this.data.dokumen);
+                }
+
                 dataPermohonan = this.data.permohonan;
                 kontrak_hash = this.data.kontrak.kontrak_hash;
                 periode = this.data.periode;
-                invoiceData = this.data.permohonan.invoice;
+                invoiceData = this.data.permohonan?.invoice;
                 break;
             default:
                 break;
@@ -826,6 +833,7 @@ class Detail {
                 'surattugas'
             ];
         }
+
         for (const [i, dokumen] of dataDokumen.entries()) {
             let idHash = false;
             if(exceptDoc.includes(dokumen.jenis)) continue;

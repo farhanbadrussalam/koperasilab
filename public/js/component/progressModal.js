@@ -57,8 +57,13 @@ function openProgressModal(obj = false, idPenyelia = false){
  * @param {object} data - The penyelia data
  */
 function renderJobsSelection(data) {
-    const listJobsAktif = data.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
+    let listJobsAktif = data.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
 
+    // Urutkan pekerjaan: yang tidak memiliki point_jobs di atas, yang memiliki di bawah,
+    // lalu urutkan berdasarkan 'order' di dalam masing-masing grup.
+    listJobsAktif.sort((a, b) => (!!a.point_jobs - !!b.point_jobs) || (a.order - b.order));
+
+    console.log(listJobsAktif);
     // Filter jobs assigned to current user
     const userJobs = listJobsAktif.filter(d =>
         data.petugas.some(p => p.map_hash == d.map_hash && p.user_hash == userActive.user_hash)
@@ -101,17 +106,22 @@ function initDatePicker(data) {
  */
 function renderTldList(data) {
     let htmlRincianTld = '';
-    const details = data.permohonan?.permohonan_detail.filter(d => d.type == 'baru');
+    let isPeriodOne = data.periodenow.count_tld == 1 || data.periodenow.periode == 0;
+    let periodenow = data.periodenow.periode == 0 ? 1 : data.periodenow.periode;
+    const details = data.permohonan.kontrak.kontrak_detail.filter(d => {
+        return isPeriodOne ? d.periode_tld_1 == periodenow : d.periode_tld_2 == periodenow;
+    });
+    // const details = data.permohonan?.permohonan_detail.filter(d => d.type == 'baru');
     // const details = data.permohonan?.kontrak?.kontrak_detail || [];
     // const isPeriodOne = data.periodenow.count_tld == 1 || data.periodenow.periode == 0;
 
     details.forEach(detail => {
-        // const tld = isPeriodOne ? detail.tld_1 : detail.tld_2;
-        // if (!tld) return;
-        const tld = detail.tld;
+        const tld = isPeriodOne ? detail.tld_1 : detail.tld_2;
+        if (!tld) return;
+        // const tld = detail.tld;
 
-        // const status = isPeriodOne ? detail.status_tld_1 : detail.status_tld_2;
-        const status = detail.status;
+        const status = isPeriodOne ? detail.status_tld_1 : detail.status_tld_2;
+        // const status = detail.status;
         const inPenyimpanan = status == 5;
 
         const cardHtml = `

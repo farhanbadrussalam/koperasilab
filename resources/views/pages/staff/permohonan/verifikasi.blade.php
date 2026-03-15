@@ -14,7 +14,7 @@
                     </ol>
                 </nav> --}}
             </div>
-            <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="btn btn-outline-secondary rounded-pill px-4">
+            <a href="{{ url('staff/permohonan') }}" class="btn btn-outline-secondary rounded-pill px-4">
                 <i class="bi bi-arrow-left me-2"></i>Kembali
             </a>
         </div>
@@ -157,7 +157,7 @@
                                             <i class="bi bi-people me-3 text-secondary fs-5"></i>
                                             <div>
                                                 <small class="text-muted d-block">Jumlah Pengguna</small>
-                                                <span class="fw-bold text-dark fs-5">{{ $permohonan->jumlah_pengguna }}</span>
+                                                <span class="fw-bold text-dark fs-5" id="jumlah-info-pengguna">0</span>
                                                 <small class="text-muted">Orang</small>
                                             </div>
                                         </div>
@@ -167,7 +167,7 @@
                                             <i class="bi bi-speedometer2 me-3 text-secondary fs-5"></i>
                                             <div>
                                                 <small class="text-muted d-block">Jumlah Kontrol</small>
-                                                <span class="fw-bold text-dark fs-5">{{ $permohonan->jumlah_kontrol }}</span>
+                                                <span class="fw-bold text-dark fs-5" id="jumlah-info-kontrol">0</span>
                                                 <small class="text-muted">Unit</small>
                                             </div>
                                         </div>
@@ -343,7 +343,7 @@
 
             <div class="col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 bg-primary text-white mb-3"
-                    style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                    style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);" id="total-harga">
                     <div class="card-body p-4 text-center">
                         <small class="text-white-50 text-uppercase fw-bold">Total Estimasi Harga</small>
                         @if($permohonan->tipe_kontrak == 'kontrak baru' || $permohonan->tipe_kontrak == 'adendum')
@@ -364,7 +364,8 @@
                         </h6>
                     </div>
                     <div class="card-body px-4 pb-4">
-                        <div id="show-tandaterima" class="d-none p-3 bg-white rounded-3 border border-success border-opacity-25 shadow-sm position-relative overflow-hidden transition-all hover-shadow">
+                        <div></div>
+                        <div id="show-tandaterima" class="d-none p-3 bg-white rounded-3 border border-success border-opacity-25 shadow-sm position-relative overflow-hidden transition-all hover-shadow mb-3">
 
                             <div class="position-absolute top-0 start-0 h-100 bg-success" style="width: 4px;"></div>
 
@@ -395,6 +396,15 @@
                                 <i class="bi bi-upload me-1"></i> Tambah
                             </button>
                         </div>
+                        @if($permohonan->tipe_kontrak == 'adendum')
+                        <div id="document-adendum" class="d-flex gap-3 flex-column">
+                            <a href="{{ url('laporan/adendum/'.$permohonan->permohonan_hash) }}" target="_blank"
+                                class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
+                                <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
+                                <span class="fw-bold d-block small">Permohonan Adendum</span>
+                            </a>
+                        </div>
+                        @endif
                     </div>
                 </div>
 

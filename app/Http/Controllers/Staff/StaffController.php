@@ -25,7 +25,7 @@ use App\Models\Setting_layanan;
 use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\PermohonanAPI;
 use App\Http\Controllers\NotifController;
-
+use App\Models\Kontrak_detail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -312,80 +312,100 @@ class StaffController extends Controller
         $id = decryptor($idHash) ?? false;
         $idPeriode = decryptor($periode) ?? false;
         $data = false;
-        $periodeNow = false;
-        $statusTld = false;
-        $resTldPengguna = false;
-        $resTldKontrol = false;
 
         if($id){
-            $data = Permohonan::with([
-                'layanan_jasa:id_layanan,nama_layanan',
-                'jenisTld:id_jenisTld,name',
-                'jenis_layanan:id_jenisLayanan,name,parent',
-                'jenis_layanan_parent',
-                'kontrak',
-                'kontrak.periode',
-                'permohonan_detail',
-                'permohonan_detail.entitas' => function (MorphTo $morphTo) {
-                    $morphTo->morphWith([
-                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-                    ]);
-                },
-                'permohonan_detail.tld',
-                'invoice',
-                'invoice.pengiriman',
-                'lhu',
-                'lhu.pengiriman',
-                'lhu.penyelia_map',
-                'lhu.penyelia_map.jobs',
-                'pengiriman',
-                'pengiriman.detail',
-                'file_lhu',
-                'pelanggan:id,id_perusahaan,name',
-                'pelanggan.perusahaan',
-                'pelanggan.perusahaan.alamat',
-            ])->find($id);
+            if($periode) {
+                $data = Kontrak::with([
+                    'layanan_jasa:id_layanan,nama_layanan',
+                    'jenisTld:id_jenisTld,name',
+                    'jenis_layanan:id_jenisLayanan,name,parent',
+                    'jenis_layanan_parent',
+                    'kontrak_detail',
+                    'kontrak_detail.tld_1',
+                    'kontrak_detail.tld_2',
+                    'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                        $morphTo->morphWith([
+                            Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                        ]);
+                    },
+                    'periode' => function ($q) use ($idPeriode) {
+                        $q->where('id_periode', $idPeriode);
+                    },
+                    'pelanggan',
+                    'pelanggan.perusahaan',
+                    'pelanggan.perusahaan.alamat',
+                    'periode.permohonan',
+                    'periode.permohonan.invoice',
+                    'periode.permohonan.invoice.pengiriman',
+                    'periode.permohonan.lhu',
+                    'periode.permohonan.lhu.pengiriman',
+                    'periode.permohonan.pengiriman',
+                    'periode.permohonan.file_lhu',
+                    'periode.permohonan.pelanggan:id,id_perusahaan,name',
+                    'periode.permohonan.pelanggan.perusahaan',
+                    'periode.permohonan.pelanggan.perusahaan.alamat',
+                ])->find($id);
 
-            // $data = Kontrak::with([
-            //     'layanan_jasa:id_layanan,nama_layanan',
-            //     'jenisTld:id_jenisTld,name',
-            //     'jenis_layanan:id_jenisLayanan,name,parent',
-            //     'jenis_layanan_parent',
-            //     'kontrak_detail',
-            //     'kontrak_detail.tld_1',
-            //     'kontrak_detail.tld_2',
-            //     'kontrak_detail.entitas' => function (MorphTo $morphTo) {
-            //         $morphTo->morphWith([
-            //             Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-            //         ]);
-            //     },
-            //     'periode' => function ($q) use ($idPeriode) {
-            //         $q->where('id_periode', $idPeriode);
-            //     },
-            //     'pelanggan',
-            //     'pelanggan.perusahaan',
-            //     'pelanggan.perusahaan.alamat',
-            //     'periode.permohonan',
-            //     'periode.permohonan.invoice',
-            //     'periode.permohonan.invoice.pengiriman',
-            //     'periode.permohonan.lhu',
-            //     'periode.permohonan.lhu.pengiriman',
-            //     'periode.permohonan.pengiriman',
-            //     'periode.permohonan.file_lhu',
-            //     'periode.permohonan.pelanggan:id,id_perusahaan,name',
-            //     'periode.permohonan.pelanggan.perusahaan',
-            //     'periode.permohonan.pelanggan.perusahaan.alamat',
-            // ])->find($id);
+                // cek tld apakah sudah di kirim atau belum
+                $statusTld = Pengiriman::with([
+                    'detail' => function($q){
+                        return $q->where('jenis', 'tld');
+                    },
+                    'permohonan',
+                ])->where('id_kontrak', $id)
+                ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode[0]->periode)
+                ->whereHas('permohonan', function($q) use ($idPeriode){
+                    $q->where('tipe_kontrak', '!=', 'adendum');
+                })
+                ->first();
+                $data->statusTld = $statusTld->status ?? false;
+                $data->sumber = 'kontrak';
 
-            // cek tld apakah sudah di kirim atau belum
-            // $statusTld = Pengiriman::with([
-            //     'detail' => function($q){
-            //         return $q->where('jenis', 'tld');
-            //     },
-            //     'permohonan',
-            // ])->where('id_kontrak', $id)
-            // ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode[0]->periode)
-            // ->first();
+                // Pengecekan adendum di kontrak periode
+                $data->adendum = Kontrak_detail::with([
+                        'entitas' => function (MorphTo $morphTo) {
+                            $morphTo->morphWith([
+                                Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                            ]);
+                        },
+                        'tld_1',
+                        'tld_2',
+                    ])
+                    ->where('id_kontrak', $id)
+                    ->where('periode', $data->periode[0]->periode)
+                    ->where('status', 2) // status 2 = adendum
+                    // ->where('type', 'baru')
+                    ->get();
+            } else {
+                $data = Permohonan::with([
+                    'layanan_jasa:id_layanan,nama_layanan',
+                    'jenisTld:id_jenisTld,name',
+                    'jenis_layanan:id_jenisLayanan,name,parent',
+                    'jenis_layanan_parent',
+                    'kontrak',
+                    'kontrak.periode',
+                    'permohonan_detail',
+                    'permohonan_detail.entitas' => function (MorphTo $morphTo) {
+                        $morphTo->morphWith([
+                            Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                        ]);
+                    },
+                    'permohonan_detail.tld',
+                    'invoice',
+                    'invoice.pengiriman',
+                    'lhu',
+                    'lhu.pengiriman',
+                    'lhu.penyelia_map',
+                    'lhu.penyelia_map.jobs',
+                    'pengiriman',
+                    'pengiriman.detail',
+                    'file_lhu',
+                    'pelanggan:id,id_perusahaan,name',
+                    'pelanggan.perusahaan',
+                    'pelanggan.perusahaan.alamat',
+                ])->find($id);
+                $data->sumber = 'permohonan';
+            }
         }else{
             return redirect()->back();
         }

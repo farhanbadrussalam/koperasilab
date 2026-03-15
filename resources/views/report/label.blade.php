@@ -18,7 +18,7 @@
     // membagi $data menjadi 6 bagian
     $arrTmp = array();
     foreach ($data as $item) {
-        $rangeDate = range_date($item->start_date, $item->end_date, 1);
+        $rangeDate = range_date($periode->start_date, $periode->end_date, 1);
 
         $tld = array(
             'pengguna' => null,

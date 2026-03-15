@@ -85,6 +85,12 @@ function loadTldKontrol(tldKontrol) {
        for (const [i, list] of tldKontrol.entries()) {
            let dataTld = null;
            let type = 'baru';
+        //    if(list.tld){
+        //         dataTld = list.tld;
+        //    } else {
+        //         dataTld = tldNotUsed[noTld];
+        //         noTld++;
+        //    }
            if(isPeriodOne){
                if(list.tld_1){
                    dataTld = list.tld_1;
@@ -229,7 +235,7 @@ function buatPermohonan(obj){
             params.append('jenisLayanan2', jenisLayanan);
             params.append('jenisLayanan1', jenisLayananParent);
             params.append('idKontrak', idKontrak);
-            params.append('periode', periode?.periode);
+            params.append('periode', periode?.periode == 0 ? 1 : periode.periode); // If periode is 0, set to 1
             params.append('alamat', alamatData.alamat_hash); // Send the address hash
             params.append('listTld', JSON.stringify(checkTld));
             params.append('createBy', userActive.user_hash);
@@ -255,8 +261,6 @@ function buatPermohonan(obj){
                     // e.g., redirect to a different page
                     window.location.href = base_url+"/permohonan/pengajuan";
                 });
-
-
             }, error => {
                 spinner('hide', $(obj));  // Important: hide the spinner on error too!
             });

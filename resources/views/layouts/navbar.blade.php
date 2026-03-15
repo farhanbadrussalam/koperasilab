@@ -11,6 +11,7 @@
     </ul>
     <div class="navbar-collapse justify-content-end px-0 w-100" id="navbarNav">
         <div class="d-flex align-items-center gap-3">
+            <div id="container-time-now"></div>
             <div class="d-none d-md-block text-end lh-1">
                 <div class="fw-bold text-dark mb-1">{{ Auth::user()->name ?? '-' }}</div>
                 <div class="d-flex gap-1 justify-content-end">
@@ -57,6 +58,18 @@
                             </div>
                         </a>
                     </li>
+
+                    @if(Auth::user()->hasRole('Pelanggan'))
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center py-2 rounded-2" href="{{ url('userProfile') }}#instansi">
+                            <i class="bi bi-building me-3 text-info fs-5"></i>
+                            <div>
+                                <span class="d-block fw-semibold text-dark small">Instansi</span>
+                                {{-- <small class="text-muted" style="font-size: 0.65rem;"></small> --}}
+                            </div>
+                        </a>
+                    </li>
+                    @endif
 
                     {{-- <li>
                         <a class="dropdown-item d-flex align-items-center py-2 rounded-2" href="#">

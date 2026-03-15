@@ -89,7 +89,6 @@ function loadData(page = 1) {
 
             let detailPengiriman = [];
             let arrFind = ['invoice','tld', 'lhu'];
-            const JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
 
             for (const pengiriman of data.pengiriman) {
                 let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
@@ -104,6 +103,7 @@ function loadData(page = 1) {
                 }
             }
 
+            const JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
             let activePeriode = '';
             let lastPeriodeKontrak = false;
             let htmlPengembalian = '';
@@ -289,9 +289,13 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
     if(isPelanggan) {
         if(evaluasiState.active) {
+            // if(dataKontrak[index].no_kontrak == 'S-0001/JKRL/II/2026' && data.periode == 3) {
+            //     console.log(isComplete);
+            // }
             if(!data.permohonan){
                 if(data.status == 1) { // bukan status periode pengembalian
-                    htmlAction += htmlBtnEvaluasi;
+                    htmlAction = htmlBtnEvaluasi;
+                    isComplete = false;
                 }
             }
         }
@@ -299,12 +303,19 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     } else {
         evaluasiState.active = !isComplete;
 
+        let htmlStatusPenyelia = '';
+
         if(evaluasiState.active) {
             let tldSelesai = false;
             let penyelia2 = dataKontrak[index].periode.find(cek => cek.periode == data.periode - 2);
             if(penyelia2){
                 tldSelesai = cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
-
+                if(penyelia2.penyelia && !tldSelesai){
+                    let aktifJobs = penyelia2.penyelia.penyelia_map.filter(d => d.status == 1);
+                    aktifJobs.map(d => {
+                        htmlStatusPenyelia += statusFormat('penyelia', d.jobs.status);
+                    });
+                }
             }else {
                 if(dataKontrak[index].is_zerocek == 0 && dataKontrak[index].is_have_tld == 0) {
                     tldSelesai = true;
@@ -322,6 +333,8 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                             htmlAction = htmlBtnTld;
                         }
                     }
+                } else {
+                    htmlAction = htmlStatusPenyelia;
                 }
             }
         }

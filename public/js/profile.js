@@ -3,7 +3,7 @@ let _uploadSuratKuasa = false;
 let detail = false;
 $(function() {
     loadForm(profile);
-
+    loadDocumentKop();
     // Cek hash di URL saat halaman dimuat
     const hash = window.location.hash;
     if (hash) {
@@ -111,6 +111,11 @@ $(function() {
         location.reload();
     })
 
+    $('#btnTambahKopSurat').click(function(){
+        openModalKopSurat('create');
+        // $('#modal-kop-surat').modal('show');
+    })
+
     detail = new Detail({
         jenis: 'history_pic',
         tab: {}
@@ -197,6 +202,10 @@ function loadForm(data) {
                 url: 'api/v1/profile/uploadSuratKuasa',
                 urlDestroy: 'api/v1/profile/destroySuratKuasa',
                 idHash: data.user_hash
+            },
+            template: {
+                url: `${base_url}/assets/template/draft_surat_kuasa_rekanan.docx`,
+                name: 'Template Surat Kuasa'
             }
         });
     }
@@ -587,4 +596,74 @@ function gantiPassword(obj) {
 
 function openModalHistoryPic(){
     detail.show(`api/v1/profile/getHistoryPic/${profile.perusahaan?.perusahaan_hash}`);
+}
+
+function loadDocumentKop(page = 1){
+    // Loading data
+    $('#tbody-kop-surat').html(`
+        <tr>
+            <td colspan="2" class="text-center">Loading...</td>
+        </tr>
+    `);
+    ajaxGet('management/document/load', {
+        page: page,
+        limit: 5,
+        jenis: 'header',
+        idPerusahaan: profile.perusahaan?.perusahaan_hash
+    }, result => {
+        let html = createTabel(result.data, 'header');
+
+        if(result.data.length == 0){
+            html = `
+                <tr>
+                    <td colspan="2" class="text-center">Tidak ada data</td>
+                </tr>
+            `;
+        }
+        $('#tbody-kop-surat').html(html);
+
+        $('#pagination-kop-surat').html(createPaginationHTML(result.pagination));
+    }, err => {
+        console.error(err);
+    });
+}
+
+$('#pagination-kop-surat').on('click', 'a', function (e) {
+    e.preventDefault();
+    const pageno = e.target.dataset.page;
+
+    loadDocumentKop(pageno);
+});
+function createTabel(data){
+    let html = '';
+    data.map((item, index) => {
+        let isActive = item.view;
+        html += `
+            <tr>
+                <td class="d-flex align-items-center gap-2">${index + 1}. ${item.name} ${isActive == 1 ? '<span class="badge bg-success">Aktif</span>' : ''}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-info" onclick="openModalKopSurat('show','${item.doc_hash}')"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-warning" onclick="openModalKopSurat('edit','${item.doc_hash}')"><i class="bi bi-pencil-square"></i></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteKopSurat('${item.doc_hash}')"><i class="bi bi-trash"></i></button>
+                </td>
+            </tr>
+        `;
+    });
+    return html;
+}
+
+function deleteKopSurat(hash){
+    ajaxDelete(`management/document/${hash}`, () => {
+        Swal.fire({
+            icon: 'success',
+            text: 'Data berhasil dihapus',
+            timer: 1200,
+            timerProgressBar: true,
+            showConfirmButton: false
+        }).then(() => {
+            loadDocumentKop();
+        })
+    }, err => {
+        console.error(err);
+    });
 }

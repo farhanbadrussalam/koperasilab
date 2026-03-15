@@ -158,11 +158,12 @@ function loadData(page=1) {
 
             let divInfoTugas = ``;
             if(lhu.start_date && lhu.end_date) {
+                let showPenyelia = lhu.status == 3 ? false : true;
                 divInfoTugas = `
                     <div class="col-md-12 mt-2 fs-7">
                         <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
                             <span>Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
-                            <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
+                            <a class="py-1 px-2 text-decoration-none border rounded-2 ${showPenyelia ? 'd-none' : ''}" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
                             onclick="showHideProgress(this)">Lihat Progress LAB</a>
                         </div>
                     </div>

@@ -169,12 +169,13 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     divInfoTugas = '';
                     let timeLine = false;
                     if(penyelia.start_date && penyelia.end_date && penyelia.penyelia_map.length > 0) {
+                        let showPenyelia = penyelia.status == 3 ? false : true;
                         divInfoTugas = `
                             <div class="col-md-12 mt-2 fs-7">
                                 <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
                                     <span>Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
-                                    <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${penyelia.penyelia_hash}" data-bs-toggle="collapse"
-                                    onclick="showHideProgress(this)">Lihat Progress LAB</a>
+                                    <a class="py-1 px-2 text-decoration-none border rounded-2 ${showPenyelia ? 'd-none' : ''}" href="#timeline-progress-${penyelia.penyelia_hash}" data-bs-toggle="collapse"
+                                    onclick="showHideProgress(this)">${showPenyelia ? 'Lebih sedikit' : 'Lihat Progress LAB'}</a>
                                 </div>
                             </div>
                         `;
@@ -214,17 +215,19 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         pelanggan: permohonan.pelanggan.name,
                         divInfoTugas: divInfoTugas,
                         divTimelineTugas: timeLine,
+                        status: penyelia.status,
                         perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
                     }
 
                     html += cardComponent(dataS, {btnMenuAction : btnAction, btnAction: btnAction2});
                     break;
                 case 'penyelialhu':
+                    let showPenyelia = penyelia.status == 3 ? false : true;
                     divInfoTugas = `
                         <div class="col-md-12 mt-2 fs-7">
                             <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
                                 <span>Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
-                                <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${penyelia.penyelia_hash}" data-bs-toggle="collapse"
+                                <a class="py-1 px-2 text-decoration-none border rounded-2 ${showPenyelia ? 'd-none' : ''}" href="#timeline-progress-${penyelia.penyelia_hash}" data-bs-toggle="collapse"
                                 onclick="showHideProgress(this)">Lihat Progress LAB</a>
                             </div>
                         </div>
@@ -258,6 +261,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         pelanggan: permohonan.pelanggan.name,
                         divInfoTugas: divInfoTugas,
                         divTimelineTugas: timeline,
+                        status: penyelia.status,
                         index: i,
                         perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
                     }

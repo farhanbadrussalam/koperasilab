@@ -51,7 +51,7 @@ class Permohonan_detail extends Model
         return $this->hasOne(Master_tld::class, 'id_tld', 'id_tld');
     }
 
-    public function pengguna_lama()
+    public function penggunaLama()
     {
         return $this->hasOne(Master_pengguna::class, 'id_pengguna', 'pengguna_lama');
     }
