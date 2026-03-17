@@ -127,6 +127,7 @@ class Kontrak extends Model
         'document_kontrak',
         'periode_all',
         'data_radiasi',
+        'periode_active',
     ];
 
     protected $casts = [
@@ -165,6 +166,12 @@ class Kontrak extends Model
         $radiasi = array();
         $radiasi = array_merge(...$dataPengguna->pluck('pengguna.radiasi')->filter()->toArray());
         return $radiasi;
+    }
+
+    public function getPeriodeActiveAttribute()
+    {
+        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->whereNull('selesai')->orderBy('periode', 'asc')->first();
+        return $periode;
     }
 
     public function getPeriodeAllAttribute()

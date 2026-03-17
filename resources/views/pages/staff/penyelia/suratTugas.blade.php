@@ -82,7 +82,9 @@
                     </li>
                     @endforeach
                 </ul>
+                @if(count($jobsParalel) > 0)
                 <div>Tugas yang akan di lakukan setelah proses {{ $jobsPoint->name }}</div>
+                @endif
                 {{-- Load List jobs paralel --}}
                 <ul id="sortJobsParalel">
                     @foreach ($jobsParalel as $job)

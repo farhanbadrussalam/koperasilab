@@ -12,8 +12,16 @@ let tmpArrTld = [];
 let JL = '';
 let jmlTldCount = 0;
 let isCheckedEvaluasi = false;
+let isAdendumZerocek = true;
 
 $(function () {
+    // is adendum tidak pake zerocek
+    if(dataPermohonan.tipe_kontrak == 'adendum'){
+        if(dataPermohonan.is_zerocek == 0){
+            $('#tambah-tandaterima').hide();
+            isAdendumZerocek = false;
+        }
+    }
     inventoryTld = new Inventory_tld({preview: true});
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
@@ -436,7 +444,7 @@ function loadPengguna(){
             }
 
             if(value.type == 'ganti'){
-                data['name'] = value.penggunaLama?.name;
+                data['name'] = value.pengguna_lama?.name;
                 data['pengguna_baru'] = {
                     name: pengguna.name,
                 }
@@ -466,7 +474,7 @@ function loadPengguna(){
 function verif_kelengkapan(status, obj){
     if(status == 'lengkap'){
         let [ttdValue, ttdBy] = signaturePad.getValue();
-        if(dataPermohonan.tandaterima.length == 0 && dataPermohonan.tipe_kontrak != 'adendum'){
+        if(dataPermohonan.tandaterima.length == 0 && isAdendumZerocek){
             return Swal.fire({
                 icon: "warning",
                 text: "Harap tambah tandaterima terlebih dahulu.",

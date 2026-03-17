@@ -63,7 +63,6 @@ function renderJobsSelection(data) {
     // lalu urutkan berdasarkan 'order' di dalam masing-masing grup.
     listJobsAktif.sort((a, b) => (!!a.point_jobs - !!b.point_jobs) || (a.order - b.order));
 
-    console.log(listJobsAktif);
     // Filter jobs assigned to current user
     const userJobs = listJobsAktif.filter(d =>
         data.petugas.some(p => p.map_hash == d.map_hash && p.user_hash == userActive.user_hash)
@@ -106,8 +105,8 @@ function initDatePicker(data) {
  */
 function renderTldList(data) {
     let htmlRincianTld = '';
-    let isPeriodOne = data.periodenow.count_tld == 1 || data.periodenow.periode == 0;
-    let periodenow = data.periodenow.periode == 0 ? 1 : data.periodenow.periode;
+    let isPeriodOne = data.permohonan.periodenow.count_tld == 1 || data.permohonan.periodenow.periode == 0;
+    let periodenow = data.permohonan.periodenow.periode == 0 ? 1 : data.permohonan.periodenow.periode;
     const details = data.permohonan.kontrak.kontrak_detail.filter(d => {
         return isPeriodOne ? d.periode_tld_1 == periodenow : d.periode_tld_2 == periodenow;
     });

@@ -144,7 +144,7 @@ function simpanAdendum(obj){
     params.append('idPeriode', periode.periode_hash);
     params.append('id_kontrak', dataKontrak.kontrak_hash);
     params.append('sub_total', subTotal);
-    params.append('is_zerocek', zerocek);
+    params.append('is_zerocek', zerocek ? 1 : 0);
 
     spinner('show', $(obj));
     Swal.fire({

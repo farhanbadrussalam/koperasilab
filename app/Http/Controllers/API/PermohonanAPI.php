@@ -65,7 +65,7 @@ class PermohonanAPI extends Controller
             $idPeriode = $request->idPeriode ? decryptor($request->idPeriode) : false;
             $idKontrak = $request->id_kontrak ? decryptor($request->id_kontrak) : false;
             $totalHarga = $request->sub_total ? $request->sub_total : false;
-            $isZeroCek = $request->is_zerocek ? 1 : 0;
+            $isZeroCek = (int) $request->is_zerocek;
 
             $dataKontrak = Kontrak::find($idKontrak);
             $dataPeriode = Kontrak_periode::find($idPeriode);
@@ -425,8 +425,15 @@ class PermohonanAPI extends Controller
                 $idPengguna = (int) decryptor($value->pengguna);
                 $idTld = isset($value->tld) ? (int) decryptor($value->tld) : null;
             } else if($value->status == 'ganti'){
+                $permohonan = Permohonan::find($idPermohonan);
                 $idPengguna = (int) decryptor($value->pengguna_baru);
                 $idPenggunaLama = (int) decryptor($value->pengguna);
+                $kontrakDetail = Kontrak_detail::where('id_kontrak', $permohonan->id_kontrak)
+                                ->where('id_pengguna_divisi', $idPenggunaLama)
+                                ->first();
+                $kontrakPeriode = Kontrak_periode::where('id_kontrak', $permohonan->id_kontrak)->where('periode', $permohonan->periode)->first();
+
+                $idTld = $kontrakPeriode->count_tld == 1 ? $kontrakDetail->tld_1 : $kontrakDetail->tld_2;
             }
             $data = array(
                 'id_permohonan' => $idPermohonan,
@@ -1137,6 +1144,7 @@ class PermohonanAPI extends Controller
             if($dataPermohonan){
                 // mengambil periode kontrak
                 $kontrakperiode = Kontrak_periode::where('id_kontrak', $dataPermohonan->id_kontrak)->where('periode', $dataPermohonan->periode)->first();
+                $isPeriodOne = $kontrakperiode->count_tld == 1;
 
                 // menonaktifkan pengguna yang sudah diganti di kontrak
                 foreach($dataPermohonan->permohonan_detail as $detail){
@@ -1156,15 +1164,28 @@ class PermohonanAPI extends Controller
                             ->where('status', 1)
                             ->first();
 
-                        $dataDetail['tld_1'] = $kontrakDetail->tld_1;
-                        $dataDetail['status_tld_1'] = $kontrakDetail->status_tld_1;
-                        $dataDetail['tld_2'] = $kontrakDetail->tld_2 ? $kontrakDetail->tld_2 : $detail->id_tld;
-                        $dataDetail['status_tld_2'] = $kontrakDetail->status_tld_2 ? $kontrakDetail->status_tld_2 : ($dataPermohonan->is_have_tld ? 1 : 5);
+                        if($isPeriodOne){
+                            $tld_1 = $detail->id_tld;
+                            $status_tld_1 = $detail->status;
+                            $periode_tld_1 = $dataPermohonan->periode;
+                        } else{
+                            $tld_2 = $detail->id_tld;
+                            $status_tld_2 = $detail->status;
+                            $periode_tld_2 = $dataPermohonan->periode;
+                        }
+
+                        $dataDetail['tld_1'] = $kontrakDetail->tld_1 ? $kontrakDetail->tld_1 : $tld_1;
+                        $dataDetail['status_tld_1'] = $kontrakDetail->status_tld_1 ? $kontrakDetail->status_tld_1 : $status_tld_1;
+                        $dataDetail['periode_tld_1'] = $kontrakDetail->periode_tld_1 ? $kontrakDetail->periode_tld_1 : $periode_tld_1;
+
+                        $dataDetail['tld_2'] = $kontrakDetail->tld_2 ? $kontrakDetail->tld_2 : $tld_2;
+                        $dataDetail['status_tld_2'] = $kontrakDetail->status_tld_2 ? $kontrakDetail->status_tld_2 : $status_tld_2;
+                        $dataDetail['periode_tld_2'] = $kontrakDetail->periode_tld_2 ? $kontrakDetail->periode_tld_2 : $periode_tld_2;
+
                         $dataDetail['pengguna_lama'] = $detail->pengguna_lama;
 
                         // Master_pengguna::where('id_pengguna', $detail->pengguna_lama)->update(['status' => 1]);
                     } else if($detail->type == 'baru'){
-                        $isPeriodOne = $kontrakperiode->count_tld == 1;
 
                         if($isPeriodOne){
                             $dataDetail['tld_1'] = $detail->id_tld;
@@ -1210,19 +1231,19 @@ class PermohonanAPI extends Controller
                         Log::error("Invoice creation failed: ".$content->msg);
                         throw new \Exception($content->msg ?? 'Gagal membuat invoice');
                     }
+                }
 
-                    $penyeliaData = $this->penyelia->actionPenyelia(new Request([
-                        'idPermohonan' => $dataPermohonan->permohonan_hash,
-                        'status' => 1,
-                        'endDate' => $tglSelesai,
-                        'startDate' => date('Y-m-d H:i:s')
-                    ]));
+                $penyeliaData = $this->penyelia->actionPenyelia(new Request([
+                    'idPermohonan' => $dataPermohonan->permohonan_hash,
+                    'status' => 1,
+                    'endDate' => $tglSelesai,
+                    'startDate' => date('Y-m-d H:i:s')
+                ]));
 
-                    if($penyeliaData->getStatusCode() != 200){
-                        $content = json_decode($penyeliaData->getContent());
-                        Log::error("Penyelia creation failed: ".$content->msg);
-                        throw new \Exception($content->msg ?? 'Gagal membuat penyelia');
-                    }
+                if($penyeliaData->getStatusCode() != 200){
+                    $content = json_decode($penyeliaData->getContent());
+                    Log::error("Penyelia creation failed: ".$content->msg);
+                    throw new \Exception($content->msg ?? 'Gagal membuat penyelia');
                 }
 
                 DB::commit();

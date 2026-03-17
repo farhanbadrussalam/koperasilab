@@ -25,6 +25,8 @@ class EvaluasiSewaTest extends DuskTestCase
     private $idLayananSewa = "wVytkcL66wSLKdnwaKS77Q";
     private $idTld = "9k9avCgeHa1qfTj78022Aw";
 
+    private $waitingTime = 99999;
+
     /**
      * @group create-permohonan
      * @group evaluasi-sewa
@@ -41,7 +43,7 @@ class EvaluasiSewaTest extends DuskTestCase
                     ->screenshot('02_halaman_pengajuan')
 
                     ->select('jenis_layanan', $this->idLayananKontrak) // Pilih Kontrak
-                    ->waitFor("#jenis_layanan_2 option[value='{$this->idLayananSewa}']", 5) // Tunggu opsi Sewa muncul
+                    ->waitFor("#jenis_layanan_2 option[value='{$this->idLayananSewa}']", $this->waitingTime) // Tunggu opsi Sewa muncul
                     ->select('jenis_layanan_2', $this->idLayananSewa) // Pilih Sewa
                     ->press('Buat form')
 
@@ -50,7 +52,7 @@ class EvaluasiSewaTest extends DuskTestCase
                     ->assertSee('Jenis TLD')
                     ->select('jenis_tld', $this->idTld)
                     ->press('Select periode')
-                    ->waitForText("Pilih periode", 5);
+                    ->waitForText("Pilih periode", $this->waitingTime);
 
             // Mengisi periode menggunakan perulangan agar lebih rapi dan dinamis
             $periodes = [
@@ -64,27 +66,27 @@ class EvaluasiSewaTest extends DuskTestCase
                 // Untuk periode kedua dan seterusnya, klik tombol "Tambah periode" terlebih dahulu
                 if ($i > 0) {
                     $browser->press("Tambah periode")
-                            ->waitForText($periode['text'], 2);
+                            ->waitForText($periode['text'], $this->waitingTime);
                 }
                 // Menggunakan script untuk mengisi tanggal pada flatpickr
                 $browser->script("document.querySelector('#periode_start_{$periode['index']}')._flatpickr.setDate('{$periode['date']}', true);");
             }
 
             $browser->click("#btn-simpan-periode-1") // Simpan periode
-                    ->waitForText("Apa anda yakin ingin menyimpan data ?", 2)
+                    ->waitForText("Apa anda yakin ingin menyimpan data ?", $this->waitingTime)
                     ->press("Iya")
                     ->screenshot('03_form_periode_terisi');
 
             $browser->clickLink('Tambah')
-                    ->waitForText("Tambahkan Pengguna", 99)
+                    ->waitForText("Tambahkan Pengguna", $this->waitingTime)
                     ->assertVisible("tbody tr:first-child")
                     ->click("tbody tr:first-child button") // Klik tombol 'Pilih' pada baris pertama
                     ->screenshot('04_pilih_pengguna')
-                    ->waitUntilMissing(".modal-backdrop", 5) // Tunggu modal hilang
+                    ->waitUntilMissing(".modal-backdrop", $this->waitingTime) // Tunggu modal hilang
                     ->waitUntilMissingText('Tidak ada pengguna') // Tunggu status pengguna muncul di tabel
                     ->waitUntilMissingText("Tidak ada kontrol") // Tunggu status kontrol muncul di tabel
                     ->press("Simpan pengajuan")
-                    ->waitForText("Apa kamu yakin?", 5)
+                    ->waitForText("Apa kamu yakin?", $this->waitingTime)
                     ->press("Yes, proceed!")
                     // Tunggu proses simpan selesai dengan menunggu redirect
                     ->waitForLocation('/permohonan/pengajuan')
@@ -118,18 +120,24 @@ class EvaluasiSewaTest extends DuskTestCase
 
             $tglSelesai = date('Y-m-d', strtotime('2 weeks'));
             if($permohonan){
+                $isAdendumNotZerocek = false;
+                if($permohonan->tipe_kontrak == 'adendum') {
+                    if($permohonan->is_zerocek == 0){
+                        $isAdendumNotZerocek = true;
+                    }
+                }
                 $browser->loginAs($user)
                         // 2. VERIFIKASI PERMOHONAN
                         ->visit('/staff/permohonan')
-                        ->waitUntilMissing("#list-placeholder", 5)
+                        ->waitUntilMissing("#list-placeholder", $this->waitingTime)
                         ->visit("/staff/permohonan/verifikasi/{$permohonan->permohonan_hash}")
                         ->waitForLocation("/staff/permohonan/verifikasi/{$permohonan->permohonan_hash}")
                         ->click('#frontdeskVal')
                         ->script("document.querySelector('#tanggal-selesai')._flatpickr.setDate('$tglSelesai', true);");
 
-                if (count($permohonan->tandaterima) == 0) {
+                if (count($permohonan->tandaterima) == 0 && $isAdendumNotZerocek == false) {
                     $browser->click("#btn-tandaterima")
-                            ->waitForText("List Tanda Terima", 5)
+                            ->waitForText("List Tanda Terima", $this->waitingTime)
                             ->click("#answer_1_baik")
                             ->click("#answer_2_baik");
 
@@ -139,16 +147,16 @@ class EvaluasiSewaTest extends DuskTestCase
 
                     $browser->screenshot('tambah_tandaterima')
                             ->press("Simpan")
-                            ->waitForText("Data berhasil disimpan", 5)
+                            ->waitForText("Data berhasil disimpan", $this->waitingTime)
                             ->press("OK")
-                            ->waitUntilMissing(".modal-backdrop", 5);
+                            ->waitUntilMissing(".modal-backdrop", $this->waitingTime);
                 }
 
                 $browser->press("Lengkap")
-                        ->waitForText("Apakah data sudah lengkap?", 5)
+                        ->waitForText("Apakah data sudah lengkap?", $this->waitingTime)
                         ->press("Iya")
                         ->screenshot('verifikasi_permohonan')
-                        ->waitForLocation('/staff/permohonan', 5);
+                        ->waitForLocation('/staff/permohonan', $this->waitingTime);
 
                         // 3. LOGOUT
                 $browser->click('#userDropdown')
@@ -175,7 +183,7 @@ class EvaluasiSewaTest extends DuskTestCase
             $keuangan = Keuangan::where('status', 1)->orderBy('id_keuangan', 'desc')->first();
             $browser->loginAs($user)
                     ->visit('staff/keuangan')
-                    ->waitUntilMissing('#list-placeholder', 5)
+                    ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$keuangan->keuangan_hash.'"]', function ($row) {
                         $row->press('Buat invoice');
                     })
@@ -186,24 +194,24 @@ class EvaluasiSewaTest extends DuskTestCase
                     ->press("Simpan")
                     ->waitForText("Apa anda yakin ingin membuat invoice ?")
                     ->press("Iya")
-                    ->waitUntilMissing(".modal-backdrop", 5);
+                    ->waitUntilMissing(".modal-backdrop", $this->waitingTime);
 
             // Upload Faktur Pajak
 
-            $browser->waitUntilMissing('#list-placeholder', 5)
+            $browser->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->click('button[onclick="switchLoadTab(6)"]')
-                    ->waitUntilMissing("#list-placeholder", 5)
+                    ->waitUntilMissing("#list-placeholder", $this->waitingTime)
                     ->within('div[data-id="'.$keuangan->keuangan_hash.'"]', function ($row) {
                         $row->press('Upload Faktur');
                     })
                     ->waitForText("Manajemen Invoice")
                     ->attach('uploadFile', $pathFilePdf)
                     ->press("Tambah")
-                    ->waitUntilMissingText("Tidak ada file yang diupload", 5)
+                    ->waitUntilMissingText("Tidak ada file yang diupload", $this->waitingTime)
                     ->press("Simpan")
                     ->waitForText("Apa faktur sudah benar ?")
                     ->press("Iya")
-                    ->waitUntilMissing(".modal-backdrop", 5);
+                    ->waitUntilMissing(".modal-backdrop", $this->waitingTime);
 
                 // 3. LOGOUT
             $browser->click('#userDropdown')
@@ -227,7 +235,7 @@ class EvaluasiSewaTest extends DuskTestCase
             $keuangan = Keuangan::where('status', 2)->orderBy('id_keuangan', 'desc')->first();
             $browser->loginAs($user)
                     ->visit('manager/pengajuan')
-                    ->waitUntilMissing('#list-placeholder', 5)
+                    ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$keuangan->keuangan_hash.'"]', function ($row) {
                         $row->press('verifikasi');
                     })
@@ -237,7 +245,7 @@ class EvaluasiSewaTest extends DuskTestCase
                     ->press("Setujui")
                     ->waitForText("Apa invoice sudah benar ?")
                     ->press("Iya")
-                    ->waitUntilMissing(".modal-backdrop", 5);
+                    ->waitUntilMissing(".modal-backdrop", $this->waitingTime);
 
             // LOGOUT
             $browser->click('#userDropdown')
@@ -263,7 +271,7 @@ class EvaluasiSewaTest extends DuskTestCase
             $keuangan = Keuangan::where('status', 3)->orderBy('id_keuangan', 'desc')->first();
             $browser->loginAs($user)
                     ->visit('permohonan/pembayaran')
-                    ->waitUntilMissing('#list-placeholder', 5)
+                    ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$keuangan->keuangan_hash.'"]', function ($row) {
                         $row->clickLink('Bayar');
                     })
@@ -306,9 +314,9 @@ class EvaluasiSewaTest extends DuskTestCase
             $keuangan = Keuangan::where('status', 4)->orderBy('id_keuangan', 'desc')->first();
             $browser->loginAs($user)
                     ->visit('staff/keuangan')
-                    ->waitUntilMissing('#list-placeholder', 5)
+                    ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->click('button[onclick="switchLoadTab(3)"]')
-                    ->waitUntilMissing('#list-placeholder', 5)
+                    ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$keuangan->keuangan_hash.'"]', function ($row) {
                         $row->press('Verif Invoice');
                     })
@@ -317,7 +325,7 @@ class EvaluasiSewaTest extends DuskTestCase
                     ->press('Setujui')
                     ->waitForText("Apa invoice sudah benar ?")
                     ->press("Iya")
-                    ->waitUntilMissing(".modal-backdrop", 5);
+                    ->waitUntilMissing(".modal-backdrop", $this->waitingTime);
 
             // LOGOUT
             $browser->click('#userDropdown')
@@ -341,10 +349,22 @@ class EvaluasiSewaTest extends DuskTestCase
             $penyelia = Penyelia::with('permohonan')->where('status', 1)->orderBy('id_penyelia', 'desc')->first();
 
             $type = '';
-            if ($penyelia->permohonan->is_have_tld == 1) {
-                $type = 'havetld';
+            if($penyelia->permohonan->tipe_kontrak == "adendum") {
+                if($penyelia->permohonan->is_zerocek == 1) {
+                    if ($penyelia->permohonan->is_have_tld == 1) {
+                        $type = 'havetld';
+                    } else {
+                        $type = 'nonhavetld';
+                    }
+                } else {
+                    $type = 'adendum';
+                }
             } else {
-                $type = 'nonhavetld';
+                if ($penyelia->permohonan->is_have_tld == 1) {
+                    $type = 'havetld';
+                } else {
+                    $type = 'nonhavetld';
+                }
             }
 
             $listJobs = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs;
@@ -353,11 +373,11 @@ class EvaluasiSewaTest extends DuskTestCase
             $browser->loginAs($user)
                     ->visit("staff/penyelia")
                     ->waitForLocation("/staff/penyelia")
-                    ->waitUntilMissing('#list-placeholder', 5)
+                    ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$penyelia->penyelia_hash.'"]', function ($row) {
                         $row->clickLink('Surat Tugas');
                     })
-                    ->waitForLocation("/staff/penyelia/surat_tugas/c/{$penyelia->penyelia_hash}")
+                    ->waitForLocation("/staff/penyelia/surat_tugas/c/{$penyelia->penyelia_hash}", $this->waitingTime)
                     ->screenshot("create_surattugas");
 
             // tambah petugas di jobs
@@ -368,7 +388,7 @@ class EvaluasiSewaTest extends DuskTestCase
                 ->waitForText("List petugas")
                 ->waitUntilMissing(".spinner-border")
                 ->click('#modal-list-petugas > div:first-child .text-success')
-                ->waitUntilMissing(".modal-backdrop", 300);
+                ->waitUntilMissing(".modal-backdrop", $this->waitingTime);
             }
 
             // tambah petugas di jobs paralel
@@ -379,7 +399,7 @@ class EvaluasiSewaTest extends DuskTestCase
                 ->waitForText("List petugas")
                 ->waitUntilMissing(".spinner-border")
                 ->click('#modal-list-petugas > div:first-child .text-success')
-                ->waitUntilMissing(".modal-backdrop", 300);
+                ->waitUntilMissing(".modal-backdrop", $this->waitingTime);
             }
 
             // simpan surat tugas
@@ -413,7 +433,7 @@ class EvaluasiSewaTest extends DuskTestCase
             $browser->loginAs($user)
                     ->visit("manager/surat_tugas")
                     ->waitForLocation("/manager/surat_tugas")
-                    ->waitUntilMissing('#list-placeholder', 5)
+                    ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$penyelia->penyelia_hash.'"]', function ($row) {
                         $row->clickLink('Verifikasi');
                     })
@@ -457,7 +477,7 @@ class EvaluasiSewaTest extends DuskTestCase
 
                         $browser->loginAs($user)
                                 ->visit("staff/lhu")
-                                ->waitUntilMissing('#list-placeholder-lhu', 5)
+                                ->waitUntilMissing('#list-placeholder-lhu', $this->waitingTime)
                                 ->within('div[data-id="'.$penyelia->penyelia_hash.'"]', function ($row) {
                                     $row->press('update progress');
                                 })
@@ -467,12 +487,12 @@ class EvaluasiSewaTest extends DuskTestCase
                         if($petugas->jobs->id_jobs == 10) {
                             $browser->attach('uploadFile', $pathFilePdf)
                                     ->press("Tambah")
-                                    ->waitUntilMissingText("Tidak ada file yang diupload", 5);
+                                    ->waitUntilMissingText("Tidak ada file yang diupload", $this->waitingTime);
                         }
 
                         $browser->press("Update")
-                                ->waitUntilMissing(".modal-backdrop", 5)
-                                ->waitForText("Progress berhasil diupdate", 5)
+                                ->waitUntilMissing(".modal-backdrop", $this->waitingTime)
+                                ->waitForText("Progress berhasil diupdate", $this->waitingTime)
                                 ->press("OK");
 
                         // LOGOUT
@@ -501,23 +521,26 @@ class EvaluasiSewaTest extends DuskTestCase
             $pengiriman = Pengiriman::where('status', 3)->orderBy('id_pengiriman', 'desc')->first();
             $browser->loginAs($user)
                     ->visit("staff/pengiriman")
-                    ->waitUntilMissing('#list-placeholder-pengiriman', 5);
+                    ->waitUntilMissing('#list-placeholder-pengiriman', $this->waitingTime);
 
             $browser->within('div[data-id="'.$pengiriman->id_pengiriman.'"]', function ($row) {
                 $row->press('Kirim');
             });
 
+            $noResi = "R-".rand(1000000000, 9999999999);
+
             $browser->waitForText("Kirim Dokumen")
                     ->select("jasa_kurir", "wVytkcL66wSLKdnwaKS77Q")
-                    ->type("#noResi", rand(1000000000, 9999999999))
+                    ->type("noResi", $noResi)
+                    ->waitUntil("document.querySelector('input[name=\"noResi\"]').value == '$noResi'")
                     ->attach('uploadFile', $pathFileImage)
                     ->press("Tambah")
-                    ->waitUntilMissingText("Tidak ada file yang diupload", 5)
+                    ->waitUntilMissingText("Tidak ada file yang diupload", $this->waitingTime)
                     ->click("#btn-kirim")
                     ->waitForText("Apakah Anda yakin?")
                     ->press("Ya, kirim!")
-                    ->waitForText("Dokumen berhasil dikirim", 5)
-                    ->waitUntilMissingText("Dokumen berhasil dikirim", 5);
+                    ->waitForText("Dokumen berhasil dikirim", $this->waitingTime)
+                    ->waitUntilMissingText("Dokumen berhasil dikirim", $this->waitingTime);
 
             // LOGOUT
             $browser->click('#userDropdown')
@@ -542,12 +565,12 @@ class EvaluasiSewaTest extends DuskTestCase
             $pengiriman = Pengiriman::where('status', 1)->orderBy('id_pengiriman', 'desc')->first();
             $browser->loginAs($user)
                     ->visit("permohonan/pengiriman")
-                    ->waitFor('#list-container-pengiriman', 5)
+                    ->waitFor('#list-container-pengiriman', $this->waitingTime)
                     ->within('div[data-id="'.$pengiriman->id_pengiriman.'"]', function ($row) {
                         $row->press('Diterima');
                     })
                     ->waitForText("Dokumen diterima");
-            $browser->waitFor('#list-kelengkapan', 5);
+            $browser->waitFor('#list-kelengkapan', $this->waitingTime);
 
             // 1. Ambil semua elemen checkbox di dalam list
             $checkboxes = $browser->elements('#list-kelengkapan input[type="checkbox"]');
@@ -560,13 +583,13 @@ class EvaluasiSewaTest extends DuskTestCase
             }
             $browser->attach('uploadFile', $pathFileImage)
                     ->press("Tambah")
-                    ->waitUntilMissingText("Tidak ada file yang diupload", 5)
+                    ->waitUntilMissingText("Tidak ada file yang diupload", $this->waitingTime)
                     ->click("#btnSendDocument")
                     ->waitForText("Konfirmasi Penerimaan Dokumen")
                     ->press("Ya, terima!")
-                    ->waitForText("Document diterima", 5)
+                    ->waitForText("Document diterima", $this->waitingTime)
                     ->press("OK")
-                    ->waitUntilMissingText("Document diterima", 5);
+                    ->waitUntilMissingText("Document diterima", $this->waitingTime);
 
             // LOGOUT
             $browser->click('#userDropdown')

@@ -143,7 +143,8 @@ class Permohonan extends Model
     protected $appends = [
         'permohonan_hash',
         'kontrak_hash',
-        'ttd_image'
+        'ttd_image',
+        'periodenow'
     ];
 
     protected $casts = [
@@ -251,8 +252,18 @@ class Permohonan extends Model
         return $this->belongsTo(User::class, 'ttd_by', 'id');
     }
 
-    public function periodenow(){
-        return $this->belongsTo(Kontrak_periode::class, 'id_permohonan', 'id_permohonan');
+    /**
+     * Accessor untuk mendapatkan data Kontrak_periode yang sesuai dengan id_kontrak dan periode dari permohonan ini.
+     * Ini menggantikan relasi 'periodenow' untuk memastikan nilai `$this->periode` selalu terambil dengan benar
+     * saat diakses pada satu instance model (lazy loading).
+     *
+     * @return \App\Models\Kontrak_periode|null
+     */
+    public function getPeriodenowAttribute()
+    {
+        return Kontrak_periode::where('id_kontrak', $this->id_kontrak)
+            ->where('periode', $this->periode)
+            ->first();
     }
 
     public function rincian_list_tld(){

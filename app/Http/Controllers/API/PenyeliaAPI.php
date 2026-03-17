@@ -26,6 +26,7 @@ use App\Services\Notifier;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
+use App\Models\Kontrak;
 use App\Models\Kontrak_detail;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Auth;
@@ -521,9 +522,17 @@ class PenyeliaAPI extends Controller
             // kondisi saat salah satu proses selesai
             if (!$nextJobs && !$jobsNow->point_jobs) {
                 $permohonan = Permohonan::find($penyelia->id_permohonan);
-                $permohonan->update(['status' => 4]); // ketika proses lhu selesai
 
                 $penyelia->update(['status' => 3]);
+
+                // saat permohonan adalah adendum namun hanya ganti pengguna saja
+                if($penyelia->permohonan->tipe_kontrak == 'adendum' && $penyelia->permohonan->is_zerocek == 0){
+                    $permohonan->update(['status' => 5]); // ketika proses lhu selesai
+
+                    setKontrakAdendum($penyelia->permohonan->id_kontrak, $penyelia->permohonan->periode);
+                } else {
+                    $permohonan->update(['status' => 4]); // ketika proses lhu selesai
+                }
             }
 
 
@@ -599,7 +608,6 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak.rincian_list_tld.pengguna',
                 'permohonan.kontrak.jenis_layanan:id_jenisLayanan,name,parent',
                 'permohonan.kontrak.jenis_layanan_parent:id_jenisLayanan,name',
-                'permohonan.periodenow',
                 'permohonan.dokumen',
                 'permohonan.dokumen.doc_template',
             )

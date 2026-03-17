@@ -62,6 +62,10 @@ class PelangganController extends Controller
         ])->where('id_periode', decryptor($idPeriode))->first();
         if($periodeNow){
             $idKontrak = decryptor($idKontrak);
+
+            // Pengecekan adendum
+            setKontrakAdendum($idKontrak, $periodeNow->periode);
+
             $periodeBefore = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->first();
             $periodeNext = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+1)->first();
             $periode2Next = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+2)->first();

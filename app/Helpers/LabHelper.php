@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Crypt;
 use App\Helpers\TableWidthFixer;
 use App\Models\Keuangan;
 use App\Models\Kontrak;
+use App\Models\Kontrak_detail;
+use App\Models\Master_pengguna;
 use Carbon\Carbon;
 
 use App\Services\Notifier;
@@ -975,6 +977,39 @@ if(!function_exists('range_date')) {
             'start' => convert_date($start, $typeDateStart),
             'end' => convert_date($end, $typeDateEnd)
         ];
+    }
+}
+
+if(!function_exists('setKontrakAdendum')) {
+    function setKontrakAdendum($id_kontrak, $periode) {
+        $kontrak = Kontrak::find($id_kontrak);
+
+        if($periode >= $kontrak->periode_active->periode){
+            $result = Kontrak_detail::where('id_kontrak', $id_kontrak)
+                ->where('status', 2)
+                ->where('periode', $kontrak->periode_active->periode)
+                ->get();
+
+            foreach ($result as $key => $value) {
+                if($value->pengguna_lama) {
+                    $change = Kontrak_detail::where('id_kontrak', $id_kontrak)
+                        ->where('status', 1)
+                        ->where('id_pengguna_divisi', $value->pengguna_lama)
+                        ->first();
+
+                    // update sync status tld
+                    $value->status_tld_1 = $change->status_tld_1;
+                    $value->status_tld_2 = $change->status_tld_2;
+
+                    // update master_pengguna yang diganti
+                    Master_pengguna::where('id_pengguna', $change->id_pengguna_divisi)->update(['status' => 1]);
+
+                    $change->update(['status' => 99]);
+                }
+                $value->status = 1;
+                $value->save();
+            }
+        }
     }
 }
 ?>

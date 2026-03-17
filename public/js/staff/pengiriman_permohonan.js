@@ -57,7 +57,6 @@ function loadData(page = 1, menu) {
             let urlLaporanInvoice = data.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data.invoice.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
             let urlDocLhu = data.lhu?.status == 3 ? `<a href="${base_url}/storage/${data.lhu.media.file_path}/${data.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>` : '<i class="bi bi-printer-fill"></i> Cetak LHU';
             let arrDocCustom = [];
-            const JL = jenislayanan(data.kontrak.jenis_layanan_parent, data.kontrak.jenis_layanan);
 
             // Data Invoice
             let htmlInvoice = '';

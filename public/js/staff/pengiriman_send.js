@@ -16,7 +16,7 @@ if(informasi.sumber == 'permohonan') {
         tipe_kontrak: informasi.tipe_kontrak,
         jumlah_pengguna: informasi.jumlah_pengguna,
         jumlah_kontrol: informasi.jumlah_kontrol,
-        pengiriman: informasi.pengiriman,
+        pengiriman: informasi.pengiriman ? informasi.pengiriman : informasi.pengiriman_baru,
         id_hash: informasi.permohonan_hash,
         kontrak_hash: informasi.kontrak.kontrak_hash,
         created_at: informasi.created_at,
@@ -136,7 +136,8 @@ function load_form() {
     let htmlDisabled = false;
     let periodeTld = dataOrderPengiriman.periode_aktif.periode === 0 ? 1 : dataOrderPengiriman.periode_aktif.periode;
     // di ganti sebelumnya saya mengambil kontrak.periode bukan kontrak.periode_all
-    let isLastPeriode = dataOrderPengiriman.periode_all >= periodeTld;
+    let isLastPeriode = periodeTld >= dataOrderPengiriman.periode_all.jml_periode;
+
 
     if(!periodeAwal.includes(periodeTld) && dataOrderPengiriman.tipe_kontrak != 'adendum' && !isLastPeriode) {
         let checkedTld = dataOrderPengiriman.pengiriman?.detail?.find(d => d.jenis == 'tld') ? 'disabled' : 'checked';

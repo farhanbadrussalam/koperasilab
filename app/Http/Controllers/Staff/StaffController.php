@@ -315,6 +315,12 @@ class StaffController extends Controller
 
         if($id){
             if($periode) {
+                // melakukan set kontrak adendum
+                $kontrakPeriode = Kontrak_periode::where('id_periode', $idPeriode)->first();
+                if($kontrakPeriode){
+                    setKontrakAdendum($id, $kontrakPeriode->periode);
+                }
+
                 $data = Kontrak::with([
                     'layanan_jasa:id_layanan,nama_layanan',
                     'jenisTld:id_jenisTld,name',
@@ -405,6 +411,10 @@ class StaffController extends Controller
                     'pelanggan.perusahaan.alamat',
                 ])->find($id);
                 $data->sumber = 'permohonan';
+
+                if($data->pengiriman == null){
+                    $data->pengiriman_baru = Pengiriman::with('detail')->where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
+                }
             }
         }else{
             return redirect()->back();

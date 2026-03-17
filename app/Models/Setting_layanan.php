@@ -66,6 +66,9 @@ class Setting_layanan extends Model
 
     public function getListJobsParalelAttribute()
     {
+        if (!$this->jobs_paralel) {
+            return array();
+        }
         return Master_jobs::whereIn('id_jobs', $this->jobs_paralel)->orderByRaw('FIELD(id_jobs, ' . implode(',', $this->jobs_paralel) . ')')->get();
     }
 }

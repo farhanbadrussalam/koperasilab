@@ -762,7 +762,7 @@ class Detail {
 
                 let adendumActive = ['permohonan', 'penyelia'];
                 if(item.type == 'ganti' && adendumActive.includes(this.options.jenis)){
-                    dataCard['name'] = item.penggunaLama?.name;
+                    dataCard['name'] = item.pengguna_lama?.name;
                     dataCard['pengguna_baru'] = {
                         name: pengguna.name,
                     }
