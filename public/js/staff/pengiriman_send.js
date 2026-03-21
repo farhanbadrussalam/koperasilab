@@ -16,7 +16,7 @@ if(informasi.sumber == 'permohonan') {
         tipe_kontrak: informasi.tipe_kontrak,
         jumlah_pengguna: informasi.jumlah_pengguna,
         jumlah_kontrol: informasi.jumlah_kontrol,
-        pengiriman: informasi.pengiriman ? informasi.pengiriman : informasi.pengiriman_baru,
+        pengiriman: informasi.kontrak.pengiriman,
         id_hash: informasi.permohonan_hash,
         kontrak_hash: informasi.kontrak.kontrak_hash,
         created_at: informasi.created_at,
@@ -40,7 +40,7 @@ if(informasi.sumber == 'permohonan') {
         tipe_kontrak: informasi.tipe_kontrak,
         jumlah_pengguna: informasi.jumlah_pengguna,
         jumlah_kontrol: informasi.jumlah_kontrol,
-        pengiriman: false,
+        pengiriman: informasi.pengiriman,
         id_hash: false,
         kontrak_hash: informasi.kontrak_hash,
         created_at: informasi.created_at,
@@ -136,11 +136,12 @@ function load_form() {
     let htmlDisabled = false;
     let periodeTld = dataOrderPengiriman.periode_aktif.periode === 0 ? 1 : dataOrderPengiriman.periode_aktif.periode;
     // di ganti sebelumnya saya mengambil kontrak.periode bukan kontrak.periode_all
-    let isLastPeriode = periodeTld >= dataOrderPengiriman.periode_all.jml_periode;
+    // let isLastPeriode = periodeTld >= dataOrderPengiriman.periode_all.jml_periode;
 
 
-    if(!periodeAwal.includes(periodeTld) && dataOrderPengiriman.tipe_kontrak != 'adendum' && !isLastPeriode) {
-        let checkedTld = dataOrderPengiriman.pengiriman?.detail?.find(d => d.jenis == 'tld') ? 'disabled' : 'checked';
+    if(!periodeAwal.includes(periodeTld) && dataOrderPengiriman.tipe_kontrak != 'adendum') {
+        let checkStatusPengiriman = dataOrderPengiriman.pengiriman.find(d => d.detail.find(c => c.jenis == 'tld' && c.periode == periodeTld));
+        let checkedTld = checkStatusPengiriman ? 'disabled' : 'checked';
         let htmlKontrol = ``;
         for (const [i, list] of tldKontrol.entries()) {
             let tldActive = false;
@@ -218,11 +219,11 @@ function load_form() {
                                     data-jenis="tld" name="selectDocument" data-id="${dataOrderPengiriman.id_hash ?? ''}"
                                         onclick="updateSelectDocument()" ${checkedTld}>
                                 <label class="form-check-label fw-bold" for="checkTLD">TLD Periode ${dataOrderPengiriman.periode_aktif.status === 2 ? 'Pengembalian' : periodeTld}</label>
-                                <span class="badge bg-light text-muted border ms-2">${dataOrderPengiriman.jumlah_pengguna} Pengguna + ${dataOrderPengiriman.jumlah_kontrol} Kontrol</span>
+                                <span class="badge bg-light text-muted border ms-2">${tldPengguna.length} Pengguna + ${tldKontrol.length} Kontrol</span>
                             </div>
                             <div>
                                 <small><i class="bi bi-calendar-fill"></i> ${dateFormat(dataOrderPengiriman.created_at, 4)}</small>
-                                <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? dataOrderPengiriman.pengiriman.status : false)}</small>
+                                <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? checkStatusPengiriman.status : false)}</small>
                             </div>
                         </div>
                     </div>

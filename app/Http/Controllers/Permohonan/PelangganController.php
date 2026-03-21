@@ -93,19 +93,20 @@ class PelangganController extends Controller
                     $morphTo->morphWith([
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
                     ]);
-                }
+                },
+                'kontrak_map' => function($q) use ($periodeNow) {
+                    $q->where('periode', $periodeNow->periode);
+                },
+                'kontrak_map.tld',
+                'kontrak_map.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
             ])->where('id_kontrak', $idKontrak)->first();
 
             $layanan = jenislayanan($queryKontrak->jenis_layanan_parent, $queryKontrak->jenis_layanan);
             $isSewa = in_array($layanan, $this->global['arr_sewa']);
-
-            if($queryKontrak && $queryKontrak->rincian_list_tld){
-                foreach($queryKontrak->rincian_list_tld as $key => $value){
-                    if($value->pengguna && $value->pengguna->id_radiasi){
-                        $value->pengguna->radiasi = Master_radiasi::whereIn('id_radiasi', $value->pengguna->id_radiasi)->get();
-                    }
-                }
-            }
 
             if($queryKontrak->jenis_layanan_parent->id_jenisLayanan == 7){
                 $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 9)->first();

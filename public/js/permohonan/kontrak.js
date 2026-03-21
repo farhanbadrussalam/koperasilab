@@ -289,9 +289,6 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
     if(isPelanggan) {
         if(evaluasiState.active) {
-            // if(dataKontrak[index].no_kontrak == 'S-0001/JKRL/II/2026' && data.periode == 3) {
-            //     console.log(isComplete);
-            // }
             if(!data.permohonan){
                 if(data.status == 1) { // bukan status periode pengembalian
                     htmlAction = htmlBtnEvaluasi;

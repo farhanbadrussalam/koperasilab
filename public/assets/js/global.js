@@ -1193,7 +1193,7 @@ function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFi
     if(data_periode.permohonan?.invoice){
         if (data_periode.permohonan.invoice.status != 5) return false;
     }
-
+    detail_pengiriman = detail_pengiriman.filter(item => item.tipe_kontrak != 'adendum');
     // pengecekan jenis layanan
     for (const doc of arrFindDokumen) {
         let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
@@ -1210,10 +1210,21 @@ function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFi
                     return false;
                 }
             }
+
+            if (data_kontrak.periode_all?.jml_periode && (data_kontrak.periode_all.jml_periode - data_periode.periode) < 2) {
+                if (doc === 'lhu') {
+                    if (!findPeriode || findPeriode.status != 2) {
+                        return false;
+                    }
+                }
+            }
         } else{
             if (!findPeriode || findPeriode.status != 2) {
                 return false;
             }
+
+            // if(findPeriode?.tipe_kontrak == 'adendum')
+            //     continue;
         }
     }
     return true;

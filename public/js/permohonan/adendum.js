@@ -496,8 +496,11 @@ function pilihPeriode(obj){
 
     arrOption.periode = periode;
     $('#periode-pemakaian').val(`Periode ${periode.periode} (${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)})`);
+    // Cari nomor periode yang aktif saat ini berdasarkan tanggal
+    const now = Date.now();
+    const activePeriodeObj = dataKontrak.periode.find(p => p.periode != 0 && now >= new Date(p.start_date) && now <= new Date(p.end_date));
 
-    if(periode.selesai){
+    if(periode.periode < activePeriodeObj.periode){
         $('#btn-add-pengguna').removeClass('d-block').addClass('d-none');
         $('#btn-add-kontrol').removeClass('d-block').addClass('d-none');
         arrOption.pengguna.map(d => {

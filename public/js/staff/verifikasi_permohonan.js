@@ -409,6 +409,8 @@ function loadPengguna(){
             htmlDisabled = true;
         }
 
+        console.log(result);
+
         jmlTldCount += result.data.length;
 
         $('#jumlah-pengguna').html(result.data.length + ' Orang')

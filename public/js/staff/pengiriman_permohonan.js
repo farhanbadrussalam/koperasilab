@@ -303,8 +303,9 @@ function cekComplete(data_periode, detail_pengiriman, arrFindDokumen) {
     const pengirimanRelevan = detail_pengiriman.filter(item => {
         if (data_periode.tipe_kontrak == 'adendum') {
             return item.periode === data_periode.periode && item.tipe_kontrak == 'adendum';
+        } else {
+            return item.periode === data_periode.periode && item.tipe_kontrak != 'adendum';
         }
-        return item.periode === data_periode.periode;
     });
 
     // Ambil jenis dokumen yang sudah ada

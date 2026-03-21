@@ -34,6 +34,7 @@ use App\Http\Controllers\LogController;
 use App\Http\Controllers\NotifController;
 use App\Http\Controllers\API\TldAPI;
 use App\Models\Kontrak_detail;
+use App\Models\Kontrak_map;
 use App\Services\Notifier;
 
 use Auth;
@@ -225,10 +226,13 @@ class PermohonanAPI extends Controller
                     if($listTld){
                         foreach ($listTld as $value) {
                             $id = decryptor($value);
-                            $kontrakDetail = Kontrak_detail::find($id);
+                            // ambil tld yang di kontrak map
+                            $kontrakMap = Kontrak_map::find($id);
                             if($kontrakPeriode->count_tld === 1){
+                                $kontrakDetail = Kontrak_detail::where('tld_1', $kontrakMap->id_tld)->where('id_kontrak', $idKontrak)->where('status', 1)->first();
                                 $kontrakDetail->update(array('status_tld_1' => 3));
                             } else {
+                                $kontrakDetail = Kontrak_detail::where('tld_2', $kontrakMap->id_tld)->where('id_kontrak', $idKontrak)->where('status', 1)->first();
                                 $kontrakDetail->update(array('status_tld_2' => 3));
                             }
                         }
@@ -394,21 +398,21 @@ class PermohonanAPI extends Controller
 
     private function saveTld($idPermohonan, $idTld){
         foreach ($idTld as $value) {
-            $idKontrakDetail = (int) decryptor($value->id);
+            $idKontrakMap = (int) decryptor($value->id);
             $idTargetPengguna = isset($value->id_target_pengguna) ? (int) decryptor($value->id_target_pengguna) : null;
             $idTld = (int) decryptor($value->tld);
             $type = $value->type;
 
-            $kontrakDetail = Kontrak_detail::where('id', $idKontrakDetail)->first();
+            $kontrakMap = Kontrak_map::where('id_map', $idKontrakMap)->first();
 
             $data = array(
                 'id_permohonan' => $idPermohonan,
-                'id_pengguna_divisi' => $idTargetPengguna ? $idTargetPengguna : $kontrakDetail->id_pengguna_divisi,
+                'id_pengguna_divisi' => $idTargetPengguna ? $idTargetPengguna : $kontrakMap->id_pengguna_divisi,
                 'id_tld' => $idTld,
-                'jenis' => $kontrakDetail->jenis,
+                'jenis' => $kontrakMap->jenis,
                 'status' => 1,
                 'type' => $type,
-                'pengguna_lama' => $idTargetPengguna ? $kontrakDetail->id_pengguna_divisi : null,
+                'pengguna_lama' => $idTargetPengguna ? $kontrakMap->id_pengguna_divisi : null,
                 'created_by' => Auth::user()->id
             );
 
@@ -722,8 +726,10 @@ class PermohonanAPI extends Controller
                 if($item->tld) {
                     $item->tld_pengguna = $item->tld;
                 }else{
-                    $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
-                    $noTld++;
+                    if($item->type != 'ganti') {
+                        $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
+                        $noTld++;
+                    }
                 }
             }
             DB::commit();
@@ -1122,7 +1128,7 @@ class PermohonanAPI extends Controller
                     ]);
 
                     Permohonan_detail::where('id', $id)->update([
-                        'id_tld' => $idTld,
+                        'id_tld' => $idTld ? $idTld : null,
                         'status' => $dataPermohonan->is_have_tld ? 1 : 5
                     ]);
                 }
@@ -1163,6 +1169,12 @@ class PermohonanAPI extends Controller
                             ->where('id_pengguna_divisi', $detail->pengguna_lama)
                             ->where('status', 1)
                             ->first();
+                        $tld_1 = null;
+                        $tld_2 = null;
+                        $status_tld_1 = null;
+                        $status_tld_2 = null;
+                        $periode_tld_1 = null;
+                        $periode_tld_2 = null;
 
                         if($isPeriodOne){
                             $tld_1 = $detail->id_tld;
@@ -1287,7 +1299,6 @@ class PermohonanAPI extends Controller
 
                     // menambahkan tld
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                        // $no_kontrak = $this->generateNoKontrak($idPermohonan);
                         $no_kontrak = generateNoDokumen('kontrak', $idPermohonan);
                         $listTld = $request->listTld ? json_decode($request->listTld) : [];
 

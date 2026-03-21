@@ -107,20 +107,29 @@ function renderTldList(data) {
     let htmlRincianTld = '';
     let isPeriodOne = data.permohonan.periodenow.count_tld == 1 || data.permohonan.periodenow.periode == 0;
     let periodenow = data.permohonan.periodenow.periode == 0 ? 1 : data.permohonan.periodenow.periode;
-    const details = data.permohonan.kontrak.kontrak_detail.filter(d => {
-        return isPeriodOne ? d.periode_tld_1 == periodenow : d.periode_tld_2 == periodenow;
-    });
-    // const details = data.permohonan?.permohonan_detail.filter(d => d.type == 'baru');
-    // const details = data.permohonan?.kontrak?.kontrak_detail || [];
-    // const isPeriodOne = data.periodenow.count_tld == 1 || data.periodenow.periode == 0;
+    let tipe_kontrak = data.permohonan.tipe_kontrak;
+    let details = [];
+
+    if(tipe_kontrak == "adendum"){
+        details = data.permohonan.permohonan_detail;
+    } else {
+        details = data.permohonan.kontrak.kontrak_detail.filter(d => {
+            return isPeriodOne ? d.periode_tld_1 == periodenow : d.periode_tld_2 == periodenow;
+        });
+    }
 
     details.forEach(detail => {
-        const tld = isPeriodOne ? detail.tld_1 : detail.tld_2;
+        let tld = false;
+        let status = false;
+        if(tipe_kontrak == 'adendum'){
+            tld = detail.tld;
+            status = detail.status;
+        } else {
+            tld = isPeriodOne ? detail.tld_1 : detail.tld_2;
+            status = isPeriodOne ? detail.status_tld_1 : detail.status_tld_2;
+        }
         if (!tld) return;
-        // const tld = detail.tld;
 
-        const status = isPeriodOne ? detail.status_tld_1 : detail.status_tld_2;
-        // const status = detail.status;
         const inPenyimpanan = status == 5;
 
         const cardHtml = `

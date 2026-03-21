@@ -270,4 +270,8 @@ class Kontrak extends Model
     public function kontrak_detail(){
         return $this->hasMany(Kontrak_detail::class, 'id_kontrak', 'id_kontrak')->where('status', 1);
     }
+
+    public function kontrak_map(){
+        return $this->hasMany(Kontrak_map::class, 'id_kontrak', 'id_kontrak');
+    }
 }

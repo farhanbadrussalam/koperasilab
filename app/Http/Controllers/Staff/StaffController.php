@@ -326,6 +326,8 @@ class StaffController extends Controller
                     'jenisTld:id_jenisTld,name',
                     'jenis_layanan:id_jenisLayanan,name,parent',
                     'jenis_layanan_parent',
+                    'pengiriman',
+                    'pengiriman.detail',
                     'kontrak_detail',
                     'kontrak_detail.tld_1',
                     'kontrak_detail.tld_2',
@@ -390,6 +392,8 @@ class StaffController extends Controller
                     'jenis_layanan_parent',
                     'kontrak',
                     'kontrak.periode',
+                    'kontrak.pengiriman',
+                    'kontrak.pengiriman.detail',
                     'permohonan_detail',
                     'permohonan_detail.entitas' => function (MorphTo $morphTo) {
                         $morphTo->morphWith([
@@ -413,7 +417,7 @@ class StaffController extends Controller
                 $data->sumber = 'permohonan';
 
                 if($data->pengiriman == null){
-                    $data->pengiriman_baru = Pengiriman::with('detail')->where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
+                    $data->pengiriman_baru = Pengiriman::with('detail')->where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
                 }
             }
         }else{

@@ -1446,10 +1446,6 @@ class ReportController extends Controller
             $startDate = convert_date($periode->start_date, 6);
             $endDate = convert_date($periode->end_date, 6);
             $htmlSample .= '<div>' . $data->jumlah_kontrol . ' + ' . $data->jumlah_pengguna . ' ' . $startDate . ' - ' . $endDate . '</div>';
-
-            if($periode->periode == 1) {
-                // dd($periode);
-            }
         }
 
         $dataKeuangan = calculateInvoice($data->total_harga, $data->invoice->diskon, $data->invoice->ppn, $data->invoice->pph);

@@ -62,15 +62,17 @@ $(function () {
 })
 
 function loadTld() {
-    let isPeriodOne = dataPeriodeNow.count_tld == 1;
-    let tldPengguna = dataKontrak.kontrak_detail.filter(tld => {
-        if(tmpArrSewa.includes(JL)){
-            return tld.jenis == 'pengguna' && (isPeriodOne ? tld.tld_1 : tld.tld_2);
-        } else {
-            return tld.jenis == 'pengguna';
-        }
-    });
-    let tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol');
+    // let isPeriodOne = dataPeriodeNow.count_tld == 1;
+    // let tldPengguna = dataKontrak.kontrak_detail.filter(tld => {
+    //     if(tmpArrSewa.includes(JL)){
+    //         return tld.jenis == 'pengguna' && (isPeriodOne ? tld.tld_1 : tld.tld_2);
+    //     } else {
+    //         return tld.jenis == 'pengguna';
+    //     }
+    // });
+    // let tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol');
+    let tldPengguna = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'pengguna');
+    let tldKontrol = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'kontrol');
 
     loadTldKontrol(tldKontrol);
     loadPengguna(tldPengguna);
@@ -85,31 +87,34 @@ function loadTldKontrol(tldKontrol) {
        for (const [i, list] of tldKontrol.entries()) {
            let dataTld = null;
            let type = 'baru';
-        //    if(list.tld){
-        //         dataTld = list.tld;
+
+            if(list.tld){
+                dataTld = list.tld;
+                type = 'lama';
+            } else {
+                dataTld = tldNotUsed[noTld];
+                noTld++;
+            }
+
+        //    if(isPeriodOne){
+        //        if(list.tld_1){
+        //            dataTld = list.tld_1;
+        //            type = 'lama';
+        //        } else {
+        //            dataTld = tldNotUsed[noTld];
+        //            noTld++;
+        //        }
         //    } else {
-        //         dataTld = tldNotUsed[noTld];
-        //         noTld++;
+        //        if(list.tld_2){
+        //            dataTld = list.tld_2;
+        //            type = 'lama';
+        //        } else {
+        //            dataTld = tldNotUsed[noTld];
+        //            noTld++;
+        //        }
         //    }
-           if(isPeriodOne){
-               if(list.tld_1){
-                   dataTld = list.tld_1;
-                   type = 'lama';
-               } else {
-                   dataTld = tldNotUsed[noTld];
-                   noTld++;
-               }
-           } else {
-               if(list.tld_2){
-                   dataTld = list.tld_2;
-                   type = 'lama';
-               } else {
-                   dataTld = tldNotUsed[noTld];
-                   noTld++;
-               }
-           }
           tmpArrTld.push({
-              id: list.kontrak_detail_hash,
+              id: list.kontrak_map_hash,
               tld: dataTld.tld_hash,
               index: `tldNoSeri_${i}_kontrol`,
               type
@@ -119,7 +124,7 @@ function loadTldKontrol(tldKontrol) {
 
           const dataCard = {
             index: i,
-            idHash: list.kontrak_detail_hash,
+            idHash: list.kontrak_map_hash,
             name: `Kontrol ${list.entitas?.name ?? ''} ${kodeLencana}`,
             kode: kodeLencana,
             isCheckedEvaluasi: true,
@@ -149,26 +154,33 @@ function loadPengguna(tldPengguna){
 
             let dataTld = null;
             let type = 'baru';
-            if(isPeriodOne){
-               if(value.tld_1){
-                   dataTld = value.tld_1;
-                   type = 'lama';
-               } else {
-                   dataTld = tldNotUsed[noTld];
-                   noTld++;
-               }
-           } else {
-               if(value.tld_2){
-                   dataTld = value.tld_2;
-                   type = 'lama';
-               } else {
-                   dataTld = tldNotUsed[noTld];
-                   noTld++;
-               }
-           }
+            if(value.tld){
+                dataTld = value.tld;
+                type = 'lama';
+            } else {
+                dataTld = tldNotUsed[noTld];
+                noTld++;
+            }
+        //     if(isPeriodOne){
+        //        if(value.tld_1){
+        //            dataTld = value.tld_1;
+        //            type = 'lama';
+        //        } else {
+        //            dataTld = tldNotUsed[noTld];
+        //            noTld++;
+        //        }
+        //    } else {
+        //        if(value.tld_2){
+        //            dataTld = value.tld_2;
+        //            type = 'lama';
+        //        } else {
+        //            dataTld = tldNotUsed[noTld];
+        //            noTld++;
+        //        }
+        //    }
 
             tmpArrTld.push({
-                id: value.kontrak_detail_hash,
+                id: value.kontrak_map_hash,
                 tld: dataTld.tld_hash,
                 index: `tldNoSeri_${i}_pengguna`,
                 type
@@ -176,7 +188,7 @@ function loadPengguna(tldPengguna){
 
             const dataCard = {
                 index: i,
-                idHash: value.kontrak_detail_hash,
+                idHash: value.kontrak_map_hash,
                 tldHash: dataTld.tld_hash,
                 name: pengguna.entitas.name,
                 divisi: pengguna.entitas.divisi?.name || '',
