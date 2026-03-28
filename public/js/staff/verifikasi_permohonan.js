@@ -99,8 +99,7 @@ $(function () {
         });
     }
 
-    $('#periode-pemakaian-next').val(txtPeriodeNext);
-    const conten_2 = document.getElementById("content-ttd-2");
+    $('#periode-pemakaian-next').html(txtPeriodeNext);
 
     loadTld();
     $('#btn-tandaterima').on('click', () => {
@@ -408,8 +407,6 @@ function loadPengguna(){
         if(dataPermohonan.is_have_tld || dataPermohonan.tipe_kontrak == 'adendum'){
             htmlDisabled = true;
         }
-
-        console.log(result);
 
         jmlTldCount += result.data.length;
 

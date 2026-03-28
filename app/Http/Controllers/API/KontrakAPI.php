@@ -47,6 +47,8 @@ class KontrakAPI extends Controller
                         'periode' => function($q) use ($filter) {
                             if(isset($filter['date_range']))
                                 $q->whereBetween('start_date', [$filter['date_range'][0], $filter['date_range'][1]])->whereNull('id_permohonan');
+
+                            $q->whereIn('status', [1, 2]);
                         },
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',
@@ -66,6 +68,14 @@ class KontrakAPI extends Controller
                         'pengiriman.detail',
                         'pengiriman.permohonan:id_permohonan,periode,tipe_kontrak',
                         'tld_aktif:id_tld,digunakan,no_seri_tld,status',
+                        'kontrak_detail',
+                        'kontrak_detail.tld_1',
+                        'kontrak_detail.tld_2',
+                        'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                            $morphTo->morphWith([
+                                Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                            ]);
+                        },
                         'rincian_list_tld' => function($q) {
                             $q->whereIn('status', [5,6]);
                         }

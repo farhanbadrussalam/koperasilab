@@ -199,6 +199,11 @@ function load_form() {
                     htmlDisabled = true;
                 }
             }
+
+            if(dataOrderPengiriman.is_have_tld == 1){
+                htmlDisabled = true;
+            }
+
             htmlPengguna += `
                 <div class="bg-white border rounded px-2 py-1 d-flex align-items-center shadow-sm">
                     <input type="hidden" class="form-control rounded-start form-sm" value="${tldActive ? tldActive.no_seri_tld : ''}" data-id="${id}" id="tldNoSeri_${id}" readonly>

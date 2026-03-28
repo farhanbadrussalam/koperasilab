@@ -266,10 +266,17 @@ class ReportController extends Controller
             case "TandaTerima":
                 if($data->tipe_kontrak == 'kontrak baru') {
                     $pemakaian = $data->periode_pemakaian;
-                    $vars["PERIODE_RINCIAN"] = convert_date($pemakaian[0]['start_date'], 7) . " s/d " . convert_date($pemakaian[0]['end_date'], 7);
+                    $periode1 = convert_date($pemakaian[0]['start_date'], 7) . " s/d " . convert_date($pemakaian[0]['end_date'], 7);
+                    $periode2 = isset($pemakaian[1]) ? convert_date($pemakaian[1]['start_date'], 7) . " s/d " . convert_date($pemakaian[1]['end_date'], 7) : '';
+
+                    if($data->is_zerocek == 1){
+                        $vars["PERIODE_RINCIAN"] = "- $periode1 <br> - $periode2";
+                    } else {
+                        $vars["PERIODE_RINCIAN"] = "- $periode1";
+                    }
                 } else {
                     $findPeriode = $data->kontrak->periode->where('periode', $data->periode)->first();
-                    $vars["PERIODE_RINCIAN"] = convert_date($findPeriode->start_date, 7) . " s/d " . convert_date($findPeriode->end_date, 7);
+                    $vars["PERIODE_RINCIAN"] = "- " . convert_date($findPeriode->start_date, 7) . " s/d " . convert_date($findPeriode->end_date, 7);
                 }
                 $vars["JUDUL"] = "TANDA TERIMA PENGUJIAN/KALIBRASI";
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
@@ -654,7 +661,7 @@ class ReportController extends Controller
         $variables['TTD_PEMOHON_BY'] = $query->pelanggan ? $query->pelanggan->name : '...........................................';
 
         // generate pdf
-        $bytes = $this->generatePDF($data['title'], $template, $variables, ['RINCIAN', 'TTD_PENERIMA', 'TTD_PEMOHON']);
+        $bytes = $this->generatePDF($data['title'], $template, $variables, ['RINCIAN', 'TTD_PENERIMA', 'TTD_PEMOHON', 'PERIODE_RINCIAN']);
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 

@@ -4,6 +4,7 @@
 @php
     $pengembalianStart = '';
     $pengembalianEnd = '';
+    $isPengembalian = false;
     if(!$periode2Next || !$isSewa){
         $startDate = new DateTime($periodeNow->end_date);
         // $startDate->modify('first day of this month');
@@ -14,6 +15,10 @@
 
         $pengembalianStart = $startDate->format('Y-m-d');
         $pengembalianEnd = $endDate->format('Y-m-d');
+    }
+
+    if(!$periode2Next && !$isSewa){
+        $isPengembalian = true;
     }
 @endphp
 <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -56,7 +61,7 @@
                                     <small>{{ $periode2Next ? convert_date($periode2Next->start_date, 2) : '-' }} - {{ $periode2Next ? convert_date($periode2Next->end_date, 2) : '-' }}</small>
                                 </div>
                                 <div class="border border-primary rounded p-2 bg-primary-subtle shadow-sm align-content-center {{ $periode2Next || $isSewa ? 'd-none' : '' }}">
-                                    <div for="">Pengembalian ke {{ $periodeNow->periode % 2 == 0 ? '1' : '2' }}</div>
+                                    <div for="">Pengembalian ke {{ $periodeNow->count_tld }}</div>
                                     <small>{{ convert_date($pengembalianStart, 2) }} - {{ convert_date($pengembalianEnd, 2) }}</small>
                                 </div>
                             </div>
@@ -110,7 +115,7 @@
     </div>
 </div>
 
-
+@include('pages.management.tld.create')
 @endsection
 
 @push('scripts')
@@ -119,6 +124,9 @@
         const dataPeriodeNow = @json($periodeNow);
         const dataPeriodeNext = @json($periodeNext);
         const dataJenisLayanan = @json($jenisLayanan);
+        const isPengembalian = @json($isPengembalian);
+        const pengembalianStart = @json($pengembalianStart);
+        const pengembalianEnd = @json($pengembalianEnd);
     </script>
     <script src="{{ asset('js/permohonan/kontrak_evaluasi.js') }}"></script>
 @endpush

@@ -2,6 +2,7 @@ const tmpArrTld = [];
 let inventoryTld = false;
 let JL = '';
 let htmlDisabled = true;
+let source = 'map';
 
 $(function () {
     inventoryTld = new Inventory_tld({
@@ -62,75 +63,94 @@ $(function () {
 })
 
 function loadTld() {
-    // let isPeriodOne = dataPeriodeNow.count_tld == 1;
-    // let tldPengguna = dataKontrak.kontrak_detail.filter(tld => {
-    //     if(tmpArrSewa.includes(JL)){
-    //         return tld.jenis == 'pengguna' && (isPeriodOne ? tld.tld_1 : tld.tld_2);
-    //     } else {
-    //         return tld.jenis == 'pengguna';
-    //     }
-    // });
-    // let tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol');
-    let tldPengguna = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'pengguna');
-    let tldKontrol = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'kontrol');
+    let tldPengguna = false;
+    let tldKontrol = false;
+    if(dataKontrak.kontrak_map.length == 0){
+        tldPengguna = dataKontrak.kontrak_detail.filter(tld => {
+            return tld.jenis == 'pengguna';
+        });
+        tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol');
+        source = `detail`;
+    } else {
+        tldPengguna = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'pengguna');
+        tldKontrol = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'kontrol');
+        source = `map`;
+    }
 
-    loadTldKontrol(tldKontrol);
-    loadPengguna(tldPengguna);
+    loadTldKontrol(tldKontrol, source);
+    loadPengguna(tldPengguna, source);
 }
 
-function loadTldKontrol(tldKontrol) {
+function loadTldKontrol(tldKontrol, source) {
     let htmlTldKontrol = '';
     let isPeriodOne = dataPeriodeNow.count_tld == 1;
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
-       let tldNotUsed = result.data;
-       let noTld = 0;
-       for (const [i, list] of tldKontrol.entries()) {
-           let dataTld = null;
-           let type = 'baru';
+        let tldNotUsed = result.data;
+        let noTld = 0;
+        for (const [i, list] of tldKontrol.entries()) {
+            let dataTld = null;
+            let type = 'baru';
+            let id = false;
+            let _htmlDisabled = htmlDisabled;
+            let _isCheckedEvaluasi = true;
 
-            if(list.tld){
-                dataTld = list.tld;
-                type = 'lama';
-            } else {
-                dataTld = tldNotUsed[noTld];
-                noTld++;
-            }
+           if(source == 'map'){
+                if(list.tld){
+                    dataTld = list.tld;
+                    type = 'lama';
+                } else {
+                    dataTld = tldNotUsed[noTld];
+                    noTld++;
+                }
+                id = list.kontrak_map_hash;
+           } else {
+                if(isPeriodOne){
+                    if(list.tld_1){
+                        dataTld = list.tld_1;
+                        type = 'lama';
+                        if(list.status_tld_1 != 2) {
+                            _htmlDisabled = true;
+                            _isCheckedEvaluasi = false;
+                        }
+                    } else {
+                        dataTld = tldNotUsed[noTld];
+                        noTld++;
+                    }
+                } else {
+                    if(list.tld_2){
+                        dataTld = list.tld_2;
+                        type = 'lama';
+                        if(list.status_tld_2 != 2) {
+                            _htmlDisabled = true;
+                            _isCheckedEvaluasi = false;
+                        }
+                    } else {
+                        dataTld = tldNotUsed[noTld];
+                        noTld++;
+                    }
+                }
+                id = list.kontrak_detail_hash;
+           }
 
-        //    if(isPeriodOne){
-        //        if(list.tld_1){
-        //            dataTld = list.tld_1;
-        //            type = 'lama';
-        //        } else {
-        //            dataTld = tldNotUsed[noTld];
-        //            noTld++;
-        //        }
-        //    } else {
-        //        if(list.tld_2){
-        //            dataTld = list.tld_2;
-        //            type = 'lama';
-        //        } else {
-        //            dataTld = tldNotUsed[noTld];
-        //            noTld++;
-        //        }
-        //    }
           tmpArrTld.push({
-              id: list.kontrak_map_hash,
+              id: id,
               tld: dataTld.tld_hash,
               index: `tldNoSeri_${i}_kontrol`,
-              type
+              type,
+              source
           });
 
           let kodeLencana = i == 0 ? 'C' : `C${i}`;
 
           const dataCard = {
             index: i,
-            idHash: list.kontrak_map_hash,
+            idHash: id,
             name: `Kontrol ${list.entitas?.name ?? ''} ${kodeLencana}`,
             kode: kodeLencana,
-            isCheckedEvaluasi: true,
+            isCheckedEvaluasi: _isCheckedEvaluasi,
             tldHash: dataTld.tld_hash,
             no_seri_tld: dataTld.no_seri_tld,
-            htmlDisabled: htmlDisabled
+            htmlDisabled: _htmlDisabled
           }
 
           htmlTldKontrol += cardKontrolComponent(dataCard, {
@@ -142,7 +162,7 @@ function loadTldKontrol(tldKontrol) {
     });
 }
 
-function loadPengguna(tldPengguna){
+function loadPengguna(tldPengguna, source) {
     let htmlPengguna = '';
     let isPeriodOne = dataPeriodeNow.count_tld == 1;
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'pengguna'}, result => {
@@ -154,49 +174,68 @@ function loadPengguna(tldPengguna){
 
             let dataTld = null;
             let type = 'baru';
-            if(value.tld){
-                dataTld = value.tld;
-                type = 'lama';
+            let id = false;
+            let _htmlDisabled = htmlDisabled;
+            let _isCheckedEvaluasi = true;
+
+            if(source == 'map'){
+                if(value.tld){
+                    dataTld = value.tld;
+                    type = 'lama';
+                } else {
+                    dataTld = tldNotUsed[noTld];
+                    noTld++;
+                }
+                id = value.kontrak_map_hash;
             } else {
-                dataTld = tldNotUsed[noTld];
-                noTld++;
+                if(isPeriodOne){
+                    if(value.tld_1){
+                        dataTld = value.tld_1;
+                        type = 'lama';
+                        if(value.status_tld_1 != 2) {
+                            _htmlDisabled = true;
+                            _isCheckedEvaluasi = false;
+                        }
+                    } else {
+                        dataTld = tldNotUsed[noTld];
+                        noTld++;
+                    }
+                } else {
+                    if(value.tld_2){
+                        dataTld = value.tld_2;
+                        type = 'lama';
+                        if(value.status_tld_2 != 2) {
+                            _htmlDisabled = true;
+                            _isCheckedEvaluasi = false;
+                        }
+                    } else {
+                        dataTld = tldNotUsed[noTld];
+                        noTld++;
+                    }
+                }
+
+                id = value.kontrak_detail_hash;
             }
-        //     if(isPeriodOne){
-        //        if(value.tld_1){
-        //            dataTld = value.tld_1;
-        //            type = 'lama';
-        //        } else {
-        //            dataTld = tldNotUsed[noTld];
-        //            noTld++;
-        //        }
-        //    } else {
-        //        if(value.tld_2){
-        //            dataTld = value.tld_2;
-        //            type = 'lama';
-        //        } else {
-        //            dataTld = tldNotUsed[noTld];
-        //            noTld++;
-        //        }
-        //    }
 
             tmpArrTld.push({
-                id: value.kontrak_map_hash,
-                tld: dataTld.tld_hash,
+                id: id,
+                tld: dataTld?.tld_hash,
                 index: `tldNoSeri_${i}_pengguna`,
-                type
+                type,
+                source
             });
 
             const dataCard = {
                 index: i,
-                idHash: value.kontrak_map_hash,
-                tldHash: dataTld.tld_hash,
+                idHash: id,
+                tldHash: dataTld?.tld_hash,
                 name: pengguna.entitas.name,
                 divisi: pengguna.entitas.divisi?.name || '',
-                isCheckedEvaluasi: true,
+                isCheckedEvaluasi: _isCheckedEvaluasi,
                 radiasi: pengguna.entitas.radiasi?.map(r => r.nama_radiasi),
                 fileKtp: fileKtp,
-                no_seri_tld: dataTld.no_seri_tld || '',
-                htmlDisabled: htmlDisabled
+                no_seri_tld: dataTld?.no_seri_tld || '',
+                htmlDisabled: _htmlDisabled
             }
 
             htmlPengguna += cardPenggunaComponent(dataCard, {
@@ -250,10 +289,16 @@ function buatPermohonan(obj){
             params.append('periode', periode?.periode == 0 ? 1 : periode.periode); // If periode is 0, set to 1
             params.append('alamat', alamatData.alamat_hash); // Send the address hash
             params.append('listTld', JSON.stringify(checkTld));
+            params.append('source', source);
             params.append('createBy', userActive.user_hash);
             params.append('is_zerocek', 0);
             params.append('haveTld', 1);
             params.append('tipeKontrak', 'kontrak lama');
+            if(isPengembalian) {
+                params.append('is_pengembalian', 1);
+                params.append('pengembalian_start', pengembalianStart);
+                params.append('pengembalian_end', pengembalianEnd);
+            }
             params.append('dataTld', JSON.stringify(tmpArrTld));
             // dataPermohonan ? params.append('idPermohonan', dataPermohonan.permohonan_hash) : false;
 

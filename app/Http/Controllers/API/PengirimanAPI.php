@@ -455,8 +455,8 @@ class PengirimanAPI extends Controller
 
                 if($dataTld){
                     foreach ($dataTld as $item) {
-                        info("Prosess update TLD " . $item);
                         $idTld = $isPeriodOne ? $item->tld_1 : $item->tld_2;
+                        info("Prosess update TLD " . $idTld);
                         Master_tld::where('id_tld', $idTld)->update(['status' => 0, 'digunakan' => null]);
                     }
                 }
@@ -482,6 +482,7 @@ class PengirimanAPI extends Controller
                     $idTld = $isPeriodOne ? $item->tld_1 : $item->tld_2;
                     Kontrak_map::create([
                         'id_kontrak' => $item->id_kontrak,
+                        'id_kontrak_detail' => $item->id,
                         'id_tld' => $isPeriodOne ? $item->tld_1 : $item->tld_2,
                         'id_pengguna_divisi' => $item->id_pengguna_divisi,
                         'jenis' => $item->jenis,
@@ -712,9 +713,12 @@ class PengirimanAPI extends Controller
                 if ($kontrakTld && $kPeriode) {
                     $isPeriodOne = $kPeriode->count_tld == 1 || $valPeriode == 0;
 
-                    $updateData = $isPeriodOne
-                        ? ['tld_1' => $idTld, 'status_tld_1' => 1, 'periode_tld_1' => $periodeTld]
-                        : ['tld_2' => $idTld, 'status_tld_2' => 1, 'periode_tld_2' => $periodeTld];
+                    $updateData = [];
+                    if($idTld) {
+                        $updateData = $isPeriodOne
+                            ? ['tld_1' => $idTld, 'status_tld_1' => 1, 'periode_tld_1' => $periodeTld]
+                            : ['tld_2' => $idTld, 'status_tld_2' => 1, 'periode_tld_2' => $periodeTld];
+                    }
 
                     $updateData['status'] = 1;
 

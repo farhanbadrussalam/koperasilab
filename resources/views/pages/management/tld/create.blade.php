@@ -51,7 +51,9 @@
                         showConfirmButton: false
                     }).then(() => {
                         $('#createTldModal').modal('hide');
-                        datatable_tld.ajax.reload();
+                        if (typeof datatable_tld !== 'undefined' && datatable_tld) {
+                            datatable_tld.ajax.reload();
+                        }
                         spinner('hide', $('#btn-create'));
                         resetForm();
                     })

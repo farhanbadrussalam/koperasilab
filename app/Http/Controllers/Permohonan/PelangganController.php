@@ -80,13 +80,7 @@ class PelangganController extends Controller
                 'pelanggan',
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
-                'kontrak_detail' => function($q) use ($periodeNow) {
-                    if($periodeNow->count_tld == 1){
-                        $q->where('periode_tld_1', $periodeNow->periode);
-                    } else {
-                        $q->where('periode_tld_2', $periodeNow->periode);
-                    }
-                },
+                'kontrak_detail',
                 'kontrak_detail.tld_1',
                 'kontrak_detail.tld_2',
                 'kontrak_detail.entitas' => function (MorphTo $morphTo) {
