@@ -697,7 +697,9 @@ class PermohonanAPI extends Controller
                     if($item->jenis == 'pengguna') {
                         Master_pengguna::find($item->id_pengguna_divisi)->update(['status' => 1]);
                     }
-                    Master_tld::find($item->id_tld)->update(['status' => 0]);
+                    if($item->id_tld){
+                        Master_tld::find($item->id_tld)->update(['status' => 0]);
+                    }
                 }
             }
 
@@ -1484,16 +1486,17 @@ class PermohonanAPI extends Controller
                     // Proses ke penyelia
                     $arrValidPenyelia = [2, 3, 5, 6, 9];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidPenyelia)){
-                        $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
-                        if(in_array($JL, $this->global['arr_putus'])) {
-                            if($dataPermohonan->tipe_kontrak == 'kontrak lama'){
-                                $status = 1;
-                            } else {
-                                $status = 5;
-                            }
-                        } else {
-                            $status = 1;
-                        }
+                        // $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
+                        // if(in_array($JL, $this->global['arr_putus'])) {
+                        //     if($dataPermohonan->tipe_kontrak == 'kontrak lama'){
+                        //         $status = 1;
+                        //     } else {
+                        //         $status = 1;
+                        //     }
+                        // } else {
+                        //     $status = 1;
+                        // }
+                        $status = 1;
 
                         $penyeliaData = $this->penyelia->actionPenyelia(new Request([
                             'idPermohonan' => $dataPermohonan->permohonan_hash,
@@ -1613,6 +1616,7 @@ class PermohonanAPI extends Controller
         $idPermohonan = decryptor($idPermohonan);
         $dataPermohonan = Permohonan::with(
             'jenis_layanan_parent',
+            'jenis_layanan',
             'permohonan_detail'
         )->find($idPermohonan);
 
@@ -1658,6 +1662,7 @@ class PermohonanAPI extends Controller
 
             foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
                 $periode = $key + 1;
+                $status = 1;
 
                 // cari ganjil genap
                 $countTld = null;
@@ -1672,7 +1677,7 @@ class PermohonanAPI extends Controller
                     'periode' => $periode,
                     'start_date' => $value['start_date'],
                     'end_date' => $value['end_date'],
-                    'status' => 1,
+                    'status' => $status,
                     'count_tld' => $countTld,
                     'id_permohonan' => $dataPermohonan->periode == $periode ? $dataPermohonan->id_permohonan : null,
                     'created_by' => Auth::user()->id,

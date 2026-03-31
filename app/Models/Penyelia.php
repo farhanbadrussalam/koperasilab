@@ -77,7 +77,10 @@ class Penyelia extends Model
         'document',
         'created_by',
         'created_at',
-        'verify_at',
+        'verify_surat_tugas_at',
+        'verify_pengajuan_at',
+        'is_pengajuan_signed',
+        'is_surat_tugas_signed'
     ];
 
     protected $hidden = [

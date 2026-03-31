@@ -305,7 +305,6 @@ function saveSuratTugas(obj){
                 params.append('jobsMapParalel', JSON.stringify(listJobsParalel));
                 params.append('jenisLog', typeSurat == 'tambah' ? 'created' : 'updated');
             }else{
-                params.append('status', 10); // Start Proses LHU
                 params.append('ttd', signature);
                 params.append('ttd_by', signatureUser);
             }

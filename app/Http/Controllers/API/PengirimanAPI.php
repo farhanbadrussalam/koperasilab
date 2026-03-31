@@ -418,7 +418,13 @@ class PengirimanAPI extends Controller
                 $params['bukti_penerima'] = $tmpBuktiPenerima;
             }
 
-            $query = Pengiriman::with('detail', 'kontrak', 'permohonan')->where('id_pengiriman', $idPengiriman)->first();
+            $query = Pengiriman::with(
+                'detail',
+                'kontrak',
+                'permohonan',
+                'permohonan.jenis_layanan_parent',
+                'permohonan.jenis_layanan',
+            )->where('id_pengiriman', $idPengiriman)->first();
             $query->update($params);
 
             // jika LHU sudah dikirim
@@ -448,7 +454,9 @@ class PengirimanAPI extends Controller
             $isPeriodOne = $kontrakPeriode->count_tld == 1 || $query->periode == 0;
 
             // mereset TLD jika di kembalikan
-            if($kontrakPeriode->status == 2){
+            $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
+
+            if($kontrakPeriode->status == 2 || $JL === "EvaluasiTanpaKontrak"){
                 info("================ Prosess Pengembalian TLD ===============");
                 // mengambil TLD dari Kontrak_tld
                 $dataTld = Kontrak_detail::where('id_kontrak', $query->id_kontrak)->get();

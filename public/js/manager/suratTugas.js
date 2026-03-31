@@ -119,113 +119,207 @@ function loadData(page=1) {
     $(`#list-placeholder`).show();
     $(`#list-container`).hide();
     ajaxGet(`api/v1/penyelia/list`, params, result => {
-        let html = '';
-        const divTimelineTugas = [];
         dataPenyelia = result.data;
-        for (const [i, lhu] of result.data.entries()) {
-            const permohonan = lhu.permohonan;
-            let btnAction = `
-                <li>
-                    <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
-                        <i class="bi bi-info-circle me-2"></i> Detail
-                    </a>
-                </li>
-            `;
-            let btnAction2 = ``;
 
-            if(lhu.status == 2) {
-                btnAction2 += `<a class="btn btn-outline-primary btn-sm" title="Verifikasi" href="${base_url}/manager/surat_tugas/v/${lhu.penyelia_hash}"><i class="bi bi-check2-circle"></i> Verifikasi</a>`;
-            } else if (lhu.status == 6) {
-                btnAction2 += `
-                    <button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="verifikasiPengujian(this)">
-                        <i class="bi bi-check2-circle"></i> Verifikasi Pengujian
-                    </button>
-                `;
-            }else{
-                btnAction += `
-                    <li>
-                        <a class="dropdown-item small cursor-pointer" href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}">
-                            <i class="bi bi-eye me-2"></i> Lihat Surat
-                        </a>
-                    </li>
-                `;
-            }
-
-            let badgeClass = 'bg-primary-subtle';
-            if(permohonan.tipe_kontrak == 'kontrak lama') {
-                badgeClass = 'bg-success-subtle';
-            }
-
-            let divInfoTugas = ``;
-            if(lhu.start_date && lhu.end_date) {
-                let showPenyelia = lhu.status == 3 ? false : true;
-                divInfoTugas = `
-                    <div class="col-md-12 mt-2 fs-7">
-                        <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
-                            <span>Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
-                            <a class="py-1 px-2 text-decoration-none border rounded-2 ${showPenyelia ? 'd-none' : ''}" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
-                            onclick="showHideProgress(this)">Lihat Progress LAB</a>
-                        </div>
-                    </div>
-                `;
-            }
-
-            const timeline = new Timeline({
-                timeline: lhu.penyelia_map,
-                status: lhu.status,
-                id: lhu.penyelia_hash
-            });
-            divTimelineTugas.push(timeline);
-
-            // status jobs yang aktif
-            let htmlStatus = statusFormat('penyelia', lhu.status);
-            if(lhu.status == 10) {
-                const aktifJobs = lhu.penyelia_map.filter(d => d.status == 1);
-
-                aktifJobs.map(d => {
-                    htmlStatus += statusFormat('penyelia', d.jobs.status);
-                })
-            }
-
-            const params = {
-                tipeKontrak: permohonan.tipe_kontrak,
-                jenisLayananParent: permohonan.jenis_layanan_parent.name,
-                jenisLayanan: permohonan.jenis_layanan.name,
-                format: 'penyelia',
-                status: lhu.status,
-                jenisTld: permohonan.jenis_tld?.name ?? '-',
-                namaLayanan: permohonan.layanan_jasa?.nama_layanan,
-                periode: permohonan.periode,
-                created_at: permohonan.created_at,
-                kontrak: permohonan.kontrak?.no_kontrak,
-                id: lhu.penyelia_hash,
-                is_have_tld: permohonan.is_have_tld,
-                is_zerocek: permohonan.is_zerocek,
-                note: '',
-                pelanggan: permohonan.pelanggan.name,
-                divInfoTugas: divInfoTugas,
-                divTimelineTugas: timeline
-            }
-
-            html += cardComponent(params, {btnMenuAction: btnAction, btnAction: btnAction2});
-        }
-
-        if(result.data.length == 0){
-            html = `
+        if (result.data.length === 0) {
+            $(`#list-container`).html(`
                 <div class="d-flex flex-column align-items-center py-3">
                     <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
                     <span class="fw-bold mt-3 text-muted">No Data Available</span>
                 </div>
-            `;
+            `).show();
+            $(`#list-pagination`).empty();
+            $(`#list-placeholder`).hide();
+            return;
         }
 
-        $(`#list-container`).html(html);
+        const divTimelineTugas = [];
+        const html = result.data.map(lhu => {
+            const { cardHtml, timeline } = _renderCardItem(lhu);
+            divTimelineTugas.push(timeline);
+            return cardHtml;
+        }).join('');
 
+        $(`#list-container`).html(html).show();
         $(`#list-pagination`).html(createPaginationHTML(result.pagination));
-        divTimelineTugas.map(d => d.render());
+        divTimelineTugas.forEach(t => t.render());
         $(`#list-placeholder`).hide();
-        $(`#list-container`).show();
     });
+}
+
+/**
+ * Helper to render a single card item for Surat Tugas
+ * @param {Object} lhu
+ */
+function _renderCardItem(lhu) {
+    const permohonan = lhu.permohonan;
+    const isTugasSigned = lhu.is_surat_tugas_signed;
+    const isPengajuanSigned = lhu.is_pengajuan_signed;
+    const hasTugas = lhu.penyelia_map.length > 0;
+    const docPengujian = permohonan.dokumen.find(d => d.jenis === 'SuratPengujian');
+    const docTugas = permohonan.dokumen.find(d => d.jenis === 'surattugas');
+
+    let btnDocTugas = ``;
+    let btnDocPengujian = ``;
+
+    // Config: Button Surat Tugas
+    let tugasBtn = {
+        icon: 'bi-check2-circle',
+        class: 'btn-light text-primary-emphasis',
+        attr: `href="${base_url}/manager/surat_tugas/v/${lhu.penyelia_hash}"`,
+        title: 'Verifikasi Surat Tugas'
+    };
+
+    if (lhu.status != 1 && hasTugas) {
+        btnDocTugas = `
+            <a class="btn btn-outline-primary btn-sm text-nowrap rounded-pill" target="_blank" href="${base_url}/laporan/${docTugas.jenis}/${docTugas.permohonan_hash}" title="Download Surat Tugas">
+                <i class="bi bi-file-earmark-text"></i>
+            </a>
+        `;
+        if (isTugasSigned === 1) {
+            tugasBtn = {
+                ...tugasBtn,
+                icon: 'bi-check2-all',
+                class: 'btn-light text-success',
+                title: 'Surat Tugas Selesai (Signed)',
+                attr: `href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}"`
+            };
+        } else if (isTugasSigned === 2) {
+            tugasBtn = {
+                ...tugasBtn,
+                icon: 'bi-x-circle',
+                class: 'btn-light text-danger',
+                title: 'Surat Tugas Ditolak',
+                attr: `href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}"`
+            };
+        }
+    } else {
+        tugasBtn = {
+            ...tugasBtn,
+            icon: 'bi-info-circle',
+            class: 'btn-light text-secondary',
+            title: 'Surat Tugas Belum Dibuat',
+            attr: `disabled`
+        }
+    }
+
+    let btnAction2 = `
+        <div class="d-flex justify-content-between gap-1">
+            <a class="btn ${tugasBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${tugasBtn.title}" ${tugasBtn.attr}>
+                <i class="bi ${tugasBtn.icon}"></i> Surat Tugas
+            </a>
+            ${btnDocTugas}
+        </div>
+    `;
+
+    // Config: Button Surat Pengujian (Conditional)
+    if (jenislayanan(permohonan.jenis_layanan_parent, permohonan.jenis_layanan) === 'EvaluasiTanpaKontrak') {
+        let pengujianBtn = {
+            icon: 'bi-check2-circle',
+            class: 'btn-light text-primary-emphasis',
+            attr: `onclick="verifikasiPengujian(this)"`,
+            title: 'Verifikasi Surat Pengujian'
+        };
+
+        if (docPengujian) {
+            btnDocPengujian = `
+                <a class="btn btn-outline-primary btn-sm text-nowrap rounded-pill" target="_blank" href="${base_url}/laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}" title="Download Surat Pengujian">
+                    <i class="bi bi-file-earmark-text"></i>
+                </a>
+            `;
+
+            if (isPengajuanSigned === 1) {
+                pengujianBtn = {
+                    ...pengujianBtn,
+                    icon: 'bi-check2-all',
+                    class: 'btn-light text-success',
+                    title: 'Surat Pengujian Selesai (Signed)',
+                    attr: `disabled`
+                };
+            } else if (isPengajuanSigned === 2) {
+                pengujianBtn = {
+                    ...pengujianBtn,
+                    icon: 'bi-x-circle',
+                    class: 'btn-light text-danger',
+                    title: 'Surat Pengujian Ditolak',
+                    attr: `disabled`
+                };
+            }
+        } else {
+            pengujianBtn = {
+                ...pengujianBtn,
+                icon: 'bi-info-circle',
+                class: 'btn-light text-secondary',
+                title: 'Surat Pengujian Belum Dibuat',
+                attr: `disabled`
+            };
+        }
+
+        btnAction2 = `
+            <div class="d-flex justify-content-center flex-column gap-2">
+                ${btnAction2}
+                <div class="d-flex justify-content-between gap-1">
+                    <button class="btn ${pengujianBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${pengujianBtn.title}" ${pengujianBtn.attr}>
+                        <i class="bi ${pengujianBtn.icon}"></i> Surat Pengujian
+                    </button>
+                    ${btnDocPengujian}
+                </div>
+            </div>
+        `;
+    }
+
+    const btnAction = `
+        <li>
+            <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
+                <i class="bi bi-info-circle me-2"></i> Detail
+            </a>
+        </li>
+    `;
+
+    let divInfoTugas = ``;
+    if (lhu.start_date && lhu.end_date) {
+        const isHidden = lhu.status == 2;
+        divInfoTugas = `
+            <div class="col-md-12 mt-2 fs-7">
+                <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
+                    <span>Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
+                    <a class="py-1 px-2 text-decoration-none border rounded-2 ${isHidden ? 'd-none' : ''}" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
+                    onclick="showHideProgress(this)">Lihat Progress LAB</a>
+                </div>
+            </div>
+        `;
+    }
+
+    const timeline = new Timeline({
+        timeline: lhu.penyelia_map,
+        status: lhu.status,
+        id: lhu.penyelia_hash
+    });
+
+    const params = {
+        tipeKontrak: permohonan.tipe_kontrak,
+        jenisLayananParent: permohonan.jenis_layanan_parent.name,
+        jenisLayanan: permohonan.jenis_layanan.name,
+        format: 'penyelia',
+        status: lhu.status,
+        jenisTld: permohonan.jenis_tld?.name ?? '-',
+        namaLayanan: permohonan.layanan_jasa?.nama_layanan,
+        periode: permohonan.periode,
+        created_at: permohonan.created_at,
+        kontrak: permohonan.kontrak?.no_kontrak,
+        id: lhu.penyelia_hash,
+        is_have_tld: permohonan.is_have_tld,
+        is_zerocek: permohonan.is_zerocek,
+        note: '',
+        pelanggan: permohonan.pelanggan.name,
+        divInfoTugas,
+        divTimelineTugas: timeline
+    };
+
+    return {
+        cardHtml: cardComponent(params, { btnMenuAction: btnAction, btnAction: btnAction2 }),
+        timeline
+    };
 }
 
 function reload() {
@@ -247,7 +341,7 @@ function showHideProgress(obj){
 }
 
 function verifikasiPengujian(obj){
-    const idPenyelia = $(obj).parent().parent().data("id");
+    const idPenyelia = $(obj).closest('[data-id]').data('id');
     let find = dataPenyelia.find(d => d.penyelia_hash == idPenyelia);
 
     // jenis pengujian
