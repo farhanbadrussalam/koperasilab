@@ -38,6 +38,7 @@ class Invoice {
     _createCustomEvents() {
         this.eventSimpan = new CustomEvent('invoice.simpan', {});
         this.eventTolak = new CustomEvent('invoice.tolak', {});
+        this.eventBatal = new CustomEvent('invoice.batal', {});
     }
 
     // Centralize event binding
@@ -271,6 +272,7 @@ class Invoice {
 
         if(this.dataKeuangan.status === 7) {
             footerHTML = `
+                <button type="button" class="btn btn-danger" id="btnBatalInvoice">Batal</button>
                 <button type="button" class="btn btn-primary" id="btnSimpanInvoice">Simpan</button>
             `;
         }
@@ -278,6 +280,10 @@ class Invoice {
 
         $('#btnSimpanInvoice').on('click', obj => {
             this.simpanInvoice(obj.target);
+        })
+
+        $('#btnBatalInvoice').on('click', obj => {
+            this.batalInvoice(obj.target);
         })
 
         this.loadPreviewDoc();
@@ -321,6 +327,44 @@ class Invoice {
                 text: 'Harap isi diskon'
             });
         }
+    }
+
+    batalInvoice(obj) {
+        Swal.fire({
+            text: 'Apakah Anda yakin ingin membatalkan invoice ini?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Batalkan',
+            cancelButtonText: 'Batal',
+            customClass: {
+                confirmButton: 'btn btn-danger mx-1',
+                cancelButton: 'btn btn-secondary mx-1',
+            },
+            buttonsStyling: false,
+            reverseButtons: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                spinner('show', $(obj));
+                const formData = new FormData();
+                formData.append('status', 1);
+                formData.append('idKeuangan', this.dataKeuangan.keuangan_hash);
+                ajaxPost(`api/v1/keuangan/action`, formData, result => {
+                    Swal.fire({
+                        icon: 'success',
+                        text: 'Invoice dibatalkan',
+                        timer: 1200,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        spinner('hide', $(obj));
+                        document.dispatchEvent(this.eventBatal);
+                        this.closeInvoiceModal();
+                    });
+                }, error => {
+                    spinner('hide', $(obj));
+                });
+            }
+        })
     }
 
     removeDiskon(index) {

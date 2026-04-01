@@ -137,6 +137,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
         Route::resource('tld', TldController::class);
         Route::get('getDataTld', [TldController::class, 'getData'])->name('tld.getData');
+        Route::get('searchTld', [TldController::class, 'searchTld'])->name('tld.search');
 
         Route::resource('radiasi', RadiasiController::class)->middleware('role:Super Admin');
         Route::get('getDataRadiasi', [RadiasiController::class, 'getData'])->name('radiasi.getData');

@@ -5,7 +5,7 @@
           <h5 class="modal-title" id="createTldModalLabel">Create TLD</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <form id="form-create" method="post">
+        <form id="form-create" method="post" data-parsley-validate>
             <div class="modal-body row">
                 @csrf
                 <div class="mb-3 col-md-12">
@@ -35,10 +35,40 @@
 
 <script>
     $(function () {
-        $('#createTldModal').on('hide.bs.modal', resetForm);
+        const formParsley = $('#form-create').parsley();
+        let typingTimer;                // Variabel untuk menyimpan timer
+
+        // Reset form dan hapus timer saat modal ditutup
+        $('#createTldModal').on('hidden.bs.modal', function() {
+            clearTimeout(typingTimer);
+            const form = $('#form-create');
+            form[0].reset();
+            form.parsley().reset();
+            form.find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+        });
+
+        const doneTypingInterval = 500;  // Waktu tunggu dalam milidetik (1000 ms = 1 detik)
+        const myInput = document.getElementById('inputNoSeri');
+
+        // Event ketika user mengetik (bisa pakai 'input' atau 'keyup')
+        myInput.addEventListener('input', function () {
+            // 1. Hapus timer sebelumnya setiap kali user mengetik
+            clearTimeout(typingTimer);
+
+            // 2. Buat timer baru
+            typingTimer = setTimeout(function () {
+                // Baris ini akan dieksekusi 1 detik setelah user BERHENTI mengetik
+                searchTld(myInput.value);
+            }, doneTypingInterval);
+        });
 
         $('#form-create').on("submit", (evt) => {
             evt.preventDefault();
+
+            if (!formParsley.validate()) {
+                return;
+            }
+
             const formData = new FormData(evt.target);
             spinner('show', $('#btn-create'));
             ajaxPost(`management/tld`, formData, result => {
@@ -55,16 +85,30 @@
                             datatable_tld.ajax.reload();
                         }
                         spinner('hide', $('#btn-create'));
-                        resetForm();
                     })
                 }
             }, error => {
                 spinner('hide', $('#btn-create'));
             })
         });
-    })
+    });
 
-    function resetForm() {
-        $('#form-create')[0].reset();
+    function searchTld(no_seri){
+        const fieldInstance = $('#inputNoSeri').parsley();
+
+        if (no_seri === '') {
+            fieldInstance.reset();
+            $(fieldInstance.element).removeClass('is-valid is-invalid');
+            return;
+        }
+
+        ajaxGet(`management/searchTld?q=${no_seri}`, false, result => {
+            fieldInstance.removeError('unique-tld');
+            if(result.meta.code == 200){
+                if(result.data.length > 0){
+                    fieldInstance.addError('unique-tld', {message: 'Nomer seri sudah terdaftar.'});
+                }
+            }
+        });
     }
 </script>

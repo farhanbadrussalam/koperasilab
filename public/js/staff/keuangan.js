@@ -7,6 +7,9 @@ $(function () {
     invoice.on('invoice.simpan', () => {
         switchLoadTab(thisTab);
     });
+    invoice.on('invoice.batal', () => {
+        switchLoadTab(thisTab);
+    });
 
     filterComp = new FilterComponent('list-filter', {
         filter : {

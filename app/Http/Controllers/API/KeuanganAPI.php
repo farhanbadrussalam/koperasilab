@@ -360,6 +360,16 @@ class KeuanganAPI extends Controller
                 Notifier::send($userQuery, $dataNotif);
             }
 
+            if($status == 1) {
+                $data['ppn'] = null;
+                $data['pph'] = null;
+                $data['id_jenis_pembayaran'] = null;
+
+                if($invoice){
+                    Keuangan_diskon::where('id_keuangan', $invoice->id_keuangan)->delete();
+                }
+            }
+
             $keuangan = Keuangan::updateOrCreate(
                 ["id_keuangan" => $idKeuangan],
                 $data
