@@ -312,10 +312,10 @@ class KeuanganAPI extends Controller
 
             $invoice = Keuangan::where('id_keuangan', $idKeuangan)->with('permohonan:id_permohonan,created_by')->first();
             if($invoice){
-                !$invoice->no_invoice && $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
+                !$invoice->no_invoice && $data['no_invoice'] = generateNoDokumen('invoice', $idPermohonan);
                 !$invoice->created_by && $data['created_by'] = Auth::user()->id;
             }else{
-                $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
+                $data['no_invoice'] = generateNoDokumen('invoice', $idPermohonan);
                 $data['created_by'] = Auth::user()->id;
             }
 
@@ -745,35 +745,4 @@ class KeuanganAPI extends Controller
     }
 
     // PRIVATE FUNCTION
-    private function generateNoInvoice($idPermohonan)
-    {
-        $permohonan = Permohonan::with('jenis_layanan')->where('id_permohonan', $idPermohonan)->first();
-        // Menentukan tipe kontrak
-        if($permohonan) {
-            $jenisLayanan = substr($permohonan->jenis_layanan->name, 0, 1);
-            $type = strtoupper($jenisLayanan);
-
-            // Nama aplikasi
-            $appName = 'JKRL';
-
-            // Mengambil bulan sekarang dan mengubah ke dalam format Romawi
-            $bulanSekarang = date('n'); // n = format angka bulan tanpa nol
-            $romawiBulan = getRomawiBulan($bulanSekarang);
-
-            // Tahun saat ini
-            $tahunSekarang = date('Y');
-
-            // Incremental number
-            $lastInvoiceNumber = Keuangan::whereNotNull('no_invoice')
-                                    ->whereMonth('created_at', $bulanSekarang)
-                                    ->whereYear('created_at', $tahunSekarang)
-                                    ->count(); // Ubah dengan pengambilan nomor terakhir dari database
-            $increment = str_pad($lastInvoiceNumber + 1, 4, '0', STR_PAD_LEFT);
-
-            // Format nomor kontrak
-            $noInvoice = "{$increment}/INV-{$type}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
-
-            return $noInvoice;
-        }
-    }
 }

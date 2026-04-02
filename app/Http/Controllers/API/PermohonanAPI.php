@@ -1217,10 +1217,12 @@ class PermohonanAPI extends Controller
                     $id = decryptor($item->id);
 
                     // update master tld
-                    Master_tld::find($idTld)->update([
-                        'status' => 1,
-                        'digunakan' => $dataPermohonan->kontrak->no_kontrak
-                    ]);
+                    if($idTld){
+                        Master_tld::find($idTld)->update([
+                            'status' => 1,
+                            'digunakan' => $dataPermohonan->kontrak->no_kontrak
+                        ]);
+                    }
 
                     Permohonan_detail::find($id)?->update([
                         'id_tld' => $idTld ? $idTld : null,

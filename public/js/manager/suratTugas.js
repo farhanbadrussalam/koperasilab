@@ -278,7 +278,7 @@ function _renderCardItem(lhu) {
 
     let divInfoTugas = ``;
     if (lhu.start_date && lhu.end_date) {
-        const isHidden = lhu.status == 2;
+        const isHidden = lhu.status == 2 || lhu.status == 10;
         divInfoTugas = `
             <div class="col-md-12 mt-2 fs-7">
                 <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">

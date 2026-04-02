@@ -435,7 +435,7 @@ class EvaluasiSewaTest extends DuskTestCase
                     ->waitForLocation("/manager/surat_tugas")
                     ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$penyelia->penyelia_hash.'"]', function ($row) {
-                        $row->clickLink('Verifikasi');
+                        $row->clickLink('Surat Tugas');
                     })
                     ->waitForLocation("/manager/surat_tugas/v/{$penyelia->penyelia_hash}")
                     ->click("#managerValid")

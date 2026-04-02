@@ -442,25 +442,45 @@ if (!function_exists('generateNoDokumen')) {
 
         // Tahun saat ini
         $tahunSekarang = date('Y');
-        $lastContractNumber = 1;
 
         // Incremental number
-        $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
-                                // ->whereMonth('created_at', $bulanSekarang)
-                                // ->whereYear('created_at', $tahunSekarang)
-                                ->count(); // Ubah dengan pengambilan nomor terakhir dari database
-        // if($jenis != 'surpeng'){
-        // }else{
-        //     $lastContractNumber = Kontrak_periode::where('nomer_surpeng', '!=', null)
-        //                             ->whereMonth('created_at', $bulanSekarang)
-        //                             ->whereYear('created_at', $tahunSekarang)
-        //                             ->count();
-        // }
-        $increment = str_pad($lastContractNumber + 1, 4, '0', STR_PAD_LEFT);
+        $lastDoc = Permohonan_dokumen::where('jenis', $jenis)
+                    ->orderBy('id_dokumen', 'desc')
+                    ->first();
+
+        $lastNumber = 0;
+        if ($lastDoc) {
+            // Mencari grup angka pertama dalam string nomor dokumen (misal: 0001)
+            preg_match('/\d+/', $lastDoc->nomer, $matches);
+            $lastNumber = isset($matches[0]) ? (int)$matches[0] : 0;
+        }
+
+        $increment = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
 
         switch ($jenis) {
+            case 'KontrakPengujian':
+                // Format nomor
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = $permohonan->jenis_layanan->alias;
+
+                $noKontrak = "{$increment}/{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'permintaanpengujian':
+                // Format nomor
+                $permohonan = Permohonan::with("layanan_jasa", "layanan_jasa.satuankerja")->where('id_permohonan', $id)->first();
+                $alias = $permohonan->layanan_jasa->satuankerja->alias;
+
+                $noKontrak = "{$increment}/SPP/NL-{$alias}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'kontrak':
+                // Format nomor
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = strtoupper(substr($permohonan->jenis_layanan->name, 0, 1));
+
+                $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                break;
             case 'tandaterima':
-                // Format nomor kontrak
+                // Format nomor
                 $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
                 break;
             case 'surattugas':
@@ -472,31 +492,22 @@ if (!function_exists('generateNoDokumen')) {
 
                 $noKontrak = "{$increment}/NL-{$alias}/{$romawiBulan}/{$tahunSekarang}";
                 break;
+            case 'invoice':
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = $permohonan->jenis_layanan->alias;
+
+                $noKontrak = "{$increment}/INV-{$alias}/{$romawiBulan}/{$tahunSekarang}";
+                break;
             case 'surpeng':
                 // Format nomor kontrak
                 $noKontrak = "{$increment}/{$appName}-B/{$romawiBulan}/{$tahunSekarang}";
                 break;
-            case 'permintaanpengujian':
-                // Format nomor kontrak
-                $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
-                break;
-            case 'KontrakPengujian':
-                // Format nomor kontrak
-                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
-                $alias = $permohonan->layanan_jasa->alias;
-
-                $noKontrak = "{$increment}/{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
-                break;
             case 'kwitansi':
                 // Format nomor kwitansi
-                $noKontrak = "{$increment}/KW-MZR/{$romawiBulan}/{$tahunSekarang}";
-                break;
-            case 'kontrak':
-                // Format nomor kontrak
                 $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
-                $alias = strtoupper(substr($permohonan->jenis_layanan->name, 0, 1));
+                $alias = $permohonan->jenis_layanan->alias;
 
-                $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                $noKontrak = "{$increment}/KW-{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
                 break;
             case 'adendum':
                 // Format nomor
