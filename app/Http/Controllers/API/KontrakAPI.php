@@ -97,7 +97,7 @@ class KontrakAPI extends Controller
                                 });
                             } else if ($key == 'periode') {
 
-                            } else{
+                            } else {
                                 $q->where($key, decryptor($value));
                             }
                         }

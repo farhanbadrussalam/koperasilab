@@ -126,9 +126,6 @@ function loadData(page = 1) {
             }
 
             if(lastPeriodeKontrak && role.includes('Staff Pengiriman')){
-                // if(data.no_kontrak == 'E-0003/JKRL/III/2026'){
-                //     console.log(lastPeriodeKontrak);
-                // }
                 htmlPengembalian = pengembalianTLD(data);
             } else if(lastPeriodeKontrak) {
                 htmlPengembalian = pengembalianTLD(data);

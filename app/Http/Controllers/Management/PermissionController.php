@@ -55,18 +55,15 @@ class PermissionController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = $request->validate([
-            'name' => 'required'
+        $request->validate([
+            'name' => 'required|unique:permissions,name'
         ]);
-        DB::beginTransaction();
-        try {
-            Permission::create(['name' => $request->name]);
-            DB::commit();
 
-            return $this->output(array('msg' => 'Permission Behasil ditambahkan'));
+        try {
+            $permission = Permission::create(['name' => $request->name]);
+            return $this->output(['msg' => 'Permission berhasil ditambahkan', 'data' => $permission]);
         } catch (\Exception $ex) {
             info($ex);
-            DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
@@ -92,21 +89,19 @@ class PermissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        DB::beginTransaction();
+        $request->validate([
+            'name' => 'required|unique:permissions,name,' . ($request->id_permission ?? $id)
+        ]);
+
         try {
-            $name = $request->name;
-            $id = $request->id_permission;
-    
-            $data = Permission::findOrFail($id);
-            $data->name = $name;
-            $data->update();
-    
-            DB::commit();
-            
-            return $this->output(array('msg' => 'Permission Behasil diubahkan'));
+            $targetId = $request->id_permission ?? $id;
+            $data = Permission::findOrFail($targetId);
+            $data->name = $request->name;
+            $data->save();
+
+            return $this->output(array('msg' => 'Permission berhasil diperbarui'));
         } catch (\Exception $ex) {
             info($ex);
-            DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
@@ -116,17 +111,13 @@ class PermissionController extends Controller
      */
     public function destroy(string $id)
     {
-        DB::beginTransaction();
         try {
             $data = Permission::findOrFail($id);
             $data->delete();
-    
-            DB::commit();
-    
-            return $this->output(array('msg' => 'Permission Behasil dihapus'));
+
+            return $this->output(array('msg' => 'Permission berhasil dihapus'));
         } catch (\Exception $ex) {
             info($ex);
-            DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }

@@ -261,7 +261,7 @@
                         <a class="sidebar-link {{ $module == 'manager-pengajuan' ? 'active' : '' }}"
                         href="{{ route('manager.pengajuan') }}" aria-expanded="false">
                             <i class="bi bi-file-earmark-ruled"></i>
-                            <span class="hide-menu">Invoice</span>
+                            <span class="hide-menu">Verifikasi Keuangan</span>
                             <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Keuangan')) d-none @endif">{{ notifUnreadCount('Keuangan') }}</span>
                         </a>
                     </li>
@@ -271,9 +271,9 @@
                 <li class="sidebar-item">
                     <a class="sidebar-link {{ $module == 'manager-suratTugas' ? 'active' : '' }}"
                     href="{{ route('manager.surat_tugas') }}" aria-expanded="false">
-                    <i class="bi bi-journal-text"></i>
-                    <span class="hide-menu">Surat Tugas</span>
-                    <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('SuratTugas')) d-none @endif">{{ notifUnreadCount('SuratTugas') }}</span>
+                        <i class="bi bi-journal-text"></i>
+                        <span class="hide-menu">Persetujuan Operasional</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('SuratTugas')) d-none @endif">{{ notifUnreadCount('SuratTugas') }}</span>
                     </a>
                 </li>
                 @endcan
