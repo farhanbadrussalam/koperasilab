@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Permohonan;
 
+use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
@@ -20,18 +21,21 @@ use App\Models\Kontrak_periode;
 use App\Models\Kontrak_tld;
 
 use App\Http\Controllers\MediaController;
-
+use App\Models\Master_pengguna;
+use App\Models\Pengiriman;
 use Auth;
 use DataTables;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Log;
 
 class PelangganController extends Controller
 {
-    protected $media, $log, $global;
+    protected $media, $log, $global, $tld;
     public function __construct()
     {
         $this->media = resolve(MediaController::class);
         $this->global = config('customvariabel');
+        $this->tld = resolve(TldAPI::class);
     }
 
     // FEATURE KONTRAK
@@ -46,32 +50,26 @@ class PelangganController extends Controller
 
     public function evaluasiKontrak($idKontrak, $idPeriode)
     {
-        $periodeNow = Kontrak_periode::where('id_periode', decryptor($idPeriode))->first();
+        $periodeNow = Kontrak_periode::with([
+            'permohonan',
+            'permohonan.permohonan_detail',
+            'permohonan.permohonan_detail.entitas' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                ]);
+            },
+            'permohonan.permohonan_detail.tld',
+        ])->where('id_periode', decryptor($idPeriode))->first();
         if($periodeNow){
             $idKontrak = decryptor($idKontrak);
+
+            // Pengecekan adendum
+            setKontrakAdendum($idKontrak, $periodeNow->periode);
+
             $periodeBefore = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->first();
             $periodeNext = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+1)->first();
             $periode2Next = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+2)->first();
-            // pengecekan periode sekarang
-            // $countTld = $periodeNow->periode % 2 == 1 ? 1 : 2;
-            $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', $periodeNow->count_tld)->get();
-            if(count($kontrakTld) == 0){
-                $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', 1)->get();
-                foreach($dataKontrakTldSebelum as $val){
-                    $arr = array(
-                        'id_kontrak' => $idKontrak,
-                        'id_pengguna' => $val->id_pengguna,
-                        'id_divisi' => $val->id_divisi,
-                        'periode' => $periodeNow->periode,
-                        'count_tld' => 2,
-                        'status' => 2,
-                        'count' => $val->count,
-                        'created_by' => Auth::user()->id
-                    );
-                    Kontrak_tld::create($arr);
-                }
-            }
-            $tldUsed = $periodeNow->periode % 2 == 1 ? 1 : 2;
+
             // Mengambil Kontrak
             $queryKontrak = Kontrak::with([
                 'layanan_jasa',
@@ -82,24 +80,27 @@ class PelangganController extends Controller
                 'pelanggan',
                 'pelanggan.perusahaan',
                 'pelanggan.perusahaan.alamat',
-                'rincian_list_tld' => function($q) use ($tldUsed){
-                    return $q->where('status', 2)->where('count_tld', $tldUsed); // TLD ada di pelanggan untuk evaluasi kontrak
+                'kontrak_detail',
+                'kontrak_detail.tld_1',
+                'kontrak_detail.tld_2',
+                'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
                 },
-                'rincian_list_tld.pengguna',
-                'rincian_list_tld.pengguna.media_ktp',
-                'rincian_list_tld.pengguna.divisi'
+                'kontrak_map' => function($q) use ($periodeNow) {
+                    $q->where('periode', $periodeNow->periode);
+                },
+                'kontrak_map.tld',
+                'kontrak_map.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
             ])->where('id_kontrak', $idKontrak)->first();
 
             $layanan = jenislayanan($queryKontrak->jenis_layanan_parent, $queryKontrak->jenis_layanan);
             $isSewa = in_array($layanan, $this->global['arr_sewa']);
-
-            if($queryKontrak && $queryKontrak->rincian_list_tld){
-                foreach($queryKontrak->rincian_list_tld as $key => $value){
-                    if($value->pengguna && $value->pengguna->id_radiasi){
-                        $value->pengguna->radiasi = Master_radiasi::whereIn('id_radiasi', $value->pengguna->id_radiasi)->get();
-                    }
-                }
-            }
 
             if($queryKontrak->jenis_layanan_parent->id_jenisLayanan == 7){
                 $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 9)->first();
@@ -107,17 +108,6 @@ class PelangganController extends Controller
                 // Mengambil jenis layanan Evaluasi - Dengan kontrak
                 $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 5)->first();
             }
-
-            // cek apakah permohonan sudah ada atau belum
-            $permohonan = Permohonan::select('id_permohonan')
-                ->with(
-                    'rincian_list_tld.pengguna',
-                    'rincian_list_tld.pengguna.media_ktp',
-                    )
-                ->where('status', 11)
-                ->where('id_kontrak', decryptor($idKontrak))
-                ->where('periode', $periodeNow->periode)
-                ->first();
 
             $data = [
                 'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
@@ -128,12 +118,48 @@ class PelangganController extends Controller
                 'periodeNext' => $periodeNext,
                 'periode2Next' => $periode2Next,
                 'jenisLayanan' => $jenisLayanan,
-                'permohonan' => $permohonan,
                 'isSewa' => $isSewa
             ];
 
-
             return view('pages.permohonan.kontrak.evaluasi', $data);
+        } else {
+            abort(404);
+        }
+    }
+
+    private function cariTldDiPengiriman($id_kontrak, $periode) {
+        $pengiriman = Pengiriman::with('detail')
+            ->where('id_kontrak', $id_kontrak)
+            ->where('periode', $periode)
+            ->whereHas('detail', function($query) {
+                $query->where('jenis', 'tld');
+            })
+            ->first();
+
+        return $pengiriman ? $pengiriman->detail->where('jenis', 'tld')->first() : null;
+    }
+
+    public function adendumKontrak($idKontrak)
+    {
+        $idKontrak = decryptor($idKontrak);
+
+        if($idKontrak){
+            $data = [
+                'title' => 'Adendum Kontrak',
+                'module' => 'permohonan-kontrak',
+            ];
+
+            $data['kontrak'] = Kontrak::with([
+                'pelanggan',
+                'pelanggan.perusahaan',
+                'layanan_jasa',
+                'jenis_layanan',
+                'jenis_layanan_parent',
+                'jenisTld',
+                'periode'
+            ])->where('id_kontrak', $idKontrak)->first();
+
+            return view('pages.permohonan.kontrak.adendum', $data);
         } else {
             abort(404);
         }
@@ -257,6 +283,7 @@ class PelangganController extends Controller
                        'permohonan.pelanggan',
                        'permohonan.pelanggan.perusahaan',
                        'permohonan.kontrak',
+                       'permohonan.kontrak.periode',
                        'metode_pembayaran'
                    )->where('id_keuangan', $idKeuangan)->first();
 

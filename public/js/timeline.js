@@ -46,13 +46,13 @@ class Timeline {
             const jobActive = tugas.status === 2 ? 'active' : (tugas.status === 1 ? 'onprogress' : '');
             return `<li class="${jobActive} step0 cursor-pointer" data-idmap="${tugas.map_hash}" data-id="${this.options.id}" style="width: ${this.widthCalc}%;"><span class="px-1">${tugas.jobs.name}</span></li>`;
         }).join('');
-        
+
         return `
         <div class="col-md-12 mt-2 pt-4 pb-0">
             <ul id="progressbar" class="text-center mb-0">
                 ${htmlTimeline}
             </ul>
-            <div class="rounded" style="border: 1px dashed !important;">
+            <div class="rounded ${pointJobs ? '' : 'd-none'}" style="border: 1px dashed !important;">
                 <div class="text-center fs-6">
                     Proses setelah ${pointJobs?.name ?? ''}
                 </div>
@@ -104,7 +104,7 @@ class Timeline {
                                 <div class="mt-3">
                                     <span class="fw-normal">Petugas :</span>
                                     <ul class="list-group mt-2">
-                                        ${data.petugas?.map(d => 
+                                        ${data.petugas?.map(d =>
                                             `<li class="list-group-item small p-1">
                                                 <div class="d-flex align-items-center">
                                                     <span>${d.user.name} -</span>
@@ -119,10 +119,10 @@ class Timeline {
                     </div>
                 </div>
             `;
-    
+
             $('body').append(htmlModal);
             this.render();
-    
+
             $('#progresLhuModal').modal('show');
         });
 
@@ -137,6 +137,6 @@ class Timeline {
     }
 
     destroy(){
-        
+
     }
 }

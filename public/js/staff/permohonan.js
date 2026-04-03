@@ -114,6 +114,7 @@ function loadData(page = 1) {
                     note: pengajuan.note,
                     pelanggan: pengajuan.pelanggan.name,
                     statusPenyelia: htmlStatusPenyelia,
+                    perusahaan: pengajuan.pelanggan.perusahaan.nama_perusahaan,
                 };
 
                 const btnAction = `

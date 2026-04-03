@@ -12,6 +12,7 @@ use App\Models\Permohonan_dokumen;
 use App\Models\Permohonan_pengguna;
 use App\Models\Permohonan_tandaterima;
 use App\Models\Permohonan_tld;
+use App\Models\Permohonan_detail;
 
 use App\Models\Documents;
 use App\Models\Master_layanan_jasa;
@@ -32,24 +33,85 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\NotifController;
 use App\Http\Controllers\API\TldAPI;
-
+use App\Models\Kontrak_detail;
+use App\Models\Kontrak_map;
 use App\Services\Notifier;
 
 use Auth;
 use DB;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Log;
 
 class PermohonanAPI extends Controller
 {
     use RestApi;
-    protected $media, $log, $tld, $global, $pagination, $notif;
+    protected $media, $log, $tld, $global, $pagination, $notif, $keuangan, $penyelia;
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
         $this->tld = resolve(TldAPI::class);
         $this->notif = resolve(NotifController::class);
+        $this->keuangan = resolve(KeuanganAPI::class);
+        $this->penyelia = resolve(PenyeliaAPI::class);
         $this->global = config('customvariabel');
+    }
+
+    public function tambahAdendum(Request $request){
+        DB::beginTransaction();
+        try {
+            $note = $request->note ? $request->note : null;
+            $pengguna = $request->pengguna ? json_decode($request->pengguna) : false;
+            $kontrol = $request->kontrol ? json_decode($request->kontrol) : false;
+            $idPeriode = $request->idPeriode ? decryptor($request->idPeriode) : false;
+            $idKontrak = $request->id_kontrak ? decryptor($request->id_kontrak) : false;
+            $totalHarga = $request->sub_total ? $request->sub_total : false;
+            $isZeroCek = (int) $request->is_zerocek;
+
+            $dataKontrak = Kontrak::find($idKontrak);
+            $dataPeriode = Kontrak_periode::find($idPeriode);
+
+            $jumPenggunaBaru = count(array_filter($pengguna, function($item) {
+                return $item->status == 'baru';
+            }));
+
+            $jumKontrolBaru = count(array_filter($kontrol, function($item) {
+                return $item->status == 'baru';
+            }));
+
+            $data = array();
+
+            $data['id_layanan'] = $dataKontrak->id_layanan;
+            $data['jenis_layanan_1'] = $dataKontrak->jenis_layanan_1;
+            $data['jenis_layanan_2'] = $dataKontrak->jenis_layanan_2;
+            $data['tipe_kontrak'] = 'adendum';
+            $data['id_kontrak'] = $idKontrak;
+            $data['periode'] = $dataPeriode->periode;
+            $data['jenis_tld'] = $dataKontrak->jenis_tld;
+            $data['jumlah_pengguna'] = $jumPenggunaBaru;
+            $data['jumlah_kontrol'] = $jumKontrolBaru;
+            $data['total_harga'] = $totalHarga;
+            $data['harga_layanan'] = $dataKontrak->harga_layanan;
+            $data['note'] = $note;
+            $data['is_zerocek'] = $isZeroCek;
+            $data['is_have_tld'] = $dataKontrak->is_have_tld;
+            $data['status'] = 1;
+            $data['created_by'] = Auth::user()->id;
+
+            $permohonan = Permohonan::create($data);
+
+            if($permohonan) {
+                $this->saveTldAdendum($permohonan->id_permohonan, $pengguna, $kontrol);
+            }
+
+            DB::commit();
+
+            return $this->output(array('msg' => 'Adendum berhasil disimpan'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
     }
 
     /**
@@ -133,13 +195,13 @@ class PermohonanAPI extends Controller
 
             // jika tipe kontraknya adalah "kontrak lama" akan mengambil data dari kontrak sebelumnya
             if($tipeKontrak == 'kontrak lama'){
-                $kontrak = Kontrak::with('pengguna','periode')->find($idKontrak);
+                $kontrak = Kontrak::with('periode')->find($idKontrak);
                 if($kontrak){
                     $data['id_layanan'] = $kontrak->id_layanan;
                     $data['jenis_tld'] = $kontrak->jenis_tld;
                     $data['jumlah_pengguna'] = $kontrak->jumlah_pengguna;
                     $data['jumlah_kontrol'] = $kontrak->jumlah_kontrol;
-                    $data['total_harga'] = $kontrak->total_harga;
+                    $data['total_harga'] = 0;
                     $data['harga_layanan'] = $kontrak->harga_layanan;
                 }
             } else if($tipeKontrak == 'kontrak baru'){
@@ -156,21 +218,44 @@ class PermohonanAPI extends Controller
                 $this->saveTld($permohonan->id_permohonan, $dataTld);
             }
 
-            if($tipeKontrak == 'kontrak lama'){
-                if($listTld){
-                    foreach ($listTld as $value) {
-                        $kontrakTld = Kontrak_tld::with('pengguna')->where('id_kontrak_tld', decryptor($value))->first();
-                        $kontrakTld->update(['status' => 3]);
-                    }
+            if ($tipeKontrak === 'kontrak lama') {
+                $kontrakPeriode = Kontrak_periode::where('id_kontrak', $idKontrak)
+                    ->where('periode', $periode)->first();
+
+                if ($kontrakPeriode && !empty($listTld)) {
+                    // $isPeriodOne = $kontrakPeriode->count_tld === 1;
+                    // $tldField = $isPeriodOne ? 'tld_1' : 'tld_2';
+                    // $statusField = $isPeriodOne ? 'status_tld_1' : 'status_tld_2';
+
+                    // foreach ($listTld as $value) {
+                    //     $id = decryptor($value);
+                    //     $id_tld = null;
+                    //     $idKontrakDetail = null;
+
+                    //     if ($request->source === 'map') {
+                    //         $data_ = Kontrak_map::find($id);
+                    //         $id_tld = $data_?->id_tld;
+                    //         $idKontrakDetail = $data_?->id_kontrak_detail;
+                    //     } else {
+                    //         $data_ = Kontrak_detail::find($id);
+                    //         $id_tld = $data_?->{$tldField};
+                    //         $idKontrakDetail = $data_?->id;
+                    //     }
+
+                    //     if ($id_tld) {
+                    //         $kontrakDetail = Kontrak_detail::where('id', $idKontrakDetail)->where('status', 1)->first()
+                    //             ?? Kontrak_detail::where($tldField, $id_tld)->where('id_kontrak', $idKontrak)->where('status', 1)->first();
+
+                    //         $kontrakDetail?->update([$statusField => 3]);
+                    //     }
+                    // }
+                    $kontrakPeriode->update(['id_permohonan' => $permohonan->id_permohonan]);
                 }
-                Kontrak_periode::where('id_kontrak', $idKontrak)
-                    ->where('periode', $periode)
-                    ->update(array('id_permohonan' => $permohonan->id_permohonan));
             }
 
             if($tipeKontrak == 'kontrak baru' && $jenisLayanan2 == 3){ // Evaluasi
                 // Simpan dokumen Permohonan
-                $document = Permohonan_dokumen::create(array(
+                Permohonan_dokumen::create(array(
                     'id_permohonan' => $permohonan->id_permohonan,
                     'created_by' => Auth::user()->id,
                     'nama' => 'Permohonan Evaluasi TLD',
@@ -181,7 +266,40 @@ class PermohonanAPI extends Controller
             }
 
             if($haveTld == 0){
-                Permohonan_tld::where('id_permohonan', $permohonan->id_permohonan)->update(['id_tld' => null]);
+                Permohonan_detail::where('id_permohonan', $permohonan->id_permohonan)->get()->each(function ($item) {
+                    if($item->id_tld){
+                        Master_tld::find($item->id_tld)->update(['status' => 0]);
+                    }
+                    $item->update(['id_tld' => null]);
+                });
+            }
+
+            if($request->is_pengembalian){
+                $nextPeriode = Kontrak_periode::where('id_kontrak', $idKontrak)->orderBy('periode', 'desc')->first();
+
+                if($nextPeriode){
+                    $nextPeriode = $nextPeriode->periode + 1;
+                    $countTld = $nextPeriode % 2 == 1 ? 1 : 2;
+
+                    // cek apakah pengembalian dengan countTLd udah ada atau belum
+                    $cekPengembalian = Kontrak_periode::where('id_kontrak', $idKontrak)
+                        ->where('start_date', $request->pengembalian_start)
+                        ->where('end_date', $request->pengembalian_end)
+                        ->whereIn('status', [2, 3])
+                        ->first();
+
+                    if(!$cekPengembalian){
+                        Kontrak_periode::create([
+                            'id_kontrak' => $idKontrak,
+                            'periode' => $nextPeriode,
+                            'count_tld' => $countTld,
+                            'start_date' => $request->pengembalian_start,
+                            'end_date' => $request->pengembalian_end,
+                            'status' => 3,
+                            'created_by' => Auth::user()->id
+                        ]);
+                    }
+                }
             }
 
             if($permohonan->status == 1){
@@ -223,36 +341,35 @@ class PermohonanAPI extends Controller
             $idPengguna = decryptor($request->idPengguna);
             $idTld = $request->has('idTld') ? decryptor($request->idTld) : null;
 
-            Permohonan_tld::create(array(
+            Permohonan_detail::create(array(
                 'id_permohonan' => $idPermohonan,
-                'id_pengguna' => $idPengguna,
-                'id_tld' => $idTld,
-                'count' => 1,
-                'created_by' => Auth::user()->id
-            ));
-
-            // simpan ke tabel permohonan_pengguna
-            Permohonan_pengguna::create(array(
-                'id_permohonan' => $idPermohonan,
-                'id_pengguna' => $idPengguna,
+                'jenis' => 'pengguna',
+                'type' => 'baru',
+                'id_pengguna_divisi' => $idPengguna,
                 'status' => 1,
                 'created_by' => Auth::user()->id
             ));
 
             // pengecekan divisi pengguna
             $dataPengguna = Master_pengguna::where('id_pengguna', $idPengguna)->first();
-            $permohonanTld = Permohonan_tld::where('id_permohonan', $idPermohonan)->whereNull('id_pengguna')->where('id_divisi', $dataPengguna->id_divisi)->first();
+            $permohonanTld = Permohonan_detail::where('id_permohonan', $idPermohonan)
+                ->where('jenis', 'kontrol')
+                ->where('id_pengguna_divisi', $dataPengguna->id_divisi)
+                ->first();
+
             if(!$permohonanTld) {
-                Permohonan_tld::create(array(
+                Permohonan_detail::create(array(
                     'id_permohonan' => $idPermohonan,
-                    'id_divisi' => $dataPengguna->id_divisi,
-                    'count' => 1,
+                    'jenis' => 'kontrol',
+                    'type' => 'baru',
+                    'id_pengguna_divisi' => $dataPengguna->id_divisi,
+                    'status' => 1,
                     'created_by' => Auth::user()->id
                 ));
             }
 
-            Master_pengguna::where('id_pengguna', $idPengguna)->update(['status' => 2]);
-            Master_tld::where('id_tld', $idTld)->update(['status' => 1]);
+            Master_pengguna::find($idPengguna)?->update(['status' => 2]);
+            Master_tld::find($idTld)?->update(['status' => 1]);
             DB::commit();
 
             return $this->output(array('msg' => 'Pengguna Behasil ditambahkan'));
@@ -265,47 +382,50 @@ class PermohonanAPI extends Controller
 
     public function action_tld(Request $request)
     {
-        $validator = $request->validate([
-            'id_permohonan_tld' => 'required'
-        ]);
-
         DB::beginTransaction();
         try {
-            $idPermohonanTld = decryptor($request->id_permohonan_tld);
-            $idTld = $request->id_tld ? decryptor($request->id_tld) : false;
-            $count = $request->count ? $request->count : false;
-            $index = $request->index ? (int) $request->index : 0;
+            $id = decryptor($request->id);
+            $idTld = $request->id_tld ? (int) decryptor($request->id_tld) : false;
+            $idPermohonan = $request->id_permohonan ? decryptor($request->id_permohonan) : false;
+            $idDivisi = $request->id_divisi ? $request->id_divisi : false;
+            $jenis = $request->jenis ? $request->jenis : false;
+            $type = $request->type ? $request->type : false;
+            $aksi = $request->aksi;
 
-            $dataTld = Permohonan_tld::where('id_permohonan_tld', $idPermohonanTld)->first();
+            $dataTld = Permohonan_detail::find($id);
 
-            $updateParams = array();
-            $count ? $updateParams['count'] = $count : false;
-
-            $arrayTld = array();
-            if($idTld) {
-                if($dataTld->id_tld) {
-                    $arrayTld = $dataTld->id_tld;
-                    isset($arrayTld[$index]) ? Master_tld::where('id_tld', $arrayTld[$index])->update(['status' => 0]) : false;
-                } else {
-                    for ($i=0; $i < $dataTld->count; $i++) {
-                        $arrayTld[] = 0;
-                    }
+            if($idTld){
+                if($dataTld->id_tld){
+                    Master_tld::find($dataTld->id_tld)->update(['status' => 0]);
                 }
-
-                Master_tld::where('id_tld', $idTld)->update(['status' => 1]);
-                $arrayTld[$index] = (int) $idTld;
-                $updateParams['id_tld'] = $arrayTld;
+                $dataTld->update([
+                    'id_tld' => $idTld,
+                ]);
+                Master_tld::find($idTld)->update(['status' => 1]);
             }
 
-            if($dataTld->id_tld && $count) {
-                if(count($dataTld->id_tld) > $count) {
-                    Master_tld::whereIn('id_tld', $dataTld->id_tld)->update(['status' => 0]);
-                    $updateParams['id_tld'] = array_slice($dataTld->id_tld, 0, $count);
-                    Master_tld::whereIn('id_tld', $updateParams['id_tld'])->update(['status' => 1]);
-                }
-            }
+            $arr_body = array();
+            $idDivisi ? $arr_body['id_pengguna_divisi'] = $idDivisi : false;
+            $jenis ? $arr_body['jenis'] = $jenis : false;
+            $type ? $arr_body['type'] = $type : false;
+            $idPermohonan ? $arr_body['id_permohonan'] = $idPermohonan : false;
 
-            $dataTld->update($updateParams);
+            if($aksi == 'tambah'){
+                $arr_body['status'] = 1;
+                $arr_body['created_by'] = Auth::user()->id;
+                $dataTld = Permohonan_detail::create($arr_body);
+            } else if($aksi == 'hapus') {
+                Permohonan_detail::where('id_permohonan', $idPermohonan)
+                    ->where('jenis', $jenis)
+                    ->when($idDivisi, function ($query) use ($idDivisi) {
+                        return $query->where('id_pengguna_divisi', $idDivisi);
+                    }, function ($query) {
+                        return $query->whereNull('id_pengguna_divisi');
+                    })
+                    ->orderBy('id', 'desc')
+                    ->limit(1)
+                    ->delete();
+            }
 
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil disimpan!'));
@@ -316,42 +436,149 @@ class PermohonanAPI extends Controller
         }
     }
 
-    private function saveTld($idPermohonan, $idTld){
-        foreach ($idTld as $value) {
-            $explode = explode('_kontrol_', $value->id);
-            $idTldKontrak = (int) decryptor($explode[0]);
-            $idTld = (int) decryptor($value->tld);
-
-            $kontrakTld = Kontrak_tld::where('id_kontrak_tld', $idTldKontrak)->first();
-            $permohonanTldKontrak = Permohonan_tld::where('id_permohonan', $idPermohonan)->where('id_kontrak_tld', $idTldKontrak)->first();
-
-            if($permohonanTldKontrak) {
-                $arrayTld = $permohonanTldKontrak->id_tld;
-                $arrayTld[(int) $explode[1] - 1] = $idTld;
-                $permohonanTldKontrak->update(['id_tld' => $arrayTld]);
-            } else {
-                $tmpTld = array();
-                if(isset($explode[1])){
-                    $tmpTld[(int) $explode[1] - 1] = $idTld;
-                } else {
-                    $tmpTld = [$idTld];
-                }
-
-                $create = array(
-                    'id_permohonan' => $idPermohonan,
-                    'id_tld' => $tmpTld,
-                    'id_pengguna' => $kontrakTld->id_pengguna,
-                    'id_divisi' => $kontrakTld->id_divisi,
-                    'id_kontrak_tld' => $idTldKontrak,
-                    'count' => $kontrakTld->count,
-                    'created_by' => Auth::user()->id
-                );
-
-                if(!$kontrakTld->id_tld) {
-                    Permohonan_tld::create($create);
-                }
-            }
+    private function saveTld($idPermohonan, $tldItems)
+    {
+        $permohonan = Permohonan::with('kontrak')->find($idPermohonan);
+        if (!$permohonan) {
+            return;
         }
+
+        foreach ($tldItems as $item) {
+            $id = (int) decryptor($item->id);
+            $newTldId = (int) decryptor($item->tld);
+            $idTargetPengguna = isset($item->id_target_pengguna) ? (int) decryptor($item->id_target_pengguna) : null;
+            $source = $item->source;
+
+            // Tentukan data source berdasarkan tipe
+            $sourceData = ($source === 'map')
+                ? Kontrak_map::where('id_map', $id)->first()
+                : Kontrak_detail::find($id);
+
+            if (!$sourceData) {
+                continue;
+            }
+
+            $kontrakPeriode = Kontrak_periode::where('id_kontrak', $sourceData->id_kontrak)
+                ->where('periode', $permohonan->periode)
+                ->first();
+
+            if (!$kontrakPeriode) {
+                continue;
+            }
+
+            // Tentukan field berdasarkan ganjil genap periode
+            $isPeriodOne = $kontrakPeriode->count_tld == 1;
+            $tldField = $isPeriodOne ? 'tld_1' : 'tld_2';
+            $periodeField = $isPeriodOne ? 'periode_tld_1' : 'periode_tld_2';
+            $statusField = $isPeriodOne ? 'status_tld_1' : 'status_tld_2';
+
+            $updateFields = [
+                $tldField => $newTldId,
+                $periodeField => $permohonan->periode,
+                $statusField => 3
+            ];
+
+            if ($source === 'map') {
+                if ($sourceData->id_tld === null) {
+                    Kontrak_detail::where('id', $sourceData->id_kontrak_detail)->update($updateFields);
+                }
+            } else {
+                // Reset status TLD lama jika ada
+                if ($oldTldId = $sourceData->{$tldField}) {
+                    Master_tld::find($oldTldId)?->update(['status' => 0, 'digunakan' => null]);
+                }
+
+                $sourceData->update($updateFields);
+
+                // Update status TLD baru menjadi aktif
+                Master_tld::find($newTldId)?->update([
+                    'status' => 1,
+                    'digunakan' => $permohonan->kontrak?->no_kontrak
+                ]);
+            }
+
+            // Buat record detail permohonan
+            Permohonan_detail::create([
+                'id_permohonan'      => $idPermohonan,
+                'id_pengguna_divisi' => $idTargetPengguna ?? $sourceData->id_pengguna_divisi,
+                'id_tld'             => $newTldId,
+                'jenis'              => $sourceData->jenis,
+                'status'             => 1,
+                'type'               => $item->type,
+                'pengguna_lama'      => $idTargetPengguna ? $sourceData->id_pengguna_divisi : null,
+                'created_by'         => Auth::user()->id
+            ]);
+        }
+    }
+
+    private function saveTldAdendum($idPermohonan, $tldPengguna, $tldKontrol){
+        foreach ($tldPengguna as $value) {
+            $idPengguna = null;
+            $idPenggunaLama = null;
+            $idTld = null;
+            if($value->status == 'baru'){
+                $idPengguna = (int) decryptor($value->pengguna);
+                $idTld = isset($value->tld) ? (int) decryptor($value->tld) : null;
+            } else if($value->status == 'ganti'){
+                $permohonan = Permohonan::find($idPermohonan);
+                $idPengguna = (int) decryptor($value->pengguna_baru);
+                $idPenggunaLama = (int) decryptor($value->pengguna);
+                $kontrakDetail = Kontrak_detail::where('id_kontrak', $permohonan->id_kontrak)
+                                ->where('id_pengguna_divisi', $idPenggunaLama)
+                                ->first();
+                $kontrakPeriode = Kontrak_periode::where('id_kontrak', $permohonan->id_kontrak)->where('periode', $permohonan->periode)->first();
+
+                $idTld = $kontrakPeriode->count_tld == 1 ? $kontrakDetail->tld_1 : $kontrakDetail->tld_2;
+            }
+            $data = array(
+                'id_permohonan' => $idPermohonan,
+                'id_pengguna_divisi' => $idPengguna,
+                'jenis' => 'pengguna',
+                'status' => 1,
+                'type' => $value->status,
+                'pengguna_lama' => $idPenggunaLama,
+                'created_by' => Auth::user()->id,
+                'id_tld' => $idTld
+            );
+
+            Permohonan_detail::create($data);
+            Master_pengguna::find($idPengguna)?->update(['status' => 2]);
+            Master_tld::find($idTld)?->update(['status' => 1]);
+        }
+
+        foreach($tldKontrol as $value){
+            $idTld = isset($value->tld) ? (int) decryptor($value->tld) : null;
+            $data = array(
+                'id_permohonan' => $idPermohonan,
+                'id_pengguna_divisi' => null,
+                'jenis' => 'kontrol',
+                'status' => 1,
+                'type' => 'baru',
+                'created_by' => Auth::user()->id,
+                'id_tld' => $idTld
+            );
+
+            Permohonan_detail::create($data);
+            Master_tld::find($idTld)?->update(['status' => 1]);
+        }
+
+        // buat dokumen surat adendum
+        $template = Documents::where('jenis', 'body')
+            ->where('name', 'PermohonanAdendum')
+            ->where('status', 1)
+            ->first();
+
+        $dataParams = array(
+            'id_permohonan' => $idPermohonan,
+            'created_by' => Auth::user()->id,
+            'nama' => 'Permohonan Adendum',
+            'jenis' => 'adendum',
+            'id_doc_template' => $template->id_doc,
+            'status' => 1,
+            'nomer' => generateNoDokumen('adendum', $idPermohonan)
+        );
+
+        Permohonan_dokumen::create($dataParams);
     }
 
     public function tambahTandaterima(Request $request)
@@ -412,18 +639,16 @@ class PermohonanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            Master_pengguna::where('id_pengguna', $id)->update(['status' => 1]);
+            $detail = Permohonan_detail::find($id);
 
-            $dataTld = Permohonan_tld::where('id_pengguna', $id)->where('id_permohonan', $idPermohonan)->first();
-            $dataTld->id_tld && Master_tld::whereIn('id_tld', $dataTld->id_tld)->update(['status' => 0]);
-            $dataTld->delete();
+            // Ganti where()->update() dengan find()->update() agar Observer terpanggil
+            Master_pengguna::find($detail->id_pengguna_divisi)?->update(['status' => 1]);
 
-            Permohonan_pengguna::where('id_pengguna', $id)->where('id_permohonan', $idPermohonan)->get()->each->delete();
+            $detail->id_tld && Master_tld::find($detail->id_tld)->update(['status' => 0]);
+            $detail->delete();
 
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil dihapus'));
-
-            // return $this->output(array('msg' => 'Data gagal dihapus'), 'Fail', 400);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -432,15 +657,24 @@ class PermohonanAPI extends Controller
 
     }
 
-    public function destroyKontrol(string $id)
+    public function destroyKontrol(string $idPermohonan, string $id)
     {
-        $id = decryptor($id);
+        $idPermohonan = decryptor($idPermohonan);
+        $id = $id == 'default' ? null : $id;
 
         DB::beginTransaction();
         try {
-            $dataPermohonanTld = Permohonan_tld::where('id_permohonan_tld', $id)->first();
-            $dataPermohonanTld->id_tld && Master_tld::whereIn('id_tld', $dataPermohonanTld->id_tld)->update(['status' => 0]);
-            $dataPermohonanTld->delete();
+            $permohonanDetail = Permohonan_detail::where('id_permohonan', $idPermohonan)
+                ->when($id, function ($query) use ($id) {
+                    return $query->where('id_pengguna_divisi', $id);
+                }, function ($query) {
+                    return $query->whereNull('id_pengguna_divisi');
+                })->where('jenis', 'kontrol')->get();
+
+            foreach ($permohonanDetail as $key => $value) {
+                $value->id_tld && Master_tld::find($value->id_tld)->update(['status' => 0]);
+                $value->delete();
+            }
             DB::commit();
             return $this->output(array('msg' => 'Data berhasil dihapus'));
         } catch (\Exception $ex) {
@@ -452,37 +686,46 @@ class PermohonanAPI extends Controller
 
     public function destroyPermohonan(string $id)
     {
-        $id = decryptor($id);
+        $id = (int) decryptor($id);
 
         DB::beginTransaction();
         try {
-            // menghilangkan id_permohonan yang ada di tabel kontrak periode
-            Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null));
-
-            $dataTld = Permohonan_tld::with('pengguna')->where('id_permohonan', $id)->get();
+            $dataTld = Permohonan_detail::where('id_permohonan', $id)->get();
             $permohonan = Permohonan::where('id_permohonan', $id)->first();
-            if($dataTld && !$permohonan->id_kontrak) {
+            if($dataTld && (!$permohonan->id_kontrak || $permohonan->tipe_kontrak == 'adendum')) {
                 foreach ($dataTld as $item) {
-                    if($item->pengguna) {
-                        Master_pengguna::where('id_pengguna', $item->pengguna->id_pengguna)->update(['status' => 1]);
+                    if($item->jenis == 'pengguna') {
+                        Master_pengguna::find($item->id_pengguna_divisi)->update(['status' => 1]);
                     }
-                    Master_tld::where('id_tld', $item->id_tld)->update(['status' => 0]);
+                    if($item->id_tld){
+                        Master_tld::find($item->id_tld)->update(['status' => 0]);
+                    }
                 }
             }
 
 
             if($permohonan){
                 Permohonan_pengguna::where('id_permohonan', $id)->get()->each->delete();
-                Permohonan_tld::where('id_permohonan', $id)->get()->each->delete();
+                Permohonan_detail::where('id_permohonan', $id)->get()->each->delete();
 
                 if($permohonan->tipe_kontrak == 'kontrak lama') {
-                    Kontrak_periode::where('id_permohonan', $id)->update(array('id_permohonan' => null));
-                    Kontrak_tld::where('id_kontrak', $permohonan->id_kontrak)->where('status', 3)->update(array('status' => 2));
+                    $kontrakPeriode = Kontrak_periode::where('id_permohonan', $id)->first();
+                    if($kontrakPeriode){
+                        $kontrakDetail = Kontrak_detail::where('id_kontrak', $permohonan->id_kontrak)->where('status', 1);
+                        if($kontrakPeriode->count_tld === 1) {
+                            $kontrakDetail->get()->each->update(array('status_tld_1' => 2));
+                        } else {
+                            $kontrakDetail->get()->each->update(array('status_tld_2' => 2));
+                        }
+                        $kontrakPeriode->update(array('id_permohonan' => null));
+                    }
+                } else if($permohonan->tipe_kontrak == 'adendum') {
+                    Permohonan_dokumen::where('id_permohonan', $id)->where('jenis', 'adendum')->get()->each->delete();
                 }
                 $permohonan->delete();
 
                 // hapus notifikasi
-                $message = $this->notif->deleteNotification(new Request([
+                $this->notif->deleteNotification(new Request([
                     'id_event' => $id,
                     'event' => 'Permohonan',
                 ]));
@@ -507,7 +750,7 @@ class PermohonanAPI extends Controller
         DB::beginTransaction();
         try {
             Permohonan_dokumen::where('id_permohonan', $id)->where('jenis', 'tandaterima')->get()->each->delete();
-            $delete = Permohonan_tandaterima::where('id_permohonan', $id)->get()->each->delete();
+            $delete = Permohonan_tandaterima::where('id_permohonan', $id)->delete();
             DB::commit();
 
             if($delete){
@@ -539,33 +782,32 @@ class PermohonanAPI extends Controller
             // mengambil tipe_kontrak yang ada di tabel permohonan untuk di kondisikan
             // jika kontrak baru akan menggunakan permohonan_pengguna jika kontrak lama akan menggunakan kontrak_pengguna
             $permohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
-            $query = Permohonan_tld::with(
-                'pengguna',
-                'pengguna.media_ktp:id,file_hash,file_path',
-                'pengguna.divisi'
-            )
+            $query = Permohonan_detail::with([
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
+                'tld',
+                'penggunaLama'
+            ])
             ->where('id_permohonan', $idPermohonan)
-            ->whereNotNull('id_pengguna')
+            ->where('jenis', 'pengguna')
             ->get();
-
-            foreach($query as $item){
-                $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
-            }
 
             $queryKontrak = false;
             if($permohonan->tipe_kontrak == 'kontrak lama'){
-                $queryKontrak = Kontrak_tld::with(
-                    'pengguna.media_ktp:id,file_hash,file_path',
-                    'pengguna.divisi',
-                )
-                ->where('id_kontrak', $permohonan->id_kontrak)
-                ->where('status', 3)
-                ->whereNotNull('id_pengguna')
-                ->whereNotNull('id_tld')
-                ->get();
+                // $queryKontrak = Kontrak_tld::with(
+                //     'pengguna.media_ktp:id,file_hash,file_path',
+                //     'pengguna.divisi',
+                // )
+                // ->where('id_kontrak', $permohonan->id_kontrak)
+                // ->where('status', 3)
+                // ->whereNotNull('id_pengguna')
+                // ->whereNotNull('id_tld')
+                // ->get();
 
-                $arrKontrak = $queryKontrak->toArray();
-                $query = $query->merge($queryKontrak);
+                // $query = $query->merge($queryKontrak);
             }
 
             // $this->pagination = Arr::except($arr, 'data');
@@ -579,31 +821,9 @@ class PermohonanAPI extends Controller
                 if($item->tld) {
                     $item->tld_pengguna = $item->tld;
                 }else{
-                    $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
-                    $noTld++;
-                }
-
-                // mengambil data radiasi
-                if($item->pengguna){
-                    $id_radiasi_array = $item->pengguna->id_radiasi; // Decode JSON jadi array
-
-                    // Cek apakah ada array yang valid dari JSON
-                    if (!empty($id_radiasi_array)) {
-                        // Ambil data dari tabel radiasi berdasarkan array 'id_radiasi'
-                        $arrDataRadiasi = array();
-                        foreach ($id_radiasi_array as $key => $value) {
-                            $nama_radiasi = "";
-                            $radiasi_data = Master_radiasi::select('nama_radiasi')->where('id_radiasi', $value)->first();
-                            if($radiasi_data){
-                                $nama_radiasi = $radiasi_data->nama_radiasi;
-                            }else{
-                                $nama_radiasi = $value;
-                            }
-                            array_push($arrDataRadiasi, $nama_radiasi);
-                        }
-
-                        // Tambahkan hasil radiasi ke dalam response
-                        $item->radiasi = $arrDataRadiasi;
+                    if($item->type != 'ganti') {
+                        $item->tld_pengguna = $resTld['data'][$noTld] ?? null;
+                        $noTld++;
                     }
                 }
             }
@@ -616,9 +836,9 @@ class PermohonanAPI extends Controller
         }
     }
 
-    public function loadTld(Request $request)
+    public function listKontrol(Request $request)
     {
-        $validator = $request->validate([
+        $request->validate([
             'idPermohonan' => 'required'
         ]);
 
@@ -628,31 +848,47 @@ class PermohonanAPI extends Controller
         try {
             $permohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
 
-            $query = Permohonan_tld::with(
-                'pengguna',
-                'divisi'
-            )->where('id_permohonan', $idPermohonan)->get();
+            // $query = Permohonan_tld::with(
+            //     'pengguna',
+            //     'divisi'
+            // )->where('id_permohonan', $idPermohonan)->get();
+            $query = Permohonan_detail::with([
+                'entitas',
+                'tld'
+            ])->where('id_permohonan', $idPermohonan)
+            ->where('jenis', 'kontrol')
+            ->get()
+            ->groupBy(function ($item) {
+                return optional($item->entitas)->name ?? 'default';
+            });
 
-            foreach($query as $item){
-                if($item->id_tld){
-                    $item->tld = array();
-                    $item->tld = array_map(function($id_tld) {
-                        return Master_tld::find($id_tld);
-                    }, $item->id_tld);
-                }else{
-                    $item->tld = null;
+            if($query){
+                $tld = $this->tld->searchTldNotUsed(new Request(['jenis' => 'kontrol']));
+                $resTld = json_decode($tld->getContent(), true);
+                $noTld = 0;
+
+                foreach ($query as $item) {
+                    // mengecek informasi tld
+                    foreach ($item as $key => $value) {
+                        if($value->tld) {
+                            $value->tld_pengguna = $value->tld;
+                        }else{
+                            $value->tld_pengguna = $resTld['data'][$noTld] ?? null;
+                            $noTld++;
+                        }
+                    }
                 }
             }
 
             $queryKontrak = false;
             if($permohonan->periode){
-                $queryKontrak = Kontrak_tld::with(
-                    'pengguna',
-                    'divisi'
-                )->where('id_kontrak', $permohonan->id_kontrak)
-                ->where('status', 3)
-                ->whereNotNull('id_tld')
-                ->get();
+                // $queryKontrak = Kontrak_tld::with(
+                //     'pengguna',
+                //     'divisi'
+                // )->where('id_kontrak', $permohonan->id_kontrak)
+                // ->where('status', 3)
+                // ->whereNotNull('id_tld')
+                // ->get();
             }
 
             DB::commit();
@@ -838,7 +1074,7 @@ class PermohonanAPI extends Controller
         DB::beginTransaction();
         try {
             $id = decryptor($id);
-            $query = Permohonan::with(
+            $query = Permohonan::with([
                 'layanan_jasa:id_layanan,nama_layanan',
                 'jenisTld:id_jenisTld,name',
                 'jenis_layanan:id_jenisLayanan,name,parent',
@@ -850,17 +1086,19 @@ class PermohonanAPI extends Controller
                 'kontrak.jenis_layanan',
                 'kontrak.layanan_jasa:id_layanan,nama_layanan',
                 'kontrak.jenisTld:id_jenisTld,name',
-                'permohonan_pengguna',
-                'permohonan_pengguna.pengguna',
-                'permohonan_pengguna.pengguna.media_ktp:id,file_hash,file_path',
-                'permohonan_pengguna.pengguna.divisi',
+                'permohonan_detail',
+                'permohonan_detail.tld',
+                'permohonan_detail.penggunaLama',
+                'permohonan_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
                 'tandaterima',
                 'dokumen',
                 'invoice',
-                'rincian_list_tld',
-                'rincian_list_tld.pengguna',
                 'logs.causer',
-            )->where('id_permohonan', $id)->first();
+            ])->where('id_permohonan', $id)->first();
             DB::commit();
 
             if(isset($query->list_tld) && count($query->list_tld) > 0){
@@ -962,18 +1200,196 @@ class PermohonanAPI extends Controller
         }
     }
 
+    public function verifAdendum(Request $request){
+        DB::beginTransaction();
+        try {
+            $ttd = $request->ttd ? decryptor($request->ttd) : null;
+            $ttdBy = $request->ttd_by ? decryptor($request->ttd_by) : null;
+            $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            $listTld = $request->listTld ? json_decode($request->listTld) : [];
+            $tglSelesai = $request->tanggal_selesai ? $request->tanggal_selesai : null;
+
+            $dataPermohonan = Permohonan::with([
+                'kontrak:id_kontrak,no_kontrak'
+            ])->where('id_permohonan', $idPermohonan)->first();
+
+            if($dataPermohonan){
+                foreach($listTld as $item){
+                    $idTld = (int) decryptor($item->tld);
+                    $id = decryptor($item->id);
+
+                    // update master tld
+                    if($idTld){
+                        Master_tld::find($idTld)->update([
+                            'status' => 1,
+                            'digunakan' => $dataPermohonan->kontrak->no_kontrak
+                        ]);
+                    }
+
+                    Permohonan_detail::find($id)?->update([
+                        'id_tld' => $idTld ? $idTld : null,
+                        'status' => $dataPermohonan->is_have_tld ? 1 : 5
+                    ]);
+                }
+
+                $dataPermohonan = null;
+            }
+
+            $dataPermohonan = Permohonan::with([
+                'permohonan_detail',
+                'permohonan_detail.entitas' =>function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
+                'permohonan_detail.tld',
+                'kontrak:id_kontrak,no_kontrak'
+            ])->where('id_permohonan', $idPermohonan)->first();
+
+            if($dataPermohonan){
+                // mengambil periode kontrak
+                $kontrakperiode = Kontrak_periode::where('id_kontrak', $dataPermohonan->id_kontrak)->where('periode', $dataPermohonan->periode)->first();
+                $isPeriodOne = $kontrakperiode->count_tld == 1;
+
+                // menonaktifkan pengguna yang sudah diganti di kontrak
+                foreach($dataPermohonan->permohonan_detail as $detail){
+                    $dataDetail = array(
+                        'status' => 2,
+                        'id_pengguna_divisi' => $detail->id_pengguna_divisi,
+                        'jenis' => $detail->jenis,
+                        'type' => $detail->type,
+                        'id_kontrak' => $dataPermohonan->id_kontrak,
+                        'created_by' => Auth::user()->id,
+                        'periode' => $dataPermohonan->periode
+                    );
+
+                    if($detail->type == 'ganti'){
+                        $kontrakDetail = kontrak_detail::where('id_kontrak', $dataPermohonan->id_kontrak)
+                            ->where('id_pengguna_divisi', $detail->pengguna_lama)
+                            ->where('status', 1)
+                            ->first();
+                        $tld_1 = null;
+                        $tld_2 = null;
+                        $status_tld_1 = null;
+                        $status_tld_2 = null;
+                        $periode_tld_1 = null;
+                        $periode_tld_2 = null;
+
+                        if($isPeriodOne){
+                            $tld_1 = $detail->id_tld;
+                            $status_tld_1 = $detail->status;
+                            $periode_tld_1 = $dataPermohonan->periode;
+                        } else{
+                            $tld_2 = $detail->id_tld;
+                            $status_tld_2 = $detail->status;
+                            $periode_tld_2 = $dataPermohonan->periode;
+                        }
+
+                        $dataDetail['tld_1'] = $kontrakDetail->tld_1 ? $kontrakDetail->tld_1 : $tld_1;
+                        $dataDetail['status_tld_1'] = $kontrakDetail->status_tld_1 ? $kontrakDetail->status_tld_1 : $status_tld_1;
+                        $dataDetail['periode_tld_1'] = $kontrakDetail->periode_tld_1 ? $kontrakDetail->periode_tld_1 : $periode_tld_1;
+
+                        $dataDetail['tld_2'] = $kontrakDetail->tld_2 ? $kontrakDetail->tld_2 : $tld_2;
+                        $dataDetail['status_tld_2'] = $kontrakDetail->status_tld_2 ? $kontrakDetail->status_tld_2 : $status_tld_2;
+                        $dataDetail['periode_tld_2'] = $kontrakDetail->periode_tld_2 ? $kontrakDetail->periode_tld_2 : $periode_tld_2;
+
+                        $dataDetail['pengguna_lama'] = $detail->pengguna_lama;
+
+                        // Master_pengguna::where('id_pengguna', $detail->pengguna_lama)->update(['status' => 1]);
+                    } else if($detail->type == 'baru'){
+
+                        if($isPeriodOne){
+                            $dataDetail['tld_1'] = $detail->id_tld;
+                            $dataDetail['status_tld_1'] = $dataPermohonan->is_have_tld ? 1 : 5;
+                            $dataDetail['periode_tld_1'] = $dataPermohonan->periode;
+                        } else {
+                            $dataDetail['tld_2'] = $detail->id_tld;
+                            $dataDetail['status_tld_2'] = $dataPermohonan->is_have_tld ? 1 : 5;
+                            $dataDetail['periode_tld_2'] = $dataPermohonan->periode;
+                        }
+                    }
+
+                    Kontrak_detail::create($dataDetail);
+                    Master_pengguna::find($detail->id_pengguna_divisi)?->update(['status' => 3]);
+                }
+
+                $dataPermohonan->update(array(
+                    'ttd' => $ttd,
+                    'ttd_by' => $ttdBy,
+                    'verify_at' => date('Y-m-d H:i:s'),
+                    'status' => 2
+                ));
+
+                // buatkan invoice jika total harga lebih besar dari 0
+                if($dataPermohonan->total_harga > 0){
+                    // untuk menghitung total harga kontrak,
+                    // di komen karena sementara tidak perlu
+
+                    // $kontrak = Kontrak::where('id_kontrak', $dataPermohonan->id_kontrak)->first();
+                    // $totalharga = $kontrak->total_harga + $dataPermohonan->total_harga;
+
+                    // $kontrak->update(array(
+                    //     'total_harga' => $totalharga
+                    // ));
+
+                    $invoiceData = $this->keuangan->keuanganAction(new Request([
+                        'idPermohonan' => $dataPermohonan->permohonan_hash,
+                        'status' => 1
+                    ]));
+
+                    if($invoiceData->getStatusCode() != 200){
+                        $content = json_decode($invoiceData->getContent());
+                        Log::error("Invoice creation failed: ".$content->msg);
+                        throw new \Exception($content->msg ?? 'Gagal membuat invoice');
+                    }
+                }
+
+                $penyeliaData = $this->penyelia->actionPenyelia(new Request([
+                    'idPermohonan' => $dataPermohonan->permohonan_hash,
+                    'status' => 1,
+                    'endDate' => $tglSelesai,
+                    'startDate' => date('Y-m-d H:i:s')
+                ]));
+
+                if($penyeliaData->getStatusCode() != 200){
+                    $content = json_decode($penyeliaData->getContent());
+                    Log::error("Penyelia creation failed: ".$content->msg);
+                    throw new \Exception($content->msg ?? 'Gagal membuat penyelia');
+                }
+
+                DB::commit();
+                return $this->output(array('msg' => 'Permohonan berhasil diverifikasi'), 'Success', 200);
+            }else{
+                return $this->output(array('msg' => 'Permohonan tidak ditemukan'), 'Fail', 404);
+            }
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+
+/**
+ * Verifikasi permohonan yang sebelumnya di ajukan oleh front desk
+ *
+ * @param Request $request
+ * @return Response
+ * @throws Exception
+ */
     public function verifPermohonan(Request $request)
     {
-        $validator = $request->validate([
+        $request->validate([
             'status' => 'required',
         ]);
         $status = $request->status ? $request->status : 'tidak_lengkap';
+        $tglSelesai = $request->tanggal_selesai ? $request->tanggal_selesai : null;
 
         DB::beginTransaction();
         try {
             $arrayUpdate = array();
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
-            $dataPermohonan = Permohonan::with('jenis_layanan', 'jenis_layanan_parent')->where('id_permohonan', $idPermohonan)->first();
+            $dataPermohonan = Permohonan::with('jenis_layanan', 'jenis_layanan_parent', 'kontrak')->where('id_permohonan', $idPermohonan)->first();
             if($dataPermohonan){
                 if($status == 'lengkap'){
                     $ttd = $request->ttd ? decryptor($request->ttd) : null;
@@ -982,36 +1398,22 @@ class PermohonanAPI extends Controller
 
                     // menambahkan tld
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                        // $no_kontrak = $this->generateNoKontrak($idPermohonan);
                         $no_kontrak = generateNoDokumen('kontrak', $idPermohonan);
                         $listTld = $request->listTld ? json_decode($request->listTld) : [];
 
                         foreach ($listTld as $item) {
-                            $split_id =explode('|', $item->id);
                             $idTld = (int) decryptor($item->tld);
-                            $id = decryptor($split_id[0]);
+                            $id = decryptor($item->id);
 
-                            $dataTldPermohonan = Permohonan_tld::find($id);
-
-                            Master_tld::where('id_tld', $idTld)->update([
+                            // update master tld
+                            Master_tld::find($idTld)->update([
                                 'status' => 1,
                                 'digunakan' => $no_kontrak
                             ]);
 
-                            $tmpTld = array();
-                            if(isset($dataTldPermohonan->id_tld)) {
-                                $tmpTld = $dataTldPermohonan->id_tld;
-                                if(isset($split_id[1])){
-                                    $tmpTld[(int) $split_id[1] - 1] = $idTld;
-                                } else {
-                                    $tmpTld = [$idTld];
-                                }
-                            } else {
-                                $tmpTld = [$idTld];
-                            }
-
-                            Permohonan_tld::where('id_permohonan_tld', $id)->update([
-                                'id_tld' => $tmpTld
+                            Permohonan_detail::find($id)?->update([
+                                'id_tld' => $idTld,
+                                'status' => $dataPermohonan->is_have_tld ? 1 : 5
                             ]);
                         }
                     }
@@ -1024,10 +1426,12 @@ class PermohonanAPI extends Controller
                     // simpan ttd di dokumen
                     Permohonan_dokumen::where('id_permohonan', $idPermohonan)
                     ->where('jenis', 'tandaterima')->where('status', 1)
-                    ->update([
-                        'ttd' => $ttd,
-                        'ttd_by' => $ttdBy
-                    ]);
+                    ->get()->each(function($doc) use ($ttd, $ttdBy) {
+                        $doc->update([
+                            'ttd' => $ttd,
+                            'ttd_by' => $ttdBy
+                        ]);
+                    });
 
                     $dataPermohonan->update($arrayUpdate);
 
@@ -1036,43 +1440,25 @@ class PermohonanAPI extends Controller
                         'jenis_layanan_parent',
                         'jenisTld',
                         'layanan_jasa',
-                        'rincian_list_tld'
+                        'permohonan_detail'
                     )->find($idPermohonan);
 
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
                         $this->createdKontrak($request->idPermohonan, $no_kontrak);
+                    } else {
+                        $no_kontrak = $dataPermohonan->kontrak->no_kontrak;
                     }
 
-                    if($dataPermohonan->jenis_layanan_2 == 5){
-                        // Membuat kontrak_tld
-                        $kontrakTld = Kontrak_tld::where('id_kontrak', $dataPermohonan->id_kontrak)->where('status', 3)->get();
-                        // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
-                        if(count($kontrakTld) == 0){
-                            $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $dataPermohonan->id_kontrak)->where('periode', $dataPermohonan->periode-1)->get();
-                            foreach($dataKontrakTldSebelum as $val){
-                                Kontrak_tld::create([
-                                    'id_kontrak' => $dataPermohonan->id_kontrak,
-                                    'id_pengguna' => $val->id_pengguna,
-                                    'periode' => $dataPermohonan->periode,
-                                    'id_tld' => $val->id_tld,
-                                    'id_divisi' => $val->id_divisi,
-                                    'count' => $val->count,
-                                    'status' => 1,
-                                    'created_by' => Auth::user()->id
-                                ]);
-                            }
-                        } else {
-                            foreach($dataPermohonan->rincian_list_tld as $val){
-                                Kontrak_tld::where('id_kontrak_tld', $val->id_kontrak_tld)->update([
-                                    'id_tld' => $val->id_tld
-                                ]);
-
-                                // mengaktifkan status master_tld
-                                Master_tld::whereIn('id_tld', $val->id_tld)->update(array('digunakan' => $dataPermohonan->kontrak->no_kontrak, 'status' => 1));
-                            }
+                    // cek periode pengembalian
+                    if($no_kontrak){
+                        $kontrak =Kontrak::where('no_kontrak', $no_kontrak)->first();
+                        $kontrakPeriode = Kontrak_periode::where('id_kontrak', $kontrak->id_kontrak)->where('status', 3)->first();
+                        if($kontrakPeriode){
+                            $kontrakPeriode->update([
+                                'status' => 2
+                            ]);
                         }
                     }
-
                     /*
                         JENIS LAYANAN
 
@@ -1088,10 +1474,15 @@ class PermohonanAPI extends Controller
                     $arrValidInvoice = [2, 3, 6, 9];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidInvoice)){
                         if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                            $invoiceData = $this->createInvoice($dataPermohonan->permohonan_hash);
+                            $invoiceData = $this->keuangan->keuanganAction(new Request([
+                                'idPermohonan' => $dataPermohonan->permohonan_hash,
+                                'status'    => 1
+                            ]));
 
-                            if(!$invoiceData){
-                                throw new \Exception('Gagal membuat invoice');
+                            if($invoiceData->getStatusCode() != 200){
+                                $content = json_decode($invoiceData->getContent());
+                                Log::error("Invoice creation failed: ".$content->msg);
+                                throw new \Exception($content->msg ?? 'Gagal membuat invoice');
                             }
                         }
                     }
@@ -1099,21 +1490,29 @@ class PermohonanAPI extends Controller
                     // Proses ke penyelia
                     $arrValidPenyelia = [2, 3, 5, 6, 9];
                     if(in_array($dataPermohonan->jenis_layanan_2, $arrValidPenyelia)){
-                        $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
-                        if(in_array($JL, $this->global['arr_putus'])) {
-                            if($dataPermohonan->tipe_kontrak == 'kontrak lama'){
-                                $status = 1;
-                            } else {
-                                $status = 5;
-                            }
-                        } else {
-                            $status = 1;
-                        }
+                        // $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
+                        // if(in_array($JL, $this->global['arr_putus'])) {
+                        //     if($dataPermohonan->tipe_kontrak == 'kontrak lama'){
+                        //         $status = 1;
+                        //     } else {
+                        //         $status = 1;
+                        //     }
+                        // } else {
+                        //     $status = 1;
+                        // }
+                        $status = 1;
 
-                        $penyeliaData = $this->createPenyelia($dataPermohonan->permohonan_hash, $status);
+                        $penyeliaData = $this->penyelia->actionPenyelia(new Request([
+                            'idPermohonan' => $dataPermohonan->permohonan_hash,
+                            'status'    => $status,
+                            'endDate'  => $tglSelesai,
+                            'startDate' => date('Y-m-d H:i:s')
+                        ]));
 
-                        if(!$penyeliaData){
-                            throw new \Exception('Gagal membuat penyelia');
+                        if($penyeliaData->getStatusCode() != 200){
+                            $content = json_decode($penyeliaData->getContent());
+                            Log::error("Penyelia creation failed: ".$content->msg);
+                            throw new \Exception($content->msg ?? 'Gagal membuat penyelia');
                         }
                     }
 
@@ -1220,12 +1619,11 @@ class PermohonanAPI extends Controller
     {
         $idPermohonan = decryptor($idPermohonan);
         $dataPermohonan = Permohonan::with(
-            'kontrak',
             'jenis_layanan_parent',
-            'jenisTld',
-            'layanan_jasa',
-            'rincian_list_tld'
+            'jenis_layanan',
+            'permohonan_detail'
         )->find($idPermohonan);
+
         $params = array(
             'id_layanan' => $dataPermohonan->id_layanan,
             'jenis_layanan_1' => $dataPermohonan->jenis_layanan_1,
@@ -1268,6 +1666,7 @@ class PermohonanAPI extends Controller
 
             foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
                 $periode = $key + 1;
+                $status = 1;
 
                 // cari ganjil genap
                 $countTld = null;
@@ -1282,7 +1681,7 @@ class PermohonanAPI extends Controller
                     'periode' => $periode,
                     'start_date' => $value['start_date'],
                     'end_date' => $value['end_date'],
-                    'status' => 1,
+                    'status' => $status,
                     'count_tld' => $countTld,
                     'id_permohonan' => $dataPermohonan->periode == $periode ? $dataPermohonan->id_permohonan : null,
                     'created_by' => Auth::user()->id,
@@ -1292,28 +1691,25 @@ class PermohonanAPI extends Controller
             }
         }
 
-        // menambahkan permohonan TLD
-        if($dataPermohonan->rincian_list_tld){
-            foreach ($dataPermohonan->rincian_list_tld as $key => $value) {
-                $kontrakPenggunaId = null;
-                if(isset($value->id_pengguna)){
-                    // mengaktifkan status master_pengguna
-                    // kondisi ketika permohonan di verifikasi
-                    Master_pengguna::where('id_pengguna', $value->id_pengguna)->update(array('status' => 3));
-                }
-                $paramsTld = array(
-                    'id_kontrak' => $dataKontrak->id_kontrak,
-                    'id_tld' => $value->id_tld,
-                    'id_pengguna' => $value->id_pengguna,
-                    'id_divisi' => $value->id_divisi,
-                    // 'periode' => $dataPermohonan->periode ? $dataPermohonan->periode : 1,
-                    'status' => $dataPermohonan->is_have_tld == 1 ? 3 : 5,
-                    'count' => $value->count,
-                    'count_tld' => 1,
-                    'created_by' => Auth::user()->id
-                );
-                Kontrak_tld::create($paramsTld);
+        // menambahkan permohonan Detail
+        foreach ($dataPermohonan->permohonan_detail as $key => $value) {
+            if($value->jenis == 'pengguna') {
+                Master_pengguna::find($value->id_pengguna_divisi)?->update(array('status' => 3));
             }
+
+            $dataPermohonanDetail = array(
+                'id_kontrak' => $dataKontrak->id_kontrak,
+                'id_pengguna_divisi' => $value->id_pengguna_divisi,
+                'jenis' => $value->jenis,
+                'status' => 1,
+                'type' => $value->type,
+                'created_by' => Auth::user()->id,
+                'tld_1' => $value->id_tld,
+                'status_tld_1' => $dataPermohonan->is_have_tld == 1 ? 3 : 5,
+                'periode_tld_1' => 1,
+            );
+
+            Kontrak_detail::create($dataPermohonanDetail);
         }
 
         // Menambahkan id_kontrak ke table permohonan
@@ -1328,9 +1724,6 @@ class PermohonanAPI extends Controller
                         ->where('status', 1)
                         ->first();
 
-            // mengambil general manager
-            $gm = User::role('General Manager')->first();
-
             $data = array(
                 'id_kontrak' => $dataKontrak->id_kontrak,
                 'created_by' => Auth::user()->id,
@@ -1340,7 +1733,7 @@ class PermohonanAPI extends Controller
                 'status' => 1,
                 'nomer' => $no_kontrak
             );
-            $document = Permohonan_dokumen::create($data);
+            Permohonan_dokumen::create($data);
         }
     }
 
@@ -1373,71 +1766,6 @@ class PermohonanAPI extends Controller
             $noKontrak = "{$type}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
 
             return $noKontrak;
-        }
-    }
-
-    private function createInvoice($idPermohonan){
-        $params = [
-            'idPermohonan' => $idPermohonan,
-            'status' => 1
-        ];
-
-        // Make a request to your keuanganAction endpoint
-        $keuanganResponse = app()->handle(Request::create(url('api/v1/keuangan/action'), 'POST', $params));
-
-        // Check the response for success/failure
-        if ($keuanganResponse->getStatusCode() == 200) {
-            // Invoice creation successful - you can log or further process if needed
-            $invoiceData = json_decode($keuanganResponse->getContent(), true);
-            // ... process $invoiceData
-            return $invoiceData;
-        } else {
-            // Handle invoice creation failure appropriately (log, rollback, etc.)
-            Log::error("Invoice creation failed: " . $keuanganResponse->getContent());
-            // ... consider throwing an exception or other error handling
-        }
-    }
-
-    private function createPenyelia($idPermohonan, $status){
-        $params = [
-            'idPermohonan' => $idPermohonan,
-            'status' => $status
-        ];
-
-        // Make a request to your keuanganAction endpoint
-        $penyeliaResponse = app()->handle(Request::create(url('api/v1/penyelia/action'), 'POST', $params));
-
-        // Check the response for success/failure
-        if ($penyeliaResponse->getStatusCode() == 200) {
-            // Invoice creation successful - you can log or further process if needed
-            $penyeliaData = json_decode($penyeliaResponse->getContent(), true);
-            // ... process $penyeliaData
-            return $penyeliaData;
-        } else {
-            // Handle invoice creation failure appropriately (log, rollback, etc.)
-            Log::error("Penyelia creation failed: " . $penyeliaResponse->getContent());
-            // ... consider throwing an exception or other error handling
-        }
-
-    }
-
-    private function searchTldNotUsed($jenis){
-        $params = [
-            'jenis' => $jenis
-        ];
-        // Make a request to your keuanganAction endpoint
-        $TldResponse = app()->handle(Request::create(url('api/v1/tld/searchTldNotUsed'), 'GET', $params));
-
-        // Check the Tldresponse for success/failure
-        if ($TldResponse->getStatusCode() == 200) {
-            // Invoice creation successful - you can log or further process if needed
-            $TldData = json_decode($TldResponse->getContent(), true);
-            // ... process $TldData
-            return $TldData;
-        } else {
-            // Handle invoice creation failure appropriately (log, rollback, etc.)
-            Log::error("failed: " . $TldResponse->getContent());
-            // ... consider throwing an exception or other error handling
         }
     }
 }

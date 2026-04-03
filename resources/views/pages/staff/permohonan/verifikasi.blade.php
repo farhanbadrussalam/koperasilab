@@ -14,7 +14,7 @@
                     </ol>
                 </nav> --}}
             </div>
-            <a href="{{ $_SERVER['HTTP_REFERER'] }}" class="btn btn-outline-secondary rounded-pill px-4">
+            <a href="{{ url('staff/permohonan') }}" class="btn btn-outline-secondary rounded-pill px-4">
                 <i class="bi bi-arrow-left me-2"></i>Kembali
             </a>
         </div>
@@ -65,10 +65,29 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-12">
+                                    <div class="col-6">
                                         <div class="p-3 bg-light rounded-3 border">
                                             <small class="text-muted d-block mb-1">Jenis TLD</small>
                                             <span class="fw-bold text-dark fs-6">{{ $permohonan->jenisTld->name }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column">
+                                            <div class="text-muted fs-6">
+                                                @if($permohonan->is_zerocek)
+                                                <i class="bi bi-check-circle text-success me-2"></i>
+                                                @else
+                                                <i class="bi bi-x-circle text-danger me-2"></i>
+                                                @endif ZeroCek
+                                            </div>
+
+                                            <div class="text-muted fs-6">
+                                                @if($permohonan->is_have_tld)
+                                                <i class="bi bi-check-circle text-success me-2"></i> Mempunyai
+                                                @else
+                                                <i class="bi bi-x-circle text-danger me-2"></i> Tidak Mempunyai
+                                                @endif TLD
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -77,6 +96,19 @@
 
                                 <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Spesifikasi Kontrak</h6>
                                 <div class="row g-4">
+                                    @if($permohonan->kontrak)
+                                    <div class="col-md-12">
+                                        <div class="d-flex mb-3 align-items-center">
+                                            <i class="bi bi-hash me-3 text-secondary fs-5"></i>
+                                            <div>
+                                                <small class="text-muted d-block">Nomer Kontrak</small>
+                                                <span class="font-monospace fw-bold text-dark">
+                                                    {{ $permohonan->kontrak->no_kontrak }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
                                     <div class="col-md-6">
                                         <div class="d-flex mb-3 align-items-center">
                                             <i class="bi bi-file-text me-3 text-secondary fs-5"></i>
@@ -94,7 +126,7 @@
                                             <div>
                                                 <small class="text-muted d-block">Periode Pemakaian</small>
                                                 <div class="d-flex gap-1 flex-column">
-                                                    <div class="fw-bold text-dark" id="periode-pemakaian">3 Periode</div>
+                                                    <div class="fw-bold text-dark" id="periode-pemakaian">-</div>
                                                     <div>
                                                         <button class="btn btn-xs btn-link text-decoration-none p-0" id="btn-periode">
                                                             <i class="bi bi-eye"></i> Lihat
@@ -110,11 +142,13 @@
                                             <i class="bi bi-calendar-range me-3 text-secondary fs-5"></i>
                                             <div>
                                                 <small class="text-muted d-block">Periode Pemakaian Selanjutnya</small>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <span class="fw-bold text-dark" id="periode-pemakaian-next">3 Periode</span>
-                                                    <button class="btn btn-xs btn-link text-decoration-none p-0" id="btn-periode-next">
-                                                        <i class="bi bi-eye"></i> Lihat
-                                                    </button>
+                                                <div class="d-flex gap-1 flex-column">
+                                                    <div class="fw-bold text-dark" id="periode-pemakaian-next">-</div>
+                                                    <div>
+                                                        <button class="btn btn-xs btn-link text-decoration-none p-0" id="btn-periode-next">
+                                                            <i class="bi bi-eye"></i> Lihat
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -125,7 +159,7 @@
                                             <i class="bi bi-people me-3 text-secondary fs-5"></i>
                                             <div>
                                                 <small class="text-muted d-block">Jumlah Pengguna</small>
-                                                <span class="fw-bold text-dark fs-5">{{ $permohonan->jumlah_pengguna }}</span>
+                                                <span class="fw-bold text-dark fs-5" id="jumlah-info-pengguna">0</span>
                                                 <small class="text-muted">Orang</small>
                                             </div>
                                         </div>
@@ -135,7 +169,7 @@
                                             <i class="bi bi-speedometer2 me-3 text-secondary fs-5"></i>
                                             <div>
                                                 <small class="text-muted d-block">Jumlah Kontrol</small>
-                                                <span class="fw-bold text-dark fs-5">{{ $permohonan->jumlah_kontrol }}</span>
+                                                <span class="fw-bold text-dark fs-5" id="jumlah-info-kontrol">0</span>
                                                 <small class="text-muted">Unit</small>
                                             </div>
                                         </div>
@@ -146,13 +180,6 @@
                                 <div class="d-flex justify-content-between mb-3 align-items-center">
                                     <h6 class="text-uppercase text-muted small fw-bold tracking-wide mb-0">Daftar Pemakai TLD</h6>
                                 </div>
-
-                                {{-- <div class="row text-muted small fw-bold mb-2 px-3 d-none d-md-flex">
-                                    <div class="col-1">#</div>
-                                    <div class="col-4">Nama Personil</div>
-                                    <div class="col-4">Spesifikasi Alat</div>
-                                    <div class="col-3 text-end">Kode TLD</div>
-                                </div> --}}
 
                                 <div id="pengguna-list-container"></div>
 
@@ -315,10 +342,14 @@
 
             <div class="col-lg-4">
                 <div class="card border-0 shadow-sm rounded-4 bg-primary text-white mb-3"
-                    style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                    style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);" id="total-harga">
                     <div class="card-body p-4 text-center">
                         <small class="text-white-50 text-uppercase fw-bold">Total Estimasi Harga</small>
+                        @if($permohonan->tipe_kontrak == 'kontrak baru' || $permohonan->tipe_kontrak == 'adendum')
                         <h2 class="fw-bold my-2">{{ formatCurrency($permohonan->total_harga) }}</h2>
+                        @else
+                        <h2 class="fw-bold my-2">{{ formatCurrency($permohonan->kontrak->total_harga) }}</h2>
+                        @endif
                         <span class="badge bg-white bg-opacity-25 text-white fw-normal border border-light border-opacity-25">
                             Belum Termasuk PPN
                         </span>
@@ -332,7 +363,8 @@
                         </h6>
                     </div>
                     <div class="card-body px-4 pb-4">
-                        <div id="show-tandaterima" class="d-none p-3 bg-white rounded-3 border border-success border-opacity-25 shadow-sm position-relative overflow-hidden transition-all hover-shadow">
+                        <div></div>
+                        <div id="show-tandaterima" class="d-none p-3 bg-white rounded-3 border border-success border-opacity-25 shadow-sm position-relative overflow-hidden transition-all hover-shadow mb-3">
 
                             <div class="position-absolute top-0 start-0 h-100 bg-success" style="width: 4px;"></div>
 
@@ -362,6 +394,31 @@
                             <button id="btn-tandaterima" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                                 <i class="bi bi-upload me-1"></i> Tambah
                             </button>
+                        </div>
+                        @if($permohonan->tipe_kontrak == 'adendum')
+                        <div id="document-adendum" class="d-flex gap-3 flex-column">
+                            <a href="{{ url('laporan/adendum/'.$permohonan->permohonan_hash) }}" target="_blank"
+                                class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
+                                <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
+                                <span class="fw-bold d-block small">Permohonan Adendum</span>
+                            </a>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4 mb-3">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 rounded-top-4">
+                        <h6 class="fw-bold text-dark m-0">
+                            <i class="bi bi-calendar-event me-2"></i>Tanggal Selesai LAB <span class="text-danger">*</span>
+                        </h6>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1 overflow-hidden me-3">
+                                <input type="text" id="tanggal-selesai"
+                                    class="form-control" placeholder="Pilih tanggal selesai" readonly>
+                            </div>
                         </div>
                     </div>
                 </div>

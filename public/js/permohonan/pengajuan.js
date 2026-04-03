@@ -9,8 +9,8 @@ $(function () {
         jenis: 'permohonan',
         tab: {
             pengguna: true,
-            periode: true,
             tld: true,
+            periode: true,
             dokumen: true,
             log: true
         }
@@ -96,13 +96,17 @@ function loadData(page = 1, status) {
     ajaxGet(`api/v1/permohonan/listPengajuan`, params, result => {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
-            let btnEdit = `
-            <li>
-                <a class="dropdown-item small cursor-pointer" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}">
-                    <i class="bi bi-pencil-square me-2"></i> Edit
-                </a>
-            </li>
-            `;
+            let btnEdit = '';
+            if(pengajuan.tipe_kontrak == 'kontrak baru' || pengajuan.status == 80){
+                btnEdit = `
+                    <li>
+                        <a class="dropdown-item small cursor-pointer" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}">
+                            <i class="bi bi-pencil-square me-2"></i> Edit
+                        </a>
+                    </li>
+                `;
+
+            }
             let btnRemove = `
             <li>
                 <a class="dropdown-item small cursor-pointer text-danger" title="Delete" onclick="remove(this)">
@@ -158,7 +162,7 @@ function loadData(page = 1, status) {
                             <i class="bi bi-info-circle me-2"></i> Detail
                         </a>
                     </li>
-                    ${[90, 1].includes(pengajuan.status) ? btnEdit : ''}
+                    ${[80, 1].includes(pengajuan.status) ? btnEdit : ''}
                     ${pengajuan.status == 1 ? btnRemove : ''}
                 `;
 

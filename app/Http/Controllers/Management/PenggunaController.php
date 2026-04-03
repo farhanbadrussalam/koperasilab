@@ -35,6 +35,7 @@ class PenggunaController extends Controller
     public function getData(Request $request)
     {
         $filter = $request->has('filter') ? $request->filter : [];
+        $selected = $request->has('selected') ? $request->selected : [];
         $role = Auth::user()->getRoleNames()->toArray();
         $pengguna = Master_pengguna::with('media_ktp', 'divisi')
                     ->when($filter, function($q, $filter) {
@@ -59,7 +60,7 @@ class PenggunaController extends Controller
 
         return DataTables::of($pengguna)
             ->addIndexColumn()
-            ->addColumn('html', function ($row) use ($type) {
+            ->addColumn('html', function ($row) use ($type, $selected) {
                 $initial = isset($row->name) ? strtoupper(substr($row->name, 0, 1)) : '?';
 
                 $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
@@ -77,7 +78,7 @@ class PenggunaController extends Controller
 
                 $btnEdit = '
                     <li>
-                        <a onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="dropdown-item small cursor-pointer">
+                        <a data-id="' . $row->pengguna_hash . '" class="dropdown-item small cursor-pointer btn-edit-pengguna">
                             <i class="bi bi-pencil-square me-2"></i>Edit
                         </a>
                     </li>
@@ -85,7 +86,14 @@ class PenggunaController extends Controller
 
                 $status = '';
                 if ($type == 'selected') {
-                    $btn .= '<button class="btn btn-sm btn-outline-primary align-self-center" data-id="' . $row->pengguna_hash . '" onclick="btnPilih(this)"> Pilih</button>' ;
+                    $find = Arr::first($selected, function ($value, $key) use ($row) {
+                        return $value == $row->pengguna_hash;
+                    });
+                    if($find) {
+                        $btn .= '<span class="text-success"><i class="bi bi-check"></i> Terpilih</span>';
+                    } else {
+                        $btn .= '<button class="btn btn-sm btn-outline-primary align-self-center btn-pilih-user" data-id="' . $row->pengguna_hash . '"> Pilih</button>' ;
+                    }
                     $btn2 .= $btnEdit;
                 } else {
                     switch ($row->status) {
@@ -146,12 +154,6 @@ class PenggunaController extends Controller
 
                 return '
                     <div class="d-flex align-items-center w-100 p-2 rounded-3 hover-bg-light transition-all border-bottom">
-
-                        <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex justify-content-center align-items-center me-3 flex-shrink-0"
-                            style="width: 48px; height: 48px; font-size: 1.2rem;">
-                            '.$initial.'
-                        </div>
-
                         <div class="me-3 flex-grow-1">
                             <h6 class="mb-0 fw-bold text-dark">'.$row->name.'</h6>
                             <div class="d-flex align-items-center gap-2 mt-1">
@@ -180,64 +182,6 @@ class PenggunaController extends Controller
                     </div>
                 ';
             })
-            // ->addColumn('name', function ($row) {
-            //     return '
-            //         <div>
-            //             <div class="fw-bold">' . $row->name . '</div>
-            //             <div class="small">' . $row->kode_lencana . '</div>
-            //         </div>
-            //     ';
-            // })
-            // ->addColumn('divisi', function ($row) {
-            //     return $row->divisi ? $row->divisi->name : '-';
-            // })
-            // ->addColumn('radiasi', function ($row) {
-            //     $radiasi = Master_radiasi::whereIn('id_radiasi', $row->id_radiasi)->get();
-            //     $htmlRadiasi = '<div class="d-flex flex-wrap justify-content-center">';
-            //     foreach ($radiasi as $key => $value) {
-            //         $htmlRadiasi .= '
-            //             <span class="badge rounded text-bg-secondary me-1 mb-1">'.$value->nama_radiasi.'</span>
-            //         ';
-            //     }
-            //     $htmlRadiasi .= '</div>';
-            //     return $htmlRadiasi;
-            // })
-            // ->addColumn('status', function ($row) {
-            //     $status = '';
-            //     switch ($row->status) {
-            //         case 1:
-            //             $status = '<span class="badge rounded text-bg-danger">Tidak Aktif</span>';
-            //             break;
-            //         case 2:
-            //             $status = '<span class="badge rounded text-bg-secondary">Pengajuan</span>';
-            //             break;
-            //         case 3:
-            //             $status = '<span class="badge rounded text-bg-success">Aktif</span>';
-            //             break;
-            //     }
-            //     return $status;
-            // })
-            // ->addColumn('action', function ($row) use ($type) {
-            //     $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
-            //     $btn = '<div class="btn-group">';
-            //     $btn .= '<a class="btn btn-sm btn-outline-secondary show-popup-image" href="' . $fileKtp. '"><i class="bi bi-file-person-fill"></i></a>';
-
-
-            //     if ($type == 'selected') {
-            //         $btn .= '<button class="btn btn-sm btn-outline-primary" data-id="' . $row->pengguna_hash . '" onclick="btnPilih(this)"><i class="bi bi-check"></i> Pilih</button>' ;
-            //     } else {
-            //         if($row->status != 3){
-            //             $btn .= '<button onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></button>';
-            //         }
-
-            //         if($row->status == 1){
-            //             $btn .= '<button class="btn btn-sm btn-outline-danger" data-id="' . $row->pengguna_hash . '" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>';
-            //         }
-            //     }
-
-            //     $btn .= '</div>';
-            //     return $btn;
-            // })
             ->rawColumns(['html'])
             ->make(true);
     }

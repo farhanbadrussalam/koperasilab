@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::prefix('v1/')->group(function() {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/encryptor', [AuthController::class, 'encryptor']);
+    Route::post('/decryptor', [AuthController::class, 'decryptor']);
     Route::post('/search_akun', [AuthController::class, 'search_akun']);
     Route::post('/check_email', [AuthController::class, 'checkEmail']);
     Route::post('/check_nik', [AuthController::class, 'checkNik']);
@@ -65,9 +66,10 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::delete('/destroyPermohonan/{id}', 'destroyPermohonan');
         Route::get('/listPengajuan', 'listPengajuan');
         Route::get('/listPengguna', 'listPengguna');
-        Route::get('/loadTld', 'loadTld');
+        Route::get('/listKontrol', 'listKontrol');
         Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
+        Route::post('/tambahAdendum', 'tambahAdendum');
         Route::post('/tambahPengguna', 'tambahPengguna');
         Route::get('/createKontrak/{idPermohonan}/{noKontrak}', 'createKontrak');
         Route::post('/action_tld', 'action_tld');
@@ -77,11 +79,12 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPrice', 'getPrice');
         Route::get('/getPengajuanById/{id}', 'getPengajuanById');
         Route::post('/verifikasi/cek', 'verifPermohonan');
+        Route::post('/verifikasi/adendum', 'verifAdendum');
         Route::post('/verifikasi/tambahTandaterima', 'tambahTandaterima');
         Route::delete('/destroyTandaterima/{idPermohonan}', 'destroyTandaterima');
         Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');
         Route::delete('/destroyLhuZero/{idPermohonan}/{idMedia}', 'destroyLhuZero');
-        Route::delete('/destroyKontrol/{id}', 'destroyKontrol');
+        Route::delete('/destroyKontrol/{idPermohonan}/{id}', 'destroyKontrol');
     });
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {

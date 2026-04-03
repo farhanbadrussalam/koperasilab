@@ -1,7 +1,8 @@
 const tmpArrTld = [];
 let inventoryTld = false;
 let JL = '';
-let htmlDisabled = false;
+let htmlDisabled = true;
+let source = 'map';
 
 $(function () {
     inventoryTld = new Inventory_tld({
@@ -10,10 +11,11 @@ $(function () {
     });
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
-        $(`#tldNoSeri_${detail.selected}`).val(detail.data_tld.no_seri_tld);
+        $(`#${detail.selected}`).val(detail.data_tld.no_seri_tld);
+        $(`#${detail.selected}_view`).html(detail.data_tld.no_seri_tld);
 
         // reset tmpArrTld
-        let index = tmpArrTld.findIndex(d => d.id == detail.selected);
+        let index = tmpArrTld.findIndex(d => d.index == detail.selected);
 
         if(index > -1){
             tmpArrTld[index].tld = detail.data_tld.tld_hash;
@@ -43,12 +45,12 @@ $(function () {
     JL = jenislayanan(dataKontrak.jenis_layanan_parent, dataKontrak.jenis_layanan);
 
     if(tmpArrEvaluasi.includes(JL)){
-        htmlDisabled = true;
+        htmlDisabled = false;
     }
 
     if(StringZerocek == JL){
         if(dataKontrak.is_have_tld == 1) {
-            htmlDisabled = true;
+            htmlDisabled = false;
         }
     }
 
@@ -61,97 +63,184 @@ $(function () {
 })
 
 function loadTld() {
-    let tldPengguna = dataKontrak.rincian_list_tld.filter(tld => tld.pengguna);
-    let tldKontrol = dataKontrak.rincian_list_tld.filter(tld => !tld.pengguna);
+    let tldPengguna = false;
+    let tldKontrol = false;
+    if(dataKontrak.kontrak_map.length == 0){
+        tldPengguna = dataKontrak.kontrak_detail.filter(tld => {
+            return tld.jenis == 'pengguna';
+        });
+        tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol');
+        source = `detail`;
+    } else {
+        tldPengguna = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'pengguna');
+        tldKontrol = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'kontrol');
+        source = `map`;
+    }
 
-    loadTldKontrol(tldKontrol);
-    loadPengguna(tldPengguna);
+    loadTldKontrol(tldKontrol, source);
+    loadPengguna(tldPengguna, source);
 }
 
-function loadTldKontrol(tldKontrol) {
+function loadTldKontrol(tldKontrol, source) {
     let htmlTldKontrol = '';
+    let isPeriodOne = dataPeriodeNow.count_tld == 1;
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
-       let tldNotUsed = result.data;
-       let noTld = 0;
-       for (const [i, list] of tldKontrol.entries()) {
-           for (let idx = 0; idx < list.count; idx++) {
-                let dataTld = null;
+        let tldNotUsed = result.data;
+        let noTld = 0;
+        for (const [i, list] of tldKontrol.entries()) {
+            let dataTld = null;
+            let type = 'baru';
+            let id = false;
+            let _htmlDisabled = htmlDisabled;
+            let _isCheckedEvaluasi = true;
+
+           if(source == 'map'){
                 if(list.tld){
-                    dataTld = list.tld[idx];
+                    dataTld = list.tld;
+                    type = 'lama';
                 } else {
                     dataTld = tldNotUsed[noTld];
                     noTld++;
                 }
-               tmpArrTld.push({
-                   id: `${list.kontrak_tld_hash}_kontrol_${idx+1}`,
-                   tld: dataTld.tld_hash
-               });
-
-               htmlTldKontrol += `
-                   <div class="w-50 pe-1 mb-1 input-group">
-                       <div class="input-group-text">
-                           <input class="form-check-input mt-0" name="checkTldKontrol" id="checkTldKontrol${i}" type="checkbox" value="${list.kontrak_tld_hash}" aria-label="Checkbox for following text input">
-                       </div>
-                       <input type="text" class="form-control" value="${dataTld.no_seri_tld}" id="tldNoSeri_${list.kontrak_tld_hash}_kontrol_${idx+1}" placeholder="Pilih No Seri" readonly>
-                       ${ htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${list.kontrak_tld_hash}_kontrol_${idx+1}" onclick="openInventory(this, 'kontrol')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : '' }
-                   </div>
-               `;
+                id = list.kontrak_map_hash;
+           } else {
+                if(isPeriodOne){
+                    if(list.tld_1){
+                        dataTld = list.tld_1;
+                        type = 'lama';
+                        if(list.status_tld_1 != 2) {
+                            _htmlDisabled = true;
+                            _isCheckedEvaluasi = false;
+                        }
+                    } else {
+                        dataTld = tldNotUsed[noTld];
+                        noTld++;
+                    }
+                } else {
+                    if(list.tld_2){
+                        dataTld = list.tld_2;
+                        type = 'lama';
+                        if(list.status_tld_2 != 2) {
+                            _htmlDisabled = true;
+                            _isCheckedEvaluasi = false;
+                        }
+                    } else {
+                        dataTld = tldNotUsed[noTld];
+                        noTld++;
+                    }
+                }
+                id = list.kontrak_detail_hash;
            }
 
+          tmpArrTld.push({
+              id: id,
+              tld: dataTld.tld_hash,
+              index: `tldNoSeri_${i}_kontrol`,
+              type,
+              source
+          });
+
+          let kodeLencana = i == 0 ? 'C' : `C${i}`;
+
+          const dataCard = {
+            index: i,
+            idHash: id,
+            name: `Kontrol ${list.entitas?.name ?? ''} ${kodeLencana}`,
+            kode: kodeLencana,
+            isCheckedEvaluasi: _isCheckedEvaluasi,
+            tldHash: dataTld.tld_hash,
+            no_seri_tld: dataTld.no_seri_tld,
+            htmlDisabled: _htmlDisabled
+          }
+
+          htmlTldKontrol += cardKontrolComponent(dataCard, {
+            label_tld: true
+          });
        }
 
        $('#tld-kontrol-content').html(htmlTldKontrol);
     });
 }
 
-function loadPengguna(tldPengguna){
+function loadPengguna(tldPengguna, source) {
     let htmlPengguna = '';
+    let isPeriodOne = dataPeriodeNow.count_tld == 1;
     ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'pengguna'}, result => {
         let tldNotUsed = result.data;
         let noTld = 0;
         for (const [i, value] of tldPengguna.entries()) {
-            let txtRadiasi = '';
-            value.pengguna.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
+            let pengguna = value;
+            let fileKtp = pengguna.entitas?.media_ktp ? `${base_url}/storage/${pengguna.entitas.media_ktp.file_path}/${pengguna.entitas.media_ktp.file_hash}` : '';
 
             let dataTld = null;
-            if(value.tld) {
-                dataTld = value.tld[0];
+            let type = 'baru';
+            let id = false;
+            let _htmlDisabled = htmlDisabled;
+            let _isCheckedEvaluasi = true;
+
+            if(source == 'map'){
+                if(value.tld){
+                    dataTld = value.tld;
+                    type = 'lama';
+                } else {
+                    dataTld = tldNotUsed[noTld];
+                    noTld++;
+                }
+                id = value.kontrak_map_hash;
             } else {
-                dataTld = tldNotUsed[noTld];
-                noTld++;
+                if(isPeriodOne){
+                    if(value.tld_1){
+                        dataTld = value.tld_1;
+                        type = 'lama';
+                        if(value.status_tld_1 != 2) {
+                            _htmlDisabled = true;
+                            _isCheckedEvaluasi = false;
+                        }
+                    } else {
+                        dataTld = tldNotUsed[noTld];
+                        noTld++;
+                    }
+                } else {
+                    if(value.tld_2){
+                        dataTld = value.tld_2;
+                        type = 'lama';
+                        if(value.status_tld_2 != 2) {
+                            _htmlDisabled = true;
+                            _isCheckedEvaluasi = false;
+                        }
+                    } else {
+                        dataTld = tldNotUsed[noTld];
+                        noTld++;
+                    }
+                }
+
+                id = value.kontrak_detail_hash;
             }
 
             tmpArrTld.push({
-                id: value.kontrak_tld_hash,
-                tld: dataTld.tld_hash
+                id: id,
+                tld: dataTld?.tld_hash,
+                index: `tldNoSeri_${i}_pengguna`,
+                type,
+                source
             });
 
-            const imgPengguna = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '#';
+            const dataCard = {
+                index: i,
+                idHash: id,
+                tldHash: dataTld?.tld_hash,
+                name: pengguna.entitas.name,
+                divisi: pengguna.entitas.divisi?.name || '',
+                isCheckedEvaluasi: _isCheckedEvaluasi,
+                radiasi: pengguna.entitas.radiasi?.map(r => r.nama_radiasi),
+                fileKtp: fileKtp,
+                no_seri_tld: dataTld?.no_seri_tld || '',
+                htmlDisabled: _htmlDisabled
+            }
 
-            htmlPengguna += `
-                <tr>
-                    <td>
-                        <input class="form-check-input mt-0" name="checkTldPengguna" type="checkbox" value="${value.kontrak_tld_hash}" aria-label="" id="checkTldPengguna${i}">
-                    </td>
-                    <td>${i + 1}</td>
-                    <td>
-                        <div>${value.pengguna.name}</div>
-                        <small class="text-body-secondary fw-light">${value.pengguna.divisi?.name || ''}</small>
-                    </td>
-                    <td>${txtRadiasi}</td>
-                    <td>
-                        <div class="input-group">
-                            <input type="text" class="form-control rounded-start" value="${dataTld.no_seri_tld}" id="tldNoSeri_${value.kontrak_tld_hash}" placeholder="Pilih No Seri" readonly>
-                            ${htmlDisabled ? `<button class="btn btn-outline-secondary" type="button" data-id="${value.kontrak_tld_hash}" onclick="openInventory(this, 'pengguna')"><i class="bi bi-arrow-repeat"></i> Ganti</button>` : ''}
-                        </div>
-                    </td>
-                    <td>
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${imgPengguna}" title="Show ktp">
-                            <i class="bi bi-file-person-fill"></i>
-                        </a>
-                    </td>
-                </tr>
-            `;
+            htmlPengguna += cardPenggunaComponent(dataCard, {
+                label_tld: true
+            })
         }
 
         $('#pengguna-list-container').html(htmlPengguna);
@@ -197,17 +286,22 @@ function buatPermohonan(obj){
             params.append('jenisLayanan2', jenisLayanan);
             params.append('jenisLayanan1', jenisLayananParent);
             params.append('idKontrak', idKontrak);
-            params.append('periode', periode?.periode);
+            params.append('periode', periode?.periode == 0 ? 1 : periode.periode); // If periode is 0, set to 1
             params.append('alamat', alamatData.alamat_hash); // Send the address hash
             params.append('listTld', JSON.stringify(checkTld));
+            params.append('source', source);
             params.append('createBy', userActive.user_hash);
             params.append('is_zerocek', 0);
             params.append('haveTld', 1);
             params.append('tipeKontrak', 'kontrak lama');
+            if(isPengembalian) {
+                params.append('is_pengembalian', 1);
+                params.append('pengembalian_start', pengembalianStart);
+                params.append('pengembalian_end', pengembalianEnd);
+            }
             params.append('dataTld', JSON.stringify(tmpArrTld));
-            dataPermohonan ? params.append('idPermohonan', dataPermohonan.permohonan_hash) : false;
+            // dataPermohonan ? params.append('idPermohonan', dataPermohonan.permohonan_hash) : false;
 
-            // params.append('dataPengguna', JSON.stringify(checkedPenggunaValues));
             params.append('status', 1);
 
             spinner('show', $(obj)); // Show the spinner on the clicked button
@@ -224,8 +318,6 @@ function buatPermohonan(obj){
                     // e.g., redirect to a different page
                     window.location.href = base_url+"/permohonan/pengajuan";
                 });
-
-
             }, error => {
                 spinner('hide', $(obj));  // Important: hide the spinner on error too!
             });

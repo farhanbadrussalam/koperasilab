@@ -68,6 +68,8 @@ class Documents extends Model
         'view',
         'id_header',
         'id_footer',
+        'id_perusahaan',
+        'orientation',
         'variables',
         'created_by',
         'created_at',

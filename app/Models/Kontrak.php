@@ -127,6 +127,7 @@ class Kontrak extends Model
         'document_kontrak',
         'periode_all',
         'data_radiasi',
+        'periode_active',
     ];
 
     protected $casts = [
@@ -165,6 +166,12 @@ class Kontrak extends Model
         $radiasi = array();
         $radiasi = array_merge(...$dataPengguna->pluck('pengguna.radiasi')->filter()->toArray());
         return $radiasi;
+    }
+
+    public function getPeriodeActiveAttribute()
+    {
+        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->whereNull('selesai')->orderBy('periode', 'asc')->first();
+        return $periode;
     }
 
     public function getPeriodeAllAttribute()
@@ -254,5 +261,13 @@ class Kontrak extends Model
 
     public function permohonan(){
         return $this->belongsTo(Permohonan::class, 'id_kontrak', 'id_kontrak');
+    }
+
+    public function kontrak_detail(){
+        return $this->hasMany(Kontrak_detail::class, 'id_kontrak', 'id_kontrak')->where('status', 1);
+    }
+
+    public function kontrak_map(){
+        return $this->hasMany(Kontrak_map::class, 'id_kontrak', 'id_kontrak');
     }
 }

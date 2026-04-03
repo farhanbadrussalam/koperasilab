@@ -160,7 +160,6 @@ function pilihPermohonan(obj) {
     ajaxGet(`api/v1/pengiriman/getPermohonan`, {
         idPermohonan: id
     }, result => {
-        console.log(result);
         dataPermohonan = result.data;
         loadForm();
         $('#modal-search').modal('hide');
@@ -398,7 +397,6 @@ function descInvoice(data){
 }
 
 function cetakDocument(){
-    console.log(dataPermohonan.invoice.keuangan_hash);
     const link = document.createElement('a');
     link.target = '_blank';
     link.href = `${base_url}/laporan/kwitansi/${dataPermohonan.invoice.keuangan_hash}`;

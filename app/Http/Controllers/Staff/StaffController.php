@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\Master_pertanyaan;
 use App\Models\Master_jobs;
 use App\Models\Master_ekspedisi;
+use App\Models\Master_pengguna;
 use App\Models\Kontrak;
 use App\Models\Kontrak_periode;
 use App\Models\Kontrak_pengguna;
@@ -24,10 +25,11 @@ use App\Models\Setting_layanan;
 use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\PermohonanAPI;
 use App\Http\Controllers\NotifController;
-
+use App\Models\Kontrak_detail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class StaffController extends Controller
 {
@@ -189,14 +191,26 @@ class StaffController extends Controller
         }else{
             // Mengambil jobs dari layanan jasa
             $type = '';
-            $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
-            if(in_array($JL, $this->global['arr_putus'])) {
-                $type = 'putus';
-            } else {
-                if($query->permohonan->is_have_tld == 1){
-                    $type = 'havetld';
-                } else if ($query->permohonan->is_have_tld == 0) {
-                    $type = 'nonhavetld';
+            if($query->permohonan->tipe_kontrak == 'adendum'){
+                if($query->permohonan->is_zerocek == 1){
+                    if($query->permohonan->is_have_tld == 1){
+                        $type = 'havetld';
+                    } else if ($query->permohonan->is_have_tld == 0) {
+                        $type = 'nonhavetld';
+                    }
+                } else {
+                    $type = 'adendum';
+                }
+            }else {
+                $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
+                if(in_array($JL, $this->global['arr_putus'])) {
+                    $type = 'putus';
+                } else {
+                    if($query->permohonan->is_have_tld == 1){
+                        $type = 'havetld';
+                    } else if ($query->permohonan->is_have_tld == 0) {
+                        $type = 'nonhavetld';
+                    }
                 }
             }
             $listJobs = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs;
@@ -296,136 +310,118 @@ class StaffController extends Controller
     public function buatOrderPengiriman($idHash, $periode = false)
     {
         $id = decryptor($idHash) ?? false;
-        $permohonan = false;
+        $idPeriode = decryptor($periode) ?? false;
         $data = false;
-        $periodeNow = false;
-        $statusTld = false;
-        $resTldPengguna = false;
-        $resTldKontrol = false;
-        if($periode){
-            $idPeriode = decryptor($periode) ?? false;
-            // mengambil periode sekarang
-            $periodeNow = Kontrak_periode::find($idPeriode);
-            // mencari apakah ada permohonan di periode sekarang
-            $permohonan = Permohonan::where('id_kontrak', $id)->where('periode', $periodeNow->periode)->first();
-            $id = $permohonan ? $permohonan->id_permohonan : false;
-        }
 
         if($id){
-            $data = Permohonan::with([
-                'layanan_jasa:id_layanan,nama_layanan',
-                'jenisTld:id_jenisTld,name',
-                'jenis_layanan:id_jenisLayanan,name,parent',
-                'jenis_layanan_parent',
-                'pelanggan:id,id_perusahaan,name',
-                'pelanggan.perusahaan',
-                'pelanggan.perusahaan.alamat',
-                'kontrak',
-                'kontrak.periode',
-                'kontrak.jenis_layanan',
-                'kontrak.jenis_layanan_parent',
-                'kontrak.rincian_list_tld' => function ($query) {
-                    $query->whereIn('status', [5, 3]);
-                },
-                'kontrak.rincian_list_tld.pengguna',
-                'kontrak.rincian_list_tld.divisi',
-                'invoice',
-                'invoice.pengiriman',
-                'lhu',
-                'lhu.pengiriman',
-                'pengiriman',
-                'file_lhu',
-                'permohonan_pengguna',
-                'rincian_list_tld',
-                'rincian_list_tld.pengguna',
-                'rincian_list_tld.divisi'
-            ])->find($id);
+            if($periode) {
+                // melakukan set kontrak adendum
+                $kontrakPeriode = Kontrak_periode::where('id_periode', $idPeriode)->first();
+                if($kontrakPeriode){
+                    setKontrakAdendum($id, $kontrakPeriode->periode);
+                }
 
-            // cek tld apakah sudah di kirim atau belum
-            $statusTld = Pengiriman::with([
-                'detail' => function($q){
-                    return $q->where('jenis', 'tld');
-                },
-                'permohonan',
-            ])->where('id_kontrak', $data->id_kontrak)
-            ->where('periode', $data->periode == 1 ? 0 : $data->periode)
-            ->first();
+                $data = Kontrak::with([
+                    'layanan_jasa:id_layanan,nama_layanan',
+                    'jenisTld:id_jenisTld,name',
+                    'jenis_layanan:id_jenisLayanan,name,parent',
+                    'jenis_layanan_parent',
+                    'pengiriman',
+                    'pengiriman.detail',
+                    'kontrak_detail',
+                    'kontrak_detail.tld_1',
+                    'kontrak_detail.tld_2',
+                    'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                        $morphTo->morphWith([
+                            Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                        ]);
+                    },
+                    'periode' => function ($q) use ($idPeriode) {
+                        $q->where('id_periode', $idPeriode);
+                    },
+                    'pelanggan',
+                    'pelanggan.perusahaan',
+                    'pelanggan.perusahaan.alamat',
+                    'periode.permohonan',
+                    'periode.permohonan.invoice',
+                    'periode.permohonan.invoice.pengiriman',
+                    'periode.permohonan.lhu',
+                    'periode.permohonan.lhu.pengiriman',
+                    'periode.permohonan.pengiriman',
+                    'periode.permohonan.file_lhu',
+                    'periode.permohonan.pelanggan:id,id_perusahaan,name',
+                    'periode.permohonan.pelanggan.perusahaan',
+                    'periode.permohonan.pelanggan.perusahaan.alamat',
+                ])->find($id);
 
-            // cek apakah sudah di periode terakhir atau belum
-            $lastPeriode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->orderBy('periode', 'desc')->first();
-            $isLast = $lastPeriode->periode == $data->periode ? true : false;
+                // cek tld apakah sudah di kirim atau belum
+                $statusTld = Pengiriman::with([
+                    'detail' => function($q){
+                        return $q->where('jenis', 'tld');
+                    },
+                    'permohonan',
+                ])->where('id_kontrak', $id)
+                ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode[0]->periode)
+                ->whereHas('permohonan', function($q) use ($idPeriode){
+                    $q->where('tipe_kontrak', '!=', 'adendum');
+                })
+                ->first();
+                $data->statusTld = $statusTld->status ?? false;
+                $data->sumber = 'kontrak';
 
-            if(!$isLast) {
-                // Membuat kontrak_tld
+                // Pengecekan adendum di kontrak periode
+                $data->adendum = Kontrak_detail::with([
+                        'entitas' => function (MorphTo $morphTo) {
+                            $morphTo->morphWith([
+                                Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                            ]);
+                        },
+                        'tld_1',
+                        'tld_2',
+                    ])
+                    ->where('id_kontrak', $id)
+                    ->where('periode', $data->periode[0]->periode)
+                    ->where('status', 2) // status 2 = adendum
+                    // ->where('type', 'baru')
+                    ->get();
+            } else {
+                $data = Permohonan::with([
+                    'layanan_jasa:id_layanan,nama_layanan',
+                    'jenisTld:id_jenisTld,name',
+                    'jenis_layanan:id_jenisLayanan,name,parent',
+                    'jenis_layanan_parent',
+                    'kontrak',
+                    'kontrak.periode',
+                    'kontrak.pengiriman',
+                    'kontrak.pengiriman.detail',
+                    'permohonan_detail',
+                    'permohonan_detail.entitas' => function (MorphTo $morphTo) {
+                        $morphTo->morphWith([
+                            Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                        ]);
+                    },
+                    'permohonan_detail.tld',
+                    'invoice',
+                    'invoice.pengiriman',
+                    'lhu',
+                    'lhu.pengiriman',
+                    'lhu.penyelia_map',
+                    'lhu.penyelia_map.jobs',
+                    'pengiriman',
+                    'pengiriman.detail',
+                    'file_lhu',
+                    'pelanggan:id,id_perusahaan,name',
+                    'pelanggan.perusahaan',
+                    'pelanggan.perusahaan.alamat',
+                ])->find($id);
+                $data->sumber = 'permohonan';
+
+                if($data->pengiriman == null){
+                    $data->pengiriman_baru = Pengiriman::with('detail')->where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
+                }
             }
-
-            // mengambil periode dari kontrak_periode
-            $data->kontrak_periode = Kontrak_periode::where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->first();
         }else{
-            $idKontrak = decryptor($idHash) ?? false;
-            if($periodeNow){
-                $countTld = $periodeNow->periode % 2 == 1 ? 1 : 2;
-                $kontrakTld = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', $countTld)->get();
-                // Jika tld kontrak untuk periode: $periode tidak ada akan menduplikat dari periode sebelumnya
-                if(count($kontrakTld) == 0){
-                    $dataKontrakTldSebelum = Kontrak_tld::where('id_kontrak', $idKontrak)->where('count_tld', 1)->get();
-                    foreach($dataKontrakTldSebelum as $val){
-                        // Mengecek tld yang sedang di simpan di 2 periode sebelum dan digunakan lagi di periode ini
-                        $arr = array(
-                            'id_kontrak' => $idKontrak,
-                            'id_pengguna' => $val->id_pengguna,
-                            'id_divisi' => $val->id_divisi,
-                            'count_tld' => $countTld,
-                            'status' => 6,
-                            'count' => $val->count,
-                            'created_by' => Auth::user()->id
-                        );
-                        Kontrak_tld::create($arr);
-                    }
-                }
-            }
-
-            $data = Kontrak::with([
-                'layanan_jasa:id_layanan,nama_layanan',
-                'jenisTld:id_jenisTld,name',
-                'jenis_layanan:id_jenisLayanan,name,parent',
-                'jenis_layanan_parent',
-                'pelanggan:id,id_perusahaan,name',
-                'pelanggan.perusahaan',
-                'pelanggan.perusahaan.alamat',
-                'rincian_list_tld' => function ($query) use ($periodeNow) {
-                    $query->where('status', 6)->when($periodeNow, function ($q) use ($periodeNow) {
-                        return $q->where('count_tld', $periodeNow->periode % 2 == 1 ? 1 : 2);
-                    });
-                },
-                'rincian_list_tld.pengguna',
-                'periode'
-            ])->find($idKontrak);
-
-            $tld_pengguna = $this->tld->searchTldNotUsed(new Request(['jenis' => 'pengguna']));
-            $tld_kontrol = $this->tld->searchTldNotUsed(new Request(['jenis' => 'kontrol']));
-
-            $resTldPengguna = json_decode($tld_pengguna->getContent(), true);
-            $resTldKontrol = json_decode($tld_kontrol->getContent(), true);
-
-            $indexPengguna = 0;
-            $indexKontrol = 0;
-
-            $data->rincian_list_tld->each(function($item) use (&$resTldPengguna, &$resTldKontrol, &$indexPengguna, &$indexKontrol) {
-                if (!$item->id_tld) {
-                    if ($item->id_pengguna) {
-                        $item->tld = isset($resTldPengguna['data'][$indexPengguna]) ? [$resTldPengguna['data'][$indexPengguna]] : null;
-                        $indexPengguna++;
-                    } else {
-                        $tmp = [];
-                        for ($i = 0; $i < $item->count; $i++) {
-                            $tmp[] = isset($resTldKontrol['data'][$indexKontrol]) ? $resTldKontrol['data'][$indexKontrol] : null;
-                            $indexKontrol++;
-                        }
-                        $item->tld = $tmp;
-                    }
-                }
-            });
+            return redirect()->back();
         }
 
         // membuat permohonan
@@ -433,14 +429,8 @@ class StaffController extends Controller
             'title' => 'Buat Pengiriman',
             'module' => 'staff-pengiriman-permohonan',
             'noPengiriman' => $this->generateNoPengiriman(),
-            'informasi' => $data,
-            'periode' => $periodeNow ? $periodeNow->periode : false,
-            'status_tld' => $statusTld,
-            'periode_aktif' => $periodeNow,
+            'informasi' => $data
         ];
-
-        $resTldPengguna ? $result['tld_pengguna'] = $resTldPengguna['data'] : null;
-        $resTldKontrol ? $result['tld_kontrol'] = $resTldKontrol['data'] : null;
 
         return view('pages.staff.pengiriman.kirim', $result);
     }

@@ -10,7 +10,9 @@ $(function () {
         jenis: 'pengiriman',
         tab: {
             items: true,
-            bukti: true
+            bukti: true,
+            log: true,
+            dokumen: true
         }
     });
 
@@ -61,65 +63,32 @@ function loadData(page = 1) {
     ajaxGet(`api/v1/pengiriman/list`, params, result => {
         let html = '';
         for (const [i, data] of result.data.entries()) {
-            let htmlButton = '';
+            let htmlButton = `<button class="btn btn-outline-info btn-sm" onclick="showDetail(this)">Detail</button>`;
 
             if(data.status == 3){
-                htmlButton += `<button class="btn btn-outline-primary btn-sm me-1" onclick="showFormPengiriman(this)">Kirim</button>`;
+                htmlButton += `<button class="btn btn-outline-primary btn-sm" onclick="showFormPengiriman(this)">Kirim</button>`;
                 htmlButton += `<button class="btn btn-outline-danger btn-sm" onclick="removePengiriman(this)">Delete</button>`;
             } else if(data.status == 1) {
-                htmlButton += `<button class="btn btn-outline-danger btn-sm me-1" onclick="batalKirimDokumen(this)">Batal kirim</button>`;
+                htmlButton += `<button class="btn btn-outline-danger btn-sm" onclick="batalKirimDokumen(this)">Batal kirim</button>`;
             }
 
-            const params = {
-                tipeKontrak: data.tipe_kontrak,
+            const dataCard = {
+                id: data.id_pengiriman,
                 format: 'pengiriman',
                 status: data.status,
-                jenisTld: data.jenis_tld?.name ?? '',
-                namaLayanan: data.jenis_layanan?.nama_layanan ?? '',
-                periode: data.periode,
                 created_at: data.created_at,
                 kontrak: data.kontrak?.no_kontrak ?? '',
-                // id:
+                title: data.id_pengiriman,
+                no_resi : data.no_resi,
+                pelanggan: data.kontrak.pelanggan.name,
+                items: data.detail,
+                alamat: data.alamat,
+                perusahaan: data.kontrak.pelanggan.perusahaan.nama_perusahaan
             }
 
-            console.log(params);
-
-            html += `
-                <div class="card mb-2">
-                    <div class="card-body row align-items-center py-2">
-                        <div class="col-12 col-md-3">
-                            <div class="fw-bolder">${data.id_pengiriman}</div>
-                            <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
-                            <small class="subdesc text-body-secondary fw-light lh-md">
-                                <div>${data.kontrak?.no_kontrak ?? ''}</div>
-                                <div>created at ${dateFormat(data.created_at, 1)}</div>
-                            </small>
-                        </div>
-                        <div class="col-6 col-md-2">
-                            ${data.detail.length} Item
-                        </div>
-                        <div class="col-6 col-md-2">
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div class="tooltip-container cursoron" data-bs-toggle="tooltip" data-bs-placement="top" title="${data.alamat.alamat}">
-                                    Alamat ${data.alamat.jenis}
-                                </div>
-                            </small>
-                        </div>
-                        <div class="col-6 col-md-2 text-center">
-                            ${statusFormat('pengiriman', data.status)}
-                        </div>
-                        <div class="col-6 col-md-3 text-center" data-id="${data.id_pengiriman}">
-                            <button class="btn btn-outline-info btn-sm" onclick="showDetail(this)">Detail</button>
-                            ${htmlButton}
-                        </div>
-                        <div class="col-md-12 mt-1">
-                            <div class="text-body-tertiary fs-7">
-                                <div><i class="bi bi-building-fill"></i> ${data.kontrak.pelanggan.perusahaan.nama_perusahaan}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            html += cardComponent(dataCard, {
+                btnAction: htmlButton
+            });
         }
         if(result.data.length == 0){
             html = `
@@ -144,7 +113,7 @@ function loadData(page = 1) {
  * @param {Object} obj - The DOM element that triggered the removal.
  */
 function removePengiriman(obj){
-    let idPengiriman = $(obj).parent().data('id');
+    let idPengiriman = $(obj).parent().parent().data('id');
     ajaxDelete(`api/v1/pengiriman/destroy/${idPengiriman}`, result => {
         Swal.fire({
             icon: 'success',
@@ -185,7 +154,7 @@ function showDetailPengiriman(){
  * @param {Object} obj - The DOM element that triggered the form display.
  */
 function showFormPengiriman(obj){
-    let idPengiriman = $(obj).parent().data('id');
+    let idPengiriman = $(obj).parent().parent().data('id');
     $('#no_pengiriman').val(idPengiriman);
 
     $('#modal-kirim-dokumen').modal('show');
@@ -272,7 +241,7 @@ function kirimDokumen(obj){
  * @fires ajaxPost - To send the cancellation request to the server.
  */
 function batalKirimDokumen(obj){
-    let idPengiriman = $(obj).parent().data('id');
+    let idPengiriman = $(obj).parent().parent().data('id');
 
     Swal.fire({
         title: 'Apakah Anda yakin?',
@@ -323,7 +292,7 @@ $('#list-pagination-pengiriman').on('click', 'a', function (e) {
 });
 
 function showDetail(obj){
-    const id = $(obj).parent().data("id");
+    const id = $(obj).parent().parent().data("id");
     detail.show(`api/v1/pengiriman/getById/${id}`);
 }
 

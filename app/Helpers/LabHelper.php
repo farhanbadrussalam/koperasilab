@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Crypt;
 use App\Helpers\TableWidthFixer;
 use App\Models\Keuangan;
 use App\Models\Kontrak;
+use App\Models\Kontrak_detail;
+use App\Models\Master_pengguna;
 use Carbon\Carbon;
 
 use App\Services\Notifier;
@@ -311,6 +313,15 @@ if (!function_exists('convert_date')) {
             case 10:
                 $format = 'Y';
                 break;
+            case 11:
+                # Sep
+                $format = 'M';
+                $month3 = true;
+                break;
+            case 12:
+                # September
+                $format = 'M';
+                break;
         }
 
         $new_tanggal = date($format, strtotime($tanggal));
@@ -431,25 +442,45 @@ if (!function_exists('generateNoDokumen')) {
 
         // Tahun saat ini
         $tahunSekarang = date('Y');
-        $lastContractNumber = 1;
 
         // Incremental number
-        $lastContractNumber = Permohonan_dokumen::where('jenis', $jenis)
-                                // ->whereMonth('created_at', $bulanSekarang)
-                                // ->whereYear('created_at', $tahunSekarang)
-                                ->count(); // Ubah dengan pengambilan nomor terakhir dari database
-        // if($jenis != 'surpeng'){
-        // }else{
-        //     $lastContractNumber = Kontrak_periode::where('nomer_surpeng', '!=', null)
-        //                             ->whereMonth('created_at', $bulanSekarang)
-        //                             ->whereYear('created_at', $tahunSekarang)
-        //                             ->count();
-        // }
-        $increment = str_pad($lastContractNumber + 1, 4, '0', STR_PAD_LEFT);
+        $lastDoc = Permohonan_dokumen::where('jenis', $jenis)
+                    ->orderBy('id_dokumen', 'desc')
+                    ->first();
+
+        $lastNumber = 0;
+        if ($lastDoc) {
+            // Mencari grup angka pertama dalam string nomor dokumen (misal: 0001)
+            preg_match('/\d+/', $lastDoc->nomer, $matches);
+            $lastNumber = isset($matches[0]) ? (int)$matches[0] : 0;
+        }
+
+        $increment = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
 
         switch ($jenis) {
+            case 'KontrakPengujian':
+                // Format nomor
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = $permohonan->jenis_layanan->alias;
+
+                $noKontrak = "{$increment}/{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'permintaanpengujian':
+                // Format nomor
+                $permohonan = Permohonan::with("layanan_jasa", "layanan_jasa.satuankerja")->where('id_permohonan', $id)->first();
+                $alias = $permohonan->layanan_jasa->satuankerja->alias;
+
+                $noKontrak = "{$increment}/SPP/NL-{$alias}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'kontrak':
+                // Format nomor
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = strtoupper(substr($permohonan->jenis_layanan->name, 0, 1));
+
+                $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                break;
             case 'tandaterima':
-                // Format nomor kontrak
+                // Format nomor
                 $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
                 break;
             case 'surattugas':
@@ -461,29 +492,27 @@ if (!function_exists('generateNoDokumen')) {
 
                 $noKontrak = "{$increment}/NL-{$alias}/{$romawiBulan}/{$tahunSekarang}";
                 break;
+            case 'invoice':
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = $permohonan->jenis_layanan->alias;
+
+                $noKontrak = "{$increment}/INV-{$alias}/{$romawiBulan}/{$tahunSekarang}";
+                break;
             case 'surpeng':
                 // Format nomor kontrak
                 $noKontrak = "{$increment}/{$appName}-B/{$romawiBulan}/{$tahunSekarang}";
                 break;
-            case 'permintaanpengujian':
-                // Format nomor kontrak
-                $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
-                break;
-            case 'KontrakPengujian':
-                // Format nomor kontrak
-                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
-                $alias = $permohonan->layanan_jasa->alias;
-
-                $noKontrak = "{$increment}/{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
-                break;
             case 'kwitansi':
                 // Format nomor kwitansi
-                $noKontrak = "{$increment}/KW-MZR/{$romawiBulan}/{$tahunSekarang}";
-                break;
-            case 'kontrak':
-                // Format nomor kontrak
                 $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
-                $alias = strtoupper(substr($permohonan->jenis_layanan->name, 0, 1));
+                $alias = $permohonan->jenis_layanan->alias;
+
+                $noKontrak = "{$increment}/KW-{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
+                break;
+            case 'adendum':
+                // Format nomor
+                $permohonan = Permohonan::with("jenis_layanan")->where('id_permohonan', $id)->first();
+                $alias = 'A';
 
                 $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
                 break;
@@ -657,7 +686,7 @@ if(!function_exists('renderMentionsToValuesFlexible')) {
             $out .= $dom->saveHTML($child);
         }
 
-        $containerPx = a4ContentWidthPx('portrait', 40, 40, 96); // samakan dgn @page margin & DPI
+        $containerPx = a4ContentWidthPx($options['orientation'], 40, 40, 96); // samakan dgn @page margin & DPI
         $out = convertTableWidthsToPx($out, $containerPx);
 
         $out = TableWidthFixer::colgroupToFirstRowCellPx($out, 800);
@@ -813,7 +842,10 @@ if(!function_exists('getPeriodeAwal')) {
 
 if(!function_exists('cekPeriodeComplete')) {
     function cekPeriodeComplete($id_kontrak, $periode) {
-        $period = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode)->first();
+        $period = Kontrak_periode::with('permohonan', 'permohonan.invoice')->where('id_kontrak', $id_kontrak)
+                    ->where('periode', $periode)
+                    ->first();
+
         $kontrak = Kontrak::with([
             'jenis_layanan',
             'jenis_layanan_parent',
@@ -821,14 +853,17 @@ if(!function_exists('cekPeriodeComplete')) {
             'pengiriman',
             'pengiriman.detail'
         ])->find($id_kontrak);
+
         $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
         $periodeAwal = getPeriodeAwal($kontrak);
         $lastPeriode = $kontrak->periode_all['jml_periode'] == $periode;
 
         $aktifDokumen = array('invoice','tld', 'lhu');
-        $arr = array();
+        if($periode == 0) {
+            $aktifDokumen = array_diff($aktifDokumen, array('tld'));
+        }
         foreach ($aktifDokumen as $dokumen) {
-            if($dokumen === 'invoice' && $period->id_permohonan !== $kontrak->invoice->id_permohonan) continue;
+            if($dokumen === 'invoice' && $period->permohonan?->invoice == null) continue;
             if($dokumen === 'tld') {
                 if($JL == 'KontrakSewa' && $lastPeriode) continue;
                 if(in_array($period->id_periode, $periodeAwal)) continue;
@@ -851,11 +886,11 @@ if(!function_exists('cekPeriodeComplete')) {
                 }
             }
 
-            if($dokumen === 'invoice') {
-                if ($kontrak->invoice->status != 5) {
-                    return false;
-                }
-            }
+            // if($dokumen === 'invoice') {
+            //     if ($kontrak->invoice->status != 5) {
+            //         return false;
+            //     }
+            // }
 
             if($getPengiriman) {
                 if($getPengiriman->status != 2) {
@@ -927,6 +962,65 @@ if(!function_exists('uploadSignatur')) {
         }
 
         return null;
+    }
+}
+
+if(!function_exists('range_date')) {
+    function range_date($start, $end, $type) {
+        if($type == 1) {
+            $typeDateStart = 7;
+            $typeDateEnd = 7;
+        } else if($type == 2) {
+            $typeDateStart = 6;
+            $typeDateEnd = 6;
+        }
+
+        // jika tahun antara start_date dan end_date sama
+        if (substr($start, 0, 4) == substr($end, 0, 4)) {
+            if($type == 1) {
+                $typeDateStart = 11;
+            } else if($type == 2) {
+                $typeDateStart = 12;
+            }
+        }
+
+        return [
+            'start' => convert_date($start, $typeDateStart),
+            'end' => convert_date($end, $typeDateEnd)
+        ];
+    }
+}
+
+if(!function_exists('setKontrakAdendum')) {
+    function setKontrakAdendum($id_kontrak, $periode) {
+        $kontrak = Kontrak::find($id_kontrak);
+
+        if($periode >= $kontrak->periode_active->periode){
+            $result = Kontrak_detail::where('id_kontrak', $id_kontrak)
+                ->where('status', 2)
+                ->where('periode', '>=', $kontrak->periode_active->periode)
+                ->get();
+
+            foreach ($result as $key => $value) {
+                if($value->pengguna_lama) {
+                    $change = Kontrak_detail::where('id_kontrak', $id_kontrak)
+                        ->where('status', 1)
+                        ->where('id_pengguna_divisi', $value->pengguna_lama)
+                        ->first();
+
+                    // update sync status tld
+                    $value->status_tld_1 = $change->status_tld_1;
+                    $value->status_tld_2 = $change->status_tld_2;
+
+                    // update master_pengguna yang diganti
+                    Master_pengguna::where('id_pengguna', $change->id_pengguna_divisi)->update(['status' => 1]);
+
+                    $change->update(['status' => 99]);
+                }
+                $value->status = 1;
+                $value->save();
+            }
+        }
     }
 }
 ?>

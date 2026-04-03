@@ -82,7 +82,9 @@
                     </li>
                     @endforeach
                 </ul>
+                @if(count($jobsParalel) > 0)
                 <div>Tugas yang akan di lakukan setelah proses {{ $jobsPoint->name }}</div>
+                @endif
                 {{-- Load List jobs paralel --}}
                 <ul id="sortJobsParalel">
                     @foreach ($jobsParalel as $job)
@@ -113,7 +115,7 @@
 
                 @if (($type == 'show' && $penyelia->ttd) || ($type == 'verif'))
                 <div class="col-md-12 d-flex justify-content-center">
-                    <div class="wrapper" id="content-ttd-1"></div>
+                    <div class="wrapper text-center" id="content-ttd-1"></div>
                 </div>
                 @endif
                 <div class="col-12 text-end">

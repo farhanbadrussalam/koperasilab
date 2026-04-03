@@ -9,6 +9,7 @@ class Periode {
         this.id_element = options.id_element || 1;
         this.eventSimpan = new CustomEvent(`periode.simpan.${this.id_element}`, {});
         this.eventHide = new CustomEvent("periode.hide.modal", {});
+        this.defaultDate = options.defaultDate || null;
 
         // add element modal to body
         if (this.canShow) {
@@ -36,7 +37,6 @@ class Periode {
         });
 
         $("#btn-simpan-periode-" + this.id_element).on("click", () => {
-            // console.log("simpan periode");
             this.simpanPeriode();
         });
     }
@@ -113,7 +113,6 @@ class Periode {
 
     show() {
         this.listPeriode = Array.from(this.masterData || []);
-        console.log(this);
         if (this.canShow) {
             this.previewPeriode();
             $("#modal-show-periode-" + this.id_element).modal("show");
@@ -256,7 +255,7 @@ class Periode {
                 altInput: true,
                 locale: "id",
                 // minDate: "today",
-                defaultDate: lastDate ? lastDate.end_date : "",
+                defaultDate: lastDate ? lastDate.end_date : (this.defaultDate ? this.defaultDate : null),
                 dateFormat: "Y-m-d",
                 altFormat: "j F Y",
                 disable: [

@@ -15,6 +15,8 @@ $(function () {
     detail = new Detail({
         jenis: 'penyelia',
         tab: {
+            pengguna: true,
+            tld: true,
             dokumen: true,
             log: true
         }
@@ -81,11 +83,12 @@ function loadData(page = 1) {
                 const hasCommonValue = jobsAktiveHash.some(hash => listJobs.includes(hash));
             */
 
+            let showPenyelia = lhu.status == 3 ? false : true;
             let divInfoTugas = `
                 <div class="col-md-12 mt-2 fs-7">
                     <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
                         <span>Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
-                        <a class="py-1 px-2 text-decoration-none border rounded-2" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
+                        <a class="py-1 px-2 text-decoration-none border rounded-2 ${showPenyelia ? 'd-none' : ''}" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
                         onclick="showHideProgress(this)">Lihat Progress LAB</a>
                     </div>
                 </div>
@@ -115,6 +118,11 @@ function loadData(page = 1) {
                 <li>
                     <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
                         <i class="bi bi-info-circle"></i> Detail
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item small cursor-pointer" title="Lihat Surat Pengantar" href="${base_url}/laporan/surpeng/${lhu.permohonan.kontrak.kontrak_hash}/${lhu.permohonan.periode}" target="_blank">
+                        <i class="bi bi-eye"></i> Surat Pengantar
                     </a>
                 </li>
             `;
@@ -160,7 +168,6 @@ function loadData(page = 1) {
                     btnAction2 += btnUpdateProgress;
                 } else {
                     let filterPeriodeNext = lhu.permohonan.kontrak.periode.filter(d => d.periode == lhu.periode + 1 && d.status == 1);
-                    // console.log(filterPeriodeNext);
                     if(filterPeriodeNext.length > 0){
                         let reminderPeriod = isReminderPeriod(filterPeriodeNext[0].start_date, 1);
 
@@ -240,45 +247,12 @@ function loadData(page = 1) {
                 pelanggan: permohonan.pelanggan.name,
                 divInfoTugas: divInfoTugas,
                 divTimelineTugas: timeline,
-                htmlLeftTime: htmlLeftTime
+                htmlLeftTime: htmlLeftTime,
+                status: lhu.status,
+                perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan
             }
 
             html += cardComponent(params, {btnMenuAction: btnAction, btnAction: btnAction2});
-
-            // html += `
-            //     <div class="card mb-2">
-            //         <div class="card-body row align-items-center py-2">
-            //             <div class="col-auto">
-            //                 <div class="">
-            //                     <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.tipe_kontrak}</span>
-            //                     <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${permohonan.kontrak.jenis_layanan_parent.name} - ${permohonan.kontrak.jenis_layanan.name}</span>
-            //                     <span> | ${htmlStatus}</span>
-            //                 </div>
-            //                 <div class="fs-5 my-2">
-            //                     <span class="fw-bold">${permohonan.jenis_tld?.name ?? '-'} - Layanan ${permohonan.layanan_jasa?.nama_layanan}</span>
-            //                     <div class="text-body-tertiary fs-7">
-            //                         <div><i class="bi bi-building-fill"></i> ${permohonan.pelanggan.perusahaan.nama_perusahaan}</div>
-            //                     </div>
-            //                 </div>
-            //                 <div class="d-flex gap-3 text-body-tertiary fs-7">
-            //                     <span><i class="bi bi-calendar-range"></i> ${permohonan.periode == 0 ? `Zero cek` : `Periode ${permohonan.periode}`}</span>
-            //                     <div><i class="bi bi-calendar-fill"></i> ${dateFormat(permohonan.created_at, 4)}</div>
-            //                     ${permohonan.kontrak ? `<div><i class="bi bi-file-text"></i> ${permohonan.kontrak.no_kontrak}</div>` : ''}
-            //                 </div>
-            //             </div>
-            //             <div class="ms-auto col-auto">
-            //                 ${htmlLeftTime}
-            //                 <div class="text-center gap-1 d-flex" data-id='${lhu.penyelia_hash}' data-index='${i}'>
-            //                     ${btnAction}
-            //                 </div>
-            //             </div>
-            //             ${divInfoTugas}
-            //             <div class="col-md-12 collapse" id="timeline-progress-${lhu.penyelia_hash}">
-            //                 ${timeline.elementCreate()}
-            //             </div>
-            //         </div>
-            //     </div>
-            // `;
         }
 
         if(result.data.length == 0){

@@ -21,104 +21,174 @@ $(function () {
         setProses(prosesNow);
     });
 })
+/**
+ * Open modal for updating progress of penyelia
+ * If obj is passed, it will get the idPenyelia from the closest tr element
+ * If idPenyelia is passed, it will get the data from the API by the idPenyelia
+ * @param {object|boolean} obj - The element that triggered the modal
+ * @param {string|boolean} idPenyelia - The id of the penyelia
+ */
 function openProgressModal(obj = false, idPenyelia = false){
-    const index = $(obj).parent().parent().data("index");
-    idPenyelia = obj ? dataPenyelia[index].penyelia_hash : idPenyelia;
+    if (obj) {
+        const index = $(obj).closest('tr').data("index") ?? $(obj).parent().parent().data("index");
+        idPenyelia = dataPenyelia[index].penyelia_hash;
+    }
 
     ajaxGet(`api/v1/penyelia/getById/${idPenyelia}`, false, result => {
         nowSelect = result.data ?? false;
+        if (!nowSelect) return;
+
         $('#statusDone').prop('checked', true);
-        // Mengambil proses jobs
-        const listJobsAktif = nowSelect.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
 
-        let idxPetugas = 0;
-        let htmlJobs = listJobsAktif.map((d, index) => {
-            let petugasInJobs = nowSelect.petugas.find(y => y.map_hash == d.map_hash && y.user_hash == userActive.user_hash);
-
-            if(petugasInJobs){
-                if(idxPetugas == 0){
-                    setProses(d);
-                }
-                idxPetugas++;
-                return `<option value="${d.map_hash}" ${index == 0 ? 'selected' : ''}>${d.jobs.name}</option>`;
-            }
-        });
-
-        $('#prosesNow').html(htmlJobs.join(''));
-
-        $('#dateProgress').flatpickr({
-            altInput: true,
-            locale: "id",
-            dateFormat: "Y-m-d",
-            altFormat: "j F Y",
-            minDate: nowSelect.start_date,
-            maxDate: nowSelect.end_date,
-            defaultDate: 'today'
-        });
-
-        if(documentLhu){
-            documentLhu.destroy();
-            documentLhu = false;
-        }
-
-        // add rincian TLD
-        let htmlRincianTld = '';
-        for (const detail of nowSelect.permohonan?.kontrak?.rincian_list_tld) {
-            if(nowSelect.periodenow.count_tld == detail.count_tld || nowSelect.periodenow.periode == 0){
-                let html = ``;
-                let inPenyimpanan = detail.status == 5 ? true : false;
-                for (const TLD of detail.tld) {
-                    html += `
-                        <div class="card card-default mb-1">
-                            <div class="card-body d-flex justify-content-between py-2">
-                                <span>${TLD.no_seri_tld}</span>
-                                <div class="">
-                                    <small class="text-${inPenyimpanan ? 'secondary' : 'success'}">${inPenyimpanan ? 'Penyimpanan' : 'Aktif'}</small>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                if(!detail.pengguna){
-                    htmlRincianTld = html + htmlRincianTld;
-                } else {
-                    htmlRincianTld += html;
-                }
-            }
-        }
-
-        if(htmlRincianTld == ''){
-            htmlRincianTld = `
-                <div class="card card-default mb-1">
-                    <div class="card-body text-center py-2">
-                        <span>Tidak ada TLD</span>
-                    </div>
-                </div>
-            `;
-        }
-
-        $('#detailTld').html(htmlRincianTld);
-
-        documentLhu = new UploadComponent('upload_document', {
-            camera: false,
-            allowedFileExtensions: ['pdf'],
-            multiple: true,
-            urlUpload: {
-                url: `api/v1/penyelia/uploadDokumenLhu`,
-                urlDestroy: `api/v1/penyelia/destroyDokumenLhu`,
-                idHash: nowSelect.penyelia_hash
-            }
-        });
-
-        if(nowSelect.media.length > 0){
-            documentLhu.setData(nowSelect.media);
-        }
+        renderJobsSelection(nowSelect);
+        initDatePicker(nowSelect);
+        renderTldList(nowSelect);
+        initUploadDocument(nowSelect);
 
         $('#inputNote').val('');
-
         $('#updateProgressModal').modal('show');
     })
+}
+
+/**
+ * Render list of jobs selection based on the data provided
+ * The jobs are filtered based on the jobs that are currently assigned to the user
+ * The first job in the list is selected by default
+ * @param {object} data - The penyelia data
+ */
+function renderJobsSelection(data) {
+    let listJobsAktif = data.penyelia_map.filter(d => listJobs.includes(d.jobs_hash) && d.status == 1);
+
+    // Urutkan pekerjaan: yang tidak memiliki point_jobs di atas, yang memiliki di bawah,
+    // lalu urutkan berdasarkan 'order' di dalam masing-masing grup.
+    listJobsAktif.sort((a, b) => (!!a.point_jobs - !!b.point_jobs) || (a.order - b.order));
+
+    // Filter jobs assigned to current user
+    const userJobs = listJobsAktif.filter(d =>
+        data.petugas.some(p => p.map_hash == d.map_hash && p.user_hash == userActive.user_hash)
+    );
+
+    if (userJobs.length > 0) {
+        setProses(userJobs[0]);
+    }
+
+    const htmlJobs = userJobs.map((d, index) =>
+        `<option value="${d.map_hash}" ${index === 0 ? 'selected' : ''}>${d.jobs.name}</option>`
+    ).join('');
+
+    $('#prosesNow').html(htmlJobs);
+}
+
+/**
+ * Initialize date picker for progress date input
+ * The date picker is limited to the start date and end date of the current penyelia
+ * The default date is set to today
+ * @param {object} data - The penyelia data
+ */
+function initDatePicker(data) {
+    $('#dateProgress').flatpickr({
+        altInput: true,
+        locale: "id",
+        dateFormat: "Y-m-d",
+        altFormat: "j F Y",
+        minDate: data.start_date,
+        maxDate: data.end_date,
+        defaultDate: 'today'
+    });
+}
+
+/**
+ * Render list of TLDs based on the data provided
+ * The TLDs are filtered based on the jobs that are currently assigned to the user
+ * The first TLD in the list is selected by default
+ * @param {object} data - The penyelia data
+ */
+function renderTldList(data) {
+    let htmlRincianTld = '';
+    let isPeriodOne = data.permohonan.periodenow.count_tld == 1 || data.permohonan.periodenow.periode == 0;
+    let periodenow = data.permohonan.periodenow.periode == 0 ? 1 : data.permohonan.periodenow.periode;
+    let tipe_kontrak = data.permohonan.tipe_kontrak;
+    let details = [];
+
+    if(tipe_kontrak == "adendum"){
+        details = data.permohonan.permohonan_detail;
+    } else {
+        details = data.permohonan.kontrak.kontrak_detail.filter(d => {
+            return isPeriodOne ? d.periode_tld_1 == periodenow : d.periode_tld_2 == periodenow;
+        });
+    }
+
+    details.forEach(detail => {
+        let tld = false;
+        let status = false;
+        if(tipe_kontrak == 'adendum'){
+            tld = detail.tld;
+            status = detail.status;
+        } else {
+            tld = isPeriodOne ? detail.tld_1 : detail.tld_2;
+            status = isPeriodOne ? detail.status_tld_1 : detail.status_tld_2;
+        }
+        if (!tld) return;
+
+        const inPenyimpanan = status == 5;
+
+        const cardHtml = `
+            <div class="card card-default mb-1">
+                <div class="card-body d-flex justify-content-between py-2">
+                    <span>${tld.no_seri_tld}</span>
+                    <div>
+                        <small class="text-${inPenyimpanan ? 'secondary' : 'success'}">
+                            ${inPenyimpanan ? 'Penyimpanan' : 'Aktif'}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (!detail.pengguna) {
+            htmlRincianTld = cardHtml + htmlRincianTld;
+        } else {
+            htmlRincianTld += cardHtml;
+        }
+    });
+
+    if (!htmlRincianTld) {
+        htmlRincianTld = `
+            <div class="card card-default mb-1">
+                <div class="card-body text-center py-2">
+                    <span>Tidak ada TLD</span>
+                </div>
+            </div>
+        `;
+    }
+
+    $('#detailTld').html(htmlRincianTld);
+}
+
+/**
+ * Initialize the upload document component
+ * @param {object} data - The penyelia data
+ */
+function initUploadDocument(data) {
+    if (documentLhu) {
+        documentLhu.destroy();
+        documentLhu = false;
+    }
+
+    documentLhu = new UploadComponent('upload_document', {
+        camera: false,
+        allowedFileExtensions: ['pdf'],
+        multiple: true,
+        urlUpload: {
+            url: `api/v1/penyelia/uploadDokumenLhu`,
+            urlDestroy: `api/v1/penyelia/destroyDokumenLhu`,
+            idHash: data.penyelia_hash
+        }
+    });
+
+    if (data.media && data.media.length > 0) {
+        documentLhu.setData(data.media);
+    }
 }
 
 function setProses(prosesNow){
@@ -167,7 +237,7 @@ function simpanProgress(obj){
     form.append('idPenyelia', nowSelect?.penyelia_hash);
     form.append('nextJobs', nextJobs);
     form.append('nowJobs', nowJobs);
-    form.append('periodeNow',nowSelect.periodenow.periode_hash);
+    form.append('periodeNow',nowSelect.periodenow?.periode_hash);
     form.append('note', note);
     form.append('sProgress', sProgress);
 

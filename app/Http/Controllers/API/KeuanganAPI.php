@@ -85,7 +85,8 @@ class KeuanganAPI extends Controller
                             'permohonan.jenis_layanan_parent',
                             'permohonan.pelanggan',
                             'permohonan.pelanggan.perusahaan',
-                            'permohonan.kontrak'
+                            'permohonan.kontrak',
+                            'permohonan.kontrak.periode'
                         )
                         ->orderBy('created_at','DESC')
                         ->offset(($page - 1) * $limit)
@@ -265,7 +266,8 @@ class KeuanganAPI extends Controller
                 'permohonan.jenis_layanan_parent',
                 'permohonan.pelanggan',
                 'permohonan.pelanggan.perusahaan',
-                'permohonan.kontrak'
+                'permohonan.kontrak',
+                'permohonan.kontrak.periode',
             )->find($idKeuangan);
 
             DB::commit();
@@ -312,10 +314,10 @@ class KeuanganAPI extends Controller
 
             $invoice = Keuangan::where('id_keuangan', $idKeuangan)->with('permohonan:id_permohonan,created_by')->first();
             if($invoice){
-                !$invoice->no_invoice && $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
+                !$invoice->no_invoice && $data['no_invoice'] = generateNoDokumen('invoice', $idPermohonan);
                 !$invoice->created_by && $data['created_by'] = Auth::user()->id;
             }else{
-                $data['no_invoice'] = $this->generateNoInvoice($idPermohonan);
+                $data['no_invoice'] = generateNoDokumen('invoice', $idPermohonan);
                 $data['created_by'] = Auth::user()->id;
             }
 
@@ -360,6 +362,16 @@ class KeuanganAPI extends Controller
                 Notifier::send($userQuery, $dataNotif);
             }
 
+            if($status == 1) {
+                $data['ppn'] = null;
+                $data['pph'] = null;
+                $data['id_jenis_pembayaran'] = null;
+
+                if($invoice){
+                    Keuangan_diskon::where('id_keuangan', $invoice->id_keuangan)->delete();
+                }
+            }
+
             $keuangan = Keuangan::updateOrCreate(
                 ["id_keuangan" => $idKeuangan],
                 $data
@@ -381,7 +393,7 @@ class KeuanganAPI extends Controller
                             ->where('status', '1')
                             ->first();
 
-                $document = Permohonan_dokumen::create(array(
+                Permohonan_dokumen::create(array(
                     'id_kontrak' => Permohonan::find($keuangan->id_permohonan)->id_kontrak,
                     'id_permohonan' => $keuangan->id_permohonan,
                     'id_doc_template' => $template->id_doc,
@@ -409,7 +421,7 @@ class KeuanganAPI extends Controller
                 // ambil ttd invoice
                 $invoice = Permohonan_dokumen::select('ttd', 'ttd_by')->where('nomer', $keuangan->no_invoice)->first();
                 $no_kwitansi = generateNoDokumen('kwitansi', $keuangan->id_permohonan);
-                $document = Permohonan_dokumen::create(array(
+                Permohonan_dokumen::create(array(
                     'id_kontrak' => Permohonan::find($keuangan->id_permohonan)->id_kontrak,
                     'id_doc_template' => $template->id_doc,
                     'created_by' => Auth::user()->id,
@@ -444,11 +456,11 @@ class KeuanganAPI extends Controller
                 $result['msg'] = "Invoice berhasil dibuat.";
 
                 // menambahkan id keuangan ke kontrak
-                $idKontrak = Permohonan::find($idPermohonan)->id_kontrak;
-                if($idKontrak){
-                    $kontrak = Kontrak::find($idKontrak);
-                    $kontrak->update(array('id_keuangan' => $keuangan->id_keuangan));
-                }
+                // $idKontrak = Permohonan::find($idPermohonan)->id_kontrak;
+                // if($idKontrak){
+                //     $kontrak = Kontrak::find($idKontrak);
+                //     $kontrak->update(array('id_keuangan' => $keuangan->id_keuangan));
+                // }
 
                 // send notifikasi
                 $userQuery = User::role("Staff keuangan");
@@ -735,35 +747,4 @@ class KeuanganAPI extends Controller
     }
 
     // PRIVATE FUNCTION
-    private function generateNoInvoice($idPermohonan)
-    {
-        $permohonan = Permohonan::with('jenis_layanan')->where('id_permohonan', $idPermohonan)->first();
-        // Menentukan tipe kontrak
-        if($permohonan) {
-            $jenisLayanan = substr($permohonan->jenis_layanan->name, 0, 1);
-            $type = strtoupper($jenisLayanan);
-
-            // Nama aplikasi
-            $appName = 'JKRL';
-
-            // Mengambil bulan sekarang dan mengubah ke dalam format Romawi
-            $bulanSekarang = date('n'); // n = format angka bulan tanpa nol
-            $romawiBulan = getRomawiBulan($bulanSekarang);
-
-            // Tahun saat ini
-            $tahunSekarang = date('Y');
-
-            // Incremental number
-            $lastInvoiceNumber = Keuangan::whereNotNull('no_invoice')
-                                    ->whereMonth('created_at', $bulanSekarang)
-                                    ->whereYear('created_at', $tahunSekarang)
-                                    ->count(); // Ubah dengan pengambilan nomor terakhir dari database
-            $increment = str_pad($lastInvoiceNumber + 1, 4, '0', STR_PAD_LEFT);
-
-            // Format nomor kontrak
-            $noInvoice = "{$increment}/INV-{$type}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
-
-            return $noInvoice;
-        }
-    }
 }

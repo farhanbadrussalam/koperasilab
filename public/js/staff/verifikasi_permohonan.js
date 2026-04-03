@@ -12,8 +12,16 @@ let tmpArrTld = [];
 let JL = '';
 let jmlTldCount = 0;
 let isCheckedEvaluasi = false;
+let isAdendumZerocek = true;
 
 $(function () {
+    // is adendum tidak pake zerocek
+    if(dataPermohonan.tipe_kontrak == 'adendum'){
+        if(dataPermohonan.is_zerocek == 0){
+            $('#tambah-tandaterima').hide();
+            isAdendumZerocek = false;
+        }
+    }
     inventoryTld = new Inventory_tld({preview: true});
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
@@ -29,6 +37,10 @@ $(function () {
         }
     });
 
+    if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
+        $('#total-harga').hide();
+    }
+
     JL = jenislayanan(dataPermohonan.jenis_layanan_parent, dataPermohonan.jenis_layanan);
 
     const arrPeriode = dataPermohonan.periode_pemakaian;
@@ -37,6 +49,7 @@ $(function () {
     let txtPeriode = '';
     if(!dataPermohonan.periode_pemakaian){
         txtPeriode = 'Periode ' + dataPermohonan.periode;
+        $('#btn-periode').hide();
     } else {
         if(arrPeriode.length == 1) {
             txtPeriode = `${dateFormat(arrPeriode[0].start_date, 4)} - ${dateFormat(arrPeriode[0].end_date, 4)}`;
@@ -68,7 +81,6 @@ $(function () {
         });
 
         periodeNextJs.on('periode.simpan.2', () => {
-            console.log("simpan periode");
             const dataPeriode = periodeNextJs.getData();
             const params = new FormData();
             params.append('idPermohonan', dataPermohonan.permohonan_hash);
@@ -87,8 +99,7 @@ $(function () {
         });
     }
 
-    $('#periode-pemakaian-next').val(txtPeriodeNext);
-    const conten_2 = document.getElementById("content-ttd-2");
+    $('#periode-pemakaian-next').html(txtPeriodeNext);
 
     loadTld();
     $('#btn-tandaterima').on('click', () => {
@@ -99,7 +110,6 @@ $(function () {
     })
 
     if(arrPeriode){
-        console.log(arrPeriode);
         periodeJs = new Periode(arrPeriode, {
             preview: false,
             max: arrPeriode.length,
@@ -188,6 +198,14 @@ $(function () {
         label: 'Nyatakan valid & Lengkap',
         placeholder: 'Menunggu validasi petugas...',
         signerUser: userActive
+    });
+
+    $('#tanggal-selesai').flatpickr({
+        altInput: true,
+        locale: "id",
+        minDate: new Date(),
+        dateFormat: "Y-m-d",
+        altFormat: "j F Y",
     });
 
     loadPelanggan();
@@ -314,71 +332,63 @@ function toggleReason(index, enable) {
 }
 
 function loadTld(){
-    ajaxGet('api/v1/permohonan/loadTld', {idPermohonan: dataPermohonan.permohonan_hash}, result => {
-        let kKontrol = result.data.tldKontrak ? result.data.tldKontrak.filter(tld => !tld.pengguna) : [];
-        let tldKontrol = [
-            ...result.data.tldPermohonan.filter(tld => !tld.pengguna),
-            ...kKontrol,
-        ];
-
-        loadPengguna();
-        loadTldKontrol(tldKontrol);
-        return;
-    });
+    loadPengguna();
+    loadTldKontrol();
 }
 
-function loadTldKontrol(tldKontrol){
-    ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
+function loadTldKontrol(){
+    ajaxGet(`api/v1/permohonan/listKontrol`, {idPermohonan: dataPermohonan.permohonan_hash}, result => {
         let html = '';
         let htmlDisabled = false;
-        // if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
-        //     htmlDisabled = true;
-        // }
 
         if(dataPermohonan.is_have_tld){
             htmlDisabled = true;
         }
         let index = 0;
-        jmlTldCount += tldKontrol.length;
-        for(const iKontrol of tldKontrol){
-            let tldHash = '';
-            let no_seri_tld = '';
-            let idHash = iKontrol.permohonan_tld_hash ? iKontrol.permohonan_tld_hash : iKontrol.kontrak_tld_hash;
+        jmlTldCount += result.data.tldPermohonan.length;
+        for (const key in result.data.tldPermohonan) {
+            if (!Object.hasOwn(result.data.tldPermohonan, key)) continue;
+            const kontrol = result.data.tldPermohonan[key];
 
-            for (let idx = 0; idx < iKontrol.count; idx++) {
-                if(iKontrol.tld) {
-                    tldHash = iKontrol.tld[idx].tld_hash;
-                    no_seri_tld = iKontrol.tld[idx].no_seri_tld;
-                } else if(result.data[index]){
-                    tldHash = result.data[index].tld_hash;
-                    no_seri_tld = result.data[index].no_seri_tld;
-                } else {
-                    tldHash = '';
-                    no_seri_tld = '';
-                }
-
+            for (const [i,item] of kontrol.entries()) {
+                let idHash = item.permohonan_detail_hash ? item.permohonan_detail_hash : item.kontrak_detail_hash;
+                let tldHash = item.tld ? item.tld.tld_hash : (item.tld_pengguna?.tld_hash || '');
+                let no_seri_tld = item.tld ? item.tld.no_seri_tld : (item.tld_pengguna?.no_seri_tld || '');
                 tmpArrTld.push({
-                    id: `${idHash}|${idx+1}`,
+                    id: idHash,
                     tld: tldHash,
-                    index: `tldNoSeri_${idx}_kontrol`
+                    index: `tldNoSeri_${index}_kontrol`
                 });
 
-                let kodeLencana = iKontrol.count > 1 ? `C${idx+1}` : `C`;
+                let kodeLencana = i == 0 ? 'C' : `C${i}`;
 
                 let data = {
-                    name: `Kontrol ${iKontrol.divisi?.name ?? ''} ${kodeLencana}`,
+                    name: `Kontrol ${item.entitas?.name ?? ''} ${kodeLencana}`,
                     kode: kodeLencana,
-                    isCheckedEvaluasi : isCheckedEvaluasi,
-                    index: idx,
-                    tldHash: iKontrol.kontrak_tld_hash,
+                    isCheckedEvaluasi: isCheckedEvaluasi,
+                    index: index,
+                    tldHash: tldHash,
                     no_seri_tld: no_seri_tld,
                     htmlDisabled: htmlDisabled
-                }
+                };
 
-                html += cardKontrolComponent(data);
+                html += cardKontrolComponent(data, {
+                    is_btn_remove: false,
+                    label_tld: true,
+                    add_kontrol: false
+                });
+
                 index++;
             }
-            index++;
+        }
+        $('#jumlah-info-kontrol').html(index);
+
+        if(result.data.tldPermohonan.length == 0){
+            html += `
+                <div class="col-sm-12 text-center my-3">
+                    <label for="">Tidak ada TLD Kontrol</label>
+                </div>
+            `;
         }
         $('#tld-kontrol-content').html(html);
     });
@@ -393,25 +403,22 @@ function loadPengguna(){
     ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
         let html = '';
         let htmlDisabled = false;
-        // if(dataPermohonan.tipe_kontrak == 'kontrak lama' || tmpArrEvaluasi.includes(JL)){
-        //     htmlDisabled = true;
-        // }
 
-        if(dataPermohonan.is_have_tld){
+        if(dataPermohonan.is_have_tld || dataPermohonan.tipe_kontrak == 'adendum'){
             htmlDisabled = true;
         }
 
         jmlTldCount += result.data.length;
 
-        for (const [i, value] of result.data.entries()) {
-            let txtRadiasi = '';
-            // RADIASI
-            value.radiasi?.map(nama_radiasi => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${nama_radiasi}</span>`);
+        $('#jumlah-pengguna').html(result.data.length + ' Orang')
+        $('#jumlah-info-pengguna').html(result.data.length)
 
+        for (const [i, value] of result.data.entries()) {
+            const pengguna = value.entitas;
             // TLD PENGGUNA
-            let idHash = value.permohonan_tld_hash ? value.permohonan_tld_hash : value.kontrak_tld_hash;
-            let tldHash = value.tld ? value.tld[0].tld_hash : (value.tld_pengguna?.tld_hash || '');
-            let no_seri_tld = value.tld ? value.tld[0].no_seri_tld : (value.tld_pengguna?.no_seri_tld || '');
+            let idHash = value.permohonan_detail_hash ? value.permohonan_detail_hash : value.kontrak_detail_hash;
+            let tldHash = value.tld ? value.tld.tld_hash : (value.tld_pengguna?.tld_hash || '');
+            let no_seri_tld = value.tld ? value.tld.no_seri_tld : (value.tld_pengguna?.no_seri_tld || '');
 
             if(!value.tld) htmlDisabled = false;
 
@@ -421,21 +428,40 @@ function loadPengguna(){
                 index: `tldNoSeri_${i}_pengguna`
             });
 
-            let fileKtp = value.pengguna.media_ktp ? `${base_url}/storage/${value.pengguna.media_ktp.file_path}/${value.pengguna.media_ktp.file_hash}` : '';
+            let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
             let data = {
                 index: i,
                 idHash: idHash,
                 isCheckedEvaluasi: isCheckedEvaluasi,
-                name: value.pengguna.name,
-                divisi: value.pengguna.divisi?.name || '',
-                radiasi: value.radiasi,
+                name: pengguna.name,
+                divisi: pengguna.divisi?.name || '',
+                radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
                 no_seri_tld: no_seri_tld,
                 htmlDisabled: htmlDisabled,
                 fileKtp: fileKtp
             }
 
-            html += cardPenggunaComponent(data);
+            if(value.type == 'ganti'){
+                data['name'] = value.pengguna_lama?.name;
+                data['pengguna_baru'] = {
+                    name: pengguna.name,
+                }
+            }
+
+            html += cardPenggunaComponent(data, {
+                label_tld: true,
+                status: value.type,
+                is_adendum: false
+            });
+        }
+
+        if(result.data.length == 0){
+            html += `
+                <div class="col-sm-12 text-center my-3">
+                    <label for="">Tidak ada Pengguna</label>
+                </div>
+            `;
         }
 
         $('#pengguna-list-container').html(html);
@@ -447,7 +473,7 @@ function loadPengguna(){
 function verif_kelengkapan(status, obj){
     if(status == 'lengkap'){
         let [ttdValue, ttdBy] = signaturePad.getValue();
-        if(dataPermohonan.tandaterima.length == 0){
+        if(dataPermohonan.tandaterima.length == 0 && isAdendumZerocek){
             return Swal.fire({
                 icon: "warning",
                 text: "Harap tambah tandaterima terlebih dahulu.",
@@ -475,6 +501,13 @@ function verif_kelengkapan(status, obj){
             }
         }
 
+        if($('#tanggal-selesai').val() == ''){
+            return Swal.fire({
+                icon: "warning",
+                text: "Harap pilih tanggal selesai terlebih dahulu.",
+            });
+        }
+
         Swal.fire({
             icon: 'warning',
             title: 'Apakah data sudah lengkap?',
@@ -494,22 +527,39 @@ function verif_kelengkapan(status, obj){
                 formData.append('ttd_by', ttdBy);
                 formData.append('status', status);
                 formData.append('idPermohonan', dataPermohonan.permohonan_hash);
+                formData.append('tanggal_selesai', $('#tanggal-selesai').val());
                 formData.append('listTld', JSON.stringify(tmpArrTld));
 
                 spinner('show', obj);
-                ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Permohonan terverifikasi',
-                        timer: 1200,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = base_url+"/staff/permohonan";
+                if(dataPermohonan.tipe_kontrak == 'adendum'){
+                    ajaxPost(`api/v1/permohonan/verifikasi/adendum`, formData, result => {
+                        Swal.fire({
+                            icon: 'success',
+                            text: 'Permohonan terverifikasi',
+                            timer: 1200,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = base_url+"/staff/permohonan";
+                        });
+                    }, error => {
+                        spinner('hide', obj);
                     });
-                }, error => {
-                    spinner('hide', obj);
-                });
+                } else {
+                    ajaxPost(`api/v1/permohonan/verifikasi/cek`, formData, result => {
+                        Swal.fire({
+                            icon: 'success',
+                            text: 'Permohonan terverifikasi',
+                            timer: 1200,
+                            timerProgressBar: true,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.href = base_url+"/staff/permohonan";
+                        });
+                    }, error => {
+                        spinner('hide', obj);
+                    });
+                }
             }
         })
     }else if(status == 'tidak_lengkap'){

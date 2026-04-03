@@ -129,9 +129,6 @@
 @push('scripts')
     <script>
         const informasi = @json($informasi);
-        let periodeNow = @json($periode);
-        const status_tld = @json($status_tld);
-        const periode_aktif = @json($periode_aktif);
     </script>
     <script src="{{ asset('js/staff/pengiriman_send.js') }}"></script>
 @endpush

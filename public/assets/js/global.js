@@ -180,10 +180,10 @@ function dateFormat(tanggal, type = false) {
             };
             break;
         case 5:
-            // Okt 2023
+            // Oktober 2023
             options = {
-            month: 'long',
-            year: 'numeric'
+                month: 'long',
+                year: 'numeric'
             };
             break;
         case 6:
@@ -191,6 +191,19 @@ function dateFormat(tanggal, type = false) {
             month = d.toLocaleString('default', { month: 'short' });
             year = d.getFullYear().toString().slice(2);
             return `${month}'${year}`;
+        case 7:
+            // Okt
+            options = {
+                month: 'short'
+            };
+            break;
+        case 8:
+            // 14 Okt
+            options = {
+                month: 'short',
+                year: 'numeric'
+            };
+            break;
         default:
             // sabtu, 14 Okt 2023, 18:40
             options = {
@@ -205,6 +218,34 @@ function dateFormat(tanggal, type = false) {
     }
 
     return `${d.toLocaleString('id-ID', options)}`;
+}
+
+function range_date(start, end, type) {
+    let typeDateStart;
+    let typeDateEnd;
+
+    // Inisialisasi default berdasarkan type
+    if (type === 1) {
+        typeDateStart = 8;
+        typeDateEnd = 8;
+    } else if (type === 2) {
+        typeDateStart = 6;
+        typeDateEnd = 6;
+    }
+
+    // Jika tahun antara start dan end sama (mengambil 4 karakter pertama)
+    if (start.substring(0, 4) === end.substring(0, 4)) {
+        if (type === 1) {
+            typeDateStart = 7;
+        } else if (type === 2) {
+            typeDateStart = 12;
+        }
+    }
+
+    return {
+        start: dateFormat(start, typeDateStart),
+        end: dateFormat(end, typeDateEnd)
+    };
 }
 
 /**
@@ -1149,8 +1190,10 @@ function getPeriodeAwal(data) {
 function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen){
     const periodeAwal = getPeriodeAwal(data_kontrak);
     // Pengecekan Invoice apakah sudah di bayar atau belum
-    if (data_kontrak.invoice?.status != 5) return false;
-
+    if(data_periode.permohonan?.invoice){
+        if (data_periode.permohonan.invoice.status != 5) return false;
+    }
+    detail_pengiriman = detail_pengiriman.filter(item => item.tipe_kontrak != 'adendum');
     // pengecekan jenis layanan
     for (const doc of arrFindDokumen) {
         let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
@@ -1167,10 +1210,21 @@ function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFi
                     return false;
                 }
             }
+
+            if (data_kontrak.periode_all?.jml_periode && (data_kontrak.periode_all.jml_periode - data_periode.periode) < 2) {
+                if (doc === 'lhu') {
+                    if (!findPeriode || findPeriode.status != 2) {
+                        return false;
+                    }
+                }
+            }
         } else{
             if (!findPeriode || findPeriode.status != 2) {
                 return false;
             }
+
+            // if(findPeriode?.tipe_kontrak == 'adendum')
+            //     continue;
         }
     }
     return true;
@@ -1183,10 +1237,11 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
 
     let aktifDokumenKirim = [];
     for (const doc of arrFindDokumen) {
-        if (doc === 'invoice' && data_periode.permohonan_hash !== kontrak.invoice?.permohonan_hash) continue;
+        if (doc === 'invoice' && !data_periode.permohonan?.invoice) continue;
         if (doc === 'tld') {
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
             if (periodeAwal.includes(data_periode.periode)) continue;
+            // if (data_periode.tipe_kontrak == 'adendum') continue;
         }
         if (doc === 'lhu') {
             if(data_periode.status == 2) continue;
@@ -1437,4 +1492,42 @@ function copyKode(id) {
     navigator.clipboard.writeText(text);
 
     toastr.info('Kode berhasil disalin', 'Informasi');
+}
+
+function loadRadiasi(data_radiasi, count_split = 2) {
+    let txtRadiasi = '';
+    if (data_radiasi && data_radiasi.length > count_split) {
+        data_radiasi.slice(0, count_split).map(nama_radiasi => txtRadiasi += `
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
+                style="font-size: 0.7rem;">
+                ${nama_radiasi}
+            </span>
+        `);
+
+        let otherRadiasi = '';
+        data_radiasi.slice(count_split).map(nama_radiasi => otherRadiasi += `
+            <li><span class="dropdown-item" style="font-size: 0.8rem;">${nama_radiasi}</span></li>
+        `);
+
+        txtRadiasi += `
+        <div class="dropdown d-inline-block">
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle dropdown-toggle cursor-pointer"
+                data-bs-toggle="dropdown" style="font-size: 0.7rem;">
+                +${data_radiasi.length - count_split}
+            </span>
+            <ul class="dropdown-menu shadow-sm">
+                ${otherRadiasi}
+            </ul>
+        </div>
+    `;
+    } else {
+        data_radiasi?.map(nama_radiasi => txtRadiasi += `
+            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle"
+                style="font-size: 0.7rem;">
+                ${nama_radiasi}
+            </span>
+        `)
+    }
+
+    return txtRadiasi
 }

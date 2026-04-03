@@ -227,6 +227,36 @@
                                         </div>
                                     </div>
 
+                                    {{-- div untuk KOP Surat instansi --}}
+                                    <div class="col-12">
+                                        <div class="card border-0 shadow-sm rounded-4">
+                                            <div class="card-header bg-white py-3 border-bottom rounded-top-4 d-flex justify-content-between align-items-center">
+                                                <h6 class="m-0 fw-bold text-dark">
+                                                    <i class="bi bi-envelope-fill me-2 text-danger"></i>KOP Surat
+                                                </h6>
+                                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnTambahKopSurat">
+                                                    <i class="bi bi-plus-circle me-1"></i> Tambah
+                                                </button>
+                                            </div>
+
+                                            <div class="card-body p-3">
+                                                <div class="col-md-12">
+                                                    <table class="table table-borderless" id="table-kop-surat">
+                                                        <tbody id="tbody-kop-surat">
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <div class="col-md-12">
+                                                    {{-- Pagination --}}
+                                                    <div class="d-flex justify-content-end">
+                                                        <div id="pagination-kop-surat"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="col-12">
                                         <div class="card border-0 shadow-sm rounded-4 h-100">
                                             <div class="card-header bg-white py-3 border-bottom rounded-top-4">
@@ -411,6 +441,51 @@
         </section>
     </div>
 
+    <div class="modal fade" id="modal-kop-surat" tabindex="-1" aria-labelledby="kopModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="kopModalLabel">Kop Surat</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body row justify-content-center">
+                    <input type="hidden" id="kop_surat_id">
+                    <div class="mb-3">
+                        <label for="nama_kop_surat" class="form-label">Nama</label>
+                        <input type="text" name="nama_kop_surat" id="nama_kop_surat" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="active_kop_surat" class="form-label">Status Aktif</label>
+                        {{-- gunakan radio button --}}
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="active_kop_surat" id="active_kop_surat_1" value="1" checked>
+                                <label class="form-check-label" for="active_kop_surat_1">Aktif</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="active_kop_surat" id="active_kop_surat_0" value="0">
+                                <label class="form-check-label" for="active_kop_surat_0">Tidak Aktif</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content_kop_surat" class="form-label">Content</label>
+                        <div class="form-floating">
+                            <textarea name="content_kop_surat" id="content_kop_surat" class="form-control" rows="6" required></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-white p-3 border-top rounded-bottom-4">
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary px-4" id="btnSimpanKopSurat" onclick="simpanKopSurat(this)">
+                            <i class="bi bi-save2 me-1"></i> Simpan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @include('pages.profile.component.modal_pic')
 @endsection
 @push('scripts')
@@ -443,4 +518,5 @@
         }
     </script>
     <script src="{{ asset('js/profile.js') }}"></script>
+    <script src="{{ asset('js/kop_surat.js') }}"></script>
 @endpush

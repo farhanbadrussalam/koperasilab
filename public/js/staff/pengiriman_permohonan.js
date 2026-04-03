@@ -6,9 +6,10 @@ $(function () {
     filterComp = new FilterComponent('list-filter', {
         filter : {
             // search: true,
-            // jenis_tld : true,
-            // jenis_layanan : true,
-            // no_kontrak : true,
+            jenis_tld : true,
+            jenis_layanan : true,
+            perusahaan: true,
+            no_kontrak : true,
             // periode: true
         }
     })
@@ -27,11 +28,19 @@ function loadData(page = 1, menu) {
     };
 
     // filterValue.search && (params.filter.search = filterValue.search);
-    // filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
-    // filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
-    // filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
-    // filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.jenis_tld && (params.filter.jenis_tld = filterValue.jenis_tld);
+    filterValue.jenis_layanan && (params.filter.jenis_layanan_1 = filterValue.jenis_layanan);
+    filterValue.jenis_layanan_child && (params.filter.jenis_layanan_2 = filterValue.jenis_layanan_child);
+    filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
     // filterValue.periode && (params.filter.periode = filterValue.periode);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $(`#list-placeholder-list`).show();
     $(`#list-container-list`).hide();
@@ -40,11 +49,14 @@ function loadData(page = 1, menu) {
         dataPermohonan = result.data;
         let html = '';
         for (const [i, data] of result.data.entries()) {
+            // jika adendum bukan zerocek
+            if(data.tipe_kontrak === 'adendum' && data.is_zerocek === 0)
+                continue;
+
             let arrPeriode = data.kontrak?.periode ?? data.periode_pemakaian;
             let urlLaporanInvoice = data.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${data.invoice.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Invoice</a>` : '<i class="bi bi-printer-fill"></i> Cetak Invoice';
             let urlDocLhu = data.lhu?.status == 3 ? `<a href="${base_url}/storage/${data.lhu.media.file_path}/${data.lhu.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak LHU</a>` : '<i class="bi bi-printer-fill"></i> Cetak LHU';
             let arrDocCustom = [];
-            const JL = jenislayanan(data.kontrak.jenis_layanan_parent, data.kontrak.jenis_layanan);
 
             // Data Invoice
             let htmlInvoice = '';
@@ -69,13 +81,23 @@ function loadData(page = 1, menu) {
 
             // Data layanan jasa (TLD)
             let htmlTld = '';
-            data.periode == null ? data.periode = 1 : data.periode;
-            let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.detail.find(c => c.jenis == 'tld' && c.periode == data.periode));
-            let htmlStatus = '';
             let periodeTld = data.periode === 0 ? 1 : data.periode;
+            let cekStatusTldPengiriman = data.kontrak.pengiriman.find(d => d.detail.find(c => c.jenis == 'tld' && c.periode == periodeTld));
+            let htmlStatus = '';
             const periodeAwal = getPeriodeAwal(data.kontrak);
 
-            if( periodeTld !== null && (!periodeAwal.includes(periodeTld))) {
+            if(data.tipe_kontrak == 'adendum'){
+                htmlTld = `
+                    <div class="col-md-12 mt-2">
+                        <div class="border-top py-2 d-flex justify-content-between align-items-center">
+                            <div class="px-2">
+                                <span class="fw-semibold fs-6">Adendum Periode ${periodeTld}</span>
+                                <small class="text-body-tertiary"> - ${data.jumlah_pengguna} Pengguna + ${data.jumlah_kontrol} Kontrol</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if ( periodeTld !== null && (!periodeAwal.includes(periodeTld))) {
                 htmlTld = `
                     <div class="col-md-12 mt-2">
                         <div class="border-top py-2 d-flex justify-content-between align-items-center">
@@ -95,7 +117,6 @@ function loadData(page = 1, menu) {
             // Data LHU
             let htmlLhu = '';
             let htmlStatusLhu = statusFormat('penyelia', data.lhu?.status);
-            // let htmlStatusLhu = data.lhu ? statusFormat('penyelia', data.lhu.status) : '';
             if(aktifJobsLhu && data.lhu.status == 10) {
                 aktifJobsLhu.map(d => {
                     htmlStatusLhu += statusFormat('penyelia', d.jobs.status);
@@ -161,28 +182,51 @@ function loadData(page = 1, menu) {
                             jenis: d.jenis,
                             periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
                             status: pengiriman.status,
-                            no_resi: pengiriman.no_resi ?? false
+                            no_resi: pengiriman.no_resi ?? false,
+                            tipe_kontrak: pengiriman.permohonan ? pengiriman.permohonan.tipe_kontrak : false
                         }));
                     }
                 }
             }
-            const dokumenAktif = periodeMapDocument(data, data.kontrak, arrFind);
+            const dokumenAktif = periodeMapDocument_pengiriman(data, data.kontrak, arrFind);
             const isComplete = cekComplete(data, detailPengiriman, dokumenAktif);
 
             if(!isComplete){
                 htmlBtn += `<a class="btn btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan_hash}"><i class="bi bi-send-fill"></i> Kirim document</a>`;
             }
+
+            let htmlTipeKontrak = '';
+            if(data.tipe_kontrak !== undefined){
+                let classBadge = '';
+                switch(data.tipe_kontrak){
+                    case 'kontrak lama':
+                        classBadge = 'bg-success-subtle text-success-emphasis border-success-subtle';
+                        break;
+                    case 'adendum':
+                        classBadge = 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+                        break;
+                    default:
+                        classBadge = 'bg-primary-subtle text-primary-emphasis border-primary-subtle';
+                        break;
+                }
+                htmlTipeKontrak = `
+                    <span class="badge ${classBadge} border border-info-subtle rounded-pill fw-normal px-3">
+                        ${data.tipe_kontrak}
+                    </span>
+                `;
+            }
+
             html += `
-                <div class="card mb-2">
+                <div class="card mb-2" id="${data.permohonan_hash}">
                     <div class="card-body row align-items-center py-2">
                         <div class="col-9">
                             <div class="">
-                                <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.tipe_kontrak}</span>
+                                ${htmlTipeKontrak}
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
                             </div>
                             <div class="fs-5 my-2"><span class="fw-bold">${data.jenis_tld.name} - ${data.pelanggan.perusahaan.nama_perusahaan}</span> <span class="text-body-tertiary">${data.kontrak ? "#"+data.kontrak.no_kontrak : ''}</span></div>
                             <div class="d-flex gap-3 text-body-tertiary">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})">${data.is_zerocek == 1 ? arrPeriode.length - 1 : arrPeriode.length} Periode</div>
+                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 d-none border border-dark-subtle px-2" onclick="showPeriode(${i})">${data.is_zerocek == 1 ? arrPeriode.length - 1 : arrPeriode.length} Periode</div>
                                 <div><i class="bi bi-person-check-fill"></i> ${data.pelanggan.name}</div>
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
                             </div>
@@ -248,16 +292,48 @@ function reload(){
     loadData();
 }
 
-function cekComplete(data_periode, detail_pengiriman, arrFindDokumen) {
-    return arrFindDokumen.every(doc => detail_pengiriman.some(cek => cek.periode === data_periode.periode && cek.jenis === doc));
-    for (const doc of arrFindDokumen) {
-        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
+function clearFilter(){
+    filterComp.clear();
 
-        if(!findPeriode) {
-            return false;
-        }
-    }
-
-    return true;
+    loadData();
 }
 
+function cekComplete(data_periode, detail_pengiriman, arrFindDokumen) {
+    // Filter pengiriman yang relevan: periode sama dan bukan adendum
+    const pengirimanRelevan = detail_pengiriman.filter(item => {
+        if (data_periode.tipe_kontrak == 'adendum') {
+            return item.periode === data_periode.periode && item.tipe_kontrak == 'adendum';
+        } else {
+            return item.periode === data_periode.periode && item.tipe_kontrak != 'adendum';
+        }
+    });
+
+    // Ambil jenis dokumen yang sudah ada
+    const jenisDokumenAda = pengirimanRelevan.map(item => item.jenis);
+
+    // Pastikan semua dokumen yang dicari ada di dalam jenisDokumenAda
+    return arrFindDokumen.every(doc => jenisDokumenAda.includes(doc));
+}
+
+function periodeMapDocument_pengiriman(data_periode, kontrak, arrFindDokumen){
+    const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
+    const periodeAwal = getPeriodeAwal(kontrak);
+    let lastPeriode = (kontrak.periode_count) == data_periode.periode;
+
+    let aktifDokumenKirim = [];
+    for (const doc of arrFindDokumen) {
+        if (doc === 'invoice' && !data_periode?.invoice) continue;
+        if (doc === 'tld') {
+            if (lastPeriode && tmpArrSewa.includes(JL)) continue;
+            if (periodeAwal.includes(data_periode.periode)) continue;
+            if (data_periode.tipe_kontrak == 'adendum') continue;
+        }
+        if (doc === 'lhu') {
+            if(data_periode.status == 2) continue;
+        }
+
+        aktifDokumenKirim.push(doc);
+    }
+
+    return aktifDokumenKirim;
+}

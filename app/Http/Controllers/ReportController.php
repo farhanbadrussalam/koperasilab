@@ -22,8 +22,10 @@ use App\Models\Penyelia;
 use App\Models\Master_tld;
 
 use App\Models\Documents;
-
+use App\Models\Kontrak_detail;
+use App\Models\Master_pengguna;
 use Auth;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Log;
 
 class ReportController extends Controller
@@ -43,30 +45,13 @@ class ReportController extends Controller
             'html_keys' => $htmlKeys,
             'sanitizer' => fn($h,$k) => Purifier::clean($h, 'ckpdf'), // pakai jika ada mews/purifier
             'allowed_tags'=> '<p><br><strong><b><em><i><u><span><div><img>',
+            'orientation' => $template->orientation,
         ];
 
         $result['header'] = $template->header ? renderMentionsToValuesFlexible($template->header->content, $variables, $options) : '';
         $result['footer'] = $template->footer ? renderMentionsToValuesFlexible($template->footer->content, $variables, $options) : '';
-        $classHeader = $template->header ? 'withHeader' : '';
-        $classFooter = $template->footer ? 'withFooter' : '';
+
         $result['body'] = renderMentionsToValuesFlexible($template->content, $variables, $options);
-
-        // dd(TableWidthFixer::colgroupToFirstRowCellPx($result['header'], 800));
-        // dd($result["body"]);
-        // $html = view('report.index', $result)->render();
-
-        // $b = Browsershot::html($html)
-        //     ->emulateMedia('screen')
-        //     ->showBackground()                 // penting agar warna/background ikut tercetak
-        //     ->setOption('displayHeaderFooter', false) // penting!
-        //     ->format('A4')
-        //     ->margins(0, 0, 0, 0)         // mm: top,right,bottom,left
-        //     ->waitUntilNetworkIdle()          // tunggu asset selesai dimuat
-        //     ->addChromiumArguments(['--allow-file-access-from-files']) // kadang perlu
-        //     ->setOption('waitUntil', 'networkidle0')
-        //     ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox']); // untuk banyak server Linux
-
-        //     $bytes = $b->pdf();
 
         $bytes = Pdf::loadView('report.index', $result);
 
@@ -92,6 +77,7 @@ class ReportController extends Controller
             'permohonan.pelanggan.perusahaan',
             'permohonan.pelanggan.perusahaan.alamat',
             'permohonan.kontrak',
+            'permohonan.kontrak.periode',
             'permohonan.dokumen' => function($q){
                 $q->where('jenis', 'invoice');
             },
@@ -109,13 +95,31 @@ class ReportController extends Controller
         $data['ttd_default'] = $this->global['urlTtdDefault'];
         $data['stempel'] = $this->global['urlStempel'];
         $data['is_catatan'] = !in_array($JL, $this->global['catatan_invoice']);
-
         $periodePemakaian = $query->permohonan->periode_pemakaian;
 
-        if($query->permohonan && count($periodePemakaian) > 0){
-            $data['periode_start'] = $periodePemakaian[0];
-            $data['periode_end'] = $periodePemakaian[count($periodePemakaian) - 1] ?? null;
+        if($query->permohonan->tipe_kontrak == 'adendum') {
+            $periodePemakaian = $query->permohonan->kontrak->periode->filter(function($item) use ($query) {
+                return $item->periode >= $query->permohonan->periode;
+            })->values();
+
+            $data['periode_start'] = array(
+                'start_date' => $periodePemakaian[0]->start_date,
+                'end_date' => $periodePemakaian[0]->end_date,
+            );
+             $data['periode_end'] = array(
+                'start_date' => $periodePemakaian[count($periodePemakaian) - 1]->start_date,
+                'end_date' => $periodePemakaian[count($periodePemakaian) - 1]->end_date,
+            );
+
+            $data['count_periode'] = count($periodePemakaian);
+        } else {
+            if($query->permohonan && count($periodePemakaian) > 0){
+                $data['periode_start'] = $periodePemakaian[0];
+                $data['periode_end'] = $periodePemakaian[count($periodePemakaian) - 1] ?? null;
+                $data['count_periode'] = count($periodePemakaian);
+            }
         }
+
 
         // mengambil template invoice
         $dokumen = $query->permohonan->dokumen->first();
@@ -179,7 +183,7 @@ class ReportController extends Controller
         foreach ($dataKeuangan['diskon'] as $item) {
             $htmlDiskon .= '<tr>
                 <td>' . $item->name . ' ' . $item->diskon . '%</td>
-                <td>( ' . formatCurrency($item->jumDiskon) . ' )</td>
+                <td>- ' . formatCurrency($item->jumDiskon) . '</td>
             </tr>';
         }
 
@@ -195,7 +199,7 @@ class ReportController extends Controller
         if ($data->pph) {
             $htmlPph .= '<tr>
                 <td>PPH ' . $data->pph . '%</td>
-                <td>( ' . formatCurrency($dataKeuangan['jumPph']) . ' )</td>
+                <td>( - ' . formatCurrency($dataKeuangan['jumPph']) . ' )</td>
             </tr>';
         }
 
@@ -204,7 +208,7 @@ class ReportController extends Controller
             "RINCIAN" => '<table class="table-invoice">
                     <tr>
                         <td>' . $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol.' Unit
-                            ' . $data->permohonan->jenisTld->name . ' x ' . count($data->permohonan->periode_pemakaian) . ' Periode x
+                            ' . $data->permohonan->jenisTld->name . ' x ' . $params['count_periode'] . ' Periode x
                             ' . formatCurrency($data->permohonan->harga_layanan) . '</td>
                         <td>' . formatCurrency($data->permohonan->total_harga) . '</td>
                     </tr>
@@ -229,6 +233,8 @@ class ReportController extends Controller
         $vars = array();
         switch ($template->name) {
             case 'Invoice':
+                $rangeDate = range_date($params['periode_start']['start_date'], $params['periode_end']['end_date'], 2);
+
                 $vars["NOMOR"] = $data->no_invoice;
                 $vars["LAMPIRAN"] = "Faktur Pajak";
                 $vars["PERIHAL"] = "Invoice " . $data->permohonan->jenis_layanan_parent->name . " " . $data->permohonan->layanan_jasa->nama_layanan . " " . $data->permohonan->jenisTld->name;
@@ -241,8 +247,8 @@ class ReportController extends Controller
                 $vars["JENIS_LAYANAN"] = $data->permohonan->jenis_layanan_parent->name;
                 $vars["LAYANAN_JASA"] = $data->permohonan->layanan_jasa->nama_layanan;
                 $vars["JENIS_TLD"] = $data->permohonan->jenisTld->name;
-                $vars["PERIODE_MULAI"] = convert_date($params['periode_start']['start_date'], 6);
-                $vars["PERIODE_SELESAI"] = convert_date($params['periode_end']['end_date'], 6);
+                $vars["PERIODE_MULAI"] = $rangeDate['start'];
+                $vars["PERIODE_SELESAI"] = $rangeDate['end'];
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["RINCIAN"] = "";
                 $vars["TERBILANG"] = "";
@@ -260,9 +266,17 @@ class ReportController extends Controller
             case "TandaTerima":
                 if($data->tipe_kontrak == 'kontrak baru') {
                     $pemakaian = $data->periode_pemakaian;
-                    $vars["PERIODE_RINCIAN"] = convert_date($pemakaian[0]['start_date'], 7) . " s/d " . convert_date($pemakaian[0]['end_date'], 7);
+                    $periode1 = convert_date($pemakaian[0]['start_date'], 7) . " s/d " . convert_date($pemakaian[0]['end_date'], 7);
+                    $periode2 = isset($pemakaian[1]) ? convert_date($pemakaian[1]['start_date'], 7) . " s/d " . convert_date($pemakaian[1]['end_date'], 7) : '';
+
+                    if($data->is_zerocek == 1){
+                        $vars["PERIODE_RINCIAN"] = "- $periode1 <br> - $periode2";
+                    } else {
+                        $vars["PERIODE_RINCIAN"] = "- $periode1";
+                    }
                 } else {
-                    // $vars["PERIODE_RINCIAN"] =
+                    $findPeriode = $data->kontrak->periode->where('periode', $data->periode)->first();
+                    $vars["PERIODE_RINCIAN"] = "- " . convert_date($findPeriode->start_date, 7) . " s/d " . convert_date($findPeriode->end_date, 7);
                 }
                 $vars["JUDUL"] = "TANDA TERIMA PENGUJIAN/KALIBRASI";
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
@@ -322,36 +336,45 @@ class ReportController extends Controller
                 $vars = array_merge($vars, $this->contentSuratTugas($data, $params));
                 break;
             case "SuratPengantar":
-                $vars["NOMOR"] = $data["dokumen"]->nomer;
+                $zerocek = '';
+                if(isset($params['permohonan']) && $params['permohonan']->is_zerocek == 1){
+                    $zerocek = " & Hasil Zero Cek";
+                }
+
+                $vars["NOMOR"] = $params["dokumen"]->nomer;
+                $vars["PERIODE_AWAL"] = convert_date($params['kontrak_periode']->start_date, 6);
+                $vars["PERIODE_SELESAI"] = convert_date($params['kontrak_periode']->end_date, 6);
+                $vars["PERIODE_NOW"] = $params['kontrak_periode']->status == 2 ? "periode pengembalian" : "periode {$params['kontrak_periode']->periode}";
+                $vars["TGL_BUAT"] = convert_date($params["dokumen"]->created_at, 2);
+
                 $vars["JML_UNIT"] = $data->jumlah_pengguna + $data->jumlah_kontrol;
                 $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
+                $vars["ZEROCEK"] = $zerocek;
                 $vars["JENIS_TLD"] = $data->jenisTld->name;
-                $vars["TGL_BUAT"] = convert_date($data["dokumen"]->created_at, 2);
                 $vars["PETUGAS"] = $data->pelanggan->name;
                 $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
                 $vars["TELEPON"] = $data->pelanggan->profile->no_hp;
                 $vars["PETUGAS_DIVISI"] = $data->pelanggan->jabatan;
                 $vars["JML_P"] = $data->jumlah_pengguna;
                 $vars["JML_K"] = $data->jumlah_kontrol;
-                $vars["PERIODE_AWAL"] = convert_date($data->periode[0]->start_date, 6);
-                $vars["PERIODE_SELESAI"] = convert_date($data->periode[0]->end_date, 6);
-                $vars["PERIODE_NOW"] = $data->periode[0]->status == 2 ? "periode pengembalian" : "periode {$data->periode[0]->periode}";
                 $vars["NO_KONTRAK"] = $data->no_kontrak;
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars= array_merge($vars, $this->contentSuratPengantar($data, $params));
                 break;
             case "Kwitansi":
+                $rangeDate = range_date($params['periode_start'], $params['periode_end'], 2);
+
                 $vars["NOMOR"] = $data->permohonan->kontrak->dokumen[0]->nomer;
                 $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
                 $vars["JENIS_LAYANAN"] = $data->permohonan->jenis_layanan->name;
                 $vars["LAYANAN_JASA"] = $data->permohonan->layanan_jasa->nama_layanan;
                 $vars["JENIS_TLD"] = $data->permohonan->jenisTld->name;
                 $vars["JML_UNIT"] = $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol;
-                $vars["JML_PERIODE"] = $data->permohonan->kontrak->periode_all['jml_periode'];
-                $vars["HARGA"] = formatCurrency($data->permohonan->kontrak->harga_layanan);
-                $vars["HARGA_AWAL"] = formatCurrency($data->permohonan->kontrak->total_harga);
-                $vars["PERIODE_AWAL"] = convert_date($data->permohonan->kontrak->periode_all['periode_awal'], 6);
-                $vars["PERIODE_SELESAI"] = convert_date($data->permohonan->kontrak->periode_all['periode_akhir'], 6);
+                $vars["JML_PERIODE"] = $params['periode_jumlah'];
+                $vars["HARGA"] = formatCurrency($data->permohonan->harga_layanan);
+                $vars["HARGA_AWAL"] = formatCurrency($data->permohonan->total_harga);
+                $vars["PERIODE_AWAL"] = $rangeDate['start'];
+                $vars["PERIODE_SELESAI"] = $rangeDate['end'];
                 $vars["TGL_BUAT"] = convert_date($data->permohonan->kontrak->dokumen[0]->created_at, 2);
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["LOKASI_BUAT"] = "Tangerang Selatan";
@@ -383,6 +406,34 @@ class ReportController extends Controller
                 }
                 $vars = array_merge($vars, $this->contentKontrakPengujian($data, $params));
                 break;
+            case "PermohonanAdendum":
+                // ["TGL_BUAT","NO_SURAT","PERIHAL","TUJUAN","ALAMAT_TUJUAN","PERUSAHAAN","LAYANAN_JASA","JENIS_TLD","JENIS_LAYANAN","NO_KONTRAK","JUMLAH_TLD","PERIODE","RINCIAN_TLD","TTD","TTD_BY","TELEPON","LOKASI"]
+
+                $vars["PERIHAL"] = "Permohonan {$params['jenis']} {$data->jenis_layanan->name} TLD";
+
+                $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
+                $vars["NO_SURAT"] = $data->dokumen[0]->nomer;
+                $vars['TUJUAN'] = env('NAMA_PERUSAHAAN');
+                $vars['ALAMAT_TUJUAN'] = env('ALAMAT_PERUSAHAAN');
+                $vars['TELEPON'] = env('TELEPON_PERUSAHAAN');
+                $vars['PERUSAHAAN'] = $data->pelanggan->perusahaan->nama_perusahaan;
+                $vars['JENIS_LAYANAN'] = $data->jenis_layanan->name;
+                $vars['JENIS_TLD'] = $data->jenisTld->name;
+                $vars['LAYANAN_JASA'] = $data->layanan_jasa->nama_layanan;
+                $vars['NO_KONTRAK'] = $data->kontrak->no_kontrak;
+                $vars['JUMLAH_TLD'] = $data->jumlah_pengguna + $data->jumlah_kontrol;
+                $range = range_date($params['periode']->start_date, $params['periode']->end_date, 1);
+                $vars['PERIODE'] = $range['start'] . '-' . $range['end'];
+                $vars['LOKASI'] = "Jakarta";
+
+                $vars['TTD'] = "
+                    <div style='text-align: center;'>
+                        <img src='{$data->pelanggan->ttd_image}' alt='TTD' width='100px' height='100px'>
+                    </div>
+                ";
+                $vars['TTD_BY'] = $data->pelanggan->name;
+                $vars = array_merge($vars, $this->contentPermohonanAdendum($data, $params));
+                break;
             default:
                 # code...
                 break;
@@ -411,6 +462,7 @@ class ReportController extends Controller
             'permohonan.pelanggan',
             'permohonan.pelanggan.perusahaan',
             'permohonan.kontrak',
+            'permohonan.kontrak.periode',
             'permohonan.kontrak.dokumen' => function($q){
                 $q->where('jenis', 'kwitansi');
             },
@@ -426,10 +478,23 @@ class ReportController extends Controller
         $data['stempel'] = $this->global['urlStempel'];
 
         // mengambil periode pertama dan terakhir
-        $start = $query->permohonan->periode_pemakaian[0]['start_date'];
-        $end = $query->permohonan->periode_pemakaian[count($query->permohonan->periode_pemakaian) - 1]['end_date'];
-        $data['periode_start'] = convert_date($start, 6);
-        $data['periode_end'] = convert_date($end, 6);
+        if($query->permohonan->tipe_kontrak == 'adendum'){
+            $periodePemakaian = $query->permohonan->kontrak->periode->filter(function($item) use ($query) {
+                return $item->periode >= $query->permohonan->periode;
+            })->values();
+
+            $start = $periodePemakaian->first()->start_date;
+            $end = $periodePemakaian->last()->end_date;
+            $data['periode_start'] = $start;
+            $data['periode_end'] = $end;
+            $data['periode_jumlah'] = $periodePemakaian->count();
+        } else {
+            $start = $query->permohonan->periode_pemakaian[0]['start_date'];
+            $end = $query->permohonan->periode_pemakaian[count($query->permohonan->periode_pemakaian) - 1]['end_date'];
+            $data['periode_start'] = $start;
+            $data['periode_end'] = $end;
+            $data['periode_jumlah'] = count($query->permohonan->periode_pemakaian);
+        }
 
         // mengambil template kwitansi
         $dokumen = $query->permohonan->kontrak->dokumen->first();
@@ -476,7 +541,7 @@ class ReportController extends Controller
 
         if ($data->diskon) {
             foreach ($data->diskon as $item) {
-                $item->jumDiskon = $data->permohonan->kontrak->total_harga * ($item->diskon / 100);
+                $item->jumDiskon = $data->permohonan->total_harga * ($item->diskon / 100);
                 $subJumlah += $item->jumDiskon;
 
                 $tbl_rincian .= '
@@ -489,7 +554,7 @@ class ReportController extends Controller
             }
         }
 
-        $jumAfterDiskon = $data->permohonan->kontrak->total_harga - $subJumlah;
+        $jumAfterDiskon = $data->permohonan->total_harga - $subJumlah;
 
         $jumPph = $data->pph ? $jumAfterDiskon * ($data->pph / 100) : 0;
         $jumAfterPph = $jumAfterDiskon - $jumPph;
@@ -501,7 +566,7 @@ class ReportController extends Controller
                 <tr>
                     <td width="20%"></td>
                     <td><p class="lh-16">PPH ' . $data->pph . '%</p></td>
-                    <td style="text-align: right">' . formatCurrency($jumPph) . ' ,-</td>
+                    <td style="text-align: right">- ' . formatCurrency($jumPph) . ' ,-</td>
                 </tr>
             ';
         }
@@ -540,6 +605,7 @@ class ReportController extends Controller
             'pelanggan',
             'pelanggan.perusahaan',
             'kontrak',
+            'kontrak.periode',
             'tandaterima',
             'tandaterima.pertanyaan',
             'jenis_layanan:id_jenisLayanan,name',
@@ -595,15 +661,11 @@ class ReportController extends Controller
         $variables['TTD_PEMOHON_BY'] = $query->pelanggan ? $query->pelanggan->name : '...........................................';
 
         // generate pdf
-        $bytes = $this->generatePDF($data['title'], $template, $variables, ['RINCIAN', 'TTD_PENERIMA', 'TTD_PEMOHON']);
+        $bytes = $this->generatePDF($data['title'], $template, $variables, ['RINCIAN', 'TTD_PENERIMA', 'TTD_PEMOHON', 'PERIODE_RINCIAN']);
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
         return $bytes->stream($filename);
-        // return response($bytes, 200, [
-        //     'Content-Type'        => 'application/pdf',
-        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        // ]);
     }
 
     private function contentTandaTerima($data, $params = null) {
@@ -842,10 +904,12 @@ class ReportController extends Controller
  * @return \Illuminate\Http\Response The PDF stream response.
  */
 
-    public function suratPengantar($id  = null, $periode = null)
+    public function suratPengantar($id  = null, $periode_ = null)
     {
         $id = decryptor($id);
-        $periode = $periode == 0 ? 1 : $periode;
+        // mengambil id permohonan
+        $id_permohonan = Kontrak_periode::select('id_permohonan')->where('id_kontrak', $id)->where('periode', $periode_)->first()->id_permohonan;
+        $periode = $periode_ == 0 ? 1 : $periode_;
 
         if($id == null){
             return redirect()->back();
@@ -857,15 +921,15 @@ class ReportController extends Controller
             'pelanggan.perusahaan',
             'layanan_jasa:id_layanan,nama_layanan',
             'jenis_layanan:id_jenisLayanan,name',
-            'periode' => function($query) use ($periode) {
-                return $query->where('periode', $periode);
-            },
             'signature:id,name',
         ])->find($id);
 
+        // ambil periode kontrak saat ini
+        $kontrakPeriode = Kontrak_periode::where('id_kontrak', $id)->where('periode', $periode)->first();
+
         // mengambil dokumen surat pengantar
         $dokumen = Permohonan_dokumen::where("id_kontrak", $id)
-                    ->where("periode", $periode)
+                    ->where("periode", $periode_)
                     ->where("jenis", "surpeng")->first();
 
         $template = Documents::with('footer', 'header')
@@ -874,17 +938,18 @@ class ReportController extends Controller
                 ->where('status', '1')
                 ->first();
 
-        if($query->periode[0]->nomer_surpeng == null){
+        if($kontrakPeriode->nomer_surpeng == null){
             $noSurpeng = generateNoDokumen('surpeng');
-            $query->periode[0]->nomer_surpeng = $noSurpeng;
-            $query->periode[0]->created_surpeng_at = Carbon::now()->format('Y-m-d');
-            $query->periode[0]->save();
+            $kontrakPeriode->nomer_surpeng = $noSurpeng;
+            $kontrakPeriode->created_surpeng_at = Carbon::now()->format('Y-m-d');
+            $kontrakPeriode->save();
 
             if(!$dokumen){
-                $textPeriode = $query->periode[0]->status == 2 ? "Pengembalian" : "Periode $periode";
+                $textPeriode = $kontrakPeriode->status == 2 ? "Pengembalian" : "Periode $periode";
                 $dokumen = Permohonan_dokumen::create(array(
-                    'periode' => $periode,
+                    'periode' => $periode_,
                     'id_kontrak' => $id,
+                    'id_permohonan' => $id_permohonan ?? null,
                     'id_doc_template' => $template->id_doc,
                     'jenis' => "surpeng",
                     "nama" => "Surat Pengantar ($textPeriode)",
@@ -896,16 +961,24 @@ class ReportController extends Controller
                 $dokumen->nomer = $noSurpeng;
                 $dokumen->save();
             }
+        } else {
+            // yang ini di comment lagi karna jadi issue saat pengiriman periode zero cek
+            // return redirect()->back();
         }
 
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Surat Pengantar';
-        $data['data'] = $query;
         $data['ttd_default'] = $this->global['urlTtdDefault'];
         $data['stempel'] = $this->global['urlStempel'];
 
-        $query["dokumen"] = $dokumen;
-        if($dokumen->variables){
+        $data["dokumen"] = $dokumen;
+        $data["kontrak_periode"] = $kontrakPeriode ?? null;
+        $data['periode'] = $periode;
+
+        if($id_permohonan) {
+            $data["permohonan"] = Permohonan::where('id_permohonan', $id_permohonan)->first();
+        }
+        if(isset($dokumen) && $dokumen->variables){
             $variables = $dokumen->variables ?? [];
         } else {
             $variables = $this->mappingVars($template, $query, $data);
@@ -930,28 +1003,60 @@ class ReportController extends Controller
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
         return $bytes->stream($filename);
-        // return response($bytes, 200, [
-        //     'Content-Type'        => 'application/pdf',
-        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        // ]);
     }
 
     private function contentSuratPengantar($data, $params){
         $html = '';
         $no = 1;
-        $count = 1;
         $countKontrol = 0;
-        foreach ($data->periode[0]->tld_in_periode as $value) {
-            if($value->pengguna){
+        $kontrakDetail = Kontrak_detail::with([
+            'entitas'
+        ])
+        ->where('id_kontrak', $data->id_kontrak)
+        ->where('status', 1)
+        ->get();
+
+        // jika ada dendum yang baru akan di masukkan ke kontrak detail dengan jenis kontrol, jadi untuk menampilkan di surat pengantar hanya yang jenis pengguna saja, sedangkan yang jenis kontrol akan dihitung jumlahnya saja
+        $detailAdendum = kontrak_detail::with([
+            'entitas',
+            'penggunaLama'
+        ])
+        ->where('id_kontrak', $data->id_kontrak)
+        ->where('status', 2)
+        ->where('periode', $params['periode'])
+        ->get();
+
+        foreach ($detailAdendum as $value) {
+            if($value->jenis == 'pengguna'){
+                if($value->type == 'ganti'){
+                    $index = $kontrakDetail->search(function($item) use ($value) {
+                        return $item->id_pengguna_divisi == $value->pengguna_lama;
+                    });
+
+                    if($index !== false){
+                        $kontrakDetail[$index] = $value;
+                    }
+                } else {
+                    $kontrakDetail->push($value);
+                }
+            }
+        }
+
+        foreach ($kontrakDetail as $value) {
+            if($value->jenis == 'pengguna'){
+                $htmlDesc = $value->type ?? '';
+                if($value->type == 'ganti') {
+                    $htmlDesc = ' (Pengganti ' . $value->penggunaLama->name . ')';
+                }
                 $html .= '
                     <tr>
                         <td class="text-center">'.$no++.'.</td>
-                        <td style="padding-left: 5px">'.$value->pengguna->name.'</td>
-                        <td style="padding-left: 5px">'.$value->keterangan ?? ''.'</td>
+                        <td style="padding-left: 5px">'.$value->entitas->name.'</td>
+                        <td style="padding-left: 5px">'.$htmlDesc.'</td>
                     </tr>
                 ';
             } else {
-                $countKontrol += $value->count;
+                $countKontrol++;
             }
         }
         return [
@@ -985,7 +1090,6 @@ class ReportController extends Controller
             'jenis_layanan:id_jenisLayanan,name',
             'jenis_layanan_parent:id_jenisLayanan,name',
             'layanan_jasa:id_layanan,nama_layanan',
-            'invoice',
             'pelanggan',
             'pelanggan.profile',
             'pelanggan.perusahaan',
@@ -995,29 +1099,33 @@ class ReportController extends Controller
             }
         ])->find($id);
 
-        $listTld = false;
-
-        if($query && count($query->periode) > 0) {
-            $listTld = Kontrak_tld::with('pengguna', 'divisi')
-            ->where('id_kontrak', $query->id_kontrak)
-            ->where('count_tld', $query->periode[0]->count_tld)->get();
-        }
+        $listTld = Kontrak_detail::with([
+            'entitas' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                ]);
+            }
+        ])->where('id_kontrak', $query->id_kontrak)->get();
 
         // Memisahkan radiasi yang digunakan
         $listRadiasi = false;
-        if(count($listTld) > 0) {
-            foreach ($listTld as $key => $tld) {
-                if(isset($tld->pengguna)){
-                    foreach($tld->pengguna->radiasi as $item) {
-                        $listRadiasi[$item->id_radiasi] = $item;
-                    }
+        foreach ($listTld as $key => $tld) {
+            if($tld->jenis == 'pengguna'){
+                foreach($tld->entitas->radiasi as $item) {
+                    $listRadiasi[$item->id_radiasi] = $item;
                 }
             }
         }
 
+        // mengambil invoice dari permohonan pertama
+        $kontrakPeriode = Kontrak_periode::with('permohonan', 'permohonan.invoice')->where('id_kontrak', $id)->orderBy('periode', 'asc')->first();
+        $invoice = false;
+        if($kontrakPeriode){
+            $invoice = $kontrakPeriode->permohonan->invoice;
+        }
+
         $data['date'] = Carbon::now()->year;
         $data['title'] = 'Surat Kontrak';
-        $data['data'] = $query;
         $data['list_tld'] = $listTld;
         $data['radiasi'] = $listRadiasi;
         $data['ttd_default'] = $this->global['urlTtdDefault'];
@@ -1035,11 +1143,11 @@ class ReportController extends Controller
             // kondisi jika invoice belum dibuat
             // 1 = Pengajuan
             // 2 = TTD General Manager
-            if(!in_array($query->invoice->status, [1,2])) {
-                $total = $query->total_harga + ($query->total_harga * ($query->invoice->ppn / 100));
+            if(!in_array($invoice->status, [1,2])) {
+                $total = $query->total_harga + ($query->total_harga * ($invoice->ppn / 100));
                 $variables['INVOICE'] = "
                     ".$variables['JML_UNIT']." buah ". $variables['LAYANAN_JASA']. " " . $variables['JENIS_TLD'] . " x " . $variables['PERIODE_JML'] . " Periode x " . formatCurrency($query->harga_layanan) . ",- = " . formatCurrency($query->total_harga) . ",-
-                    ditambah PPN " . $query->invoice->ppn . "% total biaya yang harus dibayar sebesar " . formatCurrency($total) . ",-
+                    ditambah PPN " . $invoice->ppn . "% total biaya yang harus dibayar sebesar " . formatCurrency($total) . ",-
                 ";
                 $variables["INVOICE_HRF"] = angkaKeHuruf($total);
                 $dokumen->update(['variables' => $variables]);
@@ -1066,10 +1174,6 @@ class ReportController extends Controller
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
 
         return $bytes->stream($filename);
-        // return response($bytes, 200, [
-        //     'Content-Type'        => 'application/pdf',
-        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        // ]);
     }
 
     public function label($id = null){
@@ -1093,15 +1197,15 @@ class ReportController extends Controller
             $periodeNow = $getKperiode;
         }
 
-        $listTld = Kontrak_tld::with('pengguna', 'divisi')->where('id_kontrak', $query->permohonan->id_kontrak)
-                    ->where('count_tld', $periodeNow->count_tld ?? 1)
-                    ->orderBy('id_pengguna', 'asc')
-                    ->orderBy('id_divisi', 'asc')
-                    ->get();
-
-        $listTld->each(function($item) {
-            $item->tld = $item->id_tld ? Master_tld::whereIn('id_tld', $item->id_tld)->get() : null;
-        });
+        $listTld = Kontrak_detail::with([
+            'entitas' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                ]);
+            },
+            'tld_1',
+            'tld_2'
+        ])->where('id_kontrak', $query->permohonan->id_kontrak)->get();
 
         $data = array();
 
@@ -1179,10 +1283,6 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama.'-'.now()->format('Ymd-His').'.pdf';
         return $bytes->stream($filename);
-        // $pdf = PDF::loadView('report.permintaanPengujian', $data);
-        // $pdf->render();
-
-        // return $pdf->stream();
     }
 
     private function contentSuratPengujian($data, $params = null) {
@@ -1353,10 +1453,6 @@ class ReportController extends Controller
             $startDate = convert_date($periode->start_date, 6);
             $endDate = convert_date($periode->end_date, 6);
             $htmlSample .= '<div>' . $data->jumlah_kontrol . ' + ' . $data->jumlah_pengguna . ' ' . $startDate . ' - ' . $endDate . '</div>';
-
-            if($periode->periode == 1) {
-                // dd($periode);
-            }
         }
 
         $dataKeuangan = calculateInvoice($data->total_harga, $data->invoice->diskon, $data->invoice->ppn, $data->invoice->pph);
@@ -1414,6 +1510,108 @@ class ReportController extends Controller
                         <th width="20%">Merk/Tipe</th>
                     </tr>
                     '.$htmlListTld.'
+                </table>
+            '
+        ];
+    }
+
+    public function adendum($idPermohonan) {
+        $idPermohonan = decryptor($idPermohonan);
+
+        $query = Permohonan::with([
+            'jenisTld:id_jenisTld,name',
+            'pelanggan',
+            'kontrak',
+            'kontrak.periode',
+            'pelanggan.perusahaan',
+            'jenis_layanan:id_jenisLayanan,name',
+            'layanan_jasa:id_layanan,nama_layanan',
+            'dokumen' => function($query) {
+                return $query->where('jenis', 'adendum');
+            },
+            'dokumen.doc_template',
+            'signature:id,name',
+            'permohonan_detail',
+            'permohonan_detail.entitas' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                ]);
+            },
+            'permohonan_detail.penggunaLama'
+        ])->find($idPermohonan);
+
+        $data['data'] = $query;
+        $data['date'] = Carbon::now();
+        $data['title'] = "Permohonan Adendum";
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $permohonan_detail = $query->permohonan_detail;
+        $data['jenis'] = $permohonan_detail->where('type', 'baru')->first() ? 'Penambahan' : 'Pergantian';
+        $data['periode'] = $query->kontrak->periode->where('periode', $query->periode)->first();
+
+
+        // mengambil template adendum
+        $dokumen = $query->dokumen->first();
+        $template = $dokumen->doc_template;
+
+        if($dokumen->variables){
+            $variables = $dokumen->variables;
+        } else {
+            $variables = $this->mappingVars($template, $query, $data);
+            $dokumen->update(['variables' => $variables]);
+        }
+
+        // mengambil header
+        $header = Documents::where('id_perusahaan', $query->pelanggan->perusahaan->id_perusahaan)
+                    ->where('jenis', 'header')
+                    ->where('status', 1)
+                    ->where('view', 1)
+                    ->first();
+
+        $template->header = $header;
+        // generate pdf
+        $bytes = $this->generatePDF($data['title'], $template, $variables, ['TTD', 'RINCIAN_TLD']);
+
+        $filename = $data['title'] . '-' . date('Y-m-d') . '.pdf';
+
+        return $bytes->stream($filename);
+    }
+
+    public function contentPermohonanAdendum($data, $params) {
+        $html = "";
+        foreach($data->permohonan_detail as $key => $value) {
+            $col1 = "";
+            $col2 = "";
+            if($value->type == 'baru') {
+                if($value->jenis == 'pengguna') {
+                    $col1 = $value->entitas->name;
+                    $col2 = '';
+                } else {
+                    $col1 = "TLD Kontrol " . $key + 1;
+                }
+            } else {
+                $col1 = $value->entitas->name . ' (Pengganti ' . $value->penggunaLama->name . ')';
+                $col2 = '';
+            }
+            $html .= '
+                <tr>
+                    <td>' . ($key + 1) . '</td>
+                    <td>' . $col1 . '</td>
+                    <td>' . $col2 . '</td>
+                    <td></td>
+                </tr>
+            ';
+        }
+
+        return [
+            "RINCIAN_TLD" => '
+                <table class="table-surattugas">
+                    <tr>
+                        <th width="1%">No</th>
+                        <th width="30%">Nama Pengguna TLD</th>
+                        <th width="10%">Divisi</th>
+                        <th width="20%">Zat Radioaktif/Energi yang digunakan</th>
+                    </tr>
+                    '.$html.'
                 </table>
             '
         ];

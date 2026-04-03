@@ -216,4 +216,29 @@ class TldController extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
+
+    public function searchTld(Request $request)
+    {
+        $operator = $request->has('operator') ? $request->operator : '=';
+        $text = $request->has('q') ? $request->q : '';
+        $isPelanggan = Auth::user()->hasRole('Pelanggan');
+        $tld = Master_tld::where('status', '!=', '99')
+            ->when($operator, function ($query) use ($operator, $text) {
+                if ($operator == 'like') {
+                    $query->where('no_seri_tld', 'like', '%' . $text . '%');
+                } else {
+                    $query->where('no_seri_tld', $operator, $text);
+                }
+            })
+            // ->when($isPelanggan, function ($query) {
+            //     $query->whereNotNull('kepemilikan');
+            //     $query->where('kepemilikan', Auth::user()->id_perusahaan);
+            // }, function ($query) {
+            //     $query->whereNull('kepemilikan');
+            // })
+            ->orderBy('no_seri_tld', 'asc')
+            ->get();
+
+        return $this->output($tld);
+    }
 }

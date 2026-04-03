@@ -18,6 +18,9 @@ $('#form-edit').on("submit", (evt) => {
     spinner('show', $('#btn-edit'));
 
     ajaxPost(`management/permission/update`, formData, result => {
+        $('#editPermissionModal').modal('hide');
+        resetForm();
+        spinner('hide', $('#btn-edit'));
         Swal.fire({
             icon: 'success',
             text: result.data.msg,
@@ -25,9 +28,6 @@ $('#form-edit').on("submit", (evt) => {
             timerProgressBar: true,
             showConfirmButton: false
         }).then(() => {
-            $('#editPermissionModal').modal('hide');
-            resetForm();
-            spinner('hide', $('#btn-edit'));
             datatable_permission?.ajax.reload();
         })
     }, error => {
@@ -41,16 +41,16 @@ $('#form-create').on("submit", (evt) => {
     spinner('show', $('#btn-create'));
 
     ajaxPost(`management/permission`, formData, result => {
+        $('#create_modal').modal('hide');
+        resetForm();
+        spinner('hide', $('#btn-create'));
         Swal.fire({
             icon: 'success',
-            text: result.data.msg,
+            text: result.msg,
             timer: 1200,
             timerProgressBar: true,
             showConfirmButton: false
         }).then(() => {
-            $('#create_modal').modal('hide');
-            resetForm();
-            spinner('hide', $('#btn-create'));
             datatable_permission?.ajax.reload();
         })
     }, error => {
@@ -68,8 +68,8 @@ function btnEdit(obj) {
 }
 
 function resetForm () {
-    $('#inputNamePermission').val('');
-    $('#inputEditNamePermission').val('');
+    $('#form-create')[0].reset();
+    $('#form-edit')[0].reset();
 }
 
 function btnDelete(obj) {
@@ -79,7 +79,6 @@ function btnDelete(obj) {
             icon: 'success',
             text: result.data.msg,
             timer: 1200,
-            timerProgressBar: true,
             showConfirmButton: false
         }).then(() => {
             datatable_permission?.ajax.reload();

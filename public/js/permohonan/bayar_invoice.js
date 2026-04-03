@@ -52,8 +52,6 @@ function btnSimpan(obj){
         return;
     }
 
-    spinner('show', $(obj));
-
     const formData = new FormData();
     formData.append('idKeuangan', dataKeuangan.keuangan_hash);
     formData.append('status', 4);

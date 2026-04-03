@@ -182,7 +182,7 @@ class Detail {
                     layananJasa: this.data.layanan_jasa?.nama_layanan ?? '',
                     jenisTld: this.data.jenis_tld?.name ?? '',
                     jenisStatus: 'permohonan',
-                    pengguna: this.data.permohonan_pengguna ?? [],
+                    detail: this.data.permohonan_detail ?? [],
                     is_have_tld: this.data.is_have_tld ?? false,
                     is_zerocek: this.data.is_zerocek ?? false
                 }
@@ -204,7 +204,8 @@ class Detail {
                     periodeNow: this.data.permohonan.periode ?? '',
                     layananJasa: this.data.permohonan.layanan_jasa?.nama_layanan ?? '',
                     jenisTld: this.data.permohonan.jenis_tld?.name ?? '',
-                    jenisStatus: 'penyelia'
+                    jenisStatus: 'penyelia',
+                    detail: this.data.permohonan.permohonan_detail ?? [],
                 }
                 break;
 
@@ -224,7 +225,8 @@ class Detail {
                     periodeNow: this.data.periode ?? '',
                     layananJasa: this.data.layanan_jasa?.nama_layanan ?? '',
                     jenisTld: this.data.jenis_tld?.name ?? '',
-                    jenisStatus: 'kontrak'
+                    jenisStatus: 'kontrak',
+                    detail: this.data.kontrak_detail ?? [],
                 }
                 break;
             case 'perusahaan':
@@ -681,12 +683,11 @@ class Detail {
         const container = document.createElement('div');
         const tabs = {};
         this.options.tab.pengguna && (tabs.pengguna = { title: 'Pengguna', content: this.createPenggunaContent(), badge: this.data?.pengguna?.length ?? 0, icon: 'bi bi-person-circle' });
+        this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent(), icon: 'bi bi-diagram-3' });
         this.options.tab.activitas && (tabs.activitas = { title: 'Aktivitas', content: this.createAktivitasContent(), icon: 'bi bi-activity' });
         this.options.tab.periode && (tabs.periode = { title: 'Periode', content: this.createPeriodeContent(), icon: 'bi bi-calendar-check' });
         this.options.tab.dokumen && (tabs.dokumen = { title: 'Dokumen', content: this.createDokumenContent(), icon: 'bi bi-folder2-open' });
         this.options.tab.dokumen_lhu && (tabs.dokumen_lhu = { title: 'Dokumen LHU', content: this.createDokumenLhuContent(), icon: 'bi bi-file-earmark-text' });
-        this.options.tab.log && (tabs.log = { title: 'Log', content: this.createLogContent(), icon: 'bi bi-journal-text' });
-        this.options.tab.tld && (tabs.tld = { title: 'TLD', content: this.createTldContent(), icon: 'bi bi-diagram-3' });
 
         this.options.tab.items && (tabs.items = { title: 'Items', content: this.createItemsContent(), icon: 'bi bi-box-seam' });
         this.options.tab.bukti && (tabs.bukti = { title: 'Bukti', content: this.createBuktiContent(), icon: 'bi bi-check2-square', maxHeight: '50vh' });
@@ -697,6 +698,7 @@ class Detail {
         this.options.tab.karyawan && (tabs.karyawan = { title: `PIC (${this.info?.karyawan?.length ?? 0})`, content: this.createKaryawanContent(), icon: 'bi bi-people-fill' });
         this.options.tab.surat_kuasa && (tabs.surat_kuasa = { title: 'Surat Kuasa', content: this.createSuratKuasaContent(), icon: 'bi bi-file-earmark-text' });
 
+        this.options.tab.log && (tabs.log = { title: 'Log', content: this.createLogContent(), icon: 'bi bi-journal-text' });
         let htmlTabNav = '';
 
         for (const tabId in tabs) {
@@ -739,39 +741,38 @@ class Detail {
         return '<p>Items content</p>';
     }
     createPenggunaContent() {
-        if (this.info.pengguna && this.info.pengguna.length > 0) {
+        let list_pengguna = this.info.detail?.filter(d => d.jenis == 'pengguna');
+        if (list_pengguna && list_pengguna.length > 0) {
             let html = '';
-            for (const [i, item] of this.info.pengguna.entries()) {
-                let txtRadiasi = '';
-                const pengguna = item.pengguna;
-                pengguna.radiasi?.map(d => txtRadiasi += `<span class="badge rounded-pill text-bg-secondary me-1 mb-1">${d.nama_radiasi}</span>`);
+            for (const [i, item] of list_pengguna.entries()) {
+                const pengguna = item.entitas;
+                let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
-                let btnMedia = '';
-                if(pengguna.media_ktp){
-                    btnMedia = `
-                        <a class="btn btn-sm btn-outline-secondary show-popup-image" href="${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}" title="Show ktp"><i class="bi bi-file-person-fill"></i></a>
-                    `;
+                const dataCard = {
+                    index: i,
+                    idHash: item.permohonan_detail_hash,
+                    name: pengguna.name,
+                    divisi: pengguna.divisi?.name || '',
+                    isCheckedEvaluasi: false,
+                    radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
+                    fileKtp: fileKtp,
+                    no_seri_tld: item.tld?.no_seri_tld || '',
+                    htmlDisabled: true
                 }
 
-                html += `
-                    <div class="card border-bottom border-0 fs-8 mb-1 hover-3">
-                        <div class="card-body row align-items-center py-1">
-                            <div class="col-md-10 lh-sm d-flex align-items-center">
-                                <span class="col-form-label me-2">${i + 1}</span>
-                                <div class="mx-2">
-                                    <div>${pengguna.name}</div>
-                                    <small class="text-body-secondary fw-light">${pengguna.divisi?.name ?? '-'}</small>
-                                    <div class="d-flex flex-wrap">
-                                        ${txtRadiasi}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-2 text-end ms-auto">
-                                ${btnMedia}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                let adendumActive = ['permohonan', 'penyelia'];
+                if(item.type == 'ganti' && adendumActive.includes(this.options.jenis)){
+                    dataCard['name'] = item.pengguna_lama?.name;
+                    dataCard['pengguna_baru'] = {
+                        name: pengguna.name,
+                    }
+                }
+
+                html += cardPenggunaComponent(dataCard, {
+                    is_have_tld: false,
+                    label_tld: false,
+                    status: item.type
+                });
             }
             return html;
         } else {
@@ -786,18 +787,42 @@ class Detail {
         let dataDokumen = [];
         let invoiceData = false;
         let dataPermohonan = false;
+        let kontrak_hash = false;
+        let periode = false;
         switch (this.options.jenis) {
             case 'permohonan':
                 this.data.kontrak?.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
                 dataDokumen = dataDokumen.concat(this.data.dokumen);
                 invoiceData = this.data.invoice;
                 dataPermohonan = this.data;
+                kontrak_hash = this.data.kontrak?.kontrak_hash;
                 break;
             case 'penyelia':
                 this.data.permohonan.kontrak?.document_kontrak && (dataDokumen = this.data.permohonan.kontrak.document_kontrak);
                 dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
                 invoiceData = this.data.permohonan.invoice;
                 dataPermohonan = this.data.permohonan;
+                kontrak_hash = this.data.permohonan.kontrak.kontrak_hash;
+                periode = this.data.permohonan.periode;
+                break
+            case 'kontrak':
+                this.data?.document_kontrak && (dataDokumen = this.data.document_kontrak);
+                kontrak_hash = this.data.kontrak_hash;
+                break;
+            case 'pengiriman':
+                this.data?.kontrak.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
+                if(this.data.permohonan){
+                    dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
+                }
+
+                if(this.data.dokumen){
+                    dataDokumen = dataDokumen.concat(this.data.dokumen);
+                }
+
+                dataPermohonan = this.data.permohonan;
+                kontrak_hash = this.data.kontrak.kontrak_hash;
+                periode = this.data.periode;
+                invoiceData = this.data.permohonan?.invoice;
                 break;
             default:
                 break;
@@ -808,6 +833,7 @@ class Detail {
                 'surattugas'
             ];
         }
+
         for (const [i, dokumen] of dataDokumen.entries()) {
             let idHash = false;
             if(exceptDoc.includes(dokumen.jenis)) continue;
@@ -816,10 +842,13 @@ class Detail {
                     idHash = invoiceData?.keuangan_hash;
                     break;
                 case 'kontrak':
-                    idHash = dataPermohonan.kontrak.kontrak_hash;
+                    idHash = kontrak_hash;
                     break;
                 case 'KontrakPengujian':
-                    idHash = dataPermohonan.kontrak.kontrak_hash;
+                    idHash = kontrak_hash;
+                    break;
+                case 'surpeng':
+                    idHash = kontrak_hash+'/'+periode;
                     break;
                 default:
                     idHash = dataPermohonan.permohonan_hash;
@@ -875,7 +904,7 @@ class Detail {
 
                         const message = log.description === 'finish'
                             ? `Proses ${mapItem.jobs.name} selesai`
-                            : '';
+                            : `Proses ${mapItem.jobs.name} di kembalikan`;
 
                         dataLog.push({
                             message,
@@ -934,30 +963,50 @@ class Detail {
     createPeriodeContent() {
         let htmlPeriode = '';
         let data = this.data;
-        if (this.data.tipe_kontrak == 'kontrak lama') {
+        if (this.data.tipe_kontrak == 'kontrak lama' || this.data.tipe_kontrak == 'adendum') {
             let findPeriode = data.kontrak?.periode.find(periode => periode.periode == data.periode);
-            htmlPeriode = `
-                <div class="card mb-1">
-                    <div class="card-body p-1 px-3">
-                        <div>Periode ${data.periode}</div>
-                        <div class="text-body-secondary">
-                            <small>${dateFormat(findPeriode.start_date, 4)} - ${dateFormat(findPeriode.end_date, 4)}</small>
-                        </div>
-                    </div>
-                </div>
-            `;
-        } else {
-            for (const [i, periode] of data.periode_pemakaian.entries()) {
-                htmlPeriode += `
+            if(findPeriode){
+                htmlPeriode = `
                     <div class="card mb-1">
                         <div class="card-body p-1 px-3">
-                            <div>Periode ${i + 1}</div>
+                            <div>Periode ${data.periode}</div>
                             <div class="text-body-secondary">
-                                <small>${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)}</small>
+                                <small>${dateFormat(findPeriode.start_date, 4)} - ${dateFormat(findPeriode.end_date, 4)}</small>
                             </div>
                         </div>
                     </div>
                 `;
+            } else {
+                htmlPeriode = `<span class="text-danger">Periode tidak ditemukan</span>`;
+            }
+        } else {
+            if(this.info.periodePemakaian && this.info.periodePemakaian.length > 0){
+                for (const [i, periode] of this.info.periodePemakaian.entries()) {
+                    htmlPeriode += `
+                        <div class="card mb-1">
+                            <div class="card-body p-1 px-3">
+                                <div>Periode ${i + 1}</div>
+                                <div class="text-body-secondary">
+                                    <small>${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                for (const [i, periode] of this.info.periodeNow.entries()) {
+                    if(periode.periode == 0) continue;
+                    htmlPeriode += `
+                        <div class="card mb-1">
+                            <div class="card-body p-1 px-3">
+                                <div>Periode ${periode.periode}</div>
+                                <div class="text-body-secondary">
+                                    <small>${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)}</small>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
             }
         }
         return `
@@ -1152,63 +1201,43 @@ class Detail {
         }
     }
     createTldContent() {
-        let listTld = [];
-        let tldKontrol = false;
-        let tldPengguna = false;
-        switch (this.options.jenis) {
-            case 'permohonan':
-                listTld = this.data.rincian_list_tld ?? [];
-            case 'kontrak':
-                // tldKontrol = this.data.tld_kontrol ?? false;
-                // tldPengguna = this.data.pengguna.some(pengguna => pengguna.tld_pengguna) ? this.data.pengguna.map(pengguna => pengguna.tld_pengguna ? { name: pengguna.nama, ...pengguna.tld_pengguna } : false) : false;
-                break;
-            case 'penyelia':
-                listTld = this.data.permohonan.rincian_list_tld ?? [];
-                break;
-
-            default:
-                break;
-        }
+        let listTld = this.info.detail ?? [];
 
         if (listTld.length > 0) {
             let htmlPengguna = '';
             let htmlKontrol = '';
 
-            let arrPengguna = listTld.filter(d => d.pengguna);
-            let arrKontrol = listTld.filter(d => !d.pengguna);
+            let arrPengguna = listTld.filter(d => d.jenis == 'pengguna');
+            let arrKontrol = listTld.filter(d => d.jenis == 'kontrol');
 
             let i = 1;
             for (const kontrol of arrKontrol) {
                 if(kontrol.tld){
-                    for (const tld of kontrol.tld) {
-                        htmlKontrol += `
-                            <li class="list-group-item d-flex justify-content-between">
-                                <div>
-                                    <span>${i}. </span>
-                                    <span>${'TLD Kontrol'}</span>
-                                </div>
-                                <span>${tld.no_seri_tld}</span>
-                            </li>
-                        `;
-                        i++;
-                    }
+                    htmlKontrol += `
+                        <li class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <span>${i}. </span>
+                                <span>${'TLD Kontrol'}</span>
+                            </div>
+                            <span>${kontrol.tld.no_seri_tld}</span>
+                        </li>
+                    `;
+                    i++;
                 }
             }
 
             for (const pengguna of arrPengguna) {
                 if(pengguna.tld){
-                    for (const tld of pengguna.tld) {
-                        htmlPengguna += `
-                            <li class="list-group-item d-flex justify-content-between">
-                                <div>
-                                    <span>${i}. </span>
-                                    <span>${pengguna.pengguna.name}</span>
-                                </div>
-                                <span>${tld.no_seri_tld}</span>
-                            </li>
-                        `;
-                        i++;
-                    }
+                    htmlPengguna += `
+                        <li class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <span>${i}. </span>
+                                <span>${pengguna.entitas.name}</span>
+                            </div>
+                            <span>${pengguna.tld.no_seri_tld}</span>
+                        </li>
+                    `;
+                    i++;
                 }
             }
 

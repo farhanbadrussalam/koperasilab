@@ -4,7 +4,11 @@ $(function () {
     loadData();
     detail = new Detail({
         jenis: 'kontrak',
-        tab: {}
+        tab: {
+            pengguna: true,
+            periode: true,
+            dokumen: true
+        }
     });
 
     filterComp = new FilterComponent('list-filter', {
@@ -55,14 +59,10 @@ function loadData(page = 1) {
     $(`#list-container`).hide();
     ajaxGet(`api/v1/kontrak/list`, params, result => {
         dataKontrak = result.data;
+
         let html = '';
         for (const [i, data] of result.data.entries()) {
             let arrPeriode = data.periode;
-
-            let htmlStatusInvoice = statusFormat('invoice', data.invoice.status);
-            if(data.invoice.status == 3 && role.includes('Pelanggan')){
-                htmlStatusInvoice = `<a href="${base_url}/permohonan/pembayaran/bayar/${data.invoice.keuangan_hash}">${htmlStatusInvoice}</a>`;
-            }
 
             let htmlLastPeriod = '';
             let periodeNow = getCurrentPeriod(arrPeriode);
@@ -88,7 +88,6 @@ function loadData(page = 1) {
 
             let detailPengiriman = [];
             let arrFind = ['invoice','tld', 'lhu'];
-            const JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
 
             for (const pengiriman of data.pengiriman) {
                 let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
@@ -97,11 +96,13 @@ function loadData(page = 1) {
                         jenis: d.jenis,
                         periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
                         status: pengiriman.status,
-                        no_resi: pengiriman.no_resi ?? false
+                        no_resi: pengiriman.no_resi ?? false,
+                        tipe_kontrak: pengiriman.permohonan ? pengiriman.permohonan.tipe_kontrak : false
                     }));
                 }
             }
 
+            const JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
             let activePeriode = '';
             let lastPeriodeKontrak = false;
             let htmlPengembalian = '';
@@ -134,6 +135,14 @@ function loadData(page = 1) {
 
             let hidden = role.includes('Pelanggan') ? 'd-none' : '';
 
+            let btnAdendum = role.includes('Pelanggan') ? `
+                <div class="mb-2 text-end fs-8 ${data.status == 2 ? 'd-none' : ''}">
+                    <a class="btn btn-sm btn-warning rounded-pill" href="${base_url}/permohonan/kontrak/a/${data.kontrak_hash}">
+                        <i class="bi bi-pencil"></i> Adendum
+                    </a>
+                </div>
+            ` : '';
+
             html += `
                 <div class="card mb-2 smooth-height hover-effect">
                     <div class="card-body row align-items-center py-2">
@@ -151,10 +160,10 @@ function loadData(page = 1) {
                             <div class="d-flex gap-3 text-body-tertiary fs-7">
                                 <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
                                 <div><i class="bi bi-cash-stack"></i> ${formatRupiah(data.total_harga)}</div>
-                                <div>${htmlStatusInvoice}</div>
                             </div>
                         </div>
                         <div class="col-auto ms-auto align-self-end">
+                            ${btnAdendum}
                             <div class="mb-2 text-end fs-8">
                                 ${statusFormat('kontrak',data.status)}
                             </div>
@@ -219,7 +228,6 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     const isPelanggan = role.includes('Pelanggan');
     let htmlAction = ``;
     let htmlDoc = ``;
-    let periodeAwal = getPeriodeAwal(dataKontrak[index]);
 
     // cek apakah sudah bayar atau belum
     let lastPeriode = (dataKontrak[index].periode_count) == data.periode;
@@ -230,11 +238,21 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     let aktifDokumenKirim = periodeMapDocument(data, dataKontrak[index], arrFind);
 
     for (const doc of aktifDokumenKirim) {
-        let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
+        let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc && cek.tipe_kontrak != 'adendum');
 
         // pengecekan TLD
         if(doc === 'tld') {
             statusKirimTld = findPeriode?.status;
+        }
+        let htmlStatusInvoice = '';
+
+        if(doc === 'invoice') {
+            if(data.permohonan){
+                htmlStatusInvoice = statusFormat('invoice', data.permohonan.invoice.status);
+                if(data.permohonan.invoice.status == 3 && role.includes('Pelanggan')){
+                    htmlStatusInvoice = `<a href="${base_url}/permohonan/pembayaran/bayar/${data.permohonan.invoice.keuangan_hash}">${htmlStatusInvoice}</a>`;
+                }
+            }
         }
 
         let htmlTooltip = findPeriode?.no_resi ? `<div class="tooltip-text border border-dark-subtle">No resi : ${findPeriode?.no_resi ?? 'Belum ada'}</div>` : '';
@@ -246,13 +264,15 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                     ${statusFormat('pengiriman', findPeriode?.status)}
                     ${htmlTooltip}
                 </small>
+                <div class="ms-2">
+                    ${htmlStatusInvoice}
+                </div>
             </div>
         `;
 
     }
 
     // Gunakan fungsi isPeriodeComplete untuk mengecek status
-    // let isComplete = isPeriodeComplete(data, index, cekStatusPeriode, arrFind);
     let isComplete = cekPeriodeComplete(data, cekStatusPeriode, dataKontrak[index], aktifDokumenKirim);
 
     let htmlBtnEvaluasi = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`;
@@ -270,6 +290,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
             if(!data.permohonan){
                 if(data.status == 1) { // bukan status periode pengembalian
                     htmlAction = htmlBtnEvaluasi;
+                    isComplete = false;
                 }
             }
         }
@@ -277,12 +298,19 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
     } else {
         evaluasiState.active = !isComplete;
 
+        let htmlStatusPenyelia = '';
+
         if(evaluasiState.active) {
             let tldSelesai = false;
             let penyelia2 = dataKontrak[index].periode.find(cek => cek.periode == data.periode - 2);
             if(penyelia2){
                 tldSelesai = cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
-
+                if(penyelia2.penyelia && !tldSelesai){
+                    let aktifJobs = penyelia2.penyelia.penyelia_map.filter(d => d.status == 1);
+                    aktifJobs.map(d => {
+                        htmlStatusPenyelia += statusFormat('penyelia', d.jobs.status);
+                    });
+                }
             }else {
                 if(dataKontrak[index].is_zerocek == 0 && dataKontrak[index].is_have_tld == 0) {
                     tldSelesai = true;
@@ -300,6 +328,8 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                             htmlAction = htmlBtnTld;
                         }
                     }
+                } else {
+                    htmlAction = htmlStatusPenyelia;
                 }
             }
         }
@@ -315,11 +345,22 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         textPeriode = 'Pengembalian TLD';
     }
 
+    let htmlRangeDate = ``;
+    if(data.periode != 0) {
+        let rangeDate = range_date(data.start_date, data.end_date, 1);
+        htmlRangeDate = `<small class="text-body-tertiary"> - (${rangeDate.start} - ${rangeDate.end})</small>`;
+    }
+
+    let htmlAdendum = ``;
+    if(data.adendum.length > 0) {
+        htmlAdendum = `<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2">${data.adendum.length} Adendum</small>`;
+    }
+
     return `
         <div class="border-top py-2 d-flex justify-content-between align-items-center">
             <div class="px-2">
                 <span class="fw-semibold fs-6">${textPeriode}</span>
-                ${data.periode == 0 ? '' : `<small class="text-body-tertiary"> - (${dateFormat(data.start_date, 4)} - ${dateFormat(data.end_date, 4)})</small>`}
+                ${htmlRangeDate} ${htmlAdendum}
                 <div class="d-flex gap-3 flex-wrap">
                     ${htmlDoc}
                 </div>
@@ -359,46 +400,9 @@ function buttonTLD(data_periode, data_kontrak, active){
     let btnEvaluasi = '';
     if(!data_periode.permohonan) {
         result = active;
-        console.log(result);
     }
 
     return result;
-}
-
-function isPeriodeComplete(data, index, cekStatusPeriode, arrFind) {
-    // Jika invoice belum status 5, maka langsung false
-    if (dataKontrak[index].invoice.status != 5) return false;
-
-    const JL = jenislayanan(dataKontrak[index].jenis_layanan_parent, dataKontrak[index].jenis_layanan);
-
-    // Cek apakah semua dokumen dalam arrFind sudah selesai
-    let periodeAwal = getPeriodeAwal(dataKontrak[index]);
-
-    for (const doc of arrFind) {
-        let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc);
-        let lastPeriode = dataKontrak[index].periode[dataKontrak[index].periode.length - 1].periode == data.periode;
-
-        if (doc === 'invoice' && data.permohonan_hash !== dataKontrak[index].invoice?.permohonan_hash) continue;
-        if (doc === 'lhu' && data.permohonan?.file_lhu) continue;
-        if(role.includes('Staff Pengiriman')){
-            if(doc === 'tld' && (lastPeriode && !tmpArrEvaluasi.includes(JL) || periodeAwal.includes(data.periode))){
-                return true;
-            }
-        }
-        if (doc === 'tld' && (lastPeriode && !tmpArrEvaluasi.includes(JL) || periodeAwal.includes(data.periode))) continue;
-        if(role.includes('Staff Pengiriman')){
-            if(doc === 'tld' && findPeriode?.status == 2) {
-                return true;
-            }
-        }
-
-        // Jika ada dokumen yang statusnya bukan 2 (selesai), maka periode belum complete
-        if (!findPeriode || findPeriode.status != 2) {
-            return false;
-        }
-    }
-
-    return true; // Semua dokumen sudah complete
 }
 
 function reload() {

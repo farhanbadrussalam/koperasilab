@@ -7,8 +7,8 @@
                 <h4 class="col-12 col-md-10">Permission</h4>
                 <a class="btn btn-primary col-12 col-md-2" href="javascript:void(0)" data-bs-toggle="modal"
                     data-bs-target="#create_modal">
-                    <i class="bi bi-plus"></i>
-                    Created
+                    <i class="bi bi-plus-lg"></i>
+                    Tambah
                 </a>
             </div>
             <div class="row mt-2">
