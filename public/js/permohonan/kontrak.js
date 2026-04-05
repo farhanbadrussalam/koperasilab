@@ -1,5 +1,7 @@
 let dataKontrak = false;
 let filterComp = false;
+let modalDoc = false;
+let signaturePad = false;
 $(function () {
     loadData();
     detail = new Detail({
@@ -9,6 +11,11 @@ $(function () {
             periode: true,
             dokumen: true
         }
+    });
+
+    modalDoc = new ModalDocument({
+        withForm: true,
+        formTitle: 'Form Tanda Tangan'
     });
 
     filterComp = new FilterComponent('list-filter', {
@@ -63,6 +70,8 @@ function loadData(page = 1) {
         let html = '';
         for (const [i, data] of result.data.entries()) {
             let arrPeriode = data.periode;
+            let document_kontrak = data.document_kontrak.find(d => d.jenis == 'kontrak' || d.jenis == 'KontrakPengujian');
+            let status_ttd_kontrak = document_kontrak?.ttd ? true : false;
 
             let htmlLastPeriod = '';
             let periodeNow = getCurrentPeriod(arrPeriode);
@@ -143,6 +152,24 @@ function loadData(page = 1) {
                 </div>
             ` : '';
 
+            let btnTTD = '';
+            if(role.includes('Manager') || role.includes('General Manager')) {
+                if(!status_ttd_kontrak){
+                    btnTTD = `
+                        <div class="mb-2 text-end fs-8">
+                            <button class="btn btn-sm btn-outline-primary" onclick="showDocument('${data.kontrak_hash}', '${document_kontrak.jenis}', 'Dokumen Kontrak')">
+                                <i class="bi bi-pencil"></i> Tanda Tangan
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            let htmlStatusKontrak = status_ttd_kontrak ? `<span class="badge bg-success-subtle fw-normal rounded-pill text-success-emphasis">Sudah Ditandatangani</span>` : `<span class="badge bg-warning-subtle fw-normal rounded-pill text-warning-emphasis">Belum Ditandatangani</span>`;
+            if(role.includes('Pelanggan')){
+                htmlStatusKontrak = '';
+            }
+
             html += `
                 <div class="card mb-2 smooth-height hover-effect">
                     <div class="card-body row align-items-center py-2">
@@ -150,6 +177,7 @@ function loadData(page = 1) {
                             <div class="">
                                 <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.tipe_kontrak}</span>
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
+                                ${htmlStatusKontrak}
                             </div>
                             <div class="fs-5 my-2">
                                 <span class="fw-bold">${data.jenis_tld.name} - Layanan ${data.layanan_jasa.nama_layanan}</span> <span class="text-body-tertiary">#${data.no_kontrak}</span>
@@ -164,6 +192,7 @@ function loadData(page = 1) {
                         </div>
                         <div class="col-auto ms-auto align-self-end">
                             ${btnAdendum}
+                            ${btnTTD}
                             <div class="mb-2 text-end fs-8">
                                 ${statusFormat('kontrak',data.status)}
                             </div>
@@ -212,6 +241,62 @@ function loadData(page = 1) {
     });
 }
 
+function showDocument(id_kontrak, jenis, title){
+    let url = `laporan/${jenis}/${id_kontrak}`;
+
+    modalDoc.show(url, {
+        title: title,
+        formHtml: `
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-2 text-center" id="signatureKontrak"></div>
+                <div class="mt-1 text-center card-footer border-0 bg-white">
+                    <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${id_kontrak}')">Simpan Tanda Tangan</button>
+                </div>
+            </div>
+        `
+    });
+
+    signaturePad = new SignatureSelect(document.getElementById('signatureKontrak'), {
+        inputId: 'signature_kontrak',
+        label: "Tanda Tangan Kontrak",
+        placeholder: "Silakan tanda tangani di sini",
+        signerUser: userActive
+    });
+}
+
+function saveSignature(obj, id_kontrak){
+    let [ttdValue, ttdBy] = signaturePad.getValue();
+
+    if(!ttdValue){
+        return Swal.fire({
+            icon: "warning",
+            text: "Harap berikan tanda tangan terlebih dahulu.",
+        });
+    }
+
+    let params = new FormData();
+    params.append('ttd', ttdValue);
+    params.append('ttd_by', ttdBy);
+    params.append('id_kontrak', id_kontrak);
+
+    spinner('show', $(obj));
+
+    ajaxPost(`api/v1/kontrak/sign`, params, result => {
+        Swal.fire({
+            icon: "success",
+            text: result.msg,
+        });
+        modalDoc.hide();
+        loadData();
+        spinner('hide', $(obj));
+    }, error => {
+        Swal.fire({
+            icon: "error",
+            text: error.responseJSON?.msg ?? 'Terjadi kesalahan saat menyimpan tanda tangan.',
+        });
+        spinner('hide', $(obj));
+    });
+}
 function showPeriode(index) {
 
     if ($(`#listPeriode${index}`).is(':visible')) {
@@ -291,6 +376,9 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                 if(data.status == 1) { // bukan status periode pengembalian
                     htmlAction = htmlBtnEvaluasi;
                     isComplete = false;
+                    if(role.includes('Manager') || role.includes('General Manager') ) {
+                        htmlAction = '';
+                    }
                 }
             }
         }
@@ -326,6 +414,9 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
                     if(!data.permohonan){
                         if(!statusKirimTld){
                             htmlAction = htmlBtnTld;
+                            if(role.includes('Manager') || role.includes('General Manager') ) {
+                                htmlAction = '';
+                            }
                         }
                     }
                 } else {

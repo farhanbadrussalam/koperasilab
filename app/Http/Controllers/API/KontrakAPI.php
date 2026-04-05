@@ -14,6 +14,7 @@ use App\Http\Controllers\LogController;
 use App\Models\Kontrak_detail;
 use App\Models\Master_pengguna;
 use App\Models\Permohonan;
+use App\Models\Permohonan_dokumen;
 use Auth;
 use DB;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -260,6 +261,40 @@ class KontrakAPI extends Controller
 
             DB::commit();
             return $this->output($data, 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function signKontrak(Request $request){
+        $id_kontrak = decryptor($request->id_kontrak);
+        $ttdValue = decryptor($request->ttd);
+        $ttdBy = decryptor($request->ttd_by);
+
+        if(empty($ttdValue) || empty($ttdBy)){
+            return $this->output(array('msg' => 'Tanda tangan dan nama penandatangan harus diisi'), "Fail", 400);
+        }
+
+         // cek apakah kontrak sudah memiliki ttd
+         $kontrak_dokumen = Permohonan_dokumen::where('id_kontrak', $id_kontrak)
+            ->whereIn('jenis', ['kontrak', 'KontrakPengujian'])
+            ->first();
+
+        if (!$kontrak_dokumen) {
+            return $this->output(array('msg' => 'Dokumen kontrak tidak ditemukan'), "Fail", 404);
+        }
+
+         if($kontrak_dokumen->ttd != null){
+             return $this->output(array('msg' => 'Kontrak sudah memiliki tanda tangan'), "Fail", 400);
+         }
+
+        DB::beginTransaction();
+        try {
+            $kontrak_dokumen->update(['ttd' => $ttdValue, 'ttd_by' => $ttdBy]);
+            DB::commit();
+            return $this->output(array('msg' => 'Tanda tangan berhasil disimpan'), "Success", 200);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
