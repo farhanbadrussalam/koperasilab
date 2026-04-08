@@ -12,7 +12,9 @@ use App\Models\Kontrak;
 use App\Http\Controllers\MediaController;
 use App\Http\Controllers\LogController;
 use App\Models\Kontrak_detail;
+use App\Models\Kontrak_periode;
 use App\Models\Master_pengguna;
+use App\Models\Pengiriman;
 use App\Models\Permohonan;
 use App\Models\Permohonan_dokumen;
 use Auth;
@@ -295,6 +297,44 @@ class KontrakAPI extends Controller
             $kontrak_dokumen->update(['ttd' => $ttdValue, 'ttd_by' => $ttdBy]);
             DB::commit();
             return $this->output(array('msg' => 'Tanda tangan berhasil disimpan'), "Success", 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function getKontrakPeriode($idPeriode){
+        $idPeriode = decryptor($idPeriode);
+
+        DB::beginTransaction();
+        try {
+            $data = Kontrak_periode::with([
+                'permohonan',
+                'permohonan.jenis_layanan',
+                'permohonan.jenis_layanan_parent',
+                'permohonan.file_lhu',
+                'penyelia',
+                'penyelia.penyelia_map',
+                'penyelia.penyelia_map.jobs',
+            ])->where('id_periode', $idPeriode)->first();
+
+            // mencari adendum di setiap periode
+            $adendums = Permohonan::with('permohonan_detail')->where('id_kontrak', $data->id_kontrak)
+                ->where('tipe_kontrak', 'adendum')
+                ->get()
+                ->groupBy(['id_kontrak', 'periode']);
+
+            // mencari pengiriman di setiap periode
+            $pengiriman = Pengiriman::with('detail')->where('id_kontrak', $data->id_kontrak)
+                ->where('periode', $data->periode)
+                ->get();
+
+            $data->adendum = $adendums->get($data->id_kontrak)?->get($data->periode) ?? collect();
+            $data->pengiriman = $pengiriman;
+
+            DB::commit();
+            return $this->output($data, 200);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

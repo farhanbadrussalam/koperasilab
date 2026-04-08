@@ -183,7 +183,8 @@ function loadData(page = 1, menu) {
                             periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
                             status: pengiriman.status,
                             no_resi: pengiriman.no_resi ?? false,
-                            tipe_kontrak: pengiriman.permohonan ? pengiriman.permohonan.tipe_kontrak : false
+                            tipe_kontrak: pengiriman.permohonan ? pengiriman.permohonan.tipe_kontrak : false,
+                            permohonan_hash: pengiriman.permohonan ? pengiriman.permohonan.permohonan_hash : false
                         }));
                     }
                 }
@@ -302,7 +303,7 @@ function cekComplete(data_periode, detail_pengiriman, arrFindDokumen) {
     // Filter pengiriman yang relevan: periode sama dan bukan adendum
     const pengirimanRelevan = detail_pengiriman.filter(item => {
         if (data_periode.tipe_kontrak == 'adendum') {
-            return item.periode === data_periode.periode && item.tipe_kontrak == 'adendum';
+            return item.periode === data_periode.periode && item.tipe_kontrak == 'adendum' && item.permohonan_hash == data_periode.permohonan_hash;
         } else {
             return item.periode === data_periode.periode && item.tipe_kontrak != 'adendum';
         }

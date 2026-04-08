@@ -70,6 +70,7 @@
     <script src="{{ asset('js/cardList.js') }}"></script>
     <script src="{{ asset('js/inventory_tld.js') }}"></script>
     <script src="{{ asset('js/notifikasi.js') }}"></script>
+    <script src="{{ asset('js/component/AdendumInformasi.js') }}"></script>
 
     {{-- Logo Aplikasi --}}
     <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">

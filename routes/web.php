@@ -61,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
             Route::get('/kontrak', 'indexKontrak')->middleware('permission:Kontrak')->name('permohonan.kontrak');
             Route::get('/kontrak/e/{idKontrak}/{idPeriode}', 'evaluasiKontrak')->name('permohonan.kontrak.evaluasi');
+            Route::get('/kontrak/a/{idKontrak}', 'adendumKontrak')->name('permohonan.kontrak.adendum');
         });
     });
 

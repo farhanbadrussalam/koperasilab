@@ -454,7 +454,11 @@ class PengirimanAPI extends Controller
             $isPeriodOne = $kontrakPeriode->count_tld == 1 || $query->periode == 0;
 
             // mereset TLD jika di kembalikan
-            $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
+            if($query->permohonan){
+                $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
+            } else {
+                $JL = null;
+            }
 
             if($kontrakPeriode->status == 2 || $JL === "EvaluasiTanpaKontrak"){
                 info("================ Prosess Pengembalian TLD ===============");

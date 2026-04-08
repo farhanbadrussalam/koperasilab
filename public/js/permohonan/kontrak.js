@@ -2,6 +2,7 @@ let dataKontrak = false;
 let filterComp = false;
 let modalDoc = false;
 let signaturePad = false;
+let modalAdendum = false;
 $(function () {
     loadData();
     detail = new Detail({
@@ -17,6 +18,8 @@ $(function () {
         withForm: true,
         formTitle: 'Form Tanda Tangan'
     });
+
+    modalAdendum = new AdendumInformasi();
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'kontrak',
@@ -444,7 +447,7 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
 
     let htmlAdendum = ``;
     if(data.adendum.length > 0) {
-        htmlAdendum = `<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2">${data.adendum.length} Adendum</small>`;
+        htmlAdendum = `<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" data-id="${data.periode_hash}" data-periode="${data.periode}" onclick="showAdendumInformasi(this)">${data.adendum.length} Adendum</small>`;
     }
 
     return `
@@ -461,6 +464,17 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
             </div>
         </div>
     `;
+}
+
+function showAdendumInformasi(obj){
+    let id_periode = $(obj).data('id');
+    let periode = $(obj).data('periode');
+    let url = `api/v1/kontrak/getKontrakPeriode/${id_periode}`;
+
+    modalAdendum.show({
+        url: url,
+        title: 'Adendum Informasi Periode ' + periode
+    });
 }
 
 function cekTldComplete(){
