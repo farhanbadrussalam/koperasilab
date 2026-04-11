@@ -41,6 +41,10 @@ $(function () {
             spinner('hide', $('#btn-edit'));
         });
     });
+
+    $('#btn-create-tld').on('click', () => {
+        openModalTld('create');
+    });
 })
 
 function filter() {
@@ -52,13 +56,14 @@ function filter() {
 
 function btnEdit(obj) {
     const id = $(obj).data('id');
-    ajaxGet(`management/tld/${id}`, false, result => {
-        $('#inputIdTldEdit').val(result.data.tld_hash);
-        $('#inputNoSeriEdit').val(result.data.no_seri_tld);
-        $('#inputJenisTldEdit').val(result.data.jenis);
-        $('#inputMerkEdit').val(result.data.merk);
-        $('#editTldModal').modal('show');
-    });
+    openModalTld('edit', id);
+    // ajaxGet(`management/tld/${id}`, false, result => {
+    //     $('#inputIdTldEdit').val(result.data.tld_hash);
+    //     $('#inputNoSeriEdit').val(result.data.no_seri_tld);
+    //     $('#inputJenisTldEdit').val(result.data.jenis);
+    //     $('#inputMerkEdit').val(result.data.merk);
+    //     $('#editTldModal').modal('show');
+    // });
 }
 
 function btnDelete(obj) {

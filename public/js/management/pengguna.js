@@ -1,5 +1,6 @@
 let datatable_ = false;
 let filterComp = false;
+let penggunaForm = false;
 $(function () {
     filterComp = new FilterComponent('list-filter', {
         jenis: 'pengguna',
@@ -7,6 +8,7 @@ $(function () {
             status: true
         }
     })
+    penggunaForm = new PenggunaForm();
 
     datatable_ = $('#pengguna-table').DataTable({
         processing: true,
@@ -32,8 +34,17 @@ $(function () {
 
     datatable_.on('draw.dt', function () {
         showPopupReload();
+        $('.btn-edit-pengguna').on('click', function () {
+            const id = $(this).data('id');
+            penggunaForm.showEdit(id);
+        })
     });
 })
+
+function tambahPengguna(){
+    penggunaForm.showAdd();
+}
+
 
 function btnDelete(obj) {
     const id = $(obj).data('id');

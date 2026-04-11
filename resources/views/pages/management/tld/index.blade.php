@@ -7,9 +7,9 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
                     <div class="flex-grow-1">
-                        <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
                     </div>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createTldModal"><i class="bi bi-plus"></i> Create Tld</button>
+                    <button class="btn btn-primary btn-sm rounded-pill" id="btn-create-tld"><i class="bi bi-plus"></i> Create Tld</button>
                 </div>
                 <div class="mb-3">
                     <div class="row">

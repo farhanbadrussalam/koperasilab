@@ -2,7 +2,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="createTldModalLabel">Create TLD</h5>
+          <h5 class="modal-title" id="createTldModalLabel">Tambah TLD</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <form id="form-create" method="post" data-parsley-validate>
@@ -34,6 +34,36 @@
 </div>
 
 <script>
+    let currentTldId = null;
+    let currentMode = 'create';
+
+    /**
+     * Fungsi utama untuk membuka modal dalam mode create atau edit
+     */
+    function openModalTld(mode, id = null) {
+        currentMode = mode;
+        currentTldId = id;
+        const modal = $('#createTldModal');
+        const modalTitle = $('#createTldModalLabel');
+
+        if (mode === 'create') {
+            modalTitle.text('Tambah TLD');
+            modal.modal('show');
+        } else if (mode === 'edit') {
+            modalTitle.text('Edit TLD');
+            spinner('show', modal.find('.modal-content'));
+            ajaxGet(`management/tld/${id}`, null, (result) => {
+                spinner('hide', modal.find('.modal-content'));
+                if (result.meta.code == 200) {
+                    $('#inputNoSeri').val(result.data.no_seri_tld);
+                    $('#inputJenisTld').val(result.data.jenis);
+                    $('#inputMerk').val(result.data.merk);
+                    modal.modal('show');
+                }
+            });
+        }
+    }
+
     $(function () {
         const formParsley = $('#form-create').parsley();
         let typingTimer;                // Variabel untuk menyimpan timer
@@ -45,6 +75,8 @@
             form[0].reset();
             form.parsley().reset();
             form.find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+            currentTldId = null;
+            currentMode = 'create';
         });
 
         const doneTypingInterval = 500;  // Waktu tunggu dalam milidetik (1000 ms = 1 detik)
@@ -70,8 +102,15 @@
             }
 
             const formData = new FormData(evt.target);
+            let url = `management/tld`;
+
+            if (currentMode === 'edit') {
+                url = `management/tld/${currentTldId}`;
+                formData.append('_method', 'PUT'); // Method spoofing untuk Laravel update
+            }
+
             spinner('show', $('#btn-create'));
-            ajaxPost(`management/tld`, formData, result => {
+            ajaxPost(url, formData, result => {
                 if (result.meta.code == 200) {
                     Swal.fire({
                         icon: 'success',
@@ -102,7 +141,12 @@
             return;
         }
 
-        ajaxGet(`management/searchTld?q=${no_seri}`, false, result => {
+        let url = `management/searchTld?q=${no_seri}`;
+        if (currentMode === 'edit' && currentTldId) {
+            url += `&ignore_id=${currentTldId}`;
+        }
+
+        ajaxGet(url, false, result => {
             fieldInstance.removeError('unique-tld');
             if(result.meta.code == 200){
                 if(result.data.length > 0){

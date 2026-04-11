@@ -75,9 +75,13 @@ class TldController extends Controller
                 return $tld->status == 1 || $tld->digunakan ? '<span class="badge bg-success">Digunakan</span><br><small class="text-body-tertiary">' . $tld->digunakan . '</small>' : '<span class="badge bg-secondary">Tidak Digunakan</span>';
             })
             ->addColumn('action', function ($tld) {
-                $btn = '<button data-id="' . $tld->tld_hash . '" class="btn btn-outline-warning btn-sm edit" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i> Edit</button>';
-                $btnRemove = $tld->status == 1 || $tld->digunakan ? '<button data-id="'. $tld->tld_hash .'" class="btn btn-outline-danger btn-sm delete" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i> Hapus</button>' : '';
-                return $btn . $btnRemove;
+                $btn = '<button data-id="' . $tld->tld_hash . '" class="btn btn-outline-warning btn-sm edit rounded-pill" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>';
+                $btnRemove = $tld->status == 0 || !$tld->digunakan ? '<button data-id="'. $tld->tld_hash .'" class="btn btn-outline-danger btn-sm delete rounded-pill" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>' : '';
+                return '
+                    <div class="d-flex justify-content-center gap-2">
+                        '.$btn . $btnRemove.'
+                    </div>
+                ';
             })
             ->rawColumns(['no_seri_tld','action', 'status'])
             ->make(true);
@@ -178,7 +182,7 @@ class TldController extends Controller
                 return $this->output(array('msg' => 'No seri dan jenis sudah ada'), 'Fail', 422);
             }
 
-            $tld = Master_tld::findOrFail(decryptor($request->id_tld));
+            $tld = Master_tld::findOrFail(decryptor($id));
             $tld->update([
                 'no_seri_tld' => $request->nomer_seri,
                 'jenis' => $request->jenis,

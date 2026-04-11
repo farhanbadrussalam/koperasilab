@@ -42,7 +42,11 @@ class Inventory_tld {
 
         $('#modal-inventory-tld').on('hide.bs.modal', () => {
             this.filter.clear();
-        })
+        });
+
+        $('#btn-tambah-tld').on('click', () => {
+            openModalTld('create');
+        });
     }
 
     _loadData(){
@@ -148,7 +152,7 @@ class Inventory_tld {
                             <div class="d-flex justify-content-between mb-3" id="modal-inventory-tld-action">
                                 <div>
                                     <h1 class="modal-title fs-5" id="">Inventory TLD</h1>
-                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#createTldModal">
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" id="btn-tambah-tld" data-bs-toggle="modal" data-bs-target="#createTldModal">
                                         <i class="bi bi-plus"></i> Tambah TLD
                                     </button>
                                 </div>
