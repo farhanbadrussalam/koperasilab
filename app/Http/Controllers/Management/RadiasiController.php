@@ -28,16 +28,24 @@ class RadiasiController extends Controller
         return view('pages.management.radiasi.index', $data);
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        $radiasi = Master_radiasi::where('status', '!=', '99')->orderBy('id_radiasi', 'desc');
+        $filter = $request->has('filter') ? $request->filter : [];
+
+        $radiasi = Master_radiasi::when($filter, function ($q, $filter) {
+                foreach ($filter as $key => $value) {
+                    $q->where('nama_radiasi', 'like', "%$value%");
+                }
+            })
+            ->where('status', '!=', '99')
+            ->orderBy('id_radiasi', 'desc');
 
         return DataTables::of($radiasi)
             ->addIndexColumn()
             ->addColumn('action', function ($row) {
                 return '
-                    <button data-id="' . $row->radiasi_hash . '" class="btn btn-outline-warning btn-sm edit" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i> Edit</button>
-                    <button data-id="' . $row->radiasi_hash . '" class="btn btn-outline-danger btn-sm delete" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i> Hapus</button>
+                    <button data-id="' . $row->radiasi_hash . '" class="btn btn-outline-warning btn-sm edit rounded-pill" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>
+                    <button data-id="' . $row->radiasi_hash . '" class="btn btn-outline-danger btn-sm delete rounded-pill" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>
                 ';
             })
             ->rawColumns(['action'])

@@ -1,15 +1,45 @@
 let datatable_role = false;
+let filterComp = false;
 $(function () {
     datatable_role = $('#role-table').DataTable({
         processing: true,
         serverSide: true,
-        ajax: `${base_url}/management/getDataRoles`,
+        ajax: {
+            url: `${base_url}/management/getDataRoles`,
+            type: "GET",
+            data: function (d) {
+                let filterValue = filterComp && filterComp.getAllValue();
+
+                d.filter = {};
+                filterValue.search && (d.filter.search = filterValue.search);
+
+                if(Object.keys(d.filter).length > 0) {
+                    $('#countFilter').html(Object.keys(d.filter).length);
+                    $('#countFilter').removeClass('d-none');
+                } else {
+                    $('#countFilter').addClass('d-none');
+                }
+                return d
+            }
+        },
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
             { data: 'name', name: 'name' },
-            { data: 'action', name: 'action', orderable: false, searchable: false }
+            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-end' },
         ]
+    });
+
+    filterComp = new FilterComponent('list-filter', {
+        filter : {
+            search: true
+        },
+        placeholder: {
+            search: 'Cari Role...'
+        }
     })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => datatable_role?.ajax.reload());
 })
 
 function btnEdit(obj) {
@@ -99,4 +129,13 @@ function resetForm() {
     // reset checkbox permission
     $('input[name="permission[]"]').prop('checked', false);
     $('input[name="permissionEdit[]"]').prop('checked', false);
+}
+
+function reload() {
+    datatable_role?.ajax.reload();
+}
+
+function clearFilter(){
+    filterComp.clear();
+    reload();
 }

@@ -1,15 +1,45 @@
 let datatable_permission = false;
+let filterComp = false;
 $(function(){
     datatable_permission = $('#permission-table').DataTable({
         processing: true,
         serverSide: true,
-        ajax: `${base_url}/management/getDataPermission`,
+        ajax: {
+            url: `${base_url}/management/getDataPermission`,
+            type: "GET",
+            data: function(params) {
+                let filterValue = filterComp && filterComp.getAllValue();
+
+                params.filter = {};
+                filterValue.search && (params.filter.search = filterValue.search);
+
+                if(Object.keys(params.filter).length > 0) {
+                    $('#countFilter').html(Object.keys(params.filter).length);
+                    $('#countFilter').removeClass('d-none');
+                } else {
+                    $('#countFilter').addClass('d-none');
+                }
+                return params
+            }
+        },
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: true, className: 'text-center' },
             { data: 'name', name: 'name' },
-            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
+            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-end' },
         ]
     });
+
+    filterComp = new FilterComponent('list-filter', {
+        filter : {
+            search: true
+        },
+        placeholder: {
+            search: 'Cari Permission...'
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => datatable_permission?.ajax.reload());
 })
 
 $('#form-edit').on("submit", (evt) => {
@@ -84,4 +114,13 @@ function btnDelete(obj) {
             datatable_permission?.ajax.reload();
         })
     })
+}
+
+function reload(){
+    datatable_permission?.ajax.reload();
+}
+
+function clearFilter(){
+    filterComp.clear();
+    reload();
 }

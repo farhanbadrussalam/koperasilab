@@ -11,6 +11,15 @@
                     Tambah
                 </a>
             </div>
+            <div class="d-flex">
+                <div class="flex-grow-1">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="clearFilter()">
+                        <i class="bi bi-funnel"></i> Clear Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span>
+                    </button>
+                </div>
+            </div>
+            <div id="list-filter"></div>
             <div class="row mt-2">
                 <div class="overflow-y-auto">
                     <table class="table table-hover w-100 align-middle" id="permission-table">

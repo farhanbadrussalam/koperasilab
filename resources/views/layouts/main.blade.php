@@ -161,10 +161,10 @@
                 'id' : user.id
             });
 
-            $("#container-time-now").html(dateFormat(new Date(), 1));
-            setInterval(() => {
-                $("#container-time-now").html(dateFormat(new Date(), 1));
-            }, 5000);
+            // $("#container-time-now").html(dateFormat(new Date(), 1));
+            // setInterval(() => {
+            //     $("#container-time-now").html(dateFormat(new Date(), 1));
+            // }, 5000);
 
             $('[data-bs-toggle="tooltip"]').attr('data-bs-placement', 'bottom')
             $('[data-bs-toggle="tooltip"]').tooltip()

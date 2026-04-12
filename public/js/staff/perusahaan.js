@@ -1,4 +1,5 @@
 let detail = false;
+let filterComp = false;
 $(function () {
     loadData();
 
@@ -9,6 +10,17 @@ $(function () {
             karyawan: true,
         }
     });
+
+    filterComp = new FilterComponent('list-filter', {
+        filter : {
+            search: true
+        },
+        placeholder: {
+            search: 'Cari Perusahaan...'
+        }
+    })
+    // SETUP FILTER
+    filterComp.on('filter.change', () => loadData());
 
     // mengecek apakah kode perusahaan sudah ada atau belum, jika sudah ada tidak akan bisa di simpan
     $('#kodeEditPerusahaan').on('input', obj => {
@@ -42,13 +54,21 @@ $(function () {
 });
 
 function loadData(page = 1) {
+    let filterValue = filterComp && filterComp.getAllValue();
     let params = {
-        limit: 10,
+        limit: 5,
         page: page,
-        filter: {
-
-        }
+        filter: {}
     };
+
+    filterValue && (params.filter.search = filterValue.search);
+
+    if(Object.keys(params.filter).length > 0) {
+        $('#countFilter').html(Object.keys(params.filter).length);
+        $('#countFilter').removeClass('d-none');
+    } else {
+        $('#countFilter').addClass('d-none');
+    }
 
     $('#list-placeholder').show();
     $('#list-container').hide();
@@ -87,12 +107,7 @@ function loadData(page = 1) {
         }
 
         if(result.data.length == 0){
-            html = `
-                <div class="d-flex flex-column align-items-center py-3">
-                    <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
-                    <span class="fw-bold mt-3 text-muted">No Data Available</span>
-                </div>
-            `;
+            html = htmlNoData();
         }
         $('#list-container').html(html);
 
@@ -153,6 +168,11 @@ function openModalDetail(obj){
     const id = $(obj).data('id');
 
     detail.show(`api/v1/profile/getPerusahaanById/${id}`);
+}
+
+function clearFilter(){
+    filterComp.clear();
+    loadData();
 }
 
 $('#list-pagination').on('click', 'a', function (e) {

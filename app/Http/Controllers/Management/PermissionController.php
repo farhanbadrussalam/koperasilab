@@ -27,15 +27,23 @@ class PermissionController extends Controller
         return view('pages.management.permission.index', $data);
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        $permissions = Permission::orderBy('name', 'ASC')->where('name', 'not like', 'Otorisasi-%')->get();
+        $filter = $request->has('filter') ? $request->filter : [];
+        $permissions = Permission::orderBy('name', 'ASC')
+            ->where('name', 'not like', 'Otorisasi-%')
+            ->when($filter, function($q, $filter) {
+                foreach ($filter as $key => $value) {
+                    $q->where('name', 'like', "%$value%");
+                }
+            })
+            ->get();
         return DataTables::of($permissions)
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <button class="btn btn-outline-warning btn-sm m-1" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i> Edit</button>
-                        <button class="btn btn-outline-danger btn-sm m-1" data-id="'.$data->id.'" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i> Hapus</a>
+                        <button class="btn btn-outline-warning btn-sm m-1 rounded-pill" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-outline-danger btn-sm m-1 rounded-pill" data-id="'.$data->id.'" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></a>
                     ';
                 })
                 ->rawColumns(['action'])

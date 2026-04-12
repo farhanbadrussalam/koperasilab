@@ -1,15 +1,45 @@
 let datatable_radiasi = false;
+let filterComp = false;
 $(function () {
     datatable_radiasi = $('#radiasi-table').DataTable({
         processing: true,
         serverSide: true,
-        ajax: `${base_url}/management/getDataRadiasi`,
+        ajax: {
+            url: `${base_url}/management/getDataRadiasi`,
+            type: "GET",
+            data: function (d) {
+                let filterValue = filterComp && filterComp.getAllValue();
+
+                d.filter = {};
+                filterValue.search && (d.filter.search = filterValue.search);
+
+                if(Object.keys(d.filter).length > 0) {
+                    $('#countFilter').html(Object.keys(d.filter).length);
+                    $('#countFilter').removeClass('d-none');
+                } else {
+                    $('#countFilter').addClass('d-none');
+                }
+                return d
+            }
+        },
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
             { data: 'nama_radiasi', name: 'nama_radiasi' },
-            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
+            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-end' },
         ]
     })
+
+    filterComp = new FilterComponent('list-filter', {
+        filter : {
+            search: true
+        },
+        placeholder: {
+            search: 'Cari Radiasi...'
+        }
+    })
+
+    // SETUP FILTER
+    filterComp.on('filter.change', () => datatable_radiasi?.ajax.reload());
 
     $('#createRadiasiModal').on('hide.bs.modal', resetForm);
     $('#editRadiasiModal').on('hide.bs.modal', resetForm);
@@ -32,7 +62,7 @@ $(function () {
                     spinner('hide', $('#btn-create'));
                     resetForm();
                 })
-            }        
+            }
         }, error => {
             spinner('hide', $('#btn-create'));
         });
@@ -56,7 +86,7 @@ $(function () {
                     spinner('hide', $('#btn-edit'));
                     resetForm();
                 })
-            }        
+            }
         }, error => {
             spinner('hide', $('#btn-edit'));
         });
@@ -92,4 +122,13 @@ function btnDelete(el) {
 function resetForm() {
     $('#form-create').trigger('reset');
     $('#form-edit').trigger('reset');
+}
+
+function reload() {
+    datatable_radiasi.ajax.reload();
+}
+
+function clearFilter(){
+    filterComp.clear();
+    reload();
 }

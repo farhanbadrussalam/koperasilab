@@ -16,6 +16,7 @@ class FilterComponent {
         this.options = {
             filter: Object.fromEntries(Object.entries(options.filter).filter(([key, value]) => value === true))
         };
+        this.placeholder = options.placeholder;
 
         this.selfElement.addClass('w-100 d-flex flex-wrap my-3 gap-2');
     }
@@ -380,10 +381,11 @@ class FilterComponent {
 
     createSearchContent(callback, index) {
         const self = this;
+        const placeholder = self.placeholder ? self.placeholder.search: 'Cari...';
         let html = `
             <div class="col-3 order-${index+1}">
                 <div class="input-group">
-                    <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="Search">
+                    <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="${placeholder}">
                     <span class="btn btn-outline-secondary btn-sm" id="btnSearch"><i class="bi bi-search"></i></span>
                 </div>
             </div>

@@ -30,17 +30,23 @@ class RolesController extends Controller
         return view('pages.management.roles.index', $data);
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        $role = Role::all();
+        $filter = $request->has('filter') ? $request->filter : [];
+
+        $role = Role::when($filter, function($q, $filter) {
+            foreach ($filter as $key => $value) {
+                $q->where('name', 'like', "%$value%");
+            }
+        })
+        ->get();
+
         return DataTables::of($role)
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
-                        <div class="text-center">
-                            <button class="btn btn-outline-warning btn-sm m-1" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i> Edit</button>
-                            <button class="btn btn-outline-danger btn-sm m-1" data-id="'.$data->id.'" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i> Hapus</a>
-                        </div>
+                        <button class="btn btn-outline-warning btn-sm m-1 rounded-pill" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>
+                        <button class="btn btn-outline-danger btn-sm m-1 rounded-pill" data-id="'.$data->id.'" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></a>
                     ';
                 })
                 ->rawColumns(['action'])
@@ -63,7 +69,7 @@ class RolesController extends Controller
         DB::beginTransaction();
         try {
             $role = Role::create(['name' => $request->name]);
-    
+
             // Give permission
             foreach ($request->permission as $key => $permission) {
                 $role->givePermissionTo($permission);
@@ -89,7 +95,7 @@ class RolesController extends Controller
             $role = Role::with('permissions')->where('id', $id)->first();
 
             DB::commit();
-            
+
             return $this->output($role);
         } catch (\Exception $ex) {
             info($ex);
@@ -115,13 +121,13 @@ class RolesController extends Controller
         DB::beginTransaction();
         try {
             $data = Role::findOrFail($request->id_role);
-    
+
             $data->name = $request->name;
             $data->update();
-    
+
             // Update permission
             $data->syncPermissions($request->permissionEdit);
-    
+
             DB::commit();
 
             return $this->output(array('msg' => 'Role Behasil diubah'));
@@ -150,6 +156,6 @@ class RolesController extends Controller
             info($ex);
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
-        }    
+        }
     }
 }
