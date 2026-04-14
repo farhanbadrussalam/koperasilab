@@ -37,8 +37,21 @@ class UserController extends Controller
         return view('pages.management.users.index', $data);
     }
 
-    public function getData(){
-        $query = User::orderBy('id', 'desc');
+    public function getData(Request $request){
+        $filter = $request->has('filter') ? $request->filter : [];
+
+        $query = User::when($filter, function($q, $filter) {
+            foreach ($filter as $key => $value) {
+                switch ($key) {
+                    case 'satuan_kerja':
+                        $q->whereJsonContains('satuankerja_id', (int) decryptor($value));
+                        break;
+                    case 'search':
+                        $q->where('name', 'like', "%$value%");
+                        break;
+                }
+            }
+        })->orderBy('id', 'desc');
 
         $user = Auth::user();
 
@@ -56,8 +69,8 @@ class UserController extends Controller
             }
         }
 
-        if(request()->has('role') && request()->role != null){
-            $role = request()->role;
+        if(isset($filter['roles']) && $filter['roles'] != null){
+            $role = $filter['roles'];
             $query->whereHas('roles', function($q) use ($role){
                 if(is_array($role)) $q->whereIn('name', $role);
                 else $q->where('name', $role);

@@ -1,9 +1,30 @@
 let datatable_tld = false;
+let filterComp = false;
 $(function () {
     datatable_tld = $('#tld-table').DataTable({
         processing: true,
         serverSide: true,
-        ajax: `${base_url}/management/getDataTld`,
+        ajax: {
+            url: `${base_url}/management/getDataTld`,
+            type: "GET",
+            data: function(d) {
+                let filterValue = filterComp && filterComp.getAllValue();
+
+                d.filter = {};
+                filterValue.search && (d.filter.search = filterValue.search);
+                filterValue.status && (d.filter.status = filterValue.status);
+                filterValue.selected_custom && (d.filter.jenis = filterValue.selected_custom);
+                filterValue.no_kontrak && (d.filter.no_kontrak = filterValue.no_kontrak);
+
+                if(Object.keys(d.filter).length > 0) {
+                    $('#countFilter').html(Object.keys(d.filter).length);
+                    $('#countFilter').removeClass('d-none');
+                } else {
+                    $('#countFilter').addClass('d-none');
+                }
+                return d
+            }
+        },
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
             { data: 'no_seri_tld', name: 'no_seri_tld' },
@@ -13,10 +34,24 @@ $(function () {
         ]
     });
 
-    $('#editTldModal').on('hide.bs.modal', resetForm);
+    filterComp = new FilterComponent('list-filter', {
+        jenis: 'tld',
+        filter : {
+            search: true,
+            status: true,
+            selected_custom: true,
+            no_kontrak: true
+        },
+        placeholder: {
+            search: 'Cari TLD...',
+            selected_custom: 'All Jenis TLD'
+        }
+    })
 
-    $('#filterStatus').on('change', filter);
-    $('#filterJenis').on('change', filter);
+    // SETUP FILTER
+    filterComp.on('filter.change', () => datatable_tld?.ajax.reload());
+
+    $('#editTldModal').on('hide.bs.modal', resetForm);
 
     $('#form-edit').on("submit", (evt) => {
         evt.preventDefault();
@@ -87,5 +122,10 @@ function resetForm() {
     $('#form-edit')[0].reset();
 }
 function reload(){
-    filter();
+    datatable_tld.ajax.reload();
+}
+
+function clearFilter(){
+    filterComp.clear();
+    reload();
 }

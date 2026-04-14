@@ -11,9 +11,10 @@ use App\Models\Master_jenistld;
 use App\Models\Master_jenisLayanan;
 use App\Models\Master_jobs;
 use App\Models\Perusahaan;
-
+use App\Models\Satuan_kerja;
 use Auth;
 use DB;
+use Spatie\Permission\Models\Role;
 
 class FilterAPI extends Controller
 {
@@ -161,6 +162,18 @@ class FilterAPI extends Controller
                         )
                     ];
                     break;
+                case 'tld':
+                    $status = [
+                        array(
+                            'id' => encryptor(1),
+                            'name' => 'Digunakan',
+                        ),
+                        array(
+                            'id' => encryptor(0),
+                            'name' => 'Tidak Digunakan',
+                        )
+                    ];
+                    break;
                 default:
                     $status = [
                         array(
@@ -190,5 +203,46 @@ class FilterAPI extends Controller
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
+    }
+
+    public function getSelectCustom(Request $request)
+    {
+        $jenis = $request->has('jenis') ? $request->jenis : false;
+        switch ($jenis) {
+            case 'selected_custom':
+                $data = [
+                    array(
+                        'id' => 'kontrol',
+                        'name' => 'Kontrol',
+                    ),
+                    array(
+                        'id' => 'pengguna',
+                        'name' => 'Pengguna',
+                    )
+                ];
+                break;
+            case 'satuan_kerja':
+                $allData = Satuan_kerja::all();
+                $data = $allData->map(function($item) {
+                    return [
+                        'id' => $item->satuan_hash,
+                        'name' => $item->name
+                    ];
+                });
+                break;
+            case 'roles':
+                $allData = Role::all();
+                $data = $allData->map(function($item) {
+                    return [
+                        'id' => $item->name,
+                        'name' => $item->name
+                    ];
+                });
+                break;
+            default:
+                $data = [];
+                break;
+        }
+        return $this->output($data, 200);
     }
 }

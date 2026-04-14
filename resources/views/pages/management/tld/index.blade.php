@@ -8,27 +8,13 @@
                 <div class="d-flex justify-content-between mb-2">
                     <div class="flex-grow-1">
                         <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="clearFilter()">
+                            <i class="bi bi-funnel"></i> Clear Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span>
+                        </button>
                     </div>
                     <button class="btn btn-primary btn-sm rounded-pill" id="btn-create-tld"><i class="bi bi-plus"></i> Create Tld</button>
                 </div>
-                <div class="mb-3">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <select class="form-select" id="filterStatus" aria-label=".form-select-sm example">
-                                <option value="" selected>All Status</option>
-                                <option value="1">Digunakan</option>
-                                <option value="0">Tidak digunakan</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <select class="form-select" id="filterJenis" aria-label=".form-select-sm example">
-                                <option value="" selected>All Jenis</option>
-                                <option value="kontrol" >Kontrol</option>
-                                <option value="pengguna">Pengguna</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+                <div id="list-filter"></div>
                 <div class="row mt-2">
                     <div class="overflow-y-auto">
                         <table class="table table-hover w-100 align-middle" id="tld-table">

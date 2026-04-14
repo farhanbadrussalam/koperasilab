@@ -30,10 +30,32 @@ class TldController extends Controller
         return view('pages.management.tld.index', $data);
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
+        $filter = $request->has('filter') ? $request->filter : [];
+
         $tld = Master_tld::where('status', '!=', '99')
             ->with('pemilik')
+            ->when($filter, function($q, $filter) {
+                foreach ($filter as $key => $value) {
+                    switch ($key) {
+                        case 'status':
+                            $q->where('status', decryptor($value));
+                            break;
+                        case 'search':
+                            $q->where('no_seri_tld', 'like', '%' . $value . '%');
+                            break;
+                        case 'jenis':
+                            $q->where('jenis', $value);
+                            break;
+                        case 'no_kontrak':
+                            $q->where('digunakan', $value);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            })
             ->orderBy('kepemilikan', 'asc')
             ->orderBy('status', 'asc')
             ->orderBy('jenis', 'asc');
@@ -44,14 +66,6 @@ class TldController extends Controller
             $tld->where('kepemilikan', Auth::user()->id_perusahaan);
         } else {
             $tld->whereNull('kepemilikan');
-        }
-
-        if(request()->has('status') && request()->status != null){
-            $tld->where('status', request()->status);
-        }
-
-        if(request()->has('jenis') && request()->jenis != null){
-            $tld->where('jenis', request()->jenis);
         }
 
         return DataTables::of($tld)

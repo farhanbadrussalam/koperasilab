@@ -1,63 +1,39 @@
 @extends('layouts.main')
 
 @section('content')
-<div class="content-wrapper">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                        <li class="breadcrumb-item active">Users</li>
-                    </ol>
-                </div>
-            </div>
-        </div><!-- /.container-fluid -->
-    </section>
-    <section class="content">
-        <div class="container col-md-12">
-            <div class="card card-default color-palette-box shadow">
-                <div class="card-header d-flex ">
-                    <h3 class="card-title flex-grow-1">
-                      Users
-                    </h3>
-                    <a href="{{ route('users.create') }}" class="btn btn-primary btn-sm">Add user</a>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <select class="form-select" id="filterSatuanKerja" aria-label=".form-select-sm example">
-                                    <option value="" selected>All Satuan Kerja</option>
-                                    @foreach ($satuankerja as $value)
-                                        <option value="{{ $value->satuan_hash }}">{{ $value->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <select class="form-select" id="filterRole" aria-label=".form-select-sm example">
-                                    <option value="" selected>All Role</option>
-                                    @foreach ($role as $value)
-                                        <option value="{{ $value->name }}">{{ $value->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <table class="table table-hover w-100 align-middle" id="user-table">
-                        <thead>
-                            <th class="text-center">No</th>
-                            <th width="20%">Name</th>
-                            <th width="20%">Email</th>
-                            <th width="20%">Satuan Kerja</th>
-                            <th width="20%">Role</th>
-                            <th width="10%">Action</th>
-                        </thead>
-                    </table>
-                </div>
+<div class="card p-0 m-0 shadow border-0">
+    <div class="card-body">
+        <div class="row d-flex align-items-center mb-4 px-3">
+            <h4 class="col-12 col-md-10">Users</h4>
+            <a href="{{ route('users.create') }}" class="btn btn-primary col-12 col-md-2">
+                <i class="bi bi-plus-lg"></i>
+                Tambah
+            </a>
+        </div>
+        <div class="d-flex">
+            <div class="flex-grow-1">
+                <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="clearFilter()">
+                    <i class="bi bi-funnel"></i> Clear Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span>
+                </button>
             </div>
         </div>
-    </section>
+        <div id="list-filter"></div>
+        <div class="row mt-2">
+            <div class="overflow-y-auto">
+                <table class="table table-hover w-100 align-middle" id="user-table">
+                    <thead>
+                        <th class="text-center">No</th>
+                        <th width="20%">Name</th>
+                        <th width="20%">Email</th>
+                        <th width="20%">Satuan Kerja</th>
+                        <th width="20%">Role</th>
+                        <th width="10%">Action</th>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 <div class="modal fade" id="tugasModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-sm">
@@ -75,11 +51,32 @@
 @endsection
 @push('scripts')
     <script>
+        let filterComp = false;
+        let datatable_users = null;
         $(function () {
-            $('#user-table').DataTable({
+            datatable_users = $('#user-table').DataTable({
                 processing: true,
                 serverSide: true,
-                ajax: "{{ route('users.getData') }}",
+                ajax: {
+                    url: "{{ route('users.getData') }}",
+                    type: "GET",
+                    data: function (d) {
+                        let filterValue = filterComp && filterComp.getAllValue();
+
+                        d.filter = {};
+                        filterValue.search && (d.filter.search = filterValue.search);
+                        filterValue.satuan_kerja && (d.filter.satuan_kerja = filterValue.satuan_kerja);
+                        filterValue.roles && (d.filter.roles = filterValue.roles);
+
+                        if(Object.keys(d.filter).length > 0) {
+                            $('#countFilter').html(Object.keys(d.filter).length);
+                            $('#countFilter').removeClass('d-none');
+                        } else {
+                            $('#countFilter').addClass('d-none');
+                        }
+                        return d
+                    }
+                },
                 columns: [
                     { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
                     { data: 'name', name: 'name' },
@@ -90,15 +87,21 @@
                 ]
             });
 
-            $('#filterSatuanKerja').on('change', filter);
-            $('#filterRole').on('change', filter);
+            filterComp = new FilterComponent('list-filter', {
+                filter : {
+                    search: true,
+                    satuan_kerja: true,
+                    roles: true
+                },
+                placeholder: {
+                    search: 'Cari User...',
+                    satuan_kerja: 'All Satuan Kerja',
+                    roles: 'All Role'
+                }
+            })
 
-            function filter(){
-                let satuanKerja = $('#filterSatuanKerja').val();
-                let role = $('#filterRole').val();
-
-                $('#user-table').DataTable().ajax.url(`{{ route('users.getData') }}?satuan_kerja=${satuanKerja}&role=${role}`).load();
-            }
+            // SETUP FILTER
+            filterComp.on('filter.change', () => datatable_users?.ajax.reload());
         });
 
         function showTugas(obj){
@@ -122,6 +125,15 @@
                 }
             });
 
+        }
+
+        function reload(){
+            datatable_users.ajax.reload();
+        }
+
+        function clearFilter(){
+            filterComp.clear();
+            datatable_users.ajax.reload();
         }
     </script>
 @endpush

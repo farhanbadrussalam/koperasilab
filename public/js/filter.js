@@ -34,7 +34,24 @@ class FilterComponent {
         if(filterName == 'status'){
             $('#filterStatus').select2({
                 theme: "bootstrap-5",
-                placeholder: 'All Status',
+                placeholder: this.placeholder?.status,
+                allowClear: true
+            }).on('select2:select', function(e) {
+                document.dispatchEvent(self.eventChange);
+            }).on('select2:clear', function(e) {
+                document.dispatchEvent(self.eventChange);
+                // Tutup Select2 setelah sedikit delay
+                setTimeout(() => {
+                    $(this).select2('close');
+                }, 10); // Penundaan kecil agar Select2 menutup dengan benar
+            });
+        }
+
+        const allFilter = ['selected_custom', 'satuan_kerja', 'roles'];
+        if(allFilter.includes(filterName)){
+            $(`#filter${filterName}`).select2({
+                theme: "bootstrap-5",
+                placeholder: this.placeholder?.[filterName],
                 allowClear: true
             }).on('select2:select', function(e) {
                 document.dispatchEvent(self.eventChange);
@@ -282,6 +299,10 @@ class FilterComponent {
         this.options.filter.date_range && this.createDateRangeContent(html => callback(html), Object.keys(this.options.filter).indexOf('date_range'));
         this.options.filter.search && this.createSearchContent(html => callback(html), Object.keys(this.options.filter).indexOf('search'));
         this.options.filter.periode && this.createPeriodeContent(html => callback(html), Object.keys(this.options.filter).indexOf('periode'));
+
+        this.options.filter.selected_custom && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('selected_custom'), 'selected_custom');
+        this.options.filter.satuan_kerja && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('satuan_kerja'), 'satuan_kerja');
+        this.options.filter.roles && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('roles'), 'roles');
     }
 
     createJenisTldContent(callback, index) {
@@ -298,6 +319,21 @@ class FilterComponent {
             callback(html);
             self._setupFilter('jenis_tld');
         });
+    }
+    createSelectedCustom(callback, index, filter) {
+        const self = this;
+        ajaxGet(`api/v1/filter/getSelectCustom`, {jenis: filter}, result => {
+            let html = `
+                <div class="col-3 order-${index+1}">
+                    <select name="filter${filter}" id="filter${filter}" class="form-select form-select-sm">
+                        <option value="" selected>All</option>
+                        ${result.data.map(item => `<option value="${item.id}">${item.name}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+            callback(html);
+            self._setupFilter(filter);
+        })
     }
     createStatusContent(callback, index) {
         const self = this;
@@ -421,6 +457,9 @@ class FilterComponent {
         this.options.filter.date_range && (allValue.date_range = this.getValue('date_range'));
         this.options.filter.search && (allValue.search = this.getValue('search'));
         this.options.filter.periode && (allValue.periode = this.getValue('periode'));
+        this.options.filter.selected_custom && (allValue.selected_custom = this.getValue('selected_custom'));
+        this.options.filter.satuan_kerja && (allValue.satuan_kerja = this.getValue('satuan_kerja'));
+        this.options.filter.roles && (allValue.roles = this.getValue('roles'));
 
         return allValue;
     }
@@ -440,6 +479,9 @@ class FilterComponent {
         if (filterName == 'date_range') return this.fp.selectedDates.map(date => date.toISOString().split('T')[0]);
         if (filterName == 'search') return $('#filterSearch').val();
         if (filterName == 'periode') return $('#filterPeriode').val();
+        if (filterName == 'selected_custom') return $('#filterselected_custom').val();
+        if (filterName == 'satuan_kerja') return $('#filtersatuan_kerja').val();
+        if (filterName == 'roles') return $('#filterroles').val();
     }
 
     clear() {
@@ -449,6 +491,9 @@ class FilterComponent {
         this.options.filter.jenis_layanan_child && ($('#filterJenisLayananChild').val('').trigger('change'));
         this.options.filter.no_kontrak && ($('#filterSearchKontrak').val('').trigger('change'));
         this.options.filter.perusahaan && ($('#filterPerusahaan').val('').trigger('change'));
+        this.options.filter.selected_custom && $('#filterselected_custom').val('').trigger('change');
+        this.options.filter.satuan_kerja && $('#filtersatuan_kerja').val('').trigger('change');
+        this.options.filter.roles && $('#filterroles').val('').trigger('change');
         this.options.filter.date_range && (this.fp.clear());
         this.options.filter.search && $('#filterSearch').val('');
         this.options.filter.periode && $('#filterPeriode').val('');
