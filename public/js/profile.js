@@ -3,7 +3,9 @@ let _uploadSuratKuasa = false;
 let detail = false;
 $(function() {
     loadForm(profile);
-    loadDocumentKop();
+    if(role.includes('Pelanggan')) {
+        loadDocumentKop();
+    }
     // Cek hash di URL saat halaman dimuat
     const hash = window.location.hash;
     if (hash) {

@@ -299,23 +299,68 @@ class Detail {
         this.loadDataAjax(url);
     }
 
+    _renderSkeleton() {
+        return `
+            <div class="placeholder-glow container fs-7">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <span class="placeholder col-5 mb-1 bg-light"></span>
+                        <span class="placeholder col-10 d-block py-2 rounded"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="placeholder col-4 mb-1 bg-light"></span>
+                        <span class="placeholder col-8 d-block py-2 rounded"></span>
+                    </div>
+                    <div class="col-12">
+                        <span class="placeholder col-3 mb-1 bg-light"></span>
+                        <div class="d-flex gap-1">
+                            <span class="placeholder col-2 py-2 rounded-pill"></span>
+                            <span class="placeholder col-4 py-2 rounded-pill"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="placeholder col-4 mb-1 bg-light"></span>
+                        <span class="placeholder col-9 d-block py-2 rounded"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="placeholder col-4 mb-1 bg-light"></span>
+                        <span class="placeholder col-7 d-block py-2 rounded"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="placeholder col-5 mb-1 bg-light"></span>
+                        <span class="placeholder col-8 d-block py-2 rounded"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="placeholder col-4 mb-1 bg-light"></span>
+                        <span class="placeholder col-6 d-block py-2 rounded"></span>
+                    </div>
+                </div>
+                <hr class="my-4 opacity-25">
+                <div class="mt-3">
+                    <div class="placeholder col-12 mb-2 rounded-3" style="height: 48px;"></div>
+                    <div class="placeholder col-12 mb-2 rounded-3" style="height: 48px;"></div>
+                    <div class="placeholder col-12 mb-2 rounded-3" style="height: 48px;"></div>
+                </div>
+            </div>
+        `;
+    }
+
     loadDataAjax(url) {
         $('#titleDetail').text('Detail');
-        $('#mainContent').hide();
-        $('#loadingDetail').show();
-        spinner('show', $('#loadingDetail'), {
-            width: '100px',
-            height: '100px'
-        });
+        $('#loadingDetail').hide();
+        $('#container-detail').html(this._renderSkeleton());
+        $('#mainContent').show();
+
         ajaxGet(url, false, result => {
             this.addData(result.data);
             this.loadData();
-            spinner('hide', $('#loadingDetail'));
-            $('#mainContent').show();
-            $('#loadingDetail').hide();
         }, error => {
-            spinner('hide', $('#loadingDetail'));
-            $('#loadingDetail').hide();
+            $('#container-detail').html(`
+                <div class="text-center p-5">
+                    <i class="bi bi-exclamation-triangle text-danger display-4"></i>
+                    <p class="mt-2 text-muted">Gagal memuat data detail.</p>
+                </div>
+            `);
         });
     }
 
@@ -331,53 +376,41 @@ class Detail {
             htmlPeriode += ' + Zero cek';
         }
         container.innerHTML = `
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">No kontrak</label>
-                <div class="col-auto">
-                    ${this.info.no_kontrak}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-hash me-1"></i>No Kontrak</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.no_kontrak}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Jenis layanan</label>
-                <div class="col-auto gap-1">
-                    <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
-                    <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-info-circle me-1"></i>Status</label>
+                    <div>${statusFormat(this.info.jenisStatus, this.info.status)}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Pelanggan</label>
-                <div class="col-auto">
-                    ${this.info.pelanggan}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-layers me-1"></i>Jenis Layanan</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
+                        <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Perusahaan</label>
-                <div class="col-auto">
-                    ${this.info.perusahaan}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-person me-1"></i>Pelanggan</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.pelanggan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Status</label>
-                <div class="col-auto">
-                    ${statusFormat(this.info.jenisStatus, this.info.status)}
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-building me-1"></i>Perusahaan</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.perusahaan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Periode</label>
-                <div class="col-auto">
-                    ${htmlPeriode}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-calendar-event me-1"></i>Periode</label>
+                    <div class="text-dark fw-semibold">${htmlPeriode}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Harga</label>
-                <div class="col-auto">
-                    ${formatRupiah(this.info.total_harga)}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-tags me-1"></i>Harga</label>
+                    <div class="text-primary fw-bold">${formatRupiah(this.info.total_harga)}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Dibuat pada</label>
-                <div class="col-auto">
-                    ${dateFormat(this.info.created_at, 0)}
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-clock-history me-1"></i>Dibuat Pada</label>
+                    <div class="text-muted small">${dateFormat(this.info.created_at, 0)}</div>
                 </div>
             </div>
         `;
@@ -391,52 +424,40 @@ class Detail {
         $('#titleDetail').text('Detail Pengiriman');
 
         container.innerHTML = `
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">No pengiriman</label>
-                <div class="col-auto">
-                    ${this.info.no_pengiriman}
-                </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">No resi</label>
-                <div class="col-auto">
-                    ${this.info.no_resi}
-                </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">No kontrak</label>
-                <div class="col-auto">
-                    ${this.info.no_kontrak}
-                </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Status</label>
-                <div class="col-auto">
-                    ${statusFormat('pengiriman', this.info.status)}
-                </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Ekspedisi</label>
-                <div class="col-auto">
-                    ${this.info.ekspedisi}
-                </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Tujuan</label>
-                <div class="col-auto">
-                    ${this.info.tujuan}
-                </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Alamat</label>
+            <div class="row g-3">
                 <div class="col-md-6">
-                    ${this.info.alamat}
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-hash me-1"></i>ID Pengiriman</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.no_pengiriman}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Dibuat pada</label>
-                <div class="col-auto">
-                    ${dateFormat(this.info.created_at, 1)}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-truck me-1"></i>No Resi</label>
+                    <div class="text-primary fw-bold text-break">${this.info.no_resi}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-info-circle me-1"></i>Status</label>
+                    <div>${statusFormat('pengiriman', this.info.status)}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-mailbox me-1"></i>Ekspedisi</label>
+                    <div class="text-dark fw-semibold">${this.info.ekspedisi}</div>
+                </div>
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-hash me-1"></i>No Kontrak</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.no_kontrak}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-geo-alt me-1"></i>Tujuan</label>
+                    <div class="text-dark fw-semibold">${this.info.tujuan}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-clock-history me-1"></i>Dibuat Pada</label>
+                    <div class="text-muted small">${dateFormat(this.info.created_at, 1)}</div>
+                </div>
+                <div class="col-12">
+                    <div class="bg-light p-2 rounded border-start border-4 border-primary">
+                        <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-geo-alt me-1"></i>Alamat Lengkap</label>
+                        <div class="text-dark small text-break">${this.info.alamat}</div>
+                    </div>
                 </div>
             </div>
         `;
@@ -450,53 +471,41 @@ class Detail {
         $('#titleDetail').text('Detail Surat Tugas');
 
         container.innerHTML = `
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">No kontrak</label>
-                <div class="col-auto">
-                    ${this.info.no_kontrak}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-hash me-1"></i>No Kontrak</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.no_kontrak}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Jenis layanan</label>
-                <div class="col-auto gap-1">
-                    <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
-                    <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-info-circle me-1"></i>Status</label>
+                    <div>${statusFormat(this.info.jenisStatus, this.info.status)}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Pelanggan</label>
-                <div class="col-auto">
-                    ${this.info.pelanggan}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-layers me-1"></i>Jenis Layanan</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
+                        <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Perusahaan</label>
-                <div class="col-auto">
-                    ${this.info.perusahaan}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-person me-1"></i>Pelanggan</label>
+                    <div class="text-dark fw-semibold">${this.info.pelanggan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Status</label>
-                <div class="col-auto">
-                    ${statusFormat('penyelia', this.info.status)}
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-building me-1"></i>Perusahaan</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.perusahaan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Tanggal mulai</label>
-                <div class="col-auto">
-                    ${dateFormat(this.info.start_date, 4)}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-calendar-check me-1"></i>Tanggal Mulai</label>
+                    <div class="text-success fw-semibold">${dateFormat(this.info.start_date, 4)}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Tanggal selesai</label>
-                <div class="col-auto">
-                    ${dateFormat(this.info.end_date, 4)}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-calendar-x me-1"></i>Tanggal Selesai</label>
+                    <div class="text-danger fw-semibold">${dateFormat(this.info.end_date, 4)}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Dibuat pada</label>
-                <div class="col-auto">
-                    ${dateFormat(this.info.created_at, 1)}
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-clock-history me-1"></i>Dibuat Pada</label>
+                    <div class="text-muted small">${dateFormat(this.info.created_at, 1)}</div>
                 </div>
             </div>
         `;
@@ -510,29 +519,23 @@ class Detail {
         $('#titleDetail').text('Detail Perusahaan');
 
         container.innerHTML = `
-            <div class="row mb-2">
-                <input type="hidden" name="id_perusahaan" id="detail_id_hash" value="${this.info.id}">
-                <label class="text-body-tertiary mb-1 col-md-4">Nama</label>
-                <div class="col-auto">
-                    ${this.info.nama_perusahaan}
+            <input type="hidden" name="id_perusahaan" id="detail_id_hash" value="${this.info.id}">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-building me-1"></i>Nama Perusahaan</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.nama_perusahaan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Kode perusahaan</label>
-                <div class="col-auto">
-                    ${this.info.kode_perusahaan}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-hash me-1"></i>Kode Perusahaan</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.kode_perusahaan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">NPWP</label>
-                <div class="col-auto">
-                    ${this.info.npwp_perusahaan}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-card-text me-1"></i>NPWP</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.npwp_perusahaan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">E-mail</label>
-                <div class="col-auto">
-                    ${this.info.email}
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-envelope me-1"></i>E-mail</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.email}</div>
                 </div>
             </div>
         `;
@@ -629,47 +632,37 @@ class Detail {
         $('#titleDetail').text('Informasi Kontrak');
 
         container.innerHTML = `
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">No kontrak</label>
-                <div class="col-auto">
-                    ${this.info.no_kontrak}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-hash me-1"></i>No Kontrak</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.no_kontrak}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Jenis layanan</label>
-                <div class="col-auto gap-1">
-                    <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
-                    <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-info-circle me-1"></i>Status</label>
+                    <div>${statusFormat(this.info.jenisStatus, this.info.status)}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Pelanggan</label>
-                <div class="col-auto">
-                    ${this.info.pelanggan}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-layers me-1"></i>Jenis Layanan</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-subtle fw-normal rounded-pill text-${this.info.tipe_kontrak == 'kontrak lama' ? 'success' : 'primary'}-emphasis">${this.info.tipe_kontrak}</span>
+                        <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${this.info.jenis_layanan} - ${this.info.jenis_layanan_parent}</span>
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Perusahaan</label>
-                <div class="col-auto">
-                    ${this.info.perusahaan}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-person me-1"></i>Pelanggan</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.pelanggan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Status</label>
-                <div class="col-auto">
-                    ${statusFormat(this.info.jenisStatus, this.info.status)}
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-building me-1"></i>Perusahaan</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.perusahaan}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Harga</label>
-                <div class="col-auto">
-                    ${formatRupiah(this.info.total_harga)}
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-tags me-1"></i>Harga</label>
+                    <div class="text-primary fw-bold">${formatRupiah(this.info.total_harga)}</div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <label class="text-body-tertiary mb-1 col-md-4">Dibuat pada</label>
-                <div class="col-auto">
-                    ${dateFormat(this.info.created_at, 0)}
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-clock-history me-1"></i>Dibuat Pada</label>
+                    <div class="text-muted small">${dateFormat(this.info.created_at, 0)}</div>
                 </div>
             </div>
         `;
