@@ -1137,8 +1137,10 @@ function diffToday(date) {
 function htmlNoData(){
     return `
         <div class="d-flex flex-column align-items-center py-3">
-            <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
-            <span class="fw-bold mt-3 text-muted">No Data Available</span>
+            <svg width="90" height="90" fill="currentColor" class="bi bi-inbox text-muted" viewBox="0 0 16 16">
+                <path d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4H4.98zm-1.17-.437A1.5 1.5 0 0 1 4.98 3h6.04a1.5 1.5 0 0 1 1.17.563l3.7 4.625a.5.5 0 0 1 .106.311l-.001 5a1.5 1.5 0 0 1-1.5 1.5H1.5A1.5 1.5 0 0 1 0 13.5v-5c0-.11.037-.216.106-.311l3.7-4.625zM1 13.5V8.5h4.14A2.5 2.5 0 0 0 10.86 8.5H15v5a.5.5 0 0 1-.5.5H1.5a.5.5 0 0 1-.5-.5z"/>
+            </svg>
+            <span class="fw-bold mt-3 text-muted">Belum ada data</span>
         </div>
     `;
 }

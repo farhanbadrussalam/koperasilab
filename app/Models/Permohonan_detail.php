@@ -36,6 +36,15 @@ class Permohonan_detail extends Model
         'permohonan_detail_hash'
     ];
 
+    protected $casts = [
+        'id_permohonan' => 'integer',
+        'id_pengguna_divisi' => 'integer',
+        'id_tld' => 'integer',
+        'status' => 'integer',
+        'pengguna_lama' => 'integer',
+        'created_by' => 'integer'
+    ];
+
     public function getPermohonanDetailHashAttribute()
     {
         return $this->id ? encryptor($this->id) : null;

@@ -18,7 +18,7 @@ class FilterComponent {
         };
         this.placeholder = options.placeholder;
 
-        this.selfElement.addClass('w-100 d-flex flex-wrap my-3 gap-2');
+        this.selfElement.addClass('w-100 my-3');
     }
 
     _createCustomEvents() {
@@ -34,7 +34,7 @@ class FilterComponent {
         if(filterName == 'status'){
             $('#filterStatus').select2({
                 theme: "bootstrap-5",
-                placeholder: this.placeholder?.status,
+                placeholder: this.placeholder?.status ?? 'Semua Status',
                 allowClear: true
             }).on('select2:select', function(e) {
                 document.dispatchEvent(self.eventChange);
@@ -125,7 +125,7 @@ class FilterComponent {
         if(filterName == 'no_kontrak'){
             $('#filterSearchKontrak').select2({
                 theme: "bootstrap-5",
-                placeholder: 'Search No Kontrak',
+                placeholder: this.placeholder?.no_kontrak ?? 'No Kontrak',
                 allowClear: true,
                 ajax: {
                     url: `${base_url}/api/v1/kontrak/search`,
@@ -231,7 +231,7 @@ class FilterComponent {
                 enableTime: false,
                 time_24hr: true,
                 minuteIncrement: 1,
-                static: true,
+                static: false, // Ubah ke false agar tidak merusak input-group
                 showMonths: 2,
                 onOpen: function() {},
                 onChange: function(selectedDates) {
@@ -281,11 +281,26 @@ class FilterComponent {
     loadFilter() {
         this.selfElement.empty();
 
+        // Membuat elemen collapse
+        const $collapse = $('<div>', {
+            id: 'collapseFilter',
+            class: 'collapse w-100' // 'show' agar terbuka secara default
+        });
+
+        // Container internal dengan flexbox untuk tata letak filter
+        const $innerContainer = $('<div class="d-flex flex-wrap gap-2"></div>');
+        $collapse.append($innerContainer);
+
+        // Masukkan collapse ke dalam selfElement
+        this.selfElement.append($collapse);
+
+        if (Object.keys(this.options.filter).length === 0) {
+            $innerContainer.append(`<div class="text-center text-muted mt-3 w-100">Tidak ada filter yang ditampilkan</div>`);
+        }
+
         this.createFilter(html => {
-            if (!html) {
-                this.selfElement.append(`<div class="text-center text-muted mt-3 w-100">Tidak ada filter yang ditampilkan</div>`);
-            } else {
-                this.selfElement.append(html);
+            if (html) {
+                $innerContainer.append(html);
             }
         });
     }
@@ -404,7 +419,7 @@ class FilterComponent {
     createDateRangeContent(callback, index) {
         const self = this;
         let html = `
-            <div class="col-3 order-${index+1}">
+            <div class="col-12 col-md-3 order-${index+1}">
                 <div class="input-group">
                     <input type="text" id="filterDateRange" class="form-control form-control-sm" placeholder="All Date" readonly>
                     <span class="btn btn-outline-danger btn-sm" id="clearDateRange"><i class="bi bi-x-lg"></i></span>

@@ -122,12 +122,7 @@ function loadData(page=1) {
         dataPenyelia = result.data;
 
         if (result.data.length === 0) {
-            $(`#list-container`).html(`
-                <div class="d-flex flex-column align-items-center py-3">
-                    <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
-                    <span class="fw-bold mt-3 text-muted">No Data Available</span>
-                </div>
-            `).show();
+            $(`#list-container`).html(htmlNoData()).show();
             $(`#list-pagination`).empty();
             $(`#list-placeholder`).hide();
             return;

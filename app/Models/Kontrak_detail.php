@@ -32,6 +32,20 @@ class Kontrak_detail extends Model
         'id'
     ];
 
+    protected $casts = [
+        'id_pengguna_divisi' => 'integer',
+        'tld_1' => 'integer',
+        'tld_2' => 'integer',
+        'id_kontrak' => 'integer',
+        'pengguna_lama' => 'integer',
+        'status_tld_1' => 'integer',
+        'status_tld_2' => 'integer',
+        'periode_tld_1' => 'integer',
+        'periode_tld_2' => 'integer',
+        'periode' => 'integer',
+        'created_by' => 'integer'
+    ];
+
     protected $appends = [
         'kontrak_detail_hash'
     ];

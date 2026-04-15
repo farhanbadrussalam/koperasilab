@@ -8,9 +8,14 @@
                 <div class="d-flex justify-content-between mb-2">
                     <div class="flex-grow-1">
                         <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
-                        <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="clearFilter()">
-                            <i class="bi bi-funnel"></i> Clear Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span>
-                        </button>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-outline-secondary btn-sm rounded-start-pill" data-bs-toggle="collapse" data-bs-target="#collapseFilter">
+                                <i class="bi bi-funnel"></i> Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm rounded-end-pill" onclick="clearFilter()">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
                     </div>
                     <button class="btn btn-primary btn-sm rounded-pill" id="btn-create-tld"><i class="bi bi-plus"></i> Create Tld</button>
                 </div>

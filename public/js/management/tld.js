@@ -44,7 +44,8 @@ $(function () {
         },
         placeholder: {
             search: 'Cari TLD...',
-            selected_custom: 'All Jenis TLD'
+            status: 'Semua Status',
+            selected_custom: 'Semua Jenis TLD'
         }
     })
 
