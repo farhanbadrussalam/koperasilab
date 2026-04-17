@@ -11,6 +11,11 @@ class Master_ttd extends Model
     protected $table = 'master_ttd';
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'user_id' => 'integer',
+        'status' => 'integer',
+    ];
+
     public function user(){
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
