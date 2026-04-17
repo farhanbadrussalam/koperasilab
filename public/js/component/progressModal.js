@@ -224,7 +224,8 @@ function simpanProgress(obj){
             text: 'Tolong masukan note!',
         });
     }
-    if(nowSelect?.prosesNow.jobs.upload_doc){
+
+    if(nowSelect?.prosesNow.jobs.upload_doc && sProgress == 'done'){
         const document = documentLhu.getData();
         if(document.length == 0){
             return Swal.fire({

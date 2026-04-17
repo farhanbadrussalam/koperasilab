@@ -107,7 +107,9 @@ class Penyelia extends Model
         'id_permohonan' => 'integer',
         'ttd_by' => 'integer',
         'created_by' => 'integer',
-        'document' => 'json'
+        'document' => 'json',
+        'is_pengajuan_signed' => 'integer',
+        'is_surat_tugas_signed' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()
