@@ -33,6 +33,10 @@ class Timeline {
         });
     }
 
+    getTimeline() {
+        return this.options.timeline;
+    }
+
     addData(data) {
         this.dataTimeline = data;
     }
@@ -69,15 +73,22 @@ class Timeline {
     }
     buttonCreate(){
         const rangeDate = range_date(this.options.start_date, this.options.end_date, 3);
+
+        let htmlProgress = ``;
+        if(this.options.timeline.length > 0){
+            htmlProgress = `
+                <div>
+                    <a class="py-1 text-decoration-none btn-show-hide-progress" href="#timeline-progress-${this.options.id}" data-bs-toggle="collapse"
+                    >Lihat Progress LAB<i class="bi bi-chevron-down ms-2"></i></a>
+                </div>
+            `;
+        }
         return `
             <div class="d-flex flex-column">
                 <div class="text-muted small">
                     <i class="bi bi-clock"></i> <span class="fw-semibold">Pelaksanaan LAB:</span> ${rangeDate.start} - ${rangeDate.end}
                 </div>
-                <div>
-                    <a class="py-1 text-decoration-none btn-show-hide-progress" href="#timeline-progress-${this.options.id}" data-bs-toggle="collapse"
-                    >Lihat Progress LAB<i class="bi bi-chevron-down ms-2"></i></a>
-                </div>
+                ${htmlProgress}
             </div>
         `;
     }

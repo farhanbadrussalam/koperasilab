@@ -67,29 +67,23 @@ function loadEvent() {
     });
 
     $('#btnDecline').on('click', (obj) => {
-        // let [ttdValue, ttdBy] = signaturePad.getValue();
-        // if(!ttdValue) {
-        //     return Swal.fire({
-        //         icon: "warning",
-        //         text: "Harap berikan tanda tangan terlebih dahulu.",
-        //     });
-        // }
-        spinner('show', $(obj.target));
-        const idPenyelia = $('#txt_id_penyelia').val();
-        const params = new FormData();
-        // params.append('ttd', ttdValue);
-        // params.append('ttd_by', ttdBy);
-        params.append('idPenyelia', idPenyelia);
-        params.append('type', 'decline');
-        ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
-            if(result.meta.code == 200) {
-                spinner('hide', $(obj.target));
-                $('#verify_modal_surat_pengujian').modal('hide');
-                loadData();
-            }
-        }, error => {
-            spinner('hide', $(obj.target));
-        });
+        $('#verify_modal_surat_pengujian').modal('hide');
+        showNoteAlertSwal((reason) => {
+            showLoadingSwal('show');
+            const idPenyelia = $('#txt_id_penyelia').val();
+            const params = new FormData();
+            params.append('idPenyelia', idPenyelia);
+            params.append('type', 'decline');
+            params.append('catatan', reason);
+            ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
+                if(result.meta.code == 200) {
+                    showLoadingSwal('hide');
+                    loadData();
+                }
+            }, error => {
+                showLoadingSwal('hide');
+            });
+        }, 'Tolak Surat Pengujian', 'Silahkan berikan Alasan Penolakan');
     });
 }
 
@@ -312,15 +306,6 @@ function showDetail(obj){
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }
 function clearFilter(){}
-function showHideProgress(obj){
-    const collapse = obj;
-    if(!collapse.classList.contains('show')) {
-        collapse.innerText = 'Lebih sedikit';
-    } else {
-        collapse.innerText = 'Lihat Progress LAB';
-    }
-    collapse.classList.toggle('show');
-}
 
 function verifikasiPengujian(obj){
     const idPenyelia = $(obj).closest('[data-id]').data('id');

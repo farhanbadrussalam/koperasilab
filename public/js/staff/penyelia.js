@@ -145,6 +145,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         };
                         let btnRemoveTugas = '';
                         let btnRemovePengajuan = '';
+                        let btnNotePengajuan = '';
 
                         if (hasTugas) {
                             if (!isTugasSigned) {
@@ -234,6 +235,12 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                     pengujianBtn.attr = 'disabled';
                                     pengujianBtn.title = 'Surat Pengujian Ditolak';
 
+                                    btnNotePengajuan = `
+                                        <a class="btn btn-outline-warning btn-sm text-nowrap rounded-pill" title="Catatan Surat Pengujian" data-type="sp" onclick="btnNote(this)">
+                                            <i class="bi bi-chat-left-text"></i>
+                                        </a>
+                                    `;
+
                                     btnRemovePengajuan = `
                                         <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Pengujian" data-type="sp" onclick="btnDelete(this)">
                                             <i class="bi bi-trash"></i>
@@ -250,6 +257,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                             <i class="bi ${pengujianBtn.icon}"></i> Surat Pengujian
                                         </button>
                                         ${btnDocPengujian}
+                                        ${btnNotePengajuan}
                                         ${btnRemovePengajuan}
                                     </div>
                                 </div>
@@ -257,17 +265,14 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         }
                     // }
 
-                    let timeLine = false;
-                    if(penyelia.start_date && penyelia.end_date && penyelia.penyelia_map.length > 0) {
-                        timeLine = new Timeline({
-                            timeline: penyelia.penyelia_map,
-                            status: penyelia.status,
-                            id: penyelia.penyelia_hash,
-                            startDate: penyelia.start_date,
-                            endDate: penyelia.end_date,
-                        });
-                        divTimelineTugas.push(timeLine);
-                    }
+                    let timeLine = new Timeline({
+                        timeline: penyelia.penyelia_map,
+                        status: penyelia.status,
+                        id: penyelia.penyelia_hash,
+                        startDate: penyelia.start_date,
+                        endDate: penyelia.end_date,
+                    });
+                    divTimelineTugas.push(timeLine);
 
                     htmlPeriode = !permohonan.periode ? 'Zero cek' : permohonan.periode;
                     if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
@@ -302,17 +307,14 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     html += cardComponent(dataS, {btnMenuAction : btnAction, btnAction: btnAction2});
                     break;
                 case 'penyelialhu':
-                    let timeline = false;
-                    if(penyelia.start_date && penyelia.end_date && penyelia.penyelia_map.length > 0) {
-                        timeline = new Timeline({
-                            timeline: penyelia.penyelia_map,
-                            status: penyelia.status,
-                            id: penyelia.penyelia_hash,
-                            startDate: penyelia.start_date,
-                            endDate: penyelia.end_date,
-                        });
-                        divTimelineTugas.push(timeline);
-                    }
+                    let timeline = new Timeline({
+                        timeline: penyelia.penyelia_map,
+                        status: penyelia.status,
+                        id: penyelia.penyelia_hash,
+                        startDate: penyelia.start_date,
+                        endDate: penyelia.end_date,
+                    });
+                    divTimelineTugas.push(timeline);
 
                     btnAction2 += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
 
@@ -407,19 +409,6 @@ function reload(){
 function clearFilter(){
     filterComp.clear();
     switchLoadTab(thisTab);
-}
-
-function showHideProgress(obj){
-    const collapse = obj;
-    let html = 'Lihat Progress LAB';
-    if(!collapse.classList.contains('show')) {
-        html += '<i class="bi bi-chevron-up ms-2"></i>';
-    } else {
-        html += '<i class="bi bi-chevron-down ms-2"></i>';
-    }
-
-    $(obj).html(html);
-    collapse.classList.toggle('show');
 }
 
 function createPengujian(id){

@@ -1545,3 +1545,56 @@ function loadRadiasi(data_radiasi, count_split = 2) {
 
     return txtRadiasi
 }
+
+/**
+ * Menampilkan alert SweetAlert2 dengan input textarea untuk meminta catatan atau alasan.
+ *
+ * @param {Function} callback - Callback yang dipanggil saat konfirmasi, menerima teks input sebagai parameter.
+ * @param {string} title - Judul popup.
+ * @param {string} placeholder - Placeholder pada textarea.
+ */
+function showNoteAlertSwal(callback = () => { }, title = 'Masukkan Alasan', placeholder = 'Tuliskan alasan di sini...') {
+    Swal.fire({
+        title: title,
+        input: 'textarea',
+        inputPlaceholder: placeholder,
+        showCancelButton: true,
+        confirmButtonText: 'Konfirmasi',
+        cancelButtonText: 'Batal',
+        customClass: {
+            confirmButton: 'btn btn-outline-success mx-1',
+            cancelButton: 'btn btn-outline-danger mx-1'
+        },
+        buttonsStyling: false,
+        reverseButtons: true,
+        inputValidator: (value) => {
+            if (!value) {
+                return 'Alasan atau catatan tidak boleh kosong!'
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            callback(result.value);
+        }
+    })
+}
+
+/**
+ * Menampilkan atau menyembunyikan loading spinner menggunakan SweetAlert2.
+ * @param {('show'|'hide')} status - Status untuk menampilkan atau menyembunyikan loading.
+ */
+function showLoadingSwal(status = 'show') {
+    if (status === 'show') {
+        Swal.fire({
+            title: 'Mohon Tunggu...',
+            html: 'Sedang memproses data',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+    } else {
+        Swal.close();
+    }
+}

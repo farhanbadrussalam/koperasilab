@@ -124,7 +124,7 @@ function cardComponent(data, options = {}) {
         </div>
     ` : '';
 
-    const jobsPenyelia = data.divTimelineTugas !== undefined && data.divTimelineTugas ? `
+    const jobsPenyelia = data.divTimelineTugas !== undefined && data.divTimelineTugas && data.divTimelineTugas.getTimeline().length > 0 ? `
         <div class="col-md-12 collapse" id="timeline-progress-${data.id}">
             ${data.divTimelineTugas.elementCreate()}
         </div>

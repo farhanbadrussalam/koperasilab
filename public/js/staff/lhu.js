@@ -272,12 +272,3 @@ function clearFilter(){
     filterComp.clear();
     loadData();
 }
-function showHideProgress(obj){
-    const collapse = obj;
-    if(!collapse.classList.contains('show')) {
-        collapse.innerText = 'Lebih sedikit';
-    } else {
-        collapse.innerText = 'Lihat Progress LAB';
-    }
-    collapse.classList.toggle('show');
-}
