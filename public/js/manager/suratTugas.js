@@ -67,18 +67,18 @@ function loadEvent() {
     });
 
     $('#btnDecline').on('click', (obj) => {
-        let [ttdValue, ttdBy] = signaturePad.getValue();
-        if(!ttdValue) {
-            return Swal.fire({
-                icon: "warning",
-                text: "Harap berikan tanda tangan terlebih dahulu.",
-            });
-        }
+        // let [ttdValue, ttdBy] = signaturePad.getValue();
+        // if(!ttdValue) {
+        //     return Swal.fire({
+        //         icon: "warning",
+        //         text: "Harap berikan tanda tangan terlebih dahulu.",
+        //     });
+        // }
         spinner('show', $(obj.target));
         const idPenyelia = $('#txt_id_penyelia').val();
         const params = new FormData();
-        params.append('ttd', ttdValue);
-        params.append('ttd_by', ttdBy);
+        // params.append('ttd', ttdValue);
+        // params.append('ttd_by', ttdBy);
         params.append('idPenyelia', idPenyelia);
         params.append('type', 'decline');
         ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
@@ -271,24 +271,12 @@ function _renderCardItem(lhu) {
         </li>
     `;
 
-    let divInfoTugas = ``;
-    if (lhu.start_date && lhu.end_date) {
-        const isHidden = lhu.status == 2 || lhu.status == 10;
-        divInfoTugas = `
-            <div class="col-md-12 mt-2 fs-7">
-                <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
-                    <span>Durasi pelaksanaan layanan ${dateFormat(lhu.start_date, 4)} s/d ${dateFormat(lhu.end_date, 4)}</span>
-                    <a class="py-1 px-2 text-decoration-none border rounded-2 ${isHidden ? 'd-none' : ''}" href="#timeline-progress-${lhu.penyelia_hash}" data-bs-toggle="collapse"
-                    onclick="showHideProgress(this)">Lihat Progress LAB</a>
-                </div>
-            </div>
-        `;
-    }
-
     const timeline = new Timeline({
         timeline: lhu.penyelia_map,
         status: lhu.status,
-        id: lhu.penyelia_hash
+        id: lhu.penyelia_hash,
+        startDate: lhu.start_date,
+        endDate: lhu.end_date
     });
 
     const params = {
@@ -307,7 +295,6 @@ function _renderCardItem(lhu) {
         is_zerocek: permohonan.is_zerocek,
         note: '',
         pelanggan: permohonan.pelanggan.name,
-        divInfoTugas,
         divTimelineTugas: timeline
     };
 

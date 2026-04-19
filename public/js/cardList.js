@@ -84,7 +84,7 @@ function cardComponent(data, options = {}) {
     ` : '';
 
     const htmlNoResi = data.no_resi !== undefined ? `
-        <div class="my-1">
+        <div>
             <div class="fw-light">No resi : ${data.no_resi ?? 'Belum ada'}</div>
         </div>
     ` : '';
@@ -125,10 +125,13 @@ function cardComponent(data, options = {}) {
     ` : '';
 
     const jobsPenyelia = data.divTimelineTugas !== undefined && data.divTimelineTugas ? `
-        ${data.divInfoTugas}
-        <div class="col-md-12 ${data.status == 3 ? 'collapse' : ''}" id="timeline-progress-${data.id}">
+        <div class="col-md-12 collapse" id="timeline-progress-${data.id}">
             ${data.divTimelineTugas.elementCreate()}
         </div>
+    ` : '';
+
+    const divInfoTugas = data.divTimelineTugas !== undefined && data.divTimelineTugas ? `
+        ${data.divTimelineTugas.buttonCreate()}
     ` : '';
 
     const elementList = `
@@ -137,16 +140,15 @@ function cardComponent(data, options = {}) {
                 <div class="row align-items-center">
 
                     <div class="col-lg-5 mb-3 mb-lg-0">
-                        <div class="d-flex align-items-start gap-3">
-                            <div>
-                                <h6 class="fw-bold text-dark mb-1 text-truncate" style="max-width: 280px;">${htmlTitle}</h6>
-                                ${htmlNoResi}
-                                <div class="d-flex align-items-center flex-wrap gap-2 text-muted small">
-                                    ${htmlKontrak}
-                                    ${htmlPeriode}
-                                </div>
-                                ${htmlPerusahaan}
+                        <div class="d-flex align-items-start gap-1 flex-column">
+                            <h6 class="fw-bold text-dark text-truncate mb-0" style="max-width: 280px;">${htmlTitle}</h6>
+                            ${htmlNoResi}
+                            <div class="d-flex align-items-center flex-wrap gap-2 text-muted small">
+                                ${htmlKontrak}
+                                ${htmlPeriode}
                             </div>
+                            ${htmlPerusahaan}
+                            ${divInfoTugas}
                         </div>
                     </div>
                     <div class="col-lg-5 mb-3 mb-lg-0 border-start-lg ps-lg-4">

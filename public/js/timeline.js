@@ -3,7 +3,9 @@ class Timeline {
         this.options = {
             timeline: options.timeline ?? [],
             status: options.status ?? 0,
-            id: options.id ?? ''
+            id: options.id ?? '',
+            start_date: options.startDate ?? '',
+            end_date: options.endDate ?? '',
         };
 
         this._initializeProperties();
@@ -25,6 +27,7 @@ class Timeline {
     _bindEventListeners() {
         // $('#btnSimpanDetail').on('click', this.simpanDetail.bind(this));
         $('.step0').off('click').on('click', this.modalTimeline.bind(this));
+        $(document).off('click', '.btn-show-hide-progress').on('click', '.btn-show-hide-progress', this.showHideProgress.bind(this));
         $('#progresLhuModal').off('hide.bs.modal').on('hide.bs.modal', (obj) => {
             obj.target.remove();
         });
@@ -48,7 +51,8 @@ class Timeline {
         }).join('');
 
         return `
-        <div class="col-md-12 mt-2 pt-4 pb-0">
+        <div class="col-md-12 mt-2 pb-0">
+            <div class="hr-text my-2">Alur Progres</div>
             <ul id="progressbar" class="text-center mb-0">
                 ${htmlTimeline}
             </ul>
@@ -63,6 +67,34 @@ class Timeline {
         </div>
         `;
     }
+    buttonCreate(){
+        const rangeDate = range_date(this.options.start_date, this.options.end_date, 3);
+        return `
+            <div class="d-flex flex-column">
+                <div class="text-muted small">
+                    <i class="bi bi-clock"></i> <span class="fw-semibold">Pelaksanaan LAB:</span> ${rangeDate.start} - ${rangeDate.end}
+                </div>
+                <div>
+                    <a class="py-1 text-decoration-none btn-show-hide-progress" href="#timeline-progress-${this.options.id}" data-bs-toggle="collapse"
+                    >Lihat Progress LAB<i class="bi bi-chevron-down ms-2"></i></a>
+                </div>
+            </div>
+        `;
+    }
+
+    showHideProgress(e) {
+        const $el = $(e.currentTarget);
+        // Jeda sebentar agar Bootstrap selesai memperbarui atribut aria-expanded
+        setTimeout(() => {
+            const isExpanded = $el.attr('aria-expanded') === 'true';
+            if (isExpanded) {
+                $el.html('Tutup Progress LAB<i class="bi bi-chevron-up ms-2"></i>');
+            } else {
+                $el.html('Lihat Progress LAB<i class="bi bi-chevron-down ms-2"></i>');
+            }
+        }, 50);
+    }
+
     modalTimeline(obj) {
         const id = $(obj.target).data('id');
         const idmap = $(obj.target).data('idmap');

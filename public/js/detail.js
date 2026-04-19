@@ -300,6 +300,50 @@ class Detail {
     }
 
     _renderSkeleton() {
+        if(this.options.jenis == 'history_pic'){
+            const skeletonItem = `
+                <div class="tl-item">
+                    <div class="tl-dot border-secondary-subtle"></div>
+                    <div class="tl-content w-100">
+                        <div class="card shadow-sm border-0 mb-3 overflow-hidden">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center w-100">
+                                        <div class="rounded-circle placeholder bg-light me-3" style="width: 42px; height: 42px;"></div>
+                                        <div class="flex-grow-1">
+                                            <span class="placeholder col-6 d-block mb-1"></span>
+                                            <span class="placeholder col-4 d-block" style="height: 0.75rem;"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-2 rounded bg-light border border-light">
+                                    <div class="row g-0 align-items-center">
+                                        <div class="col-auto me-2">
+                                            <div class="rounded-circle placeholder bg-white" style="width: 28px; height: 28px;"></div>
+                                        </div>
+                                        <div class="col">
+                                            <span class="placeholder col-3 d-block mb-1" style="height: 0.6rem;"></span>
+                                            <span class="placeholder col-5 d-block"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return `
+                <div class="placeholder-glow container fs-7">
+                    <div class="timeline ps-2">
+                        ${skeletonItem}
+                        ${skeletonItem}
+                        ${skeletonItem}
+                        ${skeletonItem}
+                        ${skeletonItem}
+                    </div>
+                </div>
+            `;
+        }
         return `
             <div class="placeholder-glow container fs-7">
                 <div class="row g-3">
@@ -548,55 +592,47 @@ class Detail {
 
         let findPic = this.data.find(pic => pic.status == 1);
         let html = ``;
-        let createLI = function(pic){
+        let createLI = (pic) => {
+            const isActive = pic.status == 1;
             return `
-                <div class="d-flex mb-2 position-relative" style="z-index: 1;">
-                    <div class="me-3">
-                        ${pic.status == 1 ? `
-                            <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center shadow-sm border border-4 border-white"
-                                 style="width: 40px; height: 40px;">
-                                <i class="bi bi-person-fill"></i>
-                            </div>
-                        ` : `
-                            <div class="rounded-circle bg-white border border-2 border-secondary d-flex justify-content-center align-items-center mt-2 mx-auto"
-                                style="width: 15px; height: 15px;">
-                            </div>
-                        `}
-                    </div>
-                    <div class="flex-grow-1">
-                        <div class="card shadow-sm card-hover ${ pic.status == 1 ? 'border-0 bg-primary-subtle' : 'border-1 bg-white' } mb-1">
-                            <div class="card-body p-3 py-2">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        ${pic.status == 1 ? `
-                                            <small class="text-primary fw-bold text-uppercase" style="font-size: 0.7rem;">Mulai Menjabat</small>
-                                            <div class="text-dark fw-bold" style="font-size: 0.9rem;">
-                                                ${dateFormat(pic.created_at, 4)}
+                <div class="tl-item ${isActive ? 'active' : ''}">
+                    <div class="tl-dot ${isActive ? 'border-primary' : 'border-secondary-subtle'}"></div>
+                    <div class="tl-content w-100">
+                        <div class="card shadow-sm border-0 mb-1 ${isActive ? 'bg-primary-subtle bg-opacity-25' : 'bg-white'} overflow-hidden">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle ${isActive ? 'bg-primary text-white' : 'bg-light text-secondary'} d-flex justify-content-center align-items-center fw-bold me-3 shadow-sm"
+                                            style="width: 42px; height: 42px; min-width: 42px; font-size: 1.1rem;">
+                                            ${pic.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div style="min-width: 0;">
+                                            <h6 class="mb-0 fw-bold ${isActive ? 'text-primary' : 'text-dark'} text-truncate">${pic.name}</h6>
+                                            <div class="text-muted text-truncate" style="font-size: 0.75rem;">
+                                                <i class="bi bi-envelope-fill opacity-50 me-1"></i>${pic.email}
                                             </div>
-                                        ` : `
-                                            <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Berakhir pada</small>
-                                            <div class="text-secondary fw-bold" style="font-size: 0.9rem;">
-                                                ${dateFormat(pic.selesai_at, 4)}
-                                            </div>
-                                        `}
+                                        </div>
                                     </div>
-
-                                    ${pic.status == 1 ? `<span class="badge bg-primary rounded-pill">PIC Saat Ini</span>` : ''}
+                                    ${isActive ? `
+                                        <span class="badge rounded-pill bg-primary px-3 py-2">
+                                            <i class="bi bi-person-check-fill me-1"></i>PIC Aktif
+                                        </span>
+                                    ` : ''}
                                 </div>
-
-                                <div class="d-flex align-items-center mt-2">
-                                    <div class="rounded-circle ${ pic.status == 1 ? 'bg-white text-primary' : 'bg-secondary-subtle text-secondary' } d-flex justify-content-center align-items-center me-3 fw-bold"
-                                        style="width: 35px; height: 35px; min-width: 35px;">
-                                        ${ pic.name.charAt(0).toUpperCase() }
-                                    </div>
-
-                                    <div style="overflow: hidden;">
-                                        <h6 class="mb-0 fw-bold ${ pic.status == 1 ? 'text-primary' : 'text-dark' } text-truncate">
-                                            ${ pic.name }
-                                        </h6>
-                                        <div class="d-flex align-items-center text-muted small mt-1">
-                                            <i class="bi bi-envelope me-2"></i>
-                                            <span class="text-truncate">${ pic.email }</span>
+                                <div class="p-2 rounded bg-white bg-opacity-75 border border-light">
+                                    <div class="row g-0 align-items-center">
+                                        <div class="col-auto me-2">
+                                            <div class="rounded-circle bg-light d-flex justify-content-center align-items-center" style="width: 28px; height: 28px;">
+                                                <i class="bi bi-calendar-event text-secondary" style="font-size: 0.8rem;"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <small class="text-muted d-block" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                                                ${isActive ? 'Mulai Menjabat' : 'Periode Jabatan'}
+                                            </small>
+                                            <div class="fw-bold text-dark" style="font-size: 0.85rem;">
+                                                ${isActive ? dateFormat(pic.created_at, 4) : `${dateFormat(pic.created_at, 4)} — ${dateFormat(pic.selesai_at, 4)}`}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -606,22 +642,13 @@ class Detail {
                 </div>
             `;
         }
-        if(findPic){
-            html += createLI(findPic);
-        }
-        for (const pic of this.data) {
-            if(pic.status != 1) {
-                html += createLI(pic);
-            }
-        }
+        if (findPic) html += createLI(findPic);
+        this.data.filter(pic => pic.status != 1).forEach(pic => {
+            html += createLI(pic);
+        });
 
         $('#titleDetail').text('History PIC');
-
-        container.innerHTML = `
-            <div class="timeline">
-                ${html}
-            </div>
-        `;
+        container.innerHTML = `<div class="timeline ps-2">${html}</div>`;
 
         return container;
     }

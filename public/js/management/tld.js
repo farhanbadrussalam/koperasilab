@@ -82,24 +82,9 @@ $(function () {
         openModalTld('create');
     });
 })
-
-function filter() {
-    let status = $('#filterStatus').val();
-    let jenis = $('#filterJenis').val();
-
-    datatable_tld.ajax.url(`${base_url}/management/getDataTld?status=${status}&jenis=${jenis}`).load();
-}
-
 function btnEdit(obj) {
     const id = $(obj).data('id');
     openModalTld('edit', id);
-    // ajaxGet(`management/tld/${id}`, false, result => {
-    //     $('#inputIdTldEdit').val(result.data.tld_hash);
-    //     $('#inputNoSeriEdit').val(result.data.no_seri_tld);
-    //     $('#inputJenisTldEdit').val(result.data.jenis);
-    //     $('#inputMerkEdit').val(result.data.merk);
-    //     $('#editTldModal').modal('show');
-    // });
 }
 
 function btnDelete(obj) {

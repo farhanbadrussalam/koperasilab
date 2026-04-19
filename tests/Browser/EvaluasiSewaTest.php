@@ -6,7 +6,7 @@ use App\Models\Keuangan;
 use App\Models\Pengiriman;
 use App\Models\Penyelia;
 use App\Models\Penyelia_map;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+// use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 use App\Models\Permohonan;
@@ -20,12 +20,29 @@ class EvaluasiSewaTest extends DuskTestCase
     private $admin = "adipmuhammad30@gmail.com";
     private $penyelia = "firlinadia@gmail.com";
     private $managerPenyelia = "alex080590.arb@gmail.com";
+    private $password = "lab@1234%";
 
     private $idLayananKontrak = "9k9avCgeHa1qfTj78022Aw";
     private $idLayananSewa = "wVytkcL66wSLKdnwaKS77Q";
     private $idTld = "9k9avCgeHa1qfTj78022Aw";
 
     private $waitingTime = 99999;
+
+    /**
+     * Helper untuk login berdasarkan environment.
+     * Jika local menggunakan loginAs, jika tidak akan login manual.
+     */
+    private function loginUser(Browser $browser, $user)
+    {
+        if (app()->environment('local')) {
+            return $browser->loginAs($user);
+        }
+
+        return $browser->visit('/login')
+            ->type('email', $user->email)
+            ->type('password', $this->password) // Sesuaikan dengan password default user di database/seeder
+            ->press('Masuk');
+    }
 
     /**
      * @group create-permohonan
@@ -35,7 +52,7 @@ class EvaluasiSewaTest extends DuskTestCase
     {
         $user = User::where('email', $this->pelanggan)->first();
         $this->browse(function (Browser $browser) use ($user) {
-            $browser->loginAs($user)
+            $this->loginUser($browser, $user)
                     // 2. CREATE PERMOHONAN (KONTRAK - SEWA)
                     ->visit('/permohonan/pengajuan')
                     ->clickLink('Buat pengajuan')
@@ -126,7 +143,7 @@ class EvaluasiSewaTest extends DuskTestCase
                         $isAdendumNotZerocek = true;
                     }
                 }
-                $browser->loginAs($user)
+                $this->loginUser($browser, $user)
                         // 2. VERIFIKASI PERMOHONAN
                         ->visit('/staff/permohonan')
                         ->waitUntilMissing("#list-placeholder", $this->waitingTime)
@@ -181,7 +198,7 @@ class EvaluasiSewaTest extends DuskTestCase
         $user = User::where('email', $this->keuangan)->first(); // Keuangan
         $this->browse(function (Browser $browser) use ($user, $pathFilePdf) {
             $keuangan = Keuangan::where('status', 1)->orderBy('id_keuangan', 'desc')->first();
-            $browser->loginAs($user)
+            $this->loginUser($browser, $user)
                     ->visit('staff/keuangan')
                     ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$keuangan->keuangan_hash.'"]', function ($row) {
@@ -233,7 +250,7 @@ class EvaluasiSewaTest extends DuskTestCase
         $user = User::where('email', $this->managerKeuangan)->first(); // Keuangan
         $this->browse(function (Browser $browser) use ($user) {
             $keuangan = Keuangan::where('status', 2)->orderBy('id_keuangan', 'desc')->first();
-            $browser->loginAs($user)
+            $this->loginUser($browser, $user)
                     ->visit('manager/pengajuan')
                     ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$keuangan->keuangan_hash.'"]', function ($row) {
@@ -269,7 +286,7 @@ class EvaluasiSewaTest extends DuskTestCase
         $user = User::where('email', $this->pelanggan)->first(); // Pelanggan
         $this->browse(function (Browser $browser) use ($user, $pathFileImage, $pathFilePdf) {
             $keuangan = Keuangan::where('status', 3)->orderBy('id_keuangan', 'desc')->first();
-            $browser->loginAs($user)
+            $this->loginUser($browser, $user)
                     ->visit('permohonan/pembayaran')
                     ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$keuangan->keuangan_hash.'"]', function ($row) {
@@ -312,7 +329,7 @@ class EvaluasiSewaTest extends DuskTestCase
         $user = User::where('email', $this->keuangan)->first(); // Keuangan
         $this->browse(function (Browser $browser) use ($user) {
             $keuangan = Keuangan::where('status', 4)->orderBy('id_keuangan', 'desc')->first();
-            $browser->loginAs($user)
+            $this->loginUser($browser, $user)
                     ->visit('staff/keuangan')
                     ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->click('button[onclick="switchLoadTab(3)"]')
@@ -370,7 +387,7 @@ class EvaluasiSewaTest extends DuskTestCase
             $listJobs = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs;
             $listJobsParalel = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs_paralel;
 
-            $browser->loginAs($user)
+            $this->loginUser($browser, $user)
                     ->visit("staff/penyelia")
                     ->waitForLocation("/staff/penyelia")
                     ->waitUntilMissing('#list-placeholder', $this->waitingTime)
@@ -430,9 +447,9 @@ class EvaluasiSewaTest extends DuskTestCase
         $this->browse(function (Browser $browser) use ($user) {
             $penyelia = Penyelia::with('permohonan')->where('status', 2)->orderBy('id_penyelia', 'desc')->first();
 
-            $browser->loginAs($user)
-                    ->visit("manager/surat_tugas")
-                    ->waitForLocation("/manager/surat_tugas")
+            $this->loginUser($browser, $user)
+                    ->visit("manager/surat_tugas", $this->waitingTime)
+                    ->waitForLocation("/manager/surat_tugas", $this->waitingTime)
                     ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                     ->within('div[data-id="'.$penyelia->penyelia_hash.'"]', function ($row) {
                         $row->clickLink('Surat Tugas');
@@ -475,8 +492,9 @@ class EvaluasiSewaTest extends DuskTestCase
                     if($jobs->status == 1){
                         $user = User::where('email', $petugas->user->email)->first();
 
-                        $browser->loginAs($user)
-                                ->visit("staff/lhu")
+                        $this->loginUser($browser, $user)
+                                ->visit("staff/lhu", $this->waitingTime)
+                                ->waitForLocation("/staff/lhu", $this->waitingTime)
                                 ->waitUntilMissing('#list-placeholder-lhu', $this->waitingTime)
                                 ->within('div[data-id="'.$penyelia->penyelia_hash.'"]', function ($row) {
                                     $row->press('update progress');
@@ -519,7 +537,7 @@ class EvaluasiSewaTest extends DuskTestCase
         $user = User::where('email', $this->admin)->first(); // Admin
         $this->browse(function (Browser $browser) use ($user, $pathFileImage) {
             $pengiriman = Pengiriman::where('status', 3)->orderBy('id_pengiriman', 'desc')->first();
-            $browser->loginAs($user)
+            $this->loginUser($browser, $user)
                     ->visit("staff/pengiriman")
                     ->waitUntilMissing('#list-placeholder-pengiriman', $this->waitingTime);
 
@@ -563,7 +581,7 @@ class EvaluasiSewaTest extends DuskTestCase
         $user = User::where('email', $this->pelanggan)->first(); // Pelanggan
         $this->browse(function (Browser $browser) use ($user, $pathFileImage) {
             $pengiriman = Pengiriman::where('status', 1)->orderBy('id_pengiriman', 'desc')->first();
-            $browser->loginAs($user)
+            $this->loginUser($browser, $user)
                     ->visit("permohonan/pengiriman")
                     ->waitFor('#list-container-pengiriman', $this->waitingTime)
                     ->within('div[data-id="'.$pengiriman->id_pengiriman.'"]', function ($row) {

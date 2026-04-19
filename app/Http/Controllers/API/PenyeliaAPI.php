@@ -176,15 +176,12 @@ class PenyeliaAPI extends Controller
             $petugas = $request->has('petugas') ? $request->petugas : false;
             $jobsMap = $request->has('jobsMap') ? $request->jobsMap : false;
             $jobsMapParalel = $request->has('jobsMapParalel') ? $request->jobsMapParalel : false;
-            $jenisLog = $request->has('jenisLog') ? $request->jenisLog : false;
 
             $params = array();
 
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
             $status && $params['status'] = $status;
-            // $ttd && $params['ttd'] = $ttd;
-            // $ttd_by && $params['ttd_by'] = $ttd_by;
 
             $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan', 'permohonan.jenis_layanan_parent', 'permohonan.layanan_jasa:id_layanan,satuankerja_id', 'permohonan.kontrak')->find($idPenyelia);
             if($penyelia){
@@ -201,10 +198,20 @@ class PenyeliaAPI extends Controller
                     $params['verify_surat_tugas_at'] = date('Y-m-d H:i:s');
                     $params['is_surat_tugas_signed'] = 1;
 
-                    if($penyelia->is_pengajuan_signed == 1 || $JL != 'KontrakTanpaKontrak') {
+                    if($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak') {
                         $params['status'] = 10;
                         $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
                     }
+                    $penyelia->update($params);
+
+                    $this->log->addLog('HISTORY_DOCUMENT', 'penyelia', $penyelia, array(
+                        'description' => 'Surat Tugas Terverifikasi',
+                        // 'properties' => array()
+                    ));
+
+                    DB::commit();
+
+                    return $this->output(array('status' => 'success', 'msg' => 'Berhasil diverifikasi.'));
                 }
 
                 $penyelia->update($params);
@@ -853,34 +860,51 @@ class PenyeliaAPI extends Controller
         }
     }
 
-    public function removeSuratTugas($idPenyelia)
+    public function removeSuratTugas($idPenyelia, $type)
     {
         $idPenyelia = decryptor($idPenyelia);
 
         DB::beginTransaction();
         try {
-            Penyelia_petugas::where('id_penyelia', $idPenyelia)->get()->each->delete();
-            Penyelia_map::where('id_penyelia', $idPenyelia)->get()->each->delete();
-
             // update penyelia
             $penyelia = Penyelia::with('permohonan', 'permohonan.dokumen')->find($idPenyelia);
+            $suratPengujian = $penyelia->permohonan->dokumen->where('jenis', 'SuratPengujian')->first();
 
-            // apakah surat pengujian sudah dibuat atau belum, jika sudah dibuat maka status masih 2
-            $status = 1;
-            if($penyelia->permohonan->dokumen->where('jenis', 'SuratPengujian')->first()){
-                $status = 2;
+            $params = array();
+
+            if($type == 'st'){
+                Penyelia_petugas::where('id_penyelia', $idPenyelia)->get()->each->delete();
+                Penyelia_map::where('id_penyelia', $idPenyelia)->get()->each->delete();
+                // apakah surat pengujian sudah dibuat atau belum, jika sudah dibuat maka status masih 2
+                $params['status'] = 1;
+                if($suratPengujian){
+                    $params['status'] = 2;
+                }
+                $params['is_surat_tugas_signed'] = null;
+
+                $type = 'Surat Tugas';
+            } else {
+                Permohonan_dokumen::where('id_dokumen', $suratPengujian->id_dokumen)->get()->each->delete();
+
+                // apakah surat tugas sudah dibuat atau belum, jika sudah dibuat maka status masih 2
+                $penyeliaMap = Penyelia_map::where('id_penyelia', $idPenyelia)->get();
+                $params['status'] = 1;
+                if($penyeliaMap->count() > 0){
+                    $params['status'] = 2;
+                }
+                $params['is_pengajuan_signed'] = null;
+
+                $type = 'Surat Pengujian';
             }
 
-            $penyelia->update(array(
-                'status' => $status
-            ));
+            $penyelia->update($params);
 
             // hapus dokumen surat tugas
             Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surattugas')->get()->each->delete();
 
             DB::commit();
 
-            return $this->output(array('msg' => 'Surat tugas berhasil dihapus!'));
+            return $this->output(array('msg' => $type . ' berhasil dihapus!'));
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -943,13 +967,13 @@ class PenyeliaAPI extends Controller
             }
 
             // log penyelia
-            $this->log->addLog('penyelia', array(
-                'id_penyelia' => $idPenyelia,
-                'status' => $status,
-                'message' => 'Pengujian dibuat',
-                'note' => '',
-                'created_by' => Auth::user()->id
-            ));
+            // $this->log->addLog('penyelia', array(
+            //     'id_penyelia' => $idPenyelia,
+            //     'status' => $status,
+            //     'message' => 'Pengujian dibuat',
+            //     'note' => '',
+            //     'created_by' => Auth::user()->id
+            // ));
 
             DB::commit();
 
@@ -978,37 +1002,44 @@ class PenyeliaAPI extends Controller
                 if($penyelia->is_surat_tugas_signed == 1) {
                     $updateData['status'] = 10;
                     $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
+
+                    // simpan ttd ke permohonan dokumen
+                    $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'SuratPengujian')->first();
+                    $dokumen->update(array(
+                        'ttd' => $ttd,
+                        'ttd_by' => $ttd_by,
+                        'catatan' => $type
+                    ));
+
+                    // mengambil template yg digunakan
+                    $template = $penyelia->template_surat->where('name', 'KontrakPengujian')->first();
+
+                    // menambahkan dokumen perjanjian kontrak
+                    $no_kontrak = generateNoDokumen('KontrakPengujian', $penyelia->id_permohonan);
+                    $data = array(
+                        'id_kontrak' => $penyelia->permohonan->id_kontrak,
+                        'created_by' => Auth::user()->id,
+                        'nama' => 'Surat kontrak ('.convert_date($penyelia->permohonan->verify_at, 6).')',
+                        'jenis' => 'KontrakPengujian',
+                        'id_doc_template' => $template->id_doc,
+                        'status' => 1,
+                        'ttd' => $ttd,
+                        'ttd_by' => $ttd_by,
+                        'nomer' => $no_kontrak
+                    );
+                    Permohonan_dokumen::create($data);
                 }
             } else {
                 $updateData['is_pengajuan_signed'] = 2;
             }
             $penyelia->update($updateData);
 
-            // simpan ttd ke permohonan dokumen
-            $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'SuratPengujian')->first();
-            $dokumen->update(array(
-                'ttd' => $ttd,
-                'ttd_by' => $ttd_by,
-                'catatan' => $type
+            $this->log->addLog('HISTORY_DOCUMENT','penyelia', $penyelia, array(
+                'description' => $type == 'approve' ? 'Pengujian disetujui' : 'Pengujian ditolak',
+                'properties' => array(
+                    'catatan' => $catatan
+                )
             ));
-
-            // mengambil template yg digunakan
-            $template = $penyelia->template_surat->where('name', 'KontrakPengujian')->first();
-
-            // menambahkan dokumen perjanjian kontrak
-            $no_kontrak = generateNoDokumen('KontrakPengujian', $penyelia->id_permohonan);
-            $data = array(
-                'id_kontrak' => $penyelia->permohonan->id_kontrak,
-                'created_by' => Auth::user()->id,
-                'nama' => 'Surat kontrak ('.convert_date($penyelia->permohonan->verify_at, 6).')',
-                'jenis' => 'KontrakPengujian',
-                'id_doc_template' => $template->id_doc,
-                'status' => 1,
-                'ttd' => $ttd,
-                'ttd_by' => $ttd_by,
-                'nomer' => $no_kontrak
-            );
-            Permohonan_dokumen::create($data);
 
             DB::commit();
 

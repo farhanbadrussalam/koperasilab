@@ -6,27 +6,42 @@ use Illuminate\Http\Request;
 use App\Models\Log_permohonan;
 use App\Models\Log_keuangan;
 use App\Models\Log_penyelia;
-
+use App\Models\Log_proses;
 use App\Models\Master_jobs;
+use Illuminate\Support\Facades\Auth;
 
 class LogController extends Controller
 {
-    public function addLog($mode, $params = array()){
+    protected $request;
+
+    public function __construct(Request $request){
+        $this->request = $request;
+    }
+    public function addLog($name, $mode, $model, $params = array()){
         $query = false;
-        switch ($mode) {
-            case 'permohonan':
-                $query = Log_permohonan::create($params);
-                break;
-            case 'keuangan':
-                $query = Log_keuangan::create($params);
-                break;
-            case 'penyelia':
-                $query = Log_penyelia::create($params);
-                break;
-            default:
-                # code...
-                break;
-        }
+        // switch ($mode) {
+        //     case 'permohonan':
+        //         $query = Log_permohonan::create($params);
+        //         break;
+        //     case 'keuangan':
+        //         $query = Log_keuangan::create($params);
+        //         break;
+        //     case 'penyelia':
+        //         $query = Log_penyelia::create($params);
+        //         break;
+        //     default:
+        //     break;
+        // }
+        $params['log_name'] = $name;
+        $params['log_type'] = $mode;
+        $params['subject_type'] = get_class($model);
+        $params['subject_id'] = $model->getKey();
+        $params['causer_type'] = get_class(Auth::user());
+        $params['causer_id'] = Auth::id();
+        $params['ip_address'] = $this->request->getClientIp();
+        $params['user_agent'] = $this->request->header('User-Agent');
+
+        $query = Log_proses::create($params);
 
         return $query;
     }
@@ -80,7 +95,7 @@ class LogController extends Controller
                 case 90:
                     $note = 'Permohonan - Pengajuan ditolak '.($text != '' ? "($text)" : "");
                     break;
-                
+
                 default:
                     # code...
                     break;
@@ -100,7 +115,7 @@ class LogController extends Controller
                 case 3:
                     $note = 'Proses Selesai';
                     break;
-                
+
                 default:
                     $jobs = Master_jobs::where('status',$status)->first();
                     if($jobs){

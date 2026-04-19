@@ -68,7 +68,7 @@ class SignatureSelect {
                         <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
                     </div>
 
-                    <div style="position: relative; z-index: 1;">
+                    <div style="position: relative; z-index: 1;" class="text-center">
                         <div id="content-ttd-${inputId}"></div>
 
                         <hr class="my-2 border-success opacity-50 w-50 mx-auto">

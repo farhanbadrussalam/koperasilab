@@ -198,10 +198,17 @@ function dateFormat(tanggal, type = false) {
             };
             break;
         case 8:
-            // 14 Okt
+            // Okt 2023
             options = {
                 month: 'short',
                 year: 'numeric'
+            };
+            break;
+        case 9:
+            // 2 Okt
+            options = {
+                day: 'numeric',
+                month: 'short'
             };
             break;
         default:
@@ -231,6 +238,9 @@ function range_date(start, end, type) {
     } else if (type === 2) {
         typeDateStart = 6;
         typeDateEnd = 6;
+    } else if (type === 3) {
+        typeDateStart = 2;
+        typeDateEnd = 2;
     }
 
     // Jika tahun antara start dan end sama (mengambil 4 karakter pertama)
@@ -239,6 +249,8 @@ function range_date(start, end, type) {
             typeDateStart = 7;
         } else if (type === 2) {
             typeDateStart = 12;
+        } else if (type === 3) {
+            typeDateStart = 9;
         }
     }
 

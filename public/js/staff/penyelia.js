@@ -153,7 +153,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                 tugasBtn.title = 'Lanjutkan Surat Tugas';
 
                                 btnRemoveTugas = `
-                                    <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Tugas" onclick="btnDelete(this)">
+                                    <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Tugas" data-type="st" onclick="btnDelete(this)">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 `;
@@ -177,7 +177,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                 tugasBtn.title = 'Surat Tugas Ditolak';
 
                                 btnRemoveTugas = `
-                                    <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Tugas" onclick="btnDelete(this)">
+                                    <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Tugas" data-type="st" onclick="btnDelete(this)">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 `;
@@ -210,11 +210,11 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                     pengujianBtn.attr = 'disabled';
                                     pengujianBtn.title = 'Lanjutkan Surat Pengujian';
 
-                                    // btnRemovePengajuan = `
-                                    //     <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Tugas" onclick="btnDelete(this)">
-                                    //         <i class="bi bi-trash"></i>
-                                    //     </a>
-                                    // `;
+                                    btnRemovePengajuan = `
+                                        <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Pengujian" data-type="sp" onclick="btnDelete(this)">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    `;
                                 } else if (isPengajuanSigned === 1) {
                                     // Jika sudah signed, non-aktifkan tombol
                                     pengujianBtn.icon = 'bi-check2-all';
@@ -233,6 +233,12 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                     pengujianBtn.class = 'btn-light text-danger';
                                     pengujianBtn.attr = 'disabled';
                                     pengujianBtn.title = 'Surat Pengujian Ditolak';
+
+                                    btnRemovePengajuan = `
+                                        <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Pengujian" data-type="sp" onclick="btnDelete(this)">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    `;
                                 }
                             }
 
@@ -251,24 +257,14 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         }
                     // }
 
-                    divInfoTugas = '';
                     let timeLine = false;
                     if(penyelia.start_date && penyelia.end_date && penyelia.penyelia_map.length > 0) {
-                        let showPenyelia = penyelia.status == 3 ? false : true;
-                        divInfoTugas = `
-                            <div class="col-md-12 mt-2 fs-7">
-                                <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
-                                    <span>Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
-                                    <a class="py-1 px-2 text-decoration-none border rounded-2 ${showPenyelia ? 'd-none' : ''}" href="#timeline-progress-${penyelia.penyelia_hash}" data-bs-toggle="collapse"
-                                    onclick="showHideProgress(this)">${showPenyelia ? 'Lebih sedikit' : 'Lihat Progress LAB'}</a>
-                                </div>
-                            </div>
-                        `;
-
                         timeLine = new Timeline({
                             timeline: penyelia.penyelia_map,
                             status: penyelia.status,
-                            id: penyelia.penyelia_hash
+                            id: penyelia.penyelia_hash,
+                            startDate: penyelia.start_date,
+                            endDate: penyelia.end_date,
                         });
                         divTimelineTugas.push(timeLine);
                     }
@@ -298,7 +294,6 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         is_have_tld: permohonan.is_have_tld,
                         is_zerocek: permohonan.is_zerocek,
                         pelanggan: permohonan.pelanggan.name,
-                        divInfoTugas: divInfoTugas,
                         divTimelineTugas: timeLine,
                         status: penyelia.status,
                         perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
@@ -307,23 +302,14 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     html += cardComponent(dataS, {btnMenuAction : btnAction, btnAction: btnAction2});
                     break;
                 case 'penyelialhu':
-                    let showPenyelia = penyelia.status == 3 ? false : true;
-                    divInfoTugas = `
-                        <div class="col-md-12 mt-2 fs-7">
-                            <div class="rounded bg-secondary-subtle ps-2 text-body-secondary d-flex justify-content-between align-items-center">
-                                <span>Durasi pelaksanaan layanan ${dateFormat(penyelia.start_date, 4)} s/d ${dateFormat(penyelia.end_date, 4)}</span>
-                                <a class="py-1 px-2 text-decoration-none border rounded-2 ${showPenyelia ? 'd-none' : ''}" href="#timeline-progress-${penyelia.penyelia_hash}" data-bs-toggle="collapse"
-                                onclick="showHideProgress(this)">Lihat Progress LAB</a>
-                            </div>
-                        </div>
-                    `;
-
                     let timeline = false;
                     if(penyelia.start_date && penyelia.end_date && penyelia.penyelia_map.length > 0) {
                         timeline = new Timeline({
                             timeline: penyelia.penyelia_map,
                             status: penyelia.status,
-                            id: penyelia.penyelia_hash
+                            id: penyelia.penyelia_hash,
+                            startDate: penyelia.start_date,
+                            endDate: penyelia.end_date,
                         });
                         divTimelineTugas.push(timeline);
                     }
@@ -344,7 +330,6 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         is_have_tld: permohonan.is_have_tld,
                         is_zerocek: permohonan.is_zerocek,
                         pelanggan: permohonan.pelanggan.name,
-                        divInfoTugas: divInfoTugas,
                         divTimelineTugas: timeline,
                         status: penyelia.status,
                         index: i,
@@ -393,10 +378,11 @@ $('#list-pagination').on('click', 'a', function (e) {
 function btnDelete(obj) {
     const $btn = $(obj);
     const id = $btn.closest('[data-id]').data('id');
+    const type = $btn.closest('[data-type]').data('type');
 
     if (!id) return;
 
-    ajaxDelete(`api/v1/penyelia/remove/${id}`, result => {
+    ajaxDelete(`api/v1/penyelia/remove/${id}/${type}`, result => {
         Swal.fire({
             icon: 'success',
             text: result.data?.msg || 'Data berhasil dihapus',
@@ -425,11 +411,14 @@ function clearFilter(){
 
 function showHideProgress(obj){
     const collapse = obj;
+    let html = 'Lihat Progress LAB';
     if(!collapse.classList.contains('show')) {
-        collapse.innerText = 'Lebih sedikit';
+        html += '<i class="bi bi-chevron-up ms-2"></i>';
     } else {
-        collapse.innerText = 'Lihat Progress LAB';
+        html += '<i class="bi bi-chevron-down ms-2"></i>';
     }
+
+    $(obj).html(html);
     collapse.classList.toggle('show');
 }
 
