@@ -452,17 +452,15 @@ function clearFilter(){
 
 function createPengujian(id){
     let find = dataPenyelia.find(d => d.penyelia_hash == id);
+
     // jenis pengujian
     let zrcek = find.permohonan.is_zerocek ? 'Zero Cek' : '';
     let lJasa = find.permohonan.layanan_jasa.nama_layanan;
     let jTld = find.permohonan.jenis_tld.name;
     let jenisPengujian = zrcek + ' ' + lJasa + ' ' + jTld;
-    $('#list-sample').empty();
 
     // sample
-    let htmlSample = `<div>${lJasa} ${jTld}</div>`;
-
-    $('#list-sample').append(htmlSample);
+    let samplesArr = [`${lJasa} ${jTld}`];
     let kontrak = find.permohonan.kontrak;
 
     // template surat pengujian
@@ -474,54 +472,57 @@ function createPengujian(id){
             let startDate = dateFormat(periode.start_date, 6);
             let endDate = dateFormat(periode.end_date, 6);
 
-            $('#list-sample').append(`
-                <div>${kontrak.jumlah_kontrol} + ${kontrak.jumlah_pengguna} ${startDate} - ${endDate}</div>
-            `);
+            samplesArr.push(`${kontrak.jumlah_kontrol} + ${kontrak.jumlah_pengguna} (${startDate} - ${endDate})`);
         }
     }
 
     // load pertanyaan
-    let htmlPertanyaan = '';
+    let htmlPertanyaan = '<h6 class="fw-bold mb-3 text-primary"><i class="bi bi-question-circle me-2"></i>Daftar Pertanyaan</h6>';
     for (const [i,pertanyaan] of template.data_pertanyaan.entries()) {
         let htmlAnswer = ``;
-        let htmlMandatory = pertanyaan.mandatory ? '<span class="text-danger ml-2">*</span>' : '';
+        let htmlMandatory = pertanyaan.mandatory ? '<span class="text-danger ms-1">*</span>' : '';
         if(pertanyaan.type == 2) {
             htmlAnswer = `
-            <div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="answer_${i}" id="answer_${i}_siap" value="siap">
-                    <label class="form-check-label" for="answer_${i}_siap">Siap</label>
+            <div class="d-flex gap-2">
+                <div class="flex-fill">
+                    <input type="radio" class="btn-check" name="answer_${i}" id="answer_${i}_siap" value="siap" autocomplete="off">
+                    <label class="btn btn-outline-success btn-sm w-100 rounded-3 py-2 fw-semibold" for="answer_${i}_siap">
+                        <i class="bi bi-check-circle me-1"></i> Siap
+                    </label>
                 </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="answer_${i}" id="answer_${i}_tidak_siap" value="tidak siap">
-                    <label class="form-check-label" for="answer_${i}_tidak_siap">Tidak Siap</label>
+                <div class="flex-fill">
+                    <input type="radio" class="btn-check" name="answer_${i}" id="answer_${i}_tidak_siap" value="tidak siap" autocomplete="off">
+                    <label class="btn btn-outline-danger btn-sm w-100 rounded-3 py-2 fw-semibold" for="answer_${i}_tidak_siap">
+                        <i class="bi bi-x-circle me-1"></i> Tidak Siap
+                    </label>
                 </div>
             </div>
             `;
         }
         htmlPertanyaan += `
-            <div class="mb-3">
-                <label for="" class="mb-2">${pertanyaan.pertanyaan+htmlMandatory}</label>
+            <div class="mb-4">
+                <label class="fw-semibold text-dark mb-2 small d-block">${i + 1}. ${pertanyaan.pertanyaan}${htmlMandatory}</label>
                 ${htmlAnswer}
             </div>
         `;
     }
 
-    $('#content-pertanyaan').html(htmlPertanyaan);
-
-    $('#inputJenisPengujian').text(jenisPengujian);
-    $('#inputPemilik').text(find.permohonan.pelanggan.perusahaan.nama_perusahaan);
-    $('#inputAlamat').text(find.permohonan.pelanggan.perusahaan.alamat[0].alamat);
-    $('#txt_id_penyelia').val(id);
-    $('#create_modal_surat_pengujian').modal('show');
+    const dataPreview = {
+        pemilik: find.permohonan.pelanggan.perusahaan.nama_perusahaan,
+        alamat: find.permohonan.pelanggan.perusahaan.alamat[0].alamat,
+        jenis_pengujian: jenisPengujian,
+        samples: samplesArr,
+        pertanyaan: htmlPertanyaan
+    }
+    PengujianComponent.open(dataPreview, 'create', {
+        onSave: () => { simpanPengujian(id) }
+    });
+    return;
 }
 
 
 
-function btnCreatePengujian(obj){
-    let id = $('#txt_id_penyelia').val();
-    spinner('show', $(obj));
-
+function simpanPengujian(id){
     // sanity cek pertanyaan
     let find = dataPenyelia.find(d => d.penyelia_hash == id);
     let template = find.template_surat.find(d => d.name == 'SuratPengujian');
@@ -540,7 +541,6 @@ function btnCreatePengujian(obj){
     }
 
     if(!status){
-        spinner('hide', $(obj));
         Swal.fire({
             icon: "warning",
             text: 'Lengkapi pertanyaan terlebih dahulu',
@@ -557,27 +557,26 @@ function btnCreatePengujian(obj){
         reverseButtons: true
     }).then((result) => {
         if (result.isConfirmed) {
+            showLoadingSwal('show');
             const form = new FormData();
             form.append('idPenyelia', id);
             form.append('status', 6);
             form.append('answers', JSON.stringify(answers));
             ajaxPost(`api/v1/penyelia/createPengujian`, form, result => {
-                spinner('hide', $(obj));
-                if(result.meta.code == 200){
-                    spinner('hide', $(obj));
-                    $('#create_modal_surat_pengujian').modal('hide');
+                Swal.fire({
+                    icon: 'success',
+                    text: result.data?.msg || 'Data berhasil dihapus',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    PengujianComponent.hide();
+                    showLoadingSwal('hide');
                     reload();
-                }else{
-                    Swal.fire({
-                        icon: "error",
-                        text: result.data.msg,
-                    });
-                }
+                });
             }, error => {
-                spinner('hide', $(obj));
+                showLoadingSwal('hide');
             });
-        } else {
-            spinner('hide', $(obj));
         }
     })
 }

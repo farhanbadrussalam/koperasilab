@@ -1598,3 +1598,17 @@ function showLoadingSwal(status = 'show') {
         Swal.close();
     }
 }
+
+function showSwal(title, text, icon = 'success') {
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: icon,
+        customClass: {
+            confirmButton: 'btn btn-outline-success mx-1'
+        },
+        buttonsStyling: false,
+        reverseButtons: true,
+        timer: 2000,
+    });
+}

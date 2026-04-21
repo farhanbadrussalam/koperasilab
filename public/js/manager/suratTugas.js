@@ -27,64 +27,11 @@ $(function () {
     // SETUP FILTER
     filterComp.on('filter.change', () => loadData());
 
-    // SIGNATURE
-    const canvas = document.getElementById('content-ttd');
-    signaturePad = new SignatureSelect(canvas, {
-        inputId: 'managerValid',
-        label: 'Nyatakan valid & Benar',
-        placeholder: 'Menunggu validasi petugas...',
-        signerUser: userActive
-    });
-
     loadEvent();
 });
 
 function loadEvent() {
-    $('#btnApprove').on('click', (obj) => {
-        let [ttdValue, ttdBy] = signaturePad.getValue();
-        if(!ttdValue) {
-            return Swal.fire({
-                icon: "warning",
-                text: "Harap berikan tanda tangan terlebih dahulu.",
-            });
-        }
-        spinner('show', $(obj.target));
-        const idPenyelia = $('#txt_id_penyelia').val();
-        const params = new FormData();
-        params.append('ttd', ttdValue);
-        params.append('ttd_by', ttdBy);
-        params.append('idPenyelia', idPenyelia);
-        params.append('type', 'approve');
-        ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
-            if(result.meta.code == 200) {
-                spinner('hide', $(obj.target));
-                $('#verify_modal_surat_pengujian').modal('hide');
-                loadData();
-            }
-        }, error => {
-            spinner('hide', $(obj.target));
-        });
-    });
-
-    $('#btnDecline').on('click', (obj) => {
-        $('#verify_modal_surat_pengujian').modal('hide');
-        showNoteAlertSwal((reason) => {
-            showLoadingSwal('show');
-            const idPenyelia = $('#txt_id_penyelia').val();
-            const params = new FormData();
-            params.append('idPenyelia', idPenyelia);
-            params.append('type', 'decline');
-            params.append('catatan', reason);
-            ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
-                if(result.meta.code == 200) {
-                    showLoadingSwal('hide');
-                    loadData();
-                }
-            }, error => {
-                showLoadingSwal('hide');
-            });
-        }, 'Tolak Surat Pengujian', 'Silahkan berikan Alasan Penolakan');
-    });
+    // TODO: Load event listeners if needed in the future
 }
 
 function loadData(page=1) {
@@ -316,45 +263,111 @@ function verifikasiPengujian(obj){
     let lJasa = find.permohonan.layanan_jasa.nama_layanan;
     let jTld = find.permohonan.jenis_tld.name;
     let jenisPengujian = zrcek + ' ' + lJasa + ' ' + jTld;
-    $('#list-sample').empty();
 
     // sample
     let htmlSample = `<div>${lJasa} ${jTld}</div>`;
 
-    $('#list-sample').append(htmlSample);
     let kontrak = find.permohonan.kontrak;
 
     // template surat pengujian
     let dataSurat = find.permohonan.dokumen.find(d => d.doc_template?.name == 'SuratPengujian');
     let template = find.template_surat.find(d => d.name == 'SuratPengujian');
 
+    let htmlPeriode = '';
     // periode
     for (const periode of kontrak.periode) {
         let startDate = dateFormat(periode.start_date, 6);
         let endDate = dateFormat(periode.end_date, 6);
 
-        $('#list-sample').append(`
-            <div>${kontrak.jumlah_kontrol} + ${kontrak.jumlah_pengguna} ${startDate} - ${endDate}</div>
-        `);
+        htmlPeriode += `<div>${kontrak.jumlah_kontrol} + ${kontrak.jumlah_pengguna} ${startDate} - ${endDate}</div>`;
     }
 
     // load pertanyaan
-    let htmlPertanyaan = '';
-    for (const [i,pertanyaan] of template.data_pertanyaan.entries()) {
+    let htmlPertanyaan = '<div class="list-pertanyaan">';
+    for (const [i, pertanyaan] of template.data_pertanyaan.entries()) {
         // mengambil jawaban
-        let answer = dataSurat.content_value?.alasan.find(d => d.id == pertanyaan.id_pertanyaan).answer;
+        const foundAnswer = dataSurat.content_value?.alasan?.find(d => d.id == pertanyaan.id_pertanyaan);
+        const answer = foundAnswer?.answer ?? '-'; // Menggunakan optional chaining dan nullish coalescing
         htmlPertanyaan += `
-            <div class="mb-3">
-                <label for="" class="mb-2">${pertanyaan.pertanyaan}</label>
-                <div class="rounded border p-2 overflow-auto max-h-max">${answer ? answer : '-'}</div>
+            <div class="mb-2">
+                <label class="fw-bold text-dark mb-2 d-block">${i + 1}. ${pertanyaan.pertanyaan}</label>
+                <div class="p-2 rounded bg-light border-start border-4 ${answer == 'siap' ? 'border-success' : 'border-danger'} shadow-sm" style="font-size: 0.9rem;">
+                    ${answer}
+                </div>
             </div>
         `;
     }
+    htmlPertanyaan += '</div>';
 
-    $('#content-pertanyaan').html(htmlPertanyaan);
-    $('#inputJenisPengujian').text(jenisPengujian);
-    $('#inputPemilik').text(find.permohonan.pelanggan.perusahaan.nama_perusahaan);
-    $('#inputAlamat').text(find.permohonan.pelanggan.perusahaan.alamat[0].alamat);
-    $('#txt_id_penyelia').val(idPenyelia);
-    $('#verify_modal_surat_pengujian').modal('show');
+    // SIGNATURE
+    const canvas = $(PengujianComponent.selectors.ttd);
+    signaturePad = new SignatureSelect(canvas, {
+        inputId: 'managerValid',
+        label: 'Nyatakan valid & Benar',
+        placeholder: 'Menunggu validasi petugas...',
+        signerUser: userActive
+    });
+
+    const dataPreview = {
+        pemilik: find.permohonan.pelanggan.perusahaan.nama_perusahaan,
+        alamat: find.permohonan.pelanggan.perusahaan.alamat[0].alamat,
+        jenis_pengujian: jenisPengujian,
+        samples: [htmlSample, htmlPeriode],
+        pertanyaan: htmlPertanyaan
+    }
+    PengujianComponent.open(dataPreview, 'verify', {
+        onApprove: () => { approvePengujian(idPenyelia) },
+        onDecline: () => { declinePengujian(idPenyelia) }
+    });
+}
+
+function approvePengujian(id){
+    let [ttdValue, ttdBy] = signaturePad.getValue();
+    if(!ttdValue) {
+        return Swal.fire({
+            icon: "warning",
+            text: "Harap berikan tanda tangan terlebih dahulu.",
+        });
+    }
+    showLoadingSwal('show');
+    const params = new FormData();
+    params.append('ttd', ttdValue);
+    params.append('ttd_by', ttdBy);
+    params.append('idPenyelia', id);
+    params.append('type', 'approve');
+    ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
+        showLoadingSwal('hide');
+        Swal.fire({
+            icon: "success",
+            text: result.meta.message,
+            timer: 1200,
+            timerProgressBar: true,
+            showConfirmButton: false
+        }).then(() => {
+            PengujianComponent.hide();
+            loadData();
+        });
+    }, error => {
+        showLoadingSwal('hide');
+    });
+}
+
+function declinePengujian(id){
+    PengujianComponent.hide();
+    showNoteAlertSwal((reason) => {
+        showLoadingSwal('show');
+        const idPenyelia = $('#txt_id_penyelia').val();
+        const params = new FormData();
+        params.append('idPenyelia', idPenyelia);
+        params.append('type', 'decline');
+        params.append('catatan', reason);
+        ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
+            if(result.meta.code == 200) {
+                showLoadingSwal('hide');
+                loadData();
+            }
+        }, error => {
+            showLoadingSwal('hide');
+        });
+    }, 'Tolak Surat Pengujian', 'Silahkan berikan Alasan Penolakan');
 }

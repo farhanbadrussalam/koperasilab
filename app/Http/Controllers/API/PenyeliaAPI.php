@@ -1036,33 +1036,29 @@ class PenyeliaAPI extends Controller
                 if($penyelia->is_surat_tugas_signed == 1) {
                     $updateData['status'] = 10;
                     $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
-
-                    // simpan ttd ke permohonan dokumen
-                    $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'SuratPengujian')->first();
-                    $dokumen->update(array(
-                        'ttd' => $ttd,
-                        'ttd_by' => $ttd_by,
-                        'catatan' => $type
-                    ));
-
-                    // mengambil template yg digunakan
-                    $template = $penyelia->template_surat->where('name', 'KontrakPengujian')->first();
-
-                    // menambahkan dokumen perjanjian kontrak
-                    $no_kontrak = generateNoDokumen('KontrakPengujian', $penyelia->id_permohonan);
-                    $data = array(
-                        'id_kontrak' => $penyelia->permohonan->id_kontrak,
-                        'created_by' => Auth::user()->id,
-                        'nama' => 'Surat kontrak ('.convert_date($penyelia->permohonan->verify_at, 6).')',
-                        'jenis' => 'KontrakPengujian',
-                        'id_doc_template' => $template->id_doc,
-                        'status' => 1,
-                        'ttd' => $ttd,
-                        'ttd_by' => $ttd_by,
-                        'nomer' => $no_kontrak
-                    );
-                    Permohonan_dokumen::create($data);
                 }
+                // mengambil template yg digunakan
+                $template = $penyelia->template_surat->where('name', 'KontrakPengujian')->first();
+                // menambahkan dokumen perjanjian kontrak
+                $no_kontrak = generateNoDokumen('KontrakPengujian', $penyelia->id_permohonan);
+                $data = array(
+                    'id_kontrak' => $penyelia->permohonan->id_kontrak,
+                    'created_by' => Auth::user()->id,
+                    'nama' => 'Surat kontrak ('.convert_date($penyelia->permohonan->verify_at, 6).')',
+                    'jenis' => 'KontrakPengujian',
+                    'id_doc_template' => $template->id_doc,
+                    'status' => 1,
+                    'ttd' => $ttd,
+                    'ttd_by' => $ttd_by,
+                    'nomer' => $no_kontrak
+                );
+                Permohonan_dokumen::create($data);
+                // simpan ttd ke permohonan dokumen
+                $dokumen = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'SuratPengujian')->first();
+                $dokumen->update(array(
+                    'ttd' => $ttd,
+                    'ttd_by' => $ttd_by
+                ));
             } else {
                 $updateData['is_pengajuan_signed'] = 2;
             }
