@@ -182,6 +182,7 @@ class PenyeliaAPI extends Controller
             $startDate && $params['start_date'] = $startDate;
             $endDate && $params['end_date'] = $endDate;
             $status && $params['status'] = $status;
+            $params['is_surat_tugas_signed'] = null;
 
             $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan', 'permohonan.jenis_layanan_parent', 'permohonan.layanan_jasa:id_layanan,satuankerja_id', 'permohonan.kontrak')->find($idPenyelia);
             if($penyelia){
@@ -206,7 +207,9 @@ class PenyeliaAPI extends Controller
 
                     $this->log->addLog('HISTORY_DOCUMENT', 'penyelia', $penyelia, array(
                         'description' => 'Surat Tugas Terverifikasi',
-                        // 'properties' => array()
+                        'properties' => array(
+                            'key' => 'surat_tugas',
+                        )
                     ));
 
                     DB::commit();
@@ -319,6 +322,39 @@ class PenyeliaAPI extends Controller
                     Permohonan_dokumen::create($dataParams);
                 }
             }
+
+            DB::commit();
+            return $this->output(array('msg' => 'Berhasil mengupdate penyelia'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function rejectSuratTugas(Request $request){
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                'idPenyelia' => 'required',
+                'reason' => 'required',
+            ]);
+
+            $idPenyelia = decryptor($request->idPenyelia);
+            $note = $request->reason;
+            $penyelia = Penyelia::find($idPenyelia);
+
+            $penyelia->update(array(
+                'is_surat_tugas_signed' => 2
+            ));
+
+            $this->log->addLog('HISTORY_DOCUMENT', 'penyelia', $penyelia, array(
+                'description' => 'Surat Tugas Ditolak',
+                'properties' => array(
+                    'key' => 'surat_tugas',
+                    'catatan' => $note
+                )
+            ));
 
             DB::commit();
             return $this->output(array('msg' => 'Berhasil mengupdate penyelia'));
@@ -883,6 +919,9 @@ class PenyeliaAPI extends Controller
                 $params['is_surat_tugas_signed'] = null;
 
                 $type = 'Surat Tugas';
+
+                // hapus dokumen surat tugas
+                Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surattugas')->get()->each->delete();
             } else {
                 Permohonan_dokumen::where('id_dokumen', $suratPengujian->id_dokumen)->get()->each->delete();
 
@@ -896,12 +935,7 @@ class PenyeliaAPI extends Controller
 
                 $type = 'Surat Pengujian';
             }
-
             $penyelia->update($params);
-
-            // hapus dokumen surat tugas
-            Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surattugas')->get()->each->delete();
-
             DB::commit();
 
             return $this->output(array('msg' => $type . ' berhasil dihapus!'));
@@ -1037,6 +1071,7 @@ class PenyeliaAPI extends Controller
             $this->log->addLog('HISTORY_DOCUMENT','penyelia', $penyelia, array(
                 'description' => $type == 'approve' ? 'Pengujian disetujui' : 'Pengujian ditolak',
                 'properties' => array(
+                    'key' => 'surat_pengujian',
                     'catatan' => $catatan
                 )
             ));

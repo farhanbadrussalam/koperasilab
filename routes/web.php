@@ -10,6 +10,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\userPerusahaanController;
 use App\Http\Controllers\NotifController;
+use App\Http\Controllers\LogController;
 
 use App\Http\Controllers\Permohonan\PelangganController;
 use App\Http\Controllers\Staff\StaffController;
@@ -147,6 +148,12 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
         Route::resource('document', DocumentController::class);
         Route::post('document/{id}', [DocumentController::class, 'update']);
+    });
+
+    Route::prefix('logs')->group(function () {
+        Route::controller(LogController::class)->group(function () {
+            Route::get('/proses', 'getLogProses')->name('logs.proses');
+        });
     });
 
     Route::resource('userProfile', ProfileController::class);

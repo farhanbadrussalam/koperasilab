@@ -1,6 +1,7 @@
 let tmpPetugas = [];
 let dataPenyelia = false;
 let detail = false;
+let detailNote = false;
 let filterComp = false;
 let thisTab = 1;
 let modalDoc = false;
@@ -25,12 +26,18 @@ $(function () {
 
     detail = new Detail({
         jenis: 'penyelia',
+        id: 'modalDetailPenyelia',
         tab: {
             pengguna: true,
             tld: true,
             dokumen: true,
             log: true
         }
+    });
+
+    detailNote = new Detail({
+        jenis: 'history_note',
+        id: 'modalHistoryNote'
     });
 
     filterComp = new FilterComponent('list-filter', {
@@ -144,6 +151,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                             title: 'Buat Surat Tugas'
                         };
                         let btnRemoveTugas = '';
+                        let btnNoteTugas = '';
                         let btnRemovePengajuan = '';
                         let btnNotePengajuan = '';
 
@@ -151,6 +159,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                             if (!isTugasSigned) {
                                 tugasBtn.icon = 'bi-check2-circle';
                                 tugasBtn.class = 'btn-light text-warning-emphasis';
+                                tugasBtn.attr = `href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"`;
                                 tugasBtn.title = 'Lanjutkan Surat Tugas';
 
                                 btnRemoveTugas = `
@@ -174,9 +183,14 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                 // Jika surat tugas ditolak atau ada kondisi lain, sesuaikan dengan kebutuhan
                                 tugasBtn.icon = 'bi-x-circle';
                                 tugasBtn.class = 'btn-light text-danger';
-                                tugasBtn.attr = 'href="javascript:void(0)" style="cursor: default; pointer-events: none;"';
+                                tugasBtn.attr = `href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"`;
                                 tugasBtn.title = 'Surat Tugas Ditolak';
 
+                                btnNoteTugas = `
+                                    <a class="btn btn-outline-warning btn-sm text-nowrap rounded-pill" title="Catatan Surat Tugas" data-type="st" onclick="btnNote(this)">
+                                        <i class="bi bi-chat-left-text"></i>
+                                    </a>
+                                `;
                                 btnRemoveTugas = `
                                     <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Tugas" data-type="st" onclick="btnDelete(this)">
                                         <i class="bi bi-trash"></i>
@@ -191,6 +205,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                     <i class="bi ${tugasBtn.icon}"></i> Surat Tugas
                                 </a>
                                 ${btnDocTugas}
+                                ${btnNoteTugas}
                                 ${btnRemoveTugas}
                             </div>
                         `;
@@ -397,6 +412,30 @@ function btnDelete(obj) {
     });
 }
 
+function btnNote(obj) {
+    const id = $(obj).closest('[data-id]').data('id');
+    const type = $(obj).data('type');
+
+    if (!id) return;
+
+    NoteComponent.showLoading();
+    ajaxGet(`logs/proses?mode=penyelia&log_name=HISTORY_DOCUMENT&id=${id}&key=${type == 'st' ? 'surat_tugas' : 'surat_pengujian'}`, {}, result => {
+        let typeLabel = type == 'st' ? 'Surat Tugas' : 'Surat Pengujian';
+        let note = result.data[0]?.properties?.catatan;
+        NoteComponent.render({
+            title: `${typeLabel}`,
+            note: note ? `
+                <div class="badge bg-danger-subtle text-danger rounded-pill">${result.data[0]?.description}</div>
+                <div><b>Catatan :</b> ${note}</div>
+            ` : `Belum ada catatan.`,
+            created_at: dateFormat(result.data[0]?.created_at, 4),
+            author: result.data[0]?.causer?.name
+        });
+    }, error => {
+        console.error('Terjadi kesalahan saat mengambil catatan:', error);
+        NoteComponent.renderError('Gagal memuat catatan. Silakan coba lagi nanti.');
+    });
+}
 function showDetail(obj){
     const idPenyelia = $(obj).parent().parent().data("id");
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);

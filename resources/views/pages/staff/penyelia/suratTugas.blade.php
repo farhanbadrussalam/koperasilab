@@ -119,7 +119,10 @@
                 </div>
                 @endif
                 <div class="col-12 text-end">
-                    @if($type != 'show')
+                    @if($type == 'verif')
+                    <button class="btn btn-danger" onclick="rejectSuratTugas(this)">Tolak</button>
+                    <button class="btn btn-success" onclick=saveSuratTugas(this)>Setujui</button>
+                    @elseif($type != 'show')
                     <button class="btn btn-success" onclick=saveSuratTugas(this)>Simpan</button>
                     @endif
                 </div>

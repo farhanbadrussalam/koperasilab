@@ -259,6 +259,34 @@ function validateAllPetugasFilled() {
     return isAllFilled;
 }
 
+function rejectSuratTugas(obj){
+    showNoteAlertSwal((reason) => {
+        showLoadingSwal('show');
+        const params = new FormData();
+        params.append('idPenyelia', idPenyelia);
+        params.append('reason', reason);
+
+        ajaxPost(`api/v1/penyelia/rejectSuratTugas`, params, result => {
+            if(result.meta.code) {
+                showLoadingSwal('hide');
+                Swal.fire({
+                    icon: 'success',
+                    text: `Surat tugas berhasil ditolak` ,
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = `${base_url}${!['verif', 'show'].includes(typeSurat) ? "/staff/penyelia" : "/manager/surat_tugas"}`;
+                });
+            }
+
+        }, error => {
+            showLoadingSwal('hide');
+        });
+
+    }, 'Tolak Surat Tugas', 'Masukkan alasan penolakan...');
+}
+
 function saveSuratTugas(obj){
     let dateStart = $('#date_start').val();
     let dateEnd = $('#date_end').val();

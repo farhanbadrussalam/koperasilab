@@ -1,26 +1,27 @@
 class Detail {
     constructor(options = {}) {
         this.options = {
+            id: options.id ?? 'offcanvasDetail',
             modal: options.modal ?? true,
             information: options.information ?? true,
             jenis: options.jenis ?? 'permohonan',
             tab: {
-                pengguna: options.tab.pengguna ?? false,
-                activitas: options.tab.activitas ?? false,
-                dokumen: options.tab.dokumen ?? false,
-                dokumen_lhu: options.tab.dokumen_lhu ?? false,
-                log: options.tab.log ?? false,
-                periode: options.tab.periode ?? false,
-                tld: options.tab.tld ?? false,
+                pengguna: options.tab?.pengguna ?? false,
+                activitas: options.tab?.activitas ?? false,
+                dokumen: options.tab?.dokumen ?? false,
+                dokumen_lhu: options.tab?.dokumen_lhu ?? false,
+                log: options.tab?.log ?? false,
+                periode: options.tab?.periode ?? false,
+                tld: options.tab?.tld ?? false,
                 // Pengiriman
-                items: options.tab.items ?? false,
-                bukti: options.tab.bukti ?? false,
+                items: options.tab?.items ?? false,
+                bukti: options.tab?.bukti ?? false,
                 // Penyelia
-                proses: options.tab.proses ?? false,
+                proses: options.tab?.proses ?? false,
                 // Perusahaan
-                alamat: options.tab.alamat ?? false,
-                karyawan: options.tab.karyawan ?? false,
-                surat_kuasa: options.tab.surat_kuasa ?? false
+                alamat: options.tab?.alamat ?? false,
+                karyawan: options.tab?.karyawan ?? false,
+                surat_kuasa: options.tab?.surat_kuasa ?? false
             },
             activeTab: options.activeTab ?? false
         }
@@ -47,10 +48,10 @@ class Detail {
     _bindEventListeners() {
         // $('#btnSimpanDetail').on('click', this.simpanDetail.bind(this));
         // ketika modal ditutup
-        $('#offcanvasDetail').on('hidden.bs.offcanvas', () => {
+        $(`#${this.options.id}`).on('hidden.bs.offcanvas', () => {
             this._initializeProperties();
-            $('#container-detail').empty();
-            $('#loadingDetail').empty();
+            $(`#${this.options.id}-container`).empty();
+            $(`#${this.options.id}-loading`).empty();
         });
     }
 
@@ -77,7 +78,7 @@ class Detail {
             };
         }
 
-        let accordion = new Accordion($('#pills-tab'), false);
+        let accordion = new Accordion($(`#${this.options.id}-pills-tab`), false);
         if (this.options.activeTab) {
             $(`#pills-${this.options.activeTab}`).click();
         }
@@ -253,41 +254,44 @@ class Detail {
     }
 
     loadData() {
-        $('#container-detail').empty();
+        $(`#${this.options.id}-container`).empty();
 
         if (this.options.information) {
             this._initInformasi();
 
             switch (this.options.jenis) {
                 case 'pengiriman':
-                    $('#container-detail').append(this.createInformationPengiriman());
+                    $(`#${this.options.id}-container`).append(this.createInformationPengiriman());
                     break;
                 case 'surattugas':
-                    $('#container-detail').append(this.createInformationSuratTugas());
+                    $(`#${this.options.id}-container`).append(this.createInformationSuratTugas());
                     break;
                 case 'perusahaan':
-                    $('#container-detail').append(this.createInformationPerusahaan());
+                    $(`#${this.options.id}-container`).append(this.createInformationPerusahaan());
                     break;
                 case 'history_pic':
-                    $('#container-detail').append(this.createInformationHistoryPic());
+                    $(`#${this.options.id}-container`).append(this.createInformationHistoryPic());
                     break;
                 case 'kontrak':
-                    $('#container-detail').append(this.createInformationKontrak());
+                    $(`#${this.options.id}-container`).append(this.createInformationKontrak());
+                    break;
+                case 'history_note':
+                    $(`#${this.options.id}-container`).append(this.createInformationHistoryNote());
                     break;
                 default:
-                    $('#container-detail').append(this.createInformationPermohonan());
+                    $(`#${this.options.id}-container`).append(this.createInformationPermohonan());
                     break;
             }
         }
 
-        $('#container-detail').append('<hr/>');
 
         const hasTab = Object.values(this.options.tab).some(tab => tab);
         if (!hasTab) {
             // $('#container-detail').append(`<div class="text-center text-muted mt-3 w-100">Tidak ada tab yang ditampilkan</div>`);
-            $('#container-detail').append(``);
+            $(`#${this.options.id}-container`).append(``);
         } else {
-            $('#container-detail').append(this.createTab());
+            $(`#${this.options.id}-container`).append('<hr/>');
+            $(`#${this.options.id}-container`).append(this.createTab());
             showPopupReload();
             this._actionAccordion();
             this._actionSwiper();
@@ -295,7 +299,7 @@ class Detail {
     }
 
     show(url) {
-        $('#offcanvasDetail').offcanvas('show');
+        $(`#${this.options.id}`).offcanvas('show');
         this.loadDataAjax(url);
     }
 
@@ -390,16 +394,16 @@ class Detail {
     }
 
     loadDataAjax(url) {
-        $('#titleDetail').text('Detail');
-        $('#loadingDetail').hide();
-        $('#container-detail').html(this._renderSkeleton());
-        $('#mainContent').show();
+        $(`#${this.options.id}-title`).text('Detail');
+        $(`#${this.options.id}-loading`).hide();
+        $(`#${this.options.id}-container`).html(this._renderSkeleton());
+        $(`#${this.options.id}-main`).show();
 
         ajaxGet(url, false, result => {
             this.addData(result.data);
             this.loadData();
         }, error => {
-            $('#container-detail').html(`
+            $(`#${this.options.id}-container`).html(`
                 <div class="text-center p-5">
                     <i class="bi bi-exclamation-triangle text-danger display-4"></i>
                     <p class="mt-2 text-muted">Gagal memuat data detail.</p>
@@ -413,7 +417,7 @@ class Detail {
         const container = document.createElement('div');
         container.className = 'container fs-7';
 
-        $('#titleDetail').text(`${this.info.layananJasa} - ${this.info.jenisTld}`);
+        $(`#${this.options.id}-title`).text(`${this.info.layananJasa} - ${this.info.jenisTld}`);
 
         let htmlPeriode = !this.info.periodeNow ? `Zero cek` : 'Periode ' + this.info.periodeNow;
         if(this.info.periodeNow && this.info.is_have_tld && this.info.is_zerocek) {
@@ -465,7 +469,7 @@ class Detail {
         const container = document.createElement('div');
         container.className = 'container fs-7';
 
-        $('#titleDetail').text('Detail Pengiriman');
+        $(`#${this.options.id}-title`).text('Detail Pengiriman');
 
         container.innerHTML = `
             <div class="row g-3">
@@ -498,7 +502,7 @@ class Detail {
                     <div class="text-muted small">${dateFormat(this.info.created_at, 1)}</div>
                 </div>
                 <div class="col-12">
-                    <div class="bg-light p-2 rounded border-start border-4 border-primary">
+                    <div class="bg-light p-2 rounded border-start border-3 border-primary">
                         <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-geo-alt me-1"></i>Alamat Lengkap</label>
                         <div class="text-dark small text-break">${this.info.alamat}</div>
                     </div>
@@ -512,7 +516,7 @@ class Detail {
         const container = document.createElement('div');
         container.className = 'container fs-7';
 
-        $('#titleDetail').text('Detail Surat Tugas');
+        $(`#${this.options.id}-title`).text('Detail Surat Tugas');
 
         container.innerHTML = `
             <div class="row g-3">
@@ -560,7 +564,7 @@ class Detail {
         const container = document.createElement('div');
         container.className = 'container fs-7';
 
-        $('#titleDetail').text('Detail Perusahaan');
+        $(`#${this.options.id}-title`).text('Detail Perusahaan');
 
         container.innerHTML = `
             <input type="hidden" name="id_perusahaan" id="detail_id_hash" value="${this.info.id}">
@@ -647,7 +651,7 @@ class Detail {
             html += createLI(pic);
         });
 
-        $('#titleDetail').text('History PIC');
+        $(`#${this.options.id}-title`).text('History PIC');
         container.innerHTML = `<div class="timeline ps-2">${html}</div>`;
 
         return container;
@@ -656,7 +660,7 @@ class Detail {
         const container = document.createElement('div');
         container.className = 'container fs-7';
 
-        $('#titleDetail').text('Informasi Kontrak');
+        $(`#${this.options.id}-title`).text('Informasi Kontrak');
 
         container.innerHTML = `
             <div class="row g-3">
@@ -694,6 +698,70 @@ class Detail {
             </div>
         `;
 
+        return container;
+    }
+
+    createInformationHistoryNote() {
+        const container = document.createElement('div');
+        container.className = 'container fs-7';
+
+        $(`#${this.options.id}-title`).text('Histori Catatan');
+
+        let html = '';
+        if (this.data && this.data.length > 0) {
+            html += '<div class="list-group list-group-flush gap-2">';
+            this.data.forEach((note, i) => {
+                let properties = {};
+                try {
+                    properties = typeof note.properties === 'string' ? JSON.parse(note.properties) : (note.properties || {});
+                } catch (e) { properties = {}; }
+
+                let catatan = properties.catatan || properties.note || '';
+
+                // Deteksi status untuk badge dan warna tema
+                let statusBadge = '';
+                const desc = note.description.toLowerCase();
+
+                if (desc.includes('setuju') || desc.includes('approve') || desc.includes('terima')) {
+                    statusBadge = `<span class="badge bg-success-subtle text-success rounded-pill px-2" style="font-size: 0.65rem;">${note.description}</span>`;
+                } else if (desc.includes('tolak') || desc.includes('reject') || desc.includes('kembali')) {
+                    statusBadge = `<span class="badge bg-danger-subtle text-danger rounded-pill px-2" style="font-size: 0.65rem;">${note.description}</span>`;
+                } else {
+                    statusBadge = `<span class="badge bg-primary-subtle text-primary rounded-pill px-2" style="font-size: 0.65rem;">${note.description}</span>`;
+                }
+
+                html += `
+                    <div class="list-group-item p-2 bg-body-secondary transition-all rounded-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-light text-secondary d-flex justify-content-center align-items-center fw-bold shadow-sm"
+                                    style="width: 24px; height: 24px; font-size: 0.75rem;">
+                                    ${note.causer?.name ? note.causer.name.charAt(0).toUpperCase() : '?'}
+                                </div>
+                                <div class="d-flex flex-column" style="min-width: 0;">
+                                    <span class="fw-bold text-dark mb-0" style="font-size: 0.85rem;">${note.causer?.name || 'System'}</span>
+                                    <span class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-clock-history opacity-50 me-1"></i> ${dateFormat(note.created_at, 1)}</span>
+                                </div>
+                            </div>
+                            ${statusBadge}
+                        </div>
+                        ${catatan ? `
+                            <div class="ms-4 px-2 py-1 rounded bg-white border border-light text-secondary" style="font-size: 0.8rem; line-height: 1.4;">
+                                <i class="bi bi-chat-right-text me-1 opacity-50"></i>${catatan}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            html += '</div>';
+        } else {
+            html = `<div class="text-center text-muted p-5 bg-light rounded-3">
+                        <i class="bi bi-chat-left-dots-fill display-4 opacity-25 d-block mb-3"></i>
+                        Belum ada histori catatan.
+                    </div>`;
+        }
+
+        container.innerHTML = html;
         return container;
     }
 
@@ -748,7 +816,7 @@ class Detail {
         }
 
         container.innerHTML = `
-          <ul class="accordion-custom px-0 m-0" id="pills-tab" role="tablist">
+          <ul class="accordion-custom px-0 m-0" id="${this.options.id}-pills-tab" role="tablist">
             ${htmlTabNav}
           </ul>
         `;
@@ -1275,16 +1343,16 @@ class Detail {
     }
     modalCreate() {
         return `
-            <div class="offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="offcanvasDetail" aria-labelledby="offcanvasDetail">
+            <div class="offcanvas offcanvas-end custom-offcanvas" tabindex="-1" id="${this.options.id}" aria-labelledby="${this.options.id}Label">
                 <div class="offcanvas-header border-bottom py-1">
                     <div>
-                        <h3 class="fw-semibold mb-2" id="titleDetail">Detail</h3>
+                        <h3 class="fw-semibold mb-2" id="${this.options.id}-title">Detail</h3>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
-                <div id="loadingDetail" class="m-auto"></div>
-                <div id="mainContent" class="offcanvas-body p-2">
-                    <div class="pt-2" id="container-detail">
+                <div id="${this.options.id}-loading" class="m-auto"></div>
+                <div id="${this.options.id}-main" class="offcanvas-body p-2">
+                    <div class="pt-2" id="${this.options.id}-container">
 
                     </div>
                 </div>
@@ -1298,7 +1366,7 @@ class Detail {
 
     destroy() {
         if (this.options.modal) {
-            $('#offcanvasDetail').remove();
+            $(`#${this.options.id}`).remove();
         }
     }
 }

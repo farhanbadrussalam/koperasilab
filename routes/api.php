@@ -128,6 +128,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("penyelia")->controller(PenyeliaAPI::class)->group(function () {
         Route::post('/action', 'actionPenyelia');
         Route::post('/actionSuratTugas', 'actionSuratTugas');
+        Route::post('/rejectSuratTugas', 'rejectSuratTugas');
         Route::post('/actionJobProses', 'actionJobProses');
         Route::post('/approvePengujian', 'approvePengujian');
         Route::post('/createPengujian', 'createPengujian');

@@ -52,7 +52,7 @@ class LoginController extends Controller
             'password' => 'required',
         ];
 
-        if (env('APP_ENV') !== 'developer') {
+        if (env('APP_ENV') == 'production') {
             $rules['g-recaptcha-response'] = 'required|captcha';
         }
 

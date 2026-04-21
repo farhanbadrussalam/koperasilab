@@ -106,6 +106,7 @@
     </div>
     <!-- /.modal-dialog -->
 </div>
+<x-modal.note />
 @include('component.progressModal')
 <!-- /.modal -->
 @endsection

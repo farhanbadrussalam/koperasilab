@@ -46,7 +46,7 @@
                                     id="input_password"
                                     type="password"
                                     name="password"
-                                    value="{{ env('APP_ENV') == 'developer' ? (old('password') ?? env('DEFAULT_PASSWORD')) : old('password') }}"
+                                    value="{{ env('APP_ENV') != 'production' ? (old('password') ?? env('DEFAULT_PASSWORD')) : old('password') }}"
                                     placeholder="Masukkan kata sandi Anda" />
                                 <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1" onclick="showPassword(this)">
                                     <i class="bi bi-eye"></i>
@@ -56,7 +56,7 @@
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
-                        @if(env('APP_ENV') != 'developer')
+                        @if(env('APP_ENV') == 'production')
                         <div class="form-group">
                             {!! NoCaptcha::renderJs() !!}
                             {!! NoCaptcha::display() !!}

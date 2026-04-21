@@ -78,7 +78,7 @@ class Timeline {
         if(this.options.timeline.length > 0){
             htmlProgress = `
                 <div>
-                    <a class="py-1 text-decoration-none btn-show-hide-progress" href="#timeline-progress-${this.options.id}" data-bs-toggle="collapse"
+                    <a class="py-1 text-decoration-none btn-show-hide-progress fw-semibold fs-8" href="#timeline-progress-${this.options.id}" data-bs-toggle="collapse"
                     >Lihat Progress LAB<i class="bi bi-chevron-down ms-2"></i></a>
                 </div>
             `;

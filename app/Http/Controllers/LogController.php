@@ -9,9 +9,12 @@ use App\Models\Log_penyelia;
 use App\Models\Log_proses;
 use App\Models\Master_jobs;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Arr;
+use App\Traits\RestApi;
 
 class LogController extends Controller
 {
+    use RestApi;
     protected $request;
 
     public function __construct(Request $request){
@@ -46,15 +49,33 @@ class LogController extends Controller
         return $query;
     }
 
-    public function getLog($mode, $where = array()){
-        $query = false;
-        switch ($mode) {
-            case 'penyelia':
-                $query = Log_penyelia::where($where)->first();
-                break;
-        }
+    public function getLogProses(Request $request){
+        $mode = $request->mode ?? false;
+        $logName = $request->log_name ?? false;
+        $id = $request->id ? decryptor($request->id) : false;
+        $userId = $request->user_id ? decryptor($request->user_id) : false;
+        $key = $request->key ?? false;
 
-        return $query;
+        $query = Log_proses::with('causer:id,name,email')
+                    ->when($mode, function($q) use ($mode) {
+                        $q->where('log_type', $mode);
+                    })
+                    ->when($logName, function($q) use ($logName) {
+                        $q->where('log_name', $logName);
+                    })
+                    ->when($id, function($q) use ($id) {
+                        $q->where('subject_id', $id);
+                    })
+                    ->when($userId, function($q) use ($userId) {
+                        $q->where('causer_id', $userId);
+                    })
+                    ->when($key, function($q) use ($key) {
+                        $q->whereJsonContains('properties->key', $key);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+        return $this->output($query);
     }
 
     public function noteLog($mode, $status, $jenis = '', $text = '')
