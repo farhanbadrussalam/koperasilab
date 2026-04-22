@@ -4,7 +4,7 @@
 <!-- Modal Note Modern -->
 <div class="modal fade" id="modalNote" tabindex="-1" aria-labelledby="modalNoteLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem;">
+        <div class="modal-content border-0 shadow-lg">
             <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center" id="modalNoteLabel">
                     <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -31,7 +31,7 @@
                 </div>
             </div>
             <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
-                <button type="button" class="btn btn-light fw-semibold px-4 py-2" data-bs-dismiss="modal" style="border-radius: 0.75rem;">Tutup</button>
+                <button type="button" class="btn btn-light fw-semibold px-4 py-2" data-bs-dismiss="modal">Tutup</button>
                 @if(isset($actionButton))
                     {{ $actionButton }}
                 @endif
@@ -40,6 +40,7 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
     class NoteModal {
         constructor() {
@@ -128,3 +129,4 @@
     // Inisialisasi secara global agar bisa dipanggil dari mana saja
     window.NoteComponent = new NoteModal();
 </script>
+@endpush

@@ -2,6 +2,7 @@ let dataPenyelia = [];
 let detail = false;
 let filterComp = false;
 let thisTab = 'progress';
+let modalDoc = new ModalDocument();
 $(function () {
     loadData();
 
@@ -112,16 +113,22 @@ function loadData(page = 1) {
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item small cursor-pointer" title="Lihat Surat Pengantar" href="${base_url}/laporan/surpeng/${lhu.permohonan.kontrak.kontrak_hash}/${lhu.permohonan.periode}" target="_blank">
+                    <button class="dropdown-item small cursor-pointer" title="Lihat Surat Pengantar"
+                        data-url="laporan/surpeng/${lhu.permohonan.kontrak.kontrak_hash}/${lhu.permohonan.periode}"
+                        data-title="Surat Pengantar ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode}"
+                        onclick="btnShowDoc(this)">
                         <i class="bi bi-eye"></i> Surat Pengantar
-                    </a>
+                    </button>
                 </li>
             `;
             let btnLabel = `
                 <li>
-                    <a class="dropdown-item small cursor-pointer" title="Print Label" href="${base_url}/laporan/label/${lhu.penyelia_hash}" target="_blank">
+                    <button class="dropdown-item small cursor-pointer" title="Print Label"
+                        data-url="laporan/label/${lhu.penyelia_hash}"
+                        data-title="Label ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode}"
+                        onclick="btnShowDoc(this)">
                         <i class="bi bi-printer"></i> Cetak Label
-                    </a>
+                    </button>
                 </li>
                 `;
 
@@ -271,4 +278,12 @@ function showDetail(obj){
 function clearFilter(){
     filterComp.clear();
     loadData();
+}
+
+function btnShowDoc(obj) {
+    const url = $(obj).data('url');
+    const title = $(obj).data('title') || 'Dokumen';
+    modalDoc.show(url, {
+        title: title
+    });
 }

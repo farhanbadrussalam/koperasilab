@@ -1,6 +1,6 @@
 <div class="modal fade" id="verify_modal_surat_pengujian" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem;">
+      <div class="modal-content border-0 shadow-lg">
         <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
           <h5 class="modal-title fw-bold text-dark d-flex align-items-center">
             <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -46,10 +46,10 @@
             </div>
         </div>
         <div class="modal-footer border-top-0 pt-0 pb-4 px-4 gap-2">
-          <button type="button" class="btn btn-light fw-semibold px-4 py-2 me-auto" data-bs-dismiss="modal" style="border-radius: 0.75rem;">Batal</button>
-          <button type="button" class="btn btn-danger fw-semibold px-4 py-2" id="btnDecline" style="border-radius: 0.75rem;">Tolak</button>
-          <button type="button" class="btn btn-primary fw-semibold px-4 py-2" id="btnApprove" style="border-radius: 0.75rem;">Setuju</button>
-          <button type="button" class="btn btn-primary fw-semibold px-4 py-2" id="btnSimpan" style="border-radius: 0.75rem;">Ajukan Pengujian</button>
+          <button type="button" class="btn btn-light fw-semibold px-4 py-2 me-auto" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-danger fw-semibold px-4 py-2" id="btnDecline">Tolak</button>
+          <button type="button" class="btn btn-primary fw-semibold px-4 py-2" id="btnApprove">Setuju</button>
+          <button type="button" class="btn btn-primary fw-semibold px-4 py-2" id="btnSimpan">Ajukan Pengujian</button>
         </div>
       </div>
       <!-- /.modal-content -->

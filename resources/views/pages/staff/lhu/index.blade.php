@@ -51,7 +51,7 @@
         </div>
     </div>
 </div>
-@include('component.progressModal')
+<x-modal.progress-penyelia />
 @include('component.penyimpananModal')
 @endsection
 

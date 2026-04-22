@@ -26,7 +26,7 @@ class PenggunaAPI extends Controller
 
     public function __construct() {
         $this->media = new MediaController();
-        $this->log = new LogController();
+        $this->log = resolve(LogController::class);
     }
 
     public function action(Request $request) {

@@ -456,7 +456,7 @@ class EvaluasiSewaTest extends DuskTestCase
                     })
                     ->waitForLocation("/manager/surat_tugas/v/{$penyelia->penyelia_hash}")
                     ->click("#managerValid")
-                    ->press("Simpan")
+                    ->press("Setujui")
                     ->waitForText("verif surat tugas?")
                     ->press("Iya")
                     ->waitForLocation("/manager/surat_tugas")
@@ -499,8 +499,8 @@ class EvaluasiSewaTest extends DuskTestCase
                                 ->within('div[data-id="'.$penyelia->penyelia_hash.'"]', function ($row) {
                                     $row->press('update progress');
                                 })
-                                ->waitForText("Update progress")
-                                ->type("#inputNote", "Ok");
+                                ->waitForText("Update Progress", $this->waitingTime)
+                                ->type("#inputNote", "Done");
 
                         if($petugas->jobs->id_jobs == 10) {
                             $browser->attach('uploadFile', $pathFilePdf)

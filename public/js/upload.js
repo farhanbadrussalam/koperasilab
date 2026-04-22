@@ -419,9 +419,27 @@ class UploadComponent {
                 template.classList.add('mt-2', 'text-end');
                 const linkTemplate = document.createElement('a');
                 linkTemplate.href = this.options.template.url;
-                linkTemplate.download = this.options.template.name;
                 linkTemplate.classList.add('btn', 'btn-outline-light', 'btn-sm', 'border', 'text-primary');
                 linkTemplate.innerHTML = `<i class="bi bi-download me-2"></i>${this.options.template.name}`;
+
+            // Menangani klik untuk memaksa download via Fetch/Blob
+            linkTemplate.onclick = (e) => {
+                e.preventDefault();
+                fetch(this.options.template.url)
+                    .then(response => response.blob())
+                    .then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = this.options.template.name || 'template';
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+                    })
+                    .catch(() => window.location.href = this.options.template.url);
+            };
+
                 template.appendChild(linkTemplate);
             }
 

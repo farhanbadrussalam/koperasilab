@@ -3,6 +3,8 @@ const arrDocCustom = [];
 let inventoryTld = false;
 let mPeriode = false;
 const tmpArrTld = [];
+const modalDoc = new ModalDocument();
+
 let dataOrderPengiriman = {};
 if(informasi.sumber == 'permohonan') {
     const periode_aktif = informasi.kontrak.periode.find(k => k.periode == informasi.periode);
@@ -393,10 +395,12 @@ function updateSelectDocument(){
                 break;
             case 'tld':
                 if(doc.checked){
-                    $('#btnCetakSurat').attr('href', `${base_url}/laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/${dataOrderPengiriman.periode_aktif.periode == 0 ? 1 : dataOrderPengiriman.periode_aktif.periode}`);
+                    $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/${dataOrderPengiriman.periode_aktif.periode == 0 ? 1 : dataOrderPengiriman.periode_aktif.periode}`);
+                    $('#btnCetakSurat').attr('data-title', `Surat Pengantar TLD Periode ${dataOrderPengiriman.periode_aktif.status === 2 ? 'Pengembalian' : dataOrderPengiriman.periode_aktif.periode}`);
                     $('#btnCetakSurat').addClass('d-block').removeClass('d-none');
                 }else{
-                    $('#btnCetakSurat').attr('href', ``);
+                    $('#btnCetakSurat').attr('data-url', ``);
+                    $('#btnCetakSurat').attr('data-title', ``);
                     $('#btnCetakSurat').addClass('d-none').removeClass('d-block');
                 }
 
@@ -491,4 +495,12 @@ function _cekLastPeriode(periode_kontrak, periode_now){
         return isLast;
     }
     return false;
+}
+
+function btnShowDoc(obj) {
+    const url = $(obj).data('url');
+    const title = $(obj).data('title') || 'Dokumen';
+    modalDoc.show(url, {
+        title: title
+    });
 }

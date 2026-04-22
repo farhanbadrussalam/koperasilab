@@ -1178,6 +1178,7 @@ class ReportController extends Controller
 
     public function label($id = null){
         $id = decryptor($id);
+        $is_download = request()->get('dl') ? true : false;
 
         if($id == null){
             return redirect()->back();
@@ -1187,7 +1188,6 @@ class ReportController extends Controller
             'permohonan',
             'permohonan.kontrak',
             'permohonan.pelanggan.perusahaan',
-            'permohonan.periodenow',
         ])->where('id_penyelia', $id)->first();
 
         // mengambil list tld di kontrak
@@ -1218,6 +1218,11 @@ class ReportController extends Controller
         $pdf = PDF::loadView('report.label', $data);
         $pdf->setPaper('a4', 'landscape');
         $pdf->render();
+
+        if($is_download){
+            $filename = 'label-'.now()->format('Ymd-His').'.pdf';
+            return $pdf->download($filename);
+        }
 
         return $pdf->stream();
     }

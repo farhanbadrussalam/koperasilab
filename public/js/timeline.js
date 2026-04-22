@@ -106,63 +106,98 @@ class Timeline {
         }, 50);
     }
 
+    /**
+     * Helper untuk membuat badge status yang lebih modern
+     */
+    _getStatusBadge(status) {
+        switch (status) {
+            case 1:
+                return `<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-medium"><i class="bi bi-three-dots me-1"></i> Sedang dikerjakan</span>`;
+            case 2:
+                return `<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-medium"><i class="bi bi-check-circle me-1"></i> Selesai</span>`;
+            default:
+                return `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fw-medium"><i class="bi bi-hourglass me-1"></i> Belum dimulai</span>`;
+        }
+    }
+
     modalTimeline(obj) {
-        const id = $(obj.target).data('id');
-        const idmap = $(obj.target).data('idmap');
+        const $el = $(obj.currentTarget);
+        const idmap = $el.data('idmap');
+        const $iconContainer = $el.find('span');
+        const originalHtml = $iconContainer.html();
+
+        // 1. Tampilkan loading spinner dan nonaktifkan klik sementara
+        $iconContainer.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+        $el.css('pointer-events', 'none');
 
         ajaxGet(`api/v1/penyelia/getPenyeliaMapById/${idmap}`, false, (result) => {
+            // 2. Kembalikan state elemen asli setelah data didapat
+            $iconContainer.html(originalHtml);
+            $el.css('pointer-events', 'auto');
+
             const data = result.data;
-            let htmlModal = `
-                <div class="modal fade" id="progresLhuModal" tabindex="-1" aria-labelledby="progresLhuModalLabel" aria-hidden="true">
+
+            const statusBadge = this._getStatusBadge(data.status);
+
+            const petugasHtml = data.petugas?.length > 0
+                ? data.petugas.map(d => `
+                    <li class="list-group-item d-flex align-items-center border-0 px-0 py-2">
+                        <div class="avatar avatar-xs bg-light text-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                            <i class="bi bi-person fs-6"></i>
+                        </div>
+                        <div class="lh-sm">
+                            <div class="fw-semibold small text-dark">${d.user.name}</div>
+                            <div class="text-muted extra-small" style="font-size: 0.75rem;">${d.user.email}</div>
+                        </div>
+                    </li>
+                `).join('')
+                : '<li class="list-group-item border-0 px-0 py-2 text-muted small italic">Tidak ada petugas ditunjuk</li>';
+
+            const completionDetails = data.status == 2 ? `
+                <div class="bg-light border rounded-3 p-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small">Tanggal Selesai</span>
+                        <span class="fw-medium small text-dark">${data.done_at ? dateFormat(data.done_at, 4) : '-'}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Dikerjakan oleh</span>
+                        <span class="fw-medium small text-dark">${data.done_by?.name ?? '-'}</span>
+                    </div>
+                </div>
+            ` : '';
+
+            const htmlModal = `
+                <div class="modal fade" id="progresLhuModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-body">
-                                <div>
-                                    <h3 class="fw-bold">${data.jobs?.name ?? ''}</h2>
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header border-bottom-0 pb-0">
+                                <h5 class="modal-title fw-bold text-dark">${data.jobs?.name ?? 'Detail Progres'}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body pt-3">
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <span class="text-uppercase text-muted fw-bold small" style="letter-spacing: 0.5px; font-size: 0.7rem;">Status</span>
+                                    ${statusBadge}
                                 </div>
-                                <div class="mt-3 d-flex justify-content-between">
-                                    <label class="fw-normal">Status</label>
-                                    ${(() => {
-                                        switch (data.status) {
-                                            case 1:
-                                                return `<div class="text-primary small"><i class="bi bi-three-dots"></i> Sedang dikerjakan</div>`;
-                                            case 2:
-                                                return `<div class="text-success small"><i class="bi bi-check-circle"></i> Selesai</div>`;
-                                            default:
-                                                return `<div class="text-secondary small"><i class="bi bi-x-circle"></i> Belum dimulai</div>`;
-                                        }
-                                    })()}
-                                </div>
-                                ${
-                                    data.status == 2 ? `
-                                    <div class="mt-2 d-flex justify-content-between">
-                                        <label class="fw-normal">Tanggal selesai</label>
-                                        <div class="text-body-secondary small">${data.done_at ? dateFormat(data.done_at, 4) : '-'}</div>
-                                    </div>
-                                    <div class="mt-2 d-flex justify-content-between">
-                                        <label class="fw-normal">Dikerjakan oleh</label>
-                                        <div class="text-body-secondary small">${data.done_by?.name ?? '-'}</div>
-                                    </div>` : ''
-                                }
-                                <div class="mt-3">
-                                    <span class="fw-normal">Petugas :</span>
-                                    <ul class="list-group mt-2">
-                                        ${data.petugas?.map(d =>
-                                            `<li class="list-group-item small p-1">
-                                                <div class="d-flex align-items-center">
-                                                    <span>${d.user.name} -</span>
-                                                    <span class="text-secondary ps-1">${d.user.email}</span>
-                                                </div>
-                                            </li>`
-                                        ).join('')}
+
+                                ${completionDetails}
+
+                                <div class="mt-2">
+                                    <span class="text-uppercase text-muted fw-bold small d-block mb-2" style="letter-spacing: 0.5px; font-size: 0.7rem;">Petugas Pelaksana</span>
+                                    <ul class="list-group list-group-flush border-top">
+                                        ${petugasHtml}
                                     </ul>
                                 </div>
+                            </div>
+                            <div class="modal-footer border-top-0 pt-0">
+                                <button type="button" class="btn btn-light btn-sm px-3 text-secondary" data-bs-dismiss="modal">Tutup</button>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
 
+            $('#progresLhuModal').remove();
             $('body').append(htmlModal);
             this.render();
 

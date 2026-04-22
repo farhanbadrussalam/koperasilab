@@ -90,9 +90,9 @@
                                     <button class="btn btn-primary py-3 fw-bold rounded-3 shadow-sm" onclick="buatPengiriman(this)">
                                         <i class="bi bi-box-seam me-2"></i>Buat Pengiriman
                                     </button>
-                                    <a class="btn btn-outline-secondary py-2 fw-bold rounded-3 d-none" id="btnCetakSurat" target="_blank">
+                                    <button class="btn btn-outline-secondary py-2 fw-bold rounded-3 d-none" id="btnCetakSurat" onclick="btnShowDoc(this)" data-url="" data-title="Surat Pengantar">
                                         <i class="bi bi-printer me-2"></i>Cetak Surat Pengantar
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>

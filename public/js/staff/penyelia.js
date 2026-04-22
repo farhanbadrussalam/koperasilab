@@ -175,9 +175,12 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                 tugasBtn.title = 'Surat Tugas Selesai (Signed)';
 
                                 btnDocTugas = `
-                                    <a class="btn btn-outline-primary btn-sm text-nowrap rounded-pill" target="_blank" href="${base_url}/laporan/${docTugas.jenis}/${docTugas.permohonan_hash}" title="Download Surat Tugas">
+                                    <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
+                                        data-url="laporan/${docTugas.jenis}/${docTugas.permohonan_hash}"
+                                        data-title="Dokumen Surat Tugas"
+                                        onclick="btnShowDoc(this)" title="Lihat Surat Tugas">
                                         <i class="bi bi-file-earmark-text"></i>
-                                    </a>
+                                    </button>
                                 `;
                             } else {
                                 // Jika surat tugas ditolak atau ada kondisi lain, sesuaikan dengan kebutuhan
@@ -239,9 +242,13 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                     pengujianBtn.title = 'Surat Pengujian Selesai (Signed)';
 
                                     btnDocPengujian = `
-                                        <a class="btn btn-outline-primary btn-sm text-nowrap rounded-pill" target="_blank" href="${base_url}/laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}" title="Download Surat Pengujian">
+                                        <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
+                                            data-url="laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}"
+                                            data-title="Dokumen Surat Pengujian"
+                                            onclick="btnShowDoc(this)"
+                                            title="Lihat Surat Pengujian">
                                             <i class="bi bi-file-earmark-text"></i>
-                                        </a>
+                                        </button>
                                     `;
                                 } else {
                                     // Jika surat pengujian ditolak atau ada kondisi lain, sesuaikan dengan kebutuhan
@@ -579,4 +586,12 @@ function simpanPengujian(id){
             });
         }
     })
+}
+
+function btnShowDoc(obj) {
+    const url = $(obj).data('url');
+    const title = $(obj).data('title') || 'Dokumen';
+    modalDoc.show(url, {
+        title: title
+    });
 }

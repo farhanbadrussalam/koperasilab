@@ -63,7 +63,7 @@
 
 <x-modal.pengujian />
 <x-modal.note />
-@include('component.progressModal')
+<x-modal.progress-penyelia />
 <!-- /.modal -->
 @endsection
 @push('scripts')

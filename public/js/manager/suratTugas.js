@@ -1,6 +1,7 @@
 let filterComp = false;
 let signaturePad = false;
 let dataPenyelia = false;
+let modalDoc = new ModalDocument();
 $(function () {
     loadData();
 
@@ -8,9 +9,9 @@ $(function () {
         jenis: 'surattugas',
         activeTab: 'proses',
         tab: {
-            proses: true,
             log: true
         },
+        activeTab: 'log'
     });
 
     filterComp = new FilterComponent('list-filter', {
@@ -97,6 +98,14 @@ function _renderCardItem(lhu) {
 
     let btnDocTugas = ``;
     let btnDocPengujian = ``;
+    let htmlStatus = '';
+
+    // status jobs yang aktif
+    htmlStatus = statusFormat('penyelia', lhu.status);
+    let aktifJobs = lhu.penyelia_map.filter(d => d.status == 1);
+    aktifJobs.map(d => {
+        htmlStatus += statusFormat('penyelia', d.jobs.status);
+    });
 
     // Config: Button Surat Tugas
     let tugasBtn = {
@@ -108,9 +117,11 @@ function _renderCardItem(lhu) {
 
     if (lhu.status != 1 && hasTugas) {
         btnDocTugas = `
-            <a class="btn btn-outline-primary btn-sm text-nowrap rounded-pill" target="_blank" href="${base_url}/laporan/${docTugas.jenis}/${docTugas.permohonan_hash}" title="Download Surat Tugas">
+            <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
+                data-url="laporan/${docTugas.jenis}/${docTugas.permohonan_hash}" data-title="Dokumen Surat Tugas"
+                onclick="btnShowDoc(this)" title="Lihat Surat Tugas">
                 <i class="bi bi-file-earmark-text"></i>
-            </a>
+            </button>
         `;
         if (isTugasSigned === 1) {
             tugasBtn = {
@@ -159,9 +170,13 @@ function _renderCardItem(lhu) {
 
         if (docPengujian) {
             btnDocPengujian = `
-                <a class="btn btn-outline-primary btn-sm text-nowrap rounded-pill" target="_blank" href="${base_url}/laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}" title="Download Surat Pengujian">
+                <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
+                    data-url="laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}"
+                    data-title="Dokumen Surat Pengujian"
+                    onclick="btnShowDoc(this)"
+                    title="Lihat Surat Pengujian">
                     <i class="bi bi-file-earmark-text"></i>
-                </a>
+                </button>
             `;
 
             if (isPengajuanSigned === 1) {
@@ -225,7 +240,7 @@ function _renderCardItem(lhu) {
         jenisLayananParent: permohonan.jenis_layanan_parent.name,
         jenisLayanan: permohonan.jenis_layanan.name,
         format: 'penyelia',
-        status: lhu.status,
+        statusPenyelia: htmlStatus,
         jenisTld: permohonan.jenis_tld?.name ?? '-',
         namaLayanan: permohonan.layanan_jasa?.nama_layanan,
         periode: permohonan.periode,
@@ -370,4 +385,12 @@ function declinePengujian(id){
             showLoadingSwal('hide');
         });
     }, 'Tolak Surat Pengujian', 'Silahkan berikan Alasan Penolakan');
+}
+
+function btnShowDoc(obj) {
+    const url = $(obj).data('url');
+    const title = $(obj).data('title') || 'Dokumen';
+    modalDoc.show(url, {
+        title: title
+    });
 }
