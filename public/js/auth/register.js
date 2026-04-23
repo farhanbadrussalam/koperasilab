@@ -33,7 +33,11 @@ $(function () {
         allowedFileExtensions: ['pdf'],
         camera: false,
         multiple: false,
-        form: true
+        form: true,
+        template: {
+            url: `${base_url}/assets/template/draft_surat_kuasa_rekanan.docx`,
+            name: 'Template Surat Kuasa'
+        }
     });
 })
 
