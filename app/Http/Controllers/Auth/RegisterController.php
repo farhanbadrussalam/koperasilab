@@ -133,6 +133,7 @@ class RegisterController extends Controller
                     'jabatan' => $data['jabatan_pic'],
                     'email' => $data['email'],
                     'password' => Hash::make($data['password']),
+                    'realtime_notifications' => 0
                 ])->assignRole('Pelanggan');
 
                 Profile::create([

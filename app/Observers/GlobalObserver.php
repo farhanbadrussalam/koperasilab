@@ -80,13 +80,14 @@ class GlobalObserver
     private function catatLog($model, $aksi, $type, $pesan, $detail = null, $target = 'info')
     {
         // mengambil value primary key di model
+        $user = Auth::user();
         $body = [
             'log_name'  => $aksi,
             'log_type'  => $type,
             'description' => $pesan,
             'subject_type' => get_class($model),
             'subject_id' => $model->getKey(),
-            'causer_type' => get_class(Auth::user()),
+            'causer_type' => $user ? get_class($user) : null,
             'causer_id' => Auth::id(),
             'ip_address' => $this->request->getClientIp(),
             'user_agent' => $this->request->header('User-Agent'),

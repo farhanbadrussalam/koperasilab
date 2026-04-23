@@ -24,6 +24,7 @@ class GoogleController extends Controller
 
         $user = User::updateOrCreate([
             'email' => $googleUser->email,
+            'realtime_notifications' => 0
         ], [
             'name' => $googleUser->name,
             'google_id' => $googleUser->id,

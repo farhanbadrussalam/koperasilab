@@ -220,6 +220,7 @@ class ProfileAPI extends Controller
                 'jabatan' => $params['jabatan'],
                 'email' => $params['email'],
                 'password' => $params['password'],
+                'realtime_notifications' => 0
             ])->assignRole('Pelanggan');
 
             Profile::create([
