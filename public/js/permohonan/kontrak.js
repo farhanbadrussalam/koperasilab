@@ -75,7 +75,6 @@ function loadData(page = 1) {
             let arrPeriode = data.periode;
             let document_kontrak = data.document_kontrak.find(d => d.jenis == 'kontrak' || d.jenis == 'KontrakPengujian');
             let status_ttd_kontrak = document_kontrak?.ttd ? true : false;
-
             let htmlLastPeriod = '';
             let periodeNow = getCurrentPeriod(arrPeriode);
             switch (periodeNow) {
@@ -157,10 +156,10 @@ function loadData(page = 1) {
 
             let btnTTD = '';
             if(role.includes('Manager') || role.includes('General Manager')) {
-                if(!status_ttd_kontrak){
+                if(!status_ttd_kontrak && document_kontrak){
                     btnTTD = `
                         <div class="mb-2 text-end fs-8">
-                            <button class="btn btn-sm btn-outline-primary" onclick="showDocument('${data.kontrak_hash}', '${document_kontrak.jenis}', 'Dokumen Kontrak')">
+                            <button class="btn btn-sm btn-outline-primary" onclick="showDocument('${data.kontrak_hash}', '${document_kontrak?.jenis}', 'Dokumen Kontrak')">
                                 <i class="bi bi-pencil"></i> Tanda Tangan
                             </button>
                         </div>
