@@ -93,17 +93,18 @@ function loadData(page = 1) {
             });
             divTimelineTugas.push(timeline);
 
-            let htmlPeriode = `
-                <div>${periode?.length ?? '0'} Periode</div>
-            `;
-            if(permohonan.periode){
-                htmlPeriode = `<div>Periode ${permohonan.periode}</div>`;
-            }
+            // let htmlPeriode = `
+            //     <div>${periode?.length ?? '0'} Periode</div>
+            // `;
+            // if(permohonan.periode){
+            //     htmlPeriode = `<div>Periode ${permohonan.periode}</div>`;
+            // }
 
             // status jobs yang aktif
             let isPelabelan = false;
             let isPenyimpanan = false;
             let htmlStatus = statusFormat('penyelia', lhu.status);
+            const permohonan_periode = permohonan.periode == 0 ? 1 : permohonan.periode;
 
             // button action
             btnAction += `
@@ -114,8 +115,8 @@ function loadData(page = 1) {
                 </li>
                 <li>
                     <button class="dropdown-item small cursor-pointer" title="Lihat Surat Pengantar"
-                        data-url="laporan/surpeng/${lhu.permohonan.kontrak.kontrak_hash}/${lhu.permohonan.periode}"
-                        data-title="Surat Pengantar ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode}"
+                        data-url="laporan/surpeng/${permohonan.kontrak.kontrak_hash}/${permohonan_periode}"
+                        data-title="Surat Pengantar ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode == 0 ? 'zero cek' : permohonan.periode}"
                         onclick="btnShowDoc(this)">
                         <i class="bi bi-eye"></i> Surat Pengantar
                     </button>
@@ -125,7 +126,7 @@ function loadData(page = 1) {
                 <li>
                     <button class="dropdown-item small cursor-pointer" title="Print Label"
                         data-url="laporan/label/${lhu.penyelia_hash}"
-                        data-title="Label ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode}"
+                        data-title="Label ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode == 0 ? 'zero cek' : permohonan.periode}"
                         onclick="btnShowDoc(this)">
                         <i class="bi bi-printer"></i> Cetak Label
                     </button>
@@ -245,7 +246,6 @@ function loadData(page = 1) {
                 pelanggan: permohonan.pelanggan.name,
                 divTimelineTugas: timeline,
                 htmlLeftTime: htmlLeftTime,
-                status: lhu.status,
                 perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan
             }
 

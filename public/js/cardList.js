@@ -75,7 +75,7 @@ function cardComponent(data, options = {}) {
         </span>
     ` : '';
 
-    const htmlStatusPenyelia = data.statusPenyelia !== undefined ? `<div class="my-1">${data.statusPenyelia}</div>` : '';
+    const htmlStatusPenyelia = data.statusPenyelia !== undefined ? `<div class="my-1 d-flex align-items-center gap-1">${data.statusPenyelia}</div>` : '';
 
     const htmlLeftTime = data.htmlLeftTime !== undefined ? `
         <div class="my-1">
