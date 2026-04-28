@@ -30,7 +30,7 @@ class PetugasLayananAPI extends Controller
             $search = $request->search ? $request->search : false;
             $idPenyelia = $request->idPenyelia ? decryptor($request->idPenyelia) : false;
 
-            $penyelia = Penyelia::with('permohonan', 'permohonan.layanan_jasa')->find($idPenyelia);
+            $penyelia = Penyelia::with(['permohonan', 'permohonan.layanan_jasa'])->find($idPenyelia);
 
             $query = User::select('id','name', 'email')
                     ->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(String) $penyelia->permohonan->layanan_jasa->satuankerja_id])
@@ -68,7 +68,7 @@ class PetugasLayananAPI extends Controller
         $idPetugas = $request->idPetugas ? decryptor($request->idPetugas) : null;
         $idSatuankerja = $request->idSatuan ? decryptor($request->idSatuan) : null;
 
-        $query = Petugas_layanan::with('satuankerja','lab', 'petugas:id,name,email', 'user:id,name,email')
+        $query = Petugas_layanan::with(['satuankerja','lab', 'petugas:id,name,email', 'user:id,name,email'])
                     ->where('status', '!=', 99);
 
         if($idPetugas){

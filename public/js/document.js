@@ -150,8 +150,8 @@ class ModalDocument {
                             <!-- PDF akan dimuat di sini -->
                         </div>
                     </div>
-                    <div class="col-lg-4 bg-light" style="height: 80vh; overflow-y: auto;">
-                        <div class="p-3">
+                    <div class="col-lg-4 p-3 pt-1" style="height: 80vh; overflow-y: auto;">
+                        <div class="p-3 bg-light rounded-3 shadow h-100">
                             <h6 class="fw-bold mb-3">${this.options.formTitle}</h6>
                             <div id="formContainer">
                                 <!-- Form TTD atau input lainnya -->
@@ -175,7 +175,7 @@ class ModalDocument {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-0">
-                            <div class="d-flex justify-content-end p-2">
+                            <div class="d-flex p-2">
                                 <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="btnPrintPdf">
                                     <i class="bi bi-printer"></i> Print
                                 </button>
