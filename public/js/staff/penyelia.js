@@ -296,9 +296,9 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     });
                     divTimelineTugas.push(timeLine);
 
-                    htmlPeriode = !permohonan.periode ? 'Zero cek' : permohonan.periode;
+                    htmlPeriode = !permohonan.periode ? 'Zero Check' : permohonan.periode;
                     if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
-                        htmlPeriode += ' + Zero cek';
+                        htmlPeriode += ' + Zero Check';
                     }
 
                     // range periode

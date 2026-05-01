@@ -1466,8 +1466,8 @@ class PermohonanAPI extends Controller
                         3 Kontrak - Evaluasi
                         5 Evaluasi - Dengan kontrak
                         6 Evaluasi - Tanpa kontrak
-                        8 Zero cek - Dengan kontrak
-                        9 Zero cek - Tanpa kontrak
+                        8 Zero Check - Dengan kontrak
+                        9 Zero Check - Tanpa kontrak
                     */
 
                     // proses ke invoice

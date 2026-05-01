@@ -192,17 +192,17 @@ if(!function_exists('statusFormat')){
 }
 
 if (!function_exists('formatBytes')) {
-	function formatBytes($size, $precision = 2)
+	function formatBytes(int $size, int $precision = 2): string
 	{
 		$base = log($size, 1024);
 		$suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
 
-		return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[floor($base)];
+		return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[(int) floor($base)];
 	}
 }
 
 if (!function_exists('iconDocument')){
-    function iconDocument($type) {
+    function iconDocument(string $type): string {
         $icon = '';
         switch ($type) {
             case 'application/pdf':
@@ -456,6 +456,7 @@ if (!function_exists('generateNoDokumen')) {
         }
 
         $increment = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+        $noKontrak = '';
 
         switch ($jenis) {
             case 'KontrakPengujian':
@@ -467,7 +468,7 @@ if (!function_exists('generateNoDokumen')) {
                 break;
             case 'permintaanpengujian':
                 // Format nomor
-                $permohonan = Permohonan::with("layanan_jasa", "layanan_jasa.satuankerja")->where('id_permohonan', $id)->first();
+                $permohonan = Permohonan::with(["layanan_jasa", "layanan_jasa.satuankerja"])->where('id_permohonan', $id)->first();
                 $alias = $permohonan->layanan_jasa->satuankerja->alias;
 
                 $noKontrak = "{$increment}/SPP/NL-{$alias}/{$romawiBulan}/{$tahunSekarang}";
@@ -485,7 +486,7 @@ if (!function_exists('generateNoDokumen')) {
                 break;
             case 'surattugas':
                 // mengambil satuan kerja
-                $satuankerja = Penyelia::with('permohonan', 'permohonan.layanan_jasa', 'permohonan.layanan_jasa.satuankerja')
+                $satuankerja = Penyelia::with(['permohonan', 'permohonan.layanan_jasa', 'permohonan.layanan_jasa.satuankerja'])
                 ->where('penyelia.id_penyelia', $id)
                 ->first();
                 $alias = $satuankerja->permohonan->layanan_jasa->satuankerja->alias;

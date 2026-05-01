@@ -87,7 +87,7 @@
         @if ($data->pph)
             <tr>
                 <td>PPH {{ $data->pph }}%</td>
-                <td>( {{ formatCurrency($jumPph) }} )</td>
+                <td>{{ formatCurrency($jumPph) }}</td>
             </tr>
         @endif
         @if ($data->ppn)

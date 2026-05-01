@@ -60,7 +60,7 @@
                         <div class="mb-3 d-flex justify-content-center" id="form-zero-cek">
                             <div class="form-check form-switch" id="switch-zerocek">
                                 <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
-                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero cek</label>
+                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero Check</label>
                             </div>
                         </div>
 

@@ -90,7 +90,7 @@
                             </div>
                             <div class="form-check form-switch" id="switch-zerocek">
                                 <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
-                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero cek</label>
+                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero Check</label>
                             </div>
                         </div>
                         <div class="col-md-6" id="form-periode-next">

@@ -54,7 +54,7 @@
                             <div class="d-flex flex-column align-items-md-end align-items-start justify-content-center h-100">
 
                                 <span class="badge bg-primary-subtle text-primary mb-2 px-3 py-2 rounded-pill">
-                                    Zero cek
+                                    Zero Check
                                 </span>
 
                                 <div>
