@@ -69,7 +69,7 @@
             $tdContent .= '</tr>';
         }
 
-        $jenisPengujian = $data->periode ? 'Evaluasi TLD' : 'Zero cek';
+        $jenisPengujian = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
     ?>
     <h1 class="center w-100 text-underline lh-1">TANDA TERIMA PENGUJIAN/KALIBRASI</h1>
     <div class="w-100 center" style="line-height: .2">

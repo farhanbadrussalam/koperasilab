@@ -81,7 +81,7 @@ function loadData(page = 1) {
                 }
 
                 // periode
-                let htmlPeriode = !pengajuan.periode ? 'Zero cek' : `Periode ${pengajuan.periode}`;
+                let htmlPeriode = !pengajuan.periode ? 'Zero Check' : `Periode ${pengajuan.periode}`;
 
                 let htmlStatusPenyelia = '';
                 if(pengajuan.lhu){
@@ -94,7 +94,7 @@ function loadData(page = 1) {
                 }
 
                 if(pengajuan.periode && pengajuan.is_have_tld && pengajuan.is_zerocek) {
-                    htmlPeriode += ' + Zero cek';
+                    htmlPeriode += ' + Zero Check';
                 }
 
                 const params = {

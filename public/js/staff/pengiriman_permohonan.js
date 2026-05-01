@@ -125,9 +125,9 @@ function loadData(page = 1, menu) {
 
             let htmlPeriode = false;
             if(data.lhu) {
-                htmlPeriode = data.lhu?.periode == 0 ? "Zero cek" : `Periode ${data.lhu.periode}`;
+                htmlPeriode = data.lhu?.periode == 0 ? "Zero Check" : `Periode ${data.lhu.periode}`;
                 if(data.lhu.periode == 1 && data.is_zerocek == 1 && data.is_have_tld == 1) {
-                    htmlPeriode += " + Zero cek";
+                    htmlPeriode += " + Zero Check";
                 }
             }
 

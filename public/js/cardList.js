@@ -33,9 +33,9 @@ function cardComponent(data, options = {}) {
     }
 
     const htmlPeriode = data.periode !== undefined ? (() => {
-        let per = data.periode == 0 ? `Zero cek` : 'Periode ' + data.periode;
+        let per = data.periode == 0 ? `Zero Check` : 'Periode ' + data.periode;
         if(data.periode == 1 && data.is_have_tld && data.is_zerocek) {
-            per += ' + Zero cek';
+            per += ' + Zero Check';
         }
         return `
             <span>
@@ -177,7 +177,7 @@ function cardComponent(data, options = {}) {
                                 <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-1 overflow-hidden" data-id='${data.id}'>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-1 overflow-hidden" data-id='${data.id}' data-nokontrak='${data.kontrak ?? ''}'>
                                     ${options.btnMenuAction}
                                 </ul>
                             </div>

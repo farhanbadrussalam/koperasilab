@@ -38,7 +38,10 @@ use Log;
 class PengirimanAPI extends Controller
 {
     use RestApi;
-    protected $media, $log, $global, $pagination;
+    protected MediaController $media;
+    protected LogController $log;
+    protected mixed $global;
+    protected mixed $pagination;
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
@@ -122,13 +125,13 @@ class PengirimanAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Pengiriman::with(
+            $query = Pengiriman::with([
                         'kontrak',
                         'kontrak.pelanggan',
                         'kontrak.pelanggan.perusahaan',
                         'detail',
                         'alamat'
-                    )
+                    ])
                     ->orderBy('recived_at', 'ASC')
                     ->orderBy('created_at', 'DESC')
                     ->offset(($page - 1) * $limit)
@@ -236,7 +239,7 @@ class PengirimanAPI extends Controller
         DB::beginTransaction();
         try {
             if($idPermohonan){
-                $query = Permohonan::with(
+                $query = Permohonan::with([
                     'pelanggan',
                     'pelanggan.perusahaan',
                     'pelanggan.perusahaan.alamat',
@@ -249,18 +252,18 @@ class PengirimanAPI extends Controller
                     'jenis_layanan',
                     'jenisTld',
                     'layanan_jasa'
-                )->whereHas('lhu.log', function ($q) {
+                ])->whereHas('lhu.log', function ($q) {
                     $q->whereColumn('log_penyelia.status', 'penyelia.status');
                 })
                 ->where('id_permohonan', decryptor($idPermohonan))->first();
             }else{
-                $query = Permohonan::with(
+                $query = Permohonan::with([
                     'layanan_jasa:id_layanan,nama_layanan',
                     'pelanggan',
                     'pelanggan.perusahaan',
                     'jenis_layanan_parent',
                     'kontrak'
-                )->when($search, function($q, $search){
+                ])->when($search, function($q, $search){
                     return $q->where('no_kontrak', 'like', "%$search%");
                 })
                 ->whereNotIn('status', ['80','99'])
@@ -329,7 +332,7 @@ class PengirimanAPI extends Controller
                 $params['bukti_pengiriman'] = $bukti;
             }
 
-            $pengiriman = Pengiriman::with('detail','kontrak', 'kontrak.pengguna', 'kontrak.pelanggan')->where('id_pengiriman', $idPengiriman)->first();
+            $pengiriman = Pengiriman::with(['detail','kontrak', 'kontrak.pengguna', 'kontrak.pelanggan'])->where('id_pengiriman', $idPengiriman)->first();
             if(!$pengiriman){
                 $params['created_by'] = Auth::user()->id;
             }
@@ -418,13 +421,13 @@ class PengirimanAPI extends Controller
                 $params['bukti_penerima'] = $tmpBuktiPenerima;
             }
 
-            $query = Pengiriman::with(
+            $query = Pengiriman::with([
                 'detail',
                 'kontrak',
                 'permohonan',
                 'permohonan.jenis_layanan_parent',
                 'permohonan.jenis_layanan',
-            )->where('id_pengiriman', $idPengiriman)->first();
+            ])->where('id_pengiriman', $idPengiriman)->first();
             $query->update($params);
 
             // jika LHU sudah dikirim
@@ -506,7 +509,7 @@ class PengirimanAPI extends Controller
 
             // kondisi ketika semua periode complete, dan akan mengganti status di kontrak nya menjadi 2
             // Mengambil data kontrak
-            $kontrak = Kontrak::with('jenis_layanan', 'jenis_layanan_parent', 'tld_aktif')->where('id_kontrak', $query->id_kontrak)->first();
+            $kontrak = Kontrak::with(['jenis_layanan', 'jenis_layanan_parent', 'tld_aktif'])->where('id_kontrak', $query->id_kontrak)->first();
             $isComplete = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->where('status', 1)->whereNull('selesai')->exists() ? false : true;
             $layanan = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
             $isSewa = in_array($layanan, $this->global['arr_sewa']);

@@ -9,7 +9,7 @@ $(function () {
     let findPeriode = arrPeriode.find(d => d.periode == dataPenyelia.periode);
 
     if(!findPeriode.periode){
-        $('#periodePermohonan').html(`Zero cek`);
+        $('#periodePermohonan').html(`Zero Check`);
     }else{
         $('#periodePermohonan').html(`${dateFormat(findPeriode.start_date, 5)} - ${dateFormat(findPeriode.end_date, 5)}`);
     }

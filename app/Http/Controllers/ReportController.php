@@ -30,7 +30,7 @@ use Log;
 
 class ReportController extends Controller
 {
-    protected $global;
+    protected array $global;
     public function __construct()
     {
         $this->global = config('customvariabel');
@@ -57,7 +57,7 @@ class ReportController extends Controller
 
         return $bytes;
     }
-    public function invoice($id)
+    public function invoice(String $id)
     {
         $idKeuangan = decryptor($id);
 
@@ -124,7 +124,7 @@ class ReportController extends Controller
         // mengambil template invoice
         $dokumen = $query->permohonan->dokumen->first();
         if(!$dokumen->id_doc_template){
-            $template = Documents::with('footer', 'header')
+            $template = Documents::with(['footer', 'header'])
                         ->where('jenis', 'body')
                         ->where('name', 'Invoice')
                         ->where('status', '1')
@@ -136,7 +136,7 @@ class ReportController extends Controller
                 'variables' => $variables
             ]);
         } else {
-            $template = Documents::with('footer', 'header')
+            $template = Documents::with(['footer', 'header'])
                         ->where('id_doc', $dokumen->id_doc_template)
                         ->first();
 
@@ -191,7 +191,7 @@ class ReportController extends Controller
         if ($data->ppn) {
             $htmlPpn .= '<tr>
                 <td>PPN ' . $data->ppn . '%</td>
-                <td>( ' . formatCurrency($dataKeuangan['jumPpn']) . ' )</td>
+                <td>' . formatCurrency($dataKeuangan['jumPpn']) . '</td>
             </tr>';
         }
 
@@ -200,6 +200,14 @@ class ReportController extends Controller
             $htmlPph .= '<tr>
                 <td>PPH ' . $data->pph . '%</td>
                 <td>( - ' . formatCurrency($dataKeuangan['jumPph']) . ' )</td>
+            </tr>';
+        }
+
+        $subJumlah = '';
+        if(count($dataKeuangan['diskon']) > 0) {
+            $subJumlah .= '<tr>
+                <td>Sub Jumlah</td>
+                <td>' . formatCurrency($dataKeuangan['jumAfterDiskon']) . '</td>
             </tr>';
         }
 
@@ -213,10 +221,7 @@ class ReportController extends Controller
                         <td>' . formatCurrency($data->permohonan->total_harga) . '</td>
                     </tr>
                     ' . $htmlDiskon . '
-                    <tr>
-                        <td>Sub Jumlah</td>
-                        <td>' . formatCurrency($dataKeuangan['jumAfterDiskon']) . '</td>
-                    </tr>
+                    ' . $subJumlah . '
                     ' . $htmlPph . '
                     ' . $htmlPpn . '
                     <tr>
@@ -282,7 +287,7 @@ class ReportController extends Controller
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
-                $vars["JENIS_PENGUJIAN"] = $data->periode ? 'Evaluasi TLD' : 'Zero cek';
+                $vars["JENIS_PENGUJIAN"] = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
                 $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol";
                 $vars["PERIODE"] = ($data->periode > 0 ? "Periode ". $data->periode : "Periode zero cek");
                 $vars["TGL_PENERIMAAN"] = convert_date($data->dokumen[0]->created_at, 2);
@@ -324,7 +329,7 @@ class ReportController extends Controller
             case "SuratTugas":
                 $vars["NOMOR"] = $data->dokumen[0]->nomer;
                 $vars['UNIT'] = $data->layanan_jasa->satuankerja->name;
-                $vars["PENGUJIAN"] = $data->periode == 0 && $data->is_zerocek == 1 ? 'Zero cek' : 'Evaluasi TLD';
+                $vars["PENGUJIAN"] = $data->periode == 0 && $data->is_zerocek == 1 ? 'Zero Check' : 'Evaluasi TLD';
                 $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
                 $vars["JENIS_TLD"] = $data->jenisTld->name;
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
@@ -448,7 +453,7 @@ class ReportController extends Controller
         return $vars;
     }
 
-    public function kwitansi($id)
+    public function kwitansi(String $id)
     {
         $idKeuangan = decryptor($id);
 
@@ -534,7 +539,7 @@ class ReportController extends Controller
         // return $pdf->stream();
     }
 
-    private function contentKwitansi($data, $params = null) {
+    private function contentKwitansi(Keuangan $data, ?array $params = null) {
         $subJumlah = 0;
 
         $tbl_rincian = "";
@@ -592,7 +597,7 @@ class ReportController extends Controller
         ];
     }
 
-    public function tandaTerima($idPermohonan)
+    public function tandaTerima(String $idPermohonan)
     {
         $idPermohonan = decryptor($idPermohonan);
 
@@ -625,7 +630,7 @@ class ReportController extends Controller
 
         // mengambil template invoice
         $dokumen = $query->dokumen->first();
-        $template = Documents::with('footer', 'header')
+        $template = Documents::with(['footer', 'header'])
                         ->where('id_doc', $dokumen->id_doc_template)
                         ->first();
         if($dokumen->variables){
@@ -668,13 +673,13 @@ class ReportController extends Controller
         return $bytes->stream($filename);
     }
 
-    private function contentTandaTerima($data, $params = null) {
+    private function contentTandaTerima(Permohonan $data, $params = null) {
         $tdContent = '';
         $getPertanyaan = [];
         foreach ($data->tandaterima as $key => $value) {
             array_push($getPertanyaan, $value->pertanyaan);
         }
-        $half = ceil(count($getPertanyaan) / 2);
+        $half = (int) ceil(count($getPertanyaan) / 2);
         $no = 'a';
         for ($i = 0; $i < $half; $i++) {
             $tdContent .= '<tr>';
@@ -727,7 +732,7 @@ class ReportController extends Controller
                 }
             $tdContent .= '</tr>';
         }
-        $jenisPengujian = $data->periode ? 'Evaluasi TLD' : 'Zero cek';
+        $jenisPengujian = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
 
         return [
             "RINCIAN" => '
@@ -744,7 +749,7 @@ class ReportController extends Controller
         ];
     }
 
-    public function suratTugas($id = null)
+    public function suratTugas(String $id)
     {
         $id = decryptor($id);
 
@@ -780,7 +785,7 @@ class ReportController extends Controller
 
         // mengambil template invoice
         $dokumen = $query->dokumen->first();
-        $template = Documents::with('footer', 'header')
+        $template = Documents::with(['footer', 'header'])
                     ->where('id_doc', $dokumen->id_doc_template)
                     ->first();
 
@@ -827,7 +832,7 @@ class ReportController extends Controller
         // return $pdf->stream();
     }
 
-    private function contentSuratTugas($data, $params) {
+    private function contentSuratTugas(Permohonan $data, $params) {
     $html = '';
     $no   = 1;
     $arr  = [];
@@ -901,6 +906,7 @@ class ReportController extends Controller
  * is then rendered and streamed back to the user.
  *
  * @param string|null $id Encrypted report identifier.
+ * @param int|null $periode_ The contract period.
  * @return \Illuminate\Http\Response The PDF stream response.
  */
 
@@ -932,7 +938,7 @@ class ReportController extends Controller
                     ->where("periode", $periode_)
                     ->where("jenis", "surpeng")->first();
 
-        $template = Documents::with('footer', 'header')
+        $template = Documents::with(['footer', 'header'])
                 ->where('jenis', 'body')
                 ->where('name', 'SuratPengantar')
                 ->where('status', '1')
@@ -1108,7 +1114,7 @@ class ReportController extends Controller
         ])->where('id_kontrak', $query->id_kontrak)->get();
 
         // Memisahkan radiasi yang digunakan
-        $listRadiasi = false;
+        $listRadiasi = array();
         foreach ($listTld as $key => $tld) {
             if($tld->jenis == 'pengguna'){
                 foreach($tld->entitas->radiasi as $item) {
@@ -1118,7 +1124,7 @@ class ReportController extends Controller
         }
 
         // mengambil invoice dari permohonan pertama
-        $kontrakPeriode = Kontrak_periode::with('permohonan', 'permohonan.invoice')->where('id_kontrak', $id)->orderBy('periode', 'asc')->first();
+        $kontrakPeriode = Kontrak_periode::with(['permohonan', 'permohonan.invoice'])->where('id_kontrak', $id)->orderBy('periode', 'asc')->first();
         $invoice = false;
         if($kontrakPeriode){
             $invoice = $kontrakPeriode->permohonan->invoice;
@@ -1133,7 +1139,7 @@ class ReportController extends Controller
 
         // Mengambil template kontrak
         $dokumen = $query->document_kontrak->first();
-        $template = Documents::with('footer','header')
+        $template = Documents::with(['footer','header'])
                     ->where('id_doc', $dokumen->id_doc_template)
                     ->first();
         if($dokumen->variables){
@@ -1260,7 +1266,7 @@ class ReportController extends Controller
         $data['stempel'] = $this->global['urlStempel'];
 
         $dokumen = $query->dokumen->first();
-        $template = Documents::with('footer', 'header')
+        $template = Documents::with(['footer', 'header'])
                     ->where('id_doc', $dokumen->id_doc_template)
                     ->first();
 
@@ -1305,7 +1311,7 @@ class ReportController extends Controller
         }
 
         $dokumen = $data->dokumen->first();
-        $template = Documents::with('footer', 'header')
+        $template = Documents::with(['footer', 'header'])
                     ->where('id_doc', $dokumen->id_doc_template)
                     ->first();
 
@@ -1388,7 +1394,7 @@ class ReportController extends Controller
 
         // mengambil template dokumen
         $dokumen = $query->dokumen->first();
-        $template = Documents::with('footer', 'header')
+        $template = Documents::with(['footer', 'header'])
                     ->where('id_doc', $dokumen->id_doc_template)
                     ->first();
 

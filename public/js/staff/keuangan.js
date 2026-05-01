@@ -1,6 +1,8 @@
 const invoice = new Invoice();
 let thisTab = 1;
 let filterComp = false;
+let detail = false;
+let dataKeuangan = false;
 
 $(function () {
     switchLoadTab(1);
@@ -10,6 +12,14 @@ $(function () {
     invoice.on('invoice.batal', () => {
         switchLoadTab(thisTab);
     });
+
+    detail = new Detail({
+        jenis: 'kontrak',
+        tab: {
+            dokumen: true
+        },
+        activeTab: 'dokumen'
+     });
 
     filterComp = new FilterComponent('list-filter', {
         filter : {
@@ -82,10 +92,18 @@ function loadData(page = 1, menu) {
     $(`#list-container`).hide();
     ajaxGet(`api/v1/keuangan/listKeuangan`, params, result => {
         let html = '';
+        dataKeuangan = result.data;
         for (const keuangan of result.data) {
             const permohonan = keuangan.permohonan;
             let btnAction = '';
             let btnAction2 = '';
+            btnAction += `
+                <li>
+                    <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
+                        <i class="bi bi-info-circle me-2"></i> Detail Kontrak
+                    </a>
+                </li>
+            `;
             switch (keuangan.status) {
                 case 1:
                     btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Buat Invoice" onclick="openInvoiceModal(this, 'create')"><i class="bi bi-plus"></i> Buat invoice</button>`;
@@ -97,7 +115,7 @@ function loadData(page = 1, menu) {
                     btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Verifikasi" onclick="openInvoiceModal(this, 'verifStaff')"><i class="bi bi-check2-circle"></i> Verif Invoice</button>`;
                     break;
                 default:
-                    btnAction = `
+                    btnAction += `
                         <li>
                             <a class="dropdown-item small cursor-pointer" title="Detail Invoice" onclick="openInvoiceModal(this, 'detail')">
                                 <i class="bi bi-info-circle me-2"></i> Detail invoice
@@ -156,6 +174,15 @@ function openInvoiceModal(obj, mode) {
         invoice.addData(result.data);
         invoice.open(mode);
     })
+}
+
+function showDetail(obj){
+    const keuangan = $(obj).closest('.dropdown-menu').data("id");
+    let find = dataKeuangan.find(d => d.keuangan_hash == keuangan);
+    if(find) {
+        detail.show(`api/v1/kontrak/getById/${find.permohonan.kontrak.kontrak_hash}`);
+
+    }
 }
 
 function reload() {

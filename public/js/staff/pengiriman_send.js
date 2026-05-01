@@ -336,8 +336,8 @@ function load_form() {
                         <small>${statusFormat('pengiriman', dataOrderPengiriman.lhu.pengiriman?.status)}</small>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <small>${htmlStatusLhu}</small>
+                <div class="d-flex justify-content-end gap-2 small flex-column">
+                    ${htmlStatusLhu}
                     <!-- <small class="bg-body-tertiary rounded-pill ${dataOrderPengiriman.lhu.status == 3 ? "cursoron" : "cursordisable"} hover-1 border border-dark-subtle px-2">${urlDocLhu}</small> -->
                 </div>
             </div>

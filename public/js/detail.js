@@ -298,9 +298,9 @@ class Detail {
         }
     }
 
-    show(url) {
+    show(url, params = {}) {
         $(`#${this.options.id}`).offcanvas('show');
-        this.loadDataAjax(url);
+        this.loadDataAjax(url, params);
     }
 
     _renderSkeleton() {
@@ -393,13 +393,13 @@ class Detail {
         `;
     }
 
-    loadDataAjax(url) {
+    loadDataAjax(url, params = {}) {
         $(`#${this.options.id}-title`).text('Detail');
         $(`#${this.options.id}-loading`).hide();
         $(`#${this.options.id}-container`).html(this._renderSkeleton());
         $(`#${this.options.id}-main`).show();
 
-        ajaxGet(url, false, result => {
+        ajaxGet(url, params, result => {
             this.addData(result.data);
             this.loadData();
         }, error => {
@@ -419,9 +419,9 @@ class Detail {
 
         $(`#${this.options.id}-title`).text(`${this.info.layananJasa} - ${this.info.jenisTld}`);
 
-        let htmlPeriode = !this.info.periodeNow ? `Zero cek` : 'Periode ' + this.info.periodeNow;
+        let htmlPeriode = !this.info.periodeNow ? `Zero Check` : 'Periode ' + this.info.periodeNow;
         if(this.info.periodeNow && this.info.is_have_tld && this.info.is_zerocek) {
-            htmlPeriode += ' + Zero cek';
+            htmlPeriode += ' + Zero Check';
         }
         container.innerHTML = `
             <div class="row g-3">
@@ -1106,7 +1106,7 @@ class Detail {
         let rincian = data.detail;
         let list = ``;
         for (const detail of rincian) {
-            let htmlPeriode = !detail.periode ? 'Zero cek' : `Periode ${detail.periode}`;
+            let htmlPeriode = !detail.periode ? 'Zero Check' : `Periode ${detail.periode}`;
 
             list += `
                 <li class="list-group-item d-flex justify-content-between align-items-center">
