@@ -157,7 +157,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
 
                         if (hasTugas) {
                             if (!isTugasSigned) {
-                                tugasBtn.icon = 'bi-check2-circle';
+                                tugasBtn.icon = 'bi-pencil';
                                 tugasBtn.class = 'btn-light text-warning-emphasis';
                                 tugasBtn.attr = `href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"`;
                                 tugasBtn.title = 'Lanjutkan Surat Tugas';
@@ -224,9 +224,9 @@ function loadData(page = 1, menu = 'penyelialhu') {
 
                             if (docPengujian) {
                                 if (!isPengajuanSigned) {
-                                    pengujianBtn.icon = 'bi-check2-circle';
+                                    pengujianBtn.icon = 'bi-pencil';
                                     pengujianBtn.class = 'btn-light text-warning-emphasis';
-                                    pengujianBtn.attr = 'disabled';
+                                    pengujianBtn.attr = `onclick="createPengujian('${penyelia.penyelia_hash}', 'edit')"`;
                                     pengujianBtn.title = 'Lanjutkan Surat Pengujian';
 
                                     btnRemovePengajuan = `
@@ -456,8 +456,7 @@ function clearFilter(){
     filterComp.clear();
     switchLoadTab(thisTab);
 }
-
-function createPengujian(id){
+function createPengujian(id, type = 'create'){
     let find = dataPenyelia.find(d => d.penyelia_hash == id);
 
     // jenis pengujian
@@ -472,6 +471,10 @@ function createPengujian(id){
 
     // template surat pengujian
     let template = find.template_surat.find(d => d.name == 'SuratPengujian');
+    let dataSurat = false;
+    if(type == 'edit'){
+        dataSurat = find.permohonan.dokumen.find(d => d.doc_template?.name == 'SuratPengujian');
+    }
 
     // periode
     for (const periode of kontrak.periode) {
@@ -488,17 +491,20 @@ function createPengujian(id){
     for (const [i,pertanyaan] of template.data_pertanyaan.entries()) {
         let htmlAnswer = ``;
         let htmlMandatory = pertanyaan.mandatory ? '<span class="text-danger ms-1">*</span>' : '';
+        const foundAnswer = dataSurat?.content_value?.alasan?.find(d => d.id == pertanyaan.id_pertanyaan)?.answer ?? '';
+        const checkSiap = foundAnswer == 'siap' ? 'checked' : '';
+        const checkTidakSiap = foundAnswer == 'tidak siap' ? 'checked' : '';
         if(pertanyaan.type == 2) {
             htmlAnswer = `
             <div class="d-flex gap-2">
                 <div class="flex-fill">
-                    <input type="radio" class="btn-check" name="answer_${i}" id="answer_${i}_siap" value="siap" autocomplete="off">
+                    <input type="radio" class="btn-check" name="answer_${i}" id="answer_${i}_siap" value="siap" autocomplete="off" ${checkSiap}>
                     <label class="btn btn-outline-success btn-sm w-100 rounded-3 py-2 fw-semibold" for="answer_${i}_siap">
                         <i class="bi bi-check-circle me-1"></i> Siap
                     </label>
                 </div>
                 <div class="flex-fill">
-                    <input type="radio" class="btn-check" name="answer_${i}" id="answer_${i}_tidak_siap" value="tidak siap" autocomplete="off">
+                    <input type="radio" class="btn-check" name="answer_${i}" id="answer_${i}_tidak_siap" value="tidak siap" autocomplete="off" ${checkTidakSiap}>
                     <label class="btn btn-outline-danger btn-sm w-100 rounded-3 py-2 fw-semibold" for="answer_${i}_tidak_siap">
                         <i class="bi bi-x-circle me-1"></i> Tidak Siap
                     </label>

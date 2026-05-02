@@ -433,7 +433,7 @@ if (!function_exists('angkaKeHuruf')) {
 }
 
 if (!function_exists('generateNoDokumen')) {
-    function generateNoDokumen($jenis, $id = false)
+    function generateNoDokumen(String $jenis, ?int $id = null): string
     {
         $appName = 'JKRL';
         // Mengambil bulan sekarang dan mengubah ke dalam format Romawi
@@ -454,7 +454,6 @@ if (!function_exists('generateNoDokumen')) {
             preg_match('/\d+/', $lastDoc->nomer, $matches);
             $lastNumber = isset($matches[0]) ? (int)$matches[0] : 0;
         }
-
         $increment = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
         $noKontrak = '';
 
@@ -466,7 +465,7 @@ if (!function_exists('generateNoDokumen')) {
 
                 $noKontrak = "{$increment}/{$alias}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
                 break;
-            case 'permintaanpengujian':
+            case 'SuratPengujian':
                 // Format nomor
                 $permohonan = Permohonan::with(["layanan_jasa", "layanan_jasa.satuankerja"])->where('id_permohonan', $id)->first();
                 $alias = $permohonan->layanan_jasa->satuankerja->alias;

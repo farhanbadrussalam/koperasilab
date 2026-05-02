@@ -180,17 +180,23 @@ class KontrakAPI extends Controller
         }
     }
 
-    public function getKontrakById($id){
+    public function getKontrakById(string $id){
         $id = decryptor($id);
 
         DB::beginTransaction();
         try {
             $query = Kontrak::with([
-                        'periode',
+                        'periode' => function($q) {
+                            $q->whereIn('status', [1, 2]);
+                        },
                         'periode.permohonan',
                         'periode.permohonan.jenis_layanan',
                         'periode.permohonan.jenis_layanan_parent',
                         'periode.permohonan.file_lhu',
+                        'periode.permohonan.invoice',
+                        'periode.penyelia',
+                        'periode.penyelia.penyelia_map',
+                        'periode.penyelia.penyelia_map.jobs',
                         'invoice',
                         'layanan_jasa:id_layanan,nama_layanan',
                         'jenisTld:id_jenisTld,name',
@@ -201,7 +207,7 @@ class KontrakAPI extends Controller
                         'pengiriman:id_pengiriman,id_kontrak,no_resi,status',
                         'pengiriman.detail',
                         'pengiriman.permohonan:id_permohonan,periode',
-                        'tld_aktif',
+                        'tld_aktif:id_tld,digunakan,no_seri_tld,status',
                         'kontrak_detail',
                         'kontrak_detail.tld_1',
                         'kontrak_detail.tld_2',
@@ -211,9 +217,18 @@ class KontrakAPI extends Controller
                             ]);
                         },
                     ])
+                    ->withCount('periode')
                     ->where('id_kontrak', $id)
                     ->first();
 
+            $adendums = Permohonan::where('id_kontrak', $id)
+                ->where('tipe_kontrak', 'adendum')
+                ->get()
+                ->groupBy('periode');
+
+            foreach ($query->periode as $v) {
+                $v->adendum = $adendums->get($v->periode) ?? collect();
+            }
             DB::commit();
 
             return $this->output($query, 200);
