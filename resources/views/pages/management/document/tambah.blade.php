@@ -42,6 +42,11 @@
                                 <textarea id="header_html" name="header_html" class="form-control" rows="6">{!! $data->content ?? '' !!}</textarea>
                             </div>
                         </div>
+                        <div class="mb-3 {{ $type != 'body' ? 'd-none' : '' }}">
+                            <label class="form-label">Nomor Formulir</label>
+                            <input type="text" name="no_formulir" class="form-control" id="no_formulir"
+                                value="{{ $data->no_formulir ?? '' }}" placeholder="F-7.1.01.08-24/NL, Rev.1, Feb.2022">
+                        </div>
                         {{-- Footer --}}
                         <div class="mb-3 {{ $type != 'body' ? 'd-none' : '' }}" id="footerDiv">
                             <label for="footer" class="form-label">Footer</label>

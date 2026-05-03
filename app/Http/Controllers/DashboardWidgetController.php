@@ -24,6 +24,7 @@ class DashboardWidgetController extends Controller
     public function summaryCards(Request $request){
         $jenisCard = $request->has('jenis') ? $request->jenis : null;
         $user = Auth::user();
+        $html = '';
 
         switch ($jenisCard) {
             case 'permohonan':
