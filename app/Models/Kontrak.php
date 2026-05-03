@@ -176,7 +176,35 @@ class Kontrak extends Model
 
     public function getPeriodeActiveAttribute()
     {
-        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->whereNull('selesai')->orderBy('periode', 'asc')->first();
+        $periode = Kontrak_periode::with([
+                'permohonan',
+                'permohonan.jenis_layanan_parent',
+                'permohonan.jenis_layanan',
+                'permohonan.invoice',
+                'permohonan.lhu',
+                'permohonan.lhu.penyelia_map',
+                'permohonan.lhu.penyelia_map.jobs',
+            ])
+            ->where('id_kontrak', $this->id_kontrak)
+            ->whereNull('selesai')
+            ->whereNot('periode', 0)
+            ->orderBy('periode', 'asc')->first();
+
+
+        if($this->is_zerocek && $periode->periode == 1) {
+            $permohonan = Permohonan::with([
+                'jenis_layanan_parent',
+                'jenis_layanan',
+                'invoice',
+                'lhu',
+                'lhu.penyelia_map',
+                'lhu.penyelia_map.jobs',
+            ])->where('id_kontrak', $this->id_kontrak)
+            ->whereIn('periode', [0, 1])->first();
+
+            $periode->permohonan_zerocek = $permohonan;
+        }
+
         return $periode;
     }
 

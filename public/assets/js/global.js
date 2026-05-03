@@ -1115,15 +1115,21 @@ function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFi
 
 function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
     const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
-    const periodeAwal = getPeriodeAwal(kontrak);
+    // const periodeAwal = getPeriodeAwal(kontrak);
     let lastPeriode = (kontrak.periode_count) == data_periode.periode;
 
     let aktifDokumenKirim = [];
     for (const doc of arrFindDokumen) {
+        if(kontrak.is_zerocek == 1 && data_periode.periode == 1){
+            if(doc === 'invoice') {
+                if (!data_periode.permohonan_zerocek?.invoice) continue;
+                aktifDokumenKirim.push(doc);
+            }
+        }
         if (doc === 'invoice' && !data_periode.permohonan?.invoice) continue;
         if (doc === 'tld') {
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
-            if (periodeAwal.includes(data_periode.periode)) continue;
+            // if (periodeAwal.includes(data_periode.periode)) continue;
             // if (data_periode.tipe_kontrak == 'adendum') continue;
         }
         if (doc === 'lhu') {
@@ -1132,6 +1138,13 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
 
         aktifDokumenKirim.push(doc);
     }
+
+    if(kontrak.is_zerocek == 1 && data_periode.periode == 1){
+        aktifDokumenKirim.push('zerocek');
+    }
+
+    // cek agar tidak ada yang duplicate
+    aktifDokumenKirim = [...new Set(aktifDokumenKirim)];
 
     return aktifDokumenKirim;
 }

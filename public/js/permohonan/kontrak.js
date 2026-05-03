@@ -3,6 +3,7 @@ let filterComp = false;
 let modalDoc = false;
 let signaturePad = false;
 let modalAdendum = false;
+let modalPeriode = false;
 $(function () {
     loadData();
     detail = new Detail({
@@ -39,6 +40,8 @@ $(function () {
         const pageno = e.target.dataset.page;
         loadData(pageno);
     });
+
+    modalPeriode = new ModalPeriodeKontrak();
 });
 
 function loadData(page = 1) {
@@ -98,7 +101,7 @@ function loadData(page = 1) {
             }
 
             let detailPengiriman = [];
-            let arrFind = ['invoice','tld', 'lhu'];
+            let arrFind = ['tld', 'lhu','invoice'];
 
             for (const pengiriman of data.pengiriman) {
                 let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
@@ -114,26 +117,20 @@ function loadData(page = 1) {
             }
 
             const JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
-            let activePeriode = '';
-            let lastPeriodeKontrak = false;
+            // let activePeriode = '';
             let htmlPengembalian = '';
-            for (const periode of data.periode) {
-                const dokumenAktif = periodeMapDocument(periode, data, arrFind);
-                const isComplete = cekPeriodeComplete(periode, detailPengiriman, data, dokumenAktif);
+            // for (const periode of data.periode) {
+                // const dokumenAktif = periodeMapDocument(periode, data, arrFind);
+                // const isComplete = cekPeriodeComplete(periode, detailPengiriman, data, dokumenAktif);
 
-                let jml_periode = data.periode_count;
-                if(!tmpArrSewa.includes(JL)){
-                    if(data.is_zerocek && !data.is_have_tld){
-                        jml_periode = jml_periode - 1;
-                    }
-                }
-
-                if(!isComplete){
-                    activePeriode = periode;
-                    break;
-                }
-                lastPeriodeKontrak = (jml_periode) == periode.periode;
-            }
+                // let jml_periode = data.periode_count;
+                // if(!tmpArrSewa.includes(JL)){
+                //     if(data.is_zerocek && !data.is_have_tld){
+                //         jml_periode = jml_periode - 1;
+                //     }
+                // }
+            // }
+            let lastPeriodeKontrak = (data.jml_periode) == data.periode_active?.periode;
 
             if(lastPeriodeKontrak && role.includes('Staff Pengiriman')){
                 htmlPengembalian = pengembalianTLD(data);
@@ -141,17 +138,14 @@ function loadData(page = 1) {
                 htmlPengembalian = pengembalianTLD(data);
             }
 
-            let tmpPeriod = [...arrPeriode].filter(d => d.status == 1);
-            let jumlahPeriod = data.is_zerocek == 1 ? tmpPeriod.length - 1 : tmpPeriod.length;
-
             let hidden = role.includes('Pelanggan') ? 'd-none' : '';
 
             let btnAdendum = role.includes('Pelanggan') ? `
-                <div class="mb-2 text-end fs-8 ${data.status == 2 ? 'd-none' : ''}">
-                    <a class="btn btn-sm btn-warning rounded-pill" href="${base_url}/permohonan/kontrak/a/${data.kontrak_hash}">
+                <li class="dropdown-item cursoron small ${data.status == 2 ? 'd-none' : ''}">
+                    <a href="${base_url}/permohonan/kontrak/a/${data.kontrak_hash}">
                         <i class="bi bi-pencil"></i> Adendum
                     </a>
-                </div>
+                </li>
             ` : '';
 
             let btnTTD = '';
@@ -172,54 +166,98 @@ function loadData(page = 1) {
                 htmlStatusKontrak = '';
             }
 
+            // progress kontrak
+            let jml_periode = data.periode_all.jml_periode;
+            let periode_selesai = data.periode.filter(d => d.periode != 0 && d.selesai == 1).length;
+            let progress = Math.round((periode_selesai / jml_periode) * 100);
+            let txtProgress = '';
+            if(progress == 100){
+                txtProgress = 'Selesai';
+            } else {
+                txtProgress = `${periode_selesai}/${jml_periode}`;
+            }
+            let successClass = progress >= 100 ? 'bg-success' : '';
+            let htmlProgress = `
+                <div class="d-flex align-items-center gap-1 mt-2 flex-column">
+                    <span class="fw-bold">Progress Periode:</span>
+                    <div class="progress w-100" role="progressbar" aria-label="Example with label" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar ${successClass}" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="text-center">
+                        ${txtProgress}
+                    </div>
+                </div>
+            `;
+
             html += `
                 <div class="card mb-2 smooth-height hover-effect">
-                    <div class="card-body row align-items-center py-2">
-                        <div class="col-auto">
-                            <div class="">
+                    <div class="card-body row py-2">
+                        <div class="col-12 d-flex align-items-center justify-content-between">
+                            <div class="gap-2">
                                 <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.tipe_kontrak}</span>
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
                                 ${htmlStatusKontrak}
                             </div>
+                            <div>
+                                ${statusFormat('kontrak',data.status)}
+                            </div>
+                        </div>
+                        <div class="col-md-5 col-12">
                             <div class="fs-5 my-2">
-                                <span class="fw-bold">${data.jenis_tld.name} - Layanan ${data.layanan_jasa.nama_layanan}</span> <span class="text-body-tertiary">#${data.no_kontrak}</span>
+                                <div class="fw-bold">
+                                    #${data.no_kontrak}
+                                </div>
+                                <div class="text-body-tertiary fs-7">${data.jenis_tld.name} - Layanan ${data.layanan_jasa.nama_layanan}</div>
                                 <div class="text-body-tertiary fs-7 ${hidden}">
                                     <div><i class="bi bi-building-fill"></i> ${data.pelanggan.perusahaan.nama_perusahaan}</div>
                                 </div>
-                            </div>
-                            <div class="d-flex gap-3 text-body-tertiary fs-7">
-                                <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
-                                <div><i class="bi bi-cash-stack"></i> ${formatRupiah(data.total_harga)}</div>
+                                <div class="d-flex gap-3 text-body-tertiary fs-7">
+                                    <div><i class="bi bi-calendar-fill"></i> ${dateFormat(data.created_at, 4)}</div>
+                                    <div><i class="bi bi-cash-stack"></i> ${formatRupiah(data.total_harga)}</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-auto ms-auto align-self-end">
-                            ${btnAdendum}
+                        <div class="col-auto align-self-center">
+                            ${htmlProgress}
+                        </div>
+                        <div class="col-auto ms-auto align-self-center">
                             ${btnTTD}
-                            <div class="mb-2 text-end fs-8">
-                                ${statusFormat('kontrak',data.status)}
-                            </div>
-                            <div class="d-flex gap-1" data-id="${data.kontrak_hash}">
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showPeriode(${i})"><i class="bi bi-clock-fill"></i> ${jumlahPeriod} Periode</div>
-                                <div class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" onclick="showDetail(this)"><i class="bi bi-info-circle"></i> Detail</div>
+                            <div class="d-flex gap-1 justify-content-end align-items-center">
+                                <div class="dropdown d-inline-block ms-2">
+                                    <button class="btn btn-light btn-sm rounded-circle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-1 overflow-hidden" data-id="${data.kontrak_hash}">
+                                        <li>
+                                            <a class="dropdown-item cursoron small"  onclick="showDetail(this)">
+                                                <i class="bi bi-eye"></i> Lihat Detail
+                                            </a>
+                                        </li>
+                                        ${btnAdendum}
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                        <div class="p-3 pb-0" id="listPeriodeNow${i}">
-                            ${(() => {
-                                return activePeriode ? htmlPeriode(activePeriode, i, detailPengiriman, arrFind, { active: true }) : '';
-                            })()}
-                            ${role.includes('Staff Pengiriman') ? htmlPengembalian : ''}
-                        </div>
-                        <div class="p-3 pb-0" id="listPeriode${i}" style="display:none">
-                            ${(() => {
-                                let html = '';
-                                let evaluasiState = { active: false }; // Objek referensi
-                                for (const kontrak of data.periode) {
-                                    html += htmlPeriode(kontrak, i, detailPengiriman, arrFind, evaluasiState);
-                                }
+                        ${(() => {
+                            if(data.periode_active) {
+                                let html = `
+                                    <div class="px-3" id="listPeriodeNow${i}">
+                                        ${modalPeriode.htmlPeriode(data.periode_active, data, detailPengiriman, arrFind)}
+                                        ${role.includes('Staff Pengiriman') ? htmlPengembalian : ''}
+                                    </div>
+                                `;
+                                // menampilkan button untuk melihat periode lain jika ada lebih dari 1 periode
+                                if(data.periode_all?.jml_periode > 1) {
+                                    html += `
+                                        <div class="text-center">
+                                            <button class="btn btn-sm w-100 btn-light" onclick="showPeriode('${data.kontrak_hash}')">Lihat Periode Lain</button>
+                                        </div>
+                                    `;
+                                 }
                                 return html;
-                            })()}
-                            ${htmlPengembalian}
-                        </div>
+                            }
+                            return '';
+                        })()}
                     </div>
                 </div>
             `;
@@ -294,170 +332,8 @@ function saveSignature(obj, id_kontrak){
         spinner('hide', $(obj));
     });
 }
-function showPeriode(index) {
-
-    if ($(`#listPeriode${index}`).is(':visible')) {
-        $(`#listPeriodeNow${index}`).show();
-        $(`#listPeriode${index}`).hide();
-        return;
-    }
-
-    $(`#listPeriode${index}`).show();
-    $(`#listPeriodeNow${index}`).hide();
-}
-
-function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
-    const isPelanggan = role.includes('Pelanggan');
-    let htmlAction = ``;
-    let htmlDoc = ``;
-
-    // cek apakah sudah bayar atau belum
-    let lastPeriode = (dataKontrak[index].periode_count) == data.periode;
-    let statusKirimTld = false;
-
-    const JL = jenislayanan(dataKontrak[index].jenis_layanan_parent, dataKontrak[index].jenis_layanan);
-
-    let aktifDokumenKirim = periodeMapDocument(data, dataKontrak[index], arrFind);
-
-    for (const doc of aktifDokumenKirim) {
-        let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc && cek.tipe_kontrak != 'adendum');
-
-        // pengecekan TLD
-        if(doc === 'tld') {
-            statusKirimTld = findPeriode?.status;
-        }
-        let htmlStatusInvoice = '';
-
-        if(doc === 'invoice') {
-            if(data.permohonan){
-                htmlStatusInvoice = statusFormat('invoice', data.permohonan.invoice.status);
-                if(data.permohonan.invoice.status == 3 && role.includes('Pelanggan')){
-                    htmlStatusInvoice = `<a href="${base_url}/permohonan/pembayaran/bayar/${data.permohonan.invoice.keuangan_hash}">${htmlStatusInvoice}</a>`;
-                }
-            }
-        }
-
-        let htmlTooltip = findPeriode?.no_resi ? `<div class="tooltip-text border border-dark-subtle">No resi : ${findPeriode?.no_resi ?? 'Belum ada'}</div>` : '';
-
-        htmlDoc += `
-            <div>
-                <span class="fw-normal">• ${doc[0].toUpperCase() + doc.substring(1)}</span>
-                <small class="cursoron hover-1 pe-2 ${findPeriode?.no_resi ? 'tooltip-container' : ''}">
-                    ${statusFormat('pengiriman', findPeriode?.status)}
-                    ${htmlTooltip}
-                </small>
-                <div class="ms-2">
-                    ${htmlStatusInvoice}
-                </div>
-            </div>
-        `;
-
-    }
-
-    // Gunakan fungsi isPeriodeComplete untuk mengecek status
-    let isComplete = cekPeriodeComplete(data, cekStatusPeriode, dataKontrak[index], aktifDokumenKirim);
-
-    let htmlBtnEvaluasi = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`;
-    let htmlBtnTld = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${dataKontrak[index].kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
-    if(data.permohonan){
-        htmlAction = `
-        <div class="d-flex flex-column justify-content-center align-items-end">
-            <div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div>
-            <div>${statusFormat('permohonan', data.permohonan.status)}</div>
-        </div>`;
-    }
-
-    if(isPelanggan) {
-        if(evaluasiState.active) {
-            if(!data.permohonan){
-                if(data.status == 1) { // bukan status periode pengembalian
-                    htmlAction = htmlBtnEvaluasi;
-                    isComplete = false;
-                    if(role.includes('Manager') || role.includes('General Manager') ) {
-                        htmlAction = '';
-                    }
-                }
-            }
-        }
-        evaluasiState.active = isComplete;
-    } else {
-        evaluasiState.active = !isComplete;
-
-        let htmlStatusPenyelia = '';
-
-        if(evaluasiState.active) {
-            let tldSelesai = false;
-            let penyelia2 = dataKontrak[index].periode.find(cek => cek.periode == data.periode - 2);
-            if(penyelia2){
-                tldSelesai = cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
-                if(penyelia2.penyelia && !tldSelesai){
-                    let aktifJobs = penyelia2.penyelia.penyelia_map.filter(d => d.status == 1);
-                    aktifJobs.map(d => {
-                        htmlStatusPenyelia += statusFormat('penyelia', d.jobs.status);
-                    });
-                }
-            }else {
-                if(dataKontrak[index].is_zerocek == 0 && dataKontrak[index].is_have_tld == 0) {
-                    tldSelesai = true;
-                } else if(dataKontrak[index].is_zerocek == 1 && dataKontrak[index].is_have_tld == 1) {
-                    if(JL != StringZerocek) {
-                        tldSelesai = true;
-                    }
-                }
-            }
-
-            if(aktifDokumenKirim.includes('tld')) {
-                if(tldSelesai) {
-                    if(!data.permohonan){
-                        if(!statusKirimTld){
-                            htmlAction = htmlBtnTld;
-                            if(role.includes('Manager') || role.includes('General Manager') ) {
-                                htmlAction = '';
-                            }
-                        }
-                    }
-                } else {
-                    htmlAction = htmlStatusPenyelia;
-                }
-            }
-        }
-    }
-
-    let textPeriode = !data.periode ? 'Zero Check' : 'Periode ' + data.periode;
-
-    if(dataKontrak[index].is_have_tld && dataKontrak[index].is_zerocek && data.periode == 1) {
-        textPeriode += ' + Zero Check';
-    }
-
-    if(data.status == 2) { // Status 2 == Pengembalian
-        textPeriode = 'Pengembalian TLD';
-    }
-
-    let htmlRangeDate = ``;
-    if(data.periode != 0) {
-        let rangeDate = range_date(data.start_date, data.end_date, 1);
-        htmlRangeDate = `<small class="text-body-tertiary"> - (${rangeDate.start} - ${rangeDate.end})</small>`;
-    }
-
-    let htmlAdendum = ``;
-    if(data.adendum.length > 0) {
-        htmlAdendum = `<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" data-id="${data.periode_hash}" data-periode="${data.periode}" onclick="showAdendumInformasi(this)">${data.adendum.length} Adendum</small>`;
-    }
-
-    return `
-        <div class="border-top py-2 d-flex justify-content-between align-items-center">
-            <div class="px-2">
-                <span class="fw-semibold fs-6">${textPeriode}</span>
-                ${htmlRangeDate} ${htmlAdendum}
-                <div class="d-flex gap-3 flex-wrap">
-                    ${htmlDoc}
-                </div>
-            </div>
-            <div class="d-flex align-items-center gap-3 text-secondary">
-                ${htmlAction}
-            </div>
-        </div>
-    `;
+function showPeriode(id_kontrak) {
+    modalPeriode.show(id_kontrak);
 }
 
 function showAdendumInformasi(obj){
@@ -514,7 +390,7 @@ function clearFilter(){
 }
 
 function showDetail(obj){
-    const id = $(obj).parent().data("id");
+    const id = $(obj).closest('.dropdown-menu').data('id');
     let url = `api/v1/kontrak/getById/${id}`;
     detail.show(url);
 }
@@ -565,8 +441,8 @@ function pengembalianTLD(data){
             <div class="border-top py-2 d-flex justify-content-between align-items-center">
                 <div class="px-2">
                     <span class="fw-semibold fs-6">Pengembalian TLD </span><small class="text-body-tertiary">(${dateFormat(startDate, 4)} - ${dateFormat(endDate, 4)})</small>
-                    <div class="d-flex gap-3 flex-wrap">
-                        <div>
+                    <div class="row row-cols-2 g-2">
+                        <div class="col">
                             <span class="fw-normal">• TLD</span>
                             <small class="cursoron hover-1 pe-2">
                                 ${statusFormat('pengiriman', 0)}

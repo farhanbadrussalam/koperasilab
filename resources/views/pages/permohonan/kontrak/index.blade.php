@@ -50,6 +50,8 @@
         </div>
     </div>
 </div>
+
+<x-modal.periode-kontrak />
 @endsection
 
 @push('scripts')
