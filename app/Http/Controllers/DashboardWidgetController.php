@@ -24,6 +24,7 @@ class DashboardWidgetController extends Controller
     public function summaryCards(Request $request){
         $jenisCard = $request->has('jenis') ? $request->jenis : null;
         $user = Auth::user();
+        $html = '';
 
         switch ($jenisCard) {
             case 'permohonan':
@@ -550,8 +551,7 @@ class DashboardWidgetController extends Controller
         });
 
         $html = view('components.dashboard.my-jobs', [
-            'jobs' => $tasks,
-            'role_penyelia' => $user->hasRole('Staff Penyelia')
+            'jobs' => $tasks
         ])->render();
 
         return response()->json(['html' => $html]);

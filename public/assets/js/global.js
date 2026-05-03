@@ -281,247 +281,88 @@ function convertDate(tanggal) {
 }
 
 function statusFormat(feature, status) {
-    let htmlStatus = '';
     status = Number(status);
+
+    // Helper untuk membuat badge modern dengan ikon
+    const createBadge = (color, icon, text) => {
+        return `<span class="badge bg-${color}-subtle text-${color} border border-${color}-subtle px-2 py-1 fw-medium align-items-center">
+                    <i class="bi ${icon} me-1"></i> ${text}
+                </span>`;
+    };
+
     if (feature == 'jadwal') {
         switch (status) {
-            case 0:
-                htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-secondary"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Belum ditugaskan</span>
-                    </div>
-                    `;
-                break;
-            case 1:
-                htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-info"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Diajukan</span>
-                    </div>
-                    `;
-                break;
-            case 2:
-                htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-success"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Bersedia</span>
-                    </div>
-                    `;
-                break;
-            case 9:
-                htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-danger"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Menolak</span>
-                    </div>
-                    `;
-                break;
-            default:
-                htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-danger"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Dibatalkan</span>
-                    </div>
-                    `;
-                break;
+            case 0: return createBadge('secondary', 'bi-person-dash', 'Belum ditugaskan');
+            case 1: return createBadge('info', 'bi-send', 'Diajukan');
+            case 2: return createBadge('success', 'bi-check2-circle', 'Bersedia');
+            case 9: return createBadge('danger', 'bi-x-circle', 'Menolak');
+            default: return createBadge('danger', 'bi-slash-circle', 'Dibatalkan');
         }
     } else if (feature == 'permohonan') {
         switch (status) {
-            case 1:
-                htmlStatus = `
-                    <span class="text-secondary ms-2"><i class="bi bi-file-earmark-plus"></i> Pengajuan</span>
-                    `;
-                break;
-            case 2:
-                htmlStatus = `
-                    <span class="text-primary ms-2"><i class="bi bi-shield-check"></i> Terverifikasi</span>
-                    `;
-                break;
-            case 3:
-                htmlStatus = `
-                    <span class="text-info ms-2"><i class="bi bi-hourglass-split"></i> Proses pelaksana LAB</span>
-                `;
-                break;
-            case 4:
-                htmlStatus = `
-                    <span class="text-info ms-2"><i class="bi bi-hourglass-split"></i> Proses Pengiriman</span>
-                `;
-            case 5:
-                htmlStatus = `
-                    <span class="text-success ms-2"><i class="bi bi-check-circle-fill"></i> Selesai</span>
-                `;
-                break;
-            case 80:
-                htmlStatus = `
-                    <div class="d-flex align-items-center">
-                        <div><div class="me-1 dot bg-secondary"></div></div>
-                        <span class="subbody-medium text-submain text-truncate">Draft</span>
-                    </div>
-                    `;
-                break;
-            case 90:
-                htmlStatus = `
-                    <span class="text-danger ms-2"><i class="bi bi-x-circle"></i> Ditolak</span>
-                    `;
-                break;
+            case 1: return createBadge('secondary', 'bi-file-earmark-plus', 'Pengajuan');
+            case 2: return createBadge('primary', 'bi-shield-check', 'Terverifikasi');
+            case 3: return createBadge('info', 'bi-gear-wide-connected', 'Proses pelaksana LAB');
+            case 4: return createBadge('info', 'bi-truck', 'Proses Pengiriman');
+            case 5: return createBadge('success', 'bi-check-circle-fill', 'Selesai');
+            case 80: return createBadge('secondary', 'bi-pencil-square', 'Draft');
+            case 90: return createBadge('danger', 'bi-x-circle', 'Ditolak');
         }
     } else if (feature == 'keuangan') {
         switch (status) {
-            case 1:
-                htmlStatus = `
-                    <span class="badge bg-secondary-subtle text-dark">Pengajuan</span>
-                    `;
-                break;
-            case 2:
-                htmlStatus = `
-                    <span class="badge bg-secondary-subtle text-dark">TTD manager</span>
-                    `;
-                break;
-            case 3:
-                htmlStatus = `
-                    <span class="badge bg-warning-subtle text-dark">Perlu dibayar</span>
-                    `;
-                break;
-            case 4:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark">Menunggu konfirmasi</span>
-                    `;
-                break;
-            case 5:
-                htmlStatus = `
-                    <span class="badge bg-success-subtle text-dark">Pembayaran diterima</span>
-                    `;
-                break;
-            case 7:
-                htmlStatus = `
-                    <span class="badge bg-secondary-subtle text-dark">Upload Faktur Pajak</span>
-                    `;
-                break;
-            default:
-                htmlStatus = `
-                    <span class="badge bg-danger-subtle text-dark">Pembayaran ditolak</span>
-                    `;
-                break;
+            case 1: return createBadge('secondary', 'bi-file-earmark-text', 'Pengajuan');
+            case 2: return createBadge('secondary', 'bi-person-check', 'TTD manager');
+            case 3: return createBadge('warning', 'bi-cash-stack', 'Perlu dibayar');
+            case 4: return createBadge('primary', 'bi-hourglass-split', 'Menunggu konfirmasi');
+            case 5: return createBadge('success', 'bi-check-all', 'Pembayaran diterima');
+            case 7: return createBadge('secondary', 'bi-file-earmark-spreadsheet', 'Upload Faktur Pajak');
+            default: return createBadge('danger', 'bi-cash-coin', 'Pembayaran ditolak');
         }
     } else if (feature == 'pengiriman') {
         switch (status) {
-            case 1:
-                htmlStatus = `
-                    <span class="text-info ms-2"><i class="bi bi-truck"></i> Sedang dikirim</span>`;
-                break;
-
-            case 2:
-                htmlStatus = `
-                    <span class="text-success ms-2"><i class="bi bi-check-circle-fill"></i> Sudah diterima</span>`;
-                break;
-
-            case 3:
-                htmlStatus = `
-                    <span class="text-primary ms-2"><i class="bi bi-arrow-repeat"></i> Proses Pengiriman</span>`;
-                break;
-
-            default:
-                htmlStatus = `
-                    <span class="text-secondary ms-2"><i class="bi bi-dash-circle"></i> Belum dikirim</span>`;
-                break;
+            case 1: return createBadge('info', 'bi-truck', 'Sedang dikirim');
+            case 2: return createBadge('success', 'bi-box-seam', 'Sudah diterima');
+            case 3: return createBadge('primary', 'bi-arrow-repeat', 'Proses Pengiriman');
+            default: return createBadge('secondary', 'bi-dash-circle', 'Belum dikirim');
         }
     } else if (feature == 'penyelia') {
         switch (status){
-            case 1:
-            case 5:
-                htmlStatus = `
-                    <span class="badge bg-secondary-subtle text-dark border">Pengajuan</span>
-                `;
-                break;
-            case 2:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">TTD manager</span>
-                `;
-                break;
-            case 3:
-                htmlStatus = `
-                    <span class="badge bg-success-subtle text-dark border">LHU Selesai</span>
-                `;
-                break;
-            case 6:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">TTD Pengujian</span>
-                `;
-                break;
-            case 11:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Pendataan TLD</span>
-                `;
-                break;
-            case 12:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Pembacaan TLD</span>
-                `;
-                break;
-            case 13:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Penerbitan LHU</span>
-                `;
-                break;
-            case 14:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Penyeliaan LHU</span>
-                `;
-                break;
-            case 15:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Penandatanganan LHU</span>
-                `;
-                break;
-            case 16:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Anealing</span>
-                `;
-                break;
-            case 17:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Penyimpanan</span>
-                `;
-                break;
-            case 18:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Pembuatan Label</span>
-                `;
-                break;
-            case 19:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Scan LHU</span>
-                `;
-                break;
-            case 20:
-                htmlStatus = `
-                    <span class="badge bg-primary-subtle text-dark border">Proses Pelabelan</span>
-                `;
-                break;
+            case 1: case 5: return createBadge('secondary', 'bi-file-earmark-plus', 'Pengajuan');
+            case 2: return createBadge('primary', 'bi-person-check', 'TTD manager');
+            case 3: return createBadge('success', 'bi-check-circle', 'LHU Selesai');
+            case 6: return createBadge('primary', 'bi-pencil', 'TTD Pengujian');
+            case 11: return createBadge('primary', 'bi-input-cursor-text', 'Proses Pendataan TLD');
+            case 12: return createBadge('primary', 'bi-eyeglasses', 'Proses Pembacaan TLD');
+            case 13: return createBadge('primary', 'bi-file-earmark-medical', 'Proses Penerbitan LHU');
+            case 14: return createBadge('primary', 'bi-clipboard-check', 'Proses Penyeliaan LHU');
+            case 15: return createBadge('primary', 'bi-pen', 'Proses Penandatanganan LHU');
+            case 16: return createBadge('primary', 'bi-fire', 'Proses Annealing');
+            case 17: return createBadge('primary', 'bi-archive', 'Proses Penyimpanan');
+            case 18: return createBadge('primary', 'bi-tag', 'Proses Pembuatan Label');
+            case 19: return createBadge('primary', 'bi-qr-code-scan', 'Proses Scan LHU');
+            case 20: return createBadge('primary', 'bi-bookmark-check', 'Proses Pelabelan');
         }
     } else if (feature == 'invoice') {
-        if(status == '5'){
-            htmlStatus = `<span class="badge bg-success-subtle text-dark border border-success">Sudah dibayar</span>`;
-        } else if(status == 4) {
-            htmlStatus = `<span class="badge bg-info-subtle text-dark border border-info">Sedang dikonfirmasi</span>`;
-        } else if(status == 3) {
-            htmlStatus = `<span class="badge bg-warning-subtle text-dark border border-warning">Perlu dibayar</span>`;
-        } else {
-            htmlStatus = `<span class="badge bg-danger-subtle text-dark border border-danger">Belum dibayar</span>`;
-        }
+            // Menggunakan format teks berwarna dengan ikon tanpa background (badge)
+            // untuk membedakan status finansial dengan status operasional lainnya.
+            const createStatusText = (color, icon, text) => {
+                return `<span class="text-${color} d-inline-flex align-items-center" style="font-size: 0.85rem;">
+                            <i class="bi ${icon} me-1"></i> ${text}
+                        </span>`;
+            };
+
+            if(status == 5) return createStatusText('success', 'bi-check-all', 'Sudah dibayar');
+            if(status == 4) return createStatusText('info', 'bi-hourglass-split', 'Sedang dikonfirmasi');
+            if(status == 3) return createStatusText('warning', 'bi-cash-stack', 'Perlu dibayar');
+            return createStatusText('danger', 'bi-x-circle', 'Belum dibayar');
     } else if (feature == 'kontrak') {
         switch (status) {
-            case 1:
-                htmlStatus = `<span class="badge bg-primary-subtle text-dark border border-primary">Kontrak sedang berjalan</span>`;
-                break;
-            case 2:
-                htmlStatus = `<span class="badge bg-success-subtle text-dark border border-success">Kontrak selesai</span>`;
-                break;
+            case 1: return createBadge('primary', 'bi-play-circle', 'Kontrak sedang berjalan');
+            case 2: return createBadge('success', 'bi-check-circle', 'Kontrak selesai');
         }
     }
 
-    return htmlStatus;
+    return '';
 }
 
 /**
@@ -682,9 +523,37 @@ function createPaginationHTML(pagination) {
     html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="1">First</a></li>`;
     html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${pagination.current_page - 1}" aria-label="Previous">&laquo;</a></li>`;
 
-    // Tambahkan tombol-tombol halaman
+    // Menghitung halaman yang akan ditampilkan dengan sliding window agar tidak merusak UI jika ratusan page
+    let delta = 2; // jumlah page di kiri dan kanan current_page
+    let range = [];
+    let rangeWithDots = [];
+    let l;
+
     for (let i = 1; i <= pagination.last_page; i++) {
-        html += `<li class="page-item ${i === pagination.current_page ? 'active' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${i}">${i}</a></li>`;
+        if (i == 1 || i == pagination.last_page || (i >= pagination.current_page - delta && i <= pagination.current_page + delta)) {
+            range.push(i);
+        }
+    }
+
+    for (let i of range) {
+        if (l) {
+            if (i - l === 2) {
+                rangeWithDots.push(l + 1); // Jika jaraknya hanya 1 angka, sekalian tampilkan angkanya daripada memunculkan "..."
+            } else if (i - l !== 1) {
+                rangeWithDots.push('...');
+            }
+        }
+        rangeWithDots.push(i);
+        l = i;
+    }
+
+    // Tambahkan tombol-tombol halaman
+    for (let i of rangeWithDots) {
+        if (i === '...') {
+            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        } else {
+            html += `<li class="page-item ${i === pagination.current_page ? 'active' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${i}">${i}</a></li>`;
+        }
     }
 
     // Tambahkan tombol Next dan Last

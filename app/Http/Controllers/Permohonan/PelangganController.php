@@ -233,10 +233,8 @@ class PelangganController extends Controller
         $data = [
             'title' => 'Buat pengajuan',
             'module' => 'permohonan-pengajuan',
-            'radiasi' => Master_radiasi::where('status', 1)->get(),
             'jenisLayanan' => Master_jenisLayanan::where('status', 1)->whereNull('parent')->get(),
             'layanan_jasa' => Master_layanan_jasa::where('status', 1)->get(),
-            'divisi' => Master_divisi::where('status', 1)->where('id_perusahaan', Auth::user()->id_perusahaan)->get(),
             'permohonan' => $dataPermohonan,
         ];
 

@@ -25,8 +25,6 @@ class PenggunaController extends Controller
         $data = [
             'title' => 'Data Pengguna',
             'module' => 'pengguna',
-            'radiasi' => Master_radiasi::where('status', '1')->get(),
-            'divisi' => Master_divisi::where('status', '1')->where('id_perusahaan', $user->id_perusahaan)->get(),
         ];
 
         return view('pages.management.pengguna.index', $data);

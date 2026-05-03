@@ -423,10 +423,10 @@ function htmlPeriode(data, index, cekStatusPeriode, arrFind, evaluasiState) {
         }
     }
 
-    let textPeriode = !data.periode ? 'Zero cek' : 'Periode ' + data.periode;
+    let textPeriode = !data.periode ? 'Zero Check' : 'Periode ' + data.periode;
 
     if(dataKontrak[index].is_have_tld && dataKontrak[index].is_zerocek && data.periode == 1) {
-        textPeriode += ' + Zero cek';
+        textPeriode += ' + Zero Check';
     }
 
     if(data.status == 2) { // Status 2 == Pengembalian

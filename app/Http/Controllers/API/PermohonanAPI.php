@@ -1391,14 +1391,34 @@ class PermohonanAPI extends Controller
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
             $dataPermohonan = Permohonan::with('jenis_layanan', 'jenis_layanan_parent', 'kontrak')->where('id_permohonan', $idPermohonan)->first();
             if($dataPermohonan){
+                $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
+
                 if($status == 'lengkap'){
                     $ttd = $request->ttd ? decryptor($request->ttd) : null;
                     $ttdBy = $request->ttd_by ? decryptor($request->ttd_by) : null;
                     $no_kontrak = null;
+                    $arrayUpdate['verify_at'] = date('Y-m-d H:i:s');
+                    $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
+                    $arrayUpdate['ttd'] = $ttd;
+                    $arrayUpdate['ttd_by'] = $ttdBy;
+
+                    // simpan ttd di dokumen
+                    Permohonan_dokumen::where('id_permohonan', $idPermohonan)
+                    ->where('jenis', 'tandaterima')->where('status', 1)
+                    ->get()->each(function($doc) use ($ttd, $ttdBy) {
+                        $doc->update([
+                            'ttd' => $ttd,
+                            'ttd_by' => $ttdBy
+                        ]);
+                    });
 
                     // menambahkan tld
                     if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                        $no_kontrak = generateNoDokumen('kontrak', $idPermohonan);
+                        $jenis = 'kontrak';
+                        if(in_array($JL, $this->global['arr_putus'])){
+                            $jenis = 'KontrakPengujian';
+                        }
+                        $no_kontrak = generateNoDokumen($jenis, $idPermohonan);
                         $listTld = $request->listTld ? json_decode($request->listTld) : [];
 
                         foreach ($listTld as $item) {
@@ -1416,38 +1436,21 @@ class PermohonanAPI extends Controller
                                 'status' => $dataPermohonan->is_have_tld ? 1 : 5
                             ]);
                         }
+
+                        $this->createdKontrak($request->idPermohonan, $no_kontrak);
+                    } else {
+                        $no_kontrak = $dataPermohonan->kontrak->no_kontrak;
                     }
-
-                    $arrayUpdate['verify_at'] = date('Y-m-d H:i:s');
-                    $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
-                    $arrayUpdate['ttd'] = $ttd;
-                    $arrayUpdate['ttd_by'] = $ttdBy;
-
-                    // simpan ttd di dokumen
-                    Permohonan_dokumen::where('id_permohonan', $idPermohonan)
-                    ->where('jenis', 'tandaterima')->where('status', 1)
-                    ->get()->each(function($doc) use ($ttd, $ttdBy) {
-                        $doc->update([
-                            'ttd' => $ttd,
-                            'ttd_by' => $ttdBy
-                        ]);
-                    });
 
                     $dataPermohonan->update($arrayUpdate);
 
-                    $dataPermohonan = Permohonan::with(
+                    $dataPermohonan = Permohonan::with([
                         'kontrak',
                         'jenis_layanan_parent',
                         'jenisTld',
                         'layanan_jasa',
                         'permohonan_detail'
-                    )->find($idPermohonan);
-
-                    if($dataPermohonan->tipe_kontrak == 'kontrak baru'){
-                        $this->createdKontrak($request->idPermohonan, $no_kontrak);
-                    } else {
-                        $no_kontrak = $dataPermohonan->kontrak->no_kontrak;
-                    }
+                    ])->find($idPermohonan);
 
                     // cek periode pengembalian
                     if($no_kontrak){
@@ -1618,11 +1621,11 @@ class PermohonanAPI extends Controller
     public function createdKontrak($idPermohonan, $no_kontrak)
     {
         $idPermohonan = decryptor($idPermohonan);
-        $dataPermohonan = Permohonan::with(
+        $dataPermohonan = Permohonan::with([
             'jenis_layanan_parent',
             'jenis_layanan',
             'permohonan_detail'
-        )->find($idPermohonan);
+        ])->find($idPermohonan);
 
         $params = array(
             'id_layanan' => $dataPermohonan->id_layanan,
@@ -1718,7 +1721,7 @@ class PermohonanAPI extends Controller
         $JL = jenislayanan($dataPermohonan->jenis_layanan_parent, $dataPermohonan->jenis_layanan);
         if(!in_array($JL, $this->global['arr_putus'])){ // jika bukan Evaluasi putus
             // menambahkan dokumen perjanjian kontrak
-            $template = Documents::with('footer', 'header')
+            $template = Documents::with(['footer', 'header'])
                         ->where('jenis', 'body')
                         ->where('name', 'Kontrak')
                         ->where('status', 1)

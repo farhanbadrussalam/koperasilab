@@ -20,7 +20,8 @@ class DocumentController extends Controller
 {
     use RestApi;
 
-    private $media;
+    private MediaController $media;
+    private $pagination;
 
     public function __construct(){
         $this->media = resolve(MediaController::class);
@@ -49,7 +50,7 @@ class DocumentController extends Controller
         return view('pages.management.document.tambah', $data);
     }
 
-    public function edit($id, Request $request){
+    public function edit(string $id, Request $request){
         $data = [
             'title' => 'Edit Document',
             'module' => 'document',
@@ -62,7 +63,7 @@ class DocumentController extends Controller
         return view('pages.management.document.tambah', $data);
     }
 
-    public function show(Request $request, $id){
+    public function show(Request $request, string $id){
         $limit = $request->has('limit') ? $request->limit : 10;
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
@@ -124,6 +125,7 @@ class DocumentController extends Controller
                 'content' => $request->content,
                 'variables' => $pisahVariable,
                 'jenis' => $request->jenis,
+                'no_formulir' => $request->no_formulir,
                 'status' => 1,
                 'created_by' => Auth::user()->id,
             ];
@@ -160,7 +162,7 @@ class DocumentController extends Controller
         }
     }
 
-    public function update(Request $request, $id){
+    public function update(Request $request, string $id){
         DB::beginTransaction();
         $request->validate([
             'title' => 'required',
@@ -181,6 +183,7 @@ class DocumentController extends Controller
                 'variables' => $pisahVariable,
                 'jenis' => $request->jenis,
                 'status' => 1,
+                'no_formulir' => $request->no_formulir,
             ];
             $data['id_header'] = $header;
             $data['id_footer'] = $footer;
@@ -210,7 +213,7 @@ class DocumentController extends Controller
         }
     }
 
-    public function editHeader($id){
+    public function editHeader(string $id){
         $data = [
             'title' => 'Edit Header Document',
             'module' => 'document',
@@ -230,7 +233,7 @@ class DocumentController extends Controller
         }
     }
 
-    public function destroy($id){
+    public function destroy(string $id){
         DB::beginTransaction();
         try {
             // set status 99

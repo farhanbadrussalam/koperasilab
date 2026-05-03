@@ -108,6 +108,7 @@ function simpanHeader(obj) {
     const used = [...extractImgSrcSet(header_html)];
     const header = document.getElementById("header").value;
     const footer = document.getElementById("footer").value;
+    const no_formulir = document.getElementById("no_formulir").value;
 
     if (nama_header.value == "") {
         Swal.fire({
@@ -131,6 +132,7 @@ function simpanHeader(obj) {
     formParams.append("used_images", JSON.stringify(used));
     formParams.append("header", header);
     formParams.append("footer", footer);
+    formParams.append("no_formulir", no_formulir);
 
     let id = _data.doc_hash || '';
 

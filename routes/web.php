@@ -129,6 +129,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         Route::resource('users', UserController::class)->middleware('role:Super Admin');
         Route::get('getData', [UserController::class, 'getData'])->name('users.getData');
         Route::get('getById/{id}', [UserController::class, 'getById'])->name('users.getById');
+        Route::get('getPermisionInRole', [UserController::class, 'getPermisionInRole'])->name('users.getPermisionInRole');
 
         Route::resource('permission', PermissionController::class)->middleware('role:Super Admin');
         Route::get('getDataPermission', [PermissionController::class, 'getData'])->name('permission.getData');

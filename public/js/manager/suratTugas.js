@@ -371,9 +371,8 @@ function declinePengujian(id){
     PengujianComponent.hide();
     showNoteAlertSwal((reason) => {
         showLoadingSwal('show');
-        const idPenyelia = $('#txt_id_penyelia').val();
         const params = new FormData();
-        params.append('idPenyelia', idPenyelia);
+        params.append('idPenyelia', id);
         params.append('type', 'decline');
         params.append('catatan', reason);
         ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
