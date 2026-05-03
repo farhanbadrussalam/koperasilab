@@ -523,9 +523,37 @@ function createPaginationHTML(pagination) {
     html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="1">First</a></li>`;
     html += `<li class="page-item ${pagination.current_page == 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${pagination.current_page - 1}" aria-label="Previous">&laquo;</a></li>`;
 
-    // Tambahkan tombol-tombol halaman
+    // Menghitung halaman yang akan ditampilkan dengan sliding window agar tidak merusak UI jika ratusan page
+    let delta = 2; // jumlah page di kiri dan kanan current_page
+    let range = [];
+    let rangeWithDots = [];
+    let l;
+
     for (let i = 1; i <= pagination.last_page; i++) {
-        html += `<li class="page-item ${i === pagination.current_page ? 'active' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${i}">${i}</a></li>`;
+        if (i == 1 || i == pagination.last_page || (i >= pagination.current_page - delta && i <= pagination.current_page + delta)) {
+            range.push(i);
+        }
+    }
+
+    for (let i of range) {
+        if (l) {
+            if (i - l === 2) {
+                rangeWithDots.push(l + 1); // Jika jaraknya hanya 1 angka, sekalian tampilkan angkanya daripada memunculkan "..."
+            } else if (i - l !== 1) {
+                rangeWithDots.push('...');
+            }
+        }
+        rangeWithDots.push(i);
+        l = i;
+    }
+
+    // Tambahkan tombol-tombol halaman
+    for (let i of rangeWithDots) {
+        if (i === '...') {
+            html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        } else {
+            html += `<li class="page-item ${i === pagination.current_page ? 'active' : ''}"><a class="page-link" href="javascript:void(0)" data-page="${i}">${i}</a></li>`;
+        }
     }
 
     // Tambahkan tombol Next dan Last
