@@ -165,7 +165,8 @@ class UserController extends Controller
             'jobs' => Master_jobs::all()
         ];
 
-        return view('pages.management.users.create', $data);
+        // Gunakan file edit.blade.php sebagai form yang dinamis
+        return view('pages.management.users.form', $data);
     }
 
     /**
@@ -199,7 +200,14 @@ class UserController extends Controller
         }
 
         $role = $request->role; // json
-        if (in_array('Staff LHU', $role)) {
+
+        // Decrypt setiap role ID ke bentuk array integer untuk syncRoles
+        $idsRole = array_map(function($value) {
+            return (int) decryptor($value);
+        }, $role);
+        $rolesName = Role::whereIn('id', $idsRole)->pluck('name')->toArray();
+
+        if (in_array('Staff LHU', $rolesName)) {
             $paramsUser['jobs'] = array_map(function($item) {
                 return (int) decryptor($item);
             }, $request->tugas_lhu);
@@ -207,9 +215,7 @@ class UserController extends Controller
 
         $user = User::factory()->create($paramsUser);
 
-        foreach ($role as $key => $value) {
-            $user->assignRole($value);
-        }
+        $user->syncRoles($idsRole);
 
         if($user){
 
@@ -222,7 +228,7 @@ class UserController extends Controller
                 'alamat' => $request->alamat
             ]);
 
-            if($request->role == 'Pelanggan'){
+            if(in_array('Pelanggan', $rolesName)){
                 $perusahaan = Perusahaan::create([
                     'user_id' => $user->id
                 ]);
@@ -266,7 +272,7 @@ class UserController extends Controller
             'jobs' => Master_jobs::all()
         ];
 
-        return view('pages.management.users.edit', $data);
+        return view('pages.management.users.form', $data);
     }
 
     /**
@@ -292,11 +298,14 @@ class UserController extends Controller
 
         $d_user->name = $request->name;
 
-        $d_user->roles()->detach();
+        // Decrypt setiap role ID ke dalam bentuk array integer
+        $idsRole = array_map(function($value) {
+            return (int) decryptor($value);
+        }, $role);
 
-        foreach($role as $key => $value){
-            $d_user->assignRole($value);
-        }
+        // syncRoles secara otomatis menghapus role lama dan memasukkan array role baru
+        $d_user->syncRoles($idsRole);
+
         if($request->tugas_lhu) {
             $d_user->jobs = array_map(function($item) {
                 return (int) decryptor($item);
@@ -367,5 +376,27 @@ class UserController extends Controller
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
+    }
+
+    public function getPermisionInRole(Request $request)
+    {
+        $role = $request->role;
+        $permission = [];
+
+        if($role){
+            $idsRole = array_map(function($value) {
+                return (int) decryptor($value);
+            }, $role);
+
+            $roles = Role::with('permissions')->whereIn('id', $idsRole)->get();
+
+            // ambil semua permission yang terikat dengan semua role yang dipilih
+            $permission = $roles->flatMap(function ($r) {
+                return $r->permissions->pluck('name');
+            })->unique()->values()->toArray();
+        }
+
+
+        return $this->output($permission);
     }
 }

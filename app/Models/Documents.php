@@ -69,6 +69,7 @@ class Documents extends Model
         'id_header',
         'id_footer',
         'id_perusahaan',
+        'no_formulir',
         'orientation',
         'variables',
         'created_by',

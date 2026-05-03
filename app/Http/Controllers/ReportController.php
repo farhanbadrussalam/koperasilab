@@ -36,7 +36,7 @@ class ReportController extends Controller
         $this->global = config('customvariabel');
     }
 
-    private function generatePDF($title, $template, $variables = [], $htmlKeys = []){
+    private function generatePDF(string $title, Documents $template, array $variables = [], array $htmlKeys = []){
         $result = array(
             'title' => $title,
         );
@@ -48,9 +48,13 @@ class ReportController extends Controller
             'orientation' => $template->orientation,
         ];
 
+        $contentNoFormulir = '
+            <p style="font-size: 10px; margin-bottom: -2px">'.$template->no_formulir.'</p>
+        ';
+
         $result['header'] = $template->header ? renderMentionsToValuesFlexible($template->header->content, $variables, $options) : '';
         $result['footer'] = $template->footer ? renderMentionsToValuesFlexible($template->footer->content, $variables, $options) : '';
-
+        $result['no_formulir'] = $template->no_formulir ? renderMentionsToValuesFlexible($contentNoFormulir, $variables, $options) : '';
         $result['body'] = renderMentionsToValuesFlexible($template->content, $variables, $options);
 
         $bytes = Pdf::loadView('report.index', $result);
@@ -383,6 +387,9 @@ class ReportController extends Controller
                 $vars["TGL_BUAT"] = convert_date($data->permohonan->kontrak->dokumen[0]->created_at, 2);
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["LOKASI_BUAT"] = "Tangerang Selatan";
+                $vars["TYPE"] = ($data->status == 5 ? 'L' : '') .
+                                ($data->pph ? 'PH' : '') .
+                                ($data->ppn ? 'N' : '');
                 $vars = array_merge($vars, $this->contentKwitansi($data, $params));
                 break;
             case "SuratPengujian":
@@ -737,7 +744,6 @@ class ReportController extends Controller
         return [
             "RINCIAN" => '
                 <table class="table-tandaterima content-table ck-table-resized" border="1">
-
                     <tbody>
                         <tr>
                             <td colspan="4">Jenis Pengujian/Kalibrasi: <span class="text-secondary">'. $jenisPengujian .'</span></td>

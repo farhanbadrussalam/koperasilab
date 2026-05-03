@@ -35,7 +35,10 @@ use Illuminate\Support\Facades\DB;
 class PenyeliaAPI extends Controller
 {
     use RestApi;
-    protected $log, $media, $global, $pagination;
+    protected LogController $log;
+    protected MediaController $media;
+    protected array $global;
+    protected mixed $pagination;
 
     public function __construct()
     {
@@ -184,7 +187,7 @@ class PenyeliaAPI extends Controller
             $status && $params['status'] = $status;
             $params['is_surat_tugas_signed'] = null;
 
-            $penyelia = Penyelia::with('permohonan', 'permohonan.jenis_layanan', 'permohonan.jenis_layanan_parent', 'permohonan.layanan_jasa:id_layanan,satuankerja_id', 'permohonan.kontrak')->find($idPenyelia);
+            $penyelia = Penyelia::with(['permohonan', 'permohonan.jenis_layanan', 'permohonan.jenis_layanan_parent', 'permohonan.layanan_jasa:id_layanan,satuankerja_id', 'permohonan.kontrak'])->find($idPenyelia);
             if($penyelia){
                 // simpan ttd di dokumen
                 if($ttd){
@@ -301,7 +304,7 @@ class PenyeliaAPI extends Controller
 
                 if(!$dokumen){
                     // menambahkan dokumen perjanjian
-                    $template = Documents::with('footer', 'header')
+                    $template = Documents::with(['footer', 'header'])
                         ->where('jenis', 'body')
                         ->where('name', 'SuratTugas')
                         ->where('status', '1')
@@ -609,7 +612,7 @@ class PenyeliaAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Penyelia::with(
+            $query = Penyelia::with([
                 'permohonan',
                 'petugas',
                 'petugas.jobs',
@@ -632,7 +635,7 @@ class PenyeliaAPI extends Controller
                 'permohonan.kontrak.jenis_layanan_parent:id_jenisLayanan,name',
                 'permohonan.dokumen',
                 'permohonan.dokumen.doc_template',
-            )
+            ])
             ->when($status, function($q, $status) use ($typePencarian, $menu) {
                 if($typePencarian == 'not'){
                     return $q->whereNotIn('status', $status);
@@ -733,7 +736,7 @@ class PenyeliaAPI extends Controller
         }
     }
 
-    public function getPenyeliaById($idPenyelia)
+    public function getPenyeliaById(string $idPenyelia)
     {
         DB::beginTransaction();
         try {
@@ -793,20 +796,20 @@ class PenyeliaAPI extends Controller
         }
     }
 
-    public function getPenyeliaMapById($idPenyeliaMap)
+    public function getPenyeliaMapById(string $idPenyeliaMap)
     {
         DB::beginTransaction();
         try {
             $idPenyeliaMap = decryptor($idPenyeliaMap);
 
-            $query = Penyelia_map::with(
+            $query = Penyelia_map::with([
                 'jobs:id_jobs,status,name,upload_doc',
                 'jobs_paralel:id_jobs,status,name,upload_doc',
                 'petugas',
                 'petugas.user',
                 'doneBy:id,name',
                 'penyelia:id_penyelia,status'
-            )->find($idPenyeliaMap);
+            ])->find($idPenyeliaMap);
             DB::commit();
 
             return $this->output($query);
@@ -862,7 +865,7 @@ class PenyeliaAPI extends Controller
         }
     }
 
-    public function destroyDokumenLhu($idPenyelia, $idMedia)
+    public function destroyDokumenLhu(string $idPenyelia, string $idMedia)
     {
         $idPenyelia = decryptor($idPenyelia);
         $idMedia = decryptor($idMedia);
@@ -896,14 +899,14 @@ class PenyeliaAPI extends Controller
         }
     }
 
-    public function removeSuratTugas($idPenyelia, $type)
+    public function removeSuratTugas(string $idPenyelia, string $type)
     {
         $idPenyelia = decryptor($idPenyelia);
 
         DB::beginTransaction();
         try {
             // update penyelia
-            $penyelia = Penyelia::with('permohonan', 'permohonan.dokumen')->find($idPenyelia);
+            $penyelia = Penyelia::with(['permohonan', 'permohonan.dokumen'])->find($idPenyelia);
             $suratPengujian = $penyelia->permohonan->dokumen->where('jenis', 'SuratPengujian')->first();
 
             $params = array();
@@ -973,7 +976,7 @@ class PenyeliaAPI extends Controller
 
             if(!$document) {
                 // generate nomer dokumen
-                $nodokumen = generateNoDokumen('permintaanpengujian', $penyelia->id_permohonan);
+                $nodokumen = generateNoDokumen('SuratPengujian', $penyelia->id_permohonan);
 
                 // set periode
                 $arrPeriode = array();
@@ -986,18 +989,31 @@ class PenyeliaAPI extends Controller
                     'periode' => $arrPeriode
                 );
 
+                // mencari data dokumen
+                $findPermintaan = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)
+                    ->where('jenis', 'SuratPengujian')
+                    ->where('id_kontrak', $penyelia->permohonan->id_kontrak)
+                    ->where('status', 1)
+                    ->first();
+
                 // Simpan dokumen permintaan pengujian
-                $document = Permohonan_dokumen::create(array(
-                    'id_permohonan' => $penyelia->id_permohonan,
-                    'id_doc_template' => $template->id_doc,
-                    'id_kontrak' => $penyelia->permohonan->id_kontrak,
-                    'created_by' => Auth::user()->id,
-                    'nama' => 'Permintaan Pengujian',
-                    'jenis' => 'SuratPengujian',
-                    'status' => 1,
-                    'nomer' => $nodokumen,
-                    'content_value' => $contentValue,
-                ));
+                if($findPermintaan) {
+                    $document = $findPermintaan->update(array(
+                        'content_value' => $contentValue
+                    ));
+                } else {
+                    $document = Permohonan_dokumen::create(array(
+                        'id_permohonan' => $penyelia->id_permohonan,
+                        'id_doc_template' => $template->id_doc,
+                        'id_kontrak' => $penyelia->permohonan->id_kontrak,
+                        'created_by' => Auth::user()->id,
+                        'nama' => 'Permintaan Pengujian',
+                        'jenis' => 'SuratPengujian',
+                        'status' => 1,
+                        'nomer' => $nodokumen,
+                        'content_value' => $contentValue,
+                    ));
+                }
             }
 
             // log penyelia
@@ -1029,7 +1045,7 @@ class PenyeliaAPI extends Controller
         DB::beginTransaction();
         try {
             $updateData = array();
-            $penyelia = Penyelia::with('permohonan')->find($idPenyelia);
+            $penyelia = Penyelia::with(['permohonan', 'permohonan.kontrak'])->find($idPenyelia);
             if($type == 'approve') {
                 $updateData['is_pengajuan_signed'] = 1;
                 $updateData['verify_pengajuan_at'] = date('Y-m-d H:i:s');
@@ -1050,7 +1066,7 @@ class PenyeliaAPI extends Controller
                     'status' => 1,
                     'ttd' => $ttd,
                     'ttd_by' => $ttd_by,
-                    'nomer' => $no_kontrak
+                    'nomer' => $penyelia->permohonan->kontrak->no_kontrak
                 );
                 Permohonan_dokumen::create($data);
                 // simpan ttd ke permohonan dokumen
@@ -1082,9 +1098,9 @@ class PenyeliaAPI extends Controller
         }
     }
 
-    private function activePelaksanaLAB($idPermohonan, $idPenyelia)
+    private function activePelaksanaLAB(int $idPermohonan, int $idPenyelia)
     {
-        $penyelia = Penyelia::with('permohonan','permohonan.kontrak')->find($idPenyelia);
+        $penyelia = Penyelia::with(['permohonan','permohonan.kontrak'])->find($idPenyelia);
 
         $permohonan = Permohonan::find($idPermohonan);
         $permohonan->update(array('status' => 3));

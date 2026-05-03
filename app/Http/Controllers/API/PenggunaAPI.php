@@ -22,7 +22,8 @@ use Auth;
 class PenggunaAPI extends Controller
 {
     use RestApi;
-    protected $media, $log;
+    protected MediaController $media;
+    protected LogController $log;
 
     public function __construct() {
         $this->media = new MediaController();
@@ -39,12 +40,14 @@ class PenggunaAPI extends Controller
             $tanggalLahir = $request->has('tanggal_lahir') ? $request->tanggal_lahir : false;
             $tempatLahir = $request->has('tempat_lahir') ? $request->tempat_lahir : false;
             $name = $request->has('name') ? $request->name : false;
-            $posisi = $request->has('divisi') ? $request->divisi : false;
+            $divisi = $request->has('divisi') ? $request->divisi : false;
             $radiasi = $request->has('radiasi') ? json_decode($request->radiasi) : false;
             $ktp = $request->has('ktp') ? $request->file('ktp') : false;
 
             $isAktif = $request->has('is_aktif') ? $request->is_aktif : false;
             $kodeLencana = $request->has('kode_lencana') ? $request->kode_lencana : false;
+
+            $file_ktp = false;
 
             if ($radiasi) {
                 $radiasi = array_map(function($value) {
@@ -64,22 +67,21 @@ class PenggunaAPI extends Controller
                 }, $radiasi);
             }
 
-            if ($posisi) {
-                if (decryptor($posisi) == 0) {
-                    if($posisi == null){
-                        $posisi = false;
+            if ($divisi) {
+                if (decryptor($divisi) == 0) {
+                    if($divisi == null){
+                        $divisi = false;
                     } else {
                         $dataDivisi = Master_divisi::create([
                             'kode_lencana' => "C",
-                            'name' => $posisi,
-                            'id_perusahaan' => Auth::user()->id_perusahaan,
+                            'name' => $divisi,
                             'status' => 1,
                             'created_by' => Auth::user()->id
                         ]);
-                        $posisi = $dataDivisi->id_divisi;
+                        $divisi = $dataDivisi->id_divisi;
                     }
                 } else {
-                    $posisi = decryptor($posisi);
+                    $divisi = decryptor($divisi);
                 }
             }
 
@@ -97,7 +99,7 @@ class PenggunaAPI extends Controller
             $params = array();
 
             $name && $params['name'] = $name;
-            $posisi && $params['id_divisi'] = $posisi;
+            $divisi && $params['id_divisi'] = $divisi;
             $radiasi && $params['id_radiasi'] = $radiasi;
             $ktp && $params['ktp'] = $file_ktp->getIdMedia();
             $nik && $params['nik'] = unmask($nik);
@@ -131,7 +133,7 @@ class PenggunaAPI extends Controller
         }
     }
 
-    public function getDataById($id) {
+    public function getDataById(string $id) {
         DB::beginTransaction();
         try {
             $id = decryptor($id);
@@ -160,12 +162,13 @@ class PenggunaAPI extends Controller
     public function getDivisi(Request $request) {
         DB::beginTransaction();
         try {
-            $id_perusahaan = Auth::user()->id_perusahaan;
             $name_divisi = $request->has('name_divisi') ? $request->name_divisi : false;
-            $data = Master_divisi::where('id_perusahaan', $id_perusahaan)
-                ->when($name_divisi, function ($q) use ($name_divisi) {
+            $limit = $request->has('limit') ? $request->limit : 10;
+            $data = Master_divisi::when($name_divisi, function ($q) use ($name_divisi) {
                     return $q->where('name', 'like', '%'.$name_divisi.'%');
-                })->get();
+                })
+                ->limit($limit)
+                ->get();
             DB::commit();
             return $this->output($data, 200);
         } catch (\Exception $ex ) {
@@ -179,9 +182,12 @@ class PenggunaAPI extends Controller
         DB::beginTransaction();
         try {
             $name_radiasi = $request->has('name_radiasi') ? $request->name_radiasi : false;
+            $limit = $request->has('limit') ? $request->limit : 10;
             $data = Master_radiasi::when($name_radiasi, function ($q) use ($name_radiasi) {
                     return $q->where('nama_radiasi', 'like', '%'.$name_radiasi.'%');
-                })->get();
+            })
+            ->limit($limit)
+            ->get();
             DB::commit();
             return $this->output($data, 200);
         } catch (\Exception $ex ) {
