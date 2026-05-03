@@ -7,18 +7,7 @@ let thisTab = 1;
 let modalDoc = false;
 $(function () {
     // mengambil params url
-    let urlParams = new URLSearchParams(window.location.search);
-    if(urlParams.has('md') && urlParams.has('tab')) {
-        let md = urlParams.get('md');
-        let tab = urlParams.get('tab');
-
-        if(tab == 'jobs') {
-            $('#penerbitanlhu-tab').click();
-        }
-        openProgressModal(false, md);
-    } else {
-        switchLoadTab(1);
-    }
+    switchLoadTab(1);
 
     modalDoc = new ModalDocument({
         title: 'Penerbitan Persetujuan Pengujian',
@@ -62,10 +51,6 @@ function switchLoadTab(menu){
     switch (menu) {
         case 1:
             menu = 'surattugas';
-            break;
-
-        case 2:
-            menu = 'penyelialhu';
             break;
     }
 
@@ -327,40 +312,6 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     }
 
                     html += cardComponent(dataS, {btnMenuAction : btnAction, btnAction: btnAction2});
-                    break;
-                case 'penyelialhu':
-                    let timeline = new Timeline({
-                        timeline: penyelia.penyelia_map,
-                        status: penyelia.status,
-                        id: penyelia.penyelia_hash,
-                        startDate: penyelia.start_date,
-                        endDate: penyelia.end_date,
-                    });
-                    divTimelineTugas.push(timeline);
-
-                    btnAction2 += `<button class="btn btn-outline-primary btn-sm" title="Verifikasi" onclick="openProgressModal(this)"><i class="bi bi-check2-circle"></i> update progress</button>`;
-
-                    const dataP = {
-                        tipeKontrak: permohonan.tipe_kontrak,
-                        jenisLayananParent: permohonan.jenis_layanan_parent.name,
-                        jenisLayanan: permohonan.jenis_layanan.name,
-                        statusPenyelia: htmlStatus,
-                        jenisTld: permohonan.jenis_tld?.name ?? '-',
-                        namaLayanan: permohonan.layanan_jasa?.nama_layanan ?? '-',
-                        periode: permohonan.periode,
-                        created_at: permohonan.created_at,
-                        kontrak: permohonan.kontrak?.no_kontrak,
-                        id: penyelia.penyelia_hash,
-                        is_have_tld: permohonan.is_have_tld,
-                        is_zerocek: permohonan.is_zerocek,
-                        pelanggan: permohonan.pelanggan.name,
-                        divTimelineTugas: timeline,
-                        status: penyelia.status,
-                        index: i,
-                        perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
-                    }
-
-                    html += cardComponent(dataP, {btnMenuAction : btnAction, btnAction: btnAction2});
                     break;
                 default:
                     break;

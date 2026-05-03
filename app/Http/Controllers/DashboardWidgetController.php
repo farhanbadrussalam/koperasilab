@@ -550,8 +550,7 @@ class DashboardWidgetController extends Controller
         });
 
         $html = view('components.dashboard.my-jobs', [
-            'jobs' => $tasks,
-            'role_penyelia' => $user->hasRole('Staff Penyelia')
+            'jobs' => $tasks
         ])->render();
 
         return response()->json(['html' => $html]);

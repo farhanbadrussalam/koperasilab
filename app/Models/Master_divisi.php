@@ -39,7 +39,6 @@ class Master_divisi extends Model
     protected $fillable = [
         'id_divisi',
         'kode_lencana',
-        'id_perusahaan',
         'name',
         'status',
         'created_at',
@@ -58,17 +57,11 @@ class Master_divisi extends Model
     protected $casts = [
         'status' => 'integer',
         'id_divisi' => 'integer',
-        'id_perusahaan' => 'integer',
         'created_by' => 'integer',
     ];
 
     public function getDivisiHashAttribute()
     {
         return $this->id_divisi ? encryptor($this->id_divisi) : null;
-    }
-
-    public function perusahaan()
-    {
-        return $this->belongsTo(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
     }
 }

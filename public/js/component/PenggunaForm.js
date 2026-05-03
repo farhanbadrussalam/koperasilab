@@ -212,8 +212,8 @@ class PenggunaForm {
         $('#divisi_pengguna').empty().val(null).trigger('change');
 
         // Reset Logic Checkbox
-        $('#is_aktif').show().prop('checked', false);
-        this._toggleKodeLencana(false);
+        $('#is_aktif').show().prop('checked', true);
+        this._toggleKodeLencana(true);
         $('#kode_lencana').val('');
 
         // Reset Upload

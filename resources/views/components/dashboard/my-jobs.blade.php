@@ -1,10 +1,6 @@
-@props(['jobs', 'role_penyelia'])
+@props(['jobs'])
 @php
-    if($role_penyelia) {
-        $url = url('staff/penyelia').'?tab=jobs&';
-    } else {
-        $url = url('staff/lhu').'?';
-    }
+    $url = url('staff/lhu').'?';
 @endphp
 
 <div class="card border-0 shadow-sm rounded-4 mb-3">
