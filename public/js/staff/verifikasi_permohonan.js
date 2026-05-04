@@ -345,7 +345,6 @@ function loadTldKontrol(){
             htmlDisabled = true;
         }
         let index = 0;
-        jmlTldCount += result.data.tldPermohonan.length;
         for (const key in result.data.tldPermohonan) {
             if (!Object.hasOwn(result.data.tldPermohonan, key)) continue;
             const kontrol = result.data.tldPermohonan[key];
@@ -378,6 +377,7 @@ function loadTldKontrol(){
                     add_kontrol: false
                 });
 
+                jmlTldCount++;
                 index++;
             }
         }
@@ -407,8 +407,6 @@ function loadPengguna(){
         if(dataPermohonan.is_have_tld || dataPermohonan.tipe_kontrak == 'adendum'){
             htmlDisabled = true;
         }
-
-        jmlTldCount += result.data.length;
 
         $('#jumlah-pengguna').html(result.data.length + ' Orang')
         $('#jumlah-info-pengguna').html(result.data.length)
@@ -454,6 +452,8 @@ function loadPengguna(){
                 status: value.type,
                 is_adendum: false
             });
+
+            jmlTldCount++;
         }
 
         if(result.data.length == 0){
