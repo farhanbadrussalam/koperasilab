@@ -1730,7 +1730,7 @@ class PermohonanAPI extends Controller
             $data = array(
                 'id_kontrak' => $dataKontrak->id_kontrak,
                 'created_by' => Auth::user()->id,
-                'nama' => 'Surat kontrak ('.convert_date($dataPermohonan->verify_at, 6).')',
+                'nama' => 'Surat kontrak ('.convert_date(date('Y-m-d H:i:s'), 6).')',
                 'jenis' => 'kontrak',
                 'id_doc_template' => $template->id_doc,
                 'status' => 1,

@@ -618,7 +618,7 @@ if(!function_exists('renderMentionsToValuesFlexible')) {
         $htmlKeys    = array_map('strtoupper', $options['html_keys'] ?? []);
         $allowedTags = $options['allowed_tags'] ?? '<p><br><strong><b><em><i><u><span><div><ul><ol><li><table><thead><tbody><tr><td><th><h1><h2><h3><h4><h5><h6>';
         $sanitizer   = $options['sanitizer'] ?? null; // contoh: fn($h,$k)=>Purifier::clean($h)
-        $default     = $options['default']   ?? '......................';
+        $default     = $options['default']   ?? '';
 
         $wrapperStart = '<div id="__root__">';
         $wrapperEnd = '</div>';

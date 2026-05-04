@@ -178,7 +178,7 @@
                                 <hr class="border-secondary opacity-10 my-4">
 
                                 <div class="d-flex justify-content-between mb-3 align-items-center">
-                                    <h6 class="text-uppercase text-muted small fw-bold tracking-wide mb-0">Daftar Pemakai TLD</h6>
+                                    <h6 class="text-uppercase text-muted small fw-bold tracking-wide mb-0">Daftar Pengguna TLD</h6>
                                 </div>
 
                                 <div id="pengguna-list-container"></div>

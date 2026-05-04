@@ -220,8 +220,8 @@ function loadPelanggan() {
     $('#nama-pic').html(pelanggan.name ?? '-');
     $('#jabatan-pic').html(pelanggan.jabatan ?? '-');
     $('#email-pic').html(pelanggan.email ?? '-');
-    $('#telepon-pic').html(maskReload(pelanggan.profile.no_hp, 'telepon') ?? '-');
-    $('#npwp-pic').html(maskReload(perusahaan.npwp_perusahaan, 'npwp') ?? '-');
+    $('#telepon-pic').html(pelanggan.profile.no_hp ? maskReload(pelanggan.profile.no_hp, 'telepon') : '-');
+    $('#npwp-pic').html(perusahaan.npwp_perusahaan ? maskReload(perusahaan.npwp_perusahaan, 'npwp') : '-');
     $('#kodeInstansi').html(perusahaan.kode_perusahaan ?? '-');
     $('#email-perusahaan').html(perusahaan.email ?? '-');
 
@@ -496,7 +496,7 @@ function verif_kelengkapan(status, obj){
             if(checkTld.length < jmlTldCount){
                 return Swal.fire({
                     icon: "warning",
-                    text: "Data Tld belum lengkap.",
+                    text: "Data Pengguna dan Kontrol belum lengkap.",
                 });
             }
         }

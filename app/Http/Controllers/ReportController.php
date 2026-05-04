@@ -531,7 +531,7 @@ class ReportController extends Controller
         }
         $variables['TTD'] = $ttd ? "
             <div style='text-align: center;'>
-                <img src='".$data['stempel']."' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' style='' alt='Stempel-Lab'>
                 <img src='$ttd' alt='TTD_PENERIMA' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
@@ -814,7 +814,7 @@ class ReportController extends Controller
             $ttd = $dokumen->ttd ?? "";
         }
         $variables["TTD"] = $ttd ? "
-            <div>
+            <div style='text-align: center;'>
                 <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
                 <img src='$ttd' alt='TTD_PENERIMA' width='100px' height='100px'>
             </div>
@@ -1172,13 +1172,26 @@ class ReportController extends Controller
         } else {
             $ttd_1 = $query->pelanggan->ttd ?? "";
         }
+
+        // TTD PIHAK 2
+        if($dokumen->ttd_image) {
+            $ttd_2 = $dokumen->ttd_image;
+        } else {
+            $ttd_2 = $dokumen->ttd ?? "";
+        }
+
         $variables["TTD_1"] = $ttd_1 ? "
             <div style='text-align: center;'>
                 <img src='$ttd_1' alt='TTD PIHAK 1' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
 
-        $variables["TTD_2"] = "<br><br><br>";
+        $variables["TTD_2"] = $ttd_2 ? "
+            <div style='text-align: center;'>
+                <img src='".$data['stempel']."' class='img-fluid img-stempel' alt='Stempel-Lab'>
+                <img src='$ttd_2' alt='TTD PIHAK 2' width='100px' height='100px'>
+            </div>
+        " : "<br><br><br>";
 
         // generate pdf
         $bytes = $this->generatePDF($data['title'], $template, $variables, ['TTD_1', 'TTD_2']);
