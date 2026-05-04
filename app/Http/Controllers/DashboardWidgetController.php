@@ -118,6 +118,8 @@ class DashboardWidgetController extends Controller
                 $count = Master_tld::query()
                         ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                             $q->where('kepemilikan', $user->id_perusahaan);
+                        }, function ($q) {
+                            $q->whereNull('kepemilikan');
                         })
                         ->selectRaw('status, count(*) as total')
                         ->groupBy('status')
@@ -129,6 +131,8 @@ class DashboardWidgetController extends Controller
                 $countTld = Master_tld::query()
                         ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                             $q->where('kepemilikan', $user->id_perusahaan);
+                        }, function ($q) {
+                            $q->whereNull('kepemilikan');
                         })
                         ->selectRaw('jenis, count(*) as total')
                         ->groupBy('jenis')

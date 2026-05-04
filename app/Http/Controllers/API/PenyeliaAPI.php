@@ -604,9 +604,7 @@ class PenyeliaAPI extends Controller
                 $status = $tmpArr;
                 $userId = Auth::user()->id;
             } else {
-                if(Auth::user()->hasRole('Staff LHU') && !Auth::user()->hasRole('Staff Penyelia')) {
-                    $status = [99];
-                }
+                $status = [99];
             }
         }
 
