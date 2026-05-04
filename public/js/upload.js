@@ -20,7 +20,7 @@ class UploadComponent {
             type: options.type ?? 'image',
             urlUpload: options.urlUpload ?? false,
             multiple: options.multiple ?? true,
-            maxSize: options.maxSize ?? 10, // default 10MB
+            maxSize: options.maxSize ?? 1, // default 10MB
             preview: {
                 width: options.preview?.width ?? 100,
                 height: options.preview?.height ?? 100,

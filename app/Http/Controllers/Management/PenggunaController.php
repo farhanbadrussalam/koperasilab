@@ -122,33 +122,38 @@ class PenggunaController extends Controller
 
                 $btn .= '</div>';
 
-                $radiasi = Master_radiasi::whereIn('id_radiasi', $row->id_radiasi)->get();
-                $htmlRadiasi = '<div class="d-flex flex-wrap gap-2 mt-1">';
-                if ($radiasi->count() > 3) {
-                    foreach ($radiasi->take(3) as $value) {
-                        $htmlRadiasi .= '
-                            <span class="badge rounded text-bg-secondary">'.$value->nama_radiasi.'</span>
-                        ';
+                $htmlRadiasi = '';
+                if($row->id_radiasi){
+                    $htmlRadiasi = '<div class="d-flex flex-wrap gap-2 mt-1">';
+                    $radiasi = Master_radiasi::whereIn('id_radiasi', $row->id_radiasi)->get();
+                    if($radiasi){
+                        if ($radiasi->count() > 3) {
+                            foreach ($radiasi->take(3) as $value) {
+                                $htmlRadiasi .= '
+                                    <span class="badge rounded text-bg-secondary">'.$value->nama_radiasi.'</span>
+                                ';
+                            }
+                            $popoverContent = "<ul class='list-unstyled mb-0 dropdown-menu overflow-hidden mt-2'>";
+                            foreach ($radiasi->slice(3) as $value) {
+                                $popoverContent .= "<li class='dropdown-item'>{$value->nama_radiasi}</li>";
+                            }
+                            $popoverContent .= "</ul>";
+                            $htmlRadiasi .= '
+                                <div class="dropup">
+                                    <span class="badge rounded text-bg-secondary cursor-pointer" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Daftar Radiasi">...</span>
+                                    '.$popoverContent.'
+                                </div>
+                            ';
+                        } else {
+                            foreach ($radiasi as $key => $value) {
+                                $htmlRadiasi .= '
+                                    <span class="badge rounded text-bg-secondary">'.$value->nama_radiasi.'</span>
+                                ';
+                            }
+                        }
                     }
-                    $popoverContent = "<ul class='list-unstyled mb-0 dropdown-menu overflow-hidden mt-2'>";
-                    foreach ($radiasi->slice(3) as $value) {
-                        $popoverContent .= "<li class='dropdown-item'>{$value->nama_radiasi}</li>";
-                    }
-                    $popoverContent .= "</ul>";
-                    $htmlRadiasi .= '
-                        <div class="dropup">
-                            <span class="badge rounded text-bg-secondary cursor-pointer" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Daftar Radiasi">...</span>
-                            '.$popoverContent.'
-                        </div>
-                    ';
-                } else {
-                    foreach ($radiasi as $key => $value) {
-                        $htmlRadiasi .= '
-                            <span class="badge rounded text-bg-secondary">'.$value->nama_radiasi.'</span>
-                        ';
-                    }
+                    $htmlRadiasi .= '</div>';
                 }
-                $htmlRadiasi .= '</div>';
 
                 return '
                     <div class="d-flex align-items-center w-100 p-2 rounded-3 hover-bg-light transition-all border-bottom">
