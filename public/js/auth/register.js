@@ -10,6 +10,58 @@ $(function () {
         checkEmail(this, $(this).val(), 'instansi');
     });
 
+    $('input[name="pelanggan_tipe"]').on('change', function () {
+        $('#section-instansi').slideDown();
+
+        if ($(this).val() === 'baru') {
+            $('#form-instansi-detail').slideDown();
+            $('.instansi-detail-input').attr('required', true);
+
+            // Tampilkan input text, sembunyikan select2
+            $('#nama_instansi_lama').removeAttr('name required').next('.select2-container').hide();
+            if ($('#nama_instansi_lama').parsley()) $('#nama_instansi_lama').parsley().reset();
+            $('#nama_instansi_baru').attr({'name': 'nama_instansi', 'required': true}).show();
+        } else {
+            // Tampilkan select2, sembunyikan input text
+            $('#nama_instansi_baru').removeAttr('name required').hide();
+            if ($('#nama_instansi_baru').parsley()) $('#nama_instansi_baru').parsley().reset();
+            $('#nama_instansi_lama').attr({'name': 'nama_instansi', 'required': true}).show();
+            $('#nama_instansi_lama').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Cari Nama Instansi...',
+                allowClear: true,
+                minimumInputLength: 3,
+                ajax: {
+                    url: `${base_url}/api/v1/profile/list/perusahaan`, // Pastikan endpoint ini sesuai dengan API backend Anda
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            filter: { search: params.term },
+                            limit: 10
+                        };
+                    },
+                    processResults: function (response) {
+                        return {
+                            results: $.map(response.data, function (item) {
+                                return { id: item.perusahaan_hash, text: item.nama_perusahaan }; // Sesuaikan key dari response API
+                            })
+                        };
+                    },
+                    cache: true
+                }
+            });
+
+            $('#form-instansi-detail').slideUp();
+            $('.instansi-detail-input').removeAttr('required');
+            $('.instansi-detail-input').each(function () {
+                if ($(this).parsley()) {
+                    $(this).parsley().reset();
+                }
+            });
+        }
+    });
+
     const rulesPassword = {
         minLength: 8,
         lowerCase: true,

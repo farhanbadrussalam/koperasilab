@@ -185,6 +185,17 @@
                 </li>
                 @endcan
 
+                @can('Request_users')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'staff-approval' ? 'active' : '' }}"
+                    href="{{ route('staff.pelanggan.approval') }}" aria-expanded="false">
+                        <span><i class="bi bi-file-earmark-text"></i></span>
+                        <span class="hide-menu">Approval Pelanggan</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Permohonan')) d-none @endif">{{ notifUnreadCount('Permohonan') }}</span>
+                    </a>
+                </li>
+                @endcan
+
                 @can('Staff/pengiriman')
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>

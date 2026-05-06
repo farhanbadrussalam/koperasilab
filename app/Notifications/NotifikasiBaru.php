@@ -32,7 +32,7 @@ class NotifikasiBaru extends Notification implements ShouldQueue
      *
      * @return array<int, string>
      */
-    public function via(object $notifiable)
+    public function via(mixed $notifiable)
     {
         $channels = ['database'];
 
@@ -44,7 +44,7 @@ class NotifikasiBaru extends Notification implements ShouldQueue
         return $channels;
     }
 
-    public function toDatabase(object $notifiable)
+    public function toDatabase(mixed $notifiable)
     {
         return [
             'pesan' => $this->pesan,
@@ -56,7 +56,7 @@ class NotifikasiBaru extends Notification implements ShouldQueue
         ];
     }
 
-    public function toBroadcast(object $notifiable)
+    public function toBroadcast(mixed $notifiable)
     {
         $user = User::select('realtime_notifications', 'id', 'name')->where('id',$notifiable->id)->first();
         info("send broadcast to : {$user->name}");

@@ -88,6 +88,8 @@ Route::middleware(['auth', 'verified'])->group(function() {
 
             Route::get('/perusahaan', 'indexPerusahaan')->middleware(['permission:Staff/perusahaan'])->name('staff.perusahaan');
             Route::get('/jenis/pembayaran', 'indexJenisPembayaran')->name('staff.jenis.pembayaran');
+
+            Route::get('/pelanggan/approval', 'indexApproval')->name('staff.pelanggan.approval');
         });
 
         Route::get('/lhu/petugas/getData', [UserController::class, 'getData'])->name('staff.lhu.petugas.getData');

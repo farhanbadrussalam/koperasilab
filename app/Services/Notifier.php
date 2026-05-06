@@ -11,7 +11,7 @@ use Auth;
 
 class Notifier
 {
-    public static function send($targets, array $data =[])
+    public static function send(mixed$targets, array $data =[])
     {
         $pesan = $data['pesan'] ?? null;
         $url = $data['url'] ?? null;

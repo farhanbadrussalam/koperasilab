@@ -15,9 +15,9 @@ use App\Http\Controllers\API\KontrakAPI;
 use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\FilterAPI;
 use App\Http\Controllers\API\PenggunaAPI;
+use App\Http\Controllers\API\ApprovalPelangganAPI;
 
 use App\Http\Controllers\Management\DocumentController;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -196,5 +196,11 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix('document')->controller(DocumentController::class)->group(function () {
         Route::post('upload_image', 'upload_image');
+    });
+
+    Route::prefix('pelanggan/approval')->controller(ApprovalPelangganAPI::class)->group(function () {
+        Route::get('/list', 'list');
+        Route::post('/verifikasi', 'verifikasi');
+        Route::post('/tolak', 'tolak');
     });
 });
