@@ -724,7 +724,7 @@ class PermohonanAPI extends Controller
                 }
                 $permohonan->delete();
 
-                // hapus notifikasi
+                // hapus `notifikasi`
                 $this->notif->deleteNotification(new Request([
                     'id_event' => $id,
                     'event' => 'Permohonan',

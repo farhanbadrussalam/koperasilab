@@ -23,7 +23,10 @@ use Hash;
 class ProfileAPI extends Controller
 {
     use RestApi;
-    protected $log, $media, $pagination, $mail;
+    protected LogController $log;
+    protected MediaController $media;
+    protected mixed $pagination = [];
+    protected SendMailAPI $mail;
 
     public function __construct()
     {
@@ -117,7 +120,7 @@ class ProfileAPI extends Controller
         }
     }
 
-    private function tambahAlamat($idPerusahaan) {
+    private function tambahAlamat(int $idPerusahaan) {
         // set alamat
         $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
 
@@ -142,7 +145,7 @@ class ProfileAPI extends Controller
         Master_alamat::insert($arrAlamat);
     }
 
-    private function send_password($password, $to){
+    private function send_password(string $password, string $to){
         $contentMail = "
             <div style='text-align: center; margin: 20px; background-color: #f5f5f5; padding: 20px;'>
                 <h1>Nuklindo Lab</h1>
@@ -390,12 +393,15 @@ class ProfileAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Perusahaan::with('users')->when($filter, function($q, $filter) {
-                foreach ($filter as $key => $value) {
-                    $q->where('nama_perusahaan', 'like', "%$value%")
-                    ->orWhere('kode_perusahaan', 'like', "%$value%" );
-                }
-            })->orderBy('id_perusahaan', 'desc');
+            $query = Perusahaan::with('users:id,name,email')->select('id_perusahaan','nama_perusahaan', 'kode_perusahaan')
+                ->when($filter, function($q, $filter) {
+                    foreach ($filter as $key => $value) {
+                        if($key == 'search'){
+                            $q->where('nama_perusahaan', 'like', "%$value%")
+                            ->orWhere('kode_perusahaan', 'like', "%$value%" );
+                        }
+                    }
+                })->orderBy('id_perusahaan', 'desc');
 
             if($limit){
                 $data = $query->offset(($page - 1) * $limit)->limit($limit)->paginate($limit);
@@ -414,7 +420,7 @@ class ProfileAPI extends Controller
         }
     }
 
-    public function getPerusahaanByKode($kode){
+    public function getPerusahaanByKode(string $kode){
         DB::beginTransaction();
         try {
             $query = Perusahaan::where('kode_perusahaan', $kode)->first();
@@ -428,7 +434,7 @@ class ProfileAPI extends Controller
         }
     }
 
-    public function getPerusahaanById($id){
+    public function getPerusahaanById(string $id){
         DB::beginTransaction();
         try {
             $id = decryptor($id);
@@ -486,7 +492,7 @@ class ProfileAPI extends Controller
         }
     }
 
-    public function destroySuratKuasa($idHash, $idMedia)
+    public function destroySuratKuasa(string $idHash, string $idMedia)
     {
         $idMedia = decryptor($idMedia);
         $idHash = decryptor($idHash);
@@ -516,7 +522,7 @@ class ProfileAPI extends Controller
         }
     }
 
-    public function getHistoryPic($idPerusahaan){
+    public function getHistoryPic(string $idPerusahaan){
         DB::beginTransaction();
         try {
             $idPerusahaan = decryptor($idPerusahaan);
