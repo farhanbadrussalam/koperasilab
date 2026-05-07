@@ -1,29 +1,44 @@
 let modalDoc = new ModalDocument();
+let filterComp = false;
+
 $(function () {
     loadData();
 
+    // filterComp = new FilterComponent('list-filter', {
+    //     filter: {
+    //         jenis_layanan: true,
+    //         status: true,
+    //     }
+    // })
+
     $('#kode_perusahaan').on('input', (obj) => {
         const kode = obj.target.value;
-        if(kode){
+        if (kode) {
             // spinner('show', $('#labelKodePerusahaan'), {place: 'after'});
             ajaxGet(`api/v1/profile/getPerusahaan/${kode}`, false, result => {
-                if(result.data){
+                if (result.data) {
                     $('#errorKodePerusahaan').html(`<small class="text-danger">Kode sudah di gunakan</small>`);
                     $('#errorKodePerusahaan').show();
-                    $('#btnVerifikasiBaru').attr('disabled', true);
-                }else{
+                    $('#btnVerifikasi').attr('disabled', true);
+                } else {
                     $('#errorKodePerusahaan').hide();
                     $('#errorKodePerusahaan').html('');
-                    $('#btnVerifikasiBaru').attr('disabled', false);
+                    $('#btnVerifikasi').attr('disabled', false);
                 }
                 // spinner('hide', $('#labelKodePerusahaan'), {place: 'after'});
             });
         } else {
             $('#errorKodePerusahaan').hide();
             $('#errorKodePerusahaan').html('');
-            $('#btnVerifikasiBaru').attr('disabled', false);
+            $('#btnVerifikasi').attr('disabled', false);
         }
     })
+
+    $('#list-pagination').on('click', 'a', function (e) {
+        e.preventDefault();
+        const page = e.target.dataset.page;
+        loadData(page);
+    });
 });
 
 function loadData(page = 1) {
@@ -33,66 +48,69 @@ function loadData(page = 1) {
     };
 
     $('#list-container').hide();
+    $('#list-placeholder').show();
     // Panggil API untuk meload list approval pelanggan
     ajaxGet(`api/v1/pelanggan/approval/list`, params, result => {
         let html = '';
         for (const [i, req] of result.data.entries()) {
-            // Flag Email Validation
-            // let flagEmail = req.user.email_verified_at ? '<span class="badge bg-success">Email Terverifikasi</span>' : '<span class="badge bg-warning text-dark">Email Belum Terverifikasi</span>';
-            let statusPelanggan = req.jenis == 'baru' ? '<span class="badge bg-info">Pelanggan Baru</span>' : '<span class="badge bg-secondary">Pelanggan Lama</span>';
+            let statusPelanggan = req.jenis == 'baru' ? '<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill fw-normal px-3">Pelanggan Baru</span>' : '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill fw-normal px-3">Pelanggan Lama</span>';
             const profile = req.user.profile;
 
-            let btnAction = `<button class="btn btn-outline-primary btn-sm" onclick="openModalVerifikasi('${req.request_user_hash}', '${req.jenis}')"><i class="bi bi-check-circle"></i> Verifikasi</button>`;
-            btnAction += `
-                <button class="btn btn-outline-info btn-sm"
-                    data-url="storage/${profile.suratkuasa.file_path}/${profile.suratkuasa.file_hash}"
-                    onclick="openModalDetail(this)">
-                    <i class="bi bi-info-circle"></i> Surat Kuasa
-                </button>
-            `;
+            const params = {
+                title: `${req.user.name ?? '-'} <br><small class="fw-light text-muted">Email : ${req.user.email ?? '-'}</small>`,
+                perusahaan: req.perusahaan.nama_perusahaan || '-',
+                htmlLeftTime: statusPelanggan,
+                created_at: req.created_at,
+                id: req.request_user_hash,
+            };
 
-            html += `
-                <div class="card mb-2 shadow-sm">
-                    <div class="card-body row align-items-center">
-                        <div class="col-12 col-md-5">
-                            <div class="title"><span class="fw-bold">${req.perusahaan.nama_perusahaan ?? '-'}</span></div>
-                            <small class="subdesc text-body-secondary fw-light lh-sm">
-                                <div>PIC : ${req.user.name ?? '-'}</div>
-                                <div class="mt-1">Email : ${req.user.email ?? '-'} </div>
-                            </small>
-                        </div>
-                        <div class="col-6 col-md-4 text-center ms-auto">
-                            ${statusPelanggan}
-                        </div>
-                        <div class="d-flex col-md-2 text-end gap-2 justify-content-end flex-column">
-                            ${btnAction}
-                        </div>
-                    </div>
+            let btnAction = `
+                <div class="d-flex justify-content-end gap-2 flex-column">
+                    <button class="btn btn-outline-info btn-sm" onclick="openModalDetail(this)" data-url="storage/${profile.suratkuasa.file_path}/${profile.suratkuasa.file_hash}" title="Surat Kuasa">
+                        <i class="bi bi-file-earmark me-2"></i> Surat Kuasa
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="openModalVerifikasi('${req.request_user_hash}', '${req.jenis}')">
+                        <i class="bi bi-check-circle"></i> Verifikasi
+                    </button>
                 </div>
             `;
+
+            html += cardComponent(params, { btnAction: btnAction });
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
         $('#list-container').html(html).show();
         $('#list-pagination').html(createPaginationHTML(result.pagination));
+        $('#list-placeholder').hide();
     });
 }
 
-function openModalVerifikasi(id, isNewCustomer) {
+function openModalVerifikasi(id, type) {
     $('#id_request').val(id);
-    if(isNewCustomer == 'baru') {
+    $('#jenis_pelanggan').val(type);
+
+    if (type === 'baru') {
+        $('#modalVerifikasiTitle').text('Verifikasi Pelanggan Baru');
+        $('#modalVerifikasiDesc').text('Pastikan kelengkapan data perusahaan dan surat kuasa pelanggan baru sudah sesuai dan valid.');
+        $('#formKodePerusahaan').show();
         $('#kode_perusahaan').val('');
         $('#errorKodePerusahaan').hide();
-        $('#modalVerifikasiBaru').modal('show');
+        $('#btnVerifikasi').attr('disabled', true);
     } else {
-        $('#modalVerifikasiLama').modal('show');
+        $('#modalVerifikasiTitle').text('Verifikasi Pelanggan Lama');
+        $('#modalVerifikasiDesc').text('Apakah surat kuasa yang dilampirkan sudah sesuai dengan perusahaan terkait?');
+        $('#formKodePerusahaan').hide();
+        $('#btnVerifikasi').attr('disabled', false);
     }
+    
+    $('#modalVerifikasi').modal('show');
 }
 
-function verifikasiPelanggan(obj, type) {
+function verifikasiPelanggan(obj) {
     const id = $('#id_request').val();
+    const type = $('#jenis_pelanggan').val();
 
     let params = new FormData();
     params.append('id_request', id);
@@ -108,13 +126,9 @@ function verifikasiPelanggan(obj, type) {
     spinner('show', $(obj));
     ajaxPost(`api/v1/pelanggan/approval/verifikasi`, params, result => {
         spinner('hide', $(obj));
-        if(result.meta.code == 200) {
+        if (result.meta.code == 200) {
             Swal.fire({ icon: 'success', text: 'Pelanggan berhasil diverifikasi' });
-            if (type === 'baru') {
-                $('#modalVerifikasiBaru').modal('hide');
-            } else {
-                $('#modalVerifikasiLama').modal('hide');
-            }
+            $('#modalVerifikasi').modal('hide');
             loadData();
         }
     }, error => { spinner('hide', $(obj)); });
@@ -122,8 +136,7 @@ function verifikasiPelanggan(obj, type) {
 
 function tolakPelanggan(obj) {
     const id = $('#id_request').val();
-    $('#modalVerifikasiBaru').modal('hide');
-    $('#modalVerifikasiLama').modal('hide');
+    $('#modalVerifikasi').modal('hide');
 
     showNoteAlertSwal((reason) => {
         let params = new FormData();
@@ -132,7 +145,7 @@ function tolakPelanggan(obj) {
 
         showLoadingSwal('show');
         ajaxPost(`api/v1/pelanggan/approval/tolak`, params, result => {
-            if(result.meta.code == 200) {
+            if (result.meta.code == 200) {
                 Swal.fire({ icon: 'success', text: 'Pelanggan berhasil ditolak' }).then(() => {
                     showLoadingSwal('hide');
                     loadData();
@@ -149,4 +162,8 @@ function openModalDetail(obj) {
     modalDoc.show(url, {
         title: 'Surat Kuasa',
     })
+}
+
+function reload() {
+    loadData();
 }

@@ -349,6 +349,66 @@ class ProfileAPI extends Controller
 
     }
 
+    public function actionAjukanInstansi(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $tipe = $request->pelanggan_tipe;
+            
+            if ($tipe === 'lama') {
+                $idPerusahaan = decryptor($request->nama_instansi_lama);
+            } else {
+                $perusahaan = Perusahaan::create([
+                    'nama_perusahaan' => $request->nama_instansi,
+                    'npwp_perusahaan' => $request->npwp ? unmask($request->npwp) : null,
+                    'email' => $request->email_instansi,
+                    'status' => 1
+                ]);
+
+                $arrAlamat = [
+                    [
+                        'id_perusahaan' => $perusahaan->id_perusahaan,
+                        'jenis' => 'Utama',
+                        'status' => 1,
+                        'alamat' => $request->alamat_instansi,
+                        'kode_pos' => $request->kode_pos
+                    ]
+                ];
+
+                foreach (['tld', 'lhu', 'invoice'] as $jenis) {
+                    $arrAlamat[] = [
+                        'id_perusahaan' => $perusahaan->id_perusahaan,
+                        'jenis' => $jenis,
+                        'status' => 0,
+                        'alamat' => null,
+                        'kode_pos' => null
+                    ];
+                }
+
+                Master_alamat::insert($arrAlamat);
+                $idPerusahaan = $perusahaan->id_perusahaan;
+            }
+
+            \App\Models\Users_request::create([
+                'id_perusahaan' => (int) $idPerusahaan,
+                'id_user' => Auth::user()->id,
+                'status' => 1,
+                'jenis' => $tipe
+            ]);
+
+            DB::commit();
+
+            return $this->output([
+                'status' => 'success',
+                'msg' => 'Pengajuan instansi berhasil dikirim'
+            ]);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function changePassword(Request $request)
     {
         DB::beginTransaction();

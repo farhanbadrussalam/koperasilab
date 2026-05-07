@@ -125,7 +125,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'satuankerja',
         'profile',
         'ttd_image',
-        'ttd_hash'
+        'ttd_hash',
+        'request_verify_instansi'
     ];
 
     public function tld()
@@ -153,6 +154,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getProfileAttribute()
     {
         return Profile::where('user_id', $this->id)->first();
+    }
+
+    public function getRequestVerifyInstansiAttribute()
+    {
+        $request = Users_request::with('perusahaan')->where('id_user', $this->id)->whereIn('status',[1, 90])->first();
+        return $request;
     }
 
     public function getTtdImageAttribute()
