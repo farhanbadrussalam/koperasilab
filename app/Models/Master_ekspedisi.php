@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_ekspedisi
@@ -28,7 +29,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Master_ekspedisi extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'master_ekspedisi';
     protected $primaryKey = 'id_ekspedisi';
@@ -57,5 +58,4 @@ class Master_ekspedisi extends Model
     {
         return $this->id_ekspedisi ? encryptor($this->id_ekspedisi) : null;
     }
-
 }

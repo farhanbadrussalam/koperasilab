@@ -13,7 +13,7 @@ class UploadComponent {
      */
     constructor(idElement, options = {}) {
         this.options = {
-            mode : options.mode ?? 'upload', // upload atau preview
+            mode: options.mode ?? 'upload', // upload atau preview
             modal: options.modal ?? true,
             camera: options.camera ?? true,
             allowedFileExtensions: options.allowedFileExtensions ?? [],
@@ -43,7 +43,7 @@ class UploadComponent {
         this._initializeProperties();
         this._createCustomEvents();
 
-        if(this.options.modal){
+        if (this.options.modal) {
             $(`#${idElement}`).append(this.modalCreate());
 
             if ($('#modal-preview').length === 0) {
@@ -66,14 +66,27 @@ class UploadComponent {
 
     _bindEventListeners() {
         // $('#btnSimpanDetail').on('click', this.simpanDetail.bind(this));
+        $('#uploadFile_' + this.id).on('change', (e) => {
+            if (this.options.multiple === false) {
+                const file = e.target.files[0];
+                if (this.checkMaxSize(file) === false) {
+                    $(`#uploadFile_${this.id}`).val('');
+                    Swal.fire({
+                        icon: 'warning',
+                        text: 'Ukuran file tidak boleh melebihi ' + this.options.maxSize + 'MB'
+                    })
+                    return;
+                }
+            }
+        });
     }
 
-    getId(){
+    getId() {
         return this.id;
     }
 
-    getData(){
-        if(this.options.form){
+    getData() {
+        if (this.options.form) {
             return $(`#uploadFile_${this.id}`)[0].files[0] ?? null;
         } else {
             return this.listFile;
@@ -85,10 +98,10 @@ class UploadComponent {
         this.loadListFile();
     }
 
-    setData(data){
-        if(this.options.multiple) {
+    setData(data) {
+        if (this.options.multiple) {
             this.listFile = data;
-        } else{
+        } else {
             this.listFile.push(data);
         }
         this.loadListFile();
@@ -99,16 +112,16 @@ class UploadComponent {
     }
 
     // Fungsi untuk menentukan allowedFileExtensions
-    allowedFileExtensions(){
+    allowedFileExtensions() {
         let accept = '';
-        if(this.options.allowedFileExtensions.length > 0){
+        if (this.options.allowedFileExtensions.length > 0) {
             accept = this.options.allowedFileExtensions.map(ext => `.${ext}`).join(',');
         }
         return accept;
     }
 
     // buatkan preview untuk pdf
-    loadListFile(){
+    loadListFile() {
         $(`#listPreview_${this.id}`).html('');
 
         // cek apakah multiple atau tidak, jika multiple = false button tambah disable dan tambah class cursordisable
@@ -116,7 +129,7 @@ class UploadComponent {
             $(`#btnTambahFile_${this.id}`).attr('disabled', this.listFile.length > 0);
         }
 
-        if(this.listFile.length === 0){
+        if (this.listFile.length === 0) {
             $(`#listPreview_${this.id}`).html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
             return;
         }
@@ -131,14 +144,14 @@ class UploadComponent {
         });
 
         this.listFile.forEach((file, index) => {
-            if(file.file){
+            if (file.file) {
                 const reader = new FileReader();
                 const main = this;
                 reader.onload = function (e) {
                     let htmlPreview = '';
                     if (file.file_type == 'image/jpeg' || file.file_type == 'image/png' || file.file_type == 'image/gif') {
                         htmlPreview = main.previewImage(e.target.result, index);
-                    }else{
+                    } else {
                         let objFile = {
                             file_size: file.file.size,
                             file_type: file.file.type,
@@ -150,7 +163,7 @@ class UploadComponent {
                     document.getElementById(`listPreview_${main.id}`).appendChild(htmlPreview);
                 };
                 reader.readAsDataURL(file.file);
-            }else{
+            } else {
                 let htmlPreview = '';
                 if (file.file_type == 'image/jpeg' || file.file_type == 'image/png' || file.file_type == 'image/gif') {
                     htmlPreview = this.previewImage(file, index);
@@ -169,11 +182,11 @@ class UploadComponent {
     tambah() {
         // ambil gambar dari inputFile
         const inputFile = $(`#uploadFile_${this.id}`)[0].files[0];
-        if(inputFile){
+        if (inputFile) {
             spinner('show', $(`#btnTambahFile_${this.id}`));
 
             // cek size file
-            if(this.checkMaxSize(inputFile) === false){
+            if (this.checkMaxSize(inputFile) === false) {
                 spinner('hide', $(`#btnTambahFile_${this.id}`));
                 Swal.fire({
                     icon: 'warning',
@@ -182,7 +195,7 @@ class UploadComponent {
                 return;
             }
 
-            if(this.options.urlUpload){
+            if (this.options.urlUpload) {
                 const params = new FormData();
                 params.append('idHash', this.options.urlUpload.idHash);
                 params.append('file', inputFile);
@@ -198,7 +211,7 @@ class UploadComponent {
                     var xhr = new window.XMLHttpRequest();
                     $(`#progress_${this.id}`).show();
                     let main = this;
-                    xhr.upload.addEventListener("progress", function(evt){
+                    xhr.upload.addEventListener("progress", function (evt) {
                         if (evt.lengthComputable) {
                             let percentComplete = evt.loaded / evt.total;
                             percentComplete = parseInt(percentComplete * 100);
@@ -206,8 +219,8 @@ class UploadComponent {
                             document.getElementById(`progress_${main.id}`).children[0].style.width = percentComplete + "%";
                             document.getElementById(`progress_${main.id}`).children[0].innerHTML = percentComplete + "%";
 
-                            if(percentComplete === 100){
-                                setTimeout(()=> {
+                            if (percentComplete === 100) {
+                                setTimeout(() => {
                                     document.getElementById(`progress_${main.id}`).children[0].style.width = "0%";
                                     document.getElementById(`progress_${main.id}`).children[0].innerHTML = "0%";
                                     $(`#progress_${main.id}`).hide();
@@ -218,7 +231,7 @@ class UploadComponent {
                     }, false);
                     return xhr;
                 })
-            }else{
+            } else {
                 let media = {
                     file: inputFile,
                     file_type: inputFile.type
@@ -232,26 +245,26 @@ class UploadComponent {
     }
 
 
-    checkMaxSize(file){
+    checkMaxSize(file) {
         let maxSize = this.options.maxSize;
         let fileSize = file.size / (1024 * 1024);
-        if(fileSize > maxSize){
+        if (fileSize > maxSize) {
             return false;
         }
         return true;
     }
 
-    previewImage(file, index){
+    previewImage(file, index) {
         let src = false;
-        if(file.media_hash){
+        if (file.media_hash) {
             src = `${base_url}/storage/${file.file_path}/${file.file_hash}`;
-        }else{
+        } else {
             src = file;
         }
         // ambil gambar dari inputFile
         const divMain = document.createElement('div');
         divMain.className = 'position-relative';
-        if(this.options.preview.fullwidth){
+        if (this.options.preview.fullwidth) {
             divMain.style.width = '100%';
             divMain.style.height = `${this.options.preview.height}px`;
         } else {
@@ -262,7 +275,7 @@ class UploadComponent {
         const preview = document.createElement('img');
         preview.src = src;
         preview.className = 'img-thumbnail';
-        if(this.options.preview.fullwidth){
+        if (this.options.preview.fullwidth) {
             preview.style.height = '100%';
         } else {
             preview.style.width = `${this.options.preview.width}px`;
@@ -298,11 +311,11 @@ class UploadComponent {
 
         const linkMedia = document.createElement('a');
         linkMedia.className = 'd-flex align-items-center w-100 text-decoration-none';
-        if(file.file_result){
-            const url = window.URL.createObjectURL(new Blob([file.file_result], {type: 'application/pdf'}));
+        if (file.file_result) {
+            const url = window.URL.createObjectURL(new Blob([file.file_result], { type: 'application/pdf' }));
             linkMedia.href = url;
             linkMedia.setAttribute('download', file.file_ori);
-        }else{
+        } else {
             linkMedia.href = `${base_url}/storage/${file.file_path}/${file.file_hash}`;
         }
         linkMedia.target = '_blank';
@@ -344,7 +357,7 @@ class UploadComponent {
         // Buat elemen div container
         const container = document.createElement('div');
 
-        if(this.options.mode === 'upload'){
+        if (this.options.mode === 'upload') {
             // Elemen input file
             const inputGroup = document.createElement('div');
             inputGroup.classList.add('input-group');
@@ -365,7 +378,7 @@ class UploadComponent {
             btnTambah.textContent = 'Tambah';
             btnTambah.type = 'button';
             btnTambah.onclick = this.tambah.bind(this);
-            if(this.options.form == false) {
+            if (this.options.form == false) {
                 inputGroup.appendChild(btnTambah);
             }
 
@@ -399,7 +412,7 @@ class UploadComponent {
             // menampilkan extension file yang diizinkan
             const allowedExtensions = this.options.allowedFileExtensions;
             const textAllowedExtensions = document.createElement('div');
-            if(allowedExtensions.length > 0){
+            if (allowedExtensions.length > 0) {
                 const allowedExtension = document.createElement('span');
                 allowedExtension.classList.add('text-submain', 'caption');
                 allowedExtension.innerHTML = `Extension file yang diizinkan: ${allowedExtensions.join(', ')}`;
@@ -415,30 +428,30 @@ class UploadComponent {
 
             // menampilkan template jika ada
             const template = document.createElement('div');
-            if(this.options.template.url){
+            if (this.options.template.url) {
                 template.classList.add('mt-2', 'text-end');
                 const linkTemplate = document.createElement('a');
                 linkTemplate.href = this.options.template.url;
                 linkTemplate.classList.add('btn', 'btn-outline-light', 'btn-sm', 'border', 'text-primary');
                 linkTemplate.innerHTML = `<i class="bi bi-download me-2"></i>${this.options.template.name}`;
 
-            // Menangani klik untuk memaksa download via Fetch/Blob
-            linkTemplate.onclick = (e) => {
-                e.preventDefault();
-                fetch(this.options.template.url)
-                    .then(response => response.blob())
-                    .then(blob => {
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = this.options.template.name || 'template';
-                        document.body.appendChild(a);
-                        a.click();
-                        a.remove();
-                        window.URL.revokeObjectURL(url);
-                    })
-                    .catch(() => window.location.href = this.options.template.url);
-            };
+                // Menangani klik untuk memaksa download via Fetch/Blob
+                linkTemplate.onclick = (e) => {
+                    e.preventDefault();
+                    fetch(this.options.template.url)
+                        .then(response => response.blob())
+                        .then(blob => {
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = this.options.template.name || 'template';
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
+                        })
+                        .catch(() => window.location.href = this.options.template.url);
+                };
 
                 template.appendChild(linkTemplate);
             }
@@ -453,7 +466,7 @@ class UploadComponent {
         const listPreview = document.createElement('div');
         listPreview.id = `listPreview_${this.id}`;
         listPreview.classList.add('mt-2', 'd-flex', 'column-gap-2', 'flex-wrap');
-        if(this.options.form == false) {
+        if (this.options.form == false) {
             container.appendChild(listPreview);
         }
 
@@ -477,33 +490,33 @@ class UploadComponent {
         `;
     }
 
-    on(eventName, callback = () => {}) {
+    on(eventName, callback = () => { }) {
         return document.addEventListener(eventName, callback);
     }
 
-    removeFile(index){
+    removeFile(index) {
         // ambil file sekarang
         let file = this.listFile[index];
-        if(this.options.urlUpload){
+        if (this.options.urlUpload) {
             ajaxDelete(this.options.urlUpload.urlDestroy + `/${this.options.urlUpload.idHash}/${file.media_hash}`, result => {
                 this.listFile.splice(index, 1);
                 this.loadListFile();
             }, error => {
                 console.error(error);
             })
-        }else{
+        } else {
             this.listFile.splice(index, 1);
             this.loadListFile();
         }
     }
 
-    clearFile(){
+    clearFile() {
         this.listFile = [];
         this.loadListFile();
     }
 
-    destroy(){
-        if(this.options.modal){
+    destroy() {
+        if (this.options.modal) {
             $(`#${this.idElement}`).children().remove();
         }
     }

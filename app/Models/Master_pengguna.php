@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_pengguna
@@ -50,7 +51,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Master_pengguna extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'master_pengguna';
     protected $primaryKey = 'id_pengguna';
@@ -128,5 +129,4 @@ class Master_pengguna extends Model
     {
         return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi');
     }
-
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_perusahaan
@@ -45,7 +46,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Perusahaan extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'perusahaan';
     protected $primaryKey = 'id_perusahaan';
@@ -86,19 +87,23 @@ class Perusahaan extends Model
         return $this->users()->where('status', '1')->first();
     }
 
-    public function alamat(){
+    public function alamat()
+    {
         return $this->hasMany(Master_alamat::class, 'id_perusahaan', 'id_perusahaan');
     }
 
-    public function users(){
+    public function users()
+    {
         return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
     }
 
-    public function suratkuasa(){
+    public function suratkuasa()
+    {
         return $this->hasMany(Master_media::class, 'id', 'surat_kuasa');
     }
 
-    public function history_pic(){
+    public function history_pic()
+    {
         return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
     }
 }

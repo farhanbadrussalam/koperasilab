@@ -106,34 +106,6 @@
                                                 </div>
                                             </form>
 
-                                            @if(Auth::user()->hasRole('Pelanggan'))
-                                            <div class="col-12 mt-4">
-                                                <div class="p-3 bg-light rounded-3 border border-dashed">
-                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                        <label class="form-label small fw-bold mb-0">Dokumen Surat Kuasa</label>
-                                                    </div>
-
-                                                    <div id="uploadSuratKuasa" class="bg-white p-2 rounded"></div>
-
-                                                    {{-- <div class="d-flex align-items-center bg-white p-2 rounded border mb-2 shadow-sm">
-                                                        <i class="bi bi-file-earmark-pdf text-danger fs-4 me-3"></i>
-                                                        <div class="flex-grow-1 overflow-hidden">
-                                                            <h6 class="mb-0 text-truncate small fw-bold">10368-01 0256 ZC-II-2024.pdf</h6>
-                                                            <small class="text-muted">1.63 MB</small>
-                                                        </div>
-                                                        <button type="button" class="btn btn-sm btn-light text-danger border-0" title="Hapus File" disabled>
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-
-                                                    <div class="input-group mt-2" id="uploadArea">
-                                                        <input type="file" class="form-control" name="surat_kuasa">
-                                                        <button class="btn btn-outline-secondary" type="button">Upload</button>
-                                                    </div> --}}
-                                                </div>
-                                            </div>
-                                            @endif
-
                                             <div class="d-none justify-content-end gap-2 mt-4 pt-3 border-top" id="actionButtons">
                                                 <button type="button" class="btn btn-light" id="btnCancelEdit">Batal</button>
                                                 <button type="submit" class="btn btn-primary px-4" onclick="simpanPerubahanBiodata(this)">Simpan Perubahan</button>
@@ -145,6 +117,18 @@
                             </div>
                             <div class="tab-pane fade show" id="instansi-tab-pane" role="tabpanel" aria-labelledby="instansi-tab" tabindex="0">
                                 <div class="row">
+                                    @if(Auth::user()->hasRole('Pelanggan'))
+                                    <div class="col-12 mb-2">
+                                        <div class="p-3 bg-light rounded-3 border border-dashed">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="form-label small fw-bold mb-0">Dokumen Surat Kuasa</label>
+                                            </div>
+
+                                            <div id="uploadSuratKuasa" class="bg-white p-2 rounded"></div>
+                                        </div>
+                                    </div>
+                                    @endif
+
                                     <div class="col-12" id="card-instansi-nonaktif" style="display: none;">
                                         <div class="card border-0 shadow-sm rounded-4 mb-4">
                                             <div class="card-body p-5 text-center">

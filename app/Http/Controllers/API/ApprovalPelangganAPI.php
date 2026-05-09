@@ -59,12 +59,20 @@ class ApprovalPelangganAPI extends Controller
         DB::beginTransaction();
 
         try {
-
-            $userRequest = Users_request::find($id_request);
+            $userRequest = Users_request::with('perusahaan')->find($id_request);
 
             $userRequest->status = 2;
             $userRequest->verify_at = date('Y-m-d H:i:s');
             $userRequest->save();
+
+            // cari user yang menjadi PIC di perusahaan, jika PIC nya ada maka ubah statusnya
+            if($userRequest->perusahaan->pic) {
+                $idUser = $userRequest->perusahaan->pic->id;
+                User::find($idUser)->update([
+                    'status' => 2,
+                    'selesai_at' => date('Y-m-d H:i:s')
+                ]);
+            }
 
             $user = User::find($userRequest->id_user);
             $user->id_perusahaan = $userRequest->id_perusahaan;

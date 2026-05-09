@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_doc
@@ -52,7 +53,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Documents extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'documents';
     protected $primaryKey = 'id_doc';
@@ -140,5 +141,4 @@ class Documents extends Model
     {
         return $this->belongsTo(Documents::class, 'id_header', 'id_doc');
     }
-
 }
