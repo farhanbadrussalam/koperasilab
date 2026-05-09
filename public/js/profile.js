@@ -135,12 +135,12 @@ $(function () {
             // Tampilkan input text, sembunyikan select2
             $('#nama_instansi_lama_profile').removeAttr('name required').next('.select2-container').hide();
             if ($('#nama_instansi_lama_profile').parsley()) $('#nama_instansi_lama_profile').parsley().reset();
-            $('#nama_instansi_baru_profile').attr({'name': 'nama_instansi', 'required': true}).show();
+            $('#nama_instansi_baru_profile').attr({ 'name': 'nama_instansi', 'required': true }).show();
         } else {
             // Tampilkan select2, sembunyikan input text
             $('#nama_instansi_baru_profile').removeAttr('name required').hide();
             if ($('#nama_instansi_baru_profile').parsley()) $('#nama_instansi_baru_profile').parsley().reset();
-            $('#nama_instansi_lama_profile').attr({'name': 'nama_instansi_lama', 'required': true}).show();
+            $('#nama_instansi_lama_profile').attr({ 'name': 'nama_instansi_lama', 'required': true }).show();
             $('#nama_instansi_lama_profile').select2({
                 theme: 'bootstrap-5',
                 placeholder: 'Cari Nama Instansi...',
@@ -206,7 +206,7 @@ function ajukanInstansi(obj) {
 
     ajaxPost(`api/v1/profile/action/ajukan_instansi`, formParams, result => {
         spinner('hide', $(obj));
-        if (result.status == 'success') {
+        if (result.data.status == 'success') {
             Swal.fire({
                 icon: 'success',
                 text: 'Pengajuan instansi berhasil dikirim',
@@ -307,11 +307,17 @@ function loadInstansi(data) {
             statusVerifikasi = data.request_verify_instansi.status == 1 ? 'pending' : 'ditolak';
         }
 
+        let logs = data.request_verify_instansi?.logs;
         if (statusVerifikasi === 'ditolak') {
             $('#icon-status-instansi').html('<i class="bi bi-x-circle-fill text-danger" style="font-size: 4rem;"></i>');
             $('#title-status-instansi').html('Verifikasi Ditolak');
             $('#title-status-instansi').removeClass('text-dark').addClass('text-danger');
-            $('#desc-status-instansi').html(`Mohon maaf, pengajuan instansi <b>${data.request_verify_instansi?.perusahaan?.nama_perusahaan}</b> telah ditolak. Silakan periksa kembali data Anda.`);
+            $('#desc-status-instansi').html(`
+                Mohon maaf, pengajuan instansi <b>${data.request_verify_instansi?.perusahaan?.nama_perusahaan}</b> telah ditolak. Silakan periksa kembali data Anda.
+                <div class="mt-2">
+                    <b>Alasan:</b> - ${logs[0].properties.catatan}
+                </div>
+            `);
             $('#action-status-instansi').html(`
                 <button class="btn btn-outline-danger px-4 rounded-pill mt-2" onclick="showFormPengajuan()">
                     <i class="bi bi-arrow-repeat me-2"></i> Ajukan Ulang Instansi

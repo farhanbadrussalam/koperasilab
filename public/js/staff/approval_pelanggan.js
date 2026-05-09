@@ -14,7 +14,6 @@ $(function () {
     $('#kode_perusahaan').on('input', (obj) => {
         const kode = obj.target.value;
         if (kode) {
-            // spinner('show', $('#labelKodePerusahaan'), {place: 'after'});
             ajaxGet(`api/v1/profile/getPerusahaan/${kode}`, false, result => {
                 if (result.data) {
                     $('#errorKodePerusahaan').html(`<small class="text-danger">Kode sudah di gunakan</small>`);
@@ -25,7 +24,6 @@ $(function () {
                     $('#errorKodePerusahaan').html('');
                     $('#btnVerifikasi').attr('disabled', false);
                 }
-                // spinner('hide', $('#labelKodePerusahaan'), {place: 'after'});
             });
         } else {
             $('#errorKodePerusahaan').hide();
@@ -55,6 +53,9 @@ function loadData(page = 1) {
         for (const [i, req] of result.data.entries()) {
             let statusPelanggan = req.jenis == 'baru' ? '<span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill fw-normal px-3">Pelanggan Baru</span>' : '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill fw-normal px-3">Pelanggan Lama</span>';
             const profile = req.user.profile;
+            const htmlPic = `
+                PIC: ${req.perusahaan?.pic?.name ?? 'Belum ada'} <br>
+            `;
 
             const params = {
                 title: `${req.user.name ?? '-'} <br><small class="fw-light text-muted">Email : ${req.user.email ?? '-'}</small>`,
@@ -62,6 +63,7 @@ function loadData(page = 1) {
                 htmlLeftTime: statusPelanggan,
                 created_at: req.created_at,
                 id: req.request_user_hash,
+                subTitle: htmlPic
             };
 
             let btnAction = `
@@ -104,7 +106,7 @@ function openModalVerifikasi(id, type) {
         $('#formKodePerusahaan').hide();
         $('#btnVerifikasi').attr('disabled', false);
     }
-    
+
     $('#modalVerifikasi').modal('show');
 }
 

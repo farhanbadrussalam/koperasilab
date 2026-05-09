@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Management;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Users_request;
 use App\Models\Satuan_kerja;
 use App\Models\profile;
 use App\Models\Perusahaan;
@@ -361,11 +362,15 @@ class UserController extends Controller
         DB::beginTransaction();
         try {
             $user = User::findOrFail(decryptor($id));
-            Profile::where('user_id', $user->id)->get()->each->delete();
+            // Profile::where('user_id', $user->id)->get()->each->delete();
+            
             // menghapus semua role yang terikat
-            $user->getRoleNames()->each(function ($roleName) use ($user) {
-                $user->removeRole($roleName);
-            });
+            // $user->getRoleNames()->each(function ($roleName) use ($user) {
+            //     $user->removeRole($roleName);
+            // });
+
+            // menghapus user request
+            // Users_request::where('id_user', $user->id)->get()->each->delete();
             $user->delete();
 
             DB::commit();

@@ -17,12 +17,22 @@ class Users_request extends Model
     ];
 
     protected $appends = [
-        'request_user_hash'
+        'request_user_hash',
+        'logs'
     ];
 
     public function getRequestUserHashAttribute()
     {
         return $this->id ? encryptor($this->id) : null;
+    }
+
+    public function getLogsAttribute()
+    {
+        $request = Log_proses::where('log_name', 'APPROVAL_PELANGGAN')
+            ->where('subject_id', $this->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return $request;
     }
 
     public function user()

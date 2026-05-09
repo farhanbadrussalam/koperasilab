@@ -12,9 +12,9 @@
  */
 function cardComponent(data, options = {}) {
     let htmlTipeKontrak = '';
-    if(data.tipeKontrak !== undefined){
+    if (data.tipeKontrak !== undefined) {
         let classBadge = '';
-        switch(data.tipeKontrak){
+        switch (data.tipeKontrak) {
             case 'kontrak lama':
                 classBadge = 'bg-success-subtle text-success-emphasis border-success-subtle';
                 break;
@@ -34,7 +34,7 @@ function cardComponent(data, options = {}) {
 
     const htmlPeriode = data.periode !== undefined ? (() => {
         let per = data.periode == 0 ? `Zero Check` : 'Periode ' + data.periode;
-        if(data.periode == 1 && data.is_have_tld && data.is_zerocek) {
+        if (data.periode == 1 && data.is_have_tld && data.is_zerocek) {
             per += ' + Zero Check';
         }
         return `
@@ -134,6 +134,12 @@ function cardComponent(data, options = {}) {
         ${data.divTimelineTugas.buttonCreate()}
     ` : '';
 
+    const subTitle = data.subTitle !== undefined ? `
+        <div class="text-muted small">
+            ${data.subTitle}
+        </div>
+    ` : '';
+
     const elementList = `
         <div class="card border-1  shadow-sm rounded-3 mb-3 hover-effect transition-all">
             <div class="card-body p-3">
@@ -149,6 +155,7 @@ function cardComponent(data, options = {}) {
                             </div>
                             ${htmlPerusahaan}
                             ${divInfoTugas}
+                            ${subTitle}
                         </div>
                     </div>
                     <div class="col-lg-5 mb-3 mb-lg-0 border-start-lg ps-lg-4">
@@ -157,7 +164,6 @@ function cardComponent(data, options = {}) {
                         <div class="d-flex flex-wrap gap-2 align-items-center">
                             ${htmlItemsPengiriman}
                             ${htmlAlamatPengiriman}
-
                             ${htmlTipeKontrak}
                             ${htmlJenisLayanan}
                         </div>
@@ -214,14 +220,14 @@ function cardPenggunaComponent(data, options = {}) {
     let htmlPergantian = '';
     let btnRemove = ``;
     let btnGantiPengguna = ``;
-    if(options.status == 'baru'){
+    if (options.status == 'baru') {
         txtStatus += `
             <span class="badge bg-primary-subtle text-primary-emphasis border-primary-subtle border border-info-subtle rounded-pill fw-normal px-3">
                 Baru
             </span>
         `;
 
-        if(options.is_adendum || options.is_btn_remove){
+        if (options.is_adendum || options.is_btn_remove) {
             btnRemove = `
                 <li>
                     <a class="dropdown-item small text-danger" href="javascript:void(0)" data-id="${data.idHash}" onclick="removePengguna(this)">
@@ -230,8 +236,8 @@ function cardPenggunaComponent(data, options = {}) {
                 </li>
             `;
         }
-    } else if(options.status == 'lama') {
-        if(options.is_adendum){
+    } else if (options.status == 'lama') {
+        if (options.is_adendum) {
             btnGantiPengguna = `
                 <li>
                     <a class="dropdown-item small text-warning" href="#" data-id="${data.idHash}" onclick="gantiPengguna(this)">
@@ -242,14 +248,14 @@ function cardPenggunaComponent(data, options = {}) {
         }
     }
 
-    if(data.pengguna_baru){
+    if (data.pengguna_baru) {
         txtStatus += `
             <span class="badge bg-warning-subtle text-warning-emphasis border-warning-subtle border border-info-subtle rounded-pill fw-normal px-3">
                 Ganti
             </span>
         `;
 
-        if(data.pengguna_baru.pengguna_hash){
+        if (data.pengguna_baru.pengguna_hash) {
             txtStatus += `
                 <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-id="${data.pengguna_baru.pengguna_hash}" onclick="deletePergantian(this)" title="Delete">Batal</button>
 
@@ -262,7 +268,7 @@ function cardPenggunaComponent(data, options = {}) {
         `;
     }
 
-    if(options.is_have_tld){
+    if (options.is_have_tld) {
         htmlEval = `
             <hr class="my-1">
             <div class="col-12">
@@ -366,14 +372,14 @@ function cardKontrolComponent(data, options = {}) {
     let btnRemove = '';
     let htmlAddKontrol = '';
     let htmlEvaluasi = '';
-    if(options.is_btn_remove){
+    if (options.is_btn_remove) {
         btnRemove = `<button type="button" class="btn btn-sm btn-outline-danger" data-id="${data.tldHash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>`;
     }
 
     if (options.is_have_tld) {
         htmlEvaluasi = `<hr class="my-2">`;
 
-        for([i,rincian] of data.rincian.entries()){
+        for ([i, rincian] of data.rincian.entries()) {
             htmlEvaluasi += `
                 <div class="col-12 mb-2">
                     <div class="input-group">
@@ -385,7 +391,7 @@ function cardKontrolComponent(data, options = {}) {
         }
     }
 
-    if(options.add_kontrol){
+    if (options.add_kontrol) {
         htmlAddKontrol = `
             <div class="col-auto text-end ms-auto d-flex justify-content-between gap-2">
                 <div class="cursor-pointer rounded-circle" data-id="${data.tldHash}" onclick="changeCountKontrol('plus', ${data.rincian.length}, this)">
@@ -400,7 +406,7 @@ function cardKontrolComponent(data, options = {}) {
     }
 
     let txtStatus = '';
-    if(options.status == 'baru'){
+    if (options.status == 'baru') {
         txtStatus += `
             <span class="badge bg-primary-subtle text-primary-emphasis border-primary-subtle border border-info-subtle rounded-pill fw-normal px-3">
                 Baru
