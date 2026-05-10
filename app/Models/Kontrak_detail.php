@@ -62,12 +62,12 @@ class Kontrak_detail extends Model
 
     public function tld_1()
     {
-        return $this->belongsTo(Master_tld::class, 'tld_1', 'id_tld');
+        return $this->belongsTo(Master_tld::class, 'tld_1', 'id_tld')->withTrashed();
     }
 
     public function tld_2()
     {
-        return $this->belongsTo(Master_tld::class, 'tld_2', 'id_tld');
+        return $this->belongsTo(Master_tld::class, 'tld_2', 'id_tld')->withTrashed();
     }
 
     public function kontrak()
@@ -77,6 +77,6 @@ class Kontrak_detail extends Model
 
     public function penggunaLama()
     {
-        return $this->hasOne(Master_pengguna::class, 'id_pengguna', 'pengguna_lama');
+        return $this->hasOne(Master_pengguna::class, 'id_pengguna', 'pengguna_lama')->withTrashed();
     }
 }

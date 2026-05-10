@@ -186,7 +186,7 @@ class Permohonan extends Model
 
     public function getTtdImageAttribute(){
         if($this->ttd) {
-            $ttd = Master_ttd::where('id', $this->ttd)->first();
+            $ttd = Master_ttd::withTrashed()->where('id', $this->ttd)->first();
             if($ttd) {
                 $base64 = $ttd->image_blob;
                 return "data:image/png;base64,{$base64}";
@@ -217,7 +217,7 @@ class Permohonan extends Model
     }
 
     public function pelanggan() {
-        return $this->belongsTo(User::class, 'created_by', 'id');
+        return $this->belongsTo(User::class, 'created_by', 'id')->withTrashed()->withTrashed();
     }
 
     public function tandaterima() {
@@ -249,7 +249,7 @@ class Permohonan extends Model
     }
 
     public function signature(){
-        return $this->belongsTo(User::class, 'ttd_by', 'id');
+        return $this->belongsTo(User::class, 'ttd_by', 'id')->withTrashed()->withTrashed();
     }
 
     /**

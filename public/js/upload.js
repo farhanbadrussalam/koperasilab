@@ -21,6 +21,7 @@ class UploadComponent {
             urlUpload: options.urlUpload ?? false,
             multiple: options.multiple ?? true,
             maxSize: options.maxSize ?? 1, // default 10MB
+            resolution: options.resolution ?? false,
             preview: {
                 width: options.preview?.width ?? 100,
                 height: options.preview?.height ?? 100,
@@ -283,8 +284,13 @@ class UploadComponent {
         }
         preview.style.cursor = 'pointer';
         preview.onclick = () => {
-            $('#modal-preview-image').attr('src', src);
-            $('#modal-preview').modal('show');
+            const showImage = document.createElement('a');
+            showImage.href = src;
+            showImage.className = 'show-popup-image d-none';
+            document.body.appendChild(showImage);
+            showPopupReload();
+            $(showImage).trigger('click');
+            setTimeout(() => showImage.remove(), 500);
         }
 
         const btnRemove = document.createElement('button');
@@ -421,9 +427,10 @@ class UploadComponent {
 
             // menampilkan max size file
             const maxSize = this.options.maxSize;
+            const resolution = this.options.resolution;
             const textMaxSize = document.createElement('span');
             textMaxSize.classList.add('text-submain', 'caption');
-            textMaxSize.innerHTML = `<div>Max size file: ${maxSize} MB</div>`;
+            textMaxSize.innerHTML = `<div>Max size file: ${maxSize} MB ${resolution ? `(Resolution: ${resolution})` : ''}</div>`;
             textAllowedExtensions.appendChild(textMaxSize);
 
             // menampilkan template jika ada

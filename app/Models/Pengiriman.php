@@ -133,15 +133,15 @@ class Pengiriman extends Model
     }
 
     public function ekspedisi(){
-        return $this->belongsTo(Master_ekspedisi::class, 'id_ekspedisi', 'id_ekspedisi');
+        return $this->belongsTo(Master_ekspedisi::class, 'id_ekspedisi', 'id_ekspedisi')->withTrashed();
     }
 
     public function tujuan(){
-        return $this->belongsTo(User::class, 'tujuan', 'id');
+        return $this->belongsTo(User::class, 'tujuan', 'id')->withTrashed();
     }
 
     public function tujuan_pengiriman(){
-        return $this->belongsTo(User::class, 'tujuan', 'id');
+        return $this->belongsTo(User::class, 'tujuan', 'id')->withTrashed();
     }
 
     public function logs(){

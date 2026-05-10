@@ -71,6 +71,6 @@ class Master_tld extends Model
 
     public function pemilik()
     {
-        return $this->belongsTo(Perusahaan::class, 'kepemilikan', 'id_perusahaan');
+        return $this->belongsTo(Perusahaan::class, 'kepemilikan', 'id_perusahaan')->withTrashed();
     }
 }

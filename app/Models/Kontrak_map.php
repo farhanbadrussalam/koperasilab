@@ -48,6 +48,6 @@ class Kontrak_map extends Model
 
     public function tld()
     {
-        return $this->belongsTo(Master_tld::class, 'id_tld');
+        return $this->belongsTo(Master_tld::class, 'id_tld')->withTrashed();
     }
 }

@@ -945,7 +945,7 @@ if(!function_exists('uploadSignatur')) {
         $imageTypeAux = explode("image/", $imageParts[0]);
         $imageBase64 = base64_decode($imageParts[1]);
 
-        Master_ttd::where('user_id', $user->id)->update(['status' => 99]);
+        Master_ttd::where('user_id', $user->id)->get()->each->delete();
 
         $params = [
             'user_id' => $user->id,

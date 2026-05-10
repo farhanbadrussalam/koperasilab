@@ -155,7 +155,9 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPerusahaan/{kode}', 'getPerusahaanByKode');
         Route::get('/getPerusahaanById/{idPerusahaan}', 'getPerusahaanById');
         Route::post('/uploadSuratKuasa', 'uploadSuratKuasa');
+        Route::post('/uploadStempel', 'uploadStempel');
         Route::delete('/destroySuratKuasa/{idPerusahaan}/{idMedia}', 'destroySuratKuasa');
+        Route::delete('/destroyStempel/{idPerusahaan}/{idMedia}', 'destroyStempel');
         Route::get('/getHistoryPic/{idPerusahaan}', 'getHistoryPic');
     });
 

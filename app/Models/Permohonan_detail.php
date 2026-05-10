@@ -57,11 +57,11 @@ class Permohonan_detail extends Model
 
     public function tld()
     {
-        return $this->hasOne(Master_tld::class, 'id_tld', 'id_tld');
+        return $this->hasOne(Master_tld::class, 'id_tld', 'id_tld')->withTrashed();
     }
 
     public function penggunaLama()
     {
-        return $this->hasOne(Master_pengguna::class, 'id_pengguna', 'pengguna_lama');
+        return $this->hasOne(Master_pengguna::class, 'id_pengguna', 'pengguna_lama')->withTrashed();
     }
 }

@@ -37,11 +37,11 @@ class Users_request extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user', 'id');
+        return $this->belongsTo(User::class, 'id_user', 'id')->withTrashed();
     }
 
     public function perusahaan()
     {
-        return $this->belongsTo(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
+        return $this->belongsTo(Perusahaan::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
 }

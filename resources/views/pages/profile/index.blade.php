@@ -294,6 +294,21 @@
                                             </div>
                                         </div>
 
+                                        <div class="col-12" id="card-upload-stempel">
+                                            <div class="card border-0 shadow-sm rounded-4">
+                                                <div class="card-header bg-white py-3 border-bottom rounded-top-4">
+                                                    <h6 class="m-0 fw-bold text-dark">
+                                                        <i class="bi bi-upload me-2 text-primary"></i>Upload Stempel
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body p-2 px-4">
+                                                    <div class="col-md-12">
+                                                        <div id="upload-stempel"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         {{-- div untuk KOP Surat instansi --}}
                                         <div class="col-12" id="card-kop-surat">
                                             <div class="card border-0 shadow-sm rounded-4">

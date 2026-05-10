@@ -57,8 +57,7 @@ class Perusahaan extends Model
         'kode_perusahaan',
         'email',
         'status',
-        'surat_kuasa',
-        'confirm_at',
+        'stempel',
     ];
 
     protected $hidden = [
@@ -73,8 +72,7 @@ class Perusahaan extends Model
     protected $casts = [
         'status' => 'integer',
         'id_perusahaan' => 'integer',
-        'confirm_by' => 'integer',
-        'surat_kuasa' => 'integer',
+        'stempel' => 'integer',
     ];
 
     public function getPerusahaanHashAttribute()
@@ -94,16 +92,16 @@ class Perusahaan extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
-    }
-
-    public function suratkuasa()
-    {
-        return $this->hasMany(Master_media::class, 'id', 'surat_kuasa');
+        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
 
     public function history_pic()
     {
-        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
+        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
+    }
+
+    public function stempel_perusahaan()
+    {
+        return $this->hasOne(Master_media::class, 'id', 'stempel');
     }
 }

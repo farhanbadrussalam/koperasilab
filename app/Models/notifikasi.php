@@ -49,10 +49,10 @@ class notifikasi extends Model
     ];
 
     public function getRecipient(){
-        return $this->hasOne(User::class, 'id', 'recipient');
+        return $this->hasOne(User::class, 'id', 'recipient')->withTrashed();
     }
 
     public function getSender(){
-        return $this->hasOne(User::class, 'id', 'sender');
+        return $this->hasOne(User::class, 'id', 'sender')->withTrashed();
     }
 }

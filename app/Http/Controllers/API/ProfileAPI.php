@@ -600,4 +600,51 @@ class ProfileAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
+
+    public function uploadStempel(Request $request)
+    {
+        // TODO: Implement uploadStempel() method.
+        DB::beginTransaction();
+        try {
+            $file = $request->file('file');
+            $idPerusahaan = decryptor($request->idHash);
+
+            $fileUpload = $this->media->upload($file, 'stempel');
+            Perusahaan::where('id_perusahaan', $idPerusahaan)->update(array('stempel' => $fileUpload->getIdMedia()));
+            DB::commit();
+
+            $fileUpload->store();
+
+            $mediaStempel = $this->media->get($fileUpload->getIdMedia());
+            return $this->output(array('msg' => 'Stempel berhasil diupload', 'data' => $mediaStempel));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroyStempel(string $idHash, string $idMedia)
+    {
+        $idMedia = decryptor($idMedia);
+        $idHash = decryptor($idHash);
+
+        DB::beginTransaction();
+        try {
+            $idPerusahaan = $idHash;
+            $update = Perusahaan::where('id_perusahaan', $idPerusahaan)->update(array('stempel' => null));
+            $this->media->destroy($idMedia);
+            DB::commit();
+
+            if ($update) {
+                return $this->output(array('msg' => 'Stempel berhasil dihapus'));
+            }
+
+            return $this->output(array('msg' => 'Stempel gagal dihapus'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
 }

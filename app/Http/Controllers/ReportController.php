@@ -61,6 +61,44 @@ class ReportController extends Controller
 
         return $bytes;
     }
+    public function template_default(String $jenis, String $id){
+        $idTemplate = decryptor($id);
+        $name_template = '';
+        $variables = [];
+        $htmlKeys = [];
+        $template = null;
+        $title = '';
+        if($jenis == 'kop_surat'){
+            $name_template = 'KopSuratDefault';
+            $template = Documents::where('name', $name_template)->first();
+            $header = Documents::where('id_doc', $idTemplate)->first();
+
+            $template->header = $header;
+            $users = Auth::user();
+
+            $stempel = $users->perusahaan?->stempel_perusahaan;
+            $url_stempel = "";
+            if($stempel){
+                $url_stempel = "data:image/png;base64," . base64_encode(file_get_contents(public_path('storage/'.$stempel->file_path.'/'.$stempel->file_hash)));
+            }
+
+            $variables['TTD'] = $users->ttd_image ? "
+                <div style='text-align: center;'>
+                    <img src='$url_stempel' class='img-fluid img-stempel' alt='Stempel-Lab'>
+                    <img src='{$users->ttd_image}' alt='TTD_keuangan' width='100px' height='100px'>
+                </div>
+            " : "<br><br><br>";
+
+            $variables['TTD_BY'] = $users->name;
+            $htmlKeys = ['TTD'];
+            $title = 'Dummy Kop Surat';
+        }
+
+        // generate pdf
+        $bytes = $this->generatePDF($title, $template, $variables, $htmlKeys);
+
+        return $bytes->stream('dummy.pdf');
+    }
     public function invoice(String $id)
     {
         $idKeuangan = decryptor($id);
@@ -289,8 +327,8 @@ class ReportController extends Controller
                 }
                 $vars["JUDUL"] = "TANDA TERIMA PENGUJIAN/KALIBRASI";
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
-                $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
-                $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
+                $vars["PERUSAHAAN"] = $data->pelanggan?->perusahaan->nama_perusahaan;
+                $vars["ALAMAT"] = $data->pelanggan?->perusahaan->alamat[0]->alamat;
                 $vars["JENIS_PENGUJIAN"] = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
                 $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol";
                 $vars["PERIODE"] = ($data->periode > 0 ? "Periode ". $data->periode : "Periode zero cek");
@@ -305,7 +343,7 @@ class ReportController extends Controller
                 $vars["JENIS_LAYANAN"] = $data->jenis_layanan->name;
                 $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
                 $vars["JENIS_TLD"] = $data->jenisTld->name;
-                $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
+                $vars["PERUSAHAAN"] = $data->pelanggan?->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
                 $vars["KODE_POS"] = $data->pelanggan->perusahaan->alamat[0]->kode_pos;
                 $vars["TELEPON"] = $data->pelanggan->profile->no_hp;

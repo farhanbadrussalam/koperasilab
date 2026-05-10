@@ -98,7 +98,7 @@ class Penyelia_petugas extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user', 'id');
+        return $this->belongsTo(User::class, 'id_user', 'id')->withTrashed();
     }
 
     public function penyelia_map()

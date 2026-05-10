@@ -173,7 +173,7 @@ class Detail {
                     jenis_layanan: this.data.jenis_layanan.name ?? '-',
                     jenis_layanan_parent: this.data.jenis_layanan_parent?.name ?? '-',
                     pelanggan: this.data.pelanggan?.name ?? '-',
-                    perusahaan: this.data.pelanggan.perusahaan?.nama_perusahaan ?? '-',
+                    perusahaan: this.data.pelanggan?.perusahaan?.nama_perusahaan ?? '-',
                     status: this.data.status ?? '-',
                     jmlKontrol: this.data.jumlah_kontrol ?? 0,
                     total_harga: this.data.total_harga ?? 0,
@@ -304,7 +304,7 @@ class Detail {
     }
 
     _renderSkeleton() {
-        if(this.options.jenis == 'history_pic'){
+        if (this.options.jenis == 'history_pic') {
             const skeletonItem = `
                 <div class="tl-item">
                     <div class="tl-dot border-secondary-subtle"></div>
@@ -420,7 +420,7 @@ class Detail {
         $(`#${this.options.id}-title`).text(`${this.info.layananJasa} - ${this.info.jenisTld}`);
 
         let htmlPeriode = !this.info.periodeNow ? `Zero Check` : 'Periode ' + this.info.periodeNow;
-        if(this.info.periodeNow && this.info.is_have_tld && this.info.is_zerocek) {
+        if (this.info.periodeNow && this.info.is_have_tld && this.info.is_zerocek) {
             htmlPeriode += ' + Zero Check';
         }
         container.innerHTML = `
@@ -849,7 +849,7 @@ class Detail {
                 }
 
                 let adendumActive = ['permohonan', 'penyelia'];
-                if(item.type == 'ganti' && adendumActive.includes(this.options.jenis)){
+                if (item.type == 'ganti' && adendumActive.includes(this.options.jenis)) {
                     dataCard['name'] = item.pengguna_lama?.name;
                     dataCard['pengguna_baru'] = {
                         name: pengguna.name,
@@ -899,11 +899,11 @@ class Detail {
                 break;
             case 'pengiriman':
                 this.data?.kontrak.document_kontrak && (dataDokumen = this.data.kontrak.document_kontrak);
-                if(this.data.permohonan){
+                if (this.data.permohonan) {
                     dataDokumen = dataDokumen.concat(this.data.permohonan.dokumen);
                 }
 
-                if(this.data.dokumen){
+                if (this.data.dokumen) {
                     dataDokumen = dataDokumen.concat(this.data.dokumen);
                 }
 
@@ -916,7 +916,7 @@ class Detail {
                 break;
         }
         let exceptDoc = [];
-        if(role.includes('Pelanggan')){
+        if (role.includes('Pelanggan')) {
             exceptDoc = [
                 'surattugas'
             ];
@@ -924,7 +924,7 @@ class Detail {
 
         for (const [i, dokumen] of dataDokumen.entries()) {
             let idHash = false;
-            if(exceptDoc.includes(dokumen.jenis)) continue;
+            if (exceptDoc.includes(dokumen.jenis)) continue;
             switch (dokumen.jenis) {
                 case 'invoice':
                     idHash = invoiceData?.keuangan_hash;
@@ -936,7 +936,7 @@ class Detail {
                     idHash = kontrak_hash;
                     break;
                 case 'surpeng':
-                    idHash = kontrak_hash+'/'+periode;
+                    idHash = kontrak_hash + '/' + periode;
                     break;
                 default:
                     idHash = dataPermohonan.permohonan_hash;
@@ -970,7 +970,7 @@ class Detail {
     }
 
     createDokumenLhuContent() {
-        if(!this.data.media) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada dokumen</p>';
+        if (!this.data.media) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada dokumen</p>';
 
         return printMedia(this.data.media, false, { size: true, date: true, isHtml: true });
     }
@@ -1038,7 +1038,7 @@ class Detail {
             `
         });
 
-        if(dataLog.length == 0){
+        if (dataLog.length == 0) {
             return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada log</p>';
         }
 
@@ -1053,7 +1053,7 @@ class Detail {
         let data = this.data;
         if (this.data.tipe_kontrak == 'kontrak lama' || this.data.tipe_kontrak == 'adendum') {
             let findPeriode = data.kontrak?.periode.find(periode => periode.periode == data.periode);
-            if(findPeriode){
+            if (findPeriode) {
                 htmlPeriode = `
                     <div class="card mb-1">
                         <div class="card-body p-1 px-3">
@@ -1068,7 +1068,7 @@ class Detail {
                 htmlPeriode = `<span class="text-danger">Periode tidak ditemukan</span>`;
             }
         } else {
-            if(this.info.periodePemakaian && this.info.periodePemakaian.length > 0){
+            if (this.info.periodePemakaian && this.info.periodePemakaian.length > 0) {
                 for (const [i, periode] of this.info.periodePemakaian.entries()) {
                     htmlPeriode += `
                         <div class="card mb-1">
@@ -1083,7 +1083,7 @@ class Detail {
                 }
             } else {
                 for (const [i, periode] of this.info.periodeNow.entries()) {
-                    if(periode.periode == 0) continue;
+                    if (periode.periode == 0) continue;
                     htmlPeriode += `
                         <div class="card mb-1">
                             <div class="card-body p-1 px-3">
@@ -1208,26 +1208,26 @@ class Detail {
     }
     createAlamatContent() {
         const alamatarr = this.info?.alamat ?? [];
-        if(alamatarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada alamat</p>';
+        if (alamatarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada alamat</p>';
 
         return `
             <ul class="list-group list-group-flush">
                 ${alamatarr.map((data, i) => {
-                    if(data.status == 1){
-                        return `
+            if (data.status == 1) {
+                return `
                             <li class="list-group-item">
                                 <div class="fw-bold">${data.jenis}</div>
                                 <div class="text-body-secondary">${data.alamat ?? '-'}</div>
                             </li>
                         `;
-                    }
-                }).join('')}
+            }
+        }).join('')}
             </ul>
         `;
     }
     createKaryawanContent() {
         const karyawanarr = this.info?.karyawan ?? [];
-        if(karyawanarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada karyawan</p>';
+        if (karyawanarr.length == 0) return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada karyawan</p>';
 
         karyawanarr.sort((a, b) => {
             if (a.status > b.status) return 1;
@@ -1239,18 +1239,18 @@ class Detail {
             <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#add-modal-pic"><span class="bi bi-plus"></span> Ganti pic</button>
             <ul class="list-group list-group-flush rounded mt-2">
                 ${karyawanarr.map((data, i) => {
-                    let docSuratKuasa = '';
-                    if(data.profile?.suratkuasa){
-                        let urlDocumen = `${base_url}/storage/${data.profile.suratkuasa.file_path}/${data.profile.suratkuasa.file_hash}`;
-                        docSuratKuasa = `<a type="button" class="btn btn-sm btn-outline-info" href="${urlDocumen}" target="_blank" title="Dokumen Surat Kuasa"><span class="bi bi-file-earmark-text"></span></a>`;
-                    }
+            let docSuratKuasa = '';
+            if (data.profile?.suratkuasa) {
+                let urlDocumen = `${base_url}/storage/${data.profile.suratkuasa.file_path}/${data.profile.suratkuasa.file_hash}`;
+                docSuratKuasa = `<a type="button" class="btn btn-sm btn-outline-info" href="${urlDocumen}" target="_blank" title="Dokumen Surat Kuasa"><span class="bi bi-file-earmark-text"></span></a>`;
+            }
 
-                    let htmlTglKeluar = '';
-                    if(data.selesai_at){
-                        htmlTglKeluar = `| Tgl keluar : ${dateFormat(data.selesai_at, 4)}`;
-                    }
+            let htmlTglKeluar = '';
+            if (data.selesai_at) {
+                htmlTglKeluar = `| Tgl keluar : ${dateFormat(data.selesai_at, 4)}`;
+            }
 
-                    return `
+            return `
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 <div class="fw-bold">${data.name} ${data.status == 1 ? '<span class="badge text-bg-success">Aktif</span>' : '<span class="badge text-bg-secondary">Tidak aktif</span>'}</div>
@@ -1260,13 +1260,13 @@ class Detail {
                             ${docSuratKuasa}
                         </li>
                     `;
-                }).join('')}
+        }).join('')}
             </ul>
         `;
     }
     createSuratKuasaContent() {
         let dokumen = this.info.suratkuasa;
-        if(dokumen.length > 0){
+        if (dokumen.length > 0) {
             return `
                 <div class="card mb-1">
                     <div class="card-body p-1 px-3 d-flex justify-content-between align-items-center">
@@ -1300,7 +1300,7 @@ class Detail {
 
             let i = 1;
             for (const kontrol of arrKontrol) {
-                if(kontrol.tld){
+                if (kontrol.tld) {
                     htmlKontrol += `
                         <li class="list-group-item d-flex justify-content-between">
                             <div>
@@ -1315,7 +1315,7 @@ class Detail {
             }
 
             for (const pengguna of arrPengguna) {
-                if(pengguna.tld){
+                if (pengguna.tld) {
                     htmlPengguna += `
                         <li class="list-group-item d-flex justify-content-between">
                             <div>
@@ -1329,7 +1329,7 @@ class Detail {
                 }
             }
 
-            if(htmlKontrol == '' && htmlPengguna == '') {
+            if (htmlKontrol == '' && htmlPengguna == '') {
                 return '<p class="text-center text-muted mt-3 w-100 fs-6 fw-bold">Tidak ada TLD</p>';
             } else {
                 return `

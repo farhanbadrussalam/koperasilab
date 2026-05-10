@@ -108,7 +108,7 @@ class Penyelia_map extends Model
 
     public function doneBy()
     {
-        return $this->belongsTo(User::class, 'done_by', 'id');
+        return $this->belongsTo(User::class, 'done_by', 'id')->withTrashed();
     }
 
     public function penyelia()

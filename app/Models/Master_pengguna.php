@@ -122,11 +122,11 @@ class Master_pengguna extends Model
 
     public function perusahaan()
     {
-        return $this->belongsTo(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
+        return $this->belongsTo(Perusahaan::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
 
     public function divisi()
     {
-        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi');
+        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi')->withTrashed();
     }
 }

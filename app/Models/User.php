@@ -132,7 +132,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function tld()
     {
-        return $this->hasOne(Master_ttd::class, 'user_id')->where('status', 1);
+        return $this->hasOne(Master_ttd::class, 'user_id')->where('status', 1)->withTrashed();
     }
     public function getUserHashAttribute()
     {
@@ -193,10 +193,10 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     public function perusahaan(){
-        return $this->hasOne(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
+        return $this->hasOne(Perusahaan::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
     public function profile(){
-        return $this->hasOne(Profile::class, 'user_id', 'id');
+        return $this->hasOne(Profile::class, 'user_id', 'id')->withTrashed();
     }
 
     public function penyelia_petugas(){

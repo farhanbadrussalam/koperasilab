@@ -228,7 +228,7 @@ class Kontrak extends Model
     }
 
     public function pelanggan() {
-        return $this->belongsTo(User::class, 'id_pelanggan', 'id');
+        return $this->belongsTo(User::class, 'id_pelanggan', 'id')->withTrashed();
     }
 
     public function periode(){
@@ -248,11 +248,11 @@ class Kontrak extends Model
     }
 
     public function tld_aktif(){
-        return $this->hasMany(Master_tld::class, 'digunakan', 'no_kontrak');
+        return $this->hasMany(Master_tld::class, 'digunakan', 'no_kontrak')->withTrashed();
     }
 
     public function signature(){
-        return $this->belongsTo(User::class, 'ttd_by', 'id');
+        return $this->belongsTo(User::class, 'ttd_by', 'id')->withTrashed();
     }
 
     public function dokumen(){

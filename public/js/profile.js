@@ -1,6 +1,8 @@
 let signaturePad;
 let _uploadSuratKuasa = false;
 let detail = false;
+let uploadStempel = false;
+let modalDoc = new ModalDocument();
 $(function () {
     loadForm(profile);
     loadInstansi(profile);
@@ -18,6 +20,20 @@ $(function () {
             tabButton.click();
         }
     }
+
+    // upload stempel
+    uploadStempel = new UploadComponent('upload-stempel', {
+        camera: false,
+        allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg'],
+        data: profile?.perusahaan?.stempel_perusahaan ? [profile?.perusahaan?.stempel_perusahaan] : [],
+        multiple: false,
+        urlUpload: {
+            url: `api/v1/profile/uploadStempel`,
+            urlDestroy: `api/v1/profile/destroyStempel`,
+            idHash: profile.perusahaan?.perusahaan_hash
+        }
+    })
+
     $('#btn-upload-ttd').click(function () {
         if (signaturePad.isEmpty()) {
             return Swal.fire({
@@ -34,7 +50,7 @@ $(function () {
         formData.append('idProfile', profile.user_hash);
         ajaxPost(`api/v1/profile/action`, formData, result => {
             if (result.meta.code == 200) {
-                profile.ttd = ttd;
+                profile.ttd_image = result.data.ttd_image;
                 loadForm(profile);
                 spinner('hide', $(this));
             }
@@ -727,7 +743,7 @@ function createTabel(data) {
             <tr>
                 <td class="d-flex align-items-center gap-2">${index + 1}. ${item.name} ${isActive == 1 ? '<span class="badge bg-success">Aktif</span>' : ''}</td>
                 <td class="text-end">
-                    <button class="btn btn-sm btn-info" onclick="openModalKopSurat('show','${item.doc_hash}')"><i class="bi bi-eye"></i></button>
+                    <button class="btn btn-sm btn-info" data-id="${item.doc_hash}" data-title="${item.name}" onclick="previewKopSurat(this)"><i class="bi bi-eye"></i></button>
                     <button class="btn btn-sm btn-warning" onclick="openModalKopSurat('edit','${item.doc_hash}')"><i class="bi bi-pencil-square"></i></button>
                     <button class="btn btn-sm btn-danger" onclick="deleteKopSurat('${item.doc_hash}')"><i class="bi bi-trash"></i></button>
                 </td>
@@ -750,5 +766,13 @@ function deleteKopSurat(hash) {
         })
     }, err => {
         console.error(err);
+    });
+}
+
+function previewKopSurat(obj) {
+    const id = $(obj).data('id');
+    const title = $(obj).data('title') || 'Dokumen';
+    modalDoc.show(`laporan/template_default/kop_surat/${id}`, {
+        title: title
     });
 }

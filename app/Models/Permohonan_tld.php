@@ -110,11 +110,11 @@ class Permohonan_tld extends Model
 
     public function pengguna()
     {
-        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna');
+        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna')->withTrashed();
     }
 
     public function divisi()
     {
-        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi');
+        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi')->withTrashed();
     }
 }

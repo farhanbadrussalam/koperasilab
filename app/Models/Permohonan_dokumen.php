@@ -122,7 +122,7 @@ class Permohonan_dokumen extends Model
     }
 
     public function doc_template(){
-        return $this->belongsTo(Documents::class, 'id_doc_template', 'id_doc');
+        return $this->belongsTo(Documents::class, 'id_doc_template', 'id_doc')->withTrashed();
     }
 
     public function usersig(){

@@ -72,7 +72,7 @@ class Kontrak_pengguna extends Model
     }
 
     public function tld_pengguna(){
-        return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
+        return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld')->withTrashed();
     }
 
     public function kontrak_tld(){
@@ -80,6 +80,6 @@ class Kontrak_pengguna extends Model
     }
 
     public function pengguna(){
-        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna');
+        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna')->withTrashed();
     }
 }

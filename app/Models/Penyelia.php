@@ -157,7 +157,7 @@ class Penyelia extends Model
     }
 
     public function usersig(){
-        return $this->belongsTo(User::class, 'ttd_by', 'id');
+        return $this->belongsTo(User::class, 'ttd_by', 'id')->withTrashed();
     }
 
     public function logs(){
@@ -182,7 +182,7 @@ class Penyelia extends Model
     }
 
     public function createBy(){
-        return $this->belongsTo(User::class, 'created_by', 'id');
+        return $this->belongsTo(User::class, 'created_by', 'id')->withTrashed();
     }
 
     public function dokumen(){

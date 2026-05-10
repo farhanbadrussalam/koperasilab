@@ -134,11 +134,11 @@ class Documents extends Model
 
     public function footer()
     {
-        return $this->belongsTo(Documents::class, 'id_footer', 'id_doc');
+        return $this->belongsTo(Documents::class, 'id_footer', 'id_doc')->withTrashed();
     }
 
     public function header()
     {
-        return $this->belongsTo(Documents::class, 'id_header', 'id_doc');
+        return $this->belongsTo(Documents::class, 'id_header', 'id_doc')->withTrashed();
     }
 }
