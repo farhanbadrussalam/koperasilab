@@ -1644,28 +1644,43 @@ class ReportController extends Controller
         return $bytes->stream($filename);
     }
 
-    public function contentPermohonanAdendum($data, $params) {
-        $html = "";
-        foreach($data->permohonan_detail as $key => $value) {
-            $col1 = "";
-            $col2 = "";
-            if($value->type == 'baru') {
-                if($value->jenis == 'pengguna') {
-                    $col1 = $value->entitas->name;
-                    $col2 = '';
-                } else {
-                    $col1 = "TLD Kontrol " . $key + 1;
-                }
-            } else {
-                $col1 = $value->entitas->name . ' (Pengganti ' . $value->penggunaLama->name . ')';
-                $col2 = '';
-            }
-            $html .= '
+    private function resolveRadiasiLabel($entitas): string
+    {
+        $radiasi = $entitas->radiasi ? $entitas->radiasi->toArray() : [];
+        return implode(', ', array_column($radiasi, 'nama_radiasi'));
+    }
+
+    private function resolveEntitasColumns($value, int $key): array
+    {
+        $col1 = $col2 = $col3 = '';
+
+        if ($value->jenis !== 'pengguna') {
+            $col1 = "TLD Kontrol " . ($key + 1);
+            return [$col1, $col2, $col3];
+        }
+
+        $entitas = $value->entitas;
+        $suffix  = ($value->type === 'baru') ? '' : ' (Pengganti ' . $value->penggunaLama->name . ')';
+
+        $col1 = $entitas->name . $suffix;
+        $col2 = $entitas->divisi->name ?? '';
+        $col3 = $this->resolveRadiasiLabel($entitas);
+
+        return [$col1, $col2, $col3];
+    }
+
+    public function contentPermohonanAdendum($data, $params): array
+    {
+        $rows = '';
+        foreach ($data->permohonan_detail as $key => $value) {
+            [$col1, $col2, $col3] = $this->resolveEntitasColumns($value, $key);
+
+            $rows .= '
                 <tr>
                     <td>' . ($key + 1) . '</td>
                     <td>' . $col1 . '</td>
                     <td>' . $col2 . '</td>
-                    <td></td>
+                    <td>' . $col3 . '</td>
                 </tr>
             ';
         }
@@ -1679,7 +1694,7 @@ class ReportController extends Controller
                         <th width="10%">Divisi</th>
                         <th width="20%">Zat Radioaktif/Energi yang digunakan</th>
                     </tr>
-                    '.$html.'
+                    ' . $rows . '
                 </table>
             '
         ];
