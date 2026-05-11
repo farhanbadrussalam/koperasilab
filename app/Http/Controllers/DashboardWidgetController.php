@@ -141,6 +141,13 @@ class DashboardWidgetController extends Controller
                 $countTldPengguna = $countTld->get('pengguna', 0);
                 $countTldKontrol = $countTld->get('kontrol', 0);
 
+                if($user->id_perusahaan == null){
+                    $countTldPengguna = 0;
+                    $countTldKontrol = 0;
+                    $countTerpakai = 0;
+                    $countTersedia = 0;
+                }
+
                 $html = view('components.dashboard.summary-cards', [
                     'icon' => 'bi-motherboard',
                     'text' => 'TLD',

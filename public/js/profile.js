@@ -343,7 +343,7 @@ function loadInstansi(data) {
             $('#icon-status-instansi').html('<i class="bi bi-hourglass-split text-warning" style="font-size: 4rem;"></i>');
             $('#title-status-instansi').html('Proses Verifikasi');
             $('#title-status-instansi').removeClass('text-danger').addClass('text-dark');
-            $('#desc-status-instansi').html('Data instansi Anda sedang dalam proses verifikasi oleh tim kami. Silakan tunggu beberapa saat');
+            $('#desc-status-instansi').html('Data instansi Anda sedang dalam proses verifikasi oleh tim kami. Silakan tunggu beberapa saat.');
             $('#action-status-instansi').html('');
         } else {
             $('#icon-status-instansi').html('<i class="bi bi-building-exclamation text-info" style="font-size: 4rem;"></i>');

@@ -3,16 +3,24 @@
     $dashboardActive = true;
     $user = auth()->user();
     $newPic = null;
+    $changePIC = false;
+    $verifyUser = false;
 
     $rolePelanggan = $user->hasRole('Pelanggan');
     // status 2 = PIC tidak aktif
     if ($rolePelanggan && $user->status == 2) {
         $dashboardActive = false;
+        $changePIC = true;
         // Cari PIC baru yang aktif (status 1) di perusahaan yang sama.
         // Pastikan relasi 'perusahaan' dan 'pengguna' sudah terdefinisi di model User.
         if ($user->perusahaan) {
             $newPic = $user->perusahaan->pic->name;
         }
+    }
+
+    if($rolePelanggan && $user->id_perusahaan == null) {
+        $verifyUser = true;
+        $dashboardActive = false;
     }
 @endphp
 
@@ -277,22 +285,176 @@
             </div>
         </div>
     </div>
-    @else
-        <div class="card shadow-sm border-0 rounded-4">
-            <div class="card-body text-center p-lg-5">
-                <i class="fas fa-user-tie fa-4x text-primary mb-4"></i>
-                <h4 class="card-title">Pergantian PIC Terdeteksi</h4>
-                <p class="card-text text-muted">
-                    Anda sudah tidak terdaftar sebagai PIC untuk
-                    <strong>{{ $user->perusahaan?->nama_perusahaan ?? 'perusahaan ini' }}</strong>.
-                    <br>
-                    Saat ini PIC yang aktif adalah
-                    <strong>{{ $newPic ?? 'pengguna lain' }}</strong>.
-                </p>
-                <p class="card-text text-muted small mt-4">
-                    Dasbor dan fitur terkait tidak dapat diakses. Silakan hubungi administrator jika Anda merasa ini
-                    adalah sebuah kesalahan.
-                </p>
+    @elseif($changePIC)
+        {{-- ===================== CHANGE PIC SCREEN ===================== --}}
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 p-lg-5">
+                <div class="row align-items-center g-4">
+
+                    {{-- Kiri: ikon + judul --}}
+                    <div class="col-lg-5 text-center text-lg-start">
+                        <span class="badge rounded-pill bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 mb-3 px-3 py-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Perubahan PIC
+                        </span>
+                        <div class="mb-4">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning bg-opacity-10"
+                                  style="width:90px;height:90px;font-size:2.2rem;">
+                                <i class="fas fa-user-slash text-warning"></i>
+                            </span>
+                        </div>
+                        <h4 class="fw-bold mb-2">Pergantian PIC Terdeteksi</h4>
+                        <p class="text-muted mb-4 lh-lg">
+                            Akses dasbor Anda dibatasi karena perubahan PIC pada instansi terdaftar.
+                        </p>
+                        <a href="mailto:admin@example.com"
+                           class="btn btn-outline-warning d-inline-flex align-items-center gap-2 rounded-3">
+                            <i class="fas fa-headset"></i> Hubungi Administrator
+                        </a>
+                    </div>
+
+                    {{-- Kanan: info card --}}
+                    <div class="col-lg-7">
+                        <div class="row g-3 mb-3">
+                            <div class="col-12">
+                                <div class="rounded-3 p-3 bg-light border">
+                                    <div class="text-uppercase text-muted small mb-1" style="letter-spacing:.07em;font-size:.72rem">
+                                        <i class="fas fa-building me-1"></i> Instansi
+                                    </div>
+                                    <div class="fw-semibold">
+                                        {{ $user->perusahaan?->nama_perusahaan ?? 'Perusahaan tidak diketahui' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="rounded-3 p-3 bg-light border">
+                                    <div class="text-uppercase text-muted small mb-1" style="letter-spacing:.07em;font-size:.72rem">
+                                        <i class="fas fa-user me-1"></i> Akun Anda
+                                    </div>
+                                    <div class="fw-semibold">{{ $user->name }}</div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="rounded-3 p-3 bg-light border">
+                                    <div class="text-uppercase text-muted small mb-1" style="letter-spacing:.07em;font-size:.72rem">
+                                        <i class="fas fa-user-check me-1"></i> PIC Aktif Saat Ini
+                                    </div>
+                                    <div class="fw-semibold">{{ $newPic ?? 'Pengguna lain' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rounded-3 p-3 bg-warning bg-opacity-10 border border-warning border-opacity-25">
+                            <p class="mb-0 text-muted small lh-lg">
+                                <i class="fas fa-info-circle me-1 text-warning"></i>
+                                Jika Anda merasa ini adalah kesalahan, silakan hubungi administrator sistem untuk memperbarui status PIC Anda.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    @elseif($verifyUser)
+        {{-- ===================== VERIFY USER SCREEN ===================== --}}
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4 p-lg-5">
+                <div class="row align-items-center g-4">
+
+                    {{-- Kiri: ikon + judul --}}
+                    <div class="col-lg-5 text-center text-lg-start">
+                        <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 mb-3 px-3 py-2">
+                            <i class="fas fa-hourglass-half me-1"></i> Sedang Diproses
+                        </span>
+                        <div class="mb-4">
+                            <span class="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10"
+                                  style="width:90px;height:90px;font-size:2.2rem;">
+                                <i class="fas fa-shield-halved text-primary"></i>
+                            </span>
+                        </div>
+                        <h4 class="fw-bold mb-2">Verifikasi Akun Sedang Berlangsung</h4>
+                        <p class="text-muted mb-4 lh-lg">
+                            Data instansi Anda sedang ditinjau oleh tim kami. Proses ini biasanya memakan waktu 1–3 hari kerja.
+                        </p>
+                        <a href="mailto:admin@example.com"
+                           class="btn btn-outline-primary d-inline-flex align-items-center gap-2 rounded-3">
+                            <i class="fas fa-headset"></i> Hubungi Administrator
+                        </a>
+                    </div>
+
+                    {{-- Kanan: timeline verifikasi --}}
+                    <div class="col-lg-7">
+                        <p class="text-uppercase text-muted small mb-3" style="letter-spacing:.08em;font-size:.72rem">
+                            <i class="fas fa-list-check me-1"></i> Tahapan Verifikasi
+                        </p>
+
+                        <div class="d-flex flex-column gap-2">
+                            {{-- Step 1 --}}
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="d-flex flex-column align-items-center flex-shrink-0">
+                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle border border-success text-success fw-bold bg-success bg-opacity-10"
+                                          style="width:34px;height:34px;font-size:.75rem">
+                                        <i class="fas fa-check" style="font-size:.65rem"></i>
+                                    </span>
+                                    <div class="my-1 border-start border-2" style="min-height:20px"></div>
+                                </div>
+                                <div class="py-1">
+                                    <div class="fw-semibold" style="font-size:.88rem">Pendaftaran Akun</div>
+                                    <div class="text-muted" style="font-size:.78rem">Akun berhasil dibuat dan data awal tersimpan.</div>
+                                </div>
+                            </div>
+                            {{-- Step 2 --}}
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="d-flex flex-column align-items-center flex-shrink-0">
+                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle border border-success text-success fw-bold bg-success bg-opacity-10"
+                                          style="width:34px;height:34px;font-size:.75rem">
+                                        <i class="fas fa-check" style="font-size:.65rem"></i>
+                                    </span>
+                                    <div class="my-1 border-start border-2" style="min-height:20px"></div>
+                                </div>
+                                <div class="py-1">
+                                    <div class="fw-semibold" style="font-size:.88rem">Pengiriman Data Instansi</div>
+                                    <div class="text-muted" style="font-size:.78rem">Data instansi Anda telah diterima sistem.</div>
+                                </div>
+                            </div>
+                            {{-- Step 3 (aktif) --}}
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="d-flex flex-column align-items-center flex-shrink-0">
+                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle border border-primary text-primary fw-bold bg-primary bg-opacity-10"
+                                          style="width:34px;height:34px;font-size:.75rem">
+                                        <i class="fas fa-spinner fa-spin" style="font-size:.65rem"></i>
+                                    </span>
+                                    <div class="my-1 border-start border-2 border-secondary border-opacity-25" style="min-height:20px"></div>
+                                </div>
+                                <div class="py-1">
+                                    <div class="fw-semibold d-flex align-items-center gap-2 flex-wrap" style="font-size:.88rem">
+                                        Peninjauan oleh Tim Admin
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25" style="font-size:.7rem">Saat ini</span>
+                                    </div>
+                                    <div class="text-muted" style="font-size:.78rem">Tim kami sedang memverifikasi kelengkapan data Anda.</div>
+                                </div>
+                            </div>
+                            {{-- Step 4 (pending) --}}
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="d-flex flex-column align-items-center flex-shrink-0">
+                                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle fw-bold border text-muted bg-light"
+                                          style="width:34px;height:34px;font-size:.78rem">
+                                        4
+                                    </span>
+                                </div>
+                                <div class="py-1">
+                                    <div class="fw-semibold text-muted" style="font-size:.88rem">Akses Dasbor Aktif</div>
+                                    <div class="text-muted" style="font-size:.78rem">Setelah disetujui, semua fitur akan dapat diakses.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rounded-3 p-3 mt-4 bg-primary bg-opacity-10 border border-primary border-opacity-25">
+                            <p class="mb-0 text-muted small lh-lg">
+                                <i class="fas fa-info-circle me-1 text-primary"></i>
+                                Jika belum ada kabar lebih dari 3 hari kerja, silakan hubungi administrator untuk informasi lebih lanjut.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     @endif

@@ -422,7 +422,8 @@ class ReportController extends Controller
                 $vars["HARGA_AWAL"] = formatCurrency($data->permohonan->total_harga);
                 $vars["PERIODE_AWAL"] = $rangeDate['start'];
                 $vars["PERIODE_SELESAI"] = $rangeDate['end'];
-                $vars["TGL_BUAT"] = convert_date($data->permohonan->kontrak->dokumen[0]->created_at, 2);
+                // $vars["TGL_BUAT"] = convert_date($data->permohonan->kontrak->dokumen[0]->created_at, 2);
+                $vars["TGL_BUAT"] = convert_date($data->paid_at, 2);
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["LOKASI_BUAT"] = "Tangerang Selatan";
                 $vars["TYPE"] = ($data->status == 5 ? 'L' : '') .
