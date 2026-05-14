@@ -40,10 +40,11 @@ use Illuminate\Support\Facades\Auth;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
 Auth::routes();
 Route::get('/', [HomeController::class, 'login']);
 
-Route::middleware(['auth', 'verified'])->group(function() {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('home', [HomeController::class, 'index'])->name('home');
 
     // NEW ROUTE
@@ -67,7 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
     });
 
     Route::prefix('staff')->group(function () {
-        Route::controller(StaffController::class)->group(function() {
+        Route::controller(StaffController::class)->group(function () {
             Route::get('/keuangan', 'indexKeuangan')->middleware(['permission:Staff/keuangan'])->name('staff.keuangan');
             Route::get('/permohonan', 'indexPermohonan')->middleware(['permission:Staff/permohonan'])->name('staff.permohonan');
             Route::get('/permohonan/verifikasi/{idPermohonan}', 'verifikasiPermohonan')->name('staff.permohonan.verifikasi');
@@ -100,7 +101,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
             Route::get('/pengajuan', 'index')->middleware(['permission:Manager/keuangan'])->name('manager.pengajuan');
             Route::get('/surat_tugas', 'indexSuratTugas')->middleware(['permission:Manager/pengajuan'])->name('manager.surat_tugas');
         });
-        Route::controller(StaffController::class)->group(function() {
+        Route::controller(StaffController::class)->group(function () {
             Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
             Route::get('/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.show');
         });
@@ -112,7 +113,7 @@ Route::middleware(['auth', 'verified'])->group(function() {
         });
     });
 
-    Route::prefix('laporan')->group(function() {
+    Route::prefix('laporan')->group(function () {
         Route::controller(ReportController::class)->group(function () {
             Route::get('/surattugas/{id}', 'suratTugas')->name('laporan.surattugas');
             Route::get('/kwitansi/{id}', 'kwitansi')->name('laporan.kwitansi');
@@ -188,19 +189,18 @@ Route::middleware(['auth', 'verified'])->group(function() {
                 Route::get('/finance-inv-active', 'financeInvActive')->name('finance-inv-active');
                 Route::get('/finance-chart-service', 'financeChartService')->name('finance-chart-service');
                 Route::get('/finance-side', 'financeSide')->name('finance-side');
+                Route::get('/expedition-stats', 'expeditionStats')->name('expedition-stats');
 
                 Route::get('/track-search', 'trackSearch')->name('track-search');
             });
         });
         Route::prefix('skeleton')->name('skeleton.')->group(function () {
             Route::controller(dashboardSkeletonController::class)->group(function () {
-                Route::get('/summary-cards', 'summaryCards')->name('summary-cards');
-                Route::get('/statistics-layanan', 'statisticsLayanan')->name('statistics-layanan');
+                Route::get('/summary', 'summary')->name('summary');
+                Route::get('/service-chart', 'serviceChart')->name('service-chart');
                 Route::get('/delivery-stats', 'deliveryStats')->name('delivery-stats');
                 Route::get('/jobs-penyelia', 'jobsPenyelia')->name('jobs-penyelia');
-                Route::get('/monitorPenyeliaan', 'monitorPenyeliaan')->name('monitor-penyeliaan');
-                Route::get('/myJobsList', 'myJobsList')->name('myJobsList');
-                Route::get('/finance-chart-service', 'financeChartService')->name('finance-chart-service');
+                Route::get('/myJobs', 'myJobs')->name('myJobs');
             });
         });
     });

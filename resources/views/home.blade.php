@@ -38,7 +38,7 @@
                     class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="permohonan"
-                    data-skeleton="dashboard/skeleton/summary-cards">
+                    data-skeleton="dashboard/skeleton/summary">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -49,7 +49,7 @@
                     class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="pembayaran"
-                    data-skeleton="dashboard/skeleton/summary-cards">
+                    data-skeleton="dashboard/skeleton/summary">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -60,7 +60,7 @@
                     class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="kontrak"
-                    data-skeleton="dashboard/skeleton/summary-cards">
+                    data-skeleton="dashboard/skeleton/summary">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -71,7 +71,7 @@
                     class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="tld"
-                    data-skeleton="dashboard/skeleton/summary-cards">
+                    data-skeleton="dashboard/skeleton/summary">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -82,7 +82,7 @@
                     class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="penyelia"
-                    data-skeleton="dashboard/skeleton/summary-cards">
+                    data-skeleton="dashboard/skeleton/summary">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -93,7 +93,7 @@
                     class="ajax-widget col-6 summary-active"
                     data-url="dashboard/widgets/summary-cards"
                     data-jenis="petugaslab"
-                    data-skeleton="dashboard/skeleton/summary-cards">
+                    data-skeleton="dashboard/skeleton/summary">
 
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
@@ -105,7 +105,17 @@
                 class="ajax-widget"
                 data-url="dashboard/widgets/statistics-layanan"
                 data-jenis="statisticsLayanan"
-                data-skeleton="dashboard/skeleton/statistics-layanan">
+                data-skeleton="dashboard/skeleton/service-chart">
+
+                <x-dashboard.skeleton.service-chart-skeleton />
+            </div>
+            @endcan
+
+            @canany(['Staff/pengiriman'])
+            <div id="widget-expedisi-stats"
+                class="ajax-widget"
+                data-url="dashboard/widgets/expedition-stats"
+                data-skeleton="dashboard/skeleton/service-chart">
 
                 <x-dashboard.skeleton.service-chart-skeleton />
             </div>
@@ -168,7 +178,7 @@
             <div id="widget-monitor-penyelia"
                 class="ajax-widget"
                 data-url="dashboard/widgets/monitorPenyeliaan"
-                data-skeleton="dashboard/skeleton/monitorPenyelia">
+                data-skeleton="dashboard/skeleton/service-chart">
 
                 <x-dashboard.skeleton.service-chart-skeleton />
             </div>
@@ -180,18 +190,18 @@
                     <div id="widget-finance-inv-active"
                         class="ajax-widget h-100"
                         data-url="dashboard/widgets/finance-inv-active"
-                        data-skeleton="dashboard/skeleton/finance-chart-service">
+                        data-skeleton="dashboard/skeleton/service-chart">
 
-                        <x-dashboard.skeleton.finance-chart-service />
+                        <x-dashboard.skeleton.service-chart-skeleton />
                     </div>
                 </div>
                 <div class="col-12">
                     <div id="widget-finance-charts"
                         class="ajax-widget"
                         data-url="dashboard/widgets/finance-charts"
-                        data-skeleton="dashboard/skeleton/finance-chart-service">
+                        data-skeleton="dashboard/skeleton/finance-chart">
 
-                        <x-dashboard.skeleton.finance-chart-service />
+                        <x-dashboard.skeleton.service-chart-skeleton />
                     </div>
                 </div>
             </div>
@@ -242,7 +252,7 @@
                 <div id="widget-my-jobs"
                     class="ajax-widget"
                     data-url="dashboard/widgets/myJobsList"
-                    data-skeleton="dashboard/skeleton/myJobsList">
+                    data-skeleton="dashboard/skeleton/myJobs">
 
                     <x-dashboard.skeleton.my-jobs-skeleton />
                 </div>
@@ -269,9 +279,9 @@
                     <div id="widget-finance-chart-service"
                         class="ajax-widget h-100"
                         data-url="dashboard/widgets/finance-chart-service"
-                        data-skeleton="dashboard/skeleton/finance-chart-service">
+                        data-skeleton="dashboard/skeleton/service-chart">
 
-                        <x-dashboard.skeleton.finance-chart-service />
+                        <x-dashboard.skeleton.service-chart-skeleton />
                     </div>
                 </div>
                 {{-- <div id="widget-finance-side"

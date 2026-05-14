@@ -63,4 +63,9 @@ class Master_ekspedisi extends Model
     {
         return $this->id_ekspedisi ? encryptor($this->id_ekspedisi) : null;
     }
+
+    public function pengiriman()
+    {
+        return $this->hasMany(Pengiriman::class, 'id_ekspedisi', 'id_ekspedisi');
+    }
 }
