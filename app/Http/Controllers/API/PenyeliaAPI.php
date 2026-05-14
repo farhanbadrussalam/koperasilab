@@ -604,7 +604,7 @@ class PenyeliaAPI extends Controller
                 $status = $tmpArr;
                 $userId = Auth::user()->id;
             } else {
-                $status = [99];
+                $status = [];
             }
         }
 

@@ -55,6 +55,18 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia whereTtd($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia whereTtdBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia whereUpdatedAt($value)
+ * @property int|null $is_pengajuan_signed
+ * @property int|null $is_surat_tugas_signed
+ * @property string|null $verify_surat_tugas_at
+ * @property string|null $verify_pengajuan_at
+ * @property-read \App\Models\Permohonan_dokumen|null $dokumenSuratTugas
+ * @property-read mixed $ttd_image
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Log_proses> $logs
+ * @property-read int|null $logs_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia whereIsPengajuanSigned($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia whereIsSuratTugasSigned($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia whereVerifyPengajuanAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia whereVerifySuratTugasAt($value)
  * @mixin \Eloquent
  */
 class Penyelia extends Model

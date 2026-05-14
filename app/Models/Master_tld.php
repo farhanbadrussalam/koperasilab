@@ -28,6 +28,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereNoSeriTld($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereTanggalPengadaan($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_tld extends Model

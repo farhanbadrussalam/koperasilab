@@ -73,6 +73,18 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereTwoFactorRecoveryCodes($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereTwoFactorSecret($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
+ * @property int|null $verifikasi_perusahaan 1=valid, 2=tidakvalid, null=belum diverifikasi
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read mixed $request_verify_instansi
+ * @property-read mixed $ttd_hash
+ * @property-read mixed $ttd_image
+ * @property-read \App\Models\Penyelia_petugas|null $penyelia_petugas
+ * @property-read \App\Models\Master_ttd|null $tld
+ * @method static \Illuminate\Database\Eloquent\Builder|User onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereVerifikasiPerusahaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|User withoutTrashed()
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements MustVerifyEmail

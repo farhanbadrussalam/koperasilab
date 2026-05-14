@@ -5,6 +5,32 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int|null $id_user
+ * @property int|null $id_perusahaan
+ * @property int|null $status 1=pending 2=approve, 99=tidakvalid
+ * @property string|null $jenis
+ * @property string|null $verify_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read mixed $logs
+ * @property-read mixed $request_user_hash
+ * @property-read \App\Models\Perusahaan|null $perusahaan
+ * @property-read \App\Models\User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request whereIdPerusahaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request whereIdUser($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request whereJenis($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Users_request whereVerifyAt($value)
+ * @mixin \Eloquent
+ */
 class Users_request extends Model
 {
     use HasFactory;

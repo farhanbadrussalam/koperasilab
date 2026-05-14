@@ -51,6 +51,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Pengiriman whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Pengiriman whereTujuan($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Pengiriman whereUpdatedAt($value)
+ * @property-read \App\Models\Master_alamat|null $alamat_pengiriman
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Log_proses> $logs
+ * @property-read int|null $logs_count
+ * @property-read \App\Models\User|null $tujuan_pengiriman
  * @mixin \Eloquent
  */
 class Pengiriman extends Model

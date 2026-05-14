@@ -90,6 +90,13 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereTtdBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereVerifyAt($value)
+ * @property-read mixed $ttd_image
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Log_proses> $logs
+ * @property-read int|null $logs_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_detail> $permohonan_detail
+ * @property-read int|null $permohonan_detail_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_pengguna> $permohonan_pengguna
+ * @property-read int|null $permohonan_pengguna_count
  * @mixin \Eloquent
  */
 class Permohonan extends Model

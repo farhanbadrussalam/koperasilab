@@ -47,6 +47,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereTanggalLahir($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereTempatLahir($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereUpdatedAt($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_pengguna extends Model

@@ -42,6 +42,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereSuratKuasa($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereUpdatedAt($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int|null $stempel
+ * @property-read \App\Models\Master_media|null $stempel_perusahaan
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereStempel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan withoutTrashed()
  * @mixin \Eloquent
  */
 class Perusahaan extends Model

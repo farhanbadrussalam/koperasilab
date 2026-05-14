@@ -204,7 +204,7 @@
 @endsection
 @push('scripts')
     <script>
-        const dataPermohonan = @json($permohonan);
+        const dataPermohonan = {{ Js::from($permohonan) }}
     </script>
     <script src="{{ asset('js/permohonan/pengajuan_tambah.js') }}"></script>
 @endpush

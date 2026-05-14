@@ -28,6 +28,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereUpdatedAt($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_divisi extends Model

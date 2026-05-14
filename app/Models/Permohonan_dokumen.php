@@ -47,6 +47,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_dokumen whereTtdBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_dokumen whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_dokumen whereVariables($value)
+ * @property-read mixed $ttd_image
  * @mixin \Eloquent
  */
 class Permohonan_dokumen extends Model

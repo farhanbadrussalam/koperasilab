@@ -9,6 +9,50 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\Master_pengguna;
 use App\Models\Master_divisi;
 
+/**
+ * @property int $id
+ * @property int|null $id_pengguna_divisi
+ * @property int|null $id_kontrak
+ * @property \App\Models\Master_tld|null $tld_1
+ * @property int|null $status_tld_1
+ * @property int|null $periode_tld_1
+ * @property \App\Models\Master_tld|null $tld_2
+ * @property int|null $status_tld_2
+ * @property int|null $periode_tld_2
+ * @property string|null $jenis
+ * @property int|null $periode
+ * @property int|null $status 1=active, 2=standby, 99=diganti
+ * @property string|null $type
+ * @property int|null $pengguna_lama
+ * @property int|null $created_by
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read Model|\Eloquent|null $entitas
+ * @property-read mixed $kontrak_detail_hash
+ * @property-read \App\Models\Kontrak|null $kontrak
+ * @property-read Master_pengguna|null $penggunaLama
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail query()
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereCreatedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereIdKontrak($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereIdPenggunaDivisi($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereJenis($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail wherePenggunaLama($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail wherePeriode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail wherePeriodeTld1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail wherePeriodeTld2($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereStatusTld1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereStatusTld2($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereTld1($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereTld2($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_detail whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class Kontrak_detail extends Model
 {
     use HasFactory;

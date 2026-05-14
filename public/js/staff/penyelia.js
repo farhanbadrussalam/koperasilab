@@ -31,13 +31,13 @@ $(function () {
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'penyelia',
-        filter : {
-            jenis_tld : true,
-            jenis_layanan : true,
+        filter: {
+            jenis_tld: true,
+            jenis_layanan: true,
             // date_range: true,
-            no_kontrak : true,
+            no_kontrak: true,
             perusahaan: true,
-            status : true,
+            status: true,
             periode: true
         }
     })
@@ -46,7 +46,7 @@ $(function () {
     filterComp.on('filter.change', () => switchLoadTab(thisTab));
 });
 
-function switchLoadTab(menu){
+function switchLoadTab(menu) {
     thisTab = menu;
     switch (menu) {
         case 1:
@@ -76,7 +76,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
     // (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
     filterValue.periode && (params.filter.periode = filterValue.periode);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -92,7 +92,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
         for (const [i, penyelia] of result.data.entries()) {
             const permohonan = penyelia.permohonan;
             let badgeClass = 'bg-primary-subtle';
-            if(permohonan.tipe_kontrak == 'kontrak lama') {
+            if (permohonan.tipe_kontrak == 'kontrak lama') {
                 badgeClass = 'bg-success-subtle';
             }
 
@@ -119,47 +119,47 @@ function loadData(page = 1, menu = 'penyelialhu') {
             switch (menu) {
                 case 'surattugas':
                     // if(penyelia.status == 1 || penyelia.status == 2) {
-                        const isTugasSigned = penyelia.is_surat_tugas_signed;
-                        const isPengajuanSigned = penyelia.is_pengajuan_signed;
-                        const hasTugas = penyelia.penyelia_map.length > 0;
-                        const docPengujian = permohonan.dokumen.find(d => d.jenis === 'SuratPengujian');
-                        const docTugas = permohonan.dokumen.find(d => d.jenis === 'surattugas');
+                    const isTugasSigned = penyelia.is_surat_tugas_signed;
+                    const isPengajuanSigned = penyelia.is_pengajuan_signed;
+                    const hasTugas = penyelia.penyelia_map.length > 0;
+                    const docPengujian = permohonan.dokumen.find(d => d.jenis === 'SuratPengujian');
+                    const docTugas = permohonan.dokumen.find(d => d.jenis === 'surattugas');
 
-                        let btnDocTugas = ``;
-                        let btnDocPengujian = ``;
+                    let btnDocTugas = ``;
+                    let btnDocPengujian = ``;
 
-                        // Konfigurasi Tombol Surat Tugas
-                        let tugasBtn = {
-                            icon: 'bi-plus',
-                            class: 'btn-outline-secondary',
-                            attr: `href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"`,
-                            title: 'Buat Surat Tugas'
-                        };
-                        let btnRemoveTugas = '';
-                        let btnNoteTugas = '';
-                        let btnRemovePengajuan = '';
-                        let btnNotePengajuan = '';
+                    // Konfigurasi Tombol Surat Tugas
+                    let tugasBtn = {
+                        icon: 'bi-plus',
+                        class: 'btn-outline-secondary',
+                        attr: `href="${base_url}/staff/penyelia/surat_tugas/c/${penyelia.penyelia_hash}"`,
+                        title: 'Buat Surat Tugas'
+                    };
+                    let btnRemoveTugas = '';
+                    let btnNoteTugas = '';
+                    let btnRemovePengajuan = '';
+                    let btnNotePengajuan = '';
 
-                        if (hasTugas) {
-                            if (!isTugasSigned) {
-                                tugasBtn.icon = 'bi-pencil';
-                                tugasBtn.class = 'btn-light text-warning-emphasis';
-                                tugasBtn.attr = `href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"`;
-                                tugasBtn.title = 'Lanjutkan Surat Tugas';
+                    if (hasTugas) {
+                        if (!isTugasSigned) {
+                            tugasBtn.icon = 'bi-pencil';
+                            tugasBtn.class = 'btn-light text-warning-emphasis';
+                            tugasBtn.attr = `href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"`;
+                            tugasBtn.title = 'Lanjutkan Surat Tugas';
 
-                                btnRemoveTugas = `
+                            btnRemoveTugas = `
                                     <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Tugas" data-type="st" onclick="btnDelete(this)">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 `;
-                            } else if (isTugasSigned === 1) {
-                                // Jika sudah signed, hanya sebagai informasi
-                                tugasBtn.icon = 'bi-check2-all';
-                                tugasBtn.class = 'btn-light text-success';
-                                tugasBtn.attr = 'href="javascript:void(0)" style="cursor: default; pointer-events: none;"';
-                                tugasBtn.title = 'Surat Tugas Selesai (Signed)';
+                        } else if (isTugasSigned === 1) {
+                            // Jika sudah signed, hanya sebagai informasi
+                            tugasBtn.icon = 'bi-check2-all';
+                            tugasBtn.class = 'btn-light text-success';
+                            tugasBtn.attr = 'href="javascript:void(0)" style="cursor: default; pointer-events: none;"';
+                            tugasBtn.title = 'Surat Tugas Selesai (Signed)';
 
-                                btnDocTugas = `
+                            btnDocTugas = `
                                     <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
                                         data-url="laporan/${docTugas.jenis}/${docTugas.permohonan_hash}"
                                         data-title="Dokumen Surat Tugas"
@@ -167,27 +167,27 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                         <i class="bi bi-file-earmark-text"></i>
                                     </button>
                                 `;
-                            } else {
-                                // Jika surat tugas ditolak atau ada kondisi lain, sesuaikan dengan kebutuhan
-                                tugasBtn.icon = 'bi-x-circle';
-                                tugasBtn.class = 'btn-light text-danger';
-                                tugasBtn.attr = `href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"`;
-                                tugasBtn.title = 'Surat Tugas Ditolak';
+                        } else {
+                            // Jika surat tugas ditolak atau ada kondisi lain, sesuaikan dengan kebutuhan
+                            tugasBtn.icon = 'bi-x-circle';
+                            tugasBtn.class = 'btn-light text-danger';
+                            tugasBtn.attr = `href="${base_url}/staff/penyelia/surat_tugas/e/${penyelia.penyelia_hash}"`;
+                            tugasBtn.title = 'Surat Tugas Ditolak';
 
-                                btnNoteTugas = `
+                            btnNoteTugas = `
                                     <a class="btn btn-outline-warning btn-sm text-nowrap rounded-pill" title="Catatan Surat Tugas" data-type="st" onclick="btnNote(this)">
                                         <i class="bi bi-chat-left-text"></i>
                                     </a>
                                 `;
-                                btnRemoveTugas = `
+                            btnRemoveTugas = `
                                     <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Tugas" data-type="st" onclick="btnDelete(this)">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 `;
-                            }
                         }
+                    }
 
-                        btnAction2 = `
+                    btnAction2 = `
                             <div class="d-flex justify-content-between gap-1">
                                 <a class="btn ${tugasBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${tugasBtn.title}" ${tugasBtn.attr}>
                                     <i class="bi ${tugasBtn.icon}"></i> Surat Tugas
@@ -198,35 +198,35 @@ function loadData(page = 1, menu = 'penyelialhu') {
                             </div>
                         `;
 
-                        // Konfigurasi Tombol Surat Pengujian
-                        if (jenislayanan(permohonan.jenis_layanan_parent, permohonan.jenis_layanan) === 'EvaluasiTanpaKontrak') {
-                            let pengujianBtn = {
-                                icon: 'bi-plus',
-                                class: 'btn-outline-secondary',
-                                attr: `onclick="createPengujian('${penyelia.penyelia_hash}')"`,
-                                title: 'Buat Surat Pengujian'
-                            };
+                    // Konfigurasi Tombol Surat Pengujian
+                    if (jenislayanan(permohonan.jenis_layanan_parent, permohonan.jenis_layanan) === 'EvaluasiTanpaKontrak') {
+                        let pengujianBtn = {
+                            icon: 'bi-plus',
+                            class: 'btn-outline-secondary',
+                            attr: `onclick="createPengujian('${penyelia.penyelia_hash}')"`,
+                            title: 'Buat Surat Pengujian'
+                        };
 
-                            if (docPengujian) {
-                                if (!isPengajuanSigned) {
-                                    pengujianBtn.icon = 'bi-pencil';
-                                    pengujianBtn.class = 'btn-light text-warning-emphasis';
-                                    pengujianBtn.attr = `onclick="createPengujian('${penyelia.penyelia_hash}', 'edit')"`;
-                                    pengujianBtn.title = 'Lanjutkan Surat Pengujian';
+                        if (docPengujian) {
+                            if (!isPengajuanSigned) {
+                                pengujianBtn.icon = 'bi-pencil';
+                                pengujianBtn.class = 'btn-light text-warning-emphasis';
+                                pengujianBtn.attr = `onclick="createPengujian('${penyelia.penyelia_hash}', 'edit')"`;
+                                pengujianBtn.title = 'Lanjutkan Surat Pengujian';
 
-                                    btnRemovePengajuan = `
+                                btnRemovePengajuan = `
                                         <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Pengujian" data-type="sp" onclick="btnDelete(this)">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     `;
-                                } else if (isPengajuanSigned === 1) {
-                                    // Jika sudah signed, non-aktifkan tombol
-                                    pengujianBtn.icon = 'bi-check2-all';
-                                    pengujianBtn.class = 'btn-light text-success';
-                                    pengujianBtn.attr = 'disabled';
-                                    pengujianBtn.title = 'Surat Pengujian Selesai (Signed)';
+                            } else if (isPengajuanSigned === 1) {
+                                // Jika sudah signed, non-aktifkan tombol
+                                pengujianBtn.icon = 'bi-check2-all';
+                                pengujianBtn.class = 'btn-light text-success';
+                                pengujianBtn.attr = 'disabled';
+                                pengujianBtn.title = 'Surat Pengujian Selesai (Signed)';
 
-                                    btnDocPengujian = `
+                                btnDocPengujian = `
                                         <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
                                             data-url="laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}"
                                             data-title="Dokumen Surat Pengujian"
@@ -235,28 +235,28 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                             <i class="bi bi-file-earmark-text"></i>
                                         </button>
                                     `;
-                                } else {
-                                    // Jika surat pengujian ditolak atau ada kondisi lain, sesuaikan dengan kebutuhan
-                                    pengujianBtn.icon = 'bi-x-circle';
-                                    pengujianBtn.class = 'btn-light text-danger';
-                                    pengujianBtn.attr = 'disabled';
-                                    pengujianBtn.title = 'Surat Pengujian Ditolak';
+                            } else {
+                                // Jika surat pengujian ditolak atau ada kondisi lain, sesuaikan dengan kebutuhan
+                                pengujianBtn.icon = 'bi-x-circle';
+                                pengujianBtn.class = 'btn-light text-danger';
+                                pengujianBtn.attr = 'disabled';
+                                pengujianBtn.title = 'Surat Pengujian Ditolak';
 
-                                    btnNotePengajuan = `
+                                btnNotePengajuan = `
                                         <a class="btn btn-outline-warning btn-sm text-nowrap rounded-pill" title="Catatan Surat Pengujian" data-type="sp" onclick="btnNote(this)">
                                             <i class="bi bi-chat-left-text"></i>
                                         </a>
                                     `;
 
-                                    btnRemovePengajuan = `
+                                btnRemovePengajuan = `
                                         <a class="btn btn-outline-danger btn-sm text-nowrap rounded-pill" title="Hapus Surat Pengujian" data-type="sp" onclick="btnDelete(this)">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     `;
-                                }
                             }
+                        }
 
-                            btnAction2 = `
+                        btnAction2 = `
                                 <div class="d-flex justify-content-center flex-column gap-2">
                                     ${btnAction2}
                                     <div class="d-flex justify-content-between gap-1">
@@ -269,7 +269,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                                     </div>
                                 </div>
                             `;
-                        }
+                    }
                     // }
 
                     let timeLine = new Timeline({
@@ -282,13 +282,13 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     divTimelineTugas.push(timeLine);
 
                     htmlPeriode = !permohonan.periode ? 'Zero Check' : permohonan.periode;
-                    if(permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
+                    if (permohonan.is_have_tld && permohonan.is_zerocek && permohonan.periode == 1) {
                         htmlPeriode += ' + Zero Check';
                     }
 
                     // range periode
                     let rangePeriode = '';
-                    if(permohonan.periode && permohonan.periodenow) {
+                    if (permohonan.periode && permohonan.periodenow) {
                         rangePeriode = `<span class="fs-8">(${dateFormat(permohonan.periodenow.start_date, 4)} - ${dateFormat(permohonan.periodenow.end_date, 4)})</span>`;
                     }
 
@@ -311,14 +311,14 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
                     }
 
-                    html += cardComponent(dataS, {btnMenuAction : btnAction, btnAction: btnAction2});
+                    html += cardComponent(dataS, { btnMenuAction: btnAction, btnAction: btnAction2 });
                     break;
                 default:
                     break;
             }
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -394,20 +394,20 @@ function btnNote(obj) {
         NoteComponent.renderError('Gagal memuat catatan. Silakan coba lagi nanti.');
     });
 }
-function showDetail(obj){
+function showDetail(obj) {
     const idPenyelia = $(obj).parent().parent().data("id");
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }
 
-function reload(){
+function reload() {
     switchLoadTab(thisTab);
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
     switchLoadTab(thisTab);
 }
-function createPengujian(id, type = 'create'){
+function createPengujian(id, type = 'create') {
     let find = dataPenyelia.find(d => d.penyelia_hash == id);
 
     // jenis pengujian
@@ -423,13 +423,13 @@ function createPengujian(id, type = 'create'){
     // template surat pengujian
     let template = find.template_surat.find(d => d.name == 'SuratPengujian');
     let dataSurat = false;
-    if(type == 'edit'){
+    if (type == 'edit') {
         dataSurat = find.permohonan.dokumen.find(d => d.doc_template?.name == 'SuratPengujian');
     }
 
     // periode
     for (const periode of kontrak.periode) {
-        if(periode.periode != 0) {
+        if (periode.periode != 0) {
             let startDate = dateFormat(periode.start_date, 6);
             let endDate = dateFormat(periode.end_date, 6);
 
@@ -439,13 +439,13 @@ function createPengujian(id, type = 'create'){
 
     // load pertanyaan
     let htmlPertanyaan = '<h6 class="fw-bold mb-3 text-primary"><i class="bi bi-question-circle me-2"></i>Daftar Pertanyaan</h6>';
-    for (const [i,pertanyaan] of template.data_pertanyaan.entries()) {
+    for (const [i, pertanyaan] of template.data_pertanyaan.entries()) {
         let htmlAnswer = ``;
         let htmlMandatory = pertanyaan.mandatory ? '<span class="text-danger ms-1">*</span>' : '';
         const foundAnswer = dataSurat?.content_value?.alasan?.find(d => d.id == pertanyaan.id_pertanyaan)?.answer ?? '';
         const checkSiap = foundAnswer == 'siap' ? 'checked' : '';
         const checkTidakSiap = foundAnswer == 'tidak siap' ? 'checked' : '';
-        if(pertanyaan.type == 2) {
+        if (pertanyaan.type == 2) {
             htmlAnswer = `
             <div class="d-flex gap-2">
                 <div class="flex-fill">
@@ -486,7 +486,7 @@ function createPengujian(id, type = 'create'){
 
 
 
-function simpanPengujian(id){
+function simpanPengujian(id) {
     // sanity cek pertanyaan
     let find = dataPenyelia.find(d => d.penyelia_hash == id);
     let template = find.template_surat.find(d => d.name == 'SuratPengujian');
@@ -494,17 +494,17 @@ function simpanPengujian(id){
     let answers = [];
     let status = true;
     for (const [i, value] of pertanyaan.entries()) {
-        let answer = $('input[name="answer_'+i+'"]:checked').val();
+        let answer = $('input[name="answer_' + i + '"]:checked').val();
         answers.push({
             id: value.pertanyaan_hash,
             answer,
         });
-        if(answer == undefined){
+        if (answer == undefined) {
             status = false;
         }
     }
 
-    if(!status){
+    if (!status) {
         Swal.fire({
             icon: "warning",
             text: 'Lengkapi pertanyaan terlebih dahulu',

@@ -31,6 +31,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran whereUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran whereVariables($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran withoutTrashed()
  * @mixin \Eloquent
  */
 class Jenis_pembayaran extends Model
