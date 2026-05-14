@@ -131,7 +131,7 @@ class UserController extends Controller
             ->make(true);
     }
 
-    public function getById($id)
+    public function getById(string $id)
     {
         DB::beginTransaction();
         try {

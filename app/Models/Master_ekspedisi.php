@@ -25,6 +25,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi whereUpdatedAt($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_ekspedisi extends Model
@@ -57,5 +62,10 @@ class Master_ekspedisi extends Model
     public function getEkspedisiHashAttribute()
     {
         return $this->id_ekspedisi ? encryptor($this->id_ekspedisi) : null;
+    }
+
+    public function pengiriman()
+    {
+        return $this->hasMany(Pengiriman::class, 'id_ekspedisi', 'id_ekspedisi');
     }
 }

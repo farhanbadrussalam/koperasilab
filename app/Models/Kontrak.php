@@ -84,6 +84,12 @@ use Carbon\Carbon;
  * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereTtd($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereTtdBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Kontrak whereUpdatedAt($value)
+ * @property-read mixed $periode_active
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Kontrak_detail> $kontrak_detail
+ * @property-read int|null $kontrak_detail_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Kontrak_map> $kontrak_map
+ * @property-read int|null $kontrak_map_count
+ * @property-read \App\Models\Permohonan|null $permohonan
  * @mixin \Eloquent
  */
 class Kontrak extends Model

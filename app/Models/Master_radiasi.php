@@ -17,6 +17,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi whereIdRadiasi($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi whereNamaRadiasi($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi whereStatus($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_radiasi withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_radiasi extends Model

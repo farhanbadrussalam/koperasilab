@@ -28,56 +28,56 @@
 <!-- Modal -->
 <div class="modal fade" id="modal-diterima" tabindex="-1" aria-labelledby="modal-diterimaLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="modal-diterimaLabel">Dokumen diterima</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="mb-2 col-md-12">
-                <label for="" class="form-label">Tanggal diterima</label>
-                <input type="hidden" name="idPengiriman" id="idPengiriman">
-                <input type="hidden" name="isLhuSend" id="isLhuSend">
-                <input type="text" class="form-control" name="txt_date_diterima" id="txt_date_diterima">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="modal-diterimaLabel">Dokumen diterima</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="mb-2 col-md-12">
-                <div id="surpengDiv"></div>
-            </div>
-            <p class="d-inline-flex gap-1 mb-2 col-md-12">
-                <button class="btn btn-outline-info btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBuktiPengiriman" aria-expanded="false" aria-controls="collapseBuktiPengiriman">
-                    Lihat Bukti Pengiriman
-                </button>
-            </p>
-            <div class="collapse" id="collapseBuktiPengiriman">
-                <div class="card card-body mb-2">
-                    <div id="showBuktiPengiriman"></div>
-                </div>
-            </div>
-            <div class="mb-2 col-md-12">
-                <label for="" class="form-label">Kelengkapan dokumen<span class="text-danger ms-1">*</span></label>
-                <ul class="list-group w-100" id="list-kelengkapan">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="mb-2 col-md-12">
+                        <label for="" class="form-label">Tanggal diterima</label>
+                        <input type="hidden" name="idPengiriman" id="idPengiriman">
+                        <input type="hidden" name="isLhuSend" id="isLhuSend">
+                        <input type="text" class="form-control" name="txt_date_diterima" id="txt_date_diterima">
+                    </div>
+                    <div class="mb-2 col-md-12">
+                        <div id="surpengDiv"></div>
+                    </div>
+                    <p class="d-inline-flex gap-1 mb-2 col-md-12">
+                        <button class="btn btn-outline-info btn-sm w-100" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBuktiPengiriman" aria-expanded="false" aria-controls="collapseBuktiPengiriman">
+                            Lihat Bukti Pengiriman
+                        </button>
+                    </p>
+                    <div class="collapse" id="collapseBuktiPengiriman">
+                        <div class="card card-body mb-2">
+                            <div id="showBuktiPengiriman"></div>
+                        </div>
+                    </div>
+                    <div class="mb-2 col-md-12">
+                        <label for="" class="form-label">Kelengkapan dokumen<span class="text-danger ms-1">*</span></label>
+                        <ul class="list-group w-100" id="list-kelengkapan">
 
-                </ul>
-            </div>
-            <div class="mb-2 col-md-12">
-                <label for="" class="form-label">Upload bukti penerima<span class="text-danger ms-1">*</span></label>
-                <div id="uploadBuktiPenerima">
+                        </ul>
+                    </div>
+                    <div class="mb-2 col-md-12">
+                        <label for="" class="form-label">Upload bukti penerima<span class="text-danger ms-1">*</span></label>
+                        <div id="uploadBuktiPenerima">
+                        </div>
+                    </div>
                 </div>
             </div>
-          </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnSendDocument">Simpan</button>
+            </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="btnSendDocument">Simpan</button>
-        </div>
-      </div>
     </div>
 </div>
 @endsection
 
 @push('scripts')
-    <script>
-        const idPelanggan = `{{ Auth::user()->user_hash }}`;
-    </script>
-    <script src="{{ asset('js/permohonan/pengiriman.js') }}"></script>
+<script>
+    const idPelanggan = `{{ Auth::user()->user_hash }}`;
+</script>
+<script src="{{ asset('js/permohonan/pengiriman.js') }}"></script>
 @endpush

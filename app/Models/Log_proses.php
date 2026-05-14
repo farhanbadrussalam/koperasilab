@@ -7,6 +7,42 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\MassPrunable; // Gunakan MassPrunable agar lebih cepat untuk data besar
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property int $id
+ * @property string $log_name
+ * @property string|null $log_type
+ * @property string|null $causer_id
+ * @property string|null $causer_type
+ * @property string|null $subject_type
+ * @property string|null $subject_id
+ * @property string $description
+ * @property array|null $properties
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read Model|\Eloquent|null $causer
+ * @property-read Model|\Eloquent|null $subject
+ * @method static Builder|Log_proses causedBy(\Illuminate\Database\Eloquent\Model $causer)
+ * @method static Builder|Log_proses forSubject(\Illuminate\Database\Eloquent\Model $subject)
+ * @method static Builder|Log_proses newModelQuery()
+ * @method static Builder|Log_proses newQuery()
+ * @method static Builder|Log_proses query()
+ * @method static Builder|Log_proses whereCauserId($value)
+ * @method static Builder|Log_proses whereCauserType($value)
+ * @method static Builder|Log_proses whereCreatedAt($value)
+ * @method static Builder|Log_proses whereDescription($value)
+ * @method static Builder|Log_proses whereId($value)
+ * @method static Builder|Log_proses whereIpAddress($value)
+ * @method static Builder|Log_proses whereLogName($value)
+ * @method static Builder|Log_proses whereLogType($value)
+ * @method static Builder|Log_proses whereProperties($value)
+ * @method static Builder|Log_proses whereSubjectId($value)
+ * @method static Builder|Log_proses whereSubjectType($value)
+ * @method static Builder|Log_proses whereUpdatedAt($value)
+ * @method static Builder|Log_proses whereUserAgent($value)
+ * @mixin \Eloquent
+ */
 class Log_proses extends Model
 {
     use HasFactory, MassPrunable;

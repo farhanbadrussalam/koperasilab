@@ -29,6 +29,12 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereIdTld($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereUpdatedAt($value)
+ * @property int $id_pengguna_divisi
+ * @property string|null $jenis
+ * @property int $periode
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereIdPenggunaDivisi($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna whereJenis($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Kontrak_pengguna wherePeriode($value)
  * @mixin \Eloquent
  */
 class Kontrak_pengguna extends Model

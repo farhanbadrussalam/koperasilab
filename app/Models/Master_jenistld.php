@@ -18,6 +18,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld whereOrderJobs($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jenistld whereStatus($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Kontrak> $kontrak
+ * @property-read int|null $kontrak_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan> $permohonan
+ * @property-read int|null $permohonan_count
  * @mixin \Eloquent
  */
 class Master_jenistld extends Model

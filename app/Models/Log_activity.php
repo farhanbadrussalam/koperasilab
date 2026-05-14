@@ -7,6 +7,42 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\MassPrunable; // Gunakan MassPrunable agar lebih cepat untuk data besar
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property int $id
+ * @property string $log_name
+ * @property string|null $log_type
+ * @property string|null $causer_id
+ * @property string|null $causer_type
+ * @property string|null $subject_type
+ * @property string|null $subject_id
+ * @property string $description
+ * @property array|null $properties
+ * @property string|null $ip_address
+ * @property string|null $user_agent
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read Model|\Eloquent|null $causer
+ * @property-read Model|\Eloquent|null $subject
+ * @method static Builder|Log_activity causedBy(\Illuminate\Database\Eloquent\Model $causer)
+ * @method static Builder|Log_activity forSubject(\Illuminate\Database\Eloquent\Model $subject)
+ * @method static Builder|Log_activity newModelQuery()
+ * @method static Builder|Log_activity newQuery()
+ * @method static Builder|Log_activity query()
+ * @method static Builder|Log_activity whereCauserId($value)
+ * @method static Builder|Log_activity whereCauserType($value)
+ * @method static Builder|Log_activity whereCreatedAt($value)
+ * @method static Builder|Log_activity whereDescription($value)
+ * @method static Builder|Log_activity whereId($value)
+ * @method static Builder|Log_activity whereIpAddress($value)
+ * @method static Builder|Log_activity whereLogName($value)
+ * @method static Builder|Log_activity whereLogType($value)
+ * @method static Builder|Log_activity whereProperties($value)
+ * @method static Builder|Log_activity whereSubjectId($value)
+ * @method static Builder|Log_activity whereSubjectType($value)
+ * @method static Builder|Log_activity whereUpdatedAt($value)
+ * @method static Builder|Log_activity whereUserAgent($value)
+ * @mixin \Eloquent
+ */
 class Log_activity extends Model
 {
     use HasFactory, MassPrunable;

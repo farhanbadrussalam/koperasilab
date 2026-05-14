@@ -32,6 +32,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Profile whereSuratKuasa($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Profile whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Profile whereUserId($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Profile onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Profile whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Profile withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Profile withoutTrashed()
  * @mixin \Eloquent
  */
 class Profile extends Model
