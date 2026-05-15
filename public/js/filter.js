@@ -14,7 +14,8 @@ class FilterComponent {
         this.jenis = options.jenis ?? '';
         this.fp = false;
         this.options = {
-            filter: Object.fromEntries(Object.entries(options.filter).filter(([key, value]) => value === true))
+            filter: Object.fromEntries(Object.entries(options.filter).filter(([key, value]) => value === true)),
+            multiple: options.multiple ?? false
         };
         this.placeholder = options.placeholder;
 
@@ -31,14 +32,15 @@ class FilterComponent {
 
     _setupFilter(filterName) {
         const self = this;
-        if(filterName == 'status'){
+        if (filterName == 'status') {
+            let multiple = this.options.multiple.find(f => f == 'status');
             $('#filterStatus').select2({
                 theme: "bootstrap-5",
                 placeholder: this.placeholder?.status ?? 'Semua Status',
                 allowClear: true
-            }).on('select2:select', function(e) {
+            }).on('select2:select', function (e) {
                 document.dispatchEvent(self.eventChange);
-            }).on('select2:clear', function(e) {
+            }).on('select2:clear', function (e) {
                 document.dispatchEvent(self.eventChange);
                 // Tutup Select2 setelah sedikit delay
                 setTimeout(() => {
@@ -48,14 +50,14 @@ class FilterComponent {
         }
 
         const allFilter = ['selected_custom', 'satuan_kerja', 'roles'];
-        if(allFilter.includes(filterName)){
+        if (allFilter.includes(filterName)) {
             $(`#filter${filterName}`).select2({
                 theme: "bootstrap-5",
                 placeholder: this.placeholder?.[filterName],
                 allowClear: true
-            }).on('select2:select', function(e) {
+            }).on('select2:select', function (e) {
                 document.dispatchEvent(self.eventChange);
-            }).on('select2:clear', function(e) {
+            }).on('select2:clear', function (e) {
                 document.dispatchEvent(self.eventChange);
                 // Tutup Select2 setelah sedikit delay
                 setTimeout(() => {
@@ -64,14 +66,14 @@ class FilterComponent {
             });
         }
 
-        if(filterName == 'jenis_tld'){
+        if (filterName == 'jenis_tld') {
             $('#filterJenisTld').select2({
                 theme: "bootstrap-5",
                 placeholder: 'All Jenis TLD',
                 allowClear: true
-            }).on('select2:select', function(e) {
+            }).on('select2:select', function (e) {
                 document.dispatchEvent(self.eventChange);
-            }).on('select2:clear', function(e) {
+            }).on('select2:clear', function (e) {
                 document.dispatchEvent(self.eventChange);
                 // Tutup Select2 setelah sedikit delay
                 setTimeout(() => {
@@ -80,14 +82,14 @@ class FilterComponent {
             });
         }
 
-        if(filterName == 'jenis_layanan'){
+        if (filterName == 'jenis_layanan') {
             let jenisChild = $('#filterJenisLayananChild').select2({
                 theme: "bootstrap-5",
                 placeholder: 'All',
                 allowClear: true
-            }).on('select2:select', function(e) {
+            }).on('select2:select', function (e) {
                 document.dispatchEvent(self.eventChange);
-            }).on('select2:clear', function(e) {
+            }).on('select2:clear', function (e) {
                 document.dispatchEvent(self.eventChange);
                 // Tutup Select2 setelah sedikit delay
                 setTimeout(() => {
@@ -99,8 +101,8 @@ class FilterComponent {
                 theme: "bootstrap-5",
                 placeholder: 'All Jenis Layanan',
                 allowClear: true,
-            }).on('select2:select', function(e) {
-                ajaxGet(`api/v1/permohonan/getChildJenisLayanan/${e.params.data.id}`, {isFilter: true}, (result) => {
+            }).on('select2:select', function (e) {
+                ajaxGet(`api/v1/permohonan/getChildJenisLayanan/${e.params.data.id}`, { isFilter: true }, (result) => {
                     jenisChild.empty().append('<option value="">All</option>');
                     result.data.child.forEach((list) => {
                         jenisChild.append(`<option value="${list.jenis_layanan_hash}">${list.name}</option>`);
@@ -110,7 +112,7 @@ class FilterComponent {
                 });
 
                 document.dispatchEvent(self.eventChange);
-            }).on('select2:clear', function(e) {
+            }).on('select2:clear', function (e) {
                 jenisChild.empty().append('<option value="">All</option>').trigger('change');
                 document.dispatchEvent(self.eventChange);
 
@@ -122,7 +124,7 @@ class FilterComponent {
             });
         }
 
-        if(filterName == 'no_kontrak'){
+        if (filterName == 'no_kontrak') {
             $('#filterSearchKontrak').select2({
                 theme: "bootstrap-5",
                 placeholder: this.placeholder?.no_kontrak ?? 'No Kontrak',
@@ -138,13 +140,13 @@ class FilterComponent {
                         'Authorization': `Bearer ${bearer}`,
                         'Content-Type': 'application/json'
                     },
-                    data: function(params) {
+                    data: function (params) {
                         let queryParams = {
                             no_kontrak: params.term
                         }
                         return queryParams;
                     },
-                    processResults: function(response) {
+                    processResults: function (response) {
                         return {
                             results: response.data && response.data.map((list) => {
                                 return {
@@ -155,9 +157,9 @@ class FilterComponent {
                         }
                     }
                 }
-            }).on('select2:select', function(e) {
+            }).on('select2:select', function (e) {
                 document.dispatchEvent(self.eventChange);
-            }).on('select2:clear', function(e) {
+            }).on('select2:clear', function (e) {
                 document.dispatchEvent(self.eventChange);
                 // Tutup Select2 setelah sedikit delay
                 setTimeout(() => {
@@ -166,7 +168,7 @@ class FilterComponent {
             });
         }
 
-        if(filterName == 'perusahaan'){
+        if (filterName == 'perusahaan') {
             $('#filterPerusahaan').select2({
                 theme: "bootstrap-5",
                 placeholder: 'All Perusahaan',
@@ -182,13 +184,13 @@ class FilterComponent {
                         'Authorization': `Bearer ${bearer}`,
                         'Content-Type': 'application/json'
                     },
-                    data: function(params) {
+                    data: function (params) {
                         let queryParams = {
                             perusahaan: params.term
                         }
                         return queryParams;
                     },
-                    processResults: function(response) {
+                    processResults: function (response) {
                         return {
                             results: response.data && response.data.map((list) => {
                                 return {
@@ -199,9 +201,9 @@ class FilterComponent {
                         }
                     }
                 }
-            }).on('select2:select', function(e) {
+            }).on('select2:select', function (e) {
                 document.dispatchEvent(self.eventChange);
-            }).on('select2:clear', function(e) {
+            }).on('select2:clear', function (e) {
                 document.dispatchEvent(self.eventChange);
                 // Tutup Select2 setelah sedikit delay
                 setTimeout(() => {
@@ -210,7 +212,7 @@ class FilterComponent {
             });
         }
 
-        if(filterName == 'date_range'){
+        if (filterName == 'date_range') {
             this.fp = $('#filterDateRange').flatpickr({
                 mode: 'range',
                 dateFormat: 'Y-m-d',
@@ -233,13 +235,13 @@ class FilterComponent {
                 minuteIncrement: 1,
                 static: false, // Ubah ke false agar tidak merusak input-group
                 showMonths: 2,
-                onOpen: function() {},
-                onChange: function(selectedDates) {
-                    if(selectedDates.length == 2){
+                onOpen: function () { },
+                onChange: function (selectedDates) {
+                    if (selectedDates.length == 2) {
                         document.dispatchEvent(self.eventChange);
                     }
                 },
-                onClose: function(selectedDates) {
+                onClose: function (selectedDates) {
                     // document.dispatchEvent(self.eventChange);
                     // Tutup Select2 setelah sedikit delay
                     setTimeout(() => {
@@ -248,31 +250,31 @@ class FilterComponent {
                 }
             });
             const self = this;
-            $('#clearDateRange').on('click', function() {
+            $('#clearDateRange').on('click', function () {
                 self.fp.clear();
                 document.dispatchEvent(self.eventChange);
             })
         }
 
-        if(filterName == 'search'){
-            $('#btnSearch').on('click', function() {
+        if (filterName == 'search') {
+            $('#btnSearch').on('click', function () {
                 document.dispatchEvent(self.eventChange);
             });
 
-            $('#filterSearch').on('keyup', function(event) {
+            $('#filterSearch').on('keyup', function (event) {
                 if (event.keyCode === 13) {
                     document.dispatchEvent(self.eventChange);
                 }
             });
         }
 
-        if(filterName == 'periode'){
-            $('#filterPeriode').on('keyup', function(event) {
+        if (filterName == 'periode') {
+            $('#filterPeriode').on('keyup', function (event) {
                 if (event.keyCode === 13) {
                     document.dispatchEvent(self.eventChange);
                 }
             });
-            $('#cariPeriode').on('click', function() {
+            $('#cariPeriode').on('click', function () {
                 document.dispatchEvent(self.eventChange);
             });
         }
@@ -324,7 +326,7 @@ class FilterComponent {
         const self = this;
         ajaxGet(`api/v1/filter/getJenisTld`, false, result => {
             let html = `
-                <div class="col-3 order-${index+1}">
+                <div class="col-3 order-${index + 1}">
                     <select name="filterJenisTld" id="filterJenisTld" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                         ${result.data.map(item => `<option value="${item.jenis_tld_hash}">${item.name}</option>`).join('')}
@@ -337,9 +339,9 @@ class FilterComponent {
     }
     createSelectedCustom(callback, index, filter) {
         const self = this;
-        ajaxGet(`api/v1/filter/getSelectCustom`, {jenis: filter}, result => {
+        ajaxGet(`api/v1/filter/getSelectCustom`, { jenis: filter }, result => {
             let html = `
-                <div class="col-3 order-${index+1}">
+                <div class="col-3 order-${index + 1}">
                     <select name="filter${filter}" id="filter${filter}" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                         ${result.data.map(item => `<option value="${item.id}">${item.name}</option>`).join('')}
@@ -352,12 +354,12 @@ class FilterComponent {
     }
     createStatusContent(callback, index) {
         const self = this;
-        let params  = {
+        let params = {
             jenis: this.jenis
         };
         ajaxGet(`api/v1/filter/getStatus`, params, result => {
             let html = `
-                <div class="col-3 order-${index+1}">
+                <div class="col-3 order-${index + 1}">
                     <select name="filterStatus" id="filterStatus" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                         ${result.data.map(item => `<option value="${item.id}">${item.name}</option>`).join('')}
@@ -373,13 +375,13 @@ class FilterComponent {
         const self = this;
         ajaxGet(`api/v1/filter/getJenisLayanan`, false, result => {
             let html = `
-                <div class="col-3 order-${index+1}">
+                <div class="col-3 order-${index + 1}">
                     <select name="filterJenisLayanan" id="filterJenisLayanan" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                         ${result.data.map(item => `<option value="${item.jenis_layanan_hash}">${item.name}</option>`).join('')}
                     </select>
                 </div>
-                <div class="col-2 order-${index+1}">
+                <div class="col-2 order-${index + 1}">
                     <select name="filterJenisLayananChild" id="filterJenisLayananChild" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                     </select>
@@ -393,7 +395,7 @@ class FilterComponent {
     createNoKontrakContent(callback, index) {
         const self = this;
         let html = `
-            <div class="col-3 order-${index+1}">
+            <div class="col-3 order-${index + 1}">
                 <select name="filterSearchKontrak" id="filterSearchKontrak" class="form-select form-select-sm">
                     <option value="" selected>All</option>
                 </select>
@@ -406,7 +408,7 @@ class FilterComponent {
     createPerusahaanContent(callback, index) {
         const self = this;
         let html = `
-            <div class="col-3 order-${index+1}">
+            <div class="col-3 order-${index + 1}">
                 <select name="filterPerusahaan" id="filterPerusahaan" class="form-select form-select-sm">
                     <option value="" selected>All</option>
                 </select>
@@ -419,7 +421,7 @@ class FilterComponent {
     createDateRangeContent(callback, index) {
         const self = this;
         let html = `
-            <div class="col-12 col-md-3 order-${index+1}">
+            <div class="col-12 col-md-3 order-${index + 1}">
                 <div class="input-group">
                     <input type="text" id="filterDateRange" class="form-control form-control-sm" placeholder="All Date" readonly>
                     <span class="btn btn-outline-danger btn-sm" id="clearDateRange"><i class="bi bi-x-lg"></i></span>
@@ -432,9 +434,9 @@ class FilterComponent {
 
     createSearchContent(callback, index) {
         const self = this;
-        const placeholder = self.placeholder ? self.placeholder.search: 'Cari...';
+        const placeholder = self.placeholder ? self.placeholder.search : 'Cari...';
         let html = `
-            <div class="col-3 order-${index+1}">
+            <div class="col-3 order-${index + 1}">
                 <div class="input-group">
                     <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="${placeholder}">
                     <span class="btn btn-outline-secondary btn-sm" id="btnSearch"><i class="bi bi-search"></i></span>
@@ -447,7 +449,7 @@ class FilterComponent {
     createPeriodeContent(callback, index) {
         const self = this;
         let html = `
-            <div class="col-3 order-${index+1}">
+            <div class="col-3 order-${index + 1}">
                 <div class="input-group">
                     <label class="input-group-text py-0">Periode</label>
                     <input type="text" id="filterPeriode" class="form-control form-control-sm maskNumber" placeholder="All Periode">
@@ -460,7 +462,7 @@ class FilterComponent {
         maskReload();
     }
 
-    getAllValue(){
+    getAllValue() {
         let allValue = {};
 
         this.options.filter.jenis_tld && (allValue.jenis_tld = this.getValue('jenis_tld'));

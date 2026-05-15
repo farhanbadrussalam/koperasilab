@@ -147,14 +147,16 @@ class Penyelia extends Model
         return Master_media::whereIn('id', $decodedIds)->get();
     }
 
-    public function getTemplateSuratAttribute(){
+    public function getTemplateSuratAttribute()
+    {
         return Documents::whereIn('name', ['SuratPengujian', 'SuratTugas', 'KontrakPengujian'])->where('status', 1)->get();
     }
 
-    public function getTtdImageAttribute(){
-        if($this->ttd) {
+    public function getTtdImageAttribute()
+    {
+        if ($this->ttd) {
             $ttd = Master_ttd::where('id', $this->ttd)->first();
-            if($ttd) {
+            if ($ttd) {
                 $base64 = $ttd->image_blob;
                 return "data:image/png;base64,{$base64}";
             }
@@ -168,11 +170,13 @@ class Penyelia extends Model
         return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id_permohonan');
     }
 
-    public function usersig(){
+    public function usersig()
+    {
         return $this->belongsTo(User::class, 'ttd_by', 'id')->withTrashed();
     }
 
-    public function logs(){
+    public function logs()
+    {
         // return $this->hasMany(Log_penyelia::class, 'id_penyelia', 'id_penyelia')->orderBy('created_at', 'desc')->orderBy('id', 'desc');
         return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
     }
@@ -181,30 +185,125 @@ class Penyelia extends Model
     //     return $this->belongsTo(Master_media::class, 'document', 'id');
     // }
 
-    public function petugas(){
+    public function petugas()
+    {
         return $this->hasMany(Penyelia_petugas::class, 'id_penyelia', 'id_penyelia');
     }
 
-    public function penyelia_map(){
+    public function penyelia_map()
+    {
         return $this->hasMany(Penyelia_map::class, 'id_penyelia', 'id_penyelia')->orderBy('order', 'asc');
     }
 
-    public function pengiriman(){
+    public function pengiriman()
+    {
         return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
     }
 
-    public function createBy(){
+    public function createBy()
+    {
         return $this->belongsTo(User::class, 'created_by', 'id')->withTrashed();
     }
 
-    public function dokumen(){
+    public function dokumen()
+    {
         return $this->hasMany(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan');
     }
-    public function dokumenSuratTugas() {
+    public function dokumenSuratTugas()
+    {
         return $this->hasOne(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan')->where('jenis', 'surattugas');
     }
 
-    public function periodenow(){
+    public function periodenow()
+    {
         return $this->belongsTo(Kontrak_periode::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    /**
+     * Scope untuk menambah subquery active_job_order
+     */
+    public function scopeAddActiveJobOrder(mixed $query)
+    {
+        return $query->addSelect([
+            'active_job_order' => Penyelia_map::select('order')
+                ->whereColumn('id_penyelia', 'penyelia.id_penyelia')
+                ->where('status', 1)
+                ->orderBy('order', 'ASC')
+                ->limit(1)
+        ]);
+    }
+
+    /**
+     * Scope untuk filter berdasarkan status dan menu
+     */
+    public function scopeFilterByStatus(mixed $query, array $status, string $typePencarian = 'in', string $menu = '')
+    {
+        return $query->when($status, function ($q, $status) use ($typePencarian, $menu) {
+            if ($typePencarian == 'not') {
+                return $q->whereNotIn('status', $status);
+            }
+
+            return $q->whereHas('penyelia_map', function ($query) use ($status, $menu) {
+                $statusLhu = $menu == 'selesai' ? 2 : 1;
+                return $query->whereIn('id_jobs', $status)
+                    ->where('status', $statusLhu)
+                    ->whereHas('petugas', function ($q) {
+                        return $q->where('id_user', auth()->id());
+                    });
+            });
+        });
+    }
+
+    /**
+     * Scope untuk filter kustom dari request
+     */
+    public function scopeFilterByCustomFilters(mixed $query, array $filter)
+    {
+        return $query->when($filter, function ($q, $filter) {
+            foreach ($filter as $key => $value) {
+                if ($key === 'id_perusahaan') {
+                    $q->whereHas('permohonan.pelanggan.perusahaan', function ($v) use ($value) {
+                        $v->where('id_perusahaan', decryptor($value));
+                    });
+                } else if ($key === 'status') {
+                    $idJobs = decryptor($value);
+                    $q->whereHas('penyelia_map', function ($v) use ($idJobs) {
+                        $v->where('id_jobs', $idJobs)->where('status', 1);
+                    });
+                } else if ($key === 'date_range') {
+                    $q->where('start_date', '<=', $value[1])
+                        ->where('end_date', '>=', $value[0]);
+                } else if ($key === 'periode') {
+                    $q->where('periode', $value);
+                } else {
+                    $q->whereHas('permohonan', function ($p) use ($key, $value) {
+                        $p->where($key, decryptor($value));
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     * Scope untuk filter berdasarkan User ID petugas
+     */
+    public function scopeFilterByUserId(mixed $query, int $userId)
+    {
+        return $query->when($userId, function ($q, $userId) {
+            return $q->whereHas('petugas', function ($p) use ($userId) {
+                return $p->where('id_user', $userId);
+            });
+        });
+    }
+
+    /**
+     * Scope untuk filter berdasarkan Satuan Kerja (Security Check)
+     */
+    public function scopeFilterBySatuanKerja(mixed $query, array $satuankerja_id)
+    {
+        $sk = $satuankerja_id ?: [0];
+        return $query->whereHas('permohonan.layanan_jasa', function ($q) use ($sk) {
+            return $q->whereIn('satuankerja_id', is_array($sk) ? $sk : [$sk]);
+        });
     }
 }
