@@ -30,7 +30,8 @@ $(function () {
             jenis_tld: true,
             jenis_layanan: true,
             no_kontrak: true,
-            perusahaan: true
+            perusahaan: true,
+            date_range: true
         }
     });
 

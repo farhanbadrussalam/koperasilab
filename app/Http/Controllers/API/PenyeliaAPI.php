@@ -684,90 +684,40 @@ class PenyeliaAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Penyelia::select('penyelia.*')
-                ->addSelect(['active_job_order' => Penyelia_map::select('order')
-                    ->whereColumn('id_penyelia', 'penyelia.id_penyelia')
-                    ->where('status', 1)
-                    ->orderBy('order', 'ASC')
-                    ->limit(1)
-                ])
+            $query = Penyelia::query()
+                ->select('penyelia.*')
+                ->addActiveJobOrder()
                 ->with([
-                'permohonan',
-                'petugas',
-                'petugas.jobs',
-                'penyelia_map',
-                'penyelia_map.jobs:id_jobs,status,name,upload_doc',
-                'penyelia_map.jobs_paralel:id_jobs,status,name,upload_doc',
-                'usersig:id,name',
-                'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                'permohonan.jenisTld:id_jenisTld,name',
-                'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
-                'permohonan.jenis_layanan_parent',
-                'permohonan.pelanggan',
-                'permohonan.pelanggan.perusahaan',
-                'permohonan.pelanggan.perusahaan.alamat',
-                'permohonan.kontrak',
-                'permohonan.kontrak.periode',
-                'permohonan.kontrak.rincian_list_tld',
-                'permohonan.kontrak.rincian_list_tld.pengguna',
-                'permohonan.kontrak.jenis_layanan:id_jenisLayanan,name,parent',
-                'permohonan.kontrak.jenis_layanan_parent:id_jenisLayanan,name',
-                'permohonan.dokumen',
-                'permohonan.dokumen.doc_template',
-            ])
-                ->when($status, function ($q, $status) use ($typePencarian, $menu) {
-                    if ($typePencarian == 'not') {
-                        return $q->whereNotIn('status', $status);
-                    }
-
-                    return $q->whereHas('penyelia_map', function ($query) use ($status, $menu) {
-                        $statusLhu = $menu == 'selesai' ? 2 : 1;
-                        return $query->whereIn('id_jobs', $status)->where('status', $statusLhu)->whereHas('petugas', function ($q) {
-                            return $q->where('id_user', Auth::user()->id);
-                        });
-                    });
-                })
-                ->when($filter, function ($q, $filter) {
-                    foreach ($filter as $key => $value) {
-                        if ($key === 'id_perusahaan') {
-                            $q->whereHas('permohonan.pelanggan.perusahaan', function ($v) use ($value) {
-                                $v->where('id_perusahaan', decryptor($value));
-                            });
-                        } else if ($key === 'status') {
-                            $q->where($key, decryptor($value));
-                        } else if ($key === 'date_range') {
-                            $q->whereHas('permohonan.periodenow', function ($v) use ($value) {
-                                $v->where(function ($v) use ($value) {
-                                    $v->whereBetween('start_date', [$value[0], $value[1]])
-                                        ->orWhereBetween('end_date', [$value[0], $value[1]])
-                                        ->orWhere(function ($v) use ($value) {
-                                            $v->where('start_date', '<=', $value[0])
-                                                ->where('end_date', '>=', $value[1]);
-                                        });
-                                });
-                            });
-                        } else if ($key === 'periode') {
-                            $q->where('periode', $value);
-                        } else {
-                            $q->whereHas('permohonan', function ($p) use ($key, $value) {
-                                $p->where($key, decryptor($value));
-                            });
-                        }
-                    }
-                })
-                ->when($userId, function ($q, $userId) {
-                    return $q->whereHas('petugas', function ($p) use ($userId) {
-                        return $p->where('id_user', $userId);
-                    });
-                })
-                ->whereHas('permohonan.layanan_jasa', function ($q) {
-                    return $q->whereIn('satuankerja_id', Auth::user()->satuankerja_id ? Auth::user()->satuankerja_id : [0]);
-                })
+                    'permohonan',
+                    'petugas',
+                    'petugas.jobs',
+                    'penyelia_map',
+                    'penyelia_map.jobs:id_jobs,status,name,upload_doc',
+                    'penyelia_map.jobs_paralel:id_jobs,status,name,upload_doc',
+                    'usersig:id,name',
+                    'permohonan.layanan_jasa:id_layanan,nama_layanan',
+                    'permohonan.jenisTld:id_jenisTld,name',
+                    'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
+                    'permohonan.jenis_layanan_parent',
+                    'permohonan.pelanggan',
+                    'permohonan.pelanggan.perusahaan',
+                    'permohonan.pelanggan.perusahaan.alamat',
+                    'permohonan.kontrak',
+                    'permohonan.kontrak.periode',
+                    'permohonan.kontrak.rincian_list_tld',
+                    'permohonan.kontrak.rincian_list_tld.pengguna',
+                    'permohonan.kontrak.jenis_layanan:id_jenisLayanan,name,parent',
+                    'permohonan.kontrak.jenis_layanan_parent:id_jenisLayanan,name',
+                    'permohonan.dokumen',
+                    'permohonan.dokumen.doc_template',
+                ])
+                ->filterByStatus($status, $typePencarian, $menu)
+                ->filterByCustomFilters($filter)
+                ->filterByUserId($userId)
+                ->filterBySatuanKerja(Auth::user()->satuankerja_id)
                 ->orderByRaw('FIELD(status, 1, 5, 2, 6, 10, 7, 3)')
                 ->orderByRaw('active_job_order IS NULL, active_job_order ASC')
                 ->orderBy('id_penyelia', 'DESC')
-                ->offset(($page - 1) * $limit)
-                ->limit($limit)
                 ->paginate($limit);
 
             $arr = $query->toArray();
