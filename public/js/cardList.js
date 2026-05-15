@@ -140,11 +140,16 @@ function cardComponent(data, options = {}) {
         </div>
     ` : '';
 
+    const htmlCheckbox = data.checkbox ? `
+        <div class="form-check mb-0 d-flex align-items-start">
+            <input class="form-check-input check-lhu cursor-pointer shadow-sm border-secondary-subtle" type="checkbox" value="${data.id}" data-index="${data.index}" style="width: 1.3em; height: 1.3em;" ${data.isChecked ? 'checked' : ''}>
+        </div>
+    ` : '';
+
     const elementList = `
         <div class="card border-1  shadow-sm rounded-3 mb-3 hover-effect transition-all">
             <div class="card-body p-3">
-                <div class="row align-items-center">
-
+                <div class="row align-items-center position-relative">
                     <div class="col-lg-5 mb-3 mb-lg-0">
                         <div class="d-flex align-items-start gap-1 flex-column">
                             <h6 class="fw-bold text-dark text-truncate mb-0" style="max-width: 280px;">${htmlTitle}</h6>
@@ -188,6 +193,9 @@ function cardComponent(data, options = {}) {
                                 </ul>
                             </div>
                         ` : ''}
+                    </div>
+                    <div class="position-absolute top-0 end-0 text-muted small w-auto">
+                        ${htmlCheckbox}
                     </div>
                 </div>
                 <!-- Catatan -->

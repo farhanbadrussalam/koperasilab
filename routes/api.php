@@ -130,6 +130,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/actionSuratTugas', 'actionSuratTugas');
         Route::post('/rejectSuratTugas', 'rejectSuratTugas');
         Route::post('/actionJobProses', 'actionJobProses');
+        Route::post('/actionJobProsesKolektif', 'actionJobProsesKolektif');
         Route::post('/approvePengujian', 'approvePengujian');
         Route::post('/createPengujian', 'createPengujian');
         Route::get('/list', 'listPenyelia');
