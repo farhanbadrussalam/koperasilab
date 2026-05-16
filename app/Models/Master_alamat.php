@@ -39,6 +39,7 @@ class Master_alamat extends Model
         'id_perusahaan',
         'alamat',
         'jenis',
+        'kota',
         'kode_pos',
         'status',
         'created_at'

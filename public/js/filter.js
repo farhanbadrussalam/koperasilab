@@ -15,7 +15,7 @@ class FilterComponent {
         this.fp = false;
         this.options = {
             filter: Object.fromEntries(Object.entries(options.filter).filter(([key, value]) => value === true)),
-            multiple: options.multiple ?? false
+            multiple: options.multiple ?? []
         };
         this.placeholder = options.placeholder;
 

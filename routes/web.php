@@ -126,6 +126,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/KontrakPengujian/{id}', 'KontrakPengujian')->name('laporan.KontrakPengujian');
             Route::get('/adendum/{id}', 'adendum')->name('laporan.adendum');
             Route::get('/template_default/{jenis}/{id}', 'template_default')->name('laporan.template_default');
+            Route::get('/PermohonanEvaluasi/{id}', 'PermohonanEvaluasi')->name('laporan.PermohonanEvaluasi');
         });
     });
 

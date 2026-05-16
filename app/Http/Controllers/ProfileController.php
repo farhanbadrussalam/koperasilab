@@ -91,10 +91,12 @@ class ProfileController extends Controller
 
             $status = $request->has('status') ? $request->status : 99;
             $alamat = $request->has('alamat') ? $request->alamat : false;
+            $kota = $request->has('kota') ? $request->kota : false;
             $kodePos = $request->has('kodePos') ? $request->kodePos : false;
 
             $status != 99 && $params['status'] = $status;
             $alamat && $params['alamat'] = $alamat;
+            $kota && $params['kota'] = $kota;
             $kodePos && $params['kodePos'] = $kodePos;
 
             $profile->update($params);

@@ -142,6 +142,7 @@ class RegisterController extends Controller
                 'jenis' => 'Utama',
                 'status' => 1,
                 'alamat' => $data['alamat_instansi'],
+                'kota' => $data['kota'],
                 'kode_pos' => $data['kode_pos']
             ]
         ];

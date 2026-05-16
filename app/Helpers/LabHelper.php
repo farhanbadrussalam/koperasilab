@@ -29,10 +29,11 @@ if (!function_exists('formatCurrency')) {
 }
 
 if (!function_exists('generateToken')) {
-    function generateToken() {
+    function generateToken()
+    {
         $user = Auth::user();
         $_token = Session::get('token');
-        if($_token == NULL){
+        if ($_token == NULL) {
             $cToken = $user->createToken('api-token');
             $_token = $cToken->plainTextToken;
 
@@ -46,11 +47,12 @@ if (!function_exists('generateToken')) {
 }
 
 if (!function_exists('notifikasi')) {
-    function notifikasi($data, $message) {
-        if(!isset($data['to_user']) || !isset($data['type'])){
-           return response()->json([
-            'message' => "Object 'to_user' dan 'type' tidak boleh kosong"
-           ], 400);
+    function notifikasi($data, $message)
+    {
+        if (!isset($data['to_user']) || !isset($data['type'])) {
+            return response()->json([
+                'message' => "Object 'to_user' dan 'type' tidak boleh kosong"
+            ], 400);
         }
         $recipient = $data['to_user'];
         $sender = Auth::user()->id;
@@ -73,20 +75,22 @@ if (!function_exists('notifikasi')) {
     }
 }
 
-if(!function_exists('unmask')){
-    function unmask($data){
-        $regMask = ['.', ',','-', '_'];
+if (!function_exists('unmask')) {
+    function unmask($data)
+    {
+        $regMask = ['.', ',', '-', '_'];
         $unmaskedAmount = str_replace($regMask, '', $data);
 
         return $unmaskedAmount;
     }
 }
 
-if(!function_exists('statusFormat')){
-    function statusFormat($feature, $status) {
+if (!function_exists('statusFormat')) {
+    function statusFormat($feature, $status)
+    {
         $htmlStatus = '';
         $status = (int)$status;
-        if($feature == 'jadwal'){
+        if ($feature == 'jadwal') {
             switch ($status) {
                 case 0:
                     $htmlStatus = '
@@ -129,7 +133,7 @@ if(!function_exists('statusFormat')){
                     ';
                     break;
             }
-        }else if($feature == 'permohonan' || $feature == 'frontdesk'){
+        } else if ($feature == 'permohonan' || $feature == 'frontdesk') {
             switch ($status) {
                 case 1:
                     $htmlStatus = '
@@ -164,7 +168,7 @@ if(!function_exists('statusFormat')){
                     ';
                     break;
             }
-        }else if($feature == 'petugas'){
+        } else if ($feature == 'petugas') {
             switch ($status) {
                 case 1:
                     $htmlStatus = '
@@ -188,21 +192,21 @@ if(!function_exists('statusFormat')){
 
         return $htmlStatus;
     }
-
 }
 
 if (!function_exists('formatBytes')) {
-	function formatBytes(int $size, int $precision = 2): string
-	{
-		$base = log($size, 1024);
-		$suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
+    function formatBytes(int $size, int $precision = 2): string
+    {
+        $base = log($size, 1024);
+        $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
 
-		return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[(int) floor($base)];
-	}
+        return round(pow(1024, $base - floor($base)), $precision) . ' ' . $suffixes[(int) floor($base)];
+    }
 }
 
-if (!function_exists('iconDocument')){
-    function iconDocument(string $type): string {
+if (!function_exists('iconDocument')) {
+    function iconDocument(string $type): string
+    {
         $icon = '';
         switch ($type) {
             case 'application/pdf':
@@ -224,21 +228,21 @@ if (!function_exists('generate')) {
     {
         return uniqid($value);
     }
-  }
+}
 
 if (!function_exists('encryptor')) {
-  function encryptor($value)
-  {
-    $secret   = env('ENCRYPTION_KEY', 'robot.txt');
-    $base64   = base64_encode(hash('sha256', $secret, true));
-    $sub      = substr($base64, 0, 32); //secret key must be 32 char
-    $iv       = substr($sub, 0, 16);
-    $result   = openssl_encrypt($value, "AES-256-CBC", $sub, 0, $iv);
-    $dictionary = array('=', '/', '+');
-    $change   = array('', '_', '-');
-    $result   = str_replace($dictionary, $change, $result);
-    return $result;
-  }
+    function encryptor($value)
+    {
+        $secret   = env('ENCRYPTION_KEY', 'robot.txt');
+        $base64   = base64_encode(hash('sha256', $secret, true));
+        $sub      = substr($base64, 0, 32); //secret key must be 32 char
+        $iv       = substr($sub, 0, 16);
+        $result   = openssl_encrypt($value, "AES-256-CBC", $sub, 0, $iv);
+        $dictionary = array('=', '/', '+');
+        $change   = array('', '_', '-');
+        $result   = str_replace($dictionary, $change, $result);
+        return $result;
+    }
 }
 if (!function_exists('decryptor')) {
     function decryptor($value)
@@ -266,7 +270,7 @@ if (!function_exists('stringSplit')) {
 
 #ex: Thursday, 31 Aug 2023 12:42 WIB
 if (!function_exists('convert_date')) {
-	function convert_date($tanggal, $type = false, $language = 'id')
+    function convert_date(mixed $tanggal, $type = false, $language = 'id')
     {
         $format = '';
         $month3 = false;
@@ -322,10 +326,14 @@ if (!function_exists('convert_date')) {
                 # September
                 $format = 'M';
                 break;
+            case 13:
+                # 12/Januari/2026
+                $format = 'd/M/Y';
+                break;
         }
 
         $new_tanggal = date($format, strtotime($tanggal));
-        if($language == 'id') {
+        if ($language == 'id') {
             // Mengganti nama hari dalam bahasa Inggris dengan bahasa Indonesia
             $new_tanggal = str_replace(
                 ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
@@ -344,19 +352,19 @@ if (!function_exists('convert_date')) {
         // Mengembalikan tanggal dengan format yang diinginkan
         return $new_tanggal;
     }
-
 }
 
 if (!function_exists('getAvatar')) {
-    function getAvatar($id_user){
+    function getAvatar($id_user)
+    {
         $uidHash = $id_user ? decryptor($id_user) : null;
 
         $urlDev = asset("assets/img/default-avatar.jpg");
-        if($uidHash){
+        if ($uidHash) {
             $user = User::findOrFail($uidHash);
 
-            if($user->profile){
-                $urlDev = asset("storage/images/avatar/".$user->profile->avatar);
+            if ($user->profile) {
+                $urlDev = asset("storage/images/avatar/" . $user->profile->avatar);
             }
         }
 
@@ -365,7 +373,8 @@ if (!function_exists('getAvatar')) {
 }
 
 if (!function_exists('strPad')) {
-    function strPad($angka, $jumlah = 3){
+    function strPad($angka, $jumlah = 3)
+    {
 
         // Menggunakan str_pad untuk menambahkan nol di depan angka
         $angkaFormatted = str_pad($angka, $jumlah, '0', STR_PAD_LEFT);
@@ -375,14 +384,16 @@ if (!function_exists('strPad')) {
 }
 
 if (!function_exists('getRomawiBulan')) {
-    function getRomawiBulan($bulan){
+    function getRomawiBulan($bulan)
+    {
         $romawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
         return $romawi[$bulan - 1]; // Bulan ke-1 (Januari) dimulai dari index 0
     }
 }
 
 if (!function_exists('angkaKeHuruf')) {
-    function angkaKeHuruf($angka) {
+    function angkaKeHuruf($angka)
+    {
         $angka = (int)$angka;
 
         $bilangan = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan'];
@@ -428,8 +439,6 @@ if (!function_exists('angkaKeHuruf')) {
         }
         return trim(preg_replace('/\s+/', ' ', $result));
     }
-
-
 }
 
 if (!function_exists('generateNoDokumen')) {
@@ -445,8 +454,8 @@ if (!function_exists('generateNoDokumen')) {
 
         // Incremental number
         $lastDoc = Permohonan_dokumen::where('jenis', $jenis)
-                    ->orderBy('id_dokumen', 'desc')
-                    ->first();
+            ->orderBy('id_dokumen', 'desc')
+            ->first();
 
         $lastNumber = 0;
         if ($lastDoc) {
@@ -486,8 +495,8 @@ if (!function_exists('generateNoDokumen')) {
             case 'surattugas':
                 // mengambil satuan kerja
                 $satuankerja = Penyelia::with(['permohonan', 'permohonan.layanan_jasa', 'permohonan.layanan_jasa.satuankerja'])
-                ->where('penyelia.id_penyelia', $id)
-                ->first();
+                    ->where('penyelia.id_penyelia', $id)
+                    ->first();
                 $alias = $satuankerja->permohonan->layanan_jasa->satuankerja->alias;
 
                 $noKontrak = "{$increment}/NL-{$alias}/{$romawiBulan}/{$tahunSekarang}";
@@ -516,6 +525,10 @@ if (!function_exists('generateNoDokumen')) {
 
                 $noKontrak = "{$alias}-{$increment}/{$appName}/{$romawiBulan}/{$tahunSekarang}";
                 break;
+
+            default:
+                $noKontrak = "{$increment}/{$romawiBulan}/{$tahunSekarang}";
+                break;
         }
 
 
@@ -531,7 +544,7 @@ if (!function_exists('messageSanity')) {
             foreach ($errors as $error) {
                 $fieldLabel = ucwords(str_replace('_', ' ', $fieldName));
                 $error = explode(':', $error);
-                $errorMessage[$fieldName.'.'.$error[0]] = match ($error[0]) {
+                $errorMessage[$fieldName . '.' . $error[0]] = match ($error[0]) {
                     'required' => "Harap isi {$fieldLabel}",
                     'unique' => "{$fieldLabel} sudah terdaftar",
                     'max' => "{$fieldLabel} maksimal {$error[1]} karakter",
@@ -542,7 +555,7 @@ if (!function_exists('messageSanity')) {
                     'confirmed' => 'Password tidak sama dengan Konfirmasi Password',
                 };
                 if ($fieldName === 'g-recaptcha-response' && $error === 'required') {
-                    $errorMessage[$fieldName.'.'.$error] = 'Harap verifikasi Captcha';
+                    $errorMessage[$fieldName . '.' . $error] = 'Harap verifikasi Captcha';
                 }
             }
         }
@@ -557,14 +570,15 @@ if (!function_exists('jenislayanan')) {
     }
 }
 
-if(!function_exists('contenMetodePembayaran')){
-    function contenMetodePembayaran($content, $variabels = []){
+if (!function_exists('contenMetodePembayaran')) {
+    function contenMetodePembayaran($content, $variabels = [])
+    {
         // Log::info($metodePembayaran);
-        if(is_array($variabels)){
+        if (is_array($variabels)) {
             foreach ($variabels as $key => $value) {
                 foreach ($value as $key2 => $value2) {
                     $content = html_entity_decode($content);
-                    $content = str_replace('@'.$key2, $value2, $content);
+                    $content = str_replace('@' . $key2, $value2, $content);
                 }
             }
         }
@@ -572,8 +586,9 @@ if(!function_exists('contenMetodePembayaran')){
     }
 }
 
-if(!function_exists('normalizeMentionKey')) {
-    function normalizeMentionKey(string $raw): string {
+if (!function_exists('normalizeMentionKey')) {
+    function normalizeMentionKey(string $raw): string
+    {
         // Hilangkan entity, spasi, marker @ / # / {{ }}
         $k = html_entity_decode(trim($raw), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         // buang {{VAR}} atau {{ VAR }}
@@ -584,14 +599,15 @@ if(!function_exists('normalizeMentionKey')) {
     }
 }
 
-if(!function_exists('importHtmlFragment')) {
-    function importHtmlFragment(DOMDocument $dom, string $htmlFragment): DOMDocumentFragment {
+if (!function_exists('importHtmlFragment')) {
+    function importHtmlFragment(DOMDocument $dom, string $htmlFragment): DOMDocumentFragment
+    {
         $tmp = new DOMDocument('1.0', 'UTF-8');
         libxml_use_internal_errors(true);
         $tmp->loadHTML(
             '<div id="__wrap__">' .
-            $htmlFragment .
-            '</div>',
+                $htmlFragment .
+                '</div>',
             LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
         );
         libxml_clear_errors();
@@ -613,8 +629,9 @@ if(!function_exists('importHtmlFragment')) {
  *  - sanitizer: callable($html, $key): string  -> gunakan kalau pakai HTML Purifier
  *  - default: nilai default jika key tidak ada
  */
-if(!function_exists('renderMentionsToValuesFlexible')) {
-    function renderMentionsToValuesFlexible(string $html = "", array $map = [], array $options = []): string {
+if (!function_exists('renderMentionsToValuesFlexible')) {
+    function renderMentionsToValuesFlexible(string $html = "", array $map = [], array $options = []): string
+    {
         $htmlKeys    = array_map('strtoupper', $options['html_keys'] ?? []);
         $allowedTags = $options['allowed_tags'] ?? '<p><br><strong><b><em><i><u><span><div><ul><ol><li><table><thead><tbody><tr><td><th><h1><h2><h3><h4><h5><h6>';
         $sanitizer   = $options['sanitizer'] ?? null; // contoh: fn($h,$k)=>Purifier::clean($h)
@@ -676,7 +693,6 @@ if(!function_exists('renderMentionsToValuesFlexible')) {
                 $text = $dom->createTextNode($valueRaw);
                 $node->parentNode->replaceChild($text, $node);
             }
-
         }
 
         // Kembalikan innerHTML
@@ -694,18 +710,20 @@ if(!function_exists('renderMentionsToValuesFlexible')) {
     }
 }
 
-if(!function_exists('a4ContentWidthPx')) {
+if (!function_exists('a4ContentWidthPx')) {
     // A4 @ 96 DPI ≈ 794 px lebar. Sesuaikan margin yang kamu pakai di @page.
-    function a4ContentWidthPx(string $orientation='portrait', int $marginLeftPx=40, int $marginRightPx=40, int $dpi=96): int {
+    function a4ContentWidthPx(string $orientation = 'portrait', int $marginLeftPx = 40, int $marginRightPx = 40, int $dpi = 96): int
+    {
         [$wIn, $hIn] = $orientation === 'portrait' ? [8.268, 11.693] : [11.693, 8.268];
         $wPx = (int) round($wIn * $dpi);
         return max(0, $wPx - ($marginLeftPx + $marginRightPx));
     }
 }
 
-if(!function_exists('convertTableWidthsToPx')) {
+if (!function_exists('convertTableWidthsToPx')) {
 
-    function convertTableWidthsToPx(string $html, int $containerPx): string {
+    function convertTableWidthsToPx(string $html, int $containerPx): string
+    {
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
@@ -713,7 +731,7 @@ if(!function_exists('convertTableWidthsToPx')) {
         $xp = new DOMXPath($dom);
 
         foreach ($xp->query('//table') as $table) {
-            if($table instanceof DOMElement){
+            if ($table instanceof DOMElement) {
                 // Table width (% → px) di style
                 $style = $table->getAttribute('style');
                 if (preg_match('/width\s*:\s*([\d.]+)%/i', $style, $m)) {
@@ -725,7 +743,7 @@ if(!function_exists('convertTableWidthsToPx')) {
 
             // colgroup/col
             foreach ($xp->query('./colgroup/col', $table) as $col) {
-                if($col instanceof DOMElement){
+                if ($col instanceof DOMElement) {
                     $cs = $col->getAttribute('style');
                     if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m2)) {
                         $px = (int) round($containerPx * (float) $m2[1] / 100);
@@ -737,7 +755,7 @@ if(!function_exists('convertTableWidthsToPx')) {
 
             // th/td
             foreach ($xp->query('.//th|.//td', $table) as $cell) {
-                if($cell instanceof DOMElement){
+                if ($cell instanceof DOMElement) {
                     $cs = $cell->getAttribute('style');
                     if (preg_match('/width\s*:\s*([\d.]+)%/i', $cs, $m3)) {
                         $px = (int) round($containerPx * (float) $m3[1] / 100);
@@ -754,8 +772,9 @@ if(!function_exists('convertTableWidthsToPx')) {
     }
 }
 
-if(!function_exists('calculateInvoice')) {
-    function calculateInvoice($total_harga, $diskon = [], $ppn = false, $pph = false) {
+if (!function_exists('calculateInvoice')) {
+    function calculateInvoice($total_harga, $diskon = [], $ppn = false, $pph = false)
+    {
         $subJumlah = 0;
 
         foreach ($diskon as $item) {
@@ -780,10 +799,11 @@ if(!function_exists('calculateInvoice')) {
     }
 }
 
-if(!function_exists('isReminderPeriod')) {
-    function isReminderPeriod($period, $offset, $hNow = false) {
+if (!function_exists('isReminderPeriod')) {
+    function isReminderPeriod($period, $offset, $hNow = false)
+    {
         $period = Carbon::create($period);
-        $hMinus = $period->copy()->sub("month",$offset);
+        $hMinus = $period->copy()->sub("month", $offset);
 
         // hari ini
         $hNow = $hNow ? Carbon::create($hNow) : Carbon::now();
@@ -792,8 +812,9 @@ if(!function_exists('isReminderPeriod')) {
     }
 }
 
-if(!function_exists('isFinishKontrak')) {
-    function isFinishKontrak($id_kontrak) {
+if (!function_exists('isFinishKontrak')) {
+    function isFinishKontrak($id_kontrak)
+    {
         // ambil kontrak
         $kontrak = Kontrak::with(
             'invoice',
@@ -802,7 +823,7 @@ if(!function_exists('isFinishKontrak')) {
 
         // cek apakah invoice sudah di bayar atau belum
         $statusInvoice = false;
-        if($kontrak->invoice) {
+        if ($kontrak->invoice) {
             $invoice = $kontrak->invoice;
             $statusInvoice = $invoice->status == 5 ? true : false; // 5 = sudah di bayar
         }
@@ -811,7 +832,7 @@ if(!function_exists('isFinishKontrak')) {
         $statusPeriode = false;
         $arrDocument = array('tld', 'lhu');
         foreach ($kontrak->periode as $periode) {
-            if($periode->status == 2) {
+            if ($periode->status == 2) {
                 $statusPeriode = true;
                 break;
             }
@@ -819,19 +840,20 @@ if(!function_exists('isFinishKontrak')) {
     }
 }
 
-if(!function_exists('getPeriodeAwal')) {
-    function getPeriodeAwal(Kontrak $kontrak) {
+if (!function_exists('getPeriodeAwal')) {
+    function getPeriodeAwal(Kontrak $kontrak)
+    {
         $JL = jenislayanan($kontrak->jenis_layanan_parent, $kontrak->jenis_layanan);
 
         $periodeAwal = array();
-        if($kontrak->is_zerocek == 1) {
-            if($kontrak->is_have_tld == 0) {
+        if ($kontrak->is_zerocek == 1) {
+            if ($kontrak->is_have_tld == 0) {
                 $periodeAwal = array(0);
-            } else if($kontrak->is_have_tld == 1 && $JL != 'ZeroCekTanpaKontrak') {
+            } else if ($kontrak->is_have_tld == 1 && $JL != 'ZeroCekTanpaKontrak') {
                 $periodeAwal = array(1, 2);
             }
-        } else if($kontrak->is_zerocek == 0) {
-            if($kontrak->is_have_tld == 1 && $JL != 'EvaluasiTanpaKontrak') {
+        } else if ($kontrak->is_zerocek == 0) {
+            if ($kontrak->is_have_tld == 1 && $JL != 'EvaluasiTanpaKontrak') {
                 $periodeAwal = array(1, 2);
             }
         }
@@ -840,11 +862,12 @@ if(!function_exists('getPeriodeAwal')) {
     }
 }
 
-if(!function_exists('cekPeriodeComplete')) {
-    function cekPeriodeComplete($id_kontrak, $periode) {
+if (!function_exists('cekPeriodeComplete')) {
+    function cekPeriodeComplete($id_kontrak, $periode)
+    {
         $period = Kontrak_periode::with('permohonan', 'permohonan.invoice')->where('id_kontrak', $id_kontrak)
-                    ->where('periode', $periode)
-                    ->first();
+            ->where('periode', $periode)
+            ->first();
 
         $kontrak = Kontrak::with([
             'jenis_layanan',
@@ -858,19 +881,19 @@ if(!function_exists('cekPeriodeComplete')) {
         $periodeAwal = getPeriodeAwal($kontrak);
         $lastPeriode = $kontrak->periode_all['jml_periode'] == $periode;
 
-        $aktifDokumen = array('invoice','tld', 'lhu');
-        if($periode == 0) {
+        $aktifDokumen = array('invoice', 'tld', 'lhu');
+        if ($periode == 0) {
             $aktifDokumen = array_diff($aktifDokumen, array('tld'));
         }
         foreach ($aktifDokumen as $dokumen) {
-            if($dokumen === 'invoice' && $period->permohonan?->invoice == null) continue;
-            if($dokumen === 'tld') {
-                if($JL == 'KontrakSewa' && $lastPeriode) continue;
-                if(in_array($period->id_periode, $periodeAwal)) continue;
+            if ($dokumen === 'invoice' && $period->permohonan?->invoice == null) continue;
+            if ($dokumen === 'tld') {
+                if ($JL == 'KontrakSewa' && $lastPeriode) continue;
+                if (in_array($period->id_periode, $periodeAwal)) continue;
             }
 
-            if($dokumen === 'lhu') {
-                if($period->status == 2) continue; // status 2 = Pengembalian
+            if ($dokumen === 'lhu') {
+                if ($period->status == 2) continue; // status 2 = Pengembalian
             }
 
             $getPengiriman = false;
@@ -880,7 +903,7 @@ if(!function_exists('cekPeriodeComplete')) {
                     ->where('periode', $periode)
                     ->first();
 
-                if($cekDokumen) {
+                if ($cekDokumen) {
                     $getPengiriman = $pengiriman;
                     break;
                 }
@@ -892,8 +915,8 @@ if(!function_exists('cekPeriodeComplete')) {
             //     }
             // }
 
-            if($getPengiriman) {
-                if($getPengiriman->status != 2) {
+            if ($getPengiriman) {
+                if ($getPengiriman->status != 2) {
                     return false;
                 }
             } else {
@@ -905,8 +928,9 @@ if(!function_exists('cekPeriodeComplete')) {
     }
 }
 
-if(!function_exists('notifUnreadCount')) {
-    function notifUnreadCount($event = null) {
+if (!function_exists('notifUnreadCount')) {
+    function notifUnreadCount($event = null)
+    {
         $query = Auth::user()->unreadNotifications();
 
         if ($event) {
@@ -931,14 +955,16 @@ if(!function_exists('notifUnreadCount')) {
     }
 }
 
-if(!function_exists('notifRead')){
-    function notifRead($event = null, $id = null){
+if (!function_exists('notifRead')) {
+    function notifRead($event = null, $id = null)
+    {
         Notifier::read($event, $id);
     }
 }
 
-if(!function_exists('uploadSignatur')) {
-    function uploadSignatur($signed, $user){
+if (!function_exists('uploadSignatur')) {
+    function uploadSignatur($signed, $user)
+    {
         // 1. Bersihkan header base64 (data:image/png;base64,...)
         // Agar yang tersisa hanya raw string enkripsinya
         $imageParts = explode(";base64,", $signed);
@@ -957,7 +983,7 @@ if(!function_exists('uploadSignatur')) {
         // 2. Simpan ke Tabel master_ttd
         // Pakai updateOrCreate agar jika sudah ada, dia update. Jika belum, dia create.
         $result = Master_ttd::create($params);
-        if($result) {
+        if ($result) {
             return $result->id;
         }
 
@@ -965,21 +991,24 @@ if(!function_exists('uploadSignatur')) {
     }
 }
 
-if(!function_exists('range_date')) {
-    function range_date($start, $end, $type) {
-        if($type == 1) {
+if (!function_exists('range_date')) {
+    function range_date(mixed $start, mixed $end, int $type)
+    {
+        $typeDateStart = false;
+        $typeDateEnd = false;
+        if ($type == 1) {
             $typeDateStart = 7;
             $typeDateEnd = 7;
-        } else if($type == 2) {
+        } else if ($type == 2) {
             $typeDateStart = 6;
             $typeDateEnd = 6;
         }
 
         // jika tahun antara start_date dan end_date sama
         if (substr($start, 0, 4) == substr($end, 0, 4)) {
-            if($type == 1) {
+            if ($type == 1) {
                 $typeDateStart = 11;
-            } else if($type == 2) {
+            } else if ($type == 2) {
                 $typeDateStart = 12;
             }
         }
@@ -991,18 +1020,19 @@ if(!function_exists('range_date')) {
     }
 }
 
-if(!function_exists('setKontrakAdendum')) {
-    function setKontrakAdendum($id_kontrak, $periode) {
+if (!function_exists('setKontrakAdendum')) {
+    function setKontrakAdendum($id_kontrak, $periode)
+    {
         $kontrak = Kontrak::find($id_kontrak);
 
-        if($periode >= $kontrak->periode_active->periode){
+        if ($periode >= $kontrak->periode_active->periode) {
             $result = Kontrak_detail::where('id_kontrak', $id_kontrak)
                 ->where('status', 2)
                 ->where('periode', '>=', $kontrak->periode_active->periode)
                 ->get();
 
             foreach ($result as $key => $value) {
-                if($value->pengguna_lama) {
+                if ($value->pengguna_lama) {
                     $change = Kontrak_detail::where('id_kontrak', $id_kontrak)
                         ->where('status', 1)
                         ->where('id_pengguna_divisi', $value->pengguna_lama)
@@ -1023,4 +1053,3 @@ if(!function_exists('setKontrakAdendum')) {
         }
     }
 }
-?>

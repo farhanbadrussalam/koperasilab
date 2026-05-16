@@ -174,6 +174,10 @@
                                                 <input type="text" class="form-control maskNPWP instansi-detail-input" id="npwp" name="npwp">
                                             </div>
                                             <div class="col-md-6">
+                                                <label for="kota" class="form-label small fw-bold text-uppercase text-muted">Kota <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control instansi-detail-input" id="kota" name="kota">
+                                            </div>
+                                            <div class="col-md-6">
                                                 <label for="kode_pos" class="form-label small fw-bold text-uppercase text-muted">Kode Pos <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control maskNumber instansi-detail-input" id="kode_pos" name="kode_pos">
                                             </div>

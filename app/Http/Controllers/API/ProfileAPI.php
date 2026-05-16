@@ -132,6 +132,7 @@ class ProfileAPI extends Controller
             'jenis' => 'Utama',
             'status' => 1,
             'alamat' => null,
+            'kota' => 'Jakarta',
             'kode_pos' => null
         );
         foreach ($arrJenisAlamat as $key => $value) {
@@ -140,6 +141,7 @@ class ProfileAPI extends Controller
                 'jenis' => $value,
                 'status' => 0,
                 'alamat' => null,
+                'kota' => 'Jakarta',
                 'kode_pos' => null
             );
         }
@@ -269,10 +271,12 @@ class ProfileAPI extends Controller
 
             $status = $request->has('status') ? $request->status : 99;
             $alamat = $request->has('alamat') ? $request->alamat : false;
+            $kota = $request->has('kota') ? $request->kota : false;
             $kode_pos = $request->has('kode_pos') ? $request->kode_pos : false;
 
             $status != 99 && $params['status'] = $status;
             $alamat && $params['alamat'] = $alamat;
+            $kota && $params['kota'] = $kota;
             $kode_pos && $params['kode_pos'] = $kode_pos;
 
             $profile->update($params);
@@ -300,6 +304,7 @@ class ProfileAPI extends Controller
             $npwp = $request->has('npwp_perusahaan') ? unmask($request->npwp_perusahaan) : false;
             $email = $request->has('email') ? $request->email : false;
             $alamat = $request->has('alamat') ? $request->alamat : false;
+            $kota = $request->has('kota') ? $request->kota : false;
             $kode_pos = $request->has('kode_pos') ? $request->kode_pos : false;
 
             $params = array();
@@ -322,6 +327,7 @@ class ProfileAPI extends Controller
                     'jenis' => 'Utama',
                     'status' => 1,
                     'alamat' => $alamat,
+                    'kota' => $kota,
                     'kode_pos' => $kode_pos
                 );
                 foreach ($arrJenisAlamat as $value) {
@@ -373,6 +379,7 @@ class ProfileAPI extends Controller
                         'jenis' => 'Utama',
                         'status' => 1,
                         'alamat' => $request->alamat_instansi,
+                        'kota' => $request->kota,
                         'kode_pos' => $request->kode_pos
                     ]
                 ];

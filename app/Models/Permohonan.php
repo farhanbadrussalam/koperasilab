@@ -175,7 +175,6 @@ class Permohonan extends Model
         'jenis_tld' => 'integer',
         'ttd_by' => 'integer',
         'file_lhu' => 'integer',
-        'flag_read' => 'integer',
         'created_by' => 'integer',
         'is_have_tld' => 'integer',
         'is_zerocek' => 'integer'
@@ -301,5 +300,10 @@ class Permohonan extends Model
     public function permohonan_detail()
     {
         return $this->hasMany(Permohonan_detail::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function alamat()
+    {
+        return $this->belongsTo(Master_alamat::class, 'id_alamat', 'id_alamat');
     }
 }

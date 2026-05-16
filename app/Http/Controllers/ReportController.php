@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Mews\Purifier\Facades\Purifier;
@@ -214,13 +215,9 @@ class ReportController extends Controller
         $filename = 'invoice-' . now()->format('Ymd-His') . '.pdf';
 
         return $bytes->stream($filename);
-        // return response($bytes, 200, [
-        //     'Content-Type'        => 'application/pdf',
-        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        // ]);
     }
 
-    public function contentInvoice($data, $params = null)
+    public function contentInvoice(mixed $data, ?array $params)
     {
         $dataKeuangan = calculateInvoice($data->permohonan->total_harga, $data->diskon, $data->ppn, $data->pph);
 
@@ -279,9 +276,14 @@ class ReportController extends Controller
         return $result;
     }
 
-    public function mappingVars($template, $data, $params = null)
+    public function mappingVars(mixed $template, mixed $data, array $params)
     {
         $vars = array();
+        $lab_perusahaan = AppSettings::where('key', 'lab_name')->first()->value;
+        $lab_alamat = AppSettings::where('key', 'lab_address')->first()->value;
+        $lab_lokasi = AppSettings::where('key', 'lab_lokasi')->first()->value;
+        $lab_telp = AppSettings::where('key', 'lab_phone')->first()->value;
+
         switch ($template->name) {
             case 'Invoice':
                 $rangeDate = range_date($params['periode_start']['start_date'], $params['periode_end']['end_date'], 2);
@@ -289,7 +291,7 @@ class ReportController extends Controller
                 $vars["NOMOR"] = $data->no_invoice;
                 $vars["LAMPIRAN"] = "Faktur Pajak";
                 $vars["PERIHAL"] = "Invoice " . $data->permohonan->jenis_layanan_parent->name . " " . $data->permohonan->layanan_jasa->nama_layanan . " " . $data->permohonan->jenisTld->name;
-                $vars["LOKASI"] = "Tangerang Selatan";
+                $vars["LOKASI"] = $lab_lokasi;
                 $vars["TANGGAL"] = convert_date($data->permohonan->dokumen[0]->created_at, 2);
                 $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->alamat;
@@ -339,7 +341,7 @@ class ReportController extends Controller
                 $vars["TGL_PENERIMAAN"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["TGL_SELESAI"] = $params['selesaiPengujian'] ? convert_date($params['selesaiPengujian'], 2) : '';
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
-                $vars["LOKASI"] = "Tangerang Selatan";
+                $vars["LOKASI"] = $lab_lokasi;
                 $vars = array_merge($vars, $this->contentTandaTerima($data, $params));
                 break;
             case "Kontrak":
@@ -429,7 +431,7 @@ class ReportController extends Controller
                 // $vars["TGL_BUAT"] = convert_date($data->permohonan->kontrak->dokumen[0]->created_at, 2);
                 $vars["TGL_BUAT"] = convert_date($data->paid_at, 2);
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
-                $vars["LOKASI_BUAT"] = "Tangerang Selatan";
+                $vars["LOKASI_BUAT"] = $lab_lokasi;
                 $vars["TYPE"] = ($data->status == 5 ? 'L' : '') .
                     ($data->pph ? 'PH' : '') .
                     ($data->ppn ? 'N' : '');
@@ -440,7 +442,7 @@ class ReportController extends Controller
                 $vars["NOMOR"] = $data->dokumen[0]->nomer;
                 $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->alamat;
-                $vars["LOKASI_BUAT"] = "Tangerang Selatan";
+                $vars["LOKASI_BUAT"] = $lab_lokasi;
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars['SATUANKERJA'] = $data->permohonan->layanan_jasa->satuankerja->name;
                 $vars["ACTION"] = $data->dokumen[0]->catatan == "approve" ? "Menyetujui" : "";
@@ -453,7 +455,7 @@ class ReportController extends Controller
                 $vars["PERMINTAAN"] = "Pengujian";
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
-                $vars["LOKASI"] = "Tangerang Selatan";
+                $vars["LOKASI"] = $lab_lokasi;
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["UNIT"] = $data->layanan_jasa->satuankerja->name;
                 if ($data->permohonan->lhu->end_date) {
@@ -479,7 +481,7 @@ class ReportController extends Controller
                 $vars['JUMLAH_TLD'] = $data->jumlah_pengguna + $data->jumlah_kontrol;
                 $range = range_date($params['periode']->start_date, $params['periode']->end_date, 1);
                 $vars['PERIODE'] = $range['start'] . '-' . $range['end'];
-                $vars['LOKASI'] = "Jakarta";
+                $vars['LOKASI'] = $data->alamat->kota;
 
                 $vars['TTD'] = "
                     <div style='text-align: center;'>
@@ -488,6 +490,39 @@ class ReportController extends Controller
                 ";
                 $vars['TTD_BY'] = $data->pelanggan->name;
                 $vars = array_merge($vars, $this->contentPermohonanAdendum($data, $params));
+                break;
+            case 'PermohonanEvaluasi':
+                // ["PERUSAHAAN","ALAMAT","NO_TELP","PERUSAHAAN_P","KODE_P","ALAMAT_P","NAMA_P","NO_HP_P","JML_TLD_P","JML_TLD_K","PERIODE","CONTENT","KOTA","TANGGAL","TTD","TTD_BY"]
+                $vars["PERUSAHAAN"] = $lab_perusahaan;
+                $vars["ALAMAT"] = $lab_alamat;
+                $vars["NO_TELP"] = $lab_telp;
+                $vars["PERUSAHAAN_P"] = $data->pelanggan->perusahaan->nama_perusahaan;
+                $vars["ALAMAT_P"] = $data->alamat->alamat;
+                $vars["KODE_P"] = $data->pelanggan->perusahaan->kode_perusahaan;
+                $vars["NAMA_P"] = $data->pelanggan->name;
+                $vars["NO_HP_P"] = $data->pelanggan->profile->no_hp;
+                $vars["KOTA"] = $data->alamat->kota;
+                $vars["JML_TLD_P"] = $data->jumlah_pengguna;
+                $vars["JML_TLD_K"] = $data->jumlah_kontrol;
+
+                $range = range_date($data->periode_pemakaian[0]['start_date'], $data->periode_pemakaian[0]['end_date'], 2);
+                $vars["PERIODE"] = $range['start'] . '-' . $range['end'];
+
+                // ambil stempel jika ada 
+                $stempel = $data->pelanggan->perusahaan?->stempel_perusahaan;
+                $url_stempel = "";
+                if ($stempel) {
+                    $url_stempel = "data:image/png;base64," . base64_encode(file_get_contents(public_path('storage/' . $stempel->file_path . '/' . $stempel->file_hash)));
+                }
+                $vars["TTD"] = "
+                    <div style='text-align: center;'>
+                        <img src='$url_stempel' class='img-fluid img-stempel' alt='Stempel-Lab'>
+                        <img src='{$data->pelanggan->ttd_image}' alt='TTD' width='100px' height='100px'>
+                    </div>
+                ";
+                $vars["TTD_BY"] = $data->pelanggan->name;
+                $vars["TANGGAL"] = convert_date($data->created_at, 13);
+                $vars = array_merge($vars, $this->contentPermohonanEvaluasi($data, $params));
                 break;
             default:
                 # code...
@@ -947,7 +982,6 @@ class ReportController extends Controller
         ];
     }
 
-
     /**
      * Generates a PDF stream of the "Surat Pengantar" report.
      *
@@ -1062,7 +1096,7 @@ class ReportController extends Controller
         return $bytes->stream($filename);
     }
 
-    private function contentSuratPengantar($data, $params)
+    private function contentSuratPengantar(mixed $data, array $params)
     {
         $html = '';
         $no = 1;
@@ -1364,7 +1398,7 @@ class ReportController extends Controller
         return $bytes->stream($filename);
     }
 
-    private function contentSuratPengujian($data, $params = null)
+    private function contentSuratPengujian(mixed $data, array $params)
     {
         $zrcek = $data->permohonan->is_zerocek ? 'Zero Cek' : '';
         $lJasa = $data->permohonan->layanan_jasa->satuankerja->name;
@@ -1429,7 +1463,96 @@ class ReportController extends Controller
         ];
     }
 
-    public function KontrakPengujian($id)
+    public function PermohonanEvaluasi(string $idPermohonan)
+    {
+        $idPermohonan = decryptor($idPermohonan);
+
+        if ($idPermohonan == null) {
+            return redirect()->back();
+        }
+
+        $query = Permohonan::with([
+            'permohonan_detail',
+            'permohonan_detail.tld',
+            'permohonan_detail.entitas' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                ]);
+            },
+            'pelanggan',
+            'pelanggan.profile',
+            'pelanggan.perusahaan',
+            'alamat',
+            'dokumen' => function ($q) {
+                return $q->where('jenis', 'PermohonanEvaluasi');
+            },
+            'dokumen.doc_template',
+        ])->find($idPermohonan);
+
+        $data['title'] = "Permohonan Evaluasi";
+        $data['ttd_default'] = $this->global['urlTtdDefault'];
+        $data['stempel'] = $this->global['urlStempel'];
+
+        // Mengambil template
+        $dokumen = $query->dokumen->first();
+        $template = $dokumen->doc_template;
+
+        // Setup variables
+        if ($dokumen->variables) {
+            $variables = $dokumen->variables;
+        } else {
+            $variables = $this->mappingVars($template, $query, $data);
+        }
+
+        // mengambil header
+        $header = Documents::where('id_perusahaan', $query->pelanggan->perusahaan->id_perusahaan)
+            ->where('jenis', 'header')
+            ->where('view', 1)
+            ->first();
+
+        $template->header = $header;
+
+        // Generate PDF
+        $bytes = $this->generatePDF('Permohonan Evaluasi', $template, $variables, ['TTD', 'CONTENT']);
+
+        $filename = 'Permohonan Evaluasi - ' . date('Y-m-d') . '.pdf';
+
+        return $bytes->stream($filename);
+    }
+
+    public function contentPermohonanEvaluasi(mixed $data, array $params = [])
+    {
+        $html = '';
+        $no = 1;
+
+        foreach ($data->permohonan_detail as $detail) {
+            if ($detail->jenis == 'pengguna') {
+                $html .= '
+                    <tr>
+                        <td>' . $no++ . '</td>
+                        <td>' . $detail->entitas->name . '</td>
+                        <td>' . $detail->tld->no_seri_tld . '</td>
+                        <td>' . $detail->entitas->nik . '</td>
+                    </tr>
+                ';
+            }
+        }
+        return [
+            "CONTENT" => '
+                <table class="table-surattugas" style="margin-top: 15px;">
+                    <tr>
+                        <th width="1%">No</th>
+                        <th width="20%">Nama Pengguna TLD</th>
+                        <th width="10%">Kode Lencana TLD</th>
+                        <th width="20%">NIK Pengguna TLD</th>
+                    </tr>
+                    ' . $html . '
+                </table>
+            '
+        ];
+    }
+
+    public function KontrakPengujian(string $id)
     {
         $id = decryptor($id);
 
@@ -1525,7 +1648,7 @@ class ReportController extends Controller
         return $bytes->stream($filename);
     }
 
-    private function contentKontrakPengujian($data, $params = [])
+    private function contentKontrakPengujian(mixed $data, $params = [])
     {
         $zrcek = $data->is_zerocek ? 'Zero Cek' : '';
         $lJasa = $data->layanan_jasa->satuankerja->name;
@@ -1600,7 +1723,7 @@ class ReportController extends Controller
         ];
     }
 
-    public function adendum($idPermohonan)
+    public function adendum(string $idPermohonan)
     {
         $idPermohonan = decryptor($idPermohonan);
 
@@ -1662,13 +1785,13 @@ class ReportController extends Controller
         return $bytes->stream($filename);
     }
 
-    private function resolveRadiasiLabel($entitas): string
+    private function resolveRadiasiLabel(mixed $entitas): string
     {
         $radiasi = $entitas->radiasi ? $entitas->radiasi->toArray() : [];
         return implode(', ', array_column($radiasi, 'nama_radiasi'));
     }
 
-    private function resolveEntitasColumns($value, int $key): array
+    private function resolveEntitasColumns(mixed $value, int $key): array
     {
         $col1 = $col2 = $col3 = '';
 
@@ -1687,7 +1810,7 @@ class ReportController extends Controller
         return [$col1, $col2, $col3];
     }
 
-    public function contentPermohonanAdendum($data, $params): array
+    public function contentPermohonanAdendum(mixed $data, array $params): array
     {
         $rows = '';
         foreach ($data->permohonan_detail as $key => $value) {

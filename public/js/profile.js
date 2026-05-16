@@ -284,7 +284,7 @@ function loadInstansi(data) {
                     jenis = 'LHU';
                     break;
                 case 'invoice':
-                    jenis = 'Invoice'
+                    jenis = 'Invoice';
                     break;
             }
 
@@ -300,7 +300,10 @@ function loadInstansi(data) {
                     <div id="alamat-${alamat.jenis}-active" class="d-flex align-items-center ${alamat.status == 1 ? 'd-block' : 'd-none'}">
                         <div class="flex-fill me-2" id="formAlamat-${alamat.jenis}">
                             <textarea name="txt-alamat-${alamat.jenis}" data-field="alamat" id="txt-alamat-${alamat.jenis}" cols="30" rows="3" class="form-control mb-2" disabled>${alamat.alamat ?? ''}</textarea>
-                            <input type="text" class="form-control me-2" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-${alamat.jenis}" value="${alamat.kode_pos ?? ''}" disabled>
+                            <div class="d-flex gap-2">
+                                <input type="text" class="form-control" data-field="kota" placeholder="Kota" id="txt-kota-${alamat.jenis}" value="${alamat.kota ?? ''}" disabled>
+                                <input type="text" class="form-control" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-${alamat.jenis}" value="${alamat.kode_pos ?? ''}" disabled>
+                            </div>
                         </div>
                         <div id="btnEditDiv-${alamat.jenis}" class="d-block ${statusUser == 1 ? 'd-block' : 'd-none'}" data-field="${alamat.jenis}">
                             <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'alamat')"><i class="bi bi-pencil"></i></button>
@@ -458,10 +461,10 @@ function enableEdit(obj, tab) {
 
     // change form to canedit
     if (tab == 'alamat') {
-        for (const element of $(`#formAlamat-${inputId}`).children()) {
-            $(element).attr('disabled', false);
-            $(element).data('tmpvalue', element.value);
-        }
+        $(`#formAlamat-${inputId}`).find('input, textarea').each(function () {
+            $(this).attr('disabled', false);
+            $(this).data('tmpvalue', this.value);
+        });
     } else {
         $(`#${inputId}`).attr('disabled', false);
         $(`#${inputId}`).focus();
@@ -478,10 +481,10 @@ function batalEdit(obj, tab) {
 
     // change form to canedit
     if (tab == 'alamat') {
-        for (const element of $(`#formAlamat-${inputId}`).children()) {
-            $(element).attr('disabled', true);
-            $(element).val($(element).data('tmpvalue'));
-        }
+        $(`#formAlamat-${inputId}`).find('input, textarea').each(function () {
+            $(this).attr('disabled', true);
+            $(this).val($(this).data('tmpvalue'));
+        });
     } else {
         $(`#${inputId}`).attr('disabled', true);
         $(`#${inputId}`).val($(`#btnActionDiv-${inputId}`).data('tmpvalue'));
@@ -500,15 +503,15 @@ function simpanEdit(obj, tab) {
         spinObj = $(`#divLabel-${inputId}`);
         let idAlamat = $(obj).data('idalamat');
         const formParams = new FormData();
-        for (const element of $(`#formAlamat-${inputId}`).children()) {
-            let field = $(element).data('field');
-            formParams.append(field, element.value);
-        }
+        $(`#formAlamat-${inputId}`).find('input, textarea').each(function () {
+            let field = $(this).data('field');
+            formParams.append(field, this.value);
+        });
 
         saveUpdateForm(spinObj, formParams, idAlamat);
-        for (const element of $(`#formAlamat-${inputId}`).children()) {
-            $(element).attr('disabled', true);
-        }
+        $(`#formAlamat-${inputId}`).find('input, textarea').each(function () {
+            $(this).attr('disabled', true);
+        });
         // change button to Edit
         $(`#btnEditDiv-${inputId}`).addClass('d-block').removeClass('d-none');
         $(`#btnActionDiv-${inputId}`).addClass('d-none').removeClass('d-block');
