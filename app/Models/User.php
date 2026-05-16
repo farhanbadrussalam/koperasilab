@@ -171,7 +171,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function getRequestVerifyInstansiAttribute()
     {
-        $request = Users_request::with('perusahaan')->where('id_user', $this->id)->whereIn('status',[1, 90])->first();
+        $request = Users_request::with('perusahaan')->where('id_user', $this->id)->whereIn('status', [1, 90])->first();
         return $request;
     }
 
@@ -181,7 +181,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if ($this->ttd) {
             $ttd = Master_ttd::where('id', $this->ttd)->first();
             // Convert Binary kembali ke Base64 String
-            if($ttd) {
+            if ($ttd) {
                 $base64 = $ttd->image_blob;
                 return "data:image/png;base64,{$base64}";
             }
@@ -201,19 +201,21 @@ class User extends Authenticatable implements MustVerifyEmail
         'jobs' => 'json',
         'status' => 'integer',
         'satuankerja_id' => 'json',
-        'realtime_notifications' => 'integer'
+        'realtime_notifications' => 'integer',
+        'id' => 'integer'
     ];
 
-    public function perusahaan(){
+    public function perusahaan()
+    {
         return $this->hasOne(Perusahaan::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
-    public function profile(){
+    public function profile()
+    {
         return $this->hasOne(Profile::class, 'user_id', 'id')->withTrashed();
     }
 
-    public function penyelia_petugas(){
+    public function penyelia_petugas()
+    {
         return $this->hasOne(Penyelia_petugas::class, 'id_user', 'id')->with('map_active');
     }
-
-
 }
