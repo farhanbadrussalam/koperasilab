@@ -42,7 +42,7 @@ class MediaController extends Controller
     }
 
 
-    public function get(array $id_media)
+    public function get(mixed $id_media)
     {
         // is array
         if (is_array($id_media)) {

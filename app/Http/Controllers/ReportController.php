@@ -481,7 +481,7 @@ class ReportController extends Controller
                 $vars['JUMLAH_TLD'] = $data->jumlah_pengguna + $data->jumlah_kontrol;
                 $range = range_date($params['periode']->start_date, $params['periode']->end_date, 1);
                 $vars['PERIODE'] = $range['start'] . '-' . $range['end'];
-                $vars['LOKASI'] = $data->alamat->kota;
+                $vars['LOKASI'] = $data->pelanggan->perusahaan->alamat[0]->kota;
 
                 $vars['TTD'] = "
                     <div style='text-align: center;'>
