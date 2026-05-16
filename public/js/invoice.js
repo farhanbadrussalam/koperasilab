@@ -749,6 +749,15 @@ class Invoice {
                         text: "Harap berikan tanda tangan terlebih dahulu.",
                     });
                 }
+
+                formData.append('ttd', ttdValue);
+                formData.append('ttd_by', ttdBy);
+                formData.append('status', 3);
+                $('#pltChecked').is(":checked") ? formData.append('plt', 1) : formData.append('plt', 0);
+                textQuestion = 'Apa invoice sudah benar ?';
+                textSuccess = 'Invoice berhasil diverifikasi.';
+                break;
+            case 'verifStaff':
                 let tglPembayaran = $('#paymentDateInput').val();
                 if (!tglPembayaran) {
                     return Swal.fire({
@@ -758,14 +767,6 @@ class Invoice {
                 }
 
                 formData.append('paid_at', tglPembayaran);
-                formData.append('ttd', ttdValue);
-                formData.append('ttd_by', ttdBy);
-                formData.append('status', 3);
-                $('#pltChecked').is(":checked") ? formData.append('plt', 1) : formData.append('plt', 0);
-                textQuestion = 'Apa invoice sudah benar ?';
-                textSuccess = 'Invoice berhasil diverifikasi.';
-                break;
-            case 'verifStaff':
                 formData.append('status', 5);
                 textQuestion = 'Apa invoice sudah benar ?';
                 textSuccess = 'Invoice berhasil diverifikasi.';
