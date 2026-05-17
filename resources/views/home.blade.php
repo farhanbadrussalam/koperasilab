@@ -187,12 +187,13 @@
             @canany(['Staff/keuangan', 'Manager/keuangan'])
             <div class="row g-4">
                 <div class="col-12">
-                    <div id="widget-finance-inv-active"
-                        class="ajax-widget h-100"
-                        data-url="dashboard/widgets/finance-inv-active"
-                        data-skeleton="dashboard/skeleton/service-chart">
+                    <div id="widget-summary-invoice"
+                        class="ajax-widget col-12 summary-active"
+                        data-url="dashboard/widgets/summary-cards"
+                        data-jenis="invoice"
+                        data-skeleton="dashboard/skeleton/summary">
 
-                        <x-dashboard.skeleton.service-chart-skeleton />
+                        <x-dashboard.skeleton.summary-skeleton />
                     </div>
                 </div>
                 <div class="col-12">

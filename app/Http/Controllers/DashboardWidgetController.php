@@ -221,6 +221,38 @@ class DashboardWidgetController extends Controller
                     'url' => route('staff.lhu.petugas')
                 ])->render();
                 break;
+            case 'invoice':
+                $counts = Keuangan::query() // Menghapus eager loading yang tidak perlu
+                    ->whereIn('status', [7, 4, 3, 5, 90])
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
+
+                $countBelumLunas = $counts->get(3, 0);
+                $countVerifikasi = $counts->get(4, 0);
+                $countLunas = $counts->get(5, 0);
+                $countFaktur = $counts->get(7, 0);
+                $countDitolak = $counts->get(90, 0);
+
+                // cek apakah semua data kosong
+                $isEmpty = $countBelumLunas === 0 && $countVerifikasi === 0 && $countLunas === 0 && $countFaktur === 0 && $countDitolak === 0;
+
+                $html = view('components.dashboard.summary-cards', [
+                    'icon' => 'bi-receipt',
+                    'text' => 'Status Invoice Aktif',
+                    'type' => 'list',
+                    'color' => 'text-primary',
+                    'url' => 'javascript:void(0)',
+                    'isEmpty' => $isEmpty,
+                    'count' => [
+                        ['text' => 'Faktur', 'icon' => 'bi-file-earmark-text-fill', 'count' => $countFaktur, 'color' => 'text-secondary'],
+                        ['text' => 'Menunggu Bayar', 'icon' => 'bi-clock-fill', 'count' => $countBelumLunas, 'color' => 'text-warning'],
+                        ['text' => 'Perlu Verifikasi', 'icon' => 'bi-shield-check', 'count' => $countVerifikasi, 'color' => 'text-info'],
+                        ['text' => 'Selesai', 'icon' => 'bi-check-circle-fill', 'count' => $countLunas, 'color' => 'text-success'],
+                        ['text' => 'Ditolak', 'icon' => 'bi-x-circle-fill', 'count' => $countDitolak, 'color' => 'text-danger'],
+                    ]
+                ])->render();
+                break;
             default:
                 # code...
                 break;
@@ -248,7 +280,7 @@ class DashboardWidgetController extends Controller
         if (!$isEmpty) {
             $charts[] = [
                 'id_chart' => 'expeditionChart',
-                'type' => 'bar',
+                'type' => 'line',
                 'series_name' => 'Pengiriman',
                 'yaxis_title' => 'Jumlah Pengiriman',
                 'stacked' => true,
@@ -680,14 +712,38 @@ class DashboardWidgetController extends Controller
             $piutang[] = $piutangByMonth->get($i, 0); //( / 1000000);
         }
 
-        $cashFlowData = [
-            'categories' => $monthNames,
-            'lunas' => $lunas, // Data dalam jutaan
-            'piutang' => $piutang, // Data dalam jutaan
-            'isEmpty' => $query->isEmpty(),
-        ];
+        $chartData = array(
+            'category' => $monthNames,
+            'value' => $lunas,
+        );
 
-        $html = view('components.dashboard.finance-charts-panel', compact('cashFlowData'))->render();
+        $chartData2 = array(
+            'category' => $monthNames,
+            'value' => $piutang,
+        );
+
+        $charts = [];
+        if (!$query->isEmpty()) {
+            $charts[] = [
+                'title' => 'Cash Flow',
+                'id_chart' => 'cashFlowChart',
+                'type' => 'line',
+                'series_name' => ['Lunas', 'Piutang'],
+                'yaxis_title' => 'Jumlah Lunas',
+                'stacked' => true,
+                'distributed' => true,
+                'format' => 'currency',
+                'data' => [$chartData, $chartData2],
+            ];
+        }
+
+        // $html = view('components.dashboard.finance-charts-panel', compact('cashFlowData'))->render();
+        $html = view('components.dashboard.service-chart', [
+            'charts' => $charts,
+            'isEmpty' => $query->isEmpty(),
+            'title' => 'Cash Flow',
+            'icon' => 'cash'
+        ])->render();
 
         return response()->json(['html' => $html]);
     }

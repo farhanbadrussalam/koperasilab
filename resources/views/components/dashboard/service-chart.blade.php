@@ -83,11 +83,19 @@
                     }
                 };
             } else if (['bar', 'line', 'area'].includes(chartConfig.type)) {
+                let series = [];
+                let series_name = Array.isArray(chartConfig.series_name) ? chartConfig.series_name : [chartConfig.series_name];
+                let series_data = Array.isArray(chartConfig.data) ? chartConfig.data : [chartConfig.data];
+
+                series_name.forEach((name, index) => {
+                    series.push({
+                        name: name,
+                        data: series_data[index] ? series_data[index].value : []
+                    });
+                });
+
                 options = {
-                    series: [{
-                        name: chartConfig.series_name || 'Data',
-                        data: chartConfig.data.value
-                    }],
+                    series: series,
                     chart: {
                         type: chartConfig.type,
                         height: chartConfig.height || 320,
@@ -95,7 +103,7 @@
                         fontFamily: 'Nunito, sans-serif'
                     },
                     xaxis: {
-                        categories: chartConfig.data.category,
+                        categories: series_data[0].category,
                     },
                     yaxis: {
                         title: {
@@ -103,9 +111,14 @@
                         },
                         labels: {
                             formatter: function (value) {
+                                if(chartConfig.format === 'currency') {
+                                    return formatRupiah((value / 1000000)) + " Jt";
+                                }
+
                                 if (Math.floor(value) === value) {
                                     return value;
                                 }
+
                                 return value;
                             }
                         }
@@ -128,9 +141,15 @@
                     tooltip: {
                         y: {
                             formatter: function(value) {
+                                if(chartConfig.format === 'currency') {
+                                    return formatRupiah((value / 1000000)) + " Jt";
+                                }
                                 return value + " " + (chartConfig.tooltip_suffix || '')
                             }
                         }
+                    },
+                    stroke: {
+                        curve: chartConfig.curve || 'smooth'
                     }
                 };
 
