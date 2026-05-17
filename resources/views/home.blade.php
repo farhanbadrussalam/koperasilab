@@ -184,7 +184,7 @@
             </div>
             @endcan
 
-            @canany(['Staff/keuangan'])
+            @canany(['Staff/keuangan', 'Manager/keuangan'])
             <div class="row g-4">
                 <div class="col-12">
                     <div id="widget-finance-inv-active"
@@ -274,7 +274,7 @@
                         'time_ago' => '1 jam yang lalu'
                     ),
                 ]" /> --}}
-                @canany(['Staff/keuangan'])
+                @canany(['Staff/keuangan', 'Manager/keuangan'])
                 <div class="col-12">
                     <div id="widget-finance-chart-service"
                         class="ajax-widget h-100"

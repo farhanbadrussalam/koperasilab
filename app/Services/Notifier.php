@@ -19,8 +19,12 @@ class Notifier
         $user_id = $data['user_id'] ?? null;
         $perusahaan_id = $data['perusahaan_id'] ?? null;
         $event_id = $data['event_id'] ?? null;
+        if (is_string($targets) || is_numeric($targets)) {
+            $targets = [$targets];
+        }
+
         // Normalisasi: dari array ID → Builder
-        if (is_array($targets) && isset($targets[0]) && is_int($targets[0])) {
+        if (is_array($targets) && isset($targets[0]) && !is_object($targets[0])) {
             $query = User::whereIn('id', $targets);
             return self::sendQuery($query, $pesan, $url, $event_id, $event, $user_id, $perusahaan_id);
         }

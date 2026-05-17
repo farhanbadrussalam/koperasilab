@@ -116,8 +116,10 @@ function simpanKopSurat(obj) {
     formParams.append("jenis", "header");
     formParams.append("isActive", isActive);
 
+    const url = id ? `management/document/${id}` : `management/document`;
+
     spinner('show', $(obj));
-    ajaxPost(`management/document/${id}`, formParams, result => {
+    ajaxPost(url, formParams, result => {
         spinner('hide', $(obj));
         if (result.meta.code == 200) {
             Swal.fire({ icon: "success", text: result.data.msg });
