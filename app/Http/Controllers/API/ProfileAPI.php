@@ -457,6 +457,13 @@ class ProfileAPI extends Controller
                     'id_perusahaan' => (int) $idPerusahaan,
                     'jenis' => $tipe
                 ]);
+            } else {
+                Users_request::create([
+                    'id_user' => Auth::user()->id,
+                    'status' => 1,
+                    'id_perusahaan' => (int) $idPerusahaan,
+                    'jenis' => $tipe
+                ]);
             }
             DB::commit();
 

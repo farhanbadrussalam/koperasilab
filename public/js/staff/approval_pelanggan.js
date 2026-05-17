@@ -66,16 +66,30 @@ function loadData(page = 1) {
                 subTitle: htmlPic
             };
 
-            let btnAction = `
-                <div class="d-flex justify-content-end gap-2 flex-column">
-                    <button class="btn btn-outline-info btn-sm" onclick="openModalDetail(this)" data-url="storage/${profile.suratkuasa.file_path}/${profile.suratkuasa.file_hash}" title="Surat Kuasa">
-                        <i class="bi bi-file-earmark me-2"></i> Surat Kuasa
-                    </button>
-                    <button class="btn btn-outline-primary btn-sm" onclick="openModalVerifikasi('${req.request_user_hash}', '${req.jenis}')">
-                        <i class="bi bi-check-circle"></i> Verifikasi
-                    </button>
-                </div>
-            `;
+            let btnAction = '';
+            if (profile && profile.suratkuasa) {
+                btnAction = `
+                    <div class="d-flex justify-content-end gap-2 flex-column">
+                        <button class="btn btn-outline-info btn-sm" onclick="openModalDetail(this)" data-url="storage/${profile.suratkuasa.file_path}/${profile.suratkuasa.file_hash}" title="Surat Kuasa">
+                            <i class="bi bi-file-earmark me-2"></i> Surat Kuasa
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="openModalVerifikasi('${req.request_user_hash}', '${req.jenis}')">
+                            <i class="bi bi-check-circle"></i> Verifikasi
+                        </button>
+                    </div>
+                `;
+            } else {
+                btnAction = `
+                    <div class="d-flex justify-content-end gap-2 flex-column">
+                        <div class="alert alert-warning py-1 px-2 mb-0 border-warning shadow-sm text-center" style="font-size: 0.75rem;">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Surat Kuasa belum diunggah
+                        </div>
+                        <button class="btn btn-outline-danger btn-sm" onclick="kembalikanPelanggan('${req.request_user_hash}')">
+                            <i class="bi bi-arrow-return-left"></i> Kembalikan
+                        </button>
+                    </div>
+                `;
+            }
 
             html += cardComponent(params, { btnAction: btnAction });
         }
@@ -168,4 +182,24 @@ function openModalDetail(obj) {
 
 function reload() {
     loadData();
+}
+
+function kembalikanPelanggan(id) {
+    showNoteAlertSwal((reason) => {
+        let params = new FormData();
+        params.append('id_request', id);
+        params.append('catatan', reason);
+
+        showLoadingSwal('show');
+        ajaxPost(`api/v1/pelanggan/approval/tolak`, params, result => {
+            if (result.meta.code == 200) {
+                Swal.fire({ icon: 'success', text: 'Permintaan berhasil dikembalikan ke pelanggan' }).then(() => {
+                    showLoadingSwal('hide');
+                    loadData();
+                });
+            }
+        }, error => {
+            showLoadingSwal('hide');
+        });
+    }, 'Kembalikan ke Pelanggan', 'Silahkan berikan alasan pengembalian (contoh: Harap melengkapi data Profil dan mengunggah Surat Kuasa)');
 }

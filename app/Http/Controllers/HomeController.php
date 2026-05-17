@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AppSettings;
 use Illuminate\Http\Request;
 use Auth;
 use Spatie\Permission\Models\Role;
@@ -13,9 +14,7 @@ class HomeController extends Controller
      *
      * @return void
      */
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 
     /**
      * Show the application dashboard.
@@ -26,28 +25,29 @@ class HomeController extends Controller
     {
         $data = [
             'title' => 'Home',
-            'module' => 'home'
+            'module' => 'home',
+            'email_cs' => AppSettings::where('key', 'lab_email_cs')->first()->value
         ];
-        if(Auth::user()->hasRole('pelanggan')){
+        if (Auth::user()->hasRole('pelanggan')) {
             return redirect('userProfile', $data);
-        }else{
+        } else {
             return view('home', $data);
         }
     }
 
     public function login()
     {
-        if(Auth::check()){
+        if (Auth::check()) {
             $data = [
                 'title' => 'layanan jasa'
             ];
-            if(Auth::user()->hasRole('pelanggan')){
+            if (Auth::user()->hasRole('pelanggan')) {
                 return redirect('userProfile', $data);
-            }else{
+            } else {
                 $data['module'] = 'home';
                 return redirect('home');
             }
-        }else{
+        } else {
             return view('auth.login');
         }
     }
