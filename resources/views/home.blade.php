@@ -1,7 +1,7 @@
 @extends('layouts.main')
 @php
     $dashboardActive = true;
-    $user = auth()->user();
+    $user = Auth::user();
     $newPic = null;
     $changePIC = false;
     $verifyUser = false;
@@ -26,7 +26,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Selamat Datang, {{ auth()->user()->name }}</h1>
+        <h1>Selamat Datang, {{ Auth::user()->name }}</h1>
     </div>
 
     @if($dashboardActive)
@@ -365,7 +365,7 @@
 
     @elseif($verifyUser)
         @php
-            $hasRequest = auth()->user()->request_verify_instansi;
+            $hasRequest = Auth::user()->request_verify_instansi;
         @endphp
         {{-- ===================== VERIFY USER SCREEN ===================== --}}
         <div class="card border-0 shadow-sm rounded-4">
