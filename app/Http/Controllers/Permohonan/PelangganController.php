@@ -60,15 +60,15 @@ class PelangganController extends Controller
             },
             'permohonan.permohonan_detail.tld',
         ])->where('id_periode', decryptor($idPeriode))->first();
-        if($periodeNow){
+        if ($periodeNow) {
             $idKontrak = decryptor($idKontrak);
 
             // Pengecekan adendum
             setKontrakAdendum($idKontrak, $periodeNow->periode);
 
-            $periodeBefore = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode-1)->first();
-            $periodeNext = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+1)->first();
-            $periode2Next = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode+2)->first();
+            $periodeBefore = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode - 1)->first();
+            $periodeNext = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode + 1)->first();
+            $periode2Next = Kontrak_periode::where('id_kontrak', $idKontrak)->where('periode', $periodeNow->periode + 2)->first();
 
             // Mengambil Kontrak
             $queryKontrak = Kontrak::with([
@@ -88,7 +88,7 @@ class PelangganController extends Controller
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
                     ]);
                 },
-                'kontrak_map' => function($q) use ($periodeNow) {
+                'kontrak_map' => function ($q) use ($periodeNow) {
                     $q->where('periode', $periodeNow->periode);
                 },
                 'kontrak_map.tld',
@@ -102,7 +102,7 @@ class PelangganController extends Controller
             $layanan = jenislayanan($queryKontrak->jenis_layanan_parent, $queryKontrak->jenis_layanan);
             $isSewa = in_array($layanan, $this->global['arr_sewa']);
 
-            if($queryKontrak->jenis_layanan_parent->id_jenisLayanan == 7){
+            if ($queryKontrak->jenis_layanan_parent->id_jenisLayanan == 7) {
                 $jenisLayanan = Master_jenisLayanan::where('id_jenisLayanan', 9)->first();
             } else {
                 // Mengambil jenis layanan Evaluasi - Dengan kontrak
@@ -110,7 +110,7 @@ class PelangganController extends Controller
             }
 
             $data = [
-                'title' => 'Evaluasi - '. $queryKontrak->layanan_jasa->nama_layanan .' '. $queryKontrak->jenisTld->name,
+                'title' => 'Evaluasi - ' . $queryKontrak->layanan_jasa->nama_layanan . ' ' . $queryKontrak->jenisTld->name,
                 'module' => 'permohonan-kontrak',
                 'kontrak' => $queryKontrak,
                 'periodeBefore' => $periodeBefore,
@@ -127,11 +127,12 @@ class PelangganController extends Controller
         }
     }
 
-    private function cariTldDiPengiriman($id_kontrak, $periode) {
+    private function cariTldDiPengiriman($id_kontrak, $periode)
+    {
         $pengiriman = Pengiriman::with('detail')
             ->where('id_kontrak', $id_kontrak)
             ->where('periode', $periode)
-            ->whereHas('detail', function($query) {
+            ->whereHas('detail', function ($query) {
                 $query->where('jenis', 'tld');
             })
             ->first();
@@ -143,7 +144,7 @@ class PelangganController extends Controller
     {
         $idKontrak = decryptor($idKontrak);
 
-        if($idKontrak){
+        if ($idKontrak) {
             $data = [
                 'title' => 'Adendum Kontrak',
                 'module' => 'permohonan-kontrak',
@@ -180,26 +181,26 @@ class PelangganController extends Controller
     {
         // mengambil perusahaan dari user
         $perusahaan = Perusahaan::with("alamat")->where('id_perusahaan', Auth::user()->id_perusahaan)->first();
-        if(!$perusahaan){
+        if (!$perusahaan) {
             // redirect ke halaman pengajuan dan memberikan pesan error
             return redirect(Route('permohonan.pengajuan'))->with('warning', 'Anda belum masuk ke perusahaan manapun.');
         }
 
-        if(!$perusahaan->kode_perusahaan){
+        if (!$perusahaan->kode_perusahaan) {
             // redirect ke halaman pengajuan dan memberikan pesan warning
-            return redirect(Route('permohonan.pengajuan'))->with('warning', $perusahaan->nama_perusahaan .' belum memiliki kode perusahaan.');
+            return redirect(Route('permohonan.pengajuan'))->with('warning', $perusahaan->nama_perusahaan . ' belum memiliki kode perusahaan.');
         }
 
         // pengecekan alamat kosong
         $alamatUtama = $perusahaan->alamat->firstWhere('jenis', 'Utama');
-        if(!$alamatUtama->alamat){
+        if (!$alamatUtama?->alamat) {
             // redirect ke halaman pengajuan dan memberikan pesan warning
             return redirect(Route('permohonan.pengajuan'))->with('warning', 'Data perusahaan belum lengkap.');
         }
 
         // pengecekan ttd user pelanggan
         $ttd_user = Auth::user()->ttd;
-        if(!$ttd_user){
+        if (!$ttd_user) {
             // redirect ke halaman pengajuan dan memberikan pesan warning
             return redirect(Route('userProfile.index'))->with('warning', 'Anda belum Menambahkan TTD.');
         }
@@ -216,18 +217,18 @@ class PelangganController extends Controller
     {
         $idPermohonan = decryptor($id_permohonan);
         $dataPermohonan = Permohonan::with([
-                            'pelanggan',
-                            'jenisTld',
-                            'pelanggan.perusahaan',
-                            'pelanggan.perusahaan.alamat' => function($q){
-                                $q->where('status', 1);
-                            },
-                            'layanan_jasa:id_layanan,nama_layanan',
-                            'jenis_layanan:id_jenisLayanan,name',
-                            'jenis_layanan_parent:id_jenisLayanan,name',
-                        ])
-                        ->where('id_permohonan', $idPermohonan)->first();
-        if(!$dataPermohonan){
+            'pelanggan',
+            'jenisTld',
+            'pelanggan.perusahaan',
+            'pelanggan.perusahaan.alamat' => function ($q) {
+                $q->where('status', 1);
+            },
+            'layanan_jasa:id_layanan,nama_layanan',
+            'jenis_layanan:id_jenisLayanan,name',
+            'jenis_layanan_parent:id_jenisLayanan,name',
+        ])
+            ->where('id_permohonan', $idPermohonan)->first();
+        if (!$dataPermohonan) {
             abort(404);
         }
         $data = [
@@ -262,7 +263,8 @@ class PelangganController extends Controller
         return view('pages.permohonan.pembayaran.index', $data);
     }
 
-    public function bayarInvoicePembayaran($idKeuangan){
+    public function bayarInvoicePembayaran($idKeuangan)
+    {
         $data = [
             'title' => 'Invoice',
             'module' => 'permohonan-pembayaran'
@@ -271,31 +273,31 @@ class PelangganController extends Controller
         $idKeuangan = decryptor($idKeuangan);
 
         $keuangan = Keuangan::with(
-                       'diskon',
-                       'usersig:id,name',
-                       'permohonan',
-                       'permohonan.layanan_jasa:id_layanan,nama_layanan',
-                       'permohonan.jenisTld:id_jenisTld,name',
-                       'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
-                       'permohonan.jenis_layanan_parent',
-                       'permohonan.pelanggan',
-                       'permohonan.pelanggan.perusahaan',
-                       'permohonan.kontrak',
-                       'permohonan.kontrak.periode',
-                       'metode_pembayaran'
-                   )->where('id_keuangan', $idKeuangan)->first();
+            'diskon',
+            'usersig:id,name',
+            'permohonan',
+            'permohonan.layanan_jasa:id_layanan,nama_layanan',
+            'permohonan.jenisTld:id_jenisTld,name',
+            'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
+            'permohonan.jenis_layanan_parent',
+            'permohonan.pelanggan',
+            'permohonan.pelanggan.perusahaan',
+            'permohonan.kontrak',
+            'permohonan.kontrak.periode',
+            'metode_pembayaran'
+        )->where('id_keuangan', $idKeuangan)->first();
 
-        if(!$keuangan)
+        if (!$keuangan)
             abort(404);
 
-        if($keuangan->metode_pembayaran){
+        if ($keuangan->metode_pembayaran) {
             $keuangan->metode_pembayaran->content = contenMetodePembayaran($keuangan->metode_pembayaran->content, $keuangan->variabel_jenis_pembayaran);
         }
 
         $data['keuangan'] = $keuangan;
 
         // cek notifikasi read
-        notifRead('Keuangan',$keuangan->keuangan_hash);
+        notifRead('Keuangan', $keuangan->keuangan_hash);
 
         return view('pages.permohonan.pembayaran.bayar', $data);
     }

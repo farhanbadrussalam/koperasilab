@@ -265,55 +265,120 @@ function loadInstansi(data) {
         $('#card-detail-lokasi').show();
 
         // alamat
-        for (const alamat of data.perusahaan.alamat) {
-            let jenis = '';
-            let checkbox = `
-                <div class="form-check form-switch">
-                    <input class="form-check-input" onclick="changeAlamat(this)" data-jenis="${alamat.jenis}" type="checkbox" role="switch" id="switch-alamat-${alamat.jenis}" ${alamat.status == 1 ? 'checked' : ''}>
-                </div>
-            `;
-            switch (alamat.jenis) {
-                case 'utama':
-                    jenis = 'Utama';
-                    checkbox = '';
-                    break;
-                case 'tld':
-                    jenis = 'TLD';
-                    break;
-                case 'lhu':
-                    jenis = 'LHU';
-                    break;
-                case 'invoice':
-                    jenis = 'Invoice';
-                    break;
-            }
+        if (data.perusahaan.alamat && data.perusahaan.alamat.length > 0) {
+            for (const alamat of data.perusahaan.alamat) {
+                let jenis = '';
+                let checkbox = `
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" onclick="changeAlamat(this)" data-jenis="${alamat.jenis}" type="checkbox" role="switch" id="switch-alamat-${alamat.jenis}" ${alamat.status == 1 ? 'checked' : ''}>
+                    </div>
+                `;
+                switch (alamat.jenis) {
+                    case 'utama':
+                        jenis = 'Utama';
+                        checkbox = '';
+                        break;
+                    case 'tld':
+                        jenis = 'TLD';
+                        break;
+                    case 'lhu':
+                        jenis = 'LHU';
+                        break;
+                    case 'invoice':
+                        jenis = 'Invoice';
+                        break;
+                }
 
-            htmlAlamat += `
-                <div class="mb-3" data-idalamat="${alamat.alamat_hash}">
-                    <div class="d-flex" id="divLabel-${alamat.jenis}">
-                        <label class="form-label me-3">Alamat ${jenis}</label>
-                        ${statusUser == 1 ? checkbox : ''}
-                    </div>
-                    <div id="alamat-${alamat.jenis}-inactive" class="${alamat.status == 1 ? 'd-none' : 'd-block'}">
-                        <p>Alamat sesuai dengan Alamat Utama</p>
-                    </div>
-                    <div id="alamat-${alamat.jenis}-active" class="d-flex align-items-center ${alamat.status == 1 ? 'd-block' : 'd-none'}">
-                        <div class="flex-fill me-2" id="formAlamat-${alamat.jenis}">
-                            <textarea name="txt-alamat-${alamat.jenis}" data-field="alamat" id="txt-alamat-${alamat.jenis}" cols="30" rows="3" class="form-control mb-2" disabled>${alamat.alamat ?? ''}</textarea>
-                            <div class="d-flex gap-2">
-                                <input type="text" class="form-control" data-field="kota" placeholder="Kota" id="txt-kota-${alamat.jenis}" value="${alamat.kota ?? ''}" disabled>
-                                <input type="text" class="form-control" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-${alamat.jenis}" value="${alamat.kode_pos ?? ''}" disabled>
+                htmlAlamat += `
+                    <div class="mb-3" data-idalamat="${alamat.alamat_hash}">
+                        <div class="d-flex" id="divLabel-${alamat.jenis}">
+                            <label class="form-label me-3">Alamat ${jenis}</label>
+                            ${statusUser == 1 ? checkbox : ''}
+                        </div>
+                        <div id="alamat-${alamat.jenis}-inactive" class="${alamat.status == 1 ? 'd-none' : 'd-block'}">
+                            <p>Alamat sesuai dengan Alamat Utama</p>
+                        </div>
+                        <div id="alamat-${alamat.jenis}-active" class="d-flex align-items-center ${alamat.status == 1 ? 'd-block' : 'd-none'}">
+                            <div class="flex-fill me-2" id="formAlamat-${alamat.jenis}">
+                                <textarea name="txt-alamat-${alamat.jenis}" data-field="alamat" id="txt-alamat-${alamat.jenis}" cols="30" rows="3" class="form-control mb-2" disabled>${alamat.alamat ?? ''}</textarea>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control" data-field="kota" placeholder="Kota" id="txt-kota-${alamat.jenis}" value="${alamat.kota ?? ''}" disabled>
+                                    <input type="text" class="form-control" data-field="kode_pos" placeholder="Kode pos" id="txt-kode-pos-${alamat.jenis}" value="${alamat.kode_pos ?? ''}" disabled>
+                                </div>
+                            </div>
+                            <div id="btnEditDiv-${alamat.jenis}" class="d-block ${statusUser == 1 ? 'd-block' : 'd-none'}" data-field="${alamat.jenis}">
+                                <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'alamat')"><i class="bi bi-pencil"></i></button>
+                            </div>
+                            <div id="btnActionDiv-${alamat.jenis}" class="d-none d-flex" data-field="${alamat.jenis}">
+                                <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'alamat')"><i class="bi bi-x"></i></button>
+                                <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'alamat')" data-idalamat="${alamat.alamat_hash}"><i class="bi bi-check"></i></button>
                             </div>
                         </div>
-                        <div id="btnEditDiv-${alamat.jenis}" class="d-block ${statusUser == 1 ? 'd-block' : 'd-none'}" data-field="${alamat.jenis}">
-                            <button class="btn btn-outline-secondary btn-sm rounded-circle shadow-sm me-2" title="edit" type="button" onclick="enableEdit(this, 'alamat')"><i class="bi bi-pencil"></i></button>
-                        </div>
-                        <div id="btnActionDiv-${alamat.jenis}" class="d-none d-flex" data-field="${alamat.jenis}">
-                            <button class="btn btn-outline-danger btn-sm rounded-circle shadow-sm me-2" title="Batal" type="button" onclick="batalEdit(this, 'alamat')"><i class="bi bi-x"></i></button>
-                            <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm me-2" title="Simpan" type="button" onclick="simpanEdit(this, 'alamat')" data-idalamat="${alamat.alamat_hash}"><i class="bi bi-check"></i></button>
+                    </div>
+                `;
+            }
+        } else {
+            // Form jika alamat tidak ada
+            htmlAlamat += `
+                <div class="alert alert-info border-start border-4 border-info shadow-sm mb-4">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill fs-4 text-info me-3"></i>
+                        <div>
+                            <small class="d-block fw-bold text-dark">Data Alamat Belum Lengkap</small>
+                            <small class="text-muted">Silakan lengkapi data 4 alamat (Utama, TLD, LHU, dan Invoice) di bawah ini untuk melanjutkan.</small>
                         </div>
                     </div>
                 </div>
+                <form id="form-tambah-semua-alamat" novalidate>
+            `;
+
+            const arrJenis = [
+                { id: 'utama', label: 'Utama' },
+                { id: 'tld', label: 'TLD' },
+                { id: 'lhu', label: 'LHU' },
+                { id: 'invoice', label: 'Invoice' }
+            ];
+
+            arrJenis.forEach((j) => {
+                let isUtama = j.id === 'utama';
+                let checkbox = '';
+                if (!isUtama) {
+                    checkbox = `
+                        <div class="form-check form-switch">
+                            <input class="form-check-input switch-sama-utama" data-target="${j.id}" type="checkbox" role="switch" id="switch-sama-${j.id}">
+                        </div>
+                    `;
+                }
+
+                htmlAlamat += `
+                    <div class="mb-3">
+                        <div class="d-flex">
+                            <label class="form-label me-3">Alamat ${j.label}</label>
+                            ${checkbox}
+                        </div>
+                        <div id="body-alamat-${j.id}-inactive" class="${!isUtama ? 'd-block' : 'd-none'}">
+                            <p>Alamat sesuai dengan Alamat Utama</p>
+                        </div>
+                        <div id="body-alamat-${j.id}-active" class="d-flex align-items-center ${!isUtama ? 'd-none' : 'd-block'}">
+                            <div class="flex-fill">
+                                <textarea name="alamat_${j.id}" id="alamat_${j.id}" cols="30" rows="3" class="form-control mb-2" placeholder="Alamat Lengkap" ${isUtama ? 'required data-parsley-required-message="Alamat harus diisi"' : ''}></textarea>
+                                <div class="d-flex gap-2">
+                                    <input type="text" class="form-control" name="kota_${j.id}" id="kota_${j.id}" placeholder="Kota" ${isUtama ? 'required data-parsley-required-message="Kota harus diisi"' : ''}>
+                                    <input type="text" class="form-control maskNumber" name="kode_pos_${j.id}" id="kode_pos_${j.id}" placeholder="Kode pos" ${isUtama ? 'required data-parsley-required-message="Kode pos harus diisi"' : ''}>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            htmlAlamat += `
+                    <div class="text-end mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-primary rounded-pill px-4 shadow-sm" onclick="simpanSemuaAlamat(this)">
+                            <i class="bi bi-save me-1"></i> Simpan Alamat
+                        </button>
+                    </div>
+                </form>
             `;
         }
     } else {
@@ -400,7 +465,7 @@ function loadForm(data) {
         height: 298
     });
 
-    if (data.ttd) {
+    if (data.ttd || data.ttd_image) {
         document.getElementById('ttd-preview').innerHTML = '';
         signature(document.getElementById('ttd-preview'), {
             width: '100%',
@@ -777,5 +842,60 @@ function previewKopSurat(obj) {
     const title = $(obj).data('title') || 'Dokumen';
     modalDoc.show(`laporan/template_default/kop_surat/${id}`, {
         title: title
+    });
+}
+
+$(document).on('change', '.switch-sama-utama', function() {
+    let target = $(this).data('target');
+    if ($(this).is(':checked')) {
+        $(`#body-alamat-${target}-active`).removeClass('d-none').addClass('d-block');
+        $(`#body-alamat-${target}-inactive`).removeClass('d-block').addClass('d-none');
+        $(`#kota_${target}, #kode_pos_${target}, #alamat_${target}`).attr('required', true);
+    } else {
+        $(`#body-alamat-${target}-active`).removeClass('d-block').addClass('d-none');
+        $(`#body-alamat-${target}-inactive`).removeClass('d-none').addClass('d-block');
+        $(`#kota_${target}, #kode_pos_${target}, #alamat_${target}`).removeAttr('required');
+        
+        let parsleyKota = $(`#kota_${target}`).parsley();
+        let parsleyKodePos = $(`#kode_pos_${target}`).parsley();
+        let parsleyAlamat = $(`#alamat_${target}`).parsley();
+        if(parsleyKota) parsleyKota.reset();
+        if(parsleyKodePos) parsleyKodePos.reset();
+        if(parsleyAlamat) parsleyAlamat.reset();
+    }
+});
+
+function simpanSemuaAlamat(btn) {
+    let form = $('#form-tambah-semua-alamat');
+    form.parsley().validate();
+    if (!form.parsley().isValid()) return;
+
+    spinner('show', $(btn));
+    let params = new FormData(form[0]);
+    params.append('idPerusahaan', profile.perusahaan?.perusahaan_hash);
+
+    const arrJenis = ['tld', 'lhu', 'invoice'];
+    arrJenis.forEach(j => {
+        if ($(`#switch-sama-${j}`).is(':checked')) {
+            params.append(`status_${j}`, 1); 
+        } else {
+            params.append(`status_${j}`, 0);
+        }
+    });
+
+    ajaxPost('api/v1/profile/action/tambah_semua_alamat', params, result => {
+        spinner('hide', $(btn));
+        if(result.meta.code == 200) {
+            Swal.fire({
+                icon: 'success',
+                text: 'Data alamat berhasil disimpan',
+                showConfirmButton: false,
+                timer: 1500
+            }).then(() => {
+                location.reload();
+            });
+        }
+    }, err => {
+        spinner('hide', $(btn));
     });
 }

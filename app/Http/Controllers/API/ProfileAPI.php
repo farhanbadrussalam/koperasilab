@@ -294,6 +294,58 @@ class ProfileAPI extends Controller
         }
     }
 
+    public function actionTambahSemuaAlamat(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $idPerusahaan = decryptor($request->idPerusahaan);
+            
+            $arrAlamat = [];
+            $jenis_arr = ['utama' => 'Utama', 'tld' => 'TLD', 'lhu' => 'LHU', 'invoice' => 'Invoice'];
+            
+            foreach($jenis_arr as $key => $val) {
+                if ($key == 'utama') {
+                    $status = 1;
+                    $alamat = $request->input("alamat_$key");
+                    $kota = $request->input("kota_$key");
+                    $kode_pos = $request->input("kode_pos_$key");
+                } else {
+                    $status = $request->input("status_$key") == 1 ? 1 : 0;
+                    if ($status == 1) {
+                        $alamat = $request->input("alamat_$key");
+                        $kota = $request->input("kota_$key");
+                        $kode_pos = $request->input("kode_pos_$key");
+                    } else {
+                        $alamat = null;
+                        $kota = null;
+                        $kode_pos = null;
+                    }
+                }
+                
+                $arrAlamat[] = [
+                    'id_perusahaan' => $idPerusahaan,
+                    'jenis' => $val,
+                    'status' => $status,
+                    'alamat' => $alamat,
+                    'kota' => $kota,
+                    'kode_pos' => $kode_pos
+                ];
+            }
+            
+            // Hapus alamat lama jika ada untuk mencegah duplikat/sisa
+            Master_alamat::where('id_perusahaan', $idPerusahaan)->delete();
+            
+            Master_alamat::insert($arrAlamat);
+            DB::commit();
+            
+            return $this->output(['status' => 'success', 'msg' => 'Data alamat berhasil disimpan']);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function actionPerusahaan(Request $request)
     {
         DB::beginTransaction();

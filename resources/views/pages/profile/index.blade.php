@@ -529,42 +529,87 @@
     </div>
 
     <div class="modal fade" id="modal-kop-surat" tabindex="-1" aria-labelledby="kopModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="kopModalLabel">Kop Surat</h1>
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-white border-bottom px-4 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10" style="width:36px;height:36px;">
+                            <i class="bi bi-file-earmark-richtext text-primary fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="modal-title fw-bold text-dark mb-0" id="kopModalLabel">Kop Surat</h6>
+                            <small class="text-muted">Atur tampilan kop surat dokumen</small>
+                        </div>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body row justify-content-center">
+
+                <div class="modal-body p-4">
                     <input type="hidden" id="kop_surat_id">
-                    <div class="mb-3">
-                        <label for="nama_kop_surat" class="form-label">Nama</label>
-                        <input type="text" name="nama_kop_surat" id="nama_kop_surat" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="active_kop_surat" class="form-label">Status Aktif</label>
-                        {{-- gunakan radio button --}}
-                        <div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="active_kop_surat" id="active_kop_surat_1" value="1" checked>
-                                <label class="form-check-label" for="active_kop_surat_1">Aktif</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="active_kop_surat" id="active_kop_surat_0" value="0">
-                                <label class="form-check-label" for="active_kop_surat_0">Tidak Aktif</label>
+
+                    <div class="row g-3">
+                        {{-- Nama --}}
+                        <div class="col-12">
+                            <label for="nama_kop_surat" class="form-label small fw-bold text-muted text-uppercase">
+                                <i class="bi bi-tag me-1"></i> Nama Kop Surat
+                            </label>
+                            <input type="text" name="nama_kop_surat" id="nama_kop_surat"
+                                class="form-control rounded-3"
+                                placeholder="Masukkan nama kop surat..." required>
+                        </div>
+
+                        {{-- Status Aktif --}}
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted text-uppercase">
+                                <i class="bi bi-toggle-on me-1"></i> Status
+                            </label>
+                            <div class="d-flex gap-3">
+                                <label for="active_kop_surat_1"
+                                    class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 border"
+                                    style="cursor:pointer;">
+                                    <input class="form-check-input m-0" type="radio" name="active_kop_surat"
+                                        id="active_kop_surat_1" value="1" checked>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Aktif
+                                    </span>
+                                </label>
+                                <label for="active_kop_surat_0"
+                                    class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 border"
+                                    style="cursor:pointer;">
+                                    <input class="form-check-input m-0" type="radio" name="active_kop_surat"
+                                        id="active_kop_surat_0" value="0">
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                                        <i class="bi bi-dash-circle me-1"></i> Tidak Aktif
+                                    </span>
+                                </label>
                             </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="content_kop_surat" class="form-label">Content</label>
-                        <div class="form-floating">
-                            <textarea name="content_kop_surat" id="content_kop_surat" class="form-control" rows="6" required></textarea>
+
+                        {{-- Content / Editor --}}
+                        <div class="col-12">
+                            <label for="content_kop_surat" class="form-label small fw-bold text-muted text-uppercase">
+                                <i class="bi bi-pencil-square me-1"></i> Konten Kop Surat
+                            </label>
+                            <div class="alert alert-info border-0 rounded-3 py-2 px-3 d-flex align-items-center gap-2 mb-2" style="font-size:0.82rem;">
+                                <i class="bi bi-info-circle-fill text-info flex-shrink-0"></i>
+                                <span>Disarankan menggunakan <strong>gambar dengan resolusi 761 &times; 134 px</strong> untuk tampilan terbaik.</span>
+                            </div>
+                            <div class="rounded-3 overflow-hidden border">
+                                <textarea name="content_kop_surat" id="content_kop_surat" class="form-control border-0 rounded-0" rows="6" required></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-white p-3 border-top rounded-bottom-4">
-                    <div class="d-flex justify-content-end">
-                        <button class="btn btn-primary px-4" id="btnSimpanKopSurat" onclick="simpanKopSurat(this)">
+
+                <div class="modal-footer bg-light border-top px-4 py-3 d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check text-success me-1"></i> Data akan disimpan secara aman
+                    </small>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x me-1"></i> Batal
+                        </button>
+                        <button class="btn btn-primary rounded-pill px-4" id="btnSimpanKopSurat" onclick="simpanKopSurat(this)">
                             <i class="bi bi-save2 me-1"></i> Simpan
                         </button>
                     </div>
