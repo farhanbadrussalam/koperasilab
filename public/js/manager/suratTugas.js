@@ -16,11 +16,11 @@ $(function () {
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'penyelia',
-        filter : {
-            status : true,
-            jenis_tld : true,
-            jenis_layanan : true,
-            no_kontrak : true,
+        filter: {
+            status: true,
+            jenis_tld: true,
+            jenis_layanan: true,
+            no_kontrak: true,
             perusahaan: true
         }
     })
@@ -35,7 +35,7 @@ function loadEvent() {
     // TODO: Load event listeners if needed in the future
 }
 
-function loadData(page=1) {
+function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
@@ -51,7 +51,7 @@ function loadData(page=1) {
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
     filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -263,13 +263,13 @@ function _renderCardItem(lhu) {
 function reload() {
     loadData();
 }
-function showDetail(obj){
+function showDetail(obj) {
     const idPenyelia = $(obj).parent().parent().data("id");
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }
-function clearFilter(){}
+function clearFilter() { }
 
-function verifikasiPengujian(obj){
+function verifikasiPengujian(obj) {
     const idPenyelia = $(obj).closest('[data-id]').data('id');
     let find = dataPenyelia.find(d => d.penyelia_hash == idPenyelia);
 
@@ -336,9 +336,9 @@ function verifikasiPengujian(obj){
     });
 }
 
-function approvePengujian(id){
+function approvePengujian(id) {
     let [ttdValue, ttdBy] = signaturePad.getValue();
-    if(!ttdValue) {
+    if (!ttdValue) {
         return Swal.fire({
             icon: "warning",
             text: "Harap berikan tanda tangan terlebih dahulu.",
@@ -367,7 +367,7 @@ function approvePengujian(id){
     });
 }
 
-function declinePengujian(id){
+function declinePengujian(id) {
     PengujianComponent.hide();
     showNoteAlertSwal((reason) => {
         showLoadingSwal('show');
@@ -376,7 +376,7 @@ function declinePengujian(id){
         params.append('type', 'decline');
         params.append('catatan', reason);
         ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
-            if(result.meta.code == 200) {
+            if (result.meta.code == 200) {
                 showLoadingSwal('hide');
                 loadData();
             }

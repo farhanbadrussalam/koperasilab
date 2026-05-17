@@ -29,7 +29,7 @@
         <div class="my-3">
             <div class="body-placeholder my-3" id="pengajuan-placeholder">
                 @for ($i = 0; $i < 5; $i++)
-                <div class="card mb-2">
+                    <div class="card mb-2">
                     <div class="card-body row align-items-center">
                         <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
                             <div class="placeholder w-50 mb-1"></div>
@@ -47,16 +47,16 @@
                             <div class="placeholder w-50 mb-1"></div>
                         </div>
                     </div>
-                </div>
-                @endfor
             </div>
-            <div class="body my-3" id="pengajuan-list-container">
-            </div>
-            <div aria-label="Page navigation example" id="pagination_list"></div>
+            @endfor
         </div>
+        <div class="body my-3" id="pengajuan-list-container">
+        </div>
+        <div aria-label="Page navigation example" id="pagination_list"></div>
     </div>
+</div>
 </div>
 @endsection
 @push('scripts')
-    <script src="{{ asset('js/permohonan/pengajuan.js') }}"></script>
+<script src="{{ asset('js/permohonan/pengajuan.js') }}"></script>
 @endpush

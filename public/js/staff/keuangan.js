@@ -3,6 +3,7 @@ let thisTab = 1;
 let filterComp = false;
 let detail = false;
 let dataKeuangan = false;
+const modalDoc = new ModalDocument();
 
 $(function () {
     switchLoadTab(1);
@@ -19,13 +20,13 @@ $(function () {
             dokumen: true
         },
         activeTab: 'dokumen'
-     });
+    });
 
     filterComp = new FilterComponent('list-filter', {
-        filter : {
-            jenis_tld : true,
-            jenis_layanan : true,
-            no_kontrak : true,
+        filter: {
+            jenis_tld: true,
+            jenis_layanan: true,
+            no_kontrak: true,
             date_range: true
         }
     })
@@ -34,7 +35,7 @@ $(function () {
     filterComp.on('filter.change', () => switchLoadTab(thisTab));
 });
 
-function switchLoadTab(menu){
+function switchLoadTab(menu) {
     thisTab = menu;
     switch (menu) {
         case 1:
@@ -81,7 +82,7 @@ function loadData(page = 1, menu) {
     // filterValue.periode && (params.filter.periode = filterValue.periode);
     (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -124,10 +125,10 @@ function loadData(page = 1, menu) {
                     break;
             }
 
-            if(keuangan.status == 5){
+            if (keuangan.status == 5) {
                 btnAction += `
                     <li>
-                        <a class="dropdown-item small cursor-pointer" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi">
+                        <a class="dropdown-item small cursor-pointer" data-url="laporan/kwitansi/${keuangan.keuangan_hash}" data-title="Kwitansi" onclick="btnShowDoc(this)" title="Cetak Kwitansi">
                             <i class="bi bi-printer-fill me-2"></i> Kwitansi
                         </a>
                     </li>`;
@@ -153,7 +154,7 @@ function loadData(page = 1, menu) {
             html += cardComponent(data, { btnAction: btnAction2, btnMenuAction: btnAction });
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -176,10 +177,10 @@ function openInvoiceModal(obj, mode) {
     })
 }
 
-function showDetail(obj){
+function showDetail(obj) {
     const keuangan = $(obj).closest('.dropdown-menu').data("id");
     let find = dataKeuangan.find(d => d.keuangan_hash == keuangan);
-    if(find) {
+    if (find) {
         detail.show(`api/v1/kontrak/getById/${find.permohonan.kontrak.kontrak_hash}`);
 
     }
@@ -206,4 +207,12 @@ function countList() {
             element.toggle(value > 0);
         });
     })
+}
+
+function btnShowDoc(obj) {
+    const url = $(obj).data('url');
+    const title = $(obj).data('title') || 'Dokumen';
+    modalDoc.show(url, {
+        title: title
+    });
 }

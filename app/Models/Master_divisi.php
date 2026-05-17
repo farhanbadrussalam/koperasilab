@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_divisi
@@ -27,11 +28,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereUpdatedAt($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_divisi withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_divisi extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'master_divisi';
     protected $primaryKey = 'id_divisi';

@@ -90,6 +90,13 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereTtdBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan whereVerifyAt($value)
+ * @property-read mixed $ttd_image
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Log_proses> $logs
+ * @property-read int|null $logs_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_detail> $permohonan_detail
+ * @property-read int|null $permohonan_detail_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Permohonan_pengguna> $permohonan_pengguna
+ * @property-read int|null $permohonan_pengguna_count
  * @mixin \Eloquent
  */
 class Permohonan extends Model
@@ -168,7 +175,6 @@ class Permohonan extends Model
         'jenis_tld' => 'integer',
         'ttd_by' => 'integer',
         'file_lhu' => 'integer',
-        'flag_read' => 'integer',
         'created_by' => 'integer',
         'is_have_tld' => 'integer',
         'is_zerocek' => 'integer'
@@ -184,10 +190,11 @@ class Permohonan extends Model
         return $this->id_kontrak ? encryptor($this->id_kontrak) : null;
     }
 
-    public function getTtdImageAttribute(){
-        if($this->ttd) {
-            $ttd = Master_ttd::where('id', $this->ttd)->first();
-            if($ttd) {
+    public function getTtdImageAttribute()
+    {
+        if ($this->ttd) {
+            $ttd = Master_ttd::withTrashed()->where('id', $this->ttd)->first();
+            if ($ttd) {
                 $base64 = $ttd->image_blob;
                 return "data:image/png;base64,{$base64}";
             }
@@ -196,60 +203,74 @@ class Permohonan extends Model
         return null;
     }
 
-    public function jenisTld(){
-        return $this->belongsTo(Master_jenistld::class,'jenis_tld', 'id_jenisTld');
+    public function jenisTld()
+    {
+        return $this->belongsTo(Master_jenistld::class, 'jenis_tld', 'id_jenisTld');
     }
 
-    public function jenis_layanan(){
-        return $this->belongsTo(Master_jenisLayanan::class,'jenis_layanan_2', 'id_jenisLayanan');
+    public function jenis_layanan()
+    {
+        return $this->belongsTo(Master_jenisLayanan::class, 'jenis_layanan_2', 'id_jenisLayanan');
     }
 
-    public function jenis_layanan_parent(){
-        return $this->belongsTo(Master_jenisLayanan::class,'jenis_layanan_1', 'id_jenisLayanan');
+    public function jenis_layanan_parent()
+    {
+        return $this->belongsTo(Master_jenisLayanan::class, 'jenis_layanan_1', 'id_jenisLayanan');
     }
 
-    public function layanan_jasa() {
+    public function layanan_jasa()
+    {
         return $this->belongsTo(Master_layanan_jasa::class, 'id_layanan', 'id_layanan');
     }
 
-    public function permohonan_pengguna() {
+    public function permohonan_pengguna()
+    {
         return $this->hasMany(Permohonan_pengguna::class, 'id_permohonan', 'id_permohonan');
     }
 
-    public function pelanggan() {
-        return $this->belongsTo(User::class, 'created_by', 'id');
+    public function pelanggan()
+    {
+        return $this->belongsTo(User::class, 'created_by', 'id')->withTrashed()->withTrashed();
     }
 
-    public function tandaterima() {
+    public function tandaterima()
+    {
         return $this->hasMany(Permohonan_tandaterima::class, 'id_permohonan', 'id_permohonan');
     }
 
-    public function kontrak(){
+    public function kontrak()
+    {
         return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }
 
-    public function invoice(){
+    public function invoice()
+    {
         return $this->hasOne(Keuangan::class, 'id_permohonan', 'id_permohonan');
     }
 
-    public function lhu(){
+    public function lhu()
+    {
         return $this->hasOne(Penyelia::class, 'id_permohonan', 'id_permohonan');
     }
 
-    public function pengiriman(){
+    public function pengiriman()
+    {
         return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
     }
 
-    public function file_lhu(){
+    public function file_lhu()
+    {
         return $this->hasOne(Master_media::class, 'id', 'file_lhu');
     }
 
-    public function dokumen(){
+    public function dokumen()
+    {
         return $this->hasMany(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan');
     }
 
-    public function signature(){
-        return $this->belongsTo(User::class, 'ttd_by', 'id');
+    public function signature()
+    {
+        return $this->belongsTo(User::class, 'ttd_by', 'id')->withTrashed()->withTrashed();
     }
 
     /**
@@ -266,15 +287,23 @@ class Permohonan extends Model
             ->first();
     }
 
-    public function rincian_list_tld(){
+    public function rincian_list_tld()
+    {
         return $this->hasMany(Permohonan_tld::class, 'id_permohonan', 'id_permohonan');
     }
 
-    public function logs(){
+    public function logs()
+    {
         return $this->morphMany(Log_proses::class, 'subject')->orderBy('created_at', 'desc');
     }
 
-    public function permohonan_detail(){
+    public function permohonan_detail()
+    {
         return $this->hasMany(Permohonan_detail::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function alamat()
+    {
+        return $this->belongsTo(Master_alamat::class, 'id_alamat', 'id_alamat');
     }
 }

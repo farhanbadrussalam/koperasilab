@@ -22,6 +22,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereOrder($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereUploadDoc($value)
+ * @property string|null $color
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Penyelia_map> $penyelia_map
+ * @property-read int|null $penyelia_map_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_jobs whereColor($value)
  * @mixin \Eloquent
  */
 class Master_jobs extends Model

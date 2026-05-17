@@ -106,34 +106,6 @@
                                                 </div>
                                             </form>
 
-                                            @if(Auth::user()->hasRole('Pelanggan'))
-                                            <div class="col-12 mt-4">
-                                                <div class="p-3 bg-light rounded-3 border border-dashed">
-                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                        <label class="form-label small fw-bold mb-0">Dokumen Surat Kuasa</label>
-                                                    </div>
-
-                                                    <div id="uploadSuratKuasa" class="bg-white p-2 rounded"></div>
-
-                                                    {{-- <div class="d-flex align-items-center bg-white p-2 rounded border mb-2 shadow-sm">
-                                                        <i class="bi bi-file-earmark-pdf text-danger fs-4 me-3"></i>
-                                                        <div class="flex-grow-1 overflow-hidden">
-                                                            <h6 class="mb-0 text-truncate small fw-bold">10368-01 0256 ZC-II-2024.pdf</h6>
-                                                            <small class="text-muted">1.63 MB</small>
-                                                        </div>
-                                                        <button type="button" class="btn btn-sm btn-light text-danger border-0" title="Hapus File" disabled>
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
-                                                    </div>
-
-                                                    <div class="input-group mt-2" id="uploadArea">
-                                                        <input type="file" class="form-control" name="surat_kuasa">
-                                                        <button class="btn btn-outline-secondary" type="button">Upload</button>
-                                                    </div> --}}
-                                                </div>
-                                            </div>
-                                            @endif
-
                                             <div class="d-none justify-content-end gap-2 mt-4 pt-3 border-top" id="actionButtons">
                                                 <button type="button" class="btn btn-light" id="btnCancelEdit">Batal</button>
                                                 <button type="submit" class="btn btn-primary px-4" onclick="simpanPerubahanBiodata(this)">Simpan Perubahan</button>
@@ -145,128 +117,243 @@
                             </div>
                             <div class="tab-pane fade show" id="instansi-tab-pane" role="tabpanel" aria-labelledby="instansi-tab" tabindex="0">
                                 <div class="row">
-                                    <div class="col-12">
-                                        <div class="card border-0 shadow-sm rounded-4">
-                                            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center rounded-top-4">
-                                                <h6 class="m-0 fw-bold text-dark">
-                                                    <i class="bi bi-building me-2 text-primary"></i>Identitas Perusahaan
-                                                </h6>
-                                                @if (Auth::user()->status == 1)
-                                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnEditInstansi">
-                                                    <i class="bi bi-pencil-square me-1"></i> Edit Data
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger rounded-pill px-3" id="btnBackInstansi" style="display: none;">
-                                                    <i class="bi bi-x-circle me-1"></i> Batal
-                                                </button>
-                                                @endif
+                                    @if(Auth::user()->hasRole('Pelanggan'))
+                                    <div class="col-12 mb-2">
+                                        <div class="p-3 bg-light rounded-3 border border-dashed">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <label class="form-label small fw-bold mb-0">Dokumen Surat Kuasa</label>
                                             </div>
 
-                                            <div class="card-body p-4">
-                                                <div class="d-flex align-items-center mb-4 p-3 bg-primary-subtle rounded-3 border border-primary-subtle">
-                                                    <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
-                                                        <i class="bi bi-qr-code"></i>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <small class="text-primary fw-bold text-uppercase d-block">Kode Instansi</small>
-                                                        <span class="fs-5 fw-bold text-dark" id="kode_instansi"></span>
-                                                    </div>
-                                                    <button type="button" class="btn btn-sm btn-light text-primary" onclick="copyKode('kode_instansi')" title="Salin Kode">
-                                                        <i class="bi bi-clipboard"></i>
-                                                    </button>
+                                            <div id="uploadSuratKuasa" class="bg-white p-2 rounded"></div>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    <div class="col-12" id="card-instansi-nonaktif" style="display: none;">
+                                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                                            <div class="card-body p-5 text-center">
+                                                <div class="mb-4" id="icon-status-instansi">
+                                                    <i class="bi bi-hourglass-split text-warning" style="font-size: 4rem;"></i>
                                                 </div>
+                                                <h4 class="fw-bold text-dark mb-2" id="title-status-instansi">Proses Verifikasi</h4>
+                                                <p class="text-muted mb-4" id="desc-status-instansi">
+                                                    Data instansi Anda sedang dalam proses verifikasi oleh tim kami. Silakan tunggu beberapa saat.
+                                                </p>
+                                                <div id="action-status-instansi"></div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                                <form id="form-instansi" novalidate>
-
+                                    <div class="col-12" id="card-form-instansi" style="display: none;">
+                                        <div class="card border-0 shadow-sm rounded-4 mb-4">
+                                            <div class="card-header bg-white py-3 border-bottom rounded-top-4 d-flex justify-content-between">
+                                                <h6 class="m-0 fw-bold text-dark">
+                                                    <i class="bi bi-building-add me-2 text-primary"></i>Pengajuan Instansi Baru
+                                                </h6>
+                                                <button class="btn btn-sm btn-light text-danger border-0" onclick="batalPengajuan()">Batal</button>
+                                            </div>
+                                            <div class="card-body p-4">
+                                                <form id="form-pengajuan-instansi" novalidate>
                                                     <div class="row g-3">
-                                                        <div class="col-md-6 mt-1">
-                                                            <label class="form-label small fw-bold text-muted">Nama Instansi <span class="fw-bold fs-14 text-danger">*</span></label>
-                                                            <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" placeholder=""
-                                                                        data-parsley-required-message="Nama instansi harus diisi"
-                                                                        data-parsley-errors-container="#message-nama_perusahaan"
-                                                                        required disabled>
-                                                            <div id="message-nama_perusahaan" class="invalid-feedback d-block"></div>
-                                                        </div>
-
-                                                        <div class="col-md-6 mt-1">
-                                                            <label class="form-label small fw-bold text-muted">NPWP <span class="fw-bold fs-14 text-danger">*</span></label>
-                                                            <input type="text" class="form-control me-2 maskNPWP" id="npwp" name="npwp_perusahaan"
-                                                                data-parsley-errors-container="#message-npwp"
-                                                                data-parsley-required-message="NPWP harus diisi"
-                                                                required disabled autocomplete="true">
-                                                            <div id="message-npwp" class="invalid-feedback d-block"></div>
-                                                        </div>
-
-                                                        <div class="col-12 mt-1">
-                                                            <label class="form-label small fw-bold text-muted">Email Resmi <span class="fw-bold fs-14 text-danger">*</span></label>
-                                                            <div class="input-group">
-                                                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
-                                                                <input type="email" class="form-control me-2" id="email" name="email" placeholder=""
-                                                                    data-parsley-errors-container="#message-email"
-                                                                    data-parsley-required-message="Email harus diisi"
-                                                                    required
-                                                                    disabled>
+                                                        <div class="col-md-6">
+                                                            <div class="form-check">
+                                                                <input type="radio" class="form-check-input" id="p_baru_profile" name="pelanggan_tipe" value="baru" required data-parsley-errors-container="#pelanggan_tipe_error_profile" data-parsley-required-message="Silakan pilih tipe pelanggan terlebih dahulu">
+                                                                <label class="form-check-label" for="p_baru_profile">Pelanggan Baru</label>
                                                             </div>
-                                                            <div id="message-email" class="invalid-feedback d-block"></div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <div class="form-check">
+                                                                <input type="radio" class="form-check-input" id="p_lama_profile" name="pelanggan_tipe" value="lama">
+                                                                <label class="form-check-label" for="p_lama_profile">Pelanggan Lama</label>
+                                                            </div>
+                                                        </div>
+                                                        <div id="pelanggan_tipe_error_profile" class="col-12 mt-1"></div>
+                                                        
+                                                        <div class="col-12" id="section-instansi-profile" style="display: none;">
+                                                            <label for="nama_instansi_baru_profile" class="form-label small fw-bold text-uppercase text-muted">Nama Instansi <span class="text-danger">*</span></label>
+                                                            
+                                                            <!-- Input Teks untuk Pelanggan Baru -->
+                                                            <input type="text" class="form-control" id="nama_instansi_baru_profile" name="nama_instansi" required data-parsley-required-message="Nama instansi harus diisi">
+
+                                                            <!-- Select2 untuk Pelanggan Lama -->
+                                                            <select class="form-select" id="nama_instansi_lama_profile" style="display: none;" data-parsley-required-message="Pilih instansi Anda" name="nama_instansi_lama"></select>
+                                                        </div>
+                                                        
+                                                        <div id="form-instansi-detail-profile" class="col-12 m-0 p-0" style="display: none;">
+                                                            <div class="row g-3 mt-0">
+                                                                <div class="col-md-6">
+                                                                    <label for="email_instansi_profile" class="form-label small fw-bold text-uppercase text-muted">Email Instansi <span class="text-danger">*</span></label>
+                                                                    <input type="email" class="form-control maskEmail instansi-detail-input-profile" id="email_instansi_profile" name="email_instansi" data-parsley-errors-container="#email_instansi_error_profile">
+                                                                    <div id="email_instansi_error_profile" class="invalid-feedback d-block"></div>
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="npwp_profile" class="form-label small fw-bold text-uppercase text-muted">NPWP <span class="text-danger">*</span></label>
+                                                                    <input type="text" class="form-control maskNPWP instansi-detail-input-profile" id="npwp_profile" name="npwp">
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="kota_profile" class="form-label small fw-bold text-uppercase text-muted">Kota <span class="text-danger">*</span></label>
+                                                                    <input type="text" class="form-control instansi-detail-input-profile" id="kota_profile" name="kota">
+                                                                </div>
+                                                                <div class="col-md-6">
+                                                                    <label for="kode_pos_profile" class="form-label small fw-bold text-uppercase text-muted">Kode Pos <span class="text-danger">*</span></label>
+                                                                    <input type="text" class="form-control maskNumber instansi-detail-input-profile" id="kode_pos_profile" name="kode_pos">
+                                                                </div>
+                                                                <div class="col-12">
+                                                                    <label for="alamat_instansi_profile" class="form-label small fw-bold text-uppercase text-muted">Alamat Instansi <span class="text-danger">*</span></label>
+                                                                    <textarea name="alamat_instansi" id="alamat_instansi_profile" rows="2" class="form-control instansi-detail-input-profile"></textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="col-12 mt-4 text-end" id="action-pengajuan" style="display: none;">
+                                                            <button type="button" class="btn btn-light me-2" onclick="batalPengajuan()">Batal</button>
+                                                            <button type="button" class="btn btn-primary px-4" onclick="ajukanInstansi(this)">Ajukan Instansi</button>
                                                         </div>
                                                     </div>
-
                                                 </form>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                                <div class="mt-4 pt-3 border-top d-flex gap-2">
-                                                    <button id="btnSimpanInstansi" class="btn btn-primary w-100" type="button" onclick="simpanPerubahanInstansi()" disabled>Simpan Perubahan Data</button>
+                                    <div id="card-instansi-aktif">
+                                        <div class="col-12">
+                                            <div class="card border-0 shadow-sm rounded-4">
+                                                <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center rounded-top-4">
+                                                    <h6 class="m-0 fw-bold text-dark">
+                                                        <i class="bi bi-building me-2 text-primary"></i>Identitas Perusahaan
+                                                    </h6>
                                                     @if (Auth::user()->status == 1)
-                                                    <button type="button" class="btn btn-light text-primary border-primary-subtle w-100" onclick="openModalPic()">
-                                                        <i class="bi bi-person-gear me-1"></i> Ganti PIC
+                                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnEditInstansi">
+                                                        <i class="bi bi-pencil-square me-1"></i> Edit Data
                                                     </button>
-                                                    <button type="button" class="btn btn-light text-secondary border-secondary-subtle w-100" onclick="openModalHistoryPic()">
-                                                        <i class="bi bi-clock-history me-1"></i> History PIC
+                                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" id="btnBackInstansi" style="display: none;">
+                                                        <i class="bi bi-x-circle me-1"></i> Batal
                                                     </button>
                                                     @endif
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    {{-- div untuk KOP Surat instansi --}}
-                                    <div class="col-12">
-                                        <div class="card border-0 shadow-sm rounded-4">
-                                            <div class="card-header bg-white py-3 border-bottom rounded-top-4 d-flex justify-content-between align-items-center">
-                                                <h6 class="m-0 fw-bold text-dark">
-                                                    <i class="bi bi-envelope-fill me-2 text-danger"></i>KOP Surat
-                                                </h6>
-                                                <button class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnTambahKopSurat">
-                                                    <i class="bi bi-plus-circle me-1"></i> Tambah
-                                                </button>
-                                            </div>
+                                                <div class="card-body p-4">
+                                                    <div class="d-flex align-items-center mb-4 p-3 bg-primary-subtle rounded-3 border border-primary-subtle">
+                                                        <div class="rounded-circle bg-primary text-white d-flex justify-content-center align-items-center me-3" style="width: 40px; height: 40px;">
+                                                            <i class="bi bi-qr-code"></i>
+                                                        </div>
+                                                        <div class="flex-grow-1">
+                                                            <small class="text-primary fw-bold text-uppercase d-block">Kode Instansi</small>
+                                                            <span class="fs-5 fw-bold text-dark" id="kode_instansi"></span>
+                                                        </div>
+                                                        <button type="button" class="btn btn-sm btn-light text-primary" onclick="copyKode('kode_instansi')" title="Salin Kode">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
 
-                                            <div class="card-body p-3">
-                                                <div class="col-md-12">
-                                                    <table class="table table-borderless" id="table-kop-surat">
-                                                        <tbody id="tbody-kop-surat">
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                    <form id="form-instansi" novalidate>
 
-                                                <div class="col-md-12">
-                                                    {{-- Pagination --}}
-                                                    <div class="d-flex justify-content-end">
-                                                        <div id="pagination-kop-surat"></div>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6 mt-1">
+                                                                <label class="form-label small fw-bold text-muted">Nama Instansi <span class="fw-bold fs-14 text-danger">*</span></label>
+                                                                <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" placeholder=""
+                                                                            data-parsley-required-message="Nama instansi harus diisi"
+                                                                            data-parsley-errors-container="#message-nama_perusahaan"
+                                                                            required disabled>
+                                                                <div id="message-nama_perusahaan" class="invalid-feedback d-block"></div>
+                                                            </div>
+
+                                                            <div class="col-md-6 mt-1">
+                                                                <label class="form-label small fw-bold text-muted">NPWP <span class="fw-bold fs-14 text-danger">*</span></label>
+                                                                <input type="text" class="form-control me-2 maskNPWP" id="npwp" name="npwp_perusahaan"
+                                                                    data-parsley-errors-container="#message-npwp"
+                                                                    data-parsley-required-message="NPWP harus diisi"
+                                                                    required disabled autocomplete="true">
+                                                                <div id="message-npwp" class="invalid-feedback d-block"></div>
+                                                            </div>
+
+                                                            <div class="col-12 mt-1">
+                                                                <label class="form-label small fw-bold text-muted">Email Resmi <span class="fw-bold fs-14 text-danger">*</span></label>
+                                                                <div class="input-group">
+                                                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
+                                                                    <input type="email" class="form-control me-2" id="email" name="email" placeholder=""
+                                                                        data-parsley-errors-container="#message-email"
+                                                                        data-parsley-required-message="Email harus diisi"
+                                                                        required
+                                                                        disabled>
+                                                                </div>
+                                                                <div id="message-email" class="invalid-feedback d-block"></div>
+                                                            </div>
+                                                        </div>
+
+                                                    </form>
+
+                                                    <div class="mt-4 pt-3 border-top d-flex gap-2">
+                                                        <button id="btnSimpanInstansi" class="btn btn-primary w-100" type="button" onclick="simpanPerubahanInstansi()" disabled>Simpan Perubahan Data</button>
+                                                        @if (Auth::user()->status == 1)
+                                                        <button type="button" class="btn btn-light text-primary border-primary-subtle w-100" onclick="openModalPic()">
+                                                            <i class="bi bi-person-gear me-1"></i> Ganti PIC
+                                                        </button>
+                                                        <button type="button" class="btn btn-light text-secondary border-secondary-subtle w-100" onclick="openModalHistoryPic()">
+                                                            <i class="bi bi-clock-history me-1"></i> History PIC
+                                                        </button>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div class="col-12">
-                                        <div class="card border-0 shadow-sm rounded-4 h-100">
-                                            <div class="card-header bg-white py-3 border-bottom rounded-top-4">
-                                                <h6 class="m-0 fw-bold text-dark">
-                                                    <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Detail Lokasi
-                                                </h6>
+                                        <div class="col-12" id="card-upload-stempel">
+                                            <div class="card border-0 shadow-sm rounded-4">
+                                                <div class="card-header bg-white py-3 border-bottom rounded-top-4">
+                                                    <h6 class="m-0 fw-bold text-dark">
+                                                        <i class="bi bi-upload me-2 text-primary"></i>Upload Stempel
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body p-2 px-4">
+                                                    <div class="col-md-12">
+                                                        <div id="upload-stempel"></div>
+                                                    </div>
+                                                </div>
                                             </div>
+                                        </div>
 
-                                            <div class="card-body p-4">
-                                                <div class="col-md-12" id="list-alamat"></div>
+                                        {{-- div untuk KOP Surat instansi --}}
+                                        <div class="col-12" id="card-kop-surat">
+                                            <div class="card border-0 shadow-sm rounded-4">
+                                                <div class="card-header bg-white py-3 border-bottom rounded-top-4 d-flex justify-content-between align-items-center">
+                                                    <h6 class="m-0 fw-bold text-dark">
+                                                        <i class="bi bi-envelope-fill me-2 text-danger"></i>KOP Surat
+                                                    </h6>
+                                                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" id="btnTambahKopSurat">
+                                                        <i class="bi bi-plus-circle me-1"></i> Tambah
+                                                    </button>
+                                                </div>
+
+                                                <div class="card-body p-3">
+                                                    <div class="col-md-12">
+                                                        <table class="table table-borderless" id="table-kop-surat">
+                                                            <tbody id="tbody-kop-surat">
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+
+                                                    <div class="col-md-12">
+                                                        {{-- Pagination --}}
+                                                        <div class="d-flex justify-content-end">
+                                                            <div id="pagination-kop-surat"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12" id="card-detail-lokasi">
+                                            <div class="card border-0 shadow-sm rounded-4 h-100">
+                                                <div class="card-header bg-white py-3 border-bottom rounded-top-4">
+                                                    <h6 class="m-0 fw-bold text-dark">
+                                                        <i class="bi bi-geo-alt-fill me-2 text-danger"></i>Detail Lokasi
+                                                    </h6>
+                                                </div>
+
+                                                <div class="card-body p-4">
+                                                    <div class="col-md-12" id="list-alamat"></div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -442,42 +529,87 @@
     </div>
 
     <div class="modal fade" id="modal-kop-surat" tabindex="-1" aria-labelledby="kopModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="kopModalLabel">Kop Surat</h1>
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header bg-white border-bottom px-4 py-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-3 d-flex align-items-center justify-content-center bg-primary bg-opacity-10" style="width:36px;height:36px;">
+                            <i class="bi bi-file-earmark-richtext text-primary fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="modal-title fw-bold text-dark mb-0" id="kopModalLabel">Kop Surat</h6>
+                            <small class="text-muted">Atur tampilan kop surat dokumen</small>
+                        </div>
+                    </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body row justify-content-center">
+
+                <div class="modal-body p-4">
                     <input type="hidden" id="kop_surat_id">
-                    <div class="mb-3">
-                        <label for="nama_kop_surat" class="form-label">Nama</label>
-                        <input type="text" name="nama_kop_surat" id="nama_kop_surat" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="active_kop_surat" class="form-label">Status Aktif</label>
-                        {{-- gunakan radio button --}}
-                        <div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="active_kop_surat" id="active_kop_surat_1" value="1" checked>
-                                <label class="form-check-label" for="active_kop_surat_1">Aktif</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="active_kop_surat" id="active_kop_surat_0" value="0">
-                                <label class="form-check-label" for="active_kop_surat_0">Tidak Aktif</label>
+
+                    <div class="row g-3">
+                        {{-- Nama --}}
+                        <div class="col-12">
+                            <label for="nama_kop_surat" class="form-label small fw-bold text-muted text-uppercase">
+                                <i class="bi bi-tag me-1"></i> Nama Kop Surat
+                            </label>
+                            <input type="text" name="nama_kop_surat" id="nama_kop_surat"
+                                class="form-control rounded-3"
+                                placeholder="Masukkan nama kop surat..." required>
+                        </div>
+
+                        {{-- Status Aktif --}}
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted text-uppercase">
+                                <i class="bi bi-toggle-on me-1"></i> Status
+                            </label>
+                            <div class="d-flex gap-3">
+                                <label for="active_kop_surat_1"
+                                    class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 border"
+                                    style="cursor:pointer;">
+                                    <input class="form-check-input m-0" type="radio" name="active_kop_surat"
+                                        id="active_kop_surat_1" value="1" checked>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Aktif
+                                    </span>
+                                </label>
+                                <label for="active_kop_surat_0"
+                                    class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 border"
+                                    style="cursor:pointer;">
+                                    <input class="form-check-input m-0" type="radio" name="active_kop_surat"
+                                        id="active_kop_surat_0" value="0">
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                                        <i class="bi bi-dash-circle me-1"></i> Tidak Aktif
+                                    </span>
+                                </label>
                             </div>
                         </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="content_kop_surat" class="form-label">Content</label>
-                        <div class="form-floating">
-                            <textarea name="content_kop_surat" id="content_kop_surat" class="form-control" rows="6" required></textarea>
+
+                        {{-- Content / Editor --}}
+                        <div class="col-12">
+                            <label for="content_kop_surat" class="form-label small fw-bold text-muted text-uppercase">
+                                <i class="bi bi-pencil-square me-1"></i> Konten Kop Surat
+                            </label>
+                            <div class="alert alert-info border-0 rounded-3 py-2 px-3 d-flex align-items-center gap-2 mb-2" style="font-size:0.82rem;">
+                                <i class="bi bi-info-circle-fill text-info flex-shrink-0"></i>
+                                <span>Disarankan menggunakan <strong>gambar dengan resolusi 761 &times; 134 px</strong> untuk tampilan terbaik.</span>
+                            </div>
+                            <div class="rounded-3 overflow-hidden border">
+                                <textarea name="content_kop_surat" id="content_kop_surat" class="form-control border-0 rounded-0" rows="6" required></textarea>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-white p-3 border-top rounded-bottom-4">
-                    <div class="d-flex justify-content-end">
-                        <button class="btn btn-primary px-4" id="btnSimpanKopSurat" onclick="simpanKopSurat(this)">
+
+                <div class="modal-footer bg-light border-top px-4 py-3 d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check text-success me-1"></i> Data akan disimpan secara aman
+                    </small>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x me-1"></i> Batal
+                        </button>
+                        <button class="btn btn-primary rounded-pill px-4" id="btnSimpanKopSurat" onclick="simpanKopSurat(this)">
                             <i class="bi bi-save2 me-1"></i> Simpan
                         </button>
                     </div>

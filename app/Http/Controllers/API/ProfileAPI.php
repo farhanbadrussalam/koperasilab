@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Models\Master_alamat;
 use App\Models\Perusahaan;
 use App\Models\Profile;
+use App\Models\Users_request;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
@@ -23,7 +24,10 @@ use Hash;
 class ProfileAPI extends Controller
 {
     use RestApi;
-    protected $log, $media, $pagination, $mail;
+    protected LogController $log;
+    protected MediaController $media;
+    protected mixed $pagination = [];
+    protected SendMailAPI $mail;
 
     public function __construct()
     {
@@ -63,7 +67,7 @@ class ProfileAPI extends Controller
 
             // Pengecekan perusahaan
             if (!$idPerusahaan) {
-                if($request->idPerusahaan){
+                if ($request->idPerusahaan) {
                     $perusahaan = Perusahaan::create([
                         'nama_perusahaan' => $request->idPerusahaan,
                     ]);
@@ -90,7 +94,7 @@ class ProfileAPI extends Controller
             $jabatan && $params['jabatan'] = $jabatan;
             $idPerusahaan && $params['id_perusahaan'] = $idPerusahaan;
 
-            if($params['ttd']){
+            if ($params['ttd']) {
                 $params['ttd'] = uploadSignatur($params['ttd'], Auth::user());
             }
 
@@ -117,7 +121,8 @@ class ProfileAPI extends Controller
         }
     }
 
-    private function tambahAlamat($idPerusahaan) {
+    private function tambahAlamat(int $idPerusahaan)
+    {
         // set alamat
         $arrJenisAlamat = ['tld', 'lhu', 'invoice'];
 
@@ -127,6 +132,7 @@ class ProfileAPI extends Controller
             'jenis' => 'Utama',
             'status' => 1,
             'alamat' => null,
+            'kota' => 'Jakarta',
             'kode_pos' => null
         );
         foreach ($arrJenisAlamat as $key => $value) {
@@ -135,6 +141,7 @@ class ProfileAPI extends Controller
                 'jenis' => $value,
                 'status' => 0,
                 'alamat' => null,
+                'kota' => 'Jakarta',
                 'kode_pos' => null
             );
         }
@@ -142,7 +149,8 @@ class ProfileAPI extends Controller
         Master_alamat::insert($arrAlamat);
     }
 
-    private function send_password($password, $to){
+    private function send_password(string $password, string $to)
+    {
         $contentMail = "
             <div style='text-align: center; margin: 20px; background-color: #f5f5f5; padding: 20px;'>
                 <h1>Nuklindo Lab</h1>
@@ -186,7 +194,7 @@ class ProfileAPI extends Controller
             $password && $params['password'] = Hash::make($password);
 
             //cek role bukan pelanggan
-            if(!Auth::user()->hasRole('Pelanggan')){
+            if (!Auth::user()->hasRole('Pelanggan')) {
                 // buat password random string 8 karakter ada capital dan huruf kecil
                 $characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
                 $password = '';
@@ -206,7 +214,7 @@ class ProfileAPI extends Controller
                 'selesai_at' => date('Y-m-d H:i:s')
             ];
 
-            if(Auth::user()->hasRole('Pelanggan')) {
+            if (Auth::user()->hasRole('Pelanggan')) {
                 Auth::user()->update($arr_update);
             } else {
                 // mengambil pic yang aktif
@@ -215,7 +223,7 @@ class ProfileAPI extends Controller
 
             $user = User::create([
                 'name' => $params['name'],
-                'id_perusahaan'=> $params['id_perusahaan'],
+                'id_perusahaan' => $params['id_perusahaan'],
                 'status' => 1,
                 'jabatan' => $params['jabatan'],
                 'email' => $params['email'],
@@ -239,7 +247,7 @@ class ProfileAPI extends Controller
 
             DB::commit();
 
-            if(!Auth::user()->hasRole('Pelanggan')) {
+            if (!Auth::user()->hasRole('Pelanggan')) {
                 $this->send_password($password, $email);
             }
 
@@ -263,10 +271,12 @@ class ProfileAPI extends Controller
 
             $status = $request->has('status') ? $request->status : 99;
             $alamat = $request->has('alamat') ? $request->alamat : false;
+            $kota = $request->has('kota') ? $request->kota : false;
             $kode_pos = $request->has('kode_pos') ? $request->kode_pos : false;
 
             $status != 99 && $params['status'] = $status;
             $alamat && $params['alamat'] = $alamat;
+            $kota && $params['kota'] = $kota;
             $kode_pos && $params['kode_pos'] = $kode_pos;
 
             $profile->update($params);
@@ -284,6 +294,58 @@ class ProfileAPI extends Controller
         }
     }
 
+    public function actionTambahSemuaAlamat(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $idPerusahaan = decryptor($request->idPerusahaan);
+            
+            $arrAlamat = [];
+            $jenis_arr = ['utama' => 'Utama', 'tld' => 'TLD', 'lhu' => 'LHU', 'invoice' => 'Invoice'];
+            
+            foreach($jenis_arr as $key => $val) {
+                if ($key == 'utama') {
+                    $status = 1;
+                    $alamat = $request->input("alamat_$key");
+                    $kota = $request->input("kota_$key");
+                    $kode_pos = $request->input("kode_pos_$key");
+                } else {
+                    $status = $request->input("status_$key") == 1 ? 1 : 0;
+                    if ($status == 1) {
+                        $alamat = $request->input("alamat_$key");
+                        $kota = $request->input("kota_$key");
+                        $kode_pos = $request->input("kode_pos_$key");
+                    } else {
+                        $alamat = null;
+                        $kota = null;
+                        $kode_pos = null;
+                    }
+                }
+                
+                $arrAlamat[] = [
+                    'id_perusahaan' => $idPerusahaan,
+                    'jenis' => $val,
+                    'status' => $status,
+                    'alamat' => $alamat,
+                    'kota' => $kota,
+                    'kode_pos' => $kode_pos
+                ];
+            }
+            
+            // Hapus alamat lama jika ada untuk mencegah duplikat/sisa
+            Master_alamat::where('id_perusahaan', $idPerusahaan)->delete();
+            
+            Master_alamat::insert($arrAlamat);
+            DB::commit();
+            
+            return $this->output(['status' => 'success', 'msg' => 'Data alamat berhasil disimpan']);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function actionPerusahaan(Request $request)
     {
         DB::beginTransaction();
@@ -294,6 +356,7 @@ class ProfileAPI extends Controller
             $npwp = $request->has('npwp_perusahaan') ? unmask($request->npwp_perusahaan) : false;
             $email = $request->has('email') ? $request->email : false;
             $alamat = $request->has('alamat') ? $request->alamat : false;
+            $kota = $request->has('kota') ? $request->kota : false;
             $kode_pos = $request->has('kode_pos') ? $request->kode_pos : false;
 
             $params = array();
@@ -303,7 +366,7 @@ class ProfileAPI extends Controller
             $npwp && $params['npwp_perusahaan'] = $npwp;
             $email && $params['email'] = $email;
 
-            if($idPerusahaan){
+            if ($idPerusahaan) {
                 $perusahaan = Perusahaan::findOrFail($idPerusahaan);
                 $perusahaan->update($params);
             } else {
@@ -316,6 +379,7 @@ class ProfileAPI extends Controller
                     'jenis' => 'Utama',
                     'status' => 1,
                     'alamat' => $alamat,
+                    'kota' => $kota,
                     'kode_pos' => $kode_pos
                 );
                 foreach ($arrJenisAlamat as $value) {
@@ -343,7 +407,75 @@ class ProfileAPI extends Controller
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
+    }
 
+    public function actionAjukanInstansi(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $tipe = $request->pelanggan_tipe;
+
+            if ($tipe === 'lama') {
+                $idPerusahaan = decryptor($request->nama_instansi_lama);
+            } else {
+                $perusahaan = Perusahaan::create([
+                    'nama_perusahaan' => $request->nama_instansi,
+                    'npwp_perusahaan' => $request->npwp ? unmask($request->npwp) : null,
+                    'email' => $request->email_instansi,
+                    'status' => 1
+                ]);
+
+                $arrAlamat = [
+                    [
+                        'id_perusahaan' => $perusahaan->id_perusahaan,
+                        'jenis' => 'Utama',
+                        'status' => 1,
+                        'alamat' => $request->alamat_instansi,
+                        'kota' => $request->kota,
+                        'kode_pos' => $request->kode_pos
+                    ]
+                ];
+
+                foreach (['tld', 'lhu', 'invoice'] as $jenis) {
+                    $arrAlamat[] = [
+                        'id_perusahaan' => $perusahaan->id_perusahaan,
+                        'jenis' => $jenis,
+                        'status' => 0,
+                        'alamat' => null,
+                        'kode_pos' => null
+                    ];
+                }
+
+                Master_alamat::insert($arrAlamat);
+                $idPerusahaan = $perusahaan->id_perusahaan;
+            }
+
+            $findUserRequest = Users_request::where('id_user', Auth::user()->id)->where('status', 90)->first();
+            if ($findUserRequest) {
+                $findUserRequest->update([
+                    'status' => 1,
+                    'id_perusahaan' => (int) $idPerusahaan,
+                    'jenis' => $tipe
+                ]);
+            } else {
+                Users_request::create([
+                    'id_user' => Auth::user()->id,
+                    'status' => 1,
+                    'id_perusahaan' => (int) $idPerusahaan,
+                    'jenis' => $tipe
+                ]);
+            }
+            DB::commit();
+
+            return $this->output([
+                'status' => 'success',
+                'msg' => 'Pengajuan instansi berhasil dikirim'
+            ]);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
     }
 
     public function changePassword(Request $request)
@@ -356,7 +488,7 @@ class ProfileAPI extends Controller
 
             $user = User::findOrFail($idProfile);
 
-            if($user->password != null){
+            if ($user->password != null) {
                 if (!Hash::check($oldPassword, $user->password)) {
                     return $this->output(array('msg' => 'Password lama salah', 'status' => 'fail'));
                 }
@@ -390,23 +522,25 @@ class ProfileAPI extends Controller
 
         DB::beginTransaction();
         try {
-            $query = Perusahaan::with('users')->when($filter, function($q, $filter) {
-                foreach ($filter as $key => $value) {
-                    $q->where('nama_perusahaan', 'like', "%$value%")
-                    ->orWhere('kode_perusahaan', 'like', "%$value%" );
-                }
-            })->orderBy('id_perusahaan', 'desc');
+            $query = Perusahaan::with('users:id,name,email')->select('id_perusahaan', 'nama_perusahaan', 'kode_perusahaan')
+                ->when($filter, function ($q, $filter) {
+                    foreach ($filter as $key => $value) {
+                        if ($key == 'search') {
+                            $q->where('nama_perusahaan', 'like', "%$value%")
+                                ->orWhere('kode_perusahaan', 'like', "%$value%");
+                        }
+                    }
+                })->orderBy('id_perusahaan', 'desc');
 
-            if($limit){
+            if ($limit) {
                 $data = $query->offset(($page - 1) * $limit)->limit($limit)->paginate($limit);
                 $query = $data->toArray();
                 $this->pagination = Arr::except($query, 'data');
-            }else{
+            } else {
                 $query = $query->get();
             }
 
             return $this->output($query, 200);
-
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -414,13 +548,13 @@ class ProfileAPI extends Controller
         }
     }
 
-    public function getPerusahaanByKode($kode){
+    public function getPerusahaanByKode(string $kode)
+    {
         DB::beginTransaction();
         try {
             $query = Perusahaan::where('kode_perusahaan', $kode)->first();
 
             return $this->output($query, 200);
-
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -428,20 +562,20 @@ class ProfileAPI extends Controller
         }
     }
 
-    public function getPerusahaanById($id){
+    public function getPerusahaanById(string $id)
+    {
         DB::beginTransaction();
         try {
             $id = decryptor($id);
             $query = Perusahaan::with(
-                    'users',
-                    'users.profile',
-                    'users.profile.suratkuasa',
-                    'alamat',
-                    'suratkuasa'
-                )->where('id_perusahaan', $id)->first();
+                'users',
+                'users.profile',
+                'users.profile.suratkuasa',
+                'alamat',
+                'suratkuasa'
+            )->where('id_perusahaan', $id)->first();
 
             return $this->output($query, 200);
-
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -463,12 +597,12 @@ class ProfileAPI extends Controller
             $fileUpload = $this->media->upload($file, 'surat_kuasa');
             $dataUser = Profile::where('user_id', $idUser);
 
-            if(isset($dataUser)){
+            if (isset($dataUser)) {
                 $update = $dataUser->update(array('surat_kuasa' => $fileUpload->getIdMedia()));
 
                 DB::commit();
 
-                if($update){
+                if ($update) {
                     $fileUpload->store();
                     // ambil media faktur
                     $mediaFaktur = $this->media->get($fileUpload->getIdMedia());
@@ -486,7 +620,7 @@ class ProfileAPI extends Controller
         }
     }
 
-    public function destroySuratKuasa($idHash, $idMedia)
+    public function destroySuratKuasa(string $idHash, string $idMedia)
     {
         $idMedia = decryptor($idMedia);
         $idHash = decryptor($idHash);
@@ -496,12 +630,12 @@ class ProfileAPI extends Controller
             $idUser = $idHash;
             $dataUser = Profile::where('user_id', $idUser);
 
-            if(isset($dataUser)){
+            if (isset($dataUser)) {
                 $update = $dataUser->update(array('surat_kuasa' => null));
                 $this->media->destroy($idMedia);
                 DB::commit();
 
-                if($update){
+                if ($update) {
                     return $this->output(array('msg' => 'Surat kuasa berhasil dihapus'));
                 }
 
@@ -516,7 +650,8 @@ class ProfileAPI extends Controller
         }
     }
 
-    public function getHistoryPic($idPerusahaan){
+    public function getHistoryPic(string $idPerusahaan)
+    {
         DB::beginTransaction();
         try {
             $idPerusahaan = decryptor($idPerusahaan);
@@ -525,7 +660,53 @@ class ProfileAPI extends Controller
             DB::commit();
 
             return $this->output($query);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
 
+    public function uploadStempel(Request $request)
+    {
+        // TODO: Implement uploadStempel() method.
+        DB::beginTransaction();
+        try {
+            $file = $request->file('file');
+            $idPerusahaan = decryptor($request->idHash);
+
+            $fileUpload = $this->media->upload($file, 'stempel');
+            Perusahaan::where('id_perusahaan', $idPerusahaan)->update(array('stempel' => $fileUpload->getIdMedia()));
+            DB::commit();
+
+            $fileUpload->store();
+
+            $mediaStempel = $this->media->get($fileUpload->getIdMedia());
+            return $this->output(array('msg' => 'Stempel berhasil diupload', 'data' => $mediaStempel));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroyStempel(string $idHash, string $idMedia)
+    {
+        $idMedia = decryptor($idMedia);
+        $idHash = decryptor($idHash);
+
+        DB::beginTransaction();
+        try {
+            $idPerusahaan = $idHash;
+            $update = Perusahaan::where('id_perusahaan', $idPerusahaan)->update(array('stempel' => null));
+            $this->media->destroy($idMedia);
+            DB::commit();
+
+            if ($update) {
+                return $this->output(array('msg' => 'Stempel berhasil dihapus'));
+            }
+
+            return $this->output(array('msg' => 'Stempel gagal dihapus'), 'Fail', 400);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

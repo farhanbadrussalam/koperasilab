@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_pengguna
@@ -46,11 +47,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereTanggalLahir($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereTempatLahir($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereUpdatedAt($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_pengguna withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_pengguna extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'master_pengguna';
     protected $primaryKey = 'id_pengguna';
@@ -121,12 +127,11 @@ class Master_pengguna extends Model
 
     public function perusahaan()
     {
-        return $this->belongsTo(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
+        return $this->belongsTo(Perusahaan::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
 
     public function divisi()
     {
-        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi');
+        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi')->withTrashed();
     }
-
 }

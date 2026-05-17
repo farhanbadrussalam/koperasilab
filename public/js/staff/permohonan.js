@@ -13,11 +13,11 @@ $(function () {
     });
 
     filterComp = new FilterComponent('list-filter', {
-        filter : {
-            status : true,
-            jenis_tld : true,
-            jenis_layanan : true,
-            no_kontrak : true,
+        filter: {
+            status: true,
+            jenis_tld: true,
+            jenis_layanan: true,
+            no_kontrak: true,
             perusahaan: true,
             date_range: true
         }
@@ -50,7 +50,7 @@ function loadData(page = 1) {
     filterValue.perusahaan && (params.filter.id_perusahaan = filterValue.perusahaan);
     (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -62,17 +62,17 @@ function loadData(page = 1) {
     ajaxGet(`api/v1/permohonan/listPengajuan`, params, result => {
         let html = '';
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         } else {
             for (const [i, pengajuan] of result.data.entries()) {
                 let badgeClass = 'bg-primary-subtle';
-                if(pengajuan.tipe_kontrak == 'kontrak lama') {
+                if (pengajuan.tipe_kontrak == 'kontrak lama') {
                     badgeClass = 'bg-success-subtle';
                 }
 
                 let btnVerifikasi = '';
-                if(pengajuan.status == 1){
+                if (pengajuan.status == 1) {
                     btnVerifikasi = `
                         <a class="btn btn-outline-primary btn-sm text-nowrap" title="Verifikasi" href="${base_url}/staff/permohonan/verifikasi/${pengajuan.permohonan_hash}">
                             <i class="bi bi-check2-circle me-2"></i> Verifikasi
@@ -84,16 +84,19 @@ function loadData(page = 1) {
                 let htmlPeriode = !pengajuan.periode ? 'Zero Check' : `Periode ${pengajuan.periode}`;
 
                 let htmlStatusPenyelia = '';
-                if(pengajuan.lhu){
-                    htmlStatusPenyelia = "Progress Penyelia : ";
-                    htmlStatusPenyelia += statusFormat('penyelia', pengajuan.lhu.status);
-                    aktifJobs = pengajuan.lhu.penyelia_map.filter(d => d.status == 1);
-                    aktifJobs.map(d => {
-                        htmlStatusPenyelia += statusFormat('penyelia', d.jobs.status);
-                    });
+                if (pengajuan.lhu) {
+                    htmlStatusPenyelia = `
+                        <div class="d-flex gap-1 flex-column">
+                            <span>Progress Penyelia : </span>
+                            <div class="d-flex gap-1 flex-wrap">
+                                ${statusFormat('penyelia', pengajuan.lhu.status)}
+                                ${pengajuan.lhu.penyelia_map.filter(d => d.status == 1).map(d => statusFormat('penyelia', d.jobs.status)).join('')}
+                            </div>
+                        </div>
+                    `;
                 }
 
-                if(pengajuan.periode && pengajuan.is_have_tld && pengajuan.is_zerocek) {
+                if (pengajuan.periode && pengajuan.is_have_tld && pengajuan.is_zerocek) {
                     htmlPeriode += ' + Zero Check';
                 }
 
@@ -125,7 +128,7 @@ function loadData(page = 1) {
                     </li>
                 `;
 
-                html += cardComponent(params, {btnMenuAction: btnAction, btnAction: btnVerifikasi});
+                html += cardComponent(params, { btnMenuAction: btnAction, btnAction: btnVerifikasi });
             }
         }
 
@@ -138,16 +141,16 @@ function loadData(page = 1) {
     })
 }
 
-function showDetail(obj){
+function showDetail(obj) {
     const idPermohonan = $(obj).parent().parent().data("id");
     detail.show(`api/v1/permohonan/getPengajuanById/${idPermohonan}`);
 }
 
-function reload(){
+function reload() {
     loadData();
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
     loadData();
 }

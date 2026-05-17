@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_jenis_pembayaran
@@ -30,11 +31,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran whereUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran whereVariables($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Jenis_pembayaran withoutTrashed()
  * @mixin \Eloquent
  */
 class Jenis_pembayaran extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'jenis_pembayaran';
     protected $primaryKey = 'id_jenis_pembayaran';

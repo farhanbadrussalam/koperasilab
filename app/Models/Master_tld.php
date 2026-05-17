@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_tld
@@ -27,11 +28,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereNoSeriTld($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereTanggalPengadaan($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_tld withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_tld extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'master_tld';
 
@@ -70,6 +76,6 @@ class Master_tld extends Model
 
     public function pemilik()
     {
-        return $this->belongsTo(Perusahaan::class, 'kepemilikan', 'id_perusahaan');
+        return $this->belongsTo(Perusahaan::class, 'kepemilikan', 'id_perusahaan')->withTrashed();
     }
 }

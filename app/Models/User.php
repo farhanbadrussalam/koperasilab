@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Laravel\Sanctum\HasApiTokens;
@@ -72,11 +73,23 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User whereTwoFactorRecoveryCodes($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereTwoFactorSecret($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
+ * @property int|null $verifikasi_perusahaan 1=valid, 2=tidakvalid, null=belum diverifikasi
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property-read mixed $request_verify_instansi
+ * @property-read mixed $ttd_hash
+ * @property-read mixed $ttd_image
+ * @property-read \App\Models\Penyelia_petugas|null $penyelia_petugas
+ * @property-read \App\Models\Master_ttd|null $tld
+ * @method static \Illuminate\Database\Eloquent\Builder|User onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User whereVerifikasiPerusahaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|User withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|User withoutTrashed()
  * @mixin \Eloquent
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -125,12 +138,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'satuankerja',
         'profile',
         'ttd_image',
-        'ttd_hash'
+        'ttd_hash',
+        'request_verify_instansi'
     ];
 
     public function tld()
     {
-        return $this->hasOne(Master_ttd::class, 'user_id')->where('status', 1);
+        return $this->hasOne(Master_ttd::class, 'user_id')->where('status', 1)->withTrashed();
     }
     public function getUserHashAttribute()
     {
@@ -155,13 +169,19 @@ class User extends Authenticatable implements MustVerifyEmail
         return Profile::where('user_id', $this->id)->first();
     }
 
+    public function getRequestVerifyInstansiAttribute()
+    {
+        $request = Users_request::with('perusahaan')->where('id_user', $this->id)->whereIn('status', [1, 90])->first();
+        return $request;
+    }
+
     public function getTtdImageAttribute()
     {
         // Cek apakah user punya record TTD
         if ($this->ttd) {
             $ttd = Master_ttd::where('id', $this->ttd)->first();
             // Convert Binary kembali ke Base64 String
-            if($ttd) {
+            if ($ttd) {
                 $base64 = $ttd->image_blob;
                 return "data:image/png;base64,{$base64}";
             }
@@ -181,19 +201,21 @@ class User extends Authenticatable implements MustVerifyEmail
         'jobs' => 'json',
         'status' => 'integer',
         'satuankerja_id' => 'json',
-        'realtime_notifications' => 'integer'
+        'realtime_notifications' => 'integer',
+        'id' => 'integer'
     ];
 
-    public function perusahaan(){
-        return $this->hasOne(Perusahaan::class, 'id_perusahaan', 'id_perusahaan');
+    public function perusahaan()
+    {
+        return $this->hasOne(Perusahaan::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
-    public function profile(){
-        return $this->hasOne(Profile::class, 'user_id', 'id');
+    public function profile()
+    {
+        return $this->hasOne(Profile::class, 'user_id', 'id')->withTrashed();
     }
 
-    public function penyelia_petugas(){
+    public function penyelia_petugas()
+    {
         return $this->hasOne(Penyelia_petugas::class, 'id_user', 'id')->with('map_active');
     }
-
-
 }

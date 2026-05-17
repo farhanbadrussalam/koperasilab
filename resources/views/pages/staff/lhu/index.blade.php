@@ -15,6 +15,15 @@
                     </button>
                 </div>
             </div>
+            <div class="ms-auto d-none align-items-center gap-3" id="container-collective-update">
+                <div class="form-check">
+                    <input class="form-check-input cursor-pointer shadow-sm border-secondary-subtle" type="checkbox" id="checkAllLhu">
+                    <label class="form-check-label text-muted small cursor-pointer" for="checkAllLhu">
+                        Pilih Semua (<span id="countSelected">0</span>)
+                    </label>
+                </div>
+                <button class="btn btn-primary btn-sm rounded-pill shadow-sm fw-semibold" onclick="openProgressModalKolektif()"><i class="bi bi-ui-checks-grid me-1"></i> Update Kolektif</button>
+            </div>
         </div>
         <div id="list-filter"></div>
         <div class="my-3">
@@ -52,6 +61,7 @@
     </div>
 </div>
 <x-modal.progress-penyelia />
+<x-modal.progress-kolektif />
 @include('component.penyimpananModal')
 @endsection
 

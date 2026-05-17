@@ -32,11 +32,12 @@ class NotifikasiBaru extends Notification implements ShouldQueue
      *
      * @return array<int, string>
      */
-    public function via(object $notifiable)
+    public function via(mixed $notifiable)
     {
         $channels = ['database'];
 
-        $user = User::select('realtime_notifications', 'id', 'name')->where('id',$notifiable->id)->first();
+        $id = is_object($notifiable) ? $notifiable->id : $notifiable;
+        $user = User::select('realtime_notifications', 'id', 'name')->where('id', $id)->first();
         if(isset($user->realtime_notifications) && $user->realtime_notifications){
             $channels[] = 'broadcast';
         }
@@ -44,7 +45,7 @@ class NotifikasiBaru extends Notification implements ShouldQueue
         return $channels;
     }
 
-    public function toDatabase(object $notifiable)
+    public function toDatabase(mixed $notifiable)
     {
         return [
             'pesan' => $this->pesan,
@@ -56,10 +57,13 @@ class NotifikasiBaru extends Notification implements ShouldQueue
         ];
     }
 
-    public function toBroadcast(object $notifiable)
+    public function toBroadcast(mixed $notifiable)
     {
-        $user = User::select('realtime_notifications', 'id', 'name')->where('id',$notifiable->id)->first();
-        info("send broadcast to : {$user->name}");
+        $id = is_object($notifiable) ? $notifiable->id : $notifiable;
+        $user = User::select('realtime_notifications', 'id', 'name')->where('id', $id)->first();
+        if ($user) {
+            info("send broadcast to : {$user->name}");
+        }
         return new BroadcastMessage([
             'pesan' => $this->pesan,
             'url' => $this->url,

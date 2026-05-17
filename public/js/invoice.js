@@ -8,7 +8,7 @@ class Invoice {
         this._loadMethodePembayaran();
         this._createCustomEvents();
 
-        if(this.options.modal){
+        if (this.options.modal) {
             $('body').append(this.modalCreate());
         }
 
@@ -50,6 +50,13 @@ class Invoice {
         $('#btnTambahDiskon').on('click', this.tambahDiskon.bind(this));
         $('#btnTolakInvoice').on('click', this.tolakInvoice.bind(this));
         $('#invoiceModal').one('show.bs.modal', showPopupReload);
+
+        this.flatpickrPaymentDate = $('#paymentDateInput').flatpickr({
+            altInput: true,
+            locale: "id",
+            dateFormat: "Y-m-d",
+            altFormat: "j F Y",
+        });
     }
 
     // Handle faktur document upload
@@ -94,7 +101,7 @@ class Invoice {
         this.dataKeuangan = data;
     }
 
-    open(mode){
+    open(mode) {
         this.invoiceMode = mode;
         let invoiceClass = this;
         $('#signature-container').empty();
@@ -143,7 +150,7 @@ class Invoice {
         // Set up actions based on mode
         $('#invoiceActions').empty();
         let actionsHTML = '';
-        if(mode == 'create'){
+        if (mode == 'create') {
             actionsHTML = `
                 <div class="col-md-6 col-12 row">
                     <div class="col-6">
@@ -194,7 +201,7 @@ class Invoice {
                 signerUser: userActive
             });
 
-            if(this.dataKeuangan.plt) {
+            if (this.dataKeuangan.plt) {
                 $('#plt-div-manager input').prop('checked', true);
             } else {
                 $('#plt-div-manager input').prop('checked', false);
@@ -205,7 +212,7 @@ class Invoice {
             $('#rincianInvoice-tab').click();
             $('#invoiceActions').append(this.btnPrinter());
         } else if (mode === 'detail') {
-            if(this.dataKeuangan.ttd){
+            if (this.dataKeuangan.ttd) {
                 this.signaturePad = new SignatureSelect('#signature-container', {
                     defaultSig: this.dataKeuangan.ttd_image ? this.dataKeuangan.ttd_image : this.dataKeuangan.ttd,
                     signerUser: this.dataKeuangan.usersig,
@@ -217,8 +224,8 @@ class Invoice {
             $('#rincianInvoice-tab').click();
             this.showPaymentProof();
             $('#invoiceActions').append(this.btnPrinter());
-        } else if (mode === 'verifStaff'){
-            if(this.dataKeuangan.ttd){
+        } else if (mode === 'verifStaff') {
+            if (this.dataKeuangan.ttd) {
                 this.signaturePad = new SignatureSelect('#signature-container', {
                     defaultSig: this.dataKeuangan.ttd_image ? this.dataKeuangan.ttd_image : this.dataKeuangan.ttd,
                     signerUser: this.dataKeuangan.usersig,
@@ -226,6 +233,7 @@ class Invoice {
                 });
                 $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
             }
+            this.flatpickrPaymentDate.setDate(this.dataKeuangan.paid_at);
 
             $('#buktiPayment-tab').click();
             this.showPaymentProof();
@@ -233,8 +241,8 @@ class Invoice {
         }
 
         // Set Up upload document
-        if(this.dataKeuangan.status === 7) { // untuk status upload faktur
-            if(!this.uploadFaktur) {
+        if (this.dataKeuangan.status === 7) { // untuk status upload faktur
+            if (!this.uploadFaktur) {
                 this.uploadFaktur = new UploadComponent('uploadDocumentFaktur', {
                     allowedFileExtensions: ['pdf'],
                     camera: false,
@@ -247,8 +255,8 @@ class Invoice {
                 })
             }
             $('#docFaktur-tab').click();
-        }else{
-            if(!this.uploadFaktur) {
+        } else {
+            if (!this.uploadFaktur) {
                 this.uploadFaktur = new UploadComponent('uploadDocumentFaktur', {
                     mode: 'preview',
                     camera: false,
@@ -270,7 +278,7 @@ class Invoice {
             `;
         }
 
-        if(this.dataKeuangan.status === 7) {
+        if (this.dataKeuangan.status === 7) {
             footerHTML = `
                 <button type="button" class="btn btn-danger" id="btnBatalInvoice">Batal</button>
                 <button type="button" class="btn btn-primary" id="btnSimpanInvoice">Simpan</button>
@@ -293,7 +301,7 @@ class Invoice {
         $('#invoiceModal').modal('show');
     }
 
-    btnPrinter(){
+    btnPrinter() {
         let div1 = document.createElement('div');
         div1.className = 'col-md-12 d-flex justify-content-end mt-2';
 
@@ -311,7 +319,7 @@ class Invoice {
     tambahDiskon() {
         const namaDiskon = $('#inputNamaDiskon').val();
         const diskon = $('#inputJumDiskon').val();
-        if(namaDiskon != '' && diskon != ''){
+        if (namaDiskon != '' && diskon != '') {
             this.arrDiskon.push({
                 name: namaDiskon,
                 diskon: diskon
@@ -321,7 +329,7 @@ class Invoice {
             $('#diskonModal').modal('hide');
             $('#inputNamaDiskon').val("");
             $('#inputJumDiskon').val("");
-        }else{
+        } else {
             Swal.fire({
                 icon: 'warning',
                 text: 'Harap isi diskon'
@@ -411,10 +419,10 @@ class Invoice {
         let selectedMetodePembayaran = $('#methode-pembayaran-select').val();
         let find = this.methodePembayaran.find(d => d.jenis_pembayaran_hash == selectedMetodePembayaran);
 
-        if(find){
+        if (find) {
             let variabels = find.variables;
             let content = find.content;
-            if(variabels) {
+            if (variabels) {
                 let html = '';
                 for (const variabel of variabels) {
                     // reset to string with space
@@ -457,7 +465,7 @@ class Invoice {
         const jumLayanan = permohonan.total_harga;
         let periode = permohonan.periode_pemakaian;
 
-        if(permohonan.tipe_kontrak === 'adendum'){
+        if (permohonan.tipe_kontrak === 'adendum') {
             periode = permohonan.kontrak.periode.filter(item => item.periode >= permohonan.periode);
         }
 
@@ -617,24 +625,24 @@ class Invoice {
 
         ajaxGet(`api/v1/keuangan/getKeuangan/${this.dataKeuangan.keuangan_hash}`, false, result => {
             $('#list-document').empty();
-            if(result.meta.code == 200){
+            if (result.meta.code == 200) {
                 for (const media of result.data.media) {
                     let options = {}
 
-                    if(this.invoiceMode == 'create'){
+                    if (this.invoiceMode == 'create') {
                         options.download = false;
                         options.onRemove = () => {
                             ajaxDelete(`api/v1/keuangan/destroyFaktur/${invoiceClass.dataKeuangan.keuangan_hash}/${media.media_hash}`, result => {
                                 invoiceClass.loadPreviewDoc();
                             }, error => {
                                 const result = error.responseJSON;
-                                if(result?.meta?.code && result?.meta?.code == 500){
+                                if (result?.meta?.code && result?.meta?.code == 500) {
                                     Swal.fire({
                                         icon: "error",
                                         text: 'Server error',
                                     });
                                     console.error(result.data.msg);
-                                }else{
+                                } else {
                                     Swal.fire({
                                         icon: "error",
                                         text: 'Server error',
@@ -650,7 +658,7 @@ class Invoice {
                     $('#list-document').append(html);
                 }
 
-                if(result.data.media.length == 0){
+                if (result.data.media.length == 0) {
                     let html = `
                         <div class="d-flex flex-column align-items-center py-3">
                             <img src="${base_url}/images/no_data2_color.svg" style="width:220px" alt="">
@@ -670,7 +678,7 @@ class Invoice {
         })
     }
 
-    tolakInvoice(obj){
+    tolakInvoice(obj) {
         let note = $('#txt_note').val();
         spinner('show', $(obj));
 
@@ -692,7 +700,7 @@ class Invoice {
             });
         }, error => {
             const result = error.responseJSON;
-            if(result.meta.code == 500){
+            if (result.meta.code == 500) {
                 spinner('hide', obj);
                 Swal.fire({
                     icon: "error",
@@ -707,12 +715,12 @@ class Invoice {
         const formData = new FormData();
         formData.append('idKeuangan', this.dataKeuangan.keuangan_hash);
 
-        let textQuestion,textSuccess = '';
+        let textQuestion, textSuccess = '';
 
         switch (this.invoiceMode) {
             case 'create':
                 let metodePembayaran = $('#methode-pembayaran-select').parsley().validate();
-                if(metodePembayaran !== true){
+                if (metodePembayaran !== true) {
                     return;
                 }
 
@@ -724,10 +732,10 @@ class Invoice {
                 formData.append('status', 7);
                 formData.append('metodePembayaran', $('#methode-pembayaran-select').val());
                 // mengambil value variabel dari methode pembayaran
-                let variabelPembayaran = Array.from($('input[name="variabel_content"]').map(function() {
+                let variabelPembayaran = Array.from($('input[name="variabel_content"]').map(function () {
                     return { [$(this).data('key')]: $(this).val() };
                 }));
-                if(variabelPembayaran.length > 0){
+                if (variabelPembayaran.length > 0) {
                     formData.append('variabel_pembayaran', JSON.stringify(variabelPembayaran));
                 }
                 textQuestion = 'Apa anda yakin ingin membuat invoice ?';
@@ -735,12 +743,13 @@ class Invoice {
                 break;
             case 'verify':
                 let [ttdValue, ttdBy] = this.signaturePad.getValue();
-                if(!ttdValue){
+                if (!ttdValue) {
                     return Swal.fire({
                         icon: "warning",
                         text: "Harap berikan tanda tangan terlebih dahulu.",
                     });
                 }
+
                 formData.append('ttd', ttdValue);
                 formData.append('ttd_by', ttdBy);
                 formData.append('status', 3);
@@ -749,15 +758,24 @@ class Invoice {
                 textSuccess = 'Invoice berhasil diverifikasi.';
                 break;
             case 'verifStaff':
+                let tglPembayaran = $('#paymentDateInput').val();
+                if (!tglPembayaran) {
+                    return Swal.fire({
+                        icon: "warning",
+                        text: "Harap berikan tanggal pembayaran terlebih dahulu.",
+                    });
+                }
+
+                formData.append('paid_at', tglPembayaran);
                 formData.append('status', 5);
                 textQuestion = 'Apa invoice sudah benar ?';
                 textSuccess = 'Invoice berhasil diverifikasi.';
                 break;
         }
 
-        if(this.dataKeuangan.status === 7) {
+        if (this.dataKeuangan.status === 7) {
             // cek sudah uploadDokumen faktur atau belum
-            if(this.dataKeuangan.media.length == 0){
+            if (this.dataKeuangan.media.length == 0) {
                 return Swal.fire({
                     icon: "warning",
                     text: "Harap unggah dokumen faktur terlebih dahulu.",
@@ -781,10 +799,10 @@ class Invoice {
             buttonsStyling: false,
             reverseButtons: true
         }).then(result => {
-            if(result.isConfirmed){
+            if (result.isConfirmed) {
                 spinner('show', $(obj));
                 ajaxPost(`api/v1/keuangan/action`, formData, result => {
-                    if(result.meta.code == 200){
+                    if (result.meta.code == 200) {
                         Swal.fire({
                             icon: 'success',
                             text: textSuccess,
@@ -925,6 +943,12 @@ class Invoice {
                                     <div id="uploadDocumentFaktur" class="p-3"></div>
                                 </div>
                                 <div class="tab-pane fade" id="buktiPayment-tab-pane" role="tabpanel" aria-labelledby="buktiPayment-tab" tabindex="0">
+                                    <div id="tanggalPembayaran" class="p-3">
+                                        <h5>Tanggal Pembayaran <span class="text-danger">*</span></h5>
+                                        <div>
+                                            <input type="date" class="form-control" id="paymentDateInput" required>
+                                        </div>
+                                    </div>
                                     <div id="paymentProofSection" class="mt-3 row">
                                         <div class="col-6">
                                             <h5 class="text-center">Bukti Pembayaran</h5>
@@ -995,7 +1019,7 @@ class Invoice {
         `;
     }
 
-    on(eventName, callback = () => {}) {
+    on(eventName, callback = () => { }) {
         return document.addEventListener(eventName, callback);
     }
 }

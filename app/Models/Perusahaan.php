@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_perusahaan
@@ -41,11 +42,19 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereSuratKuasa($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereUpdatedAt($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @property int|null $stempel
+ * @property-read \App\Models\Master_media|null $stempel_perusahaan
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan whereStempel($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Perusahaan withoutTrashed()
  * @mixin \Eloquent
  */
 class Perusahaan extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'perusahaan';
     protected $primaryKey = 'id_perusahaan';
@@ -56,8 +65,7 @@ class Perusahaan extends Model
         'kode_perusahaan',
         'email',
         'status',
-        'surat_kuasa',
-        'confirm_at',
+        'stempel',
     ];
 
     protected $hidden = [
@@ -72,8 +80,7 @@ class Perusahaan extends Model
     protected $casts = [
         'status' => 'integer',
         'id_perusahaan' => 'integer',
-        'confirm_by' => 'integer',
-        'surat_kuasa' => 'integer',
+        'stempel' => 'integer',
     ];
 
     public function getPerusahaanHashAttribute()
@@ -86,19 +93,23 @@ class Perusahaan extends Model
         return $this->users()->where('status', '1')->first();
     }
 
-    public function alamat(){
+    public function alamat()
+    {
         return $this->hasMany(Master_alamat::class, 'id_perusahaan', 'id_perusahaan');
     }
 
-    public function users(){
-        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
+    public function users()
+    {
+        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
 
-    public function suratkuasa(){
-        return $this->hasMany(Master_media::class, 'id', 'surat_kuasa');
+    public function history_pic()
+    {
+        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan')->withTrashed();
     }
 
-    public function history_pic(){
-        return $this->hasMany(User::class, 'id_perusahaan', 'id_perusahaan');
+    public function stempel_perusahaan()
+    {
+        return $this->hasOne(Master_media::class, 'id', 'stempel');
     }
 }

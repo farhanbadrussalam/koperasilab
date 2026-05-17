@@ -53,7 +53,7 @@ class Jadwal_petugas extends Model
     // }
 
     public function petugas(){
-        return $this->belongsTo(User::class, 'petugas_id', 'id');
+        return $this->belongsTo(User::class, 'petugas_id', 'id')->withTrashed();
     }
 
     public function getOtorisasiAttribute(){

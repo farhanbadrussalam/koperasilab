@@ -5,24 +5,30 @@
 /* --- 1. Untuk WebKit Browsers (Chrome, Safari, Edge) --- */
 /* Target semua elemen yang bisa di-scroll, termasuk <body> */
 *::-webkit-scrollbar {
-  width: 5px; /* Atur lebar scroll bar vertikal (atur sesuai keinginan, misal 4px) */
-  height: 5px; /* Atur tinggi scroll bar horizontal */
+  width: 5px;
+  /* Atur lebar scroll bar vertikal (atur sesuai keinginan, misal 4px) */
+  height: 5px;
+  /* Atur tinggi scroll bar horizontal */
 }
 
 /* Track (area di mana scroll bar bergerak) */
 *::-webkit-scrollbar-track {
-  background: #f1f1f1; /* Warna track, sesuaikan dengan tema Anda */
+  background: #f1f1f1;
+  /* Warna track, sesuaikan dengan tema Anda */
 }
 
 /* Handle (pegangan yang digeser) */
 *::-webkit-scrollbar-thumb {
-  background: lightgray; /* Warna handle utama */
-  border-radius: 4px; /* Sudut melengkung pada handle */
+  background: lightgray;
+  /* Warna handle utama */
+  border-radius: 4px;
+  /* Sudut melengkung pada handle */
 }
 
 /* Handle saat di-hover (diarahkan kursor) */
 *::-webkit-scrollbar-thumb:hover {
-  background: #b8b8b8; /* Warna handle saat di-hover */
+  background: #b8b8b8;
+  /* Warna handle saat di-hover */
 }
 
 /* Custom Scroll */
@@ -39,7 +45,8 @@
 /* Target scroll bar dengan properti standar */
 body {
   background-color: #F2F2F2 !important;
-  scrollbar-width: thin; /* 'auto' atau 'thin' */
+  scrollbar-width: thin;
+  /* 'auto' atau 'thin' */
   /*scrollbar-color: #888 #f1f1f1; /* Handle dan Track */
 }
 
@@ -72,7 +79,7 @@ body {
   background-color: #f3f3f3 !important;
 }
 
-.hover-text:hover{
+.hover-text:hover {
   --bs-text-opacity: .7;
 }
 
@@ -533,187 +540,235 @@ tl-item.active .tl-dot:before {
 }
 
 .jenis-pembayaran-created {
-    cursor: pointer;
-    border-style: dashed !important;
+  cursor: pointer;
+  border-style: dashed !important;
 }
 
 .jenis-pembayaran-created:hover {
-    border-style: solid !important;
-    background-color: #e2e2e2 !important;
+  border-style: solid !important;
+  background-color: #e2e2e2 !important;
 }
 
 .ck-editor__editable_inline {
-    min-height: 250px;
+  min-height: 250px;
 }
 
-.ck-content .lh-1 { line-height: 1; }
-.ck-content .lh-12 { line-height: 1.2; }
-.ck-content .lh-16 { line-height: 1.6; }
-.ck-content .lh-20 { line-height: 2; }
+.ck-content .lh-1 {
+  line-height: 1;
+}
 
-.form-floating .ck-editor__editable[role="textbox"] { max-height: 400px; overflow-y:auto; }
+.ck-content .lh-12 {
+  line-height: 1.2;
+}
 
-.parsley-errors-list{
-    list-style: circle !important;
+.ck-content .lh-16 {
+  line-height: 1.6;
+}
+
+.ck-content .lh-20 {
+  line-height: 2;
+}
+
+.form-floating .ck-editor__editable[role="textbox"] {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.parsley-errors-list {
+  list-style: circle !important;
 }
 
 
 .card-hover {
-    cursor: pointer;
+  cursor: pointer;
 }
+
 .card-hover:hover {
-    box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0), 0 1px 10px 0 rgba(0,0,0,0.15);
+  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0), 0 1px 10px 0 rgba(0, 0, 0, 0.15);
 }
 
 .list-group-item-active {
-    background-color: #f3f3f3 !important;
+  background-color: #f3f3f3 !important;
 }
 
 .notif-option {
-    cursor: pointer;
-    border-radius: 5px;
-    cursor: pointer;
-    border: 0;
-    text-decoration: none;
-    padding: 5px;
-    font-size: 12px;
+  cursor: pointer;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 0;
+  text-decoration: none;
+  padding: 5px;
+  font-size: 12px;
 }
 
 .notif-option:hover {
-    background-color: #f3f3f3 !important;
+  background-color: #f3f3f3 !important;
 }
 
 .notif-option.active {
-    background-color: #f3f3f3 !important;
-    font-weight: 500;
+  background-color: #f3f3f3 !important;
+  font-weight: 500;
 }
 
 /* Custom CSS untuk Sidebar Sticky */
 .sticky-sidebar {
-    /* Fungsi utama agar menempel */
-    position: -webkit-sticky; /* Untuk Safari */
-    position: sticky;
+  /* Fungsi utama agar menempel */
+  position: -webkit-sticky;
+  /* Untuk Safari */
+  position: sticky;
 
-    /* Jarak dari atas layar saat berhenti scroll */
-    top: 85px;
+  /* Jarak dari atas layar saat berhenti scroll */
+  top: 85px;
 
-    /* Agar tumpukannya pas (opsional) */
-    z-index: 9;
+  /* Agar tumpukannya pas (opsional) */
+  z-index: 9;
 }
 
 
 /* Animasi Dropdown Slide Down */
 @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Hover Effect pada Item Menu */
 .dropdown-item {
-    transition: all 0.2s;
+  transition: all 0.2s;
 }
+
 .dropdown-item:hover {
-    background-color: #f8f9fa;
-    transform: translateX(5px); /* Efek geser sedikit saat hover */
+  background-color: #f8f9fa;
+  transform: translateX(5px);
+  /* Efek geser sedikit saat hover */
 }
+
 .dropdown-item:active {
-    background-color: #e9ecef;
-    color: #000;
+  background-color: #e9ecef;
+  color: #000;
 }
 
 /* Efek Hover Lonceng */
 .hover-bg-light:hover {
-    background-color: #f8f9fa;
-    color: #0d6efd !important; /* Lonceng jadi biru saat dihover */
+  background-color: #f8f9fa;
+  color: #0d6efd !important;
+  /* Lonceng jadi biru saat dihover */
 }
 
 /* Animasi Pulse (Cincin Berdenyut) */
 .pulse-ring {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    border: 2px solid #dc3545; /* Warna Merah */
-    animation: pulse-animation 2s infinite;
-    opacity: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid #dc3545;
+  /* Warna Merah */
+  animation: pulse-animation 2s infinite;
+  opacity: 0;
 }
 
 @keyframes pulse-animation {
-    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-    50% { opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
+  }
 }
 
 /* Styling khusus list menu kiri */
 .custom-menu .list-group-item.active {
-    background-color: #eef2ff;
-    color: #4e73df;
-    font-weight: bold;
-    border-left: 4px solid #4e73df;
+  background-color: #eef2ff;
+  color: #4e73df;
+  font-weight: bold;
+  border-left: 4px solid #4e73df;
 }
+
 .border-dashed {
-    border-style: dashed !important;
+  border-style: dashed !important;
 }
 
 /* Garis pemisah vertikal hanya muncul di layar besar */
 @media (min-width: 992px) {
-    .border-start-lg {
-        border-left: 1px solid #dee2e6 !important;
-    }
+  .border-start-lg {
+    border-left: 1px solid #dee2e6 !important;
+  }
 }
 
 
 /* Styling agar Item terasa seperti tombol */
 .hover-bg-light:hover {
-    background-color: #f8f9fa;
-    cursor: pointer;
+  background-color: #f8f9fa;
+  cursor: pointer;
 }
+
 /* Sembunyikan elemen bawaan DataTable yang jelek */
-.dataTables_filter, .dataTables_length, .dataTables_info, thead {
-    display: none !important;
+.dataTables_filter,
+.dataTables_length,
+.dataTables_info,
+thead {
+  display: none !important;
 }
 
 .hover-effect:hover {
-    border: 1px solid blue !important;
-    box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0), 0 1px 10px 0 rgba(0,0,0,0.15);
+  border: 1px solid blue !important;
+  box-shadow: 0 4px 8px 0 rgba(255, 255, 255, 0), 0 1px 10px 0 rgba(0, 0, 0, 0.15);
 }
 
 .bg-soft-success {
-    background-color: #e8fdf5 !important;
+  background-color: #e8fdf5 !important;
 }
+
 .custom-switch .form-check-input:checked {
-    background-color: #198754;
-    border-color: #198754;
+  background-color: #198754;
+  border-color: #198754;
 }
+
 .custom-switch .form-check-input {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 /* HR with text in the middle */
 .hr-text {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 1.5rem 0;
-    color: #a0a0a0;
-    font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #a0a0a0;
+  font-size: 0.875rem;
 }
+
 .hr-text::before,
 .hr-text::after {
-    content: "";
-    flex: 1;
-    border-bottom: 1px solid #dee2e6;
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #dee2e6;
 }
+
 .hr-text:not(:empty)::before {
-    margin-right: .75em;
+  margin-right: .75em;
 }
+
 .hr-text:not(:empty)::after {
-    margin-left: .75em;
+  margin-left: .75em;
 }
 
 .modal-content {
-    border-radius: 1.25rem;
+  border-radius: 1.25rem;
 }

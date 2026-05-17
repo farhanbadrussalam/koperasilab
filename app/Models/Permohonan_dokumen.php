@@ -47,6 +47,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_dokumen whereTtdBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_dokumen whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permohonan_dokumen whereVariables($value)
+ * @property-read mixed $ttd_image
  * @mixin \Eloquent
  */
 class Permohonan_dokumen extends Model
@@ -122,7 +123,7 @@ class Permohonan_dokumen extends Model
     }
 
     public function doc_template(){
-        return $this->belongsTo(Documents::class, 'id_doc_template', 'id_doc');
+        return $this->belongsTo(Documents::class, 'id_doc_template', 'id_doc')->withTrashed();
     }
 
     public function usersig(){

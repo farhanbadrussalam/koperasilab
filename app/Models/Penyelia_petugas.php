@@ -31,6 +31,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_petugas whereIdUser($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_petugas whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_petugas whereUpdatedAt($value)
+ * @property-read \App\Models\Penyelia_map|null $penyelia_map
  * @mixin \Eloquent
  */
 class Penyelia_petugas extends Model
@@ -98,7 +99,7 @@ class Penyelia_petugas extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'id_user', 'id');
+        return $this->belongsTo(User::class, 'id_user', 'id')->withTrashed();
     }
 
     public function penyelia_map()

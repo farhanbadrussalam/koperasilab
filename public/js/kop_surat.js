@@ -24,7 +24,7 @@ function openModalKopSurat(mode, id = null) {
                 modalTitle.text(mode === 'edit' ? 'Edit Kop Surat' : 'Detail Kop Surat');
                 $('#kop_surat_id').val(doc.doc_hash);
                 $('#nama_kop_surat').val(doc.name);
-                if(doc.isActive == 1) {
+                if (doc.view == 1) {
                     $('#active_kop_surat_1').prop('checked', true);
                 } else {
                     $('#active_kop_surat_0').prop('checked', true);
@@ -52,7 +52,7 @@ function mkEditor(selector) {
     return CKEditorBuild.create(document.querySelector(selector), {
         toolbar: {
             items: [
-                'fullscreen','heading', 'style',
+                'fullscreen', 'heading', 'style',
                 '|', 'bold', 'italic', 'link', 'alignment',
                 '|', 'horizontalLine', 'bulletedList', 'numberedList', 'insertTable', 'insertTableLayout',
                 '|', 'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', 'Underline',
@@ -60,36 +60,36 @@ function mkEditor(selector) {
             ]
         },
         image: {
-            upload: { types: [ 'jpeg', 'jpg', 'png', 'gif', 'webp' ] },
+            upload: { types: ['jpeg', 'jpg', 'png', 'gif', 'webp'] },
             toolbar: [
-                'imageStyle:inline','imageStyle:block','imageStyle:side',
-                '|','toggleImageCaption','imageTextAlternative',
-                '|','resizeImage'
+                'imageStyle:inline', 'imageStyle:block', 'imageStyle:side',
+                '|', 'toggleImageCaption', 'imageTextAlternative',
+                '|', 'resizeImage'
             ],
             resizeUnit: 'px',
             // (Opsional) tombol preset di toolbar
             resizeOptions: [
                 { name: 'resizeImage:original', label: 'Original', value: null },
-                { name: 'resizeImage:custom',   label: 'Custom',  value: 'custom' },
-                { name: 'resizeImage:100',      label: '100 px',  value: 100 },
-                { name: 'resizeImage:300',      label: '300 px',  value: 300 },
-                { name: 'resizeImage:600',      label: '600 px',  value: 600 }
+                { name: 'resizeImage:custom', label: 'Custom', value: 'custom' },
+                { name: 'resizeImage:100', label: '100 px', value: 100 },
+                { name: 'resizeImage:300', label: '300 px', value: 300 },
+                { name: 'resizeImage:600', label: '600 px', value: 600 }
             ],
         },
         // Opsi font
         fontFamily: {
-        options: [
-            'default',
-            'Arial, Helvetica, sans-serif',
-            'Times New Roman, Times, serif',
-            'Courier New, Courier, monospace',
-            'Tahoma, Geneva, sans-serif',
-            'Georgia, serif'
-        ],
-        supportAllValues: true
+            options: [
+                'default',
+                'Arial, Helvetica, sans-serif',
+                'Times New Roman, Times, serif',
+                'Courier New, Courier, monospace',
+                'Tahoma, Geneva, sans-serif',
+                'Georgia, serif'
+            ],
+            supportAllValues: true
         },
         fontSize: {
-            options: [ '8', '10', '12', '14', '16', '18', '24', '32', '48' ],
+            options: ['8', '10', '12', '14', '16', '18', '24', '32', '48'],
             supportAllValues: true
         },
         fontColor: { colorPicker: { format: 'hex' } },
@@ -116,8 +116,10 @@ function simpanKopSurat(obj) {
     formParams.append("jenis", "header");
     formParams.append("isActive", isActive);
 
+    const url = id ? `management/document/${id}` : `management/document`;
+
     spinner('show', $(obj));
-    ajaxPost(`management/document/${id}`, formParams, result => {
+    ajaxPost(url, formParams, result => {
         spinner('hide', $(obj));
         if (result.meta.code == 200) {
             Swal.fire({ icon: "success", text: result.data.msg });

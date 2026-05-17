@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_ekspedisi
@@ -24,11 +25,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi whereUpdatedAt($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Master_ekspedisi withoutTrashed()
  * @mixin \Eloquent
  */
 class Master_ekspedisi extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'master_ekspedisi';
     protected $primaryKey = 'id_ekspedisi';
@@ -58,4 +64,8 @@ class Master_ekspedisi extends Model
         return $this->id_ekspedisi ? encryptor($this->id_ekspedisi) : null;
     }
 
+    public function pengiriman()
+    {
+        return $this->hasMany(Pengiriman::class, 'id_ekspedisi', 'id_ekspedisi');
+    }
 }

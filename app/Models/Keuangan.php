@@ -60,6 +60,9 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereTtdBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereVariabelJenisPembayaran($value)
+ * @property string|null $verif_at
+ * @property-read mixed $ttd_image
+ * @method static \Illuminate\Database\Eloquent\Builder|Keuangan whereVerifAt($value)
  * @mixin \Eloquent
  */
 class Keuangan extends Model
@@ -190,6 +193,6 @@ class Keuangan extends Model
     }
 
     public function metode_pembayaran(){
-        return $this->belongsTo(Jenis_pembayaran::class, 'id_jenis_pembayaran', 'id_jenis_pembayaran');
+        return $this->belongsTo(Jenis_pembayaran::class, 'id_jenis_pembayaran', 'id_jenis_pembayaran')->withTrashed();
     }
 }

@@ -15,23 +15,33 @@ use Illuminate\Support\Facades\Storage;
 
 class GoogleController extends Controller
 {
-    public function redirect(){
+    public function redirect()
+    {
         return Socialite::driver('google')->redirect();
     }
 
-    public function callback(){
+    public function callback()
+    {
         $googleUser = Socialite::driver('google')->user();
 
-        $user = User::updateOrCreate([
-            'email' => $googleUser->email,
-            'realtime_notifications' => 0
-        ], [
-            'name' => $googleUser->name,
-            'google_id' => $googleUser->id,
-            'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s')
-        ])->assignRole('pelanggan');
+        $user = User::where('email', $googleUser->email)->first();
 
-        if($user){
+        if (!$user) {
+            $user = User::create([
+                'email' => $googleUser->email,
+                'name' => $googleUser->name,
+                'google_id' => $googleUser->id,
+                'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                'realtime_notifications' => 0
+            ]);
+            $user->assignRole('pelanggan');
+        } else {
+            $user->update([
+                'google_id' => $googleUser->id
+            ]);
+        }
+
+        if ($user) {
             $urlEksternal = $googleUser->avatar;
 
             // Ambil konten gambar dari URL
@@ -41,16 +51,16 @@ class GoogleController extends Controller
             $path = parse_url($urlEksternal, PHP_URL_PATH);
             $extension = pathinfo($path, PATHINFO_EXTENSION);
 
-            if($extension){
-                $extension = '.'.$extension;
+            if ($extension) {
+                $extension = '.' . $extension;
             }
             // Generate unique file name
-            $filehash = 'avatar_'.$googleUser->id . $extension;
-            $fileori = 'avatar_'.$googleUser->name . $extension;
+            $filehash = 'avatar_' . $googleUser->id . $extension;
+            $fileori = 'avatar_' . $googleUser->name . $extension;
 
             // Simpan gambar ke direktori yang ditentukan
             // mengecek apakah filehash sudah da atau belum
-            if(!Storage::disk('public')->exists('images/avatar/' . $filehash)){
+            if (!Storage::disk('public')->exists('images/avatar/' . $filehash)) {
                 Storage::disk('public')->put('images/avatar/' . $filehash, $imageContent);
             }
 
@@ -72,6 +82,6 @@ class GoogleController extends Controller
 
         Auth::login($user);
 
-        return redirect('/userProfile');
+        return redirect('/home');
     }
 }

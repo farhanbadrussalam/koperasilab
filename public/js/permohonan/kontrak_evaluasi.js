@@ -17,13 +17,13 @@ $(function () {
         // reset tmpArrTld
         let index = tmpArrTld.findIndex(d => d.index == detail.selected);
 
-        if(index > -1){
+        if (index > -1) {
             tmpArrTld[index].tld = detail.data_tld.tld_hash;
         }
     });
     let htmlAlamat = '<option value="">Pilih alamat</option>';
-    for (const [i,value] of dataKontrak.pelanggan.perusahaan.alamat.entries()) {
-        if(value.status){
+    for (const [i, value] of dataKontrak.pelanggan.perusahaan.alamat.entries()) {
+        if (value.status) {
             htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
         }
     }
@@ -31,12 +31,12 @@ $(function () {
     $('#selectAlamat').html(htmlAlamat);
 
     $('#selectAlamat').on('change', obj => {
-        if(dataKontrak){
+        if (dataKontrak) {
             const perusahaan = dataKontrak.pelanggan.perusahaan;
 
-            if(perusahaan.alamat[obj.target.value] && perusahaan.alamat[obj.target.value].alamat){
-                $('#txt_alamat').val(perusahaan.alamat[obj.target.value].alamat + ", "+ perusahaan.alamat[obj.target.value].kode_pos);
-            }else{
+            if (perusahaan.alamat[obj.target.value] && perusahaan.alamat[obj.target.value].alamat) {
+                $('#txt_alamat').val(perusahaan.alamat[obj.target.value].alamat + ", " + perusahaan.alamat[obj.target.value].kode_pos);
+            } else {
                 $('#txt_alamat').val('');
             }
         }
@@ -44,19 +44,19 @@ $(function () {
 
     JL = jenislayanan(dataKontrak.jenis_layanan_parent, dataKontrak.jenis_layanan);
 
-    if(tmpArrEvaluasi.includes(JL)){
+    if (tmpArrEvaluasi.includes(JL)) {
         htmlDisabled = false;
     }
 
-    if(StringZerocek == JL){
-        if(dataKontrak.is_have_tld == 1) {
+    if (StringZerocek == JL) {
+        if (dataKontrak.is_have_tld == 1) {
             htmlDisabled = false;
         }
     }
 
     loadTld();
 
-    $('#checkAllTldPengguna').on('change', function() {
+    $('#checkAllTldPengguna').on('change', function () {
         const isChecked = $(this).is(':checked');
         $('input[name="checkTldPengguna"]').prop('checked', isChecked);
     });
@@ -65,7 +65,7 @@ $(function () {
 function loadTld() {
     let tldPengguna = false;
     let tldKontrol = false;
-    if(dataKontrak.kontrak_map.length == 0){
+    if (dataKontrak.kontrak_map.length == 0) {
         tldPengguna = dataKontrak.kontrak_detail.filter(tld => {
             return tld.jenis == 'pengguna';
         });
@@ -84,7 +84,7 @@ function loadTld() {
 function loadTldKontrol(tldKontrol, source) {
     let htmlTldKontrol = '';
     let isPeriodOne = dataPeriodeNow.count_tld == 1;
-    ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'kontrol'}, result => {
+    ajaxGet(`api/v1/tld/searchTldNotUsed`, { jenis: 'kontrol' }, result => {
         let tldNotUsed = result.data;
         let noTld = 0;
         for (const [i, list] of tldKontrol.entries()) {
@@ -94,8 +94,8 @@ function loadTldKontrol(tldKontrol, source) {
             let _htmlDisabled = htmlDisabled;
             let _isCheckedEvaluasi = true;
 
-           if(source == 'map'){
-                if(list.tld){
+            if (source == 'map') {
+                if (list.tld) {
                     dataTld = list.tld;
                     type = 'lama';
                 } else {
@@ -103,12 +103,12 @@ function loadTldKontrol(tldKontrol, source) {
                     noTld++;
                 }
                 id = list.kontrak_map_hash;
-           } else {
-                if(isPeriodOne){
-                    if(list.tld_1){
+            } else {
+                if (isPeriodOne) {
+                    if (list.tld_1) {
                         dataTld = list.tld_1;
                         type = 'lama';
-                        if(list.status_tld_1 != 2) {
+                        if (list.status_tld_1 != 2) {
                             _htmlDisabled = true;
                             _isCheckedEvaluasi = false;
                         }
@@ -117,10 +117,10 @@ function loadTldKontrol(tldKontrol, source) {
                         noTld++;
                     }
                 } else {
-                    if(list.tld_2){
+                    if (list.tld_2) {
                         dataTld = list.tld_2;
                         type = 'lama';
-                        if(list.status_tld_2 != 2) {
+                        if (list.status_tld_2 != 2) {
                             _htmlDisabled = true;
                             _isCheckedEvaluasi = false;
                         }
@@ -130,42 +130,42 @@ function loadTldKontrol(tldKontrol, source) {
                     }
                 }
                 id = list.kontrak_detail_hash;
-           }
+            }
 
-          tmpArrTld.push({
-              id: id,
-              tld: dataTld.tld_hash,
-              index: `tldNoSeri_${i}_kontrol`,
-              type,
-              source
-          });
+            tmpArrTld.push({
+                id: id,
+                tld: dataTld.tld_hash,
+                index: `tldNoSeri_${i}_kontrol`,
+                type,
+                source
+            });
 
-          let kodeLencana = i == 0 ? 'C' : `C${i}`;
+            let kodeLencana = i == 0 ? 'C' : `C${i}`;
 
-          const dataCard = {
-            index: i,
-            idHash: id,
-            name: `Kontrol ${list.entitas?.name ?? ''} ${kodeLencana}`,
-            kode: kodeLencana,
-            isCheckedEvaluasi: _isCheckedEvaluasi,
-            tldHash: dataTld.tld_hash,
-            no_seri_tld: dataTld.no_seri_tld,
-            htmlDisabled: _htmlDisabled
-          }
+            const dataCard = {
+                index: i,
+                idHash: id,
+                name: `Kontrol ${list.entitas?.name ?? ''} ${kodeLencana}`,
+                kode: kodeLencana,
+                isCheckedEvaluasi: _isCheckedEvaluasi,
+                tldHash: dataTld.tld_hash,
+                no_seri_tld: dataTld.no_seri_tld,
+                htmlDisabled: _htmlDisabled
+            }
 
-          htmlTldKontrol += cardKontrolComponent(dataCard, {
-            label_tld: true
-          });
-       }
+            htmlTldKontrol += cardKontrolComponent(dataCard, {
+                label_tld: true
+            });
+        }
 
-       $('#tld-kontrol-content').html(htmlTldKontrol);
+        $('#tld-kontrol-content').html(htmlTldKontrol);
     });
 }
 
 function loadPengguna(tldPengguna, source) {
     let htmlPengguna = '';
     let isPeriodOne = dataPeriodeNow.count_tld == 1;
-    ajaxGet(`api/v1/tld/searchTldNotUsed`, {jenis: 'pengguna'}, result => {
+    ajaxGet(`api/v1/tld/searchTldNotUsed`, { jenis: 'pengguna' }, result => {
         let tldNotUsed = result.data;
         let noTld = 0;
         for (const [i, value] of tldPengguna.entries()) {
@@ -178,8 +178,8 @@ function loadPengguna(tldPengguna, source) {
             let _htmlDisabled = htmlDisabled;
             let _isCheckedEvaluasi = true;
 
-            if(source == 'map'){
-                if(value.tld){
+            if (source == 'map') {
+                if (value.tld) {
                     dataTld = value.tld;
                     type = 'lama';
                 } else {
@@ -188,11 +188,11 @@ function loadPengguna(tldPengguna, source) {
                 }
                 id = value.kontrak_map_hash;
             } else {
-                if(isPeriodOne){
-                    if(value.tld_1){
+                if (isPeriodOne) {
+                    if (value.tld_1) {
                         dataTld = value.tld_1;
                         type = 'lama';
-                        if(value.status_tld_1 != 2) {
+                        if (value.status_tld_1 != 2) {
                             _htmlDisabled = true;
                             _isCheckedEvaluasi = false;
                         }
@@ -201,10 +201,10 @@ function loadPengguna(tldPengguna, source) {
                         noTld++;
                     }
                 } else {
-                    if(value.tld_2){
+                    if (value.tld_2) {
                         dataTld = value.tld_2;
                         type = 'lama';
-                        if(value.status_tld_2 != 2) {
+                        if (value.status_tld_2 != 2) {
                             _htmlDisabled = true;
                             _isCheckedEvaluasi = false;
                         }
@@ -248,7 +248,7 @@ function loadPengguna(tldPengguna, source) {
     });
 }
 
-function buatPermohonan(obj){
+function buatPermohonan(obj) {
     let jenisLayanan = dataJenisLayanan.jenis_layanan_hash;
     let jenisLayananParent = dataJenisLayanan.parent_hash;
     let idKontrak = dataKontrak.kontrak_hash;
@@ -256,11 +256,11 @@ function buatPermohonan(obj){
     let alamatIndex = $('#selectAlamat').val();
 
     let checkTld = [];
-    $('input[name="checkTldPengguna"]:checked, input[name="checkTldKontrol"]:checked').each(function() {
+    $('input[name="checkTldPengguna"]:checked, input[name="checkTldKontrol"]:checked').each(function () {
         checkTld.push($(this).val());
     });
 
-    if(!alamatIndex){
+    if (!alamatIndex) {
         Swal.fire({
             icon: 'warning',
             text: 'Alamat belum dipilih. Silakan pilih alamat terlebih dahulu.'
@@ -294,7 +294,7 @@ function buatPermohonan(obj){
             params.append('is_zerocek', 0);
             params.append('haveTld', 1);
             params.append('tipeKontrak', 'kontrak lama');
-            if(isPengembalian) {
+            if (isPengembalian) {
                 params.append('is_pengembalian', 1);
                 params.append('pengembalian_start', pengembalianStart);
                 params.append('pengembalian_end', pengembalianEnd);
@@ -316,7 +316,7 @@ function buatPermohonan(obj){
                     showConfirmButton: false
                 }).then(() => {
                     // e.g., redirect to a different page
-                    window.location.href = base_url+"/permohonan/pengajuan";
+                    window.location.href = base_url + "/permohonan/pengajuan";
                 });
             }, error => {
                 spinner('hide', $(obj));  // Important: hide the spinner on error too!
@@ -326,7 +326,7 @@ function buatPermohonan(obj){
 
 }
 
-function openInventory(obj, jenis){
+function openInventory(obj, jenis) {
     let id = $(obj).data('id');
     inventoryTld.show(id, tmpArrTld, jenis);
 }

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Kontrak;
+use App\Models\Master_ekspedisi;
 use App\Models\Master_jenisLayanan;
 use App\Models\Master_jenistld;
 use App\Models\Master_jobs;
@@ -21,7 +22,8 @@ use Auth;
 class DashboardWidgetController extends Controller
 {
     // Widget Summary Card
-    public function summaryCards(Request $request){
+    public function summaryCards(Request $request)
+    {
         $jenisCard = $request->has('jenis') ? $request->jenis : null;
         $user = Auth::user();
         $html = '';
@@ -79,24 +81,24 @@ class DashboardWidgetController extends Controller
                     'text' => 'Pembayaran',
                     'type' => 'list',
                     'count' => [
-                        array('text' => 'Belum Lunas', 'icon' => 'bi-exclamation-circle', 'count' => $countBelumLunas , 'color' => 'text-warning-emphasis'),
+                        array('text' => 'Belum Lunas', 'icon' => 'bi-exclamation-circle', 'count' => $countBelumLunas, 'color' => 'text-warning-emphasis'),
                         array('text' => 'Lunas', 'icon' => 'bi-check-circle-fill', 'count' => $countLunas, 'color' => 'text-success'),
                         array('text' => 'Ditolak', 'icon' => 'bi-dash-circle', 'count' => $countDitolak, 'color' => 'text-danger'),
                     ],
-                    'color'=>'text-warning-emphasis',
+                    'color' => 'text-warning-emphasis',
                     'url' => $user->hasRole('Pelanggan') ? route('permohonan.pembayaran') : route('staff.keuangan')
                 ])->render();
                 break;
             case 'kontrak':
                 $counts = Kontrak::query()
-                            ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                                $q->whereHas('pelanggan', function ($q) use ($user) {
-                                    $q->where('id_perusahaan', $user->id_perusahaan);
-                                });
-                            })
-                            ->selectRaw('status, count(*) as total')
-                            ->groupBy('status')
-                            ->pluck('total', 'status');
+                    ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                        $q->whereHas('pelanggan', function ($q) use ($user) {
+                            $q->where('id_perusahaan', $user->id_perusahaan);
+                        });
+                    })
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
 
                 $countBerjalan = $counts->get(1, 0);
                 $countSelesai = $counts->get(2, 0);
@@ -116,27 +118,27 @@ class DashboardWidgetController extends Controller
                 break;
             case 'tld':
                 $count = Master_tld::query()
-                        ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                            $q->where('kepemilikan', $user->id_perusahaan);
-                        }, function ($q) {
-                            $q->whereNull('kepemilikan');
-                        })
-                        ->selectRaw('status, count(*) as total')
-                        ->groupBy('status')
-                        ->pluck('total', 'status');
+                    ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                        $q->where('kepemilikan', $user->id_perusahaan);
+                    }, function ($q) {
+                        $q->whereNull('kepemilikan');
+                    })
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
 
                 $countTersedia = $count->get(0, 0);
                 $countTerpakai = $count->get(1, 0);
 
                 $countTld = Master_tld::query()
-                        ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                            $q->where('kepemilikan', $user->id_perusahaan);
-                        }, function ($q) {
-                            $q->whereNull('kepemilikan');
-                        })
-                        ->selectRaw('jenis, count(*) as total')
-                        ->groupBy('jenis')
-                        ->pluck('total', 'jenis');
+                    ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                        $q->where('kepemilikan', $user->id_perusahaan);
+                    }, function ($q) {
+                        $q->whereNull('kepemilikan');
+                    })
+                    ->selectRaw('jenis, count(*) as total')
+                    ->groupBy('jenis')
+                    ->pluck('total', 'jenis');
 
                 $countTldPengguna = $countTld->get('pengguna', 0);
                 $countTldKontrol = $countTld->get('kontrol', 0);
@@ -157,15 +159,15 @@ class DashboardWidgetController extends Controller
                 break;
             case 'penyelia':
                 $counts = Penyelia::query()
-                            ->with('permohonan')
-                            ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                                $q->whereHas('permohonan', function ($q) use ($user) {
-                                    $q->where('created_by', $user->id);
-                                });
-                            })
-                            ->selectRaw('status, count(*) as total')
-                            ->groupBy('status')
-                            ->pluck('total', 'status');
+                    ->with('permohonan')
+                    ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                        $q->whereHas('permohonan', function ($q) use ($user) {
+                            $q->where('created_by', $user->id);
+                        });
+                    })
+                    ->selectRaw('status, count(*) as total')
+                    ->groupBy('status')
+                    ->pluck('total', 'status');
 
                 $countBaru = $counts->get(1, 0);
                 $countTTD = $counts->get(2, 0);
@@ -229,7 +231,43 @@ class DashboardWidgetController extends Controller
         ]);
     }
 
-    public function statisticsLayanan(Request $request){
+    public function expeditionStats()
+    {
+        $ekspedisi = Master_ekspedisi::withCount(['pengiriman'])->get()->pluck('pengiriman_count', 'name')->toArray();
+
+        $category = array_keys($ekspedisi);
+        $value = array_values($ekspedisi);
+
+        $barChart = [
+            'category' => $category,
+            'value' => $value
+        ];
+        $isEmpty = array_sum($value) === 0;
+
+        $charts = [];
+        if (!$isEmpty) {
+            $charts[] = [
+                'id_chart' => 'expeditionChart',
+                'type' => 'bar',
+                'series_name' => 'Pengiriman',
+                'yaxis_title' => 'Jumlah Pengiriman',
+                'stacked' => true,
+                'distributed' => true,
+                'data' => $barChart
+            ];
+        }
+
+        return response()->json([
+            'html' => view('components.dashboard.service-chart', [
+                'charts' => $charts,
+                'isEmpty' => $isEmpty,
+                'title' => 'Statistik Ekspedisi',
+                'icon' => 'bar-chart-line-fill'
+            ])->render()
+        ]);
+    }
+    public function statisticsLayanan(Request $request)
+    {
         $user = Auth::user();
         $layanan = Master_layanan_jasa::where('status', 1)->get();
         $layananNow = null;
@@ -248,16 +286,16 @@ class DashboardWidgetController extends Controller
         $category = [];
         $value = [];
 
-        if($layananNow->nama_layanan === 'TLD'){
+        if ($layananNow->nama_layanan === 'TLD') {
             $statistik = Master_jenistld::withCount(['kontrak' => function ($query) use ($user, $layananNow) {
                 $query->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                     $q->whereHas('pelanggan', function ($q) use ($user) {
                         $q->where('id_perusahaan', $user->id_perusahaan);
                     });
                 })
-                ->where('id_layanan', $layananNow->id_layanan);
+                    ->where('id_layanan', $layananNow->id_layanan);
             }])->get()
-            ->pluck('kontrak_count', 'name');
+                ->pluck('kontrak_count', 'name');
 
             $category = $statistik->keys();
             $value = $statistik->values();
@@ -288,18 +326,43 @@ class DashboardWidgetController extends Controller
         // cek apakah semua data kosong
         $isEmpty = $value->sum() === 0 && $statistik_2->values()->sum() === 0;
 
+        $charts = [];
+        if (!$isEmpty) {
+            if (array_sum($chart_1['value']) > 0 || $layananNow->nama_layanan === 'TLD') {
+                $charts[] = [
+                    'id_chart' => 'chart_layanan_1',
+                    'type' => 'bar',
+                    'series_name' => 'Kontrak',
+                    'yaxis_title' => 'Jumlah Kontrak',
+                    'stacked' => true,
+                    'distributed' => true,
+                    'data' => $chart_1
+                ];
+            }
+            if (array_sum($chart_2['value']) > 0) {
+                $charts[] = [
+                    'id_chart' => 'chart_layanan_2',
+                    'type' => 'donut',
+                    'tooltip_suffix' => 'Pengajuan',
+                    'data' => $chart_2
+                ];
+            }
+        }
+
         // count layanan
         return response()->json([
             'html' => view('components.dashboard.service-chart', [
-                'data_chart_1' => $chart_1,
-                'data_chart_2' => $chart_2,
+                'charts' => $charts,
                 'data_layanan' => $layanan,
-                'isEmpty' => $isEmpty
+                'isEmpty' => $isEmpty,
+                'title' => 'Statistik Layanan',
+                'icon' => 'pie-chart-fill',
             ])->render()
         ]);
     }
 
-    public function deliveryStats(Request $request){
+    public function deliveryStats(Request $request)
+    {
         $user = Auth::user();
 
         $count = Pengiriman::query()
@@ -322,7 +385,7 @@ class DashboardWidgetController extends Controller
         $statistics = [];
         $url = route('permohonan.pengiriman');
 
-        if(!$user->hasRole('Pelanggan')) {
+        if (!$user->hasRole('Pelanggan')) {
             $statistics[] = array(
                 "status" => "ops",
                 "count" => $ops,
@@ -358,7 +421,8 @@ class DashboardWidgetController extends Controller
         ]);
     }
 
-    public function trackSearch(Request $request){
+    public function trackSearch(Request $request)
+    {
         $keyword = $request->keyword;
         $user = Auth::user();
 
@@ -371,15 +435,15 @@ class DashboardWidgetController extends Controller
             'kontrak:id_kontrak,no_kontrak',
             'permohonan'
         )
-        ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-            $q->whereHas('permohonan', function ($q) use ($user) {
-                $q->whereHas('pelanggan', function ($q) use ($user) {
-                    $q->where('id_perusahaan', Auth::user()->id_perusahaan);
+            ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
+                $q->whereHas('permohonan', function ($q) use ($user) {
+                    $q->whereHas('pelanggan', function ($q) use ($user) {
+                        $q->where('id_perusahaan', Auth::user()->id_perusahaan);
+                    });
                 });
-            });
-        })->where('no_resi', $keyword)->first();
+            })->where('no_resi', $keyword)->first();
 
-        if($pengiriman) {
+        if ($pengiriman) {
             // get media bukti pengiriman
             $pengiriman->bukti_pengiriman && $pengiriman->media_pengiriman = Master_media::whereIn('id', $pengiriman->bukti_pengiriman)->get();
 
@@ -442,10 +506,10 @@ class DashboardWidgetController extends Controller
             'permohonan.kontrak:id_kontrak,no_kontrak',
             'penyelia_map.jobs:id_jobs,name'
         ])
-        ->whereNot('status', 1)
-        ->latest() // Urutkan berdasarkan data terbaru
-        ->limit(5)
-        ->get();
+            ->whereNot('status', 1)
+            ->latest() // Urutkan berdasarkan data terbaru
+            ->limit(5)
+            ->get();
 
         $tasks = $jobs->map(function ($job) {
             $mainStep = $job->penyelia_map->whereNull('point_jobs');
@@ -501,18 +565,41 @@ class DashboardWidgetController extends Controller
 
         // cek apakah semua data kosong
         $isEmpty = $chartData['value']->sum() === 0;
-        $chartData['isEmpty'] = $isEmpty;
+        $charts = [];
+        if (!$isEmpty) {
+            $charts[] = [
+                'title' => 'Penyeliaan',
+                'id_chart' => 'jobsChart',
+                'type' => 'bar',
+                'series_name' => 'Penyeliaan',
+                'yaxis_title' => 'Jumlah Penyeliaan',
+                'height' => 320,
+                'stacked' => true,
+                'distributed' => true,
+                'horizontal' => true,
+                'data' => $chartData
+            ];
+        }
 
-        $html = view('components.dashboard.jobs-chart', [
-            'chartData' => $chartData
+        $html = view('components.dashboard.service-chart', [
+            'charts' => $charts,
+            'isEmpty' => $isEmpty,
+            'title' => 'Monitor',
+            'icon' => 'list-check'
         ])->render();
+        // $chartData['isEmpty'] = $isEmpty;
+
+        // $html = view('components.dashboard.jobs-chart', [
+        //     'chartData' => $chartData
+        // ])->render();
 
         return response()->json(['html' => $html]);
     }
 
-    public function myJobsList(Request $request) {
+    public function myJobsList(Request $request)
+    {
         $user = Auth::user();
-        if($user->hasRole('Staff Penyelia')) {
+        if ($user->hasRole('Staff Penyelia')) {
             $statusJob = [4];
         } else {
             $statusJob = $user->jobs;
@@ -531,11 +618,11 @@ class DashboardWidgetController extends Controller
                 $q->where('id_user', $user->id);
             });
         })
-        ->whereHas('permohonan.layanan_jasa', function ($q) use ($user) {
-            $q->whereIn('satuankerja_id', $user->satuankerja_id ? $user->satuankerja_id : [0]);
-        })
-        ->limit(5)
-        ->get();
+            ->whereHas('permohonan.layanan_jasa', function ($q) use ($user) {
+                $q->whereIn('satuankerja_id', $user->satuankerja_id ? $user->satuankerja_id : [0]);
+            })
+            ->limit(5)
+            ->get();
 
         $tasks = $jobsActive->map(function ($job) use ($user) {
             $mainStep = $job->penyelia_map->where('status', 1)->first();
@@ -561,7 +648,8 @@ class DashboardWidgetController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function financeCharts() {
+    public function financeCharts()
+    {
         $user = Auth::user();
         // --- 1. DATA CASH FLOW (Stacked Bar) ---
         // Logika: Membandingkan total nominal Lunas vs Belum Lunas per Bulan
@@ -578,10 +666,10 @@ class DashboardWidgetController extends Controller
 
         // Gabungkan total untuk status belum lunas (3, 4, 90) per bulan
         $piutangByMonth = $query->whereIn('status', [3, 4, 90])
-                            ->groupBy('month')
-                            ->map(function ($group) {
-                                return $group->sum('total');
-                            });
+            ->groupBy('month')
+            ->map(function ($group) {
+                return $group->sum('total');
+            });
 
         $lunas = [];
         $piutang = [];
@@ -604,14 +692,15 @@ class DashboardWidgetController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function financeInvActive() {
+    public function financeInvActive()
+    {
         $user = Auth::user();
         // --- 3. DATA STATUS INVOICE (Funnel / Bar Horizontal) ---
         $counts = Keuangan::query() // Menghapus eager loading yang tidak perlu
-                    ->whereIn('status', [7, 4, 3, 5, 90])
-                    ->selectRaw('status, count(*) as total')
-                    ->groupBy('status')
-                    ->pluck('total', 'status');
+            ->whereIn('status', [7, 4, 3, 5, 90])
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
         $countBelumLunas = $counts->get(3, 0);
         $countVerifikasi = $counts->get(4, 0);
@@ -640,7 +729,8 @@ class DashboardWidgetController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function financeChartService(Request $request) {
+    public function financeChartService(Request $request)
+    {
         $user = Auth::user();
         $layanan = Master_layanan_jasa::where('status', 1)->get();
         $layananNow = null;
@@ -658,9 +748,9 @@ class DashboardWidgetController extends Controller
 
         $statistik = Master_jenistld::withCount(['permohonan' => function ($query) use ($layananNow) {
             $query->where('id_layanan', $layananNow->id_layanan)
-                  ->whereHas('invoice'); // Hanya hitung permohonan yang punya data di tabel keuangan
+                ->whereHas('invoice'); // Hanya hitung permohonan yang punya data di tabel keuangan
         }])->get()
-        ->pluck('permohonan_count', 'name');
+            ->pluck('permohonan_count', 'name');
 
         // --- 2. DATA KOMPOSISI LAYANAN (Donut Chart) ---
         // Logika: Total pendapatan berdasarkan jenis TLD
@@ -678,7 +768,8 @@ class DashboardWidgetController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function financeSide() {
+    public function financeSide()
+    {
         // 1. DATA TOP DEBTORS (Siapa yang paling banyak hutang?)
         // Query: Group by perusahaan, Sum nominal where status = unpaid
         $topDebtors = collect([

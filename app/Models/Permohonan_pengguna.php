@@ -71,6 +71,6 @@ class Permohonan_pengguna extends Model
     }
 
     public function pengguna(){
-        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna');
+        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna')->withTrashed();
     }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id_doc
@@ -48,11 +49,22 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Documents whereVariables($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Documents whereVersion($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Documents whereView($value)
+ * @property int|null $id_perusahaan
+ * @property string|null $orientation
+ * @property string|null $no_formulir
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereIdPerusahaan($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereNoFormulir($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents whereOrientation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Documents withoutTrashed()
  * @mixin \Eloquent
  */
 class Documents extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'documents';
     protected $primaryKey = 'id_doc';
@@ -133,12 +145,11 @@ class Documents extends Model
 
     public function footer()
     {
-        return $this->belongsTo(Documents::class, 'id_footer', 'id_doc');
+        return $this->belongsTo(Documents::class, 'id_footer', 'id_doc')->withTrashed();
     }
 
     public function header()
     {
-        return $this->belongsTo(Documents::class, 'id_header', 'id_doc');
+        return $this->belongsTo(Documents::class, 'id_header', 'id_doc')->withTrashed();
     }
-
 }

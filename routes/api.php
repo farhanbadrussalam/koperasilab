@@ -15,9 +15,9 @@ use App\Http\Controllers\API\KontrakAPI;
 use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\FilterAPI;
 use App\Http\Controllers\API\PenggunaAPI;
+use App\Http\Controllers\API\ApprovalPelangganAPI;
 
 use App\Http\Controllers\Management\DocumentController;
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -130,6 +130,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/actionSuratTugas', 'actionSuratTugas');
         Route::post('/rejectSuratTugas', 'rejectSuratTugas');
         Route::post('/actionJobProses', 'actionJobProses');
+        Route::post('/actionJobProsesKolektif', 'actionJobProsesKolektif');
         Route::post('/approvePengujian', 'approvePengujian');
         Route::post('/createPengujian', 'createPengujian');
         Route::get('/list', 'listPenyelia');
@@ -148,13 +149,17 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix("profile")->controller(ProfileAPI::class)->group(function () {
         Route::post('/action', 'actionProfile');
         Route::post('/action/alamat', 'actionAlamat');
+        Route::post('/action/tambah_semua_alamat', 'actionTambahSemuaAlamat');
         Route::post('/action/perusahaan', 'actionPerusahaan');
+        Route::post('/action/ajukan_instansi', 'actionAjukanInstansi');
         Route::post('/action/change_pic', 'changePIC');
         Route::post('/changePassword', 'changePassword');
         Route::get('/getPerusahaan/{kode}', 'getPerusahaanByKode');
         Route::get('/getPerusahaanById/{idPerusahaan}', 'getPerusahaanById');
         Route::post('/uploadSuratKuasa', 'uploadSuratKuasa');
+        Route::post('/uploadStempel', 'uploadStempel');
         Route::delete('/destroySuratKuasa/{idPerusahaan}/{idMedia}', 'destroySuratKuasa');
+        Route::delete('/destroyStempel/{idPerusahaan}/{idMedia}', 'destroyStempel');
         Route::get('/getHistoryPic/{idPerusahaan}', 'getHistoryPic');
     });
 
@@ -196,5 +201,11 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix('document')->controller(DocumentController::class)->group(function () {
         Route::post('upload_image', 'upload_image');
+    });
+
+    Route::prefix('pelanggan/approval')->controller(ApprovalPelangganAPI::class)->group(function () {
+        Route::get('/list', 'list');
+        Route::post('/verifikasi', 'verifikasi');
+        Route::post('/tolak', 'tolak');
     });
 });

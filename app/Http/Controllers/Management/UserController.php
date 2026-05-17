@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Management;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Users_request;
 use App\Models\Satuan_kerja;
 use App\Models\profile;
 use App\Models\Perusahaan;
@@ -37,10 +38,11 @@ class UserController extends Controller
         return view('pages.management.users.index', $data);
     }
 
-    public function getData(Request $request){
+    public function getData(Request $request)
+    {
         $filter = $request->has('filter') ? $request->filter : [];
 
-        $query = User::when($filter, function($q, $filter) {
+        $query = User::when($filter, function ($q, $filter) {
             foreach ($filter as $key => $value) {
                 switch ($key) {
                     case 'satuan_kerja':
@@ -55,13 +57,13 @@ class UserController extends Controller
 
         $user = Auth::user();
 
-        if(!is_array($user->satuankerja_id)){
+        if (!is_array($user->satuankerja_id)) {
             $user->satuankerja_id = [$user->satuankerja_id];
         }
 
-        if(!$user->hasRole('Super Admin')){
+        if (!$user->hasRole('Super Admin')) {
             foreach ($user->satuankerja_id as $key => $satuanId) {
-                if($key == 0) {
+                if ($key == 0) {
                     $query->whereJsonContains('satuankerja_id', $satuanId);
                 } else {
                     $query->orWhereJsonContains('satuankerja_id', $satuanId);
@@ -69,77 +71,78 @@ class UserController extends Controller
             }
         }
 
-        if(isset($filter['roles']) && $filter['roles'] != null){
+        if (isset($filter['roles']) && $filter['roles'] != null) {
             $role = $filter['roles'];
-            $query->whereHas('roles', function($q) use ($role){
-                if(is_array($role)) $q->whereIn('name', $role);
+            $query->whereHas('roles', function ($q) use ($role) {
+                if (is_array($role)) $q->whereIn('name', $role);
                 else $q->where('name', $role);
             });
         }
 
-        if(request()->has('satuan_kerja') && request()->satuan_kerja != null){
+        if (request()->has('satuan_kerja') && request()->satuan_kerja != null) {
             $satuan_kerja = decryptor(request()->satuan_kerja);
             $query->whereJsonContains('satuankerja_id', (int) $satuan_kerja);
         }
 
         return DataTables::of($query)
-                ->addIndexColumn()
-                ->addColumn('action', function($data){
-                    return '
-                        <a href="'.route('users.edit', encryptor($data->id)).'" class="btn btn-outline-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i> Edit</a>
+            ->addIndexColumn()
+            ->addColumn('action', function ($data) {
+                return '
+                        <a href="' . route('users.edit', encryptor($data->id)) . '" class="btn btn-outline-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i> Edit</a>
                     ';
-                })
-                ->addColumn('role', function($data){
-                    if(count($data->getRoleNames()) != 0){
-                        $text = '';
-                        $isLhu = false;
-                        foreach($data->getRoleNames() as $key => $value){
-                            $text .= '<span class="badge text-bg-secondary">'.$value.'</span> ';
-                            if($value == 'Staff LHU') $isLhu = true;
-                        }
-                        if($isLhu) {
-                            $countJobs = $data->jobs ? count($data->jobs) : 0;
-                            $text .= '<br><span class="text-primary cursor-pointer" data-id="'.$data->user_hash.'" onclick="showTugas(this)">('.$countJobs.' Tugas)</span>';
-                        }
-                        return $text;
-                    }else{
-                        return '-';
+            })
+            ->addColumn('role', function ($data) {
+                if (count($data->getRoleNames()) != 0) {
+                    $text = '';
+                    $isLhu = false;
+                    foreach ($data->getRoleNames() as $key => $value) {
+                        $text .= '<span class="badge text-bg-secondary">' . $value . '</span> ';
+                        if ($value == 'Staff LHU') $isLhu = true;
                     }
-                })
-                ->addColumn('satuankerja', function($data){
-                    if(is_array($data->satuankerja_id)) {
-                        $satuankerja = $data->satuankerja_id;
-                    }else {
-                        $satuankerja = $data->satuankerja_id ? [$data->satuankerja_id] : null;
+                    if ($isLhu) {
+                        $countJobs = $data->jobs ? count($data->jobs) : 0;
+                        $text .= '<br><span class="text-primary cursor-pointer" data-id="' . $data->user_hash . '" onclick="showTugas(this)">(' . $countJobs . ' Tugas)</span>';
                     }
-                    $textSatuan = $satuankerja ? array_map(function($item) {
-                        $name = Satuan_kerja::find($item)->name;
-                        return '<span class="badge text-bg-secondary">'.$name.'</span>';
-                    }, $satuankerja) : [];
-                    return "<div class='d-flex flex-wrap align-items-center gap-1'>".implode('', $textSatuan)."</div>";
-                })
-                ->addColumn('tugas', function($data){
-                    $tugas = $data->jobs ? array_map(function($item) {
-                        $name = Master_jobs::find($item)->name;
-                        return '<span class="badge text-bg-secondary">'.$name.'</span>';
-                    }, $data->jobs) : [];
-                    return "<div class='d-flex flex-wrap align-items-center gap-1'>".implode('', $tugas)."</div>";
-                })
-                ->rawColumns(['action', 'role', 'satuankerja', 'tugas'])
-                ->make(true);
+                    return $text;
+                } else {
+                    return '-';
+                }
+            })
+            ->addColumn('satuankerja', function ($data) {
+                if (is_array($data->satuankerja_id)) {
+                    $satuankerja = $data->satuankerja_id;
+                } else {
+                    $satuankerja = $data->satuankerja_id ? [$data->satuankerja_id] : null;
+                }
+                $textSatuan = $satuankerja ? array_map(function ($item) {
+                    $name = Satuan_kerja::find($item)->name;
+                    return '<span class="badge text-bg-secondary">' . $name . '</span>';
+                }, $satuankerja) : [];
+                return "<div class='d-flex flex-wrap align-items-center gap-1'>" . implode('', $textSatuan) . "</div>";
+            })
+            ->addColumn('tugas', function ($data) {
+                $tugas = $data->jobs ? array_map(function ($item) {
+                    $name = Master_jobs::find($item)->name;
+                    return '<span class="badge text-bg-secondary">' . $name . '</span>';
+                }, $data->jobs) : [];
+                return "<div class='d-flex flex-wrap align-items-center gap-1'>" . implode('', $tugas) . "</div>";
+            })
+            ->rawColumns(['action', 'role', 'satuankerja', 'tugas'])
+            ->make(true);
     }
 
-    public function getById($id) {
+    public function getById(string $id)
+    {
         DB::beginTransaction();
         try {
             $user = User::find(decryptor($id));
-            if(!is_array($user->satuankerja_id)){
+            if (!is_array($user->satuankerja_id)) {
                 $user->satuankerja_id = [$user->satuankerja_id];
             }
             $user->satuankerja = Satuan_kerja::whereIn('id', $user->satuankerja_id)->get();
 
-            if($user->jobs){
-                $user->jobs = array_map(function($item) {
+            if ($user->jobs) {
+                $user->jobs = array_map(function ($item) {
                     return Master_jobs::find($item);
                 }, $user->jobs);
             }
@@ -202,13 +205,13 @@ class UserController extends Controller
         $role = $request->role; // json
 
         // Decrypt setiap role ID ke bentuk array integer untuk syncRoles
-        $idsRole = array_map(function($value) {
+        $idsRole = array_map(function ($value) {
             return (int) decryptor($value);
         }, $role);
         $rolesName = Role::whereIn('id', $idsRole)->pluck('name')->toArray();
 
         if (in_array('Staff LHU', $rolesName)) {
-            $paramsUser['jobs'] = array_map(function($item) {
+            $paramsUser['jobs'] = array_map(function ($item) {
                 return (int) decryptor($item);
             }, $request->tugas_lhu);
         }
@@ -217,7 +220,7 @@ class UserController extends Controller
 
         $user->syncRoles($idsRole);
 
-        if($user){
+        if ($user) {
 
             $profile = Profile::create([
                 'user_id' => $user->id,
@@ -228,7 +231,7 @@ class UserController extends Controller
                 'alamat' => $request->alamat
             ]);
 
-            if(in_array('Pelanggan', $rolesName)){
+            if (in_array('Pelanggan', $rolesName)) {
                 $perusahaan = Perusahaan::create([
                     'user_id' => $user->id
                 ]);
@@ -252,13 +255,13 @@ class UserController extends Controller
     public function edit(string $id)
     {
         $d_user = User::with('profile')->find(decryptor($id));
-        if(!is_array($d_user->satuankerja_id)){
+        if (!is_array($d_user->satuankerja_id)) {
             $d_user->satuankerja_id = [$d_user->satuankerja_id];
         }
         $d_user->satuankerja = Satuan_kerja::whereIn('id', $d_user->satuankerja_id)->get();
 
-        if($d_user->jobs){
-            $d_user->jobs = array_map(function($item) {
+        if ($d_user->jobs) {
+            $d_user->jobs = array_map(function ($item) {
                 return encryptor($item);
             }, $d_user->jobs);
         }
@@ -299,47 +302,47 @@ class UserController extends Controller
         $d_user->name = $request->name;
 
         // Decrypt setiap role ID ke dalam bentuk array integer
-        $idsRole = array_map(function($value) {
+        $idsRole = array_map(function ($value) {
             return (int) decryptor($value);
         }, $role);
 
         // syncRoles secara otomatis menghapus role lama dan memasukkan array role baru
         $d_user->syncRoles($idsRole);
 
-        if($request->tugas_lhu) {
-            $d_user->jobs = array_map(function($item) {
+        if ($request->tugas_lhu) {
+            $d_user->jobs = array_map(function ($item) {
                 return (int) decryptor($item);
             }, $request->tugas_lhu);
         }
-        $d_user->satuankerja_id = array_map(function($item) {
+        $d_user->satuankerja_id = array_map(function ($item) {
             return (int) decryptor($item);
         }, $request->satuanKerja);
         $d_user->update();
 
         $avatar = null;
-        if($request->file('avatar')){
+        if ($request->file('avatar')) {
             // Menghapus file sebelumnya
-            if(Storage::exists('public/images/avatar'.$profile->avatar)){
-                Storage::delete('public/images/avatar'.$profile->avatar);
+            if (Storage::exists('public/images/avatar' . $profile->avatar)) {
+                Storage::delete('public/images/avatar' . $profile->avatar);
             }
 
             $image = $request->file('avatar');
 
-            $filename = 'avatar_'.md5($id).'.'.$image->getClientOriginalExtension();
+            $filename = 'avatar_' . md5($id) . '.' . $image->getClientOriginalExtension();
 
             $path = $image->storeAs('public/images/avatar', $filename);
 
             $avatar = $filename;
         }
 
-        if($profile){
+        if ($profile) {
             $profile->nik = $request->nik;
             $profile->no_hp = $request->no_telepon;
             $profile->jenis_kelamin = $request->jenis_kelamin;
             $profile->alamat = $request->alamat;
             $profile->avatar = $avatar;
             $profile->update();
-        }else{
+        } else {
             profile::create(array(
                 'user_id' => $idHash,
                 'nik' => $request->nik,
@@ -362,10 +365,14 @@ class UserController extends Controller
         try {
             $user = User::findOrFail(decryptor($id));
             Profile::where('user_id', $user->id)->get()->each->delete();
+
             // menghapus semua role yang terikat
-            $user->getRoleNames()->each(function ($roleName) use ($user) {
-                $user->removeRole($roleName);
-            });
+            // $user->getRoleNames()->each(function ($roleName) use ($user) {
+            //     $user->removeRole($roleName);
+            // });
+
+            // menghapus user request
+            // Users_request::where('id_user', $user->id)->get()->each->delete();
             $user->delete();
 
             DB::commit();
@@ -383,8 +390,8 @@ class UserController extends Controller
         $role = $request->role;
         $permission = [];
 
-        if($role){
-            $idsRole = array_map(function($value) {
+        if ($role) {
+            $idsRole = array_map(function ($value) {
                 return (int) decryptor($value);
             }, $role);
 

@@ -121,11 +121,30 @@
                                             </div>
                                             <div id="konfirm_password_error" class="invalid-feedback d-block"></div>
                                         </div>
+                                        <div class="col-12">
+                                            <label class="form-label small fw-bold text-uppercase text-muted">Surat Kuasa <span class="text-danger">*</span></label>
+                                            <div id="uploadSuratKuasa" class="border border-dashed p-3 rounded bg-light text-center">
+                                                <!-- Konten file upload akan dimuat oleh JS -->
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input type="radio" class="form-check-input" id="p_baru" name="pelanggan_tipe" value="baru" required data-parsley-errors-container="#pelanggan_tipe_error" data-parsley-required-message="Silakan pilih tipe pelanggan terlebih dahulu">
+                                                <label class="form-check-label" for="p_baru">Pelanggan Baru</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input type="radio" class="form-check-input" id="p_lama" name="pelanggan_tipe" value="lama">
+                                                <label class="form-check-label" for="p_lama">Pelanggan Lama</label>
+                                            </div>
+                                        </div>
+                                        <div id="pelanggan_tipe_error" class="col-12 mt-1"></div>
                                     </div>
                                 </div>
 
                                 <!-- Section: Data Instansi -->
-                                <div class="mb-5">
+                                <div class="mb-5" id="section-instansi" style="display: none;">
                                     <div class="d-flex align-items-center mb-4">
                                         <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">2</div>
                                         <h5 class="fw-bold mb-0">Informasi Instansi</h5>
@@ -135,37 +154,45 @@
                                         <div class="col-12">
                                             <label for="nama_instansi" class="form-label small fw-bold text-uppercase text-muted">Nama Instansi <span class="text-danger">*</span></label>
                                             <input type="hidden" name="type_instansi" id="type_instansi">
-                                            <input type="text" class="form-control" id="nama_instansi" name="nama_instansi" required data-parsley-required-message="Nama instansi harus diisi">
+
+                                            <!-- Input Teks untuk Pelanggan Baru -->
+                                            <input type="text" class="form-control" id="nama_instansi_baru" name="nama_instansi" required data-parsley-required-message="Nama instansi harus diisi">
+
+                                            <!-- Select2 untuk Pelanggan Lama (Disembunyikan secara default) -->
+                                            <select class="form-select" id="nama_instansi_lama" style="display: none;" data-parsley-required-message="Pilih instansi Anda" name="nama_instansi_lama"></select>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label for="email_instansi" class="form-label small fw-bold text-uppercase text-muted">Email Instansi <span class="text-danger">*</span></label>
-                                            <input type="email" class="form-control maskEmail" id="email_instansi" name="email_instansi" required
-                                                data-parsley-errors-container="#email_instansi_error">
-                                            <div id="email_instansi_error" class="invalid-feedback d-block"></div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="npwp" class="form-label small fw-bold text-uppercase text-muted">NPWP <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control maskNPWP" id="npwp" name="npwp" required>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label for="kode_pos" class="form-label small fw-bold text-uppercase text-muted">Kode Pos <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control maskNumber" id="kode_pos" name="kode_pos" required>
-                                        </div>
-                                        <div class="col-12">
-                                            <label for="alamat_instansi" class="form-label small fw-bold text-uppercase text-muted">Alamat Instansi <span class="text-danger">*</span></label>
-                                            <textarea name="alamat_instansi" id="alamat_instansi" rows="2" class="form-control" required></textarea>
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label small fw-bold text-uppercase text-muted">Surat Kuasa <span class="text-danger">*</span></label>
-                                            <div id="uploadSuratKuasa" class="border border-dashed p-3 rounded bg-light text-center">
-                                                <!-- Konten file upload akan dimuat oleh JS -->
+                                    <div id="form-instansi-detail" class="col-12 m-0 p-0" style="display: none;">
+                                        <div class="row g-3 mt-0">
+                                            <div class="col-md-6">
+                                                <label for="email_instansi" class="form-label small fw-bold text-uppercase text-muted">Email Instansi <span class="text-danger">*</span></label>
+                                                <input type="email" class="form-control maskEmail instansi-detail-input" id="email_instansi" name="email_instansi"
+                                                    data-parsley-errors-container="#email_instansi_error">
+                                                <div id="email_instansi_error" class="invalid-feedback d-block"></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="npwp" class="form-label small fw-bold text-uppercase text-muted">NPWP <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control maskNPWP instansi-detail-input" id="npwp" name="npwp">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="kota" class="form-label small fw-bold text-uppercase text-muted">Kota <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control instansi-detail-input" id="kota" name="kota">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="kode_pos" class="form-label small fw-bold text-uppercase text-muted">Kode Pos <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control maskNumber instansi-detail-input" id="kode_pos" name="kode_pos">
+                                            </div>
+                                            <div class="col-12">
+                                                <label for="alamat_instansi" class="form-label small fw-bold text-uppercase text-muted">Alamat Instansi <span class="text-danger">*</span></label>
+                                                <textarea name="alamat_instansi" id="alamat_instansi" rows="2" class="form-control instansi-detail-input"></textarea>
                                             </div>
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
 
                                 <!-- ReCaptcha & Action -->
                                 <div class="px-md-4 text-center">
+                                    @if(env('APP_ENV') == 'production')
                                     <div class="form-group mb-4 d-inline-block">
                                         {!! NoCaptcha::renderJs() !!}
                                         {!! NoCaptcha::display() !!}
@@ -175,6 +202,7 @@
                                             </span>
                                         @endif
                                     </div>
+                                    @endif
 
                                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                                         <button class="btn btn-outline-danger px-5 py-2 rounded-pill" type="button" onclick="location.reload()">Batal</button>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @property int $id
@@ -31,11 +32,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Profile whereSuratKuasa($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Profile whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Profile whereUserId($value)
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * @method static \Illuminate\Database\Eloquent\Builder|Profile onlyTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Profile whereDeletedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Profile withTrashed()
+ * @method static \Illuminate\Database\Eloquent\Builder|Profile withoutTrashed()
  * @mixin \Eloquent
  */
 class Profile extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'profiles';
 
     protected $fillable = [
@@ -56,11 +62,13 @@ class Profile extends Model
         'surat_kuasa' => 'integer'
     ];
 
-    public function media(){
+    public function media()
+    {
         return $this->belongsTo(Master_media::class, 'avatar', 'id');
     }
 
-    public function suratkuasa(){
+    public function suratkuasa()
+    {
         return $this->belongsTo(Master_media::class, 'surat_kuasa', 'id');
     }
 }

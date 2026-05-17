@@ -11,7 +11,8 @@ use Carbon\Carbon;
 
 class MediaController extends Controller
 {
-    public function upload($file, $jenis){
+    public function upload(mixed $file, string $jenis)
+    {
         // $file = false;
         // if($request->file('dokumen')){
         //     $file = $request->file('dokumen');
@@ -20,7 +21,7 @@ class MediaController extends Controller
         $path = $this->createPath($jenis);
         $idMedia = false;
         $filename = false;
-        if($file){
+        if ($file) {
             $realname =  pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $extension = $file->getClientOriginalExtension();
             $filename = $this->filename($realname, $extension);
@@ -40,21 +41,25 @@ class MediaController extends Controller
         return new FileUpload($file, $path, $filename, $idMedia);
     }
 
-    public function get($id_media){
+
+    public function get(mixed $id_media)
+    {
         // is array
-        if(is_array($id_media)){
+        if (is_array($id_media)) {
             return Master_media::whereIn('id', $id_media)->get();
         }
 
         return Master_media::findOrFail($id_media);
     }
 
-    public function getMediaUrl($id_media){
+    public function getMediaUrl(int $id_media)
+    {
         $media = Master_media::findOrFail($id_media);
-        return config('app.url').Storage::url($media->file_path.'/'.$media->file_hash);
+        return config('app.url') . Storage::url($media->file_path . '/' . $media->file_hash);
     }
 
-    public function update($file, $id_media){
+    public function update(mixed $file, int $id_media)
+    {
         $media = Master_media::findOrFail($id_media);
 
         // $file = false;
@@ -62,11 +67,11 @@ class MediaController extends Controller
         //     $file = $request->file('dokumen');
         // }
 
-        if($file){
-            $path = 'public/'.$media->file_path.'/'.$media->file_hash;
+        if ($file) {
+            $path = 'public/' . $media->file_path . '/' . $media->file_hash;
 
             // menghapus file yang sudah ada
-            if(Storage::exists($path)){
+            if (Storage::exists($path)) {
                 Storage::delete($path);
             }
 
@@ -74,7 +79,7 @@ class MediaController extends Controller
             $extension = $file->getClientOriginalExtension();
             $filename = $this->filename($realname, $extension);
 
-            $file->storeAs('public/'.$media->file_path.'/'.$filename);
+            $file->storeAs('public/' . $media->file_path . '/' . $filename);
 
             $media->file_hash = $filename;
             $media->file_ori = $file->getClientOriginalName();
@@ -85,33 +90,36 @@ class MediaController extends Controller
         }
     }
 
-    public function destroy($id_media){
+    public function destroy(int $id_media)
+    {
         $media = Master_media::find($id_media);
 
-        if($media){
-            info("menghapus media id: ".$id_media);
-            $path = 'public/'.$media->file_path.'/'.$media->file_hash;
+        if ($media) {
+            info("menghapus media id: " . $id_media);
+            $path = 'public/' . $media->file_path . '/' . $media->file_hash;
 
-            if(Storage::exists($path)){
+            if (Storage::exists($path)) {
                 Storage::delete($path);
             }
 
             $media->delete();
         }
-        info("media id: ".$id_media." tidak ditemukan");
+        info("media id: " . $id_media . " tidak ditemukan");
     }
 
-    private function filename($name, $extension){
+    private function filename(string $name, string $extension)
+    {
         // Mengambil waktu saat ini dalam bentuk Carbon
         $now = Carbon::now();
 
         // Mengambil waktu dalam bentuk milidetik
         $milliseconds = $now->timestamp * 1000;
 
-        return md5($name.$milliseconds).'.'.$extension;
+        return md5($name . $milliseconds) . '.' . $extension;
     }
 
-    private function createPath($jenis){
+    private function createPath(string $jenis)
+    {
         switch ($jenis) {
             case 'jadwal':
                 $path = 'dokumen/jadwal';
@@ -154,6 +162,9 @@ class MediaController extends Controller
                 break;
             case 'surat_kuasa':
                 $path = 'dokumen/surat_kuasa';
+                break;
+            case 'stempel':
+                $path = 'dokumen/stempel';
                 break;
             default:
                 $path = 'dokumen';

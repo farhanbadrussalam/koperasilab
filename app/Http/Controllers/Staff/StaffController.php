@@ -33,12 +33,23 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class StaffController extends Controller
 {
-    protected $permohonan, $tld, $global, $notif;
+    protected PermohonanAPI $permohonan;
+    protected TldAPI $tld;
+    protected NotifController $notif;
+    protected mixed $global;
     public function __construct(){
         $this->permohonan = resolve(PermohonanAPI::class);
         $this->notif = resolve(NotifController::class);
         $this->tld = resolve(TldAPI::class);
         $this->global = config('customvariabel');
+    }
+
+    public function indexApproval(){
+        $data = [
+            'title' => 'Approval',
+            'module' => 'staff-approval'
+        ];
+        return view('pages.staff.pelanggan.index', $data);
     }
     public function indexKeuangan()
     {
@@ -124,7 +135,7 @@ class StaffController extends Controller
     }
 
 
-    public function createSuratTugas($idPenyelia)
+    public function createSuratTugas(string $idPenyelia)
     {
         // cek notifikasi read
         notifRead('SuratTugas', $idPenyelia);
@@ -252,7 +263,7 @@ class StaffController extends Controller
         return view('pages.staff.pengiriman.permohonan', $data);
     }
 
-    public function verifikasiPermohonan($idPermohonan)
+    public function verifikasiPermohonan(string $idPermohonan)
     {
         notifRead('Permohonan', $idPermohonan);
         $arrTandaTerima = [1,4, 7];
@@ -307,7 +318,7 @@ class StaffController extends Controller
         return view('pages.staff.pengiriman.tambah', $data);
     }
 
-    public function buatOrderPengiriman($idHash, $periode = false)
+    public function buatOrderPengiriman(string $idHash, $periode = false)
     {
         $id = decryptor($idHash) ?? false;
         $idPeriode = decryptor($periode) ?? false;
@@ -434,7 +445,7 @@ class StaffController extends Controller
 
         return view('pages.staff.pengiriman.kirim', $result);
     }
-    public function buatOrderPengembalian($idHash, Request $request)
+    public function buatOrderPengembalian(string $idHash, Request $request)
     {
         // mengambil kontrak
         $idKontrak = decryptor($idHash);
@@ -523,7 +534,7 @@ class StaffController extends Controller
         return $noPengiriman;
     }
 
-    private function createPermohonan($idKontrak, $periode){
+    private function createPermohonan(int $idKontrak, int $periode){
         $dataKontrak = Kontrak::find($idKontrak);
 
         $params = [

@@ -2,6 +2,25 @@
 
 @section('content')
     <div class="content-wrapper row">
+        <div class="col-md-12 p-2">
+            <div class="card p-0 m-0 shadow border-0">
+                <div class="card-body">
+                    <h5>Document</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col" width="5%">No</th>
+                                <th scope="col">Nama Document</th>
+                                <th scope="col" width="20%" class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="list-body">
+                        </tbody>
+                    </table>
+                    <div id="pagination-body"></div>
+                </div>
+            </div>
+        </div>
         <div class="col-md-6 p-2">
             <div class="card p-0 m-0 shadow border-0">
                 <div class="card-body">
@@ -20,6 +39,7 @@
                         <tbody id="list-header">
                         </tbody>
                     </table>
+                    <div id="pagination-header"></div>
                 </div>
             </div>
         </div>
@@ -42,25 +62,7 @@
                         <tbody id="list-footer">
                         </tbody>
                     </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-12 p-2">
-            <div class="card p-0 m-0 shadow border-0">
-                <div class="card-body">
-                    <h5>Document</h5>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col" width="5%">No</th>
-                                <th scope="col">Nama Document</th>
-                                <th scope="col" width="20%" class="text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="list-body">
-                        </tbody>
-                    </table>
+                    <div id="pagination-footer"></div>
                 </div>
             </div>
         </div>

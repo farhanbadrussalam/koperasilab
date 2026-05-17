@@ -35,6 +35,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereParent($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Master_jenisLayanan whereUpdatedDate($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Kontrak> $kontrak
+ * @property-read int|null $kontrak_count
  * @mixin \Eloquent
  */
 class Master_jenisLayanan extends Model

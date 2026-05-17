@@ -39,6 +39,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map wherePointJobs($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereUpdatedAt($value)
+ * @property string|null $note
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Log_proses> $logs
+ * @property-read int|null $logs_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Penyelia_map whereNote($value)
  * @mixin \Eloquent
  */
 class Penyelia_map extends Model
@@ -108,7 +112,7 @@ class Penyelia_map extends Model
 
     public function doneBy()
     {
-        return $this->belongsTo(User::class, 'done_by', 'id');
+        return $this->belongsTo(User::class, 'done_by', 'id')->withTrashed();
     }
 
     public function penyelia()

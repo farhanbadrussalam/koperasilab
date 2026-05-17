@@ -104,12 +104,12 @@ class Kontrak_tld extends Model
 
     public function tld()
     {
-        return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld');
+        return $this->belongsTo(Master_tld::class, 'id_tld', 'id_tld')->withTrashed();
     }
 
     public function pengguna()
     {
-        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna');
+        return $this->belongsTo(Master_pengguna::class, 'id_pengguna', 'id_pengguna')->withTrashed();
     }
 
     public function kontrak()
@@ -119,6 +119,6 @@ class Kontrak_tld extends Model
 
     public function divisi()
     {
-        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi');
+        return $this->belongsTo(Master_divisi::class, 'id_divisi', 'id_divisi')->withTrashed();
     }
 }
