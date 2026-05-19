@@ -25,6 +25,25 @@ class DashboardWidgetController extends Controller
     public function summaryCards(Request $request)
     {
         $jenisCard = $request->has('jenis') ? $request->jenis : null;
+        $dateFilter = $request->input('date_filter', 'monthly');
+
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
+
         $user = Auth::user();
         $html = '';
 
@@ -222,11 +241,34 @@ class DashboardWidgetController extends Controller
                 ])->render();
                 break;
             case 'invoice':
-                $counts = Keuangan::query() // Menghapus eager loading yang tidak perlu
-                    ->whereIn('status', [7, 4, 3, 5, 90])
-                    ->selectRaw('status, count(*) as total')
+                $countsQuery = Keuangan::query() // Menghapus eager loading yang tidak perlu
+                    ->whereIn('status', [7, 4, 3, 5, 90]);
+                $applyFilter($countsQuery);
+
+                $counts = $countsQuery->selectRaw('status, count(*) as total')
                     ->groupBy('status')
                     ->pluck('total', 'status');
+
+                $pricesQuery = Keuangan::query()
+                    ->whereIn('status', [7, 4, 3, 5, 90])
+                    ->with('diskon')
+                    ->select('id_keuangan', 'total_harga', 'pph', 'ppn', 'status');
+                $applyFilter($pricesQuery);
+
+                $prices = $pricesQuery->get();
+
+                $priceSums = [3 => 0, 4 => 0, 5 => 0, 7 => 0, 90 => 0];
+
+                foreach ($prices as $p) {
+                    $calc = calculateInvoice($p->total_harga, $p->diskon, $p->ppn, $p->pph);
+                    $priceSums[$p->status] += $calc['subTotal'];
+                }
+
+                $priceBelumLunas = formatCurrency($priceSums[3]);
+                $priceVerifikasi = formatCurrency($priceSums[4]);
+                $priceLunas = formatCurrency($priceSums[5]);
+                $priceFaktur = formatCurrency($priceSums[7]);
+                $priceDitolak = formatCurrency($priceSums[90]);
 
                 $countBelumLunas = $counts->get(3, 0);
                 $countVerifikasi = $counts->get(4, 0);
@@ -244,12 +286,15 @@ class DashboardWidgetController extends Controller
                     'color' => 'text-primary',
                     'url' => 'javascript:void(0)',
                     'isEmpty' => $isEmpty,
+                    'withFilter' => false,
+                    'filterDefault' => $dateFilter,
+                    'idWidget' => 'widget-summary-invoice',
                     'count' => [
-                        ['text' => 'Faktur', 'icon' => 'bi-file-earmark-text-fill', 'count' => $countFaktur, 'color' => 'text-secondary'],
-                        ['text' => 'Menunggu Bayar', 'icon' => 'bi-clock-fill', 'count' => $countBelumLunas, 'color' => 'text-warning'],
-                        ['text' => 'Perlu Verifikasi', 'icon' => 'bi-shield-check', 'count' => $countVerifikasi, 'color' => 'text-info'],
-                        ['text' => 'Selesai', 'icon' => 'bi-check-circle-fill', 'count' => $countLunas, 'color' => 'text-success'],
-                        ['text' => 'Ditolak', 'icon' => 'bi-x-circle-fill', 'count' => $countDitolak, 'color' => 'text-danger'],
+                        ['text' => 'Faktur', 'icon' => 'bi-file-earmark-text-fill', 'count' => $countFaktur, 'price' => $priceFaktur, 'color' => 'text-secondary'],
+                        ['text' => 'Menunggu Bayar', 'icon' => 'bi-clock-fill', 'count' => $countBelumLunas, 'price' => $priceBelumLunas, 'color' => 'text-warning'],
+                        ['text' => 'Perlu Verifikasi', 'icon' => 'bi-shield-check', 'count' => $countVerifikasi, 'price' => $priceVerifikasi, 'color' => 'text-info'],
+                        ['text' => 'Selesai', 'icon' => 'bi-check-circle-fill', 'count' => $countLunas, 'price' => $priceLunas, 'color' => 'text-success'],
+                        ['text' => 'Ditolak', 'icon' => 'bi-x-circle-fill', 'count' => $countDitolak, 'price' => $priceDitolak, 'color' => 'text-danger'],
                     ]
                 ])->render();
                 break;
@@ -680,17 +725,38 @@ class DashboardWidgetController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function financeCharts()
+    public function financeCharts(Request $request)
     {
         $user = Auth::user();
+        $dateFilter = $request->input('date_filter', 'monthly');
+
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
+
         // --- 1. DATA CASH FLOW (Stacked Bar) ---
         // Logika: Membandingkan total nominal Lunas vs Belum Lunas per Bulan
         $monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $year = date('Y');
 
-        $query = Keuangan::whereYear('created_at', $year)
-            ->whereIn('status', [3, 4, 5, 90]) // 5: Lunas, [3, 4, 90]: Belum Lunas/Piutang
-            ->selectRaw('MONTH(created_at) as month, status, SUM(total_harga) as total')
+        $q = Keuangan::whereYear('created_at', $year)
+            ->whereIn('status', [3, 4, 5, 90]);
+        $applyFilter($q);
+
+        $query = $q->selectRaw('MONTH(created_at) as month, status, SUM(total_harga) as total')
             ->groupBy('month', 'status')
             ->get();
 
@@ -742,7 +808,10 @@ class DashboardWidgetController extends Controller
             'charts' => $charts,
             'isEmpty' => $query->isEmpty(),
             'title' => 'Cash Flow',
-            'icon' => 'cash'
+            'icon' => 'cash',
+            'withFilter' => true,
+            'filterDefault' => $dateFilter,
+            'idWidget' => 'widget-finance-charts'
         ])->render();
 
         return response()->json(['html' => $html]);
