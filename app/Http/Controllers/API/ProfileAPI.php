@@ -146,7 +146,9 @@ class ProfileAPI extends Controller
             );
         }
 
-        Master_alamat::insert($arrAlamat);
+        foreach ($arrAlamat as $alamat) {
+            Master_alamat::create($alamat);
+        }
     }
 
     private function send_password(string $password, string $to)
@@ -299,11 +301,11 @@ class ProfileAPI extends Controller
         DB::beginTransaction();
         try {
             $idPerusahaan = decryptor($request->idPerusahaan);
-            
+
             $arrAlamat = [];
             $jenis_arr = ['utama' => 'Utama', 'tld' => 'TLD', 'lhu' => 'LHU', 'invoice' => 'Invoice'];
-            
-            foreach($jenis_arr as $key => $val) {
+
+            foreach ($jenis_arr as $key => $val) {
                 if ($key == 'utama') {
                     $status = 1;
                     $alamat = $request->input("alamat_$key");
@@ -321,7 +323,7 @@ class ProfileAPI extends Controller
                         $kode_pos = null;
                     }
                 }
-                
+
                 $arrAlamat[] = [
                     'id_perusahaan' => $idPerusahaan,
                     'jenis' => $val,
@@ -331,13 +333,13 @@ class ProfileAPI extends Controller
                     'kode_pos' => $kode_pos
                 ];
             }
-            
+
             // Hapus alamat lama jika ada untuk mencegah duplikat/sisa
             Master_alamat::where('id_perusahaan', $idPerusahaan)->delete();
-            
+
             Master_alamat::insert($arrAlamat);
             DB::commit();
-            
+
             return $this->output(['status' => 'success', 'msg' => 'Data alamat berhasil disimpan']);
         } catch (\Exception $ex) {
             info($ex);
@@ -446,7 +448,9 @@ class ProfileAPI extends Controller
                     ];
                 }
 
-                Master_alamat::insert($arrAlamat);
+                foreach ($arrAlamat as $alamat) {
+                    Master_alamat::create($alamat);
+                }
                 $idPerusahaan = $perusahaan->id_perusahaan;
             }
 
