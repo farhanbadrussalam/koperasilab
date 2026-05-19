@@ -157,7 +157,9 @@ class RegisterController extends Controller
             ];
         }
 
-        Master_alamat::insert($arrAlamat);
+        foreach ($arrAlamat as $alamat) {
+            Master_alamat::create($alamat);
+        }
 
         return $perusahaan->id_perusahaan;
     }
