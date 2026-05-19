@@ -11,11 +11,11 @@ $(function () {
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'manager-invoice',
-        filter : {
+        filter: {
             status: true,
-            jenis_tld : true,
-            jenis_layanan : true,
-            no_kontrak : true,
+            jenis_tld: true,
+            jenis_layanan: true,
+            no_kontrak: true,
         }
     })
 
@@ -39,7 +39,7 @@ function loadData(page = 1) {
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
     filterValue.status && (params.filter.status = filterValue.status);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -56,7 +56,7 @@ function loadData(page = 1) {
             let btnAction = '';
             let btnAction2 = '';
 
-            if(keuangan.status == 2){
+            if (keuangan.status == 2) {
                 btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Verifikasi" onclick="verifikasiInvoice(this, 'verify')">verifikasi</button>`;
             } else {
                 btnAction = `
@@ -67,7 +67,7 @@ function loadData(page = 1) {
                 </li>`;
             }
 
-            if(keuangan.status == 5) {
+            if (keuangan.status == 5) {
                 btnAction += `
                 <li>
                     <a class="dropdown-item small cursor-pointer" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi">
@@ -77,7 +77,7 @@ function loadData(page = 1) {
             }
 
             let badgeClass = 'bg-primary-subtle';
-            if(permohonan.tipe_kontrak == 'kontrak lama') {
+            if (permohonan.tipe_kontrak == 'kontrak lama') {
                 badgeClass = 'bg-success-subtle';
             }
 
@@ -97,10 +97,10 @@ function loadData(page = 1) {
                 id: keuangan.keuangan_hash
             }
 
-            html += cardComponent(data, {btnMenuAction: btnAction, btnAction: btnAction2});
+            html += cardComponent(data, { btnMenuAction: btnAction, btnAction: btnAction2 });
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -120,7 +120,7 @@ $('#list-pagination').on('click', 'a', function (e) {
     loadData(pageno);
 });
 
-function verifikasiInvoice(obj, mode){
+function verifikasiInvoice(obj, mode) {
     const keuangan = $(obj).parent().parent().data("id");
     ajaxGet(`api/v1/keuangan/getKeuangan/${keuangan}`, false, result => {
         invoice.addData(result.data);
@@ -132,7 +132,7 @@ function reload() {
     loadData();
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
     loadData();
 }

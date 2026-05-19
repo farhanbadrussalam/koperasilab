@@ -678,7 +678,11 @@ class PenyeliaAPI extends Controller
                 $status = $tmpArr;
                 $userId = Auth::user()->id;
             } else {
-                $status = [];
+                if($menu == 'surattugas') {
+                    $status = [];
+                } else {
+                    $status = [99];
+                }
             }
         }
 

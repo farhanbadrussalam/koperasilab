@@ -3,9 +3,9 @@ $(function () {
     loadData();
 
     filterComp = new FilterComponent('pengajuan-filter', {
-        filter : {
-            jenis_tld : true,
-            jenis_layanan : true,
+        filter: {
+            jenis_tld: true,
+            jenis_layanan: true,
             search: true,
             date_range: true
         }
@@ -31,7 +31,7 @@ function loadData(page = 1) {
     // filterValue.periode && (params.filter.periode = filterValue.periode);
     (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -74,10 +74,10 @@ function loadData(page = 1) {
                 </li>
             `;
 
-            html += cardComponent(params, {btnMenuAction: btnAction});
+            html += cardComponent(params, { btnMenuAction: btnAction });
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -90,7 +90,7 @@ function loadData(page = 1) {
     });
 }
 
-function remove(obj){
+function remove(obj) {
     const idLayanan = $(obj).parent().data("id");
     ajaxDelete(`api/v1/permohonan/destroyPermohonan/${idLayanan}`, result => {
         Swal.fire({
@@ -104,7 +104,7 @@ function remove(obj){
         });
     }, error => {
         const result = error.responseJSON;
-        if(result.meta.code == 500){
+        if (result.meta.code == 500) {
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
@@ -114,11 +114,11 @@ function remove(obj){
     });
 }
 
-function reload(){
+function reload() {
     loadData();
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
 
     loadData();

@@ -1,16 +1,16 @@
 const invoice = new Invoice();
 let filterComp = false;
 
-$(function() {
+$(function () {
     loadData();
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'pembayaran',
-        filter : {
-            status : true,
-            jenis_tld : true,
-            jenis_layanan : true,
-            no_kontrak : true,
+        filter: {
+            status: true,
+            jenis_tld: true,
+            jenis_layanan: true,
+            no_kontrak: true,
             date_range: true
         }
     })
@@ -35,7 +35,7 @@ function loadData(page = 1) {
     // filterValue.periode && (params.filter.periode = filterValue.periode);
     (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -50,9 +50,9 @@ function loadData(page = 1) {
             const permohonan = keuangan.permohonan;
             let btnAction = '';
             let btnAction2 = '';
-            if(keuangan.status == 3){
+            if (keuangan.status == 3) {
                 btnAction2 = `<a class="btn btn-outline-warning btn-sm" href="${base_url}/permohonan/pembayaran/bayar/${keuangan.keuangan_hash}" title="Bayar"><i class="bi bi-cash"></i> Bayar</a>`;
-            }else{
+            } else {
                 btnAction = `
                     <li>
                         <a class="dropdown-item small cursor-pointer" title="Show Invoice" onclick="openInvoiceModal(this, 'detail')">
@@ -60,7 +60,7 @@ function loadData(page = 1) {
                         </a>
                     </li>
                 `;
-                if(keuangan.status == 5){
+                if (keuangan.status == 5) {
                     btnAction += `
                     <li>
                         <a class="dropdown-item small cursor-pointer ms-1 text-primary" target="_blank" href="${base_url}/laporan/kwitansi/${keuangan.keuangan_hash}" title="Cetak Kwitansi">
@@ -88,10 +88,10 @@ function loadData(page = 1) {
                 is_zerocek: permohonan.kontrak.is_zerocek
             }
 
-            html += cardComponent(data, {btnAction: btnAction2, btnMenuAction: btnAction});
+            html += cardComponent(data, { btnAction: btnAction2, btnMenuAction: btnAction });
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -112,7 +112,7 @@ function openInvoiceModal(obj, mode) {
     })
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
     loadData();
 }

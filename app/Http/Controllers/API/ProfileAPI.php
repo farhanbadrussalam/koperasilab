@@ -571,8 +571,7 @@ class ProfileAPI extends Controller
                 'users',
                 'users.profile',
                 'users.profile.suratkuasa',
-                'alamat',
-                'suratkuasa'
+                'alamat'
             )->where('id_perusahaan', $id)->first();
 
             return $this->output($query, 200);

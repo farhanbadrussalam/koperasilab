@@ -12,7 +12,7 @@
  */
 function cardComponent(data, options = {}) {
     let htmlTipeKontrak = '';
-    if (data.tipeKontrak !== undefined) {
+    if (data.tipeKontrak !== undefined && data.tipeKontrak) {
         let classBadge = '';
         switch (data.tipeKontrak) {
             case 'kontrak lama':
@@ -30,6 +30,10 @@ function cardComponent(data, options = {}) {
                 ${data.tipeKontrak}
             </span>
         `;
+
+        if (data.jenisLayananParent == 'Evaluasi' && data.jenisLayanan == 'Tanpa Kontrak') {
+            htmlTipeKontrak = '';
+        }
     }
 
     const htmlPeriode = data.periode !== undefined ? (() => {

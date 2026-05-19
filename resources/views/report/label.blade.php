@@ -41,7 +41,7 @@
         @if($penyelia->permohonan->kontrak->jenis_tld === 2)
         <div class="border text-center table-cell" style="padding: 2px;height: 100px; width: 200px; position: relative;">
             <div class="lh-20">
-                <div>{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $item['pengguna']->kode_lencana : ($key > 1 ? 'C'.$key : 'C') }}</div>
+                <div class="fs-1" style="white-space: nowrap; overflow: hidden;">{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $item['pengguna']->kode_lencana : ($key > 1 ? 'C'.$key : 'C') }}</div>
                 <div class="fs-1">{{ $item['pengguna'] ? $item['pengguna']->name : 'Kontrol' }}</div>
                 <div class="fs-1">{{ $item['periode'] }}</div>
             </div>
@@ -49,7 +49,7 @@
         @else
         <div class="border text-center table-cell" style="padding: 5px;height: 220px; width: 100px; position: relative;">
             <div class="lh-16">
-                <div>{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $item['pengguna']->kode_lencana : ($key > 1 ? 'C'.$key : 'C') }}</div>
+                <div class="fs-1" style="white-space: nowrap; overflow: hidden;">{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $item['pengguna']->kode_lencana : ($key > 1 ? 'C'.$key : 'C') }}</div>
                 <div class="fs-1">{{ $item['pengguna'] ? $item['pengguna']->name : 'Kontrol' }}</div>
                 <div class="fs-1">{{ $item['periode'] }}</div>
                 <div>{{ substr($penyelia->permohonan->kontrak->no_kontrak, 0, 1) }}</div>

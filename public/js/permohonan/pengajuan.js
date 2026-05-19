@@ -17,10 +17,10 @@ $(function () {
     });
 
     filterComp = new FilterComponent('pengajuan-filter', {
-        filter : {
-            jenis_tld : true,
-            jenis_layanan : true,
-            no_kontrak : true,
+        filter: {
+            jenis_tld: true,
+            jenis_layanan: true,
+            no_kontrak: true,
             date_range: true
         }
     })
@@ -36,11 +36,11 @@ $('#pagination_list').on('click', 'a', function (e) {
     loadData(pageno, thisStatus);
 });
 
-function switchLoadTab(menu){
+function switchLoadTab(menu) {
     thisTab = menu;
     switch (menu) {
         case 1:
-            thisStatus = [1,2,3,4,5,90];
+            thisStatus = [1, 2, 3, 4, 5, 90];
             break;
 
         case 2:
@@ -84,7 +84,7 @@ function loadData(page = 1, status) {
     // filterValue.periode && (params.filter.periode = filterValue.periode);
     (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -97,7 +97,7 @@ function loadData(page = 1, status) {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
             let btnEdit = '';
-            if(pengajuan.tipe_kontrak == 'kontrak baru' || pengajuan.status == 80){
+            if (pengajuan.tipe_kontrak == 'kontrak baru' || pengajuan.status == 80) {
                 btnEdit = `
                     <li>
                         <a class="dropdown-item small cursor-pointer" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}">
@@ -115,7 +115,7 @@ function loadData(page = 1, status) {
             </li>
             `;
 
-            if(thisTab == 6){
+            if (thisTab == 6) {
                 html += `
                     <div class="card mb-2">
                         <div class="card-body row align-items-center">
@@ -166,11 +166,11 @@ function loadData(page = 1, status) {
                     ${pengajuan.status == 1 ? btnRemove : ''}
                 `;
 
-                html += cardComponent(params, {btnMenuAction: btnAction});
+                html += cardComponent(params, { btnMenuAction: btnAction });
             }
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -185,7 +185,7 @@ function loadData(page = 1, status) {
     countList();
 }
 
-function remove(obj){
+function remove(obj) {
     const idLayanan = $(obj).parent().parent().data("id");
     ajaxDelete(`api/v1/permohonan/destroyPermohonan/${idLayanan}`, result => {
         Swal.fire({
@@ -199,13 +199,13 @@ function remove(obj){
         });
     }, error => {
         const result = error.responseJSON;
-        if(result?.meta?.code && result.meta.code == 500){
+        if (result?.meta?.code && result.meta.code == 500) {
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
             });
             console.error(result.data.msg);
-        }else{
+        } else {
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
@@ -215,23 +215,23 @@ function remove(obj){
     });
 }
 
-function showDetail(obj){
+function showDetail(obj) {
     const idPermohonan = $(obj).parent().parent().data("id");
     let url = `api/v1/permohonan/getPengajuanById/${idPermohonan}`;
     detail.show(url);
 }
 
-function reload(){
+function reload() {
     switchLoadTab(thisTab);
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
 
     switchLoadTab(thisTab);
 }
 
-function countList(){
+function countList() {
     ajaxGet('api/v1/permohonan/countList', false, result => {
         const count = result.data.reduce((acc, cur) => {
             acc[cur.name] = (acc[cur.name] || 0) + cur.total;
