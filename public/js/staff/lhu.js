@@ -237,32 +237,53 @@ function loadData(page = 1) {
             }
             isPelabelan ? btnAction += btnLabel : '';
 
-            // mengambil 2 periode
             let htmlLeftTime = '';
             if (thisTab == 'progress') {
                 let TldPeriodeDigunakan = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode + 1 && d.status == 1);
                 let time = '';
                 let title = '';
-                if (TldPeriodeDigunakan && envirotment == 'production') {
-                    if (TldPeriodeDigunakan.periode == 1) {
-                        time = '';
-                    } else {
+
+                if (TldPeriodeDigunakan) {
+                    if (TldPeriodeDigunakan.periode != 1) {
                         time = timeLeftUntilHMinusOneMonth(new Date(TldPeriodeDigunakan.start_date));
                         title = `Sebelum Periode ${TldPeriodeDigunakan.periode}`;
                     }
-                } else if (envirotment == 'production' && permohonan.kontrak.is_have_tld == 1 && permohonan.kontrak.jenis_layanan.name != 'Sewa') {
+                } else if (permohonan.kontrak.is_have_tld == 1 && permohonan.kontrak.jenis_layanan.name != 'Sewa') {
                     TldPeriodeDigunakan = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode);
-                    // mengambil periode berikutnya
-                    let startDate = new Date(TldPeriodeDigunakan.end_date);
-                    // awal bulan setelah startDate
-                    startDate.setDate(1);
-                    startDate.setMonth(startDate.getMonth() + 4);
+                    if (TldPeriodeDigunakan) {
+                        // mengambil periode berikutnya
+                        let startDate = new Date(TldPeriodeDigunakan.end_date);
+                        // awal bulan setelah startDate
+                        startDate.setDate(1);
+                        startDate.setMonth(startDate.getMonth() + 4);
 
-                    time = timeLeftUntilHMinusOneMonth(startDate);
-                    title = `Sebelum Pengembalian`;
+                        time = timeLeftUntilHMinusOneMonth(startDate);
+                        title = `Sebelum Pengembalian`;
+                    }
                 }
-                if (time != 'Hari ini' && time != '') {
-                    htmlLeftTime = `<div class="fs-6 text-body-tertiary fw-bold text-end">${time}<br><small>${title}</small></div>`;
+
+                if (time !== '') {
+                    let badgeClass = 'bg-primary-subtle text-primary border-primary-subtle';
+                    let icon = 'bi-clock-history';
+
+                    if (time.includes('Lewat')) {
+                        badgeClass = 'bg-danger-subtle text-danger border-danger-subtle';
+                        icon = 'bi-exclamation-triangle-fill';
+                    } else if (time === 'Hari ini' || time === 'Hari Ini') {
+                        badgeClass = 'bg-warning-subtle text-warning border-warning-subtle';
+                        icon = 'bi-exclamation-circle-fill';
+                    } else if (time.includes('Sisa') && !time.includes('bulan')) {
+                        // Kurang dari sebulan (hanya tersisa hari)
+                        badgeClass = 'bg-warning-subtle text-warning border-warning-subtle';
+                        icon = 'bi-hourglass-split';
+                    }
+
+                    htmlLeftTime = `
+                        <div class="mt-2 d-inline-flex align-items-center gap-1.5 fs-8 fw-semibold px-2 py-1 rounded-pill border ${badgeClass}" style="font-size: 0.75rem;">
+                            <i class="bi ${icon}"></i>
+                            <span>${time} (${title})</span>
+                        </div>
+                    `;
                 }
             }
 
@@ -284,7 +305,7 @@ function loadData(page = 1) {
                 note: '',
                 pelanggan: permohonan.pelanggan.name,
                 divTimelineTugas: timeline,
-                htmlLeftTime: htmlLeftTime,
+                // htmlLeftTime: htmlLeftTime,
                 perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan
             }
 
