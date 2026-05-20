@@ -1,0 +1,15 @@
+@page {
+    margin: 150px 40px 115px 40px;
+    /* top right bottom left — tambahkan bottom utk ruang footer */
+    size: A4;
+}
+
+.footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: -20px;
+    /* atau 0; sesuaikan dengan tinggi konten footer */
+    height: 40px !important;
+    /* kira-kira tinggi footer kamu */
+}

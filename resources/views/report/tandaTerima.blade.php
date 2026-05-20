@@ -1,7 +1,8 @@
+@php
+    $css = file_get_contents(public_path('css/tandaterima.css'));
+@endphp
 @extends('report.template.main')
 @section('style')
-    @include('report.template.style')
-    @include('report.template.style-tandaterima')
 @endsection
 
 @section('header')

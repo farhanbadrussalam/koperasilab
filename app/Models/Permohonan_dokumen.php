@@ -111,7 +111,7 @@ class Permohonan_dokumen extends Model
     {
         // Cek apakah user punya record TTD
         if ($this->ttd) {
-            $ttd = Master_ttd::where('id', $this->ttd)->first();
+            $ttd = Master_ttd::withTrashed()->where('id', $this->ttd)->first();
             // Convert Binary kembali ke Base64 String
             if($ttd) {
                 $base64 = $ttd->image_blob;

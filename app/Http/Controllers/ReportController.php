@@ -37,7 +37,7 @@ class ReportController extends Controller
         $this->global = config('customvariabel');
     }
 
-    private function generatePDF(string $title, Documents $template, array $variables = [], array $htmlKeys = [])
+    private function generatePDF(string $title, Documents $template, array $variables = [], array $htmlKeys = [], string $css = '')
     {
         $result = array(
             'title' => $title,
@@ -58,6 +58,7 @@ class ReportController extends Controller
         $result['footer'] = $template->footer ? renderMentionsToValuesFlexible($template->footer->content, $variables, $options) : '';
         $result['no_formulir'] = $template->no_formulir ? renderMentionsToValuesFlexible($contentNoFormulir, $variables, $options) : '';
         $result['body'] = renderMentionsToValuesFlexible($template->content, $variables, $options);
+        $result['template_css'] = $css;
 
         $bytes = Pdf::loadView('report.index', $result);
 
@@ -752,7 +753,7 @@ class ReportController extends Controller
         $variables['TTD_PEMOHON_BY'] = $query->pelanggan ? $query->pelanggan->name : '...........................................';
 
         // generate pdf
-        $bytes = $this->generatePDF($data['title'], $template, $variables, ['RINCIAN', 'TTD_PENERIMA', 'TTD_PEMOHON', 'PERIODE_RINCIAN']);
+        $bytes = $this->generatePDF($data['title'], $template, $variables, ['RINCIAN', 'TTD_PENERIMA', 'TTD_PEMOHON', 'PERIODE_RINCIAN'], 'tandaterima');
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
 
@@ -901,7 +902,7 @@ class ReportController extends Controller
         $variables["TTD_BY"] = $dokumen->usersig ? $dokumen->usersig->name : ".....................";
 
         // generate pdf
-        $bytes = $this->generatePdf($data['title'], $template, $variables, ["TTD", "RINCIAN"]);
+        $bytes = $this->generatePdf($data['title'], $template, $variables, ["TTD", "RINCIAN"], 'surattugas');
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
 
