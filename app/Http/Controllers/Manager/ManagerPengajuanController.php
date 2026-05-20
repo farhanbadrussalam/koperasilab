@@ -39,4 +39,20 @@ class ManagerPengajuanController extends Controller
 
         return view('pages.manager.suratTugas', $data);
     }
+
+    public function indexSurpeng()
+    {
+        $data = [
+            'title' => 'Surat Pengantar',
+            'module' => 'manager-surpeng'
+        ];
+
+        $cekNotifikasi = Auth::user()->unreadNotifications()->where('data->event', 'Surpeng')->first();
+
+        if($cekNotifikasi) {
+            $cekNotifikasi->markAsRead();
+        }
+
+        return view('pages.manager.surpeng', $data);
+    }
 }

@@ -287,6 +287,16 @@ $hiddenPelanggan = true;
                     </a>
                 </li>
                 @endcan
+                @can('Manager/surpeng')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'manager-surpeng' ? 'active' : '' }}"
+                        href="{{ route('manager.surpeng') }}" aria-expanded="false">
+                        <i class="bi bi-envelope-paper"></i>
+                        <span class="hide-menu">Surat Pengantar</span>
+                        <span class="badge rounded-pill ms-auto bg-danger @if(!notifUnreadCount('Surpeng')) d-none @endif">{{ notifUnreadCount('Surpeng') }}</span>
+                    </a>
+                </li>
+                @endcan
 
                 @can('Management')
                 <!-- MANAGEMENT MENU -->

@@ -227,9 +227,14 @@ class StaffController extends Controller
             $listJobs = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs;
             $listJobsParalel = Setting_layanan::where('name', $type)->where('status', 1)->first()->list_jobs_paralel;
         }
+
+        $context = request()->segment(count(request()->segments()) - 2);
+        $titleStr = $context == 'surpeng' ? 'Surat Pengantar' : 'Surat Tugas';
+        $moduleStr = $context == 'surpeng' ? 'manager-surpeng' : 'staff-penyelia';
+
         $data = [
-            'title' => 'Surat tugas',
-            'module' => 'staff-penyelia',
+            'title' => $titleStr,
+            'module' => $moduleStr,
             'penyelia' => $query,
             'jobs' => $listJobs,
             'jobsParalel' => $listJobsParalel,

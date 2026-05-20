@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -91,8 +92,10 @@ class Penyelia extends Model
         'created_at',
         'verify_surat_tugas_at',
         'verify_pengajuan_at',
+        'verify_surpeng_at',
         'is_pengajuan_signed',
-        'is_surat_tugas_signed'
+        'is_surat_tugas_signed',
+        'is_surpeng_signed'
     ];
 
     protected $hidden = [
@@ -121,7 +124,8 @@ class Penyelia extends Model
         'created_by' => 'integer',
         'document' => 'json',
         'is_pengajuan_signed' => 'integer',
-        'is_surat_tugas_signed' => 'integer'
+        'is_surat_tugas_signed' => 'integer',
+        'is_surpeng_signed' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

@@ -100,10 +100,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::controller(ManagerPengajuanController::class)->group(function () {
             Route::get('/pengajuan', 'index')->middleware(['permission:Manager/keuangan'])->name('manager.pengajuan');
             Route::get('/surat_tugas', 'indexSuratTugas')->middleware(['permission:Manager/pengajuan'])->name('manager.surat_tugas');
+            Route::get('/surpeng', 'indexSurpeng')->middleware(['permission:Manager/surpeng'])->name('manager.surpeng');
         });
         Route::controller(StaffController::class)->group(function () {
             Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
             Route::get('/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.show');
+            Route::get('/surpeng/v/{idPenyelia}', 'createSuratTugas')->name('manager.surpeng.verif');
+            Route::get('/surpeng/s/{idPenyelia}', 'createSuratTugas')->name('manager.surpeng.show');
         });
     });
 

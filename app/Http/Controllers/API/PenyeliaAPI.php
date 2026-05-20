@@ -203,7 +203,7 @@ class PenyeliaAPI extends Controller
                     $params['verify_surat_tugas_at'] = date('Y-m-d H:i:s');
                     $params['is_surat_tugas_signed'] = 1;
 
-                    if ($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak') {
+                    if ($penyelia->is_surpeng_signed == 1 && ($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak')) {
                         $params['status'] = 10;
                         $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
                     }
@@ -297,6 +297,15 @@ class PenyeliaAPI extends Controller
                     );
 
                     Notifier::send($userQuery, $dataNotif);
+
+                    $userQueryAdmin = User::role('Manager Administrasi')->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(string) $penyelia->permohonan->layanan_jasa->satuankerja_id]);
+                    $dataNotifAdmin = array(
+                        'pesan' => 'Surat pengantar uji di buat dengan no kontrak <b>' . $penyelia->permohonan->kontrak->no_kontrak . '</b> oleh <b>' . $us->name . '</b>',
+                        'url' => '/manager/surpeng/v/' . $penyelia->penyelia_hash,
+                        'event' => 'Surpeng',
+                        'event_id' => $penyelia->penyelia_hash,
+                    );
+                    Notifier::send($userQueryAdmin, $dataNotifAdmin);
                 }
 
                 // cek dokumen sudah ada atau belum
@@ -323,6 +332,32 @@ class PenyeliaAPI extends Controller
                     );
 
                     Permohonan_dokumen::create($dataParams);
+                }
+
+                $dokumenSurpeng = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surpeng')->first();
+                if (!$dokumenSurpeng) {
+                    $id_kontrak = $penyelia->permohonan->id_kontrak;
+                    $periode_ = $penyelia->periode;
+                    $kPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode_ == 0 ? 1 : $periode_)->first();
+                    if ($kPeriode && !$kPeriode->nomer_surpeng) {
+                        $noSurpeng = generateNoDokumen('surpeng');
+                        $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => \Carbon\Carbon::now()]);
+                    }
+                    
+                    $templateSurpeng = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
+                    if ($templateSurpeng) {
+                        Permohonan_dokumen::create(array(
+                            'periode' => $periode_,
+                            'id_kontrak' => $id_kontrak,
+                            'id_permohonan' => $penyelia->id_permohonan,
+                            'id_doc_template' => $templateSurpeng->id_doc,
+                            'jenis' => "surpeng",
+                            'nama' => "Surat Pengantar",
+                            'nomer' => $kPeriode->nomer_surpeng ?? generateNoDokumen('surpeng'),
+                            'created_by' => Auth::user()->id,
+                            'status' => 1
+                        ));
+                    }
                 }
             }
 
@@ -356,6 +391,126 @@ class PenyeliaAPI extends Controller
                 'description' => 'Surat Tugas Ditolak',
                 'properties' => array(
                     'key' => 'surat_tugas',
+                    'catatan' => $note
+                )
+            ));
+
+            DB::commit();
+            return $this->output(array('msg' => 'Berhasil mengupdate penyelia'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function actionSurpeng(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $idPenyelia = $request->has('idPenyelia') ? decryptor($request->idPenyelia) : false;
+            $ttd = $request->has('ttd') ? decryptor($request->ttd) : false;
+            $ttd_by = $request->has('ttd_by') ? decryptor($request->ttd_by) : false;
+
+            $params = array();
+
+            $penyelia = Penyelia::with(['permohonan', 'permohonan.jenis_layanan', 'permohonan.jenis_layanan_parent'])->find($idPenyelia);
+            if ($penyelia) {
+                if ($ttd) {
+                    // Update the signature in Permohonan_dokumen if the surpeng document exists, 
+                    // else it might be created later in ReportController.
+                    $dokumenSurpeng = Permohonan_dokumen::where('id_kontrak', $penyelia->permohonan->id_kontrak)
+                        ->where('periode', $penyelia->periode)
+                        ->where('jenis', 'surpeng')
+                        ->first();
+                        
+                    if ($dokumenSurpeng) {
+                        $dokumenSurpeng->update([
+                            'ttd' => $ttd,
+                            'ttd_by' => $ttd_by
+                        ]);
+                    } else {
+                        // If it doesn't exist, generate the nomer and create it
+                        $id_kontrak = $penyelia->permohonan->id_kontrak;
+                        $periode_ = $penyelia->periode;
+                        $kPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode_ == 0 ? 1 : $periode_)->first();
+                        if ($kPeriode && !$kPeriode->nomer_surpeng) {
+                            $noSurpeng = generateNoDokumen('surpeng');
+                            $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => \Carbon\Carbon::now()]);
+                        }
+                        
+                        $template = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
+                        
+                        if ($template) {
+                            Permohonan_dokumen::create(array(
+                                'periode' => $periode_,
+                                'id_kontrak' => $id_kontrak,
+                                'id_permohonan' => $penyelia->id_permohonan,
+                                'id_doc_template' => $template->id_doc,
+                                'jenis' => "surpeng",
+                                'nama' => "Surat Pengantar",
+                                'nomer' => $kPeriode->nomer_surpeng ?? generateNoDokumen('surpeng'),
+                                'created_by' => Auth::user()->id,
+                                'status' => 1,
+                                'ttd' => $ttd,
+                                'ttd_by' => $ttd_by
+                            ));
+                        }
+                    }
+
+                    $params['verify_surpeng_at'] = date('Y-m-d H:i:s');
+                    $params['is_surpeng_signed'] = 1;
+
+                    $JL = jenislayanan($penyelia->permohonan->jenis_layanan_parent, $penyelia->permohonan->jenis_layanan);
+                    if ($penyelia->is_surat_tugas_signed == 1 && ($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak')) {
+                        $params['status'] = 10;
+                        $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
+                    }
+                    $penyelia->update($params);
+
+                    $this->log->addLog('HISTORY_DOCUMENT', 'penyelia', $penyelia, array(
+                        'description' => 'Surat Pengantar Terverifikasi',
+                        'properties' => array(
+                            'key' => 'surpeng',
+                        )
+                    ));
+
+                    DB::commit();
+
+                    return $this->output(array('status' => 'success', 'msg' => 'Berhasil diverifikasi.'));
+                }
+            }
+
+            DB::commit();
+            return $this->output(array('msg' => 'Berhasil mengupdate penyelia'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+        }
+    }
+
+    public function rejectSurpeng(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $request->validate([
+                'idPenyelia' => 'required',
+                'reason' => 'required',
+            ]);
+
+            $idPenyelia = decryptor($request->idPenyelia);
+            $note = $request->reason;
+            $penyelia = Penyelia::find($idPenyelia);
+
+            $penyelia->update(array(
+                'is_surpeng_signed' => 2
+            ));
+
+            $this->log->addLog('HISTORY_DOCUMENT', 'penyelia', $penyelia, array(
+                'description' => 'Surat Pengantar Ditolak',
+                'properties' => array(
+                    'key' => 'surpeng',
                     'catatan' => $note
                 )
             ));
@@ -660,6 +815,10 @@ class PenyeliaAPI extends Controller
                 $status = [1, 5];
                 $typePencarian = 'not';
                 break;
+            case 'ttd-surpeng':
+                $status = [1, 5];
+                $typePencarian = 'not';
+                break;
             case 'penyelialhu':
                 $status = [4];
                 break;
@@ -954,6 +1113,7 @@ class PenyeliaAPI extends Controller
                     $params['status'] = 2;
                 }
                 $params['is_surat_tugas_signed'] = null;
+                $params['is_surpeng_signed'] = null;
 
                 $type = 'Surat Tugas';
 
@@ -1083,7 +1243,7 @@ class PenyeliaAPI extends Controller
             if ($type == 'approve') {
                 $updateData['is_pengajuan_signed'] = 1;
                 $updateData['verify_pengajuan_at'] = date('Y-m-d H:i:s');
-                if ($penyelia->is_surat_tugas_signed == 1) {
+                if ($penyelia->is_surat_tugas_signed == 1 && $penyelia->is_surpeng_signed == 1) {
                     $updateData['status'] = 10;
                     $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
                 }

@@ -260,23 +260,24 @@ function validateAllPetugasFilled() {
 }
 
 function rejectSuratTugas(obj){
+    const isSurpengContext = window.location.pathname.includes('/manager/surpeng');
     showNoteAlertSwal((reason) => {
         showLoadingSwal('show');
         const params = new FormData();
         params.append('idPenyelia', idPenyelia);
         params.append('reason', reason);
 
-        ajaxPost(`api/v1/penyelia/rejectSuratTugas`, params, result => {
+        ajaxPost(`api/v1/penyelia/${isSurpengContext ? 'rejectSurpeng' : 'rejectSuratTugas'}`, params, result => {
             if(result.meta.code) {
                 showLoadingSwal('hide');
                 Swal.fire({
                     icon: 'success',
-                    text: `Surat tugas berhasil ditolak` ,
+                    text: `${isSurpengContext ? 'Surat pengantar' : 'Surat tugas'} berhasil ditolak` ,
                     timer: 1200,
                     timerProgressBar: true,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = `${base_url}${!['verif', 'show'].includes(typeSurat) ? "/staff/penyelia" : "/manager/surat_tugas"}`;
+                    window.location.href = `${base_url}${!['verif', 'show'].includes(typeSurat) ? "/staff/penyelia" : (isSurpengContext ? "/manager/surpeng" : "/manager/surat_tugas")}`;
                 });
             }
 
@@ -284,10 +285,11 @@ function rejectSuratTugas(obj){
             showLoadingSwal('hide');
         });
 
-    }, 'Tolak Surat Tugas', 'Masukkan alasan penolakan...');
+    }, `Tolak ${isSurpengContext ? 'Surat Pengantar' : 'Surat Tugas'}`, 'Masukkan alasan penolakan...');
 }
 
 function saveSuratTugas(obj){
+    const isSurpengContext = window.location.pathname.includes('/manager/surpeng');
     let dateStart = $('#date_start').val();
     let dateEnd = $('#date_end').val();
     let [signature, signatureUser] = signaturePad ? signaturePad.getValue() : [];
@@ -310,7 +312,7 @@ function saveSuratTugas(obj){
 
     Swal.fire({
         icon: 'warning',
-        title: `${typeSurat} surat tugas?`,
+        title: `${typeSurat} ${isSurpengContext ? 'surat pengantar' : 'surat tugas'}?`,
         showCancelButton: true,
         confirmButtonText: 'Iya',
         cancelButtonText: 'Tidak',
@@ -338,16 +340,16 @@ function saveSuratTugas(obj){
             }
 
             spinner('show', $(obj));
-            ajaxPost(`api/v1/penyelia/actionSuratTugas`, params, result => {
+            ajaxPost(`api/v1/penyelia/${isSurpengContext ? 'actionSurpeng' : 'actionSuratTugas'}`, params, result => {
                 if(result.meta.code) {
                     Swal.fire({
                         icon: 'success',
-                        text: `Surat tugas berhasil di ${typeSurat}` ,
+                        text: `${isSurpengContext ? 'Surat pengantar' : 'Surat tugas'} berhasil di ${typeSurat}` ,
                         timer: 1200,
                         timerProgressBar: true,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.href = `${base_url}${!['verif', 'show'].includes(typeSurat) ? "/staff/penyelia" : "/manager/surat_tugas"}`;
+                        window.location.href = `${base_url}${!['verif', 'show'].includes(typeSurat) ? "/staff/penyelia" : (isSurpengContext ? "/manager/surpeng" : "/manager/surat_tugas")}`;
                         // spinner('hide', $(obj));
                     });
                 }
