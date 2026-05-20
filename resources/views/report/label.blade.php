@@ -18,7 +18,7 @@
     // membagi $data menjadi 6 bagian
     $arrTmp = array();
     foreach ($data as $item) {
-        $rangeDate = range_date($periode->start_date, $periode->end_date, 1);
+        $rangeDate = range_date($periode['start_date'], $periode['end_date'], 1);
 
         $tld = array(
             'pengguna' => null,
@@ -43,7 +43,7 @@
             <div class="lh-20">
                 <div class="fs-1" style="white-space: nowrap; overflow: hidden;">{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $item['pengguna']->kode_lencana : ($key > 1 ? 'C'.$key : 'C') }}</div>
                 <div class="fs-1">{{ $item['pengguna'] ? $item['pengguna']->name : 'Kontrol' }}</div>
-                <div class="fs-1">{{ $item['periode'] }}</div>
+                <div class="fs-1" style="white-space: nowrap; overflow: hidden;">{{ $item['periode'] }}</div>
             </div>
         </div>
         @else
@@ -51,8 +51,8 @@
             <div class="lh-16">
                 <div class="fs-1" style="white-space: nowrap; overflow: hidden;">{{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $item['pengguna']->kode_lencana : ($key > 1 ? 'C'.$key : 'C') }}</div>
                 <div class="fs-1">{{ $item['pengguna'] ? $item['pengguna']->name : 'Kontrol' }}</div>
-                <div class="fs-1">{{ $item['periode'] }}</div>
-                <div>{{ substr($penyelia->permohonan->kontrak->no_kontrak, 0, 1) }}</div>
+                <div class="fs-1" style="white-space: nowrap; overflow: hidden;">{{ $item['periode'] }}</div>
+                <div>{{ $alias }}</div>
             </div>
             <div style="margin-top: auto; transform: rotate(180deg);position: absolute; bottom: 0;left: 28%;">belakang</div>
         </div>

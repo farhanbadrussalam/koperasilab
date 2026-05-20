@@ -129,6 +129,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/action', 'actionPenyelia');
         Route::post('/actionSuratTugas', 'actionSuratTugas');
         Route::post('/rejectSuratTugas', 'rejectSuratTugas');
+        Route::post('/actionSurpeng', 'actionSurpeng');
+        Route::post('/rejectSurpeng', 'rejectSurpeng');
         Route::post('/actionJobProses', 'actionJobProses');
         Route::post('/actionJobProsesKolektif', 'actionJobProsesKolektif');
         Route::post('/approvePengujian', 'approvePengujian');

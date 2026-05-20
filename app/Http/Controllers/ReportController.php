@@ -508,7 +508,7 @@ class ReportController extends Controller
                 $range = range_date($data->periode_pemakaian[0]['start_date'], $data->periode_pemakaian[0]['end_date'], 2);
                 $vars["PERIODE"] = $range['start'] . '-' . $range['end'];
 
-                // ambil stempel jika ada 
+                // ambil stempel jika ada
                 $stempel = $data->pelanggan->perusahaan?->stempel_perusahaan;
                 $url_stempel = "";
                 if ($stempel) {
@@ -1075,10 +1075,9 @@ class ReportController extends Controller
             $variables = $this->mappingVars($template, $query, $data);
         }
 
-        if ($query->document_kontrak[0]->ttd_image) {
-            $ttd = $query->document_kontrak[0]->ttd_image;
-        } else {
-            $ttd = $query->document_kontrak[0]->ttd ?? "";
+        $ttd = null;
+        if ($dokumen->ttd_image) {
+            $ttd = $dokumen->ttd_image;
         }
         $variables["TTD"] = $ttd ? "
             <div style='text-align: center;'>
@@ -1086,7 +1085,7 @@ class ReportController extends Controller
                 <img src='$ttd' alt='TTD_keuangan' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
-        $variables["TTD_BY"] = $query->document_kontrak[0]->usersig ? $query->document_kontrak[0]->usersig->name : '...........................................';
+        $variables["TTD_BY"] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
 
         // generate pdf
         $bytes = $this->generatePDF($data['title'], $template, $variables, ["RINCIAN", "TTD"]);
@@ -1282,10 +1281,10 @@ class ReportController extends Controller
         return $bytes->stream($filename);
     }
 
-    public function label($id = null)
+    public function label(string $id, Request $request)
     {
         $id = decryptor($id);
-        $is_download = request()->get('dl') ? true : false;
+        $is_download = $request->get('dl') ? true : false;
 
         if ($id == null) {
             return redirect()->back();
@@ -1298,10 +1297,21 @@ class ReportController extends Controller
         ])->where('id_penyelia', $id)->first();
 
         // mengambil list tld di kontrak
-        $periodeNow = $query->permohonan->periodenow;
-        if ($query->permohonan->periodenow->periode == 0) {
-            $getKperiode = Kontrak_periode::where('id_kontrak', $query->permohonan->id_kontrak)->where('periode', 1)->first();
-            $periodeNow = $getKperiode;
+        $periodeNow = null;
+        $alias = null;
+
+        if ($query->permohonan->jenis_layanan_1 == 4 && $query->permohonan->jenis_layanan_2 == 6) {
+            $periodeNow = $query->permohonan->periode_next[0];
+            $alias = 'ZC';
+        } else {
+            $periode_label = $query->permohonan->periodenow->periode;
+            if ($query->permohonan->periodenow->periode == 0) {
+                $periode_label = 1;
+            }
+            $getKperiode = Kontrak_periode::where('id_kontrak', $query->permohonan->id_kontrak)->where('periode', $periode_label)->first();
+            $periodeNow = $getKperiode->toArray();
+
+            $alias = substr($query->permohonan->kontrak->no_kontrak, 0, 1);
         }
 
         $listTld = Kontrak_detail::with([
@@ -1321,6 +1331,7 @@ class ReportController extends Controller
         $data['data'] = json_decode($listTld);
         $data['penyelia'] = $query;
         $data['periode'] = $periodeNow;
+        $data['alias'] = $alias;
 
         $pdf = PDF::loadView('report.label', $data);
         $pdf->setPaper('a4', 'landscape');
