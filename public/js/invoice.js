@@ -545,7 +545,7 @@ class Invoice {
         if (this.pph || this.dataKeuangan.pph) {
             const valPph = document.getElementById('inputPph')?.value || this.dataKeuangan.pph || 0;
             const pphRate = parseInt(valPph);
-            jumPph = jumAfterDiskon * (pphRate / 100);
+            jumPph = jumLayanan * (pphRate / 100);
 
             const pphRow = document.createElement('tr');
 
@@ -570,7 +570,7 @@ class Invoice {
         if (this.ppn || this.dataKeuangan.ppn) {
             const valPpn = document.getElementById('inputPpn')?.value || this.dataKeuangan.ppn;
             const ppnRate = parseInt(valPpn);
-            jumPpn = jumAfterPph * (ppnRate / 100);
+            jumPpn = jumLayanan * (ppnRate / 100);
 
             const ppnRow = document.createElement('tr');
 

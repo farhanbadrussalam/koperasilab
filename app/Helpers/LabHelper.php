@@ -784,9 +784,9 @@ if (!function_exists('calculateInvoice')) {
 
         $jumAfterDiskon = $total_harga - $subJumlah;
 
-        $jumPph = $pph ? $jumAfterDiskon * ($pph / 100) : 0;
+        $jumPph = $pph ? $total_harga * ($pph / 100) : 0;
         $jumAfterPph = $jumAfterDiskon - $jumPph;
-        $jumPpn = $ppn ? $jumAfterPph * ($ppn / 100) : 0;
+        $jumPpn = $ppn ? $total_harga * ($ppn / 100) : 0;
         $subTotal = $jumAfterPph + $jumPpn;
 
         return [
