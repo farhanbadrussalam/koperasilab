@@ -1590,6 +1590,14 @@ class ReportController extends Controller
             'rincian_list_tld.pengguna',
             'permohonan',
             'permohonan.lhu',
+            'kontrak_detail',
+            'kontrak_detail.tld_awal',
+            'kontrak_detail.tld_second',
+            'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                $morphTo->morphWith([
+                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                ]);
+            },
         ])->where('id_kontrak', $id)->first();
 
         $data['title'] = "Surat Kontrak Pengujian";
@@ -1668,33 +1676,49 @@ class ReportController extends Controller
         $jenisPengujian = $zrcek . ' ' . $lJasa . ' ' . $jTld;
         $htmlSample = '<div>' . $lJasa . ' ' . $jTld . '</div>';
 
+
         foreach ($data->periode as $periode) {
             $startDate = convert_date($periode->start_date, 6);
             $endDate = convert_date($periode->end_date, 6);
             $htmlSample .= '<div>' . $data->jumlah_kontrol . ' + ' . $data->jumlah_pengguna . ' ' . $startDate . ' - ' . $endDate . '</div>';
         }
 
-        $dataKeuangan = calculateInvoice($data->total_harga, $data->invoice->diskon, $data->invoice->ppn, $data->invoice->pph);
-
+        $diskon = [];
+        $ppn = 0;
+        $pph = 0;
+        if($data->invoice){
+            $diskon = $data->invoice->diskon;
+            $ppn = $data->invoice->ppn;
+            $pph = $data->invoice->pph;
+        }
+        
+        $dataKeuangan = calculateInvoice($data->total_harga, $diskon, $ppn, $pph);
+        
         // Mengambil personil
-
         // Mengambil LIST TLD yang digunakan
         $htmlListTld = '';
         $htmlPengguna = '';
-        foreach ($data->rincian_list_tld as $key => $value) {
-            foreach ($value->tld as $tld) {
+        foreach ($data->kontrak_detail as $key => $value) {
+            $htmlListTld .= '
+                <tr>
+                    <td>' . ($key + 1) . '</td>
+                    <td>' . $value->tld_awal->no_seri_tld . '</td>
+                    <td>' . ($value->tld_awal->merk ?? '') . '</td>
+                </tr>
+            ';
+            if($value->tld_second){
                 $htmlListTld .= '
                     <tr>
                         <td>' . ($key + 1) . '</td>
-                        <td>' . $tld->no_seri_tld . '</td>
-                        <td>' . ($tld->merk ?? '') . '</td>
+                        <td>' . $value->tld_second->no_seri_tld . '</td>
+                        <td>' . ($value->tld_second->merk ?? '') . '</td>
                     </tr>
                 ';
             }
 
-            if ($value->pengguna) {
+            if ($value->jenis == 'pengguna') {
                 $htmlPengguna .= '
-                    <li>' . $value->pengguna->name . '</li>
+                    <li>' . $value->entitas->name . '</li>
                 ';
             }
         }

@@ -108,8 +108,16 @@ class Kontrak_detail extends Model
     {
         return $this->belongsTo(Master_tld::class, 'tld_1', 'id_tld')->withTrashed();
     }
+    public function tld_awal()
+    {
+        return $this->belongsTo(Master_tld::class, 'tld_1', 'id_tld')->withTrashed();
+    }
 
     public function tld_2()
+    {
+        return $this->belongsTo(Master_tld::class, 'tld_2', 'id_tld')->withTrashed();
+    }
+    public function tld_second()
     {
         return $this->belongsTo(Master_tld::class, 'tld_2', 'id_tld')->withTrashed();
     }
