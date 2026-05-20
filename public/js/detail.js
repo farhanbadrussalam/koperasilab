@@ -884,6 +884,7 @@ class Detail {
                 invoiceData = this.data.invoice;
                 dataPermohonan = this.data;
                 kontrak_hash = this.data.kontrak?.kontrak_hash;
+                periode = this.data.periode;
                 break;
             case 'penyelia':
                 this.data.permohonan.kontrak?.document_kontrak && (dataDokumen = this.data.permohonan.kontrak.document_kontrak);

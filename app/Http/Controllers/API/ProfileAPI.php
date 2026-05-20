@@ -94,7 +94,7 @@ class ProfileAPI extends Controller
             $jabatan && $params['jabatan'] = $jabatan;
             $idPerusahaan && $params['id_perusahaan'] = $idPerusahaan;
 
-            if ($params['ttd']) {
+            if ($request->has('ttd')) {
                 $params['ttd'] = uploadSignatur($params['ttd'], Auth::user());
             }
 
