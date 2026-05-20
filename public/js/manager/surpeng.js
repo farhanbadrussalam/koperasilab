@@ -115,22 +115,19 @@ function _renderCardItem(lhu) {
     let tugasBtn = {
         icon: 'bi-check2-circle',
         class: 'btn-light text-primary-emphasis',
-        attr: `data-url="laporan/${docSurpeng.jenis}/${permohonan.kontrak.kontrak_hash}/${lhu.periode}"
-                data-title="Dokumen Surat Pengantar"
-                data-idpenyelia="${lhu.penyelia_hash}"
-                onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"`,
+        attr: '',
         title: 'Verifikasi Surat Pengantar'
     };
 
     if (lhu.status != 1 && hasTugas) {
         if (docSurpeng) {
-            btnDocSurpeng = `
-                <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                    data-url="laporan/${docSurpeng.jenis}/${permohonan.kontrak.kontrak_hash}/${lhu.periode}" data-title="Dokumen Surat Pengantar"
-                    onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
-                    <i class="bi bi-file-earmark-text"></i>
-                </button>
-            `;
+            tugasBtn = {
+                ...tugasBtn,
+                attr: `data-url="laporan/${docSurpeng.jenis}/${permohonan.kontrak.kontrak_hash}/${lhu.periode}"
+                data-title="Dokumen Surat Pengantar"
+                data-idpenyelia="${lhu.penyelia_hash}"
+                onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"`,
+            }
         }
         if (isSurpengSigned === 1) {
             tugasBtn = {
