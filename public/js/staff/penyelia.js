@@ -122,12 +122,17 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     // if(penyelia.status == 1 || penyelia.status == 2) {
                     const isTugasSigned = penyelia.is_surat_tugas_signed;
                     const isPengajuanSigned = penyelia.is_pengajuan_signed;
+                    const isSurpengSigned = penyelia.is_surpeng_signed;
                     const hasTugas = penyelia.penyelia_map.length > 0;
                     const docPengujian = permohonan.dokumen.find(d => d.jenis === 'SuratPengujian');
                     const docTugas = permohonan.dokumen.find(d => d.jenis === 'surattugas');
+                    const docSurpeng = permohonan.dokumen.find(d => d.jenis === 'surpeng');
+
+                    let actionButtons = [];
 
                     let btnDocTugas = ``;
                     let btnDocPengujian = ``;
+                    let btnDocSurpeng = ``;
 
                     // Konfigurasi Tombol Surat Tugas
                     let tugasBtn = {
@@ -140,6 +145,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     let btnNoteTugas = '';
                     let btnRemovePengajuan = '';
                     let btnNotePengajuan = '';
+                    let btnNoteSurpeng = '';
 
                     if (hasTugas) {
                         if (!isTugasSigned) {
@@ -188,16 +194,16 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         }
                     }
 
-                    btnAction2 = `
-                            <div class="d-flex justify-content-between gap-1">
-                                <a class="btn ${tugasBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${tugasBtn.title}" ${tugasBtn.attr}>
-                                    <i class="bi ${tugasBtn.icon}"></i> Surat Tugas
-                                </a>
-                                ${btnDocTugas}
-                                ${btnNoteTugas}
-                                ${btnRemoveTugas}
-                            </div>
-                        `;
+                    actionButtons.push(`
+                        <div class="d-flex justify-content-between gap-1">
+                            <a class="btn ${tugasBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${tugasBtn.title}" ${tugasBtn.attr}>
+                                <i class="bi ${tugasBtn.icon}"></i> Surat Tugas
+                            </a>
+                            ${btnDocTugas}
+                            ${btnNoteTugas}
+                            ${btnRemoveTugas}
+                        </div>
+                    `);
 
                     // Konfigurasi Tombol Surat Pengujian
                     if (jenislayanan(permohonan.jenis_layanan_parent, permohonan.jenis_layanan) === 'EvaluasiTanpaKontrak') {
@@ -257,20 +263,72 @@ function loadData(page = 1, menu = 'penyelialhu') {
                             }
                         }
 
-                        btnAction2 = `
-                                <div class="d-flex justify-content-center flex-column gap-2">
-                                    ${btnAction2}
-                                    <div class="d-flex justify-content-between gap-1">
-                                        <button class="btn ${pengujianBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${pengujianBtn.title}" ${pengujianBtn.attr}>
-                                            <i class="bi ${pengujianBtn.icon}"></i> Surat Pengujian
-                                        </button>
-                                        ${btnDocPengujian}
-                                        ${btnNotePengajuan}
-                                        ${btnRemovePengajuan}
-                                    </div>
-                                </div>
-                            `;
+                        actionButtons.push(`
+                            <div class="d-flex justify-content-between gap-1">
+                                <button class="btn ${pengujianBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${pengujianBtn.title}" ${pengujianBtn.attr}>
+                                    <i class="bi ${pengujianBtn.icon}"></i> Surat Pengujian
+                                </button>
+                                ${btnDocPengujian}
+                                ${btnNotePengajuan}
+                                ${btnRemovePengajuan}
+                            </div>
+                        `);
                     }
+
+                    // Konfigurasi Tombol Surat Pengantar
+                    let surpengBtn = {
+                        icon: 'bi-hourglass-split',
+                        class: 'btn-outline-secondary',
+                        attr: 'disabled',
+                        title: 'Menunggu Surat Pengantar'
+                    };
+
+                    if (docSurpeng) {
+                        if (!isSurpengSigned) {
+                            surpengBtn.icon = 'bi-clock-history';
+                            surpengBtn.class = 'btn-light text-warning-emphasis';
+                            surpengBtn.title = 'Menunggu TTD Surat Pengantar';
+                        } else if (isSurpengSigned === 1) {
+                            surpengBtn.icon = 'bi-check2-all';
+                            surpengBtn.class = 'btn-light text-success';
+                            surpengBtn.title = 'Surat Pengantar Selesai (Signed)';
+
+                            btnDocSurpeng = `
+                                <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
+                                    data-url="laporan/${docSurpeng.jenis}/${docSurpeng.permohonan_hash}/${penyelia.permohonan.periode}"
+                                    data-title="Dokumen Surat Pengantar"
+                                    onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </button>
+                            `;
+                        } else {
+                            surpengBtn.icon = 'bi-x-circle';
+                            surpengBtn.class = 'btn-light text-danger';
+                            surpengBtn.title = 'Surat Pengantar Ditolak';
+
+                            btnNoteSurpeng = `
+                                <a class="btn btn-outline-warning btn-sm text-nowrap rounded-pill" title="Catatan Surat Pengantar" data-type="spg" onclick="btnNote(this)">
+                                    <i class="bi bi-chat-left-text"></i>
+                                </a>
+                            `;
+                        }
+                    }
+
+                    actionButtons.push(`
+                        <div class="d-flex justify-content-between gap-1">
+                            <button class="btn ${surpengBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${surpengBtn.title}" ${surpengBtn.attr} style="cursor: default; pointer-events: none;">
+                                <i class="bi ${surpengBtn.icon}"></i> Surat Pengantar
+                            </button>
+                            ${btnDocSurpeng}
+                            ${btnNoteSurpeng}
+                        </div>
+                    `);
+
+                    btnAction2 = `
+                        <div class="d-flex justify-content-center flex-column gap-2">
+                            ${actionButtons.join('')}
+                        </div>
+                    `;
                     // }
 
                     let timeLine = new Timeline({
@@ -377,9 +435,18 @@ function btnNote(obj) {
 
     if (!id) return;
 
+    let keyLog = 'surat_tugas';
+    let typeLabel = 'Surat Tugas';
+    if (type == 'sp') {
+        keyLog = 'surat_pengujian';
+        typeLabel = 'Surat Pengujian';
+    } else if (type == 'spg') {
+        keyLog = 'surpeng';
+        typeLabel = 'Surat Pengantar';
+    }
+
     NoteComponent.showLoading();
-    ajaxGet(`logs/proses?mode=penyelia&log_name=HISTORY_DOCUMENT&id=${id}&key=${type == 'st' ? 'surat_tugas' : 'surat_pengujian'}`, {}, result => {
-        let typeLabel = type == 'st' ? 'Surat Tugas' : 'Surat Pengujian';
+    ajaxGet(`logs/proses?mode=penyelia&log_name=HISTORY_DOCUMENT&id=${id}&key=${keyLog}`, {}, result => {
         let note = result.data[0]?.properties?.catatan;
         NoteComponent.render({
             title: `${typeLabel}`,

@@ -1312,7 +1312,9 @@ class PermohonanAPI extends Controller
                     'ttd' => $ttd,
                     'ttd_by' => $ttdBy,
                     'verify_at' => date('Y-m-d H:i:s'),
-                    'status' => 2
+                    'status' => 2,
+                    'locked_by' => null,
+                    'locked_at' => null
                 ));
 
                 // buatkan invoice jika total harga lebih besar dari 0
@@ -1389,6 +1391,8 @@ class PermohonanAPI extends Controller
                     $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
                     $arrayUpdate['ttd'] = $ttd;
                     $arrayUpdate['ttd_by'] = $ttdBy;
+                    $arrayUpdate['locked_by'] = null;
+                    $arrayUpdate['locked_at'] = null;
 
                     // simpan ttd di dokumen
                     Permohonan_dokumen::where('id_permohonan', $idPermohonan)
@@ -1510,6 +1514,8 @@ class PermohonanAPI extends Controller
                     $note = $request->note ? $request->note : '';
                     $arrayUpdate['note'] = $note;
                     $arrayUpdate['status'] = 90; // Pengajuan di tolak oleh front desk
+                    $arrayUpdate['locked_by'] = null;
+                    $arrayUpdate['locked_at'] = null;
                     $dataPermohonan->update($arrayUpdate);
 
                     // send notif to pelanggan
@@ -1724,6 +1730,45 @@ class PermohonanAPI extends Controller
                 'nomer' => $no_kontrak
             );
             Permohonan_dokumen::create($data);
+        }
+    }
+    public function pingLock(Request $request)
+    {
+        try {
+            $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            if ($idPermohonan) {
+                $dataPermohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
+                if ($dataPermohonan && $dataPermohonan->locked_by == Auth::user()->id) {
+                    $dataPermohonan->update([
+                        'locked_at' => date('Y-m-d H:i:s')
+                    ]);
+                    return $this->output(array('msg' => 'Lock updated'));
+                }
+            }
+            return $this->output(array('msg' => 'Failed'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+    public function unlockLock(Request $request)
+    {
+        try {
+            $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            if ($idPermohonan) {
+                $dataPermohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
+                if ($dataPermohonan && $dataPermohonan->locked_by == Auth::user()->id) {
+                    $dataPermohonan->update([
+                        'locked_by' => null,
+                        'locked_at' => null
+                    ]);
+                    return $this->output(array('msg' => 'Lock released'));
+                }
+            }
+            return $this->output(array('msg' => 'Failed'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
 }

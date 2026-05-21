@@ -290,6 +290,19 @@ class StaffController extends Controller
         if(!$dataPermohonan)
             abort(404);
 
+        if ($dataPermohonan->locked_by && $dataPermohonan->locked_by != Auth::user()->id) {
+            $lockTime = Carbon::parse($dataPermohonan->locked_at);
+            if (Carbon::now()->diffInMinutes($lockTime) < 3) {
+                $lockedBy = User::find($dataPermohonan->locked_by);
+                $userName = $lockedBy ? $lockedBy->name : 'Staff Lain';
+                return redirect()->route('staff.permohonan')->with('error', "Permohonan sedang diverifikasi oleh {$userName}");
+            }
+        }
+        $dataPermohonan->update([
+            'locked_by' => Auth::user()->id,
+            'locked_at' => Carbon::now()
+        ]);
+
         if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){
             $pertanyaan_tr = Master_pertanyaan::where('id_layananjasa', $dataPermohonan->layanan_jasa->id_layanan)->get();
         }

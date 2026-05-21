@@ -80,6 +80,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPengajuanById/{id}', 'getPengajuanById');
         Route::post('/verifikasi/cek', 'verifPermohonan');
         Route::post('/verifikasi/adendum', 'verifAdendum');
+        Route::post('/verifikasi/ping', 'pingLock');
+        Route::post('/verifikasi/unlock', 'unlockLock');
         Route::post('/verifikasi/tambahTandaterima', 'tambahTandaterima');
         Route::delete('/destroyTandaterima/{idPermohonan}', 'destroyTandaterima');
         Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');

@@ -135,7 +135,9 @@ class Permohonan extends Model
         'flag_read',
         'created_by',
         'created_at',
-        'verify_at'
+        'verify_at',
+        'locked_by',
+        'locked_at'
     ];
 
     protected $hidden = [
@@ -177,7 +179,8 @@ class Permohonan extends Model
         'file_lhu' => 'integer',
         'created_by' => 'integer',
         'is_have_tld' => 'integer',
-        'is_zerocek' => 'integer'
+        'is_zerocek' => 'integer',
+        'locked_by' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

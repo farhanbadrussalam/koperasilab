@@ -16,13 +16,13 @@ let isAdendumZerocek = true;
 
 $(function () {
     // is adendum tidak pake zerocek
-    if(dataPermohonan.tipe_kontrak == 'adendum'){
-        if(dataPermohonan.is_zerocek == 0){
+    if (dataPermohonan.tipe_kontrak == 'adendum') {
+        if (dataPermohonan.is_zerocek == 0) {
             $('#tambah-tandaterima').hide();
             isAdendumZerocek = false;
         }
     }
-    inventoryTld = new Inventory_tld({preview: true});
+    inventoryTld = new Inventory_tld({ preview: true });
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
 
@@ -32,12 +32,12 @@ $(function () {
         // reset tmpArrTld
         let index = tmpArrTld.findIndex(d => d.index == detail.selected);
 
-        if(index > -1){
+        if (index > -1) {
             tmpArrTld[index].tld = detail.data_tld.tld_hash;
         }
     });
 
-    if(dataPermohonan.tipe_kontrak == 'kontrak lama'){
+    if (dataPermohonan.tipe_kontrak == 'kontrak lama') {
         $('#total-harga').hide();
     }
 
@@ -47,11 +47,11 @@ $(function () {
     jenisLayanan = dataPermohonan.jenis_layanan;
 
     let txtPeriode = '';
-    if(!dataPermohonan.periode_pemakaian){
+    if (!dataPermohonan.periode_pemakaian) {
         txtPeriode = 'Periode ' + dataPermohonan.periode;
         $('#btn-periode').hide();
     } else {
-        if(arrPeriode.length == 1) {
+        if (arrPeriode.length == 1) {
             txtPeriode = `${dateFormat(arrPeriode[0].start_date, 4)} - ${dateFormat(arrPeriode[0].end_date, 4)}`;
             // $('#btn-periode').hide();
         } else {
@@ -62,9 +62,9 @@ $(function () {
 
     // periode pemakaian selanjutnya
     let txtPeriodeNext = '';
-    if(dataPermohonan.periode_next){
+    if (dataPermohonan.periode_next) {
         let arrPeriodeNext = dataPermohonan.periode_next;
-        if(arrPeriodeNext.length == 1) {
+        if (arrPeriodeNext.length == 1) {
             txtPeriodeNext = `${dateFormat(arrPeriodeNext[0].start_date, 4)} - ${dateFormat(arrPeriodeNext[0].end_date, 4)}`;
         } else {
             txtPeriodeNext = arrPeriodeNext.length + ' Periode';
@@ -103,13 +103,13 @@ $(function () {
 
     loadTld();
     $('#btn-tandaterima').on('click', () => {
-        if(tandaterima){
+        if (tandaterima) {
             loadPertanyaan();
         }
         $('#modal-tandaterima').modal('show');
     })
 
-    if(arrPeriode){
+    if (arrPeriode) {
         periodeJs = new Periode(arrPeriode, {
             preview: false,
             max: arrPeriode.length,
@@ -138,7 +138,7 @@ $(function () {
         });
     }
 
-    $('#btnSelectAllTld').on('click', function() {
+    $('#btnSelectAllTld').on('click', function () {
         const isChecked = $('#selectAllTld').is(':checked');
         $('#selectAllTld').prop('checked', !isChecked);
         $('input[name="selectTld"]').prop('checked', !isChecked);
@@ -155,7 +155,7 @@ $(function () {
         multiple: false
     });
 
-    if(dataPermohonan.file_lhu){
+    if (dataPermohonan.file_lhu) {
         uploadDocLhu.addData([dataPermohonan.file_lhu]);
     }
 
@@ -169,26 +169,26 @@ $(function () {
 
     $('#btn-delete-tandaterima').on('click', () => {
         ajaxDelete(`api/v1/permohonan/destroyTandaterima/${dataPermohonan.permohonan_hash}`, (result) => {
-           Swal.fire({
-               icon: 'success',
-               text: 'Delete tandaterima successfully',
-               timer: 1200,
-               timerProgressBar: true,
-               showConfirmButton: false
-           }).then(() => {
+            Swal.fire({
+                icon: 'success',
+                text: 'Delete tandaterima successfully',
+                timer: 1200,
+                timerProgressBar: true,
+                showConfirmButton: false
+            }).then(() => {
                 dataPermohonan.tandaterima = [];
                 loadTandaterima();
-           })
+            })
         });
     });
 
-    $('#checkAllTldPengguna').on('change', function() {
+    $('#checkAllTldPengguna').on('change', function () {
         const isChecked = $(this).is(':checked');
         $('input[name="checkTldPengguna"]').prop('checked', isChecked);
     });
 
 
-    if(dataPermohonan.is_have_tld){
+    if (dataPermohonan.is_have_tld) {
         isCheckedEvaluasi = true;
     }
     // isCheckedEvaluasi = dataPermohonan.is_have_tld || dataPermohonan.is_zerocek == 0;
@@ -210,6 +210,28 @@ $(function () {
 
     loadPelanggan();
     loadTandaterima();
+
+    // Heartbeat ping to keep lock alive
+    setInterval(() => {
+        let formData = new FormData();
+        formData.append('idPermohonan', dataPermohonan.permohonan_hash);
+        ajaxPost(`api/v1/permohonan/verifikasi/ping`, formData, result => {
+            // lock updated silently
+        }, error => {
+            console.error('Ping failed');
+        });
+    }, 60000); // 1 minute
+
+    // Unlock when leaving the page or canceling
+    window.addEventListener('beforeunload', function (e) {
+        let formData = new FormData();
+        formData.append('idPermohonan', dataPermohonan.permohonan_hash);
+        formData.append('_token', csrf);
+
+        ajaxPost(`api/v1/permohonan/verifikasi/unlock`, formData, result => {
+            // lock updated silently
+        })
+    });
 });
 
 function loadPelanggan() {
@@ -225,7 +247,7 @@ function loadPelanggan() {
     $('#kodeInstansi').html(perusahaan.kode_perusahaan ?? '-');
     $('#email-perusahaan').html(perusahaan.email ?? '-');
 
-    if(perusahaan.kode_perusahaan) {
+    if (perusahaan.kode_perusahaan) {
         $('#status-instansi').html('Terverifikasi');
         $('#status-instansi').removeClass('text-danger bg-danger-subtle border-danger-subtle');
         $('#status-instansi').addClass('text-success bg-success-subtle border-success-subtle');
@@ -242,20 +264,20 @@ function loadPelanggan() {
         let valAlamat = value.alamat;
         let valKodepos = value.kode_pos;
 
-        if(value.jenis == 'Utama'){
+        if (value.jenis == 'Utama') {
             alamatUtama = value.alamat;
             kodeposUtama = value.kode_pos;
-        }else{
-            if(value.status){
+        } else {
+            if (value.status) {
                 valAlamat = value.alamat;
                 valKodepos = value.kode_pos;
-            }else{
+            } else {
                 valAlamat = '';
                 valKodepos = '';
             }
         }
 
-        if(valAlamat == '') {
+        if (valAlamat == '') {
             $(`#alamat-${value.jenis}`).addClass('fst-italic');
             $(`#alamat-${value.jenis}`).html("Sama dengan alamat utama");
         } else {
@@ -266,7 +288,7 @@ function loadPelanggan() {
     }
 }
 
-function loadPertanyaan(){
+function loadPertanyaan() {
     let html = '';
     $('#content-pertanyaan').html('');
     for (const [i, value] of tandaterima.entries()) {
@@ -274,15 +296,15 @@ function loadPertanyaan(){
         let btnSelectTld = ``;
         let htmlMandatory = value.mandatory ? '<span class="text-danger ml-2">*</span>' : '';
 
-        if(value.type == 1){
+        if (value.type == 1) {
             let jenisTld = '';
             let readonly = '';
-            if(value.pertanyaan == 'TLD'){
+            if (value.pertanyaan == 'TLD') {
                 jenisTld = dataPermohonan.jenis_tld?.name ?? '';
                 readonly = ' readonly';
             }
             htmlAnswer = `<textarea name="answer_${i}" id="answer_${i}" cols="30" rows="3" class="form-control" ${readonly}>${jenisTld}</textarea>`;
-        }else if(value.type == 2){
+        } else if (value.type == 2) {
             htmlAnswer = `
                 <div class="my-3">
                     <div class="form-check form-check-inline">
@@ -298,14 +320,14 @@ function loadPertanyaan(){
                     </div>
                 </div>
             `;
-        }else if(value.type == 3){
+        } else if (value.type == 3) {
             htmlAnswer = `<textarea name="answer_${i}" id="answer_${i}" cols="30" rows="3" class="form-control" readonly></textarea>`;
             btnSelectTld = `<button class="btn btn-outline-primary btn-sm" type="button" onclick="selectTLDPermohonan(${i})">Pilih TLD</button>`;
         }
 
         html += `
             <div class="col-sm-6 mt-2">
-                <label for="" class="mb-2">${value.pertanyaan+htmlMandatory} : ${btnSelectTld}</label>
+                <label for="" class="mb-2">${value.pertanyaan + htmlMandatory} : ${btnSelectTld}</label>
                 ${htmlAnswer}
             </div>
         `;
@@ -314,13 +336,13 @@ function loadPertanyaan(){
     $('#content-pertanyaan').html(html);
 }
 
-function loadTandaterima(){
+function loadTandaterima() {
     const data = dataPermohonan.tandaterima;
-    if(data && data.length > 0){
+    if (data && data.length > 0) {
         $('#status_tandaterima').val('true');
         $('#tambah-tandaterima').addClass('d-none');
         $('#show-tandaterima').removeClass('d-none');
-    }else{
+    } else {
         $('#status_tandaterima').val('false');
         $('#tambah-tandaterima').removeClass('d-none');
         $('#show-tandaterima').addClass('d-none');
@@ -331,17 +353,17 @@ function toggleReason(index, enable) {
     $(`#reason_${index}`).prop('disabled', !enable);
 }
 
-function loadTld(){
+function loadTld() {
     loadPengguna();
     loadTldKontrol();
 }
 
-function loadTldKontrol(){
-    ajaxGet(`api/v1/permohonan/listKontrol`, {idPermohonan: dataPermohonan.permohonan_hash}, result => {
+function loadTldKontrol() {
+    ajaxGet(`api/v1/permohonan/listKontrol`, { idPermohonan: dataPermohonan.permohonan_hash }, result => {
         let html = '';
         let htmlDisabled = false;
 
-        if(dataPermohonan.is_have_tld){
+        if (dataPermohonan.is_have_tld) {
             htmlDisabled = true;
         }
         let index = 0;
@@ -349,7 +371,7 @@ function loadTldKontrol(){
             if (!Object.hasOwn(result.data.tldPermohonan, key)) continue;
             const kontrol = result.data.tldPermohonan[key];
 
-            for (const [i,item] of kontrol.entries()) {
+            for (const [i, item] of kontrol.entries()) {
                 let idHash = item.permohonan_detail_hash ? item.permohonan_detail_hash : item.kontrak_detail_hash;
                 let tldHash = item.tld ? item.tld.tld_hash : (item.tld_pengguna?.tld_hash || '');
                 let no_seri_tld = item.tld ? item.tld.no_seri_tld : (item.tld_pengguna?.no_seri_tld || '');
@@ -383,7 +405,7 @@ function loadTldKontrol(){
         }
         $('#jumlah-info-kontrol').html(index);
 
-        if(result.data.tldPermohonan.length == 0){
+        if (result.data.tldPermohonan.length == 0) {
             html += `
                 <div class="col-sm-12 text-center my-3">
                     <label for="">Tidak ada TLD Kontrol</label>
@@ -393,7 +415,7 @@ function loadTldKontrol(){
         $('#tld-kontrol-content').html(html);
     });
 }
-function loadPengguna(){
+function loadPengguna() {
     let params = {
         idPermohonan: dataPermohonan.permohonan_hash
     }
@@ -404,7 +426,7 @@ function loadPengguna(){
         let html = '';
         let htmlDisabled = false;
 
-        if(dataPermohonan.is_have_tld || dataPermohonan.tipe_kontrak == 'adendum'){
+        if (dataPermohonan.is_have_tld || dataPermohonan.tipe_kontrak == 'adendum') {
             htmlDisabled = true;
         }
 
@@ -418,7 +440,7 @@ function loadPengguna(){
             let tldHash = value.tld ? value.tld.tld_hash : (value.tld_pengguna?.tld_hash || '');
             let no_seri_tld = value.tld ? value.tld.no_seri_tld : (value.tld_pengguna?.no_seri_tld || '');
 
-            if(!value.tld) htmlDisabled = false;
+            if (!value.tld) htmlDisabled = false;
 
             tmpArrTld.push({
                 id: idHash,
@@ -440,7 +462,7 @@ function loadPengguna(){
                 fileKtp: fileKtp
             }
 
-            if(value.type == 'ganti'){
+            if (value.type == 'ganti') {
                 data['name'] = value.pengguna_lama?.name;
                 data['pengguna_baru'] = {
                     name: pengguna.name,
@@ -456,7 +478,7 @@ function loadPengguna(){
             jmlTldCount++;
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html += `
                 <div class="col-sm-12 text-center my-3">
                     <label for="">Tidak ada Pengguna</label>
@@ -470,30 +492,30 @@ function loadPengguna(){
 
 }
 
-function verif_kelengkapan(status, obj){
-    if(status == 'lengkap'){
+function verif_kelengkapan(status, obj) {
+    if (status == 'lengkap') {
         let [ttdValue, ttdBy] = signaturePad.getValue();
-        if(dataPermohonan.tandaterima.length == 0 && isAdendumZerocek){
+        if (dataPermohonan.tandaterima.length == 0 && isAdendumZerocek) {
             return Swal.fire({
                 icon: "warning",
                 text: "Harap tambah tandaterima terlebih dahulu.",
             });
         }
 
-        if(!ttdValue){
+        if (!ttdValue) {
             return Swal.fire({
                 icon: "warning",
                 text: "Harap berikan tanda tangan terlebih dahulu.",
             });
         }
 
-        if(isCheckedEvaluasi){
+        if (isCheckedEvaluasi) {
             let checkTld = [];
-            $('input[name="checkTldPengguna"]:checked, input[name="checkTldKontrol"]:checked').each(function() {
+            $('input[name="checkTldPengguna"]:checked, input[name="checkTldKontrol"]:checked').each(function () {
                 checkTld.push($(this).val());
             });
 
-            if(checkTld.length < jmlTldCount){
+            if (checkTld.length < jmlTldCount) {
                 return Swal.fire({
                     icon: "warning",
                     text: "Data Pengguna dan Kontrol belum lengkap.",
@@ -501,7 +523,7 @@ function verif_kelengkapan(status, obj){
             }
         }
 
-        if($('#tanggal-selesai').val() == ''){
+        if ($('#tanggal-selesai').val() == '') {
             return Swal.fire({
                 icon: "warning",
                 text: "Harap pilih tanggal selesai terlebih dahulu.",
@@ -521,7 +543,7 @@ function verif_kelengkapan(status, obj){
             buttonsStyling: false,
             reverseButtons: true
         }).then(result => {
-            if(result.isConfirmed){
+            if (result.isConfirmed) {
                 let formData = new FormData();
                 formData.append('ttd', ttdValue);
                 formData.append('ttd_by', ttdBy);
@@ -531,7 +553,7 @@ function verif_kelengkapan(status, obj){
                 formData.append('listTld', JSON.stringify(tmpArrTld));
 
                 spinner('show', obj);
-                if(dataPermohonan.tipe_kontrak == 'adendum'){
+                if (dataPermohonan.tipe_kontrak == 'adendum') {
                     ajaxPost(`api/v1/permohonan/verifikasi/adendum`, formData, result => {
                         Swal.fire({
                             icon: 'success',
@@ -540,7 +562,7 @@ function verif_kelengkapan(status, obj){
                             timerProgressBar: true,
                             showConfirmButton: false
                         }).then(() => {
-                            window.location.href = base_url+"/staff/permohonan";
+                            window.location.href = base_url + "/staff/permohonan";
                         });
                     }, error => {
                         spinner('hide', obj);
@@ -554,7 +576,7 @@ function verif_kelengkapan(status, obj){
                             timerProgressBar: true,
                             showConfirmButton: false
                         }).then(() => {
-                            window.location.href = base_url+"/staff/permohonan";
+                            window.location.href = base_url + "/staff/permohonan";
                         });
                     }, error => {
                         spinner('hide', obj);
@@ -562,19 +584,19 @@ function verif_kelengkapan(status, obj){
                 }
             }
         })
-    }else if(status == 'tidak_lengkap'){
+    } else if (status == 'tidak_lengkap') {
         $('#modal-verif-invalid').modal('show');
     }
 }
 
-function createInvoice(idPermohonan){
+function createInvoice(idPermohonan) {
     const formData = new FormData();
     formData.append('idPermohonan', idPermohonan);
     formData.append('status', 1);
-    ajaxPost(`api/v1/keuangan/action`, formData, result => {})
+    ajaxPost(`api/v1/keuangan/action`, formData, result => { })
 }
 
-function createPenyelia(idPermohonan){
+function createPenyelia(idPermohonan) {
     const formData = new FormData();
     formData.append('idPermohonan', idPermohonan);
     formData.append('status', 1);
@@ -583,23 +605,23 @@ function createPenyelia(idPermohonan){
     })
 }
 
-function simpanTandaTerimaPermohonan(obj){
+function simpanTandaTerimaPermohonan(obj) {
     // Get all form elements within #content-pertanyaan
     const answerTandaterima = [];
-    if(tandaterima){
+    if (tandaterima) {
         for (const [i, value] of tandaterima.entries()) {
             let elementAnswer = false;
-            if(value.type == 1 || value.type == 3){
+            if (value.type == 1 || value.type == 3) {
                 elementAnswer = $(`#answer_${i}`).val();
                 answerTandaterima.push({
                     id: value.pertanyaan_hash,
                     answer: elementAnswer,
                     note: ''
                 });
-            } else if(value.type == 2) {
+            } else if (value.type == 2) {
                 elementAnswer = $(`[name="answer_${i}"]:checked`).val();
                 let note = '';
-                if(elementAnswer == 'cacat'){
+                if (elementAnswer == 'cacat') {
                     note = $(`#reason_${i}`).val();
                 }
                 answerTandaterima.push({
@@ -609,7 +631,7 @@ function simpanTandaTerimaPermohonan(obj){
                 });
             }
 
-            if(value.mandatory && elementAnswer == ''){
+            if (value.mandatory && elementAnswer == '') {
                 return Swal.fire({
                     icon: "warning",
                     text: `Harap lengkapi pertanyaan yang wajib diisi.`
@@ -623,7 +645,7 @@ function simpanTandaTerimaPermohonan(obj){
         spinner('show', $(obj));
         ajaxPost(`api/v1/permohonan/verifikasi/tambahTandaterima`, formData, result => {
             spinner('hide', $(obj));
-            if(result.meta.code == 200){
+            if (result.meta.code == 200) {
                 Swal.fire({
                     icon: "success",
                     text: result.data.msg,
@@ -634,7 +656,7 @@ function simpanTandaTerimaPermohonan(obj){
 
                     loadTandaterima();
                 });
-            }else{
+            } else {
                 Swal.fire({
                     icon: "error",
                     text: result.data.msg,
@@ -647,7 +669,7 @@ function simpanTandaTerimaPermohonan(obj){
     }
 }
 
-function return_permohonan(obj){
+function return_permohonan(obj) {
     let note = $('#txt_note').val();
     spinner('show', obj);
 
@@ -664,23 +686,23 @@ function return_permohonan(obj){
             timerProgressBar: true,
             showConfirmButton: false
         }).then(() => {
-            window.location.href = base_url+"/staff/permohonan";
+            window.location.href = base_url + "/staff/permohonan";
         });
     })
 }
 
-function selectTLDPermohonan(index){
+function selectTLDPermohonan(index) {
     let jsonTld = [];
-    if(dataPermohonan.list_tld){
+    if (dataPermohonan.list_tld) {
         jsonTld = dataPermohonan.list_tld;
-    }else{
+    } else {
         let jumTld = dataPermohonan.jumlah_pengguna + dataPermohonan.jumlah_kontrol;
         for (let i = 0; i < jumTld; i++) {
-            jsonTld.push('TLD '+ (i+1));
+            jsonTld.push('TLD ' + (i + 1));
         }
     }
 
-    if(checkedTldValues.length != 0){
+    if (checkedTldValues.length != 0) {
         jsonTld = checkedTldValues;
     }
 
@@ -700,9 +722,9 @@ function selectTLDPermohonan(index){
     $('#modal-select-tld').modal('show');
 }
 
-function simpanTldPermohonan(obj){
+function simpanTldPermohonan(obj) {
     checkedTldValues = [];
-    $('input[name="selectTld"]:checked').each(function() {
+    $('input[name="selectTld"]:checked').each(function () {
         let indexTld = $(this).data('index');
         let value = $(`#tld_${indexTld}`).val();
         checkedTldValues.push(value);
@@ -721,31 +743,31 @@ function areThereEmptyFields(formElements) {
     let isEmpty = false; // Assume no empty fields initially
 
     // Iterate through each form element
-    formElements.each(function() {
-      const element = $(this); // Get the jQuery object for the element
+    formElements.each(function () {
+        const element = $(this); // Get the jQuery object for the element
 
-      // Check for empty values based on element type
-      if (element.is('input[type="text"], input[type="email"], input[type="number"], textarea') && element.val().trim() === "") {
-        isEmpty = true; // Found an empty field
-        return false; // Exit the .each() loop early
-      } else if (element.is('input[type="radio"], input[type="checkbox"]') && !element.is(':checked')) {
-        // Check if at least one radio button in a group is selected
-        const name = element.attr('name');
-        if ($(`input[name="${name}"]:checked`).length === 0) {
-          isEmpty = true;
-          return false;
+        // Check for empty values based on element type
+        if (element.is('input[type="text"], input[type="email"], input[type="number"], textarea') && element.val().trim() === "") {
+            isEmpty = true; // Found an empty field
+            return false; // Exit the .each() loop early
+        } else if (element.is('input[type="radio"], input[type="checkbox"]') && !element.is(':checked')) {
+            // Check if at least one radio button in a group is selected
+            const name = element.attr('name');
+            if ($(`input[name="${name}"]:checked`).length === 0) {
+                isEmpty = true;
+                return false;
+            }
+        } else if (element.is('select') && element.val() === null) {
+            isEmpty = true;
+            return false;
         }
-      } else if (element.is('select') && element.val() === null) {
-        isEmpty = true;
-        return false;
-      }
     });
 
     return isEmpty;
 }
 
-function templateTld(state){
-    if(!state.id){
+function templateTld(state) {
+    if (!state.id) {
         return state.text;
     }
 
@@ -758,7 +780,7 @@ function templateTld(state){
     return content;
 }
 
-function openInventory(obj, jenis){
+function openInventory(obj, jenis) {
     let id = $(obj).data('id');
     inventoryTld.show(id, tmpArrTld, jenis);
 }
