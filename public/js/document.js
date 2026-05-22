@@ -5,12 +5,13 @@ class ModalDocument {
             title: options.title ?? '',
             withForm: options.withForm ?? false, // Opsi untuk menampilkan form di kanan
             formTitle: options.formTitle ?? 'Form TTD', // Judul form
+            isCanEdit: options.isCanEdit ?? false
         };
 
         this._initializeProperties();
         this._createCustomEvents();
 
-        if(this.options.modal){
+        if (this.options.modal) {
             $('body').append(this.modalCreate());
         }
 
@@ -30,6 +31,8 @@ class ModalDocument {
         // $('#btnSimpanDetail').on('click', this.simpanDetail.bind(this));
         $('body').on('click', '#btnDownloadPdf', this.download.bind(this));
         $('body').on('click', '#btnPrintPdf', this.print.bind(this));
+        $('body').on('click', '#btnEditPdfForm', this.showForm.bind(this));
+        $('body').on('click', '#btnCloseForm', this.hideForm.bind(this));
     }
 
     /**
@@ -44,7 +47,9 @@ class ModalDocument {
         };
         this.loadData(url);
         $('#pdfModal').modal('show');
-        if(this.options.withForm && options.formHtml) this.setFormContent(options.formHtml);
+        if (options.formHtml) {
+            this.setFormContent(options.formHtml)
+        };
     }
 
     hide() {
@@ -58,7 +63,7 @@ class ModalDocument {
      * @param {string} url - The URL to load into the iframe.
      */
 
-    loadData(url){
+    loadData(url) {
         this.currentUrl = url;
         const $container = $('#pdfViewer');
         $container.empty();
@@ -84,7 +89,7 @@ class ModalDocument {
 
                 const $iframe = $(`<iframe src="${fullUrl}" width="100%" height="100%" frameborder="0" style="display:none;"></iframe>`);
 
-                $iframe.on('load', function() {
+                $iframe.on('load', function () {
                     $('#pdfLoading').remove();
                     $(this).fadeIn();
                 });
@@ -138,37 +143,44 @@ class ModalDocument {
         }
     }
 
+    showForm() {
+        $('#pdfModalDialog').removeClass('modal-lg').addClass('modal-xl');
+        $('#pdfCol').removeClass('col-12').addClass('col-lg-8 border-end');
+
+        // Menunggu transisi selesai (300ms) baru menampilkan form
+        setTimeout(() => {
+            $('#formCol').fadeIn(250);
+        }, 300);
+
+        this.options.withForm = true;
+    }
+
+    hideForm() {
+        // Sembunyikan form dengan fadeOut, setelah selesai baru perkecil modal
+        $('#formCol').fadeOut(200, () => {
+            $('#pdfCol').removeClass('col-lg-8 border-end').addClass('col-12');
+            $('#pdfModalDialog').removeClass('modal-xl').addClass('modal-lg');
+        });
+
+        this.options.withForm = false;
+    }
+
     modalCreate() {
         const modalSize = this.options.withForm ? 'modal-xl' : 'modal-lg';
-
-        let bodyContent = '';
-        if (this.options.withForm) {
-            bodyContent = `
-                <div class="row g-0">
-                    <div class="col-lg-8 border-end">
-                        <div id="pdfViewer" style="height: 80vh;">
-                            <!-- PDF akan dimuat di sini -->
-                        </div>
-                    </div>
-                    <div class="col-lg-4 p-3 pt-1" style="height: 80vh; overflow-y: auto;">
-                        <div class="p-3 bg-light rounded-3 shadow h-100">
-                            <h6 class="fw-bold mb-3">${this.options.formTitle}</h6>
-                            <div id="formContainer">
-                                <!-- Form TTD atau input lainnya -->
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-        } else {
-            bodyContent = `
-                <div id="pdfViewer" style="height: 80vh;">
-                    <!-- PDF akan dimuat di sini -->
-                </div>`;
-        }
+        const pdfColClass = this.options.withForm ? 'col-lg-8 border-end' : 'col-12';
+        const formStyle = this.options.withForm ? '' : 'display: none;';
+        const btnEdit = this.options.isCanEdit ? `
+            <button type="button" class="btn btn-sm btn-warning ms-2" id="btnEditPdfForm">
+                <i class="bi bi-pencil"></i> Edit
+            </button>
+        ` : ``;
+        const btnClose = this.options.isCanEdit ? `
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" id="btnCloseForm" aria-label="Close"></button>
+        ` : ``;
 
         return `
             <div class="modal fade" id="pdfModal" tabindex="-1" aria-labelledby="pdfModalLabel" aria-hidden="true">
-                <div class="modal-dialog ${modalSize} modal-dialog-centered">
+                <div class="modal-dialog ${modalSize} modal-dialog-centered" id="pdfModalDialog" style="transition: max-width 0.3s ease;">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="pdfModalLabel">Tampilan PDF</h5>
@@ -182,20 +194,36 @@ class ModalDocument {
                                 <button type="button" class="btn btn-sm btn-primary" id="btnDownloadPdf">
                                     <i class="bi bi-download"></i> Download
                                 </button>
+                                ${btnEdit}
                             </div>
-                            ${bodyContent}
+                            <div class="row g-0">
+                                <div class="${pdfColClass}" id="pdfCol" style="transition: all 0.3s ease;">
+                                    <div id="pdfViewer" style="height: 80vh;">
+                                        <!-- PDF akan dimuat di sini -->
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 p-3 pt-1" id="formCol" style="height: 80vh; overflow-y: auto; ${formStyle}">
+                                    <div class="p-3 bg-light rounded-3 shadow h-100 position-relative">
+                                        ${btnClose}
+                                        <h6 class="fw-bold mb-3">${this.options.formTitle}</h6>
+                                        <div id="formContainer">
+                                            <!-- Form TTD atau input lainnya -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         `;
     }
-    on(eventName, callback = () => {}) {
+    on(eventName, callback = () => { }) {
         return document.addEventListener(eventName, callback);
     }
 
-    destroy(){
-        if(this.options.modal){
+    destroy() {
+        if (this.options.modal) {
             $('#pdfModal').modal('hide');
             $('#pdfModal').remove();
         }

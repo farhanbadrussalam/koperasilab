@@ -415,10 +415,10 @@ function btnShowDoc(obj) {
     });
 }
 
-function saveSignature(obj, id_penyelia){
+function saveSignature(obj, id_penyelia) {
     let [ttdValue, ttdBy] = signaturePad.getValue();
 
-    if(!ttdValue){
+    if (!ttdValue) {
         return Swal.fire({
             icon: "warning",
             text: "Harap berikan tanda tangan terlebih dahulu.",

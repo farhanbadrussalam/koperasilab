@@ -71,6 +71,7 @@ class Permohonan_dokumen extends Model
         'catatan',
         'variables',
         'content_value',
+        'published_at',
         'created_by',
         'created_at',
     ];

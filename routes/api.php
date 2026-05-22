@@ -91,6 +91,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
         Route::post('/action', 'keuanganAction');
+        Route::post('/updateDokumen', 'updateDokumen');
         Route::post('/actionJenisPembayaran', 'actionJenisPembayaran');
         Route::get('/listKeuangan', 'listKeuangan');
         Route::get('/listJenisPembayaran', 'listJenisPembayaran');

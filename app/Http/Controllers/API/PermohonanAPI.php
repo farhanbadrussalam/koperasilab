@@ -1745,7 +1745,7 @@ class PermohonanAPI extends Controller
                     return $this->output(array('msg' => 'Lock updated'));
                 }
             }
-            return $this->output(array('msg' => 'Failed'), 'Fail', 400);
+            return $this->output(array('msg' => 'Failed'), 'Fail', 200);
         } catch (\Exception $ex) {
             info($ex);
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);

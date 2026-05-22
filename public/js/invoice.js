@@ -383,7 +383,6 @@ class Invoice {
     showPaymentProof() {
         if (this.dataKeuangan.media_bukti_bayar) {
             let media = this.dataKeuangan.media_bukti_bayar;
-            let mediaPph = this.dataKeuangan.media_bukti_bayar_pph;
 
             $('#paymentProofImage').empty();
             let previewBukti = new UploadComponent('paymentProofImage', {
@@ -391,11 +390,15 @@ class Invoice {
                 data: media
             });
 
-            $('#paymentPphProof').empty();
-            let previewPph = new UploadComponent('paymentPphProof', {
-                mode: 'preview',
-                data: mediaPph
-            });
+            if (this.dataKeuangan.pph) {
+                let mediaPph = this.dataKeuangan.media_bukti_bayar_pph;
+                $('#paymentPphProof').empty();
+                let previewPph = new UploadComponent('paymentPphProof', {
+                    mode: 'preview',
+                    data: mediaPph
+                });
+            }
+
             showPopupReload();
         }
     }
@@ -950,11 +953,11 @@ class Invoice {
                                         </div>
                                     </div>
                                     <div id="paymentProofSection" class="mt-3 row">
-                                        <div class="col-6">
+                                        <div class="col-6" id="paymentProofImageSection">
                                             <h5 class="text-center">Bukti Pembayaran</h5>
                                             <div id="paymentProofImage"></div>
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-6" id="paymentPphProofSection" style="display: none;">
                                             <h5 class="text-center">Bukti PPH</h5>
                                             <div id="paymentPphProof"></div>
                                         </div>

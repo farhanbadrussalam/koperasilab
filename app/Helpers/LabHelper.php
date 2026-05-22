@@ -452,10 +452,14 @@ if (!function_exists('generateNoDokumen')) {
         // Tahun saat ini
         $tahunSekarang = date('Y');
 
-        // Incremental number
-        $lastDoc = Permohonan_dokumen::where('jenis', $jenis)
-            ->orderBy('id_dokumen', 'desc')
-            ->first();
+        if($jenis === 'invoice') {
+            $lastDoc = Invoice::orderBy('id_invoice', 'desc')->first();
+        } else {
+            // Incremental number
+            $lastDoc = Permohonan_dokumen::where('jenis', $jenis)
+                ->orderBy('id_dokumen', 'desc')
+                ->first();
+        }
 
         $lastNumber = 0;
         if ($lastDoc) {

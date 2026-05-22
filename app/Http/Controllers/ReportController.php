@@ -289,11 +289,12 @@ class ReportController extends Controller
             case 'Invoice':
                 $rangeDate = range_date($params['periode_start']['start_date'], $params['periode_end']['end_date'], 2);
 
+                $tglTerbit = $data->permohonan->dokumen[0]->published_at ?? $data->permohonan->dokumen[0]->created_at;
                 $vars["NOMOR"] = $data->no_invoice;
                 $vars["LAMPIRAN"] = "Faktur Pajak";
                 $vars["PERIHAL"] = "Invoice " . $data->permohonan->jenis_layanan_parent->name . " " . $data->permohonan->layanan_jasa->nama_layanan . " " . $data->permohonan->jenisTld->name;
                 $vars["LOKASI"] = $lab_lokasi;
-                $vars["TANGGAL"] = convert_date($data->permohonan->dokumen[0]->created_at, 2);
+                $vars["TANGGAL"] = convert_date($tglTerbit, 2);
                 $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->alamat;
                 $vars["KODE_POS"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->kode_pos;
@@ -417,6 +418,9 @@ class ReportController extends Controller
                 break;
             case "Kwitansi":
                 $rangeDate = range_date($params['periode_start'], $params['periode_end'], 2);
+                $type = ($data->status == 5 ? 'L' : '') .
+                    ($data->pph ? 'PH' : '') .
+                    ($data->ppn ? 'N' : '');
 
                 $vars["NOMOR"] = $data->permohonan->kontrak->dokumen[0]->nomer;
                 $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
@@ -433,9 +437,7 @@ class ReportController extends Controller
                 $vars["TGL_BUAT"] = convert_date($data->paid_at, 2);
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["LOKASI_BUAT"] = $lab_lokasi;
-                $vars["TYPE"] = ($data->status == 5 ? 'L' : '') .
-                    ($data->pph ? 'PH' : '') .
-                    ($data->ppn ? 'N' : '');
+                $vars["TYPE"] = $params['catatan'] ?? $type;
                 $vars = array_merge($vars, $this->contentKwitansi($data, $params));
                 break;
             case "SuratPengujian":
@@ -590,6 +592,7 @@ class ReportController extends Controller
         // mengambil template kwitansi
         $dokumen = $query->permohonan->kontrak->dokumen->first();
         if ($dokumen) {
+            $data['catatan'] = $dokumen->catatan;
             $template = $dokumen->doc_template;
 
             if ($dokumen->variables) {

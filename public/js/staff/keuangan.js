@@ -3,7 +3,10 @@ let thisTab = 1;
 let filterComp = false;
 let detail = false;
 let dataKeuangan = false;
-const modalDoc = new ModalDocument();
+const modalDoc = new ModalDocument({
+    isCanEdit: true,
+    formTitle: 'Form Edit',
+});
 
 $(function () {
     switchLoadTab(1);
@@ -105,17 +108,27 @@ function loadData(page = 1, menu) {
                     </a>
                 </li>
             `;
+            let btnCetakInvoice = `
+                <button class="btn btn-outline-info btn-sm text-nowrap"
+                    data-url="laporan/invoice/${keuangan.keuangan_hash}"
+                    data-title="Dokumen Invoice" data-idhash="${keuangan.keuangan_hash}" onclick="btnShowDoc(this)">
+                    <i class="bi bi-eye"></i> invoice
+                </button>
+            `;
             switch (keuangan.status) {
                 case 1:
                     btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Buat Invoice" onclick="openInvoiceModal(this, 'create')"><i class="bi bi-plus"></i> Buat invoice</button>`;
                     break;
                 case 7:
                     btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Upload Faktur" onclick="openInvoiceModal(this, 'detail')"><i class="bi bi-upload"></i> Upload Faktur</button>`;
+                    btnAction2 += btnCetakInvoice;
                     break;
                 case 4:
-                    btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Verifikasi" onclick="openInvoiceModal(this, 'verifStaff')"><i class="bi bi-check2-circle"></i> Verif Invoice</button>`;
+                    btnAction2 = `<button class="btn btn-outline-primary btn-sm text-nowrap" title="Verifikasi" onclick="openInvoiceModal(this, 'verifStaff')"><i class="bi bi-check2-circle"></i> Verif</button>`;
+                    btnAction2 += btnCetakInvoice;
                     break;
                 default:
+                    btnAction2 = btnCetakInvoice;
                     btnAction += `
                         <li>
                             <a class="dropdown-item small cursor-pointer" title="Detail Invoice" onclick="openInvoiceModal(this, 'detail')">
@@ -128,7 +141,10 @@ function loadData(page = 1, menu) {
             if (keuangan.status == 5) {
                 btnAction += `
                     <li>
-                        <a class="dropdown-item small cursor-pointer" data-url="laporan/kwitansi/${keuangan.keuangan_hash}" data-title="Kwitansi" onclick="btnShowDoc(this)" title="Cetak Kwitansi">
+                        <a class="dropdown-item small cursor-pointer" 
+                            data-url="laporan/kwitansi/${keuangan.keuangan_hash}" 
+                            data-title="Kwitansi" data-idhash="${keuangan.keuangan_hash}"
+                            onclick="btnShowDoc(this)" title="Cetak Kwitansi">
                             <i class="bi bi-printer-fill me-2"></i> Kwitansi
                         </a>
                     </li>`;
@@ -212,7 +228,91 @@ function countList() {
 function btnShowDoc(obj) {
     const url = $(obj).data('url');
     const title = $(obj).data('title') || 'Dokumen';
+    const idHash = $(obj).data('idhash');
+
+    // Ekstrak jenis dan hash dari URL (misal: laporan/invoice/HASH)
+    const urlParts = url.split('/');
+    const jenisDoc = urlParts[1] || '';
+
+    const keuangan = dataKeuangan.find(d => d.keuangan_hash == idHash);
+    const findDoc = keuangan.dokumen?.find(d => d.jenis == jenisDoc);
+
+    let htmlType = '';
+
+    if (jenisDoc == 'kwitansi') {
+        htmlType = `<div class="mb-3">
+            <label class="form-label text-secondary small">Type <i class="text-muted small">(Contoh: LPHN)</i></label>
+            <input type="text" class="form-control" name="type_kwitansi" value="${findDoc?.catatan ?? ''}">
+        </div>`;
+    }
+
     modalDoc.show(url, {
-        title: title
+        title: title,
+        formHtml: `
+            <form id="formEditDoc" onsubmit="saveEditDoc(event, '${url}')">
+                <input type="hidden" name="jenis_dokumen" value="${jenisDoc}">
+                <input type="hidden" name="id_hash" value="${idHash}">
+                
+                <div class="mb-3">
+                    <label class="form-label text-secondary small">Nomor Dokumen</label>
+                    <input type="text" class="form-control" name="nomer" value="${findDoc?.nomer ?? ''}" placeholder="Masukkan Nomor..." required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-secondary small">Tanggal Terbit</label>
+                    <input type="date" class="form-control" name="tanggal_terbit" id="tanggal_terbit" required>
+                </div>
+
+                ${htmlType} 
+                
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary" id="btnSaveDoc">
+                        <i class="bi bi-save me-2"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        `
+    });
+
+    let published = findDoc ? (findDoc.published_at ?? findDoc.created_at) : '';
+
+    if (jenisDoc == 'kwitansi') {
+        published = keuangan.paid_at;
+    }
+    $('#tanggal_terbit').flatpickr({
+        altInput: true,
+        locale: "id",
+        defaultDate: published,
+        dateFormat: "Y-m-d",
+        altFormat: "j F Y",
+    });
+}
+
+function saveEditDoc(event, url) {
+    event.preventDefault();
+    const form = $(event.target);
+    const btn = form.find('button[type="submit"]');
+
+    const formdata = new FormData();
+    formdata.append('jenis_dokumen', form.find('input[name="jenis_dokumen"]').val());
+    formdata.append('id_hash', form.find('input[name="id_hash"]').val());
+    formdata.append('nomer', form.find('input[name="nomer"]').val());
+    formdata.append('tanggal_terbit', form.find('input[name="tanggal_terbit"]').val());
+    if (formdata.get('jenis_dokumen') == 'kwitansi') {
+        formdata.append('catatan', form.find('input[name="type_kwitansi"]').val());
+    }
+
+    spinner('show', btn);
+
+    // Endpoint API untuk update nomer dan tanggal terbit.
+    // Jika endpoint ini belum ada di backend, mohon dibuatkan route dan controllernya.
+    ajaxPost('api/v1/keuangan/updateDokumen', formdata, result => {
+        spinner('hide', btn);
+
+        // Reload iframe dengan memanggil fungsi loadData dari modalDoc
+        modalDoc.loadData(url);
+
+    }, err => {
+        spinner('hide', btn);
     });
 }
