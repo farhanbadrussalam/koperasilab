@@ -28,7 +28,10 @@ use DB;
 class KeuanganAPI extends Controller
 {
     use RestApi;
-    protected $media, $log, $pagination, $notif;
+    protected MediaController $media;
+    protected NotifController $notif;
+    protected mixed $log;
+    protected mixed $pagination;
 
     public function __construct()
     {
@@ -180,7 +183,7 @@ class KeuanganAPI extends Controller
         }
     }
 
-    public function destroyJenisPembayaran($id)
+    public function destroyJenisPembayaran(string $id)
     {
         DB::beginTransaction();
         try {
@@ -257,7 +260,7 @@ class KeuanganAPI extends Controller
         }
     }
 
-    public function getKeuangan($idKeuangan)
+    public function getKeuangan(string $idKeuangan)
     {
         $idKeuangan = $idKeuangan ? decryptor($idKeuangan) : false;
         DB::beginTransaction();
@@ -656,7 +659,7 @@ class KeuanganAPI extends Controller
         }
     }
 
-    public function destroyBuktiBayar($idKeuangan, $idMedia)
+    public function destroyBuktiBayar(string $idKeuangan, string $idMedia)
     {
         $idMedia = decryptor($idMedia);
         $idKeuangan = decryptor($idKeuangan);
@@ -689,7 +692,7 @@ class KeuanganAPI extends Controller
         }
     }
 
-    public function destroyBuktiBayarPph($idKeuangan, $idMedia)
+    public function destroyBuktiBayarPph(string $idKeuangan, string $idMedia)
     {
         $idMedia = decryptor($idMedia);
         $idKeuangan = decryptor($idKeuangan);
@@ -723,7 +726,7 @@ class KeuanganAPI extends Controller
     }
 
 
-    public function destroyFaktur($idKeuangan, $idMedia)
+    public function destroyFaktur(string $idKeuangan, string $idMedia)
     {
         $idMedia = decryptor($idMedia);
         $idKeuangan = decryptor($idKeuangan);

@@ -53,6 +53,27 @@ class Detail {
             $(`#${this.options.id}-container`).empty();
             $(`#${this.options.id}-loading`).empty();
         });
+
+        $(`#${this.options.id}`).on('click', '.btn-lihat-dokumen', (e) => {
+            e.preventDefault();
+            const url = $(e.currentTarget).data('url');
+            const title = $(e.currentTarget).data('title') || 'Dokumen';
+            
+            if ($(`#${this.options.id}`).hasClass('offcanvas')) {
+                $(`#${this.options.id}`).offcanvas('hide');
+            } else {
+                $(`#${this.options.id}`).modal('hide');
+            }
+
+            if (typeof modalDoc !== 'undefined') {
+                modalDoc.show(url, { title: title });
+            } else {
+                if (!window.modalDocDetail) {
+                    window.modalDocDetail = new ModalDocument();
+                }
+                window.modalDocDetail.show(url, { title: title });
+            }
+        });
     }
 
     _actionAccordion() {
@@ -956,7 +977,7 @@ class Detail {
                             </div>
                         </div>
                         <div>
-                            <a type="button" class="btn btn-sm btn-outline-primary" target="_blank" href="${base_url}/laporan/${dokumen.jenis}/${idHash}">Lihat</a>
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-lihat-dokumen" data-url="laporan/${dokumen.jenis}/${idHash}" data-title="${dokumen.nama}">Lihat</button>
                         </div>
                     </div>
                 </div>

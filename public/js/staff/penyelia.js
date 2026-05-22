@@ -59,11 +59,16 @@ function switchLoadTab(menu) {
 }
 
 function loadData(page = 1, menu = 'penyelialhu') {
+    let date = new Date();
+    let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
     let params = {
         limit: 5,
         page: page,
         menu: menu,
-        filter: {}
+        filter: {
+            // date_range: [dateFormat(firstDay, 3), dateFormat(lastDay, 3)],
+        }
     };
 
     let filterValue = filterComp && filterComp.getAllValue();
@@ -359,6 +364,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         jenisTld: permohonan.jenis_tld?.name ?? '-',
                         namaLayanan: permohonan.layanan_jasa?.nama_layanan ?? '-',
                         periode: permohonan.periode,
+                        periodeNow: permohonan.periodenow,
                         created_at: permohonan.created_at,
                         kontrak: permohonan.kontrak?.no_kontrak,
                         id: penyelia.penyelia_hash,

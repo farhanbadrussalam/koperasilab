@@ -213,6 +213,10 @@ class FilterComponent {
         }
 
         if (filterName == 'date_range') {
+            let date = new Date();
+            let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+            let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
             this.fp = $('#filterDateRange').flatpickr({
                 mode: 'range',
                 dateFormat: 'Y-m-d',
@@ -493,7 +497,9 @@ class FilterComponent {
         if (filterName == 'jenis_layanan_child') return $('#filterJenisLayananChild').val();
         if (filterName == 'no_kontrak') return $('#filterSearchKontrak').val();
         if (filterName == 'perusahaan') return $('#filterPerusahaan').val();
-        if (filterName == 'date_range') return this.fp.selectedDates.map(date => date.toISOString().split('T')[0]);
+        if (filterName == 'date_range') return this.fp.selectedDates.map(date => {
+            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+        });
         if (filterName == 'search') return $('#filterSearch').val();
         if (filterName == 'periode') return $('#filterPeriode').val();
         if (filterName == 'selected_custom') return $('#filterselected_custom').val();

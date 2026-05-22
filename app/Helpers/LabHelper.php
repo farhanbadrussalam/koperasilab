@@ -17,12 +17,13 @@ use App\Models\Keuangan;
 use App\Models\Kontrak;
 use App\Models\Kontrak_detail;
 use App\Models\Master_pengguna;
+use App\Models\Invoice;
 use Carbon\Carbon;
 
 use App\Services\Notifier;
 
 if (!function_exists('formatCurrency')) {
-    function formatCurrency($amount)
+    function formatCurrency(int $amount)
     {
         return 'Rp ' . number_format($amount, 0, ',', '.');
     }
@@ -32,6 +33,9 @@ if (!function_exists('generateToken')) {
     function generateToken()
     {
         $user = Auth::user();
+        if (!$user) {
+            return null;
+        }
         $_token = Session::get('token');
         if ($_token == NULL) {
             $cToken = $user->createToken('api-token');
@@ -47,7 +51,7 @@ if (!function_exists('generateToken')) {
 }
 
 if (!function_exists('notifikasi')) {
-    function notifikasi($data, $message)
+    function notifikasi(array $data, string $message)
     {
         if (!isset($data['to_user']) || !isset($data['type'])) {
             return response()->json([
@@ -76,7 +80,7 @@ if (!function_exists('notifikasi')) {
 }
 
 if (!function_exists('unmask')) {
-    function unmask($data)
+    function unmask(mixed $data)
     {
         $regMask = ['.', ',', '-', '_'];
         $unmaskedAmount = str_replace($regMask, '', $data);
@@ -86,7 +90,7 @@ if (!function_exists('unmask')) {
 }
 
 if (!function_exists('statusFormat')) {
-    function statusFormat($feature, $status)
+    function statusFormat(string $feature, int $status)
     {
         $htmlStatus = '';
         $status = (int)$status;
@@ -231,7 +235,7 @@ if (!function_exists('generate')) {
 }
 
 if (!function_exists('encryptor')) {
-    function encryptor($value)
+    function encryptor(mixed $value)
     {
         $secret   = env('ENCRYPTION_KEY', 'robot.txt');
         $base64   = base64_encode(hash('sha256', $secret, true));
@@ -245,7 +249,7 @@ if (!function_exists('encryptor')) {
     }
 }
 if (!function_exists('decryptor')) {
-    function decryptor($value)
+    function decryptor(mixed $value)
     {
         $dictionary = array('=', '/', '+');
         $change     = array('.', '_', '-');
@@ -259,7 +263,7 @@ if (!function_exists('decryptor')) {
     }
 }
 if (!function_exists('stringSplit')) {
-    function stringSplit($str, $prefix)
+    function stringSplit(string $str, string $prefix)
     {
         if (substr($str, 0, strlen($prefix)) === $prefix) {
             $str = substr($str, strlen($prefix));
@@ -355,7 +359,7 @@ if (!function_exists('convert_date')) {
 }
 
 if (!function_exists('getAvatar')) {
-    function getAvatar($id_user)
+    function getAvatar(string $id_user)
     {
         $uidHash = $id_user ? decryptor($id_user) : null;
 
@@ -373,7 +377,7 @@ if (!function_exists('getAvatar')) {
 }
 
 if (!function_exists('strPad')) {
-    function strPad($angka, $jumlah = 3)
+    function strPad(int $angka, $jumlah = 3)
     {
 
         // Menggunakan str_pad untuk menambahkan nol di depan angka
@@ -384,7 +388,7 @@ if (!function_exists('strPad')) {
 }
 
 if (!function_exists('getRomawiBulan')) {
-    function getRomawiBulan($bulan)
+    function getRomawiBulan(int $bulan)
     {
         $romawi = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
         return $romawi[$bulan - 1]; // Bulan ke-1 (Januari) dimulai dari index 0
@@ -392,7 +396,7 @@ if (!function_exists('getRomawiBulan')) {
 }
 
 if (!function_exists('angkaKeHuruf')) {
-    function angkaKeHuruf($angka)
+    function angkaKeHuruf(int $angka)
     {
         $angka = (int)$angka;
 
@@ -452,8 +456,8 @@ if (!function_exists('generateNoDokumen')) {
         // Tahun saat ini
         $tahunSekarang = date('Y');
 
-        if($jenis === 'invoice') {
-            $lastDoc = Invoice::orderBy('id_invoice', 'desc')->first();
+        if ($jenis === 'invoice') {
+            $lastDoc = Keuangan::orderBy('id_keuangan', 'desc')->first();
         } else {
             // Incremental number
             $lastDoc = Permohonan_dokumen::where('jenis', $jenis)
@@ -541,7 +545,7 @@ if (!function_exists('generateNoDokumen')) {
 }
 
 if (!function_exists('messageSanity')) {
-    function messageSanity($validationErrors)
+    function messageSanity(array $validationErrors)
     {
         $errorMessage = [];
         foreach ($validationErrors as $fieldName => $errors) {
@@ -568,14 +572,14 @@ if (!function_exists('messageSanity')) {
 }
 
 if (!function_exists('jenislayanan')) {
-    function jenislayanan($parent, $child)
+    function jenislayanan(mixed $parent, mixed $child)
     {
         return trim(preg_replace('/\s+/', '', $parent->name . ' ' . $child->name));
     }
 }
 
 if (!function_exists('contenMetodePembayaran')) {
-    function contenMetodePembayaran($content, $variabels = [])
+    function contenMetodePembayaran(mixed $content, $variabels = [])
     {
         // Log::info($metodePembayaran);
         if (is_array($variabels)) {
@@ -677,7 +681,7 @@ if (!function_exists('renderMentionsToValuesFlexible')) {
             // Ambil value
             // $value = array_key_exists($key, $map) ? (string)$map[$key] : $default;
             $has = array_key_exists($key, $map);
-            $valueRaw = $has ? (string)$map[$key] == '' ? $default : (string)$map[$key] : $default;
+            $valueRaw = $has ? ((string)$map[$key] == '' ? $default : (string)$map[$key]) : $default;
 
             if (in_array($key, $htmlKeys, true)) {
                 $value = $valueRaw;
@@ -777,7 +781,7 @@ if (!function_exists('convertTableWidthsToPx')) {
 }
 
 if (!function_exists('calculateInvoice')) {
-    function calculateInvoice($total_harga = 0, $diskon = [], $ppn = false, $pph = false)
+    function calculateInvoice(mixed $total_harga, $diskon = [], $ppn = false, $pph = false)
     {
         $subJumlah = 0;
 
@@ -804,7 +808,7 @@ if (!function_exists('calculateInvoice')) {
 }
 
 if (!function_exists('isReminderPeriod')) {
-    function isReminderPeriod($period, $offset, $hNow = false)
+    function isReminderPeriod(mixed $period, mixed $offset, $hNow = false)
     {
         $period = Carbon::create($period);
         $hMinus = $period->copy()->sub("month", $offset);
@@ -817,7 +821,7 @@ if (!function_exists('isReminderPeriod')) {
 }
 
 if (!function_exists('isFinishKontrak')) {
-    function isFinishKontrak($id_kontrak)
+    function isFinishKontrak(int $id_kontrak)
     {
         // ambil kontrak
         $kontrak = Kontrak::with(
@@ -867,7 +871,7 @@ if (!function_exists('getPeriodeAwal')) {
 }
 
 if (!function_exists('cekPeriodeComplete')) {
-    function cekPeriodeComplete($id_kontrak, $periode)
+    function cekPeriodeComplete(int $id_kontrak, int $periode)
     {
         $period = Kontrak_periode::with('permohonan', 'permohonan.invoice')->where('id_kontrak', $id_kontrak)
             ->where('periode', $periode)
@@ -967,7 +971,7 @@ if (!function_exists('notifRead')) {
 }
 
 if (!function_exists('uploadSignatur')) {
-    function uploadSignatur($signed, $user)
+    function uploadSignatur(mixed $signed, mixed $user)
     {
         // 1. Bersihkan header base64 (data:image/png;base64,...)
         // Agar yang tersisa hanya raw string enkripsinya
@@ -1025,7 +1029,7 @@ if (!function_exists('range_date')) {
 }
 
 if (!function_exists('setKontrakAdendum')) {
-    function setKontrakAdendum($id_kontrak, $periode)
+    function setKontrakAdendum(int $id_kontrak, int $periode)
     {
         $kontrak = Kontrak::find($id_kontrak);
 

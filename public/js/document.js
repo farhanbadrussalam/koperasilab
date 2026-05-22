@@ -80,7 +80,7 @@ class ModalDocument {
             </div>
         `);
 
-        const fullUrl = base_url + '/' + url;
+        const fullUrl = base_url + '/' + url + '#view=FitH';
 
         // Validasi URL sebelum memuat ke iframe
         fetch(fullUrl, { method: 'HEAD' })
@@ -125,10 +125,11 @@ class ModalDocument {
         $('#formContainer').html(html);
     }
 
-    download() {
+    download(obj) {
         if (!this.currentUrl) return;
+        const type = $(obj.target).data('type');
         const link = document.createElement('a');
-        link.href = base_url + '/' + this.currentUrl + '?dl=1'; // Tambahkan query parameter untuk mendownload
+        link.href = base_url + '/' + this.currentUrl + '?dl=1&type=' + type; // Tambahkan query parameter untuk mendownload'
         link.download = '';
         document.body.appendChild(link);
         link.click();
@@ -191,9 +192,15 @@ class ModalDocument {
                                 <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="btnPrintPdf">
                                     <i class="bi bi-printer"></i> Print
                                 </button>
-                                <button type="button" class="btn btn-sm btn-primary" id="btnDownloadPdf">
-                                    <i class="bi bi-download"></i> Download
-                                </button>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-primary dropdown-toggle dropdown-toggle-split rounded" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span><i class="bi bi-download"></i> Download</span>
+                                    </button>
+                                    <ul class="dropdown-menu overflow-hidden">
+                                        <li><a class="dropdown-item" href="#" id="btnDownloadPdf" data-type="full">Download PDF</a></li>
+                                        <li><a class="dropdown-item" href="#" id="btnDownloadPdf" data-type="original">Download Original</a></li>
+                                    </ul>
+                                </div>
                                 ${btnEdit}
                             </div>
                             <div class="row g-0">

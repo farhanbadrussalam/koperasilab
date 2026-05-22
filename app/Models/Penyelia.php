@@ -253,7 +253,7 @@ class Penyelia extends Model
                 return $query->whereIn('id_jobs', $status)
                     ->where('status', $statusLhu)
                     ->whereHas('petugas', function ($q) {
-                        return $q->where('id_user', Auth::id());
+                        return $q->where('id_user', Auth::user()->id);
                     });
             });
         });
@@ -276,8 +276,10 @@ class Penyelia extends Model
                         $v->where('id_jobs', $idJobs)->where('status', 1);
                     });
                 } else if ($key === 'date_range') {
-                    $q->where('start_date', '<=', $value[1])
-                        ->where('end_date', '>=', $value[0]);
+                    $q->whereHas('periodenow', function ($v) use ($value) {
+                        $v->where('start_date', '<=', $value[1])
+                            ->where('end_date', '>=', $value[0]);
+                    });
                 } else if ($key === 'periode') {
                     $q->where('periode', $value);
                 } else {

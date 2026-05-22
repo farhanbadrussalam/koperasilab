@@ -343,7 +343,7 @@ class PenyeliaAPI extends Controller
                         $noSurpeng = generateNoDokumen('surpeng');
                         $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => \Carbon\Carbon::now()]);
                     }
-                    
+
                     $templateSurpeng = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
                     if ($templateSurpeng) {
                         Permohonan_dokumen::create(array(
@@ -423,7 +423,7 @@ class PenyeliaAPI extends Controller
                         ->where('periode', $penyelia->periode)
                         ->where('jenis', 'surpeng')
                         ->first();
-                        
+
                     if ($dokumenSurpeng) {
                         $dokumenSurpeng->update([
                             'ttd' => $ttd,
@@ -438,9 +438,9 @@ class PenyeliaAPI extends Controller
                             $noSurpeng = generateNoDokumen('surpeng');
                             $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => \Carbon\Carbon::now()]);
                         }
-                        
+
                         $template = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
-                        
+
                         if ($template) {
                             Permohonan_dokumen::create(array(
                                 'periode' => $periode_,
@@ -654,7 +654,7 @@ class PenyeliaAPI extends Controller
         }
     }
 
-    private function processJobProses($penyelia, $jobsNow, $jobsNext, $sProgress, $note, $idPenyelia)
+    private function processJobProses(mixed $penyelia, mixed $jobsNow, mixed $jobsNext, mixed  $sProgress, mixed  $note, mixed $idPenyelia)
     {
         $getPeriodeNow = Kontrak_periode::select('count_tld')
             ->where('id_kontrak', $penyelia->permohonan->id_kontrak)
@@ -837,7 +837,7 @@ class PenyeliaAPI extends Controller
                 $status = $tmpArr;
                 $userId = Auth::user()->id;
             } else {
-                if($menu == 'surattugas') {
+                if ($menu == 'surattugas') {
                     $status = [];
                 } else {
                     $status = [99];

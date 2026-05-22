@@ -41,8 +41,12 @@ function cardComponent(data, options = {}) {
         if (data.periode == 1 && data.is_have_tld && data.is_zerocek) {
             per += ' + Zero Check';
         }
+        if(data.periodeNow){
+            let rangeDate = range_date(data.periodeNow.start_date, data.periodeNow.end_date, 1);
+            per += `<span class="text-muted">: ${rangeDate.start} - ${rangeDate.end}</span>`
+        }
         return `
-            <span>
+            <span class="small">
                 <i class="bi bi-calendar-range me-1"></i> ${per}
             </span>
         `;
@@ -160,8 +164,8 @@ function cardComponent(data, options = {}) {
                             ${htmlNoResi}
                             <div class="d-flex align-items-center flex-wrap gap-2 text-muted small">
                                 ${htmlKontrak}
-                                ${htmlPeriode}
                             </div>
+                            ${htmlPeriode}
                             ${htmlPerusahaan}
                             ${divInfoTugas}
                             ${subTitle}
@@ -182,8 +186,8 @@ function cardComponent(data, options = {}) {
                         ${htmlDurasi}
                     </div>
 
-                    <div class="col-lg-2 text-lg-end text-start d-flex align-items-center justify-content-end" data-id='${data.id}' data-index='${data.index ?? ''}'>
-                        <div class="d-flex align-items-center gap-1">
+                    <div class="col-lg-2 text-lg-end text-start d-flex align-items-center justify-content-end justify-content-lg-end mt-2 mt-lg-0" data-id='${data.id}' data-index='${data.index ?? ''}'>
+                        <div class="d-flex align-items-center gap-1 flex-wrap">
                             ${options.btnAction ?? ''}
                         </div>
 

@@ -398,12 +398,12 @@ function btnShowDoc(obj) {
     modalDoc.show(url, {
         title: title,
         formHtml: `
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-2 text-center" id="signatureSurpeng"></div>
-                <div class="mt-1 text-center card-footer border-0 bg-white">
-                    <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${idPenyelia}')">Simpan Tanda Tangan</button>
-                </div>
+        <div class="d-flex gap-2 flex-column">
+            <div class="text-center m-2" id="signatureSurpeng"></div>
+            <div class="mt-1 text-center">
+                <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${idPenyelia}')">Simpan Tanda Tangan</button>
             </div>
+        </div>
         `
     });
 
