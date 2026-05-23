@@ -97,9 +97,25 @@ function cardComponent(data, options = {}) {
         </div>
     ` : '';
 
-    const htmlItemsPengiriman = data.items !== undefined ? `
-        <span class="fw-light">Items : ${data.items?.length ?? 'Belum ada'}</span>
-    ` : '';
+    const htmlItemsPengiriman = data.items !== undefined ? (() => {
+        const count = data.items?.length ?? 0;
+        if (count === 0) {
+            return '<span class="fw-light text-muted">Items: Belum ada</span>';
+        }
+        const encoded = encodeURIComponent(JSON.stringify(data.items));
+        const idPengiriman = data.id ?? '';
+        return `
+            <span class="fw-light">
+                Items : 
+                <button type="button" 
+                        class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 border-primary-subtle bg-primary-subtle text-primary" 
+                        style="font-size: 0.72rem; line-height: 1.5; vertical-align: middle;"
+                        onclick="showItemsDetail('${encoded}', '${idPengiriman}')">
+                    <i class="bi bi-eye-fill me-1"></i>${count} Items
+                </button>
+            </span>
+        `;
+    })() : '';
 
     const htmlAlamatPengiriman = data.alamat !== undefined ? `
          • <small class="subdesc text-body-secondary fw-light lh-sm">
@@ -472,4 +488,68 @@ function cardKontrolComponent(data, options = {}) {
     `;
 
     return elementList;
+}
+
+/**
+ * Global function to show shipment items details in a beautiful small modal.
+ * @param {string} encodedItems - URL-encoded JSON string of the items array.
+ * @param {string} idPengiriman - ID of the shipment.
+ */
+function showItemsDetail(encodedItems, idPengiriman) {
+    const items = JSON.parse(decodeURIComponent(encodedItems));
+    
+    let rows = '';
+    items.forEach((item, index) => {
+        let jenis = item.jenis ? (item.jenis === 'lhu' ? 'LHU' : (item.jenis === 'tld' ? 'TLD' : item.jenis.charAt(0).toUpperCase() + item.jenis.slice(1))) : '-';
+        let periodeText = '-';
+        if (item.periode !== undefined && item.periode !== null) {
+            periodeText = item.periode == 0 ? '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill fw-normal fs-8">Zero Check</span>' : `Periode ${item.periode}`;
+        }
+        
+        rows += `
+            <tr>
+                <td class="text-center font-monospace small">${index + 1}</td>
+                <td><strong class="text-dark small">${jenis}</strong></td>
+                <td><span class="small">${periodeText}</span></td>
+            </tr>
+        `;
+    });
+
+    const modalHtml = `
+        <div class="modal fade" id="modalItemsDetail" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                    <div class="modal-header bg-primary text-white py-3 border-0 rounded-top-4">
+                        <h5 class="modal-title fw-bold fs-6"><i class="bi bi-box-seam me-2"></i>Rincian Dokumen</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3 small text-muted text-center font-monospace">ID: ${idPengiriman}</div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped align-middle mb-0" style="font-size: 0.85rem;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-center" style="width: 50px;">No</th>
+                                        <th>Jenis</th>
+                                        <th>Periode</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${rows}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 p-2">
+                        <button type="button" class="btn btn-secondary btn-sm w-100 rounded-3" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove any existing modal first
+    $('#modalItemsDetail').remove();
+    $('body').append(modalHtml);
+    $('#modalItemsDetail').modal('show');
 }

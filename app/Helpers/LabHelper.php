@@ -897,7 +897,7 @@ if (!function_exists('cekPeriodeComplete')) {
             if ($dokumen === 'invoice' && $period->permohonan?->invoice == null) continue;
             if ($dokumen === 'tld') {
                 if ($JL == 'KontrakSewa' && $lastPeriode) continue;
-                if (in_array($period->id_periode, $periodeAwal)) continue;
+                if (in_array($period->periode, $periodeAwal)) continue;
             }
 
             if ($dokumen === 'lhu') {

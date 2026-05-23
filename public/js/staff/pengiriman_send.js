@@ -257,7 +257,7 @@ function load_form() {
     // list document invoice
     let htmlInvoice = '';
     if(dataOrderPengiriman.invoice){
-        let urlLaporanInvoice = dataOrderPengiriman.invoice?.status == 5 ? `<a href="${base_url}/laporan/invoice/${dataOrderPengiriman.invoice?.keuangan_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i></a>` : '<i class="bi bi-printer-fill"></i>';
+        let urlLaporanInvoice = dataOrderPengiriman.invoice?.status == 5 ? `<a data-url="laporan/invoice/${dataOrderPengiriman.invoice?.keuangan_hash}" data-title="Laporan Invoice" class="text-black" onclick="btnShowDoc(this)" href="javascript:void(0)" ><i class="bi bi-printer-fill"></i></a>` : '<i class="bi bi-printer-fill"></i>';
         // let checkedInvoice = informasi.invoice?.status == 5 ? (informasi.invoice?.pengiriman ? 'disabled' : 'checked') : 'disabled';
         let checkedInvoice = dataOrderPengiriman.invoice?.pengiriman ? 'disabled' : 'checked';
         dataOrderPengiriman.invoice ? htmlInvoice = `

@@ -321,6 +321,7 @@ function periodeMapDocument_pengiriman(data_periode, kontrak, arrFindDokumen){
         if (doc === 'invoice' && !data_periode?.invoice) continue;
         if (doc === 'tld') {
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
+            if (JL === 'KontrakEvaluasi' && (data_periode.periode == 1 || data_periode.periode == 2)) continue;
             if (periodeAwal.includes(data_periode.periode)) continue;
             if (data_periode.tipe_kontrak == 'adendum') continue;
         }

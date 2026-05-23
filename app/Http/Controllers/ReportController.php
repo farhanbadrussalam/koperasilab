@@ -34,7 +34,7 @@ class ReportController extends Controller
     protected array $global;
     public function __construct()
     {
-        $this->global = config('customvariabel');
+        $this->global = config('customvariabel') ?? [];
     }
 
     private function generatePDF(string $title, Documents $template, array $variables = [], array $htmlKeys = [], string $css = '')

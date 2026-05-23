@@ -64,15 +64,12 @@ class Detail {
             } else {
                 $(`#${this.options.id}`).modal('hide');
             }
-
-            if (typeof modalDoc !== 'undefined') {
-                modalDoc.show(url, { title: title });
-            } else {
-                if (!window.modalDocDetail) {
-                    window.modalDocDetail = new ModalDocument();
-                }
-                window.modalDocDetail.show(url, { title: title });
+            
+            if (!window.modalDocDetail) {
+                console.log('window.modalDocDetail');
+                window.modalDocDetail = new ModalDocument({ id: 'modalDocDetail' });
             }
+            window.modalDocDetail.show(url, { title: title });
         });
     }
 
