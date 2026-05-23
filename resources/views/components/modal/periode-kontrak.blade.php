@@ -1,17 +1,19 @@
 <div class="modal fade" id="modalPeriode" tabindex="-1" aria-labelledby="modalPeriodeLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="modalPeriodeLabel">Daftar Periode</h1>
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-light border-bottom py-3">
+                <h1 class="modal-title fs-5 fw-bold text-dark d-flex align-items-center gap-2" id="modalPeriodeLabel">
+                    <i class="bi bi-calendar3 text-primary fs-4"></i> Daftar Periode Kontrak
+                </h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4 bg-light bg-opacity-25">
                 <div id="listPeriodeContainer" class="d-flex flex-column gap-3">
                     <!-- List periode akan di-render di sini -->
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            <div class="modal-footer bg-light border-top py-2">
+                <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -23,26 +25,33 @@
         constructor(options = {}) {
             this.modalId = options.modalId ?? 'modalPeriode';
             this.containerId = options.containerId ?? 'listPeriodeContainer';
+            this.isPelanggan = role.includes('Pelanggan');
+            this.isPengiriman = role.includes('Staff Pengiriman');
         }
 
         show(id_kontrak) {
             let skeleton = '';
             for (let i = 0; i < 3; i++) {
                 skeleton += `
-                        <div class="border-top py-2 d-flex justify-content-start align-items-center placeholder-glow">
-                            <div class="px-2 col-6 border-end">
-                                <span class="placeholder col-4 mb-2"></span>
-                                <div class="row row-cols-2 g-1 mt-1">
-                                    <div class="col"><span class="placeholder col-8"></span></div>
-                                    <div class="col"><span class="placeholder col-8"></span></div>
+                        <div class="card border border-light-subtle rounded-3 shadow-sm mb-3 placeholder-glow">
+                            <div class="card-body p-3">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6 border-end border-light-subtle py-2">
+                                        <span class="placeholder col-4 mb-2 d-block" style="height: 1.2rem;"></span>
+                                        <div class="row row-cols-1 row-cols-sm-2 g-2">
+                                            <div class="col"><div class="placeholder col-12 py-3 rounded-2" style="height: 38px;"></div></div>
+                                            <div class="col"><div class="placeholder col-12 py-3 rounded-2" style="height: 38px;"></div></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 border-end border-light-subtle py-2 px-md-3">
+                                        <span class="placeholder col-6 mb-2 d-block" style="height: 0.8rem;"></span>
+                                        <span class="placeholder col-8 d-block" style="height: 1.2rem;"></span>
+                                    </div>
+                                    <div class="col-md-3 py-2 px-md-3">
+                                        <span class="placeholder col-6 mb-2 d-block" style="height: 0.8rem;"></span>
+                                        <span class="placeholder col-10 d-block rounded-pill" style="height: 31px;"></span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-3 ms-3">
-                                <span class="placeholder col-10"></span>
-                            </div>
-                            <div class="d-flex align-items-end gap-1 text-secondary flex-column ms-auto col-2">
-                                <span class="placeholder col-12 mb-1"></span>
-                                <span class="placeholder col-8"></span>
                             </div>
                         </div>
                     `;
@@ -100,7 +109,7 @@
             const {
                 htmlAction,
                 htmlInformasi
-            } = this._generateActionAndInfoHtml(data, kontrak, aktifDokumenKirim, statusKirimTld, statusKirimTldNext, isComplete);
+            } = this._generateActionAndInfoHtml(data, kontrak, aktifDokumenKirim, statusKirimTld, statusKirimTldNext, isComplete, isModal);
 
             let textPeriode = `Periode ${data.periode}`;
 
@@ -117,49 +126,85 @@
             let htmlRangeDate = ``;
             if (data.periode != 0) {
                 let rangeDate = range_date(data.start_date, data.end_date, 1);
-                htmlRangeDate = `<small class="text-body-tertiary"> - (${rangeDate.start} - ${rangeDate.end})</small>`;
+                htmlRangeDate = `<small class="text-secondary small fw-medium ms-1"><i class="bi bi-calendar-range text-muted me-1"></i>(${rangeDate.start} - ${rangeDate.end})</small>`;
             }
 
             let htmlAdendum = ``;
             if (data.adendum?.length > 0) {
-                htmlAdendum = `<small class="bg-body-tertiary rounded-pill cursoron hover-1 border border-dark-subtle px-2" data-id="${data.periode_hash}" data-periode="${data.periode}" onclick="showAdendumInformasi(this)">${data.adendum.length} Adendum</small>`;
+                htmlAdendum = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill cursoron px-2 ms-2" data-id="${data.periode_hash}" data-periode="${data.periode}" onclick="showAdendumInformasi(this)"><i class="bi bi-journal-text me-1"></i>${data.adendum.length} Adendum</span>`;
             }
 
             if (isModal) {
                 // Tampilan ketika di dalam Info Modal
                 return `
-                        <div class="p-1 bg-light border border-secondary-subtle rounded-3 d-flex justify-content-start align-items-center mb-1 shadow-sm">
-                            <div class="px-2 col-6 border-end border-secondary-subtle">
-                                <span class="fw-semibold fs-6 text-primary">${textPeriode}</span>
-                                ${htmlRangeDate} ${htmlAdendum}
-                                <div class="row row-cols-2 g-2">
-                                    ${htmlDoc}
+                        <div class="card border border-light-subtle rounded-3 shadow-sm mb-1">
+                            <div class="card-body p-3">
+                                <div class="row align-items-center">
+                                    <!-- Column 1: Info & Dokumen (col-md-6) -->
+                                    <div class="col-md-6 border-end border-light-subtle py-2">
+                                        <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                                            <span class="fw-bold fs-6 text-primary-emphasis">${textPeriode}</span>
+                                            ${htmlRangeDate}
+                                            ${htmlAdendum}
+                                        </div>
+                                        <div class="row row-cols-1 row-cols-sm-2 g-2">
+                                            ${htmlDoc}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Column 2: Status Lab (col-md-3) -->
+                                    <div class="col-md-3 border-end border-light-subtle py-2 px-md-3 my-2 my-md-0">
+                                        ${this.isPengiriman ? `<span class="text-uppercase small fw-bold text-muted d-block mb-2">Status Lab</span>` : ''}
+                                        <div class="d-flex flex-column gap-1">
+                                            ${htmlInformasi || '<span class="text-muted small italic"><i class="bi bi-info-circle"></i> Tidak ada info</span>'}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Column 3: Tindakan (col-md-3) -->
+                                    <div class="col-md-3 py-2 px-md-3 d-flex flex-column align-items-md-start align-items-start gap-1">
+                                        <span class="text-uppercase small fw-bold text-muted d-block mb-2 w-100">Tindakan</span>
+                                        <div class="d-flex flex-column w-100 gap-2">
+                                            ${htmlAction || '<span class="text-muted small italic"><i class="bi bi-slash-circle"></i> Tidak ada tindakan</span>'}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-3 ms-3">
-                                ${htmlInformasi}
-                            </div>
-                            <div class="d-flex align-items-center gap-2 text-secondary flex-column ms-auto">
-                                ${htmlAction}
                             </div>
                         </div>
                     `;
             } else {
                 // Tampilan standar untuk di list
                 return `
-                        <div class="border-top py-2 d-flex justify-content-start align-items-center">
-                            <div class="px-2 col-6 border-end">
-                                <span class="fw-semibold fs-6">${textPeriode}</span>
-                                ${htmlRangeDate} ${htmlAdendum}
-                                <div class="row row-cols-2 g-1">
-                                    ${htmlDoc}
+                        <div class="card border border-light-subtle rounded-3 shadow-sm mb-1">
+                            <div class="card-body p-3 py-0">
+                                <div class="row align-items-center">
+                                    <!-- Column 1: Info & Dokumen (col-md-6) -->
+                                    <div class="col-md-6 border-end border-light-subtle py-2">
+                                        <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                                            <span class="fw-bold fs-6 text-primary-emphasis">${textPeriode}</span>
+                                            ${htmlRangeDate}
+                                            ${htmlAdendum}
+                                        </div>
+                                        <div class="row row-cols-1 row-cols-sm-2 g-2">
+                                            ${htmlDoc}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Column 2: Status Lab (col-md-3) -->
+                                    <div class="col-md-3 border-end border-light-subtle py-2 px-md-3 my-2 my-md-0">
+                                        ${this.isPengiriman ? `<span class="text-uppercase small fw-bold text-muted d-block mb-2">Status Lab</span>` : ''}
+                                        <div class="d-flex flex-column gap-1">
+                                            ${htmlInformasi || '<span class="text-muted small italic"><i class="bi bi-info-circle"></i> Tidak ada info</span>'}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Column 3: Tindakan (col-md-3) -->
+                                    <div class="col-md-3 py-2 px-md-3 d-flex flex-column align-items-md-start align-items-start gap-1">
+                                        <span class="text-uppercase small fw-bold text-muted d-block mb-2 w-100">Tindakan</span>
+                                        <div class="d-flex flex-column w-100 gap-2">
+                                            ${htmlAction || '<span class="text-muted small italic"><i class="bi bi-slash-circle"></i> Tidak ada tindakan</span>'}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-3 ms-3">
-                                ${htmlInformasi}
-                            </div>
-                            <div class="d-flex align-items-center gap-1 text-secondary flex-column ms-auto">
-                                ${htmlAction}
                             </div>
                         </div>
                     `;
@@ -204,10 +249,18 @@
                     }
                 }
 
+                let iconClass = 'bi-file-earmark';
+                if (doc === 'invoice') iconClass = 'bi-receipt-cutoff';
+                else if (doc === 'tld') iconClass = 'bi-file-binary';
+                else if (doc === 'lhu') iconClass = 'bi-file-earmark-check';
+                else if (doc === 'zerocek') iconClass = 'bi-shield-check';
+
+                let docTitle = doc === 'tld' ? 'TLD' : (doc === 'lhu' ? 'LHU' : (doc === 'zerocek' ? 'Zero Check' : doc[0].toUpperCase() + doc.substring(1)));
+
                 htmlDoc += `
                         <div class="col">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-normal">• ${doc[0].toUpperCase() + doc.substring(1)}</span>
+                            <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded-2 border border-light-subtle">
+                                <span class="fw-medium text-dark small"><i class="bi ${iconClass} text-muted me-2"></i>${docTitle}</span>
                                 <span class="cursoron pe-2 text-end small"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
@@ -215,9 +268,7 @@
                                     ${statusFormat('pengiriman', findPeriode?.status)}
                                 </span>
                             </div>
-                            <div class="small ms-2">
-                                ${htmlStatusInvoice}
-                            </div>
+                            ${htmlStatusInvoice ? `<div class="small mt-1 ms-2">${htmlStatusInvoice}</div>` : ''}
                         </div>
                     `;
             }
@@ -229,41 +280,48 @@
             };
         }
 
-        _generateActionAndInfoHtml(data, kontrak, aktifDokumenKirim, statusKirimTld, statusKirimTldNext, isComplete) {
-            const isPelanggan = role.includes('Pelanggan');
-            const isPengiriman = role.includes('Staff Pengiriman');
+        _generateActionAndInfoHtml(data, kontrak, aktifDokumenKirim, statusKirimTld, statusKirimTldNext, isComplete, isModal = false) {
+
             let htmlAction = ``;
             let htmlInformasi = ``;
 
-            let htmlBtnEvaluasi = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/permohonan/kontrak/e/${kontrak.kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text"></i> Evaluasi</a>`;
+            let showEvaluasi = true;
+            if (isModal && kontrak.periode_active && data.periode > kontrak.periode_active.periode) {
+                showEvaluasi = false;
+            }
+
+            let htmlBtnEvaluasi = ``;
+            if (showEvaluasi) {
+                htmlBtnEvaluasi = `<a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" href="${base_url}/permohonan/kontrak/e/${kontrak.kontrak_hash}/${data.periode_hash}"><i class="bi bi-file-earmark-text me-1"></i>Evaluasi</a>`;
+            }
 
             let periodeNext = kontrak.periode.find(d => d.periode == data.periode + 1);
             let htmlBtnTld = ``;
             if (periodeNext) {
-                htmlBtnTld = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/permohonan/kirim/${kontrak.kontrak_hash}/${periodeNext.periode_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
+                htmlBtnTld = `<a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" href="${base_url}/staff/pengiriman/permohonan/kirim/${kontrak.kontrak_hash}/${periodeNext.periode_hash}"><i class="bi bi-send-fill me-1"></i>Kirim TLD</a>`;
             }
 
             let htmlPermohonan = ``;
             let htmlBtnSend = ``;
             if (data.permohonan && !isComplete) {
                 htmlPermohonan = `
-                    <div class="d-flex flex-column justify-content-center align-items-end">
-                        <div class="fs-8">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div>
+                    <div class="d-flex flex-column justify-content-center align-items-start">
+                        <div class="small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.7rem;">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div>
                         <div>${statusFormat('permohonan', data.permohonan.status)}</div>
                     </div>`;
 
                 htmlBtnSend = `
-                        <a class="btn btn-outline-primary btn-sm" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan.permohonan_hash}">
-                            <i class="bi bi-send-fill"></i> Kirim Dokumen
+                        <a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs mb-2" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan.permohonan_hash}">
+                            <i class="bi bi-send-fill me-1"></i>Kirim Dokumen
                         </a>
                     `;
             }
 
-            if (isPelanggan) {
+            if (this.isPelanggan) {
                 if (periodeNext) {
                     htmlInformasi = `
-                            <div class="d-flex flex-column text-center small">
-                                <div>Tld periode ${periodeNext.periode}</div>
+                            <div class="d-flex flex-column text-start small">
+                                <span class="text-secondary small fw-medium mb-1">TLD Periode ${periodeNext.periode}</span>
                                 <div>${statusFormat('pengiriman', statusKirimTldNext)}</div>
                             </div>
                         `;
@@ -298,8 +356,8 @@
                     tldSelesai = cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
                     if (penyelia2.penyelia && !tldSelesai) {
                         htmlStatusPenyelia = `
-                                <div class="d-flex flex-column gap-1">
-                                    <span>Penyelia periode ${penyelia2.periode}</span>
+                                <div class="d-flex flex-column gap-1 align-items-start">
+                                    <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">Penyelia Periode ${penyelia2.periode}</span>
                                     <div class="badge bg-warning-subtle fw-normal rounded-pill text-warning-emphasis">
                                         Proses Belum Selesai
                                     </div>
@@ -322,8 +380,8 @@
 
                             if (periodeNext) {
                                 htmlAction = `
-                                        <div class="d-flex flex-column text-center">
-                                            <div>Tld periode ${periodeNext.periode}</div>
+                                        <div class="d-flex flex-column text-start gap-1">
+                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.periode}</span>
                                             <div>${actionNext}</div>
                                         </div>
                                     `;
@@ -331,8 +389,8 @@
                         } else {
                             if (periodeNext) {
                                 htmlAction = `
-                                        <div class="d-flex flex-column text-center small">
-                                            <div>Tld periode ${periodeNext.periode}</div>
+                                        <div class="d-flex flex-column text-start gap-1">
+                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.periode}</span>
                                             <div>${htmlStatusPenyelia}</div>
                                         </div>
                                     `;
@@ -341,14 +399,14 @@
                     }
                 }
 
-                if (isPengiriman) {
+                if (this.isPengiriman) {
                     htmlAction = htmlBtnSend + htmlAction;
                 }
 
                 if (data.permohonan?.lhu) {
                     let aktifJobs = data.permohonan.lhu.penyelia_map.filter(d => d.status == 1);
-                    htmlInformasi += '<div class="d-inline-flex flex-column gap-1">';
-                    htmlInformasi += `<span class="fw-semibold">Informasi LAB</span>`;
+                    htmlInformasi += '<div class="d-inline-flex flex-column gap-1 align-items-start">';
+                    htmlInformasi += `<span class="fw-semibold text-dark small mb-1"><i class="bi bi-info-circle text-primary me-1"></i>Informasi LAB</span>`;
                     aktifJobs.map(d => {
                         htmlInformasi += statusFormat('penyelia', d.jobs.status);
                     });

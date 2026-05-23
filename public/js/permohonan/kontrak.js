@@ -194,7 +194,6 @@ function loadData(page = 1) {
                     <div class="card-body row py-2">
                         <div class="col-12 d-flex align-items-center justify-content-between">
                             <div class="gap-2">
-                                <span class="badge bg-primary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.tipe_kontrak}</span>
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
                                 ${htmlStatusKontrak}
                             </div>
