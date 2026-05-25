@@ -131,7 +131,7 @@ function loadData(page = 1) {
                 <li>
                     <button class="dropdown-item small cursor-pointer" title="Lihat Surat Pengantar"
                         data-url="laporan/surpeng/${permohonan.kontrak.kontrak_hash}/${permohonan_periode}"
-                        data-title="Surat Pengantar ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode == 0 ? 'zero cek' : permohonan.periode}"
+                        data-title="Surat Pengantar ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode == 0 ? 'zero check' : permohonan.periode}"
                         onclick="btnShowDoc(this)">
                         <i class="bi bi-eye"></i> Surat Pengantar
                     </button>
@@ -141,7 +141,7 @@ function loadData(page = 1) {
                 <li>
                     <button class="dropdown-item small cursor-pointer" title="Print Label"
                         data-url="laporan/label/${lhu.penyelia_hash}"
-                        data-title="Label ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode == 0 ? 'zero cek' : permohonan.periode}"
+                        data-title="Label ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode == 0 ? 'zero check' : permohonan.periode}"
                         onclick="btnShowDoc(this)">
                         <i class="bi bi-printer"></i> Cetak Label
                     </button>

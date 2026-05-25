@@ -350,7 +350,7 @@ class ReportController extends Controller
                 $vars["ALAMAT"] = $data->pelanggan?->perusahaan->alamat[0]->alamat;
                 $vars["JENIS_PENGUJIAN"] = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
                 $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol";
-                $vars["PERIODE"] = ($data->periode > 0 ? "Periode " . $data->periode : "Periode zero cek");
+                $vars["PERIODE"] = ($data->periode > 0 ? "Periode " . $data->periode : "Periode zero Check");
                 $vars["TGL_PENERIMAAN"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["TGL_SELESAI"] = $params['selesaiPengujian'] ? convert_date($params['selesaiPengujian'], 2) : '';
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
@@ -405,7 +405,7 @@ class ReportController extends Controller
             case "SuratPengantar":
                 $zerocek = '';
                 if (isset($params['permohonan']) && $params['permohonan']->is_zerocek == 1) {
-                    $zerocek = " & Hasil Zero Cek";
+                    $zerocek = " & Hasil Zero Check";
                 }
 
                 $vars["NOMOR"] = $params["dokumen"]->nomer;
@@ -1082,7 +1082,7 @@ class ReportController extends Controller
                 $dokumen->save();
             }
         } else {
-            // yang ini di comment lagi karna jadi issue saat pengiriman periode zero cek
+            // yang ini di comment lagi karna jadi issue saat pengiriman periode zero Check
             // return redirect()->back();
         }
 
@@ -1471,7 +1471,7 @@ class ReportController extends Controller
 
     private function contentSuratPengujian(mixed $data, array $params)
     {
-        $zrcek = $data->permohonan->is_zerocek ? 'Zero Cek' : '';
+        $zrcek = $data->permohonan->is_zerocek ? 'Zero Check' : '';
         $lJasa = $data->permohonan->layanan_jasa->satuankerja->name;
         $jTld = $data->permohonan->jenisTld->name;
 
@@ -1752,7 +1752,7 @@ class ReportController extends Controller
 
     private function contentKontrakPengujian(mixed $data, $params = [])
     {
-        $zrcek = $data->is_zerocek ? 'Zero Cek' : '';
+        $zrcek = $data->is_zerocek ? 'Zero Check' : '';
         $lJasa = $data->layanan_jasa->satuankerja->name;
         $jTld = $data->jenisTld->name;
 

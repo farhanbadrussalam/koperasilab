@@ -307,8 +307,8 @@ function load_form() {
 
         let htmlPeriode = "";
         if(dataOrderPengiriman.lhu){
-            if(dataOrderPengiriman.lhu.periode == 1 && dataOrderPengiriman.is_zerocek == 1 && dataOrderPengiriman.is_have_tld == 1) {
-                htmlPeriode += ' + Zero Cek';
+            if(dataOrderPengiriman.lhu.periode == 1 && dataOrderPengiriman.is_zerocek == 1) {
+                htmlPeriode += ' + Zero Check';
             }
         }
 
@@ -329,7 +329,7 @@ function load_form() {
                             id="selectDocumentLHU" name="selectDocument" onclick="updateSelectDocument()" ${checkedLhu}>
                         <label class="form-check-label fw-bold" for="selectDocumentLHU">LHU ${htmlPeriode}</label>
 
-                        <small class="text-body-tertiary"> - ${!dataOrderPengiriman.lhu.periode ? 'Zero Cek' : `Periode ${dataOrderPengiriman.lhu.periode} ${htmlRangeDate}`} </small>
+                        <small class="text-body-tertiary"> - ${!dataOrderPengiriman.lhu.periode ? 'Zero Check' : `Periode ${dataOrderPengiriman.lhu.periode} ${htmlRangeDate}`} </small>
                     </div>
                     <div>
                         <small><i class="bi bi-calendar-fill"></i> ${dateFormat(dataOrderPengiriman.lhu.created_at, 4)}</small>
@@ -350,7 +350,7 @@ function load_form() {
     if(dataOrderPengiriman){
         let checkedCustom = dataOrderPengiriman.pengiriman ? 'disabled' : 'checked';
         if(dataOrderPengiriman.file_lhu){
-            arrDocCustom.push({jenis: "lhu zero cek", media: dataOrderPengiriman.file_lhu});
+            arrDocCustom.push({jenis: "lhu zero check", media: dataOrderPengiriman.file_lhu});
         }
 
         for (const custom of arrDocCustom) {

@@ -219,7 +219,7 @@ $(function () {
             // lock updated silently
         }, error => {
             console.error('Ping failed');
-        });
+        }, { onErrorPopup: false });
     }, 60000); // 1 minute
 
     // Unlock when leaving the page or canceling
@@ -230,7 +230,9 @@ $(function () {
 
         ajaxPost(`api/v1/permohonan/verifikasi/unlock`, formData, result => {
             // lock updated silently
-        })
+        }, error => {
+            console.error('Unlock failed');
+        }, { onErrorPopup: false });
     });
 });
 

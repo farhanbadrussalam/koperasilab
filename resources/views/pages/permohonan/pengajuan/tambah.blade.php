@@ -40,7 +40,8 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label for="jenis_layanan_2" class="col-form-label d-none d-md-flex" id="label-jenis-layanan-2">&nbsp;</label>
+                        <label for="jenis_layanan_2" class="col-form-label d-none d-md-flex"
+                            id="label-jenis-layanan-2">&nbsp;</label>
                         <select name="jenis_layanan_2" id="jenis_layanan_2" class="form-select">
                             <option value="">Pilih</option>
                         </select>
@@ -58,11 +59,11 @@
                     @csrf
                     <div class="row g-0 g-md-3">
                         <div class="col-md-6 d-none" id="form-zero-cek">
-                            <label class="col-form-label" for="zero_cek">Pilih zero cek</label>
+                            <label class="col-form-label" for="zero_cek">Pilih zero check</label>
                             <select name="zero_cek" id="zero_cek" class="form-select">
                                 <option value="">Pilih</option>
-                                <option value="zerocek">Dengan zero cek</option>
-                                <option value="tanpazerocek">Tanpa zero cek</option>
+                                <option value="zerocek">Dengan zero check</option>
+                                <option value="tanpazerocek">Tanpa zero check</option>
                             </select>
                         </div>
                         <div class="col-md-6" id="form-jenis-tld">

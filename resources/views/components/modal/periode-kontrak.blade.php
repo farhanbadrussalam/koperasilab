@@ -81,8 +81,20 @@
                             }));
                         }
                     }
+                    let permohonanZerocek = null;
+                    let periodZero = kontrak.periode.find(p => p.periode == 0);
+                    if (periodZero && periodZero.permohonan) {
+                        permohonanZerocek = periodZero.permohonan;
+                    }
+
                     kontrak.periode.forEach(data => {
-                        arrFind = ['invoice', 'tld', 'lhu'];
+                        if (data.periode == 1 && kontrak.is_zerocek == 1) {
+                            data.permohonan_zerocek = permohonanZerocek;
+                        }
+                        if (data.periode == 0 && kontrak.is_zerocek == 1 && kontrak.is_have_tld == 0) {
+                            return; // Skip rendering periode 0 separately since it is merged into periode 1
+                        }
+                        arrFind = ['tld', 'lhu', 'invoice'];
                         if (data.periode == 0) {
                             // menghilangkan tld di arrfind
                             arrFind = arrFind.filter(d => d != 'tld');
@@ -109,7 +121,7 @@
             const {
                 htmlAction,
                 htmlInformasi
-            } = this._generateActionAndInfoHtml(data, kontrak, aktifDokumenKirim, statusKirimTld, statusKirimTldNext, isComplete, isModal);
+            } = this._generateActionAndInfoHtml(data, kontrak, aktifDokumenKirim, statusKirimTld, statusKirimTldNext, isComplete, isModal, cekStatusPeriode);
 
             let textPeriode = `Periode ${data.periode}`;
 
@@ -215,6 +227,7 @@
             let htmlDoc = ``;
             let statusKirimTld = false;
             let statusKirimTldNext = false;
+            console.log(aktifDokumenKirim);
 
             for (const doc of aktifDokumenKirim) {
                 let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc && cek.tipe_kontrak != 'adendum');
@@ -235,16 +248,21 @@
                         findPeriode = cekStatusPeriode.find(cek => cek.periode == 0 && cek.jenis == 'invoice');
                     }
 
-                    if (data.permohonan) {
-                        let statusInvoice = false;
-                        if (kontrak.is_zerocek == 1 && data.periode == 1 && data.permohonan_zerocek) {
-                            statusInvoice = data.permohonan_zerocek.invoice.status;
-                        } else {
-                            statusInvoice = data.permohonan.invoice.status;
-                        }
+                    let statusInvoice = false;
+                    let invoiceObj = null;
+
+                    if (kontrak.is_zerocek == 1 && data.periode == 1 && data.permohonan_zerocek?.invoice) {
+                        statusInvoice = data.permohonan_zerocek.invoice.status;
+                        invoiceObj = data.permohonan_zerocek.invoice;
+                    } else if (data.permohonan?.invoice) {
+                        statusInvoice = data.permohonan.invoice.status;
+                        invoiceObj = data.permohonan.invoice;
+                    }
+
+                    if (invoiceObj) {
                         htmlStatusInvoice = statusFormat('invoice', statusInvoice);
                         if (statusInvoice == 3 && role.includes('Pelanggan')) {
-                            htmlStatusInvoice = `<a href="${base_url}/permohonan/pembayaran/bayar/${data.permohonan.invoice.keuangan_hash}">${htmlStatusInvoice}</a>`;
+                            htmlStatusInvoice = `<a href="${base_url}/permohonan/pembayaran/bayar/${invoiceObj.keuangan_hash}">${htmlStatusInvoice}</a>`;
                         }
                     }
                 }
@@ -255,20 +273,22 @@
                 else if (doc === 'lhu') iconClass = 'bi-file-earmark-check';
                 else if (doc === 'zerocek') iconClass = 'bi-shield-check';
 
-                let docTitle = doc === 'tld' ? 'TLD' : (doc === 'lhu' ? 'LHU' : (doc === 'zerocek' ? 'Zero Check' : doc[0].toUpperCase() + doc.substring(1)));
+                let docTitle = doc === 'tld' ? 'TLD' : (doc === 'lhu' ? 'LHU' : (doc === 'zerocek' ? (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 0 ? 'LHU ZeroCheck' : 'Zero Check') : doc[0].toUpperCase() + doc.substring(1)));
 
                 htmlDoc += `
                         <div class="col">
-                            <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded-2 border border-light-subtle">
-                                <span class="fw-medium text-dark small"><i class="bi ${iconClass} text-muted me-2"></i>${docTitle}</span>
-                                <span class="cursoron pe-2 text-end small"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    data-bs-title="${findPeriode?.no_resi ? 'No resi : ' + findPeriode.no_resi : ''}">
-                                    ${statusFormat('pengiriman', findPeriode?.status)}
-                                </span>
+                            <div class=" p-2 bg-light rounded-2 border border-light-subtle ${htmlStatusInvoice ? '' : ' h-100'}">
+                                <div class="d-flex justify-content-between align-items-center h-100">
+                                    <span class="fw-medium text-dark small"><i class="bi ${iconClass} text-muted me-2"></i>${docTitle}</span>
+                                    <span class="cursoron pe-2 text-end small"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        data-bs-title="${findPeriode?.no_resi ? 'No resi : ' + findPeriode.no_resi : ''}">
+                                        ${statusFormat('pengiriman', findPeriode?.status)}
+                                    </span>
+                                </div>
+                                ${htmlStatusInvoice ? `<div class="fs-7">${htmlStatusInvoice}</div>` : ''}
                             </div>
-                            ${htmlStatusInvoice ? `<div class="small mt-1 ms-2">${htmlStatusInvoice}</div>` : ''}
                         </div>
                     `;
             }
@@ -280,7 +300,7 @@
             };
         }
 
-        _generateActionAndInfoHtml(data, kontrak, aktifDokumenKirim, statusKirimTld, statusKirimTldNext, isComplete, isModal = false) {
+        _generateActionAndInfoHtml(data, kontrak, aktifDokumenKirim, statusKirimTld, statusKirimTldNext, isComplete, isModal = false, cekStatusPeriode = []) {
 
             let htmlAction = ``;
             let htmlInformasi = ``;
@@ -301,17 +321,32 @@
                 htmlBtnTld = `<a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" href="${base_url}/staff/pengiriman/permohonan/kirim/${kontrak.kontrak_hash}/${periodeNext.periode_hash}"><i class="bi bi-send-fill me-1"></i>Kirim TLD</a>`;
             }
 
+            let targetPermohonan = data.permohonan;
+            let targetComplete = isComplete;
+
+            if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 0 && data.periode == 1) {
+                let periodZero = kontrak.periode.find(p => p.periode == 0);
+                if (periodZero) {
+                    let arrFindZero = ['invoice', 'lhu'];
+                    let isZerocekComplete = cekPeriodeComplete(periodZero, cekStatusPeriode, kontrak, arrFindZero);
+                    if (!isZerocekComplete) {
+                        targetPermohonan = data.permohonan_zerocek;
+                        targetComplete = isZerocekComplete;
+                    }
+                }
+            }
+
             let htmlPermohonan = ``;
             let htmlBtnSend = ``;
-            if (data.permohonan && !isComplete) {
+            if (targetPermohonan && !targetComplete) {
                 htmlPermohonan = `
                     <div class="d-flex flex-column justify-content-center align-items-start">
-                        <div class="small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.7rem;">${data.permohonan.jenis_layanan_parent.name} - ${data.permohonan.jenis_layanan.name}</div>
-                        <div>${statusFormat('permohonan', data.permohonan.status)}</div>
+                        <div class="small fw-semibold text-muted text-uppercase mb-1" style="font-size: 0.7rem;">${targetPermohonan.jenis_layanan_parent.name} - ${targetPermohonan.jenis_layanan.name}</div>
+                        <div>${statusFormat('permohonan', targetPermohonan.status)}</div>
                     </div>`;
 
                 htmlBtnSend = `
-                        <a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs mb-2" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan.permohonan_hash}">
+                        <a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs mb-2" href="${base_url}/staff/pengiriman/permohonan/kirim/${targetPermohonan.permohonan_hash}">
                             <i class="bi bi-send-fill me-1"></i>Kirim Dokumen
                         </a>
                     `;
@@ -338,7 +373,7 @@
                     if (kontrak.no_kontrak == 'S-0003/JKRL/V/2026') {
                         // console.log(kontrak);
                     }
-                    if (!data.permohonan) {
+                    if (!targetPermohonan) {
                         htmlAction += htmlBtnEvaluasi;
                     } else {
                         htmlAction += htmlPermohonan;
@@ -403,15 +438,15 @@
                     htmlAction = htmlBtnSend + htmlAction;
                 }
 
-                if (data.permohonan?.lhu) {
-                    let aktifJobs = data.permohonan.lhu.penyelia_map.filter(d => d.status == 1);
+                if (targetPermohonan?.lhu) {
+                    let aktifJobs = targetPermohonan.lhu.penyelia_map.filter(d => d.status == 1);
                     htmlInformasi += '<div class="d-inline-flex flex-column gap-1 align-items-start">';
                     htmlInformasi += `<span class="fw-semibold text-dark small mb-1"><i class="bi bi-info-circle text-primary me-1"></i>Informasi LAB</span>`;
                     aktifJobs.map(d => {
                         htmlInformasi += statusFormat('penyelia', d.jobs.status);
                     });
                     if (aktifJobs.length == 0) {
-                        htmlInformasi += statusFormat('penyelia', data.permohonan.lhu.status);
+                        htmlInformasi += statusFormat('penyelia', targetPermohonan.lhu.status);
                     }
                     htmlInformasi += '</div>';
                 }

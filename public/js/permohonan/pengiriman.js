@@ -219,8 +219,8 @@ function showModalDiterima(obj){
                 case 'lhu':
                     $('#isLhuSend').val(true);
                     let htmlPeriode = !detail.periode ? 'Zero Check' : `Periode ${detail.periode}`;
-                    if(detail.periode == 1 && data.kontrak.is_zerocek == 1 && data.kontrak.is_have_tld == 1) {
-                        htmlPeriode += ` + Zero Cek`;
+                    if(detail.periode == 1 && data.kontrak.is_zerocek == 1) {
+                        htmlPeriode += ` + Zero Check`;
                     }
 
                     htmlJenis += `

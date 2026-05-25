@@ -279,7 +279,7 @@ function verifikasiPengujian(obj) {
     let find = dataPenyelia.find(d => d.penyelia_hash == idPenyelia);
 
     // jenis pengujian
-    let zrcek = find.permohonan.is_zerocek ? 'Zero Cek' : '';
+    let zrcek = find.permohonan.is_zerocek ? 'Zero Check' : '';
     let lJasa = find.permohonan.layanan_jasa.nama_layanan;
     let jTld = find.permohonan.jenis_tld.name;
     let jenisPengujian = zrcek + ' ' + lJasa + ' ' + jTld;

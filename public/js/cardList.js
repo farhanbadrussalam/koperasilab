@@ -42,8 +42,10 @@ function cardComponent(data, options = {}) {
             per += ' + Zero Check';
         }
         if(data.periodeNow){
-            let rangeDate = range_date(data.periodeNow.start_date, data.periodeNow.end_date, 1);
-            per += `<span class="text-muted">: ${rangeDate.start} - ${rangeDate.end}</span>`
+            if(data.periodeNow.periode != 0){
+                let rangeDate = range_date(data.periodeNow.start_date, data.periodeNow.end_date, 1);
+                per += `<span class="text-muted">: ${rangeDate.start} - ${rangeDate.end}</span>`
+            }
         }
         return `
             <span class="small">

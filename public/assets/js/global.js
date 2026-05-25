@@ -587,7 +587,11 @@ function unmask(data) {
  * @param {Function} [callback=() => {}] - The function to call if the request is successful.
  * @param {Function} [onError=() => {}] - The function to call if the request fails.
  */
-function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgress = false, onMiddleware = true) {
+function ajaxPost(url, params, callback = () => {}, onError = () => {}, options = {}) {
+    const onMiddleware = options?.onMiddleware ?? true;
+    const onProgress = options?.onProgress ?? false;
+    const onErrorPopup = options?.onErrorPopup ?? true;
+
     params.append('_token', csrf);
     let xhr = onProgress ? {xhr: onProgress} : false;
     $.ajax({
@@ -603,29 +607,31 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgre
         ...xhr
     }).done(callback).fail(error => {
         const result = error.responseJSON;
-        switch (result?.meta?.code) {
-            case 500:
-                Swal.fire({
-                    icon: "error",
-                    text: 'Terjadi kesalahan. Silakan coba lagi.',
-                });
-                console.error(result.data.msg);
-                break;
-            case 422:
-            case 400:
-                Swal.fire({
-                    icon: "warning",
-                    text: result.data.msg,
-                });
-                console.info(result.data.msg);
-                break;
-            default:
-                Swal.fire({
-                    icon: "error",
-                    text: 'Terjadi kesalahan. Silakan coba lagi.',
-                });
-                console.error(error.responseText);
-                break;
+        if(onErrorPopup) {
+            switch (result?.meta?.code) {
+                case 500:
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan. Silakan coba lagi.',
+                    });
+                    console.error(result.data.msg);
+                    break;
+                case 422:
+                case 400:
+                    Swal.fire({
+                        icon: "warning",
+                        text: result.data.msg,
+                    });
+                    console.info(result.data.msg);
+                    break;
+                default:
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan. Silakan coba lagi.',
+                    });
+                    console.error(error.responseText);
+                    break;
+            }
         }
 
         onError(error);
@@ -1120,13 +1126,14 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
 
     let aktifDokumenKirim = [];
     for (const doc of arrFindDokumen) {
-        if(kontrak.is_zerocek == 1 && data_periode.periode == 1){
-            if(doc === 'invoice') {
+        if (doc === 'invoice') {
+            if (kontrak.is_zerocek == 1 && data_periode.periode == 1) {
                 if (!data_periode.permohonan_zerocek?.invoice) continue;
                 aktifDokumenKirim.push(doc);
+                continue;
             }
+            if (!data_periode.permohonan?.invoice) continue;
         }
-        if (doc === 'invoice' && !data_periode.permohonan?.invoice) continue;
         if (doc === 'tld') {
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
             if (JL === 'KontrakEvaluasi' && (data_periode.periode == 1 || data_periode.periode == 2)) continue;
@@ -1141,7 +1148,7 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
     }
 
     if(kontrak.is_zerocek == 1 && data_periode.periode == 1){
-        aktifDokumenKirim.push('zerocek');
+        aktifDokumenKirim.splice(aktifDokumenKirim.length-1, 0, 'zerocek');
     }
 
     // cek agar tidak ada yang duplicate
