@@ -15,7 +15,8 @@ class FilterComponent {
         this.fp = false;
         this.options = {
             filter: Object.fromEntries(Object.entries(options.filter).filter(([key, value]) => value === true)),
-            multiple: options.multiple ?? []
+            multiple: options.multiple ?? [],
+            showOnLoad: options.showOnLoad ?? false
         };
         this.placeholder = options.placeholder;
 
@@ -288,9 +289,14 @@ class FilterComponent {
         this.selfElement.empty();
 
         // Membuat elemen collapse
+        let collapseClass = 'collapse w-100';
+        if (this.options.showOnLoad) {
+            collapseClass += ' show';
+        }
+
         const $collapse = $('<div>', {
             id: 'collapseFilter',
-            class: 'collapse w-100' // 'show' agar terbuka secara default
+            class: collapseClass
         });
 
         // Container internal dengan flexbox untuk tata letak filter

@@ -19,9 +19,12 @@ $(function () {
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'pengiriman',
+        showOnLoad: true, // Filter akan ditampilkan saat pertama kali dimuat
         filter : {
+            status: true,
+            perusahaan: true,
+            no_kontrak : true,
             search: true,
-            no_kontrak : true
         }
     });
     // SETUP FILTER
@@ -52,6 +55,8 @@ function loadData(page = 1) {
 
     filterValue.search && (params.filter.search = filterValue.search);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
+    filterValue.status && (params.filter.status = filterValue.status);
+    filterValue.perusahaan && (params.filter.perusahaan = filterValue.perusahaan);
     if(Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
