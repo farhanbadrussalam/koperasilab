@@ -289,6 +289,14 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     };
 
                     if (docSurpeng) {
+                        btnDocSurpeng = `
+                            <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
+                                data-url="laporan/${docSurpeng.jenis}/${docSurpeng.permohonan_hash}/${penyelia.permohonan.periode == 0 ? 1 : penyelia.permohonan.periode}"
+                                data-title="Dokumen Surat Pengantar"
+                                onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </button>
+                        `;
                         if (!isSurpengSigned) {
                             surpengBtn.icon = 'bi-clock-history';
                             surpengBtn.class = 'btn-light text-warning-emphasis';
@@ -296,16 +304,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         } else if (isSurpengSigned === 1) {
                             surpengBtn.icon = 'bi-check2-all';
                             surpengBtn.class = 'btn-light text-success';
-                            surpengBtn.title = 'Surat Pengantar Selesai (Signed)';
-
-                            btnDocSurpeng = `
-                                <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                                    data-url="laporan/${docSurpeng.jenis}/${docSurpeng.permohonan_hash}/${penyelia.permohonan.periode}"
-                                    data-title="Dokumen Surat Pengantar"
-                                    onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                </button>
-                            `;
+                            surpengBtn.title = 'Surat Pengantar Selesai (Signed)';                            
                         } else {
                             surpengBtn.icon = 'bi-x-circle';
                             surpengBtn.class = 'btn-light text-danger';

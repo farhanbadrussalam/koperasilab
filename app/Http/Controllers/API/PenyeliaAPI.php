@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use App\Traits\RestApi;
 
 use App\Models\Penyelia;
@@ -341,13 +342,13 @@ class PenyeliaAPI extends Controller
                     $kPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode_ == 0 ? 1 : $periode_)->first();
                     if ($kPeriode && !$kPeriode->nomer_surpeng) {
                         $noSurpeng = generateNoDokumen('surpeng');
-                        $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => \Carbon\Carbon::now()]);
+                        $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
                     }
 
                     $templateSurpeng = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
                     if ($templateSurpeng) {
                         Permohonan_dokumen::create(array(
-                            'periode' => $periode_,
+                            'periode' => $kPeriode->periode,
                             'id_kontrak' => $id_kontrak,
                             'id_permohonan' => $penyelia->id_permohonan,
                             'id_doc_template' => $templateSurpeng->id_doc,
@@ -436,7 +437,7 @@ class PenyeliaAPI extends Controller
                         $kPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode_ == 0 ? 1 : $periode_)->first();
                         if ($kPeriode && !$kPeriode->nomer_surpeng) {
                             $noSurpeng = generateNoDokumen('surpeng');
-                            $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => \Carbon\Carbon::now()]);
+                            $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
                         }
 
                         $template = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
@@ -479,6 +480,36 @@ class PenyeliaAPI extends Controller
 
                     return $this->output(array('status' => 'success', 'msg' => 'Berhasil diverifikasi.'));
                 }
+            } else {
+                $dokumenSurpeng = Permohonan_dokumen::find($idPenyelia);
+                if ($dokumenSurpeng) {
+                    if ($ttd) {
+                        $dokumenSurpeng->update([
+                            'ttd' => $ttd,
+                            'ttd_by' => $ttd_by
+                        ]);
+
+                        // Also try to find and update any associated Penyelia record if id_permohonan exists
+                        if ($dokumenSurpeng->id_permohonan) {
+                            $penyeliaAssociated = Penyelia::where('id_permohonan', $dokumenSurpeng->id_permohonan)->first();
+                            if ($penyeliaAssociated) {
+                                $penyeliaAssociated->update([
+                                    'verify_surpeng_at' => date('Y-m-d H:i:s'),
+                                    'is_surpeng_signed' => 1
+                                ]);
+
+                                $JL = jenislayanan($penyeliaAssociated->permohonan->jenis_layanan_parent, $penyeliaAssociated->permohonan->jenis_layanan);
+                                if ($penyeliaAssociated->is_surat_tugas_signed == 1 && ($penyeliaAssociated->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak')) {
+                                    $penyeliaAssociated->update(['status' => 10]);
+                                    $this->activePelaksanaLAB($penyeliaAssociated->id_permohonan, $penyeliaAssociated->id_penyelia);
+                                }
+                            }
+                        }
+
+                        DB::commit();
+                        return $this->output(array('status' => 'success', 'msg' => 'Berhasil diverifikasi.'));
+                    }
+                }
             }
 
             DB::commit();
@@ -502,21 +533,39 @@ class PenyeliaAPI extends Controller
             $idPenyelia = decryptor($request->idPenyelia);
             $note = $request->reason;
             $penyelia = Penyelia::find($idPenyelia);
+            if ($penyelia) {
+                $penyelia->update(array(
+                    'is_surpeng_signed' => 2
+                ));
 
-            $penyelia->update(array(
-                'is_surpeng_signed' => 2
-            ));
+                $this->log->addLog('HISTORY_DOCUMENT', 'penyelia', $penyelia, array(
+                    'description' => 'Surat Pengantar Ditolak',
+                    'properties' => array(
+                        'key' => 'surpeng',
+                        'catatan' => $note
+                    )
+                ));
+            } else {
+                $dokumenSurpeng = Permohonan_dokumen::find($idPenyelia);
+                if ($dokumenSurpeng) {
+                    $dokumenSurpeng->update([
+                        'catatan' => $note,
+                        'status' => 2
+                    ]);
 
-            $this->log->addLog('HISTORY_DOCUMENT', 'penyelia', $penyelia, array(
-                'description' => 'Surat Pengantar Ditolak',
-                'properties' => array(
-                    'key' => 'surpeng',
-                    'catatan' => $note
-                )
-            ));
+                    if ($dokumenSurpeng->id_permohonan) {
+                        $penyeliaAssociated = Penyelia::where('id_permohonan', $dokumenSurpeng->id_permohonan)->first();
+                        if ($penyeliaAssociated) {
+                            $penyeliaAssociated->update([
+                                'is_surpeng_signed' => 2
+                            ]);
+                        }
+                    }
+                }
+            }
 
             DB::commit();
-            return $this->output(array('msg' => 'Berhasil mengupdate penyelia'));
+            return $this->output(array('msg' => 'Berhasil mengupdate'));
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -809,6 +858,128 @@ class PenyeliaAPI extends Controller
         $userId = false;
         $status = false;
         $typePencarian = 'in';
+
+        if ($menu === 'ttd-surpeng') {
+            DB::beginTransaction();
+            try {
+                $sk = Auth::user()->satuankerja_id ?: [0];
+                $query = Permohonan_dokumen::where('jenis', 'surpeng')
+                    ->whereNull('ttd')
+                    ->where(function ($q) use ($sk) {
+                        $q->whereHas('permohonan.layanan_jasa', function ($q2) use ($sk) {
+                            $q2->whereIn('satuankerja_id', is_array($sk) ? $sk : [$sk]);
+                        })->orWhereHas('kontrak.layanan_jasa', function ($q2) use ($sk) {
+                            $q2->whereIn('satuankerja_id', is_array($sk) ? $sk : [$sk]);
+                        });
+                    })
+                    ->with([
+                        'permohonan',
+                        'permohonan.layanan_jasa:id_layanan,nama_layanan',
+                        'permohonan.jenisTld:id_jenisTld,name',
+                        'permohonan.jenis_layanan:id_jenisLayanan,name,parent',
+                        'permohonan.jenis_layanan_parent',
+                        'permohonan.pelanggan',
+                        'permohonan.pelanggan.perusahaan',
+                        'permohonan.pelanggan.perusahaan.alamat',
+                        'permohonan.kontrak',
+                        'permohonan.kontrak.periode',
+                        'permohonan.kontrak.rincian_list_tld',
+                        'permohonan.kontrak.rincian_list_tld.pengguna',
+                        'permohonan.kontrak.jenis_layanan:id_jenisLayanan,name,parent',
+                        'permohonan.kontrak.jenis_layanan_parent:id_jenisLayanan,name',
+                        'permohonan.dokumen',
+                        'permohonan.dokumen.doc_template',
+                        'kontrak',
+                        'kontrak.periode',
+                        'kontrak.jenisTld',
+                        'kontrak.jenis_layanan',
+                        'kontrak.jenis_layanan_parent',
+                        'kontrak.layanan_jasa',
+                        'kontrak.pelanggan',
+                        'kontrak.dokumen',
+                        'kontrak.dokumen.doc_template'
+                    ])
+                    ->orderBy('id_dokumen', 'DESC')
+                    ->paginate($limit);
+
+                $query->through(function ($doc) {
+                    if ($doc->permohonan) {
+                        $permohonanData = $doc->permohonan;
+                    } else {
+                        $kontrak = $doc->kontrak;
+                        $permohonanData = (object) [
+                            'tipe_kontrak' => $kontrak->tipe_kontrak ?? null,
+                            'jenis_layanan_parent' => $kontrak->jenis_layanan_parent ?? null,
+                            'jenis_layanan' => $kontrak->jenis_layanan ?? null,
+                            'jenis_tld' => $kontrak->jenisTld ?? null,
+                            'layanan_jasa' => $kontrak->layanan_jasa ?? null,
+                            'periode' => $doc->periode,
+                            'created_at' => $doc->created_at,
+                            'kontrak' => $kontrak,
+                            'is_have_tld' => $kontrak->is_have_tld ?? 0,
+                            'is_zerocek' => $kontrak->is_zerocek ?? 0,
+                            'pelanggan' => $kontrak->pelanggan ?? null,
+                            'dokumen' => $kontrak->dokumen ?? []
+                        ];
+                    }
+
+                    // Add $doc itself to the permohonan's documents if not already there
+                    $docExistsInPermohonan = false;
+                    if (isset($permohonanData->dokumen)) {
+                        foreach ($permohonanData->dokumen as $existingDoc) {
+                            if ($existingDoc->id_dokumen === $doc->id_dokumen) {
+                                $docExistsInPermohonan = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!$docExistsInPermohonan) {
+                        if (is_array($permohonanData->dokumen)) {
+                            $permohonanData->dokumen[] = $doc;
+                        } else if (method_exists($permohonanData->dokumen, 'push')) {
+                            $permohonanData->dokumen->push($doc);
+                        } else {
+                            $permohonanData->dokumen = collect([$doc]);
+                        }
+                    }
+
+                    $penyeliaMap = [
+                        (object)[
+                            'status' => 1,
+                            'jobs' => (object)[
+                                'status' => 1
+                            ]
+                        ]
+                    ];
+
+                    return (object) [
+                        'id_penyelia' => $doc->id_dokumen,
+                        'penyelia_hash' => $doc->dokumen_hash,
+                        'id_permohonan' => $doc->id_permohonan,
+                        'permohonan_hash' => $doc->permohonan_hash,
+                        'periode' => $doc->periode,
+                        'status' => 2, // lhu.status != 1
+                        'is_surpeng_signed' => $doc->ttd ? 1 : 0,
+                        'is_pengajuan_signed' => null,
+                        'penyelia_map' => $penyeliaMap,
+                        'permohonan' => $permohonanData,
+                        'start_date' => $doc->created_at,
+                        'end_date' => $doc->created_at,
+                    ];
+                });
+
+                $arr = $query->toArray();
+                $this->pagination = Arr::except($arr, 'data');
+
+                DB::commit();
+
+                return $this->output($query, 200);
+            } catch (\Exception $ex) {
+                info($ex);
+                DB::rollBack();
+                return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
+            }
+        }
 
         switch ($menu) {
             case 'ttd-surat':

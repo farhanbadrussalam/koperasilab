@@ -1085,32 +1085,53 @@ function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFi
     detail_pengiriman = detail_pengiriman.filter(item => item.tipe_kontrak != 'adendum');
     // pengecekan jenis layanan
     for (const doc of arrFindDokumen) {
-        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
+        let docSearch = doc;
+        let periodeSearch = data_periode.periode;
 
+        if (doc === 'zerocek') {
+            docSearch = 'lhu';
+            periodeSearch = data_kontrak.is_have_tld == 1 ? 1 : 0;
+        }
+
+        if (doc === 'tld' && data_periode.periode == 0) {
+            periodeSearch = 1;
+        }
+
+        if (doc === 'invoice') {
+            if (data_kontrak.is_zerocek == 1 && data_periode.periode == 1) {
+                periodeSearch = data_kontrak.is_have_tld == 1 ? 1 : 0;
+            }
+        }
+
+        let findPeriode = detail_pengiriman.find(cek => cek.periode == periodeSearch && cek.jenis == docSearch);
+
+        if (!findPeriode || findPeriode.status != 2) {
+            return false;
+        }
         if(role.includes('Staff Pengiriman') && data_periode.periode != periodeAwal[0]) {
-            if(periodeAwal.includes(data_periode.periode)) {
-                return true;
-            }
-            // cek tld sudah di kirim atau belum
-            if(doc === 'tld'){
-                if(!findPeriode) {
-                    return false;
-                } else if (findPeriode?.status != 2) {
-                    return false;
-                }
-            }
+            // if(periodeAwal.includes(data_periode.periode)) {
+            //     return true;
+            // }
+            // // cek tld sudah di kirim atau belum
+            // if(doc === 'tld'){
+            //     if(!findPeriode) {
+            //         return false;
+            //     } else if (findPeriode?.status != 2) {
+            //         return false;
+            //     }
+            // }
 
-            if (data_kontrak.periode_all?.jml_periode && (data_kontrak.periode_all.jml_periode - data_periode.periode) < 2) {
-                if (doc === 'lhu') {
-                    if (!findPeriode || findPeriode.status != 2) {
-                        return false;
-                    }
-                }
-            }
+            // if (data_kontrak.periode_all?.jml_periode && (data_kontrak.periode_all.jml_periode - data_periode.periode) < 2) {
+            //     if (doc === 'lhu') {
+            //         if (!findPeriode || findPeriode.status != 2) {
+            //             return false;
+            //         }
+            //     }
+            // }
         } else{
-            if (!findPeriode || findPeriode.status != 2) {
-                return false;
-            }
+            // if (!findPeriode || findPeriode.status != 2) {
+            //     return false;
+            // }
 
             // if(findPeriode?.tipe_kontrak == 'adendum')
             //     continue;
@@ -1121,37 +1142,63 @@ function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFi
 
 function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
     const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
-    // const periodeAwal = getPeriodeAwal(kontrak);
     let lastPeriode = (kontrak.periode_count) == data_periode.periode;
 
     let aktifDokumenKirim = [];
     for (const doc of arrFindDokumen) {
         if (doc === 'invoice') {
-            if (kontrak.is_zerocek == 1 && data_periode.periode == 1) {
-                if (!data_periode.permohonan_zerocek?.invoice) continue;
+            // Rule 3: For contracts with zerocek = true and have_tld = true, Periode 1 has the invoice of the zero-check/periode 1.
+            if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 1 && data_periode.periode == 1) {
+                if (!data_periode.permohonan?.invoice && !data_periode.permohonan_zerocek?.invoice) continue;
                 aktifDokumenKirim.push(doc);
                 continue;
             }
+            // Rule 1 & 2: For contracts with zerocek = true and have_tld = false, on Periode 1, show standard invoice.
+            if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 0 && data_periode.periode == 1) {
+                if (!data_periode.permohonan?.invoice) continue;
+                aktifDokumenKirim.push(doc);
+                continue;
+            }
+            // For Periode 0 (Rule 1 & 2) or any other periods, show invoice if exists.
             if (!data_periode.permohonan?.invoice) continue;
         }
         if (doc === 'tld') {
-            if (lastPeriode && tmpArrSewa.includes(JL)) continue;
-            if (JL === 'KontrakEvaluasi' && (data_periode.periode == 1 || data_periode.periode == 2)) continue;
-            // if (periodeAwal.includes(data_periode.periode)) continue;
-            // if (data_periode.tipe_kontrak == 'adendum') continue;
+            // For Sewa: TLD is ALWAYS shown on all periods.
+            if (tmpArrSewa.includes(JL)) {
+                if(data_periode.periode == 0) continue;
+            } else {
+                // For other contract types (e.g. Evaluasi):
+                // If it does not have TLD (is_have_tld == 0), skip TLD on all periods except Periode 0.
+                if (kontrak.is_have_tld == 0 && data_periode.periode != 0) continue;
+
+                // For KontrakEvaluasi: skip on Periode 1 and 2 unless is_zerocek == 1 and is_have_tld == 1.
+                if (JL === 'KontrakEvaluasi' && (data_periode.periode == 1 || data_periode.periode == 2)) {
+                    if (kontrak.is_zerocek != 1 || kontrak.is_have_tld != 1) {
+                        continue;
+                    }
+                }
+            }
         }
         if (doc === 'lhu') {
             if(data_periode.status == 2) continue;
+
+            // For zero-check on Periode 0 (Rule 1 & 2): show zerocek (labeled "LHU ZeroCheck") instead of lhu.
+            if (kontrak.is_zerocek == 1 && data_periode.periode == 0) {
+                aktifDokumenKirim.push('zerocek');
+                continue;
+            }
+
+            // For zero-check on Periode 1 (Rule 3): show zerocek instead of lhu.
+            if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 1 && data_periode.periode == 1) {
+                aktifDokumenKirim.push('zerocek');
+                continue;
+            }
         }
 
         aktifDokumenKirim.push(doc);
     }
 
-    if(kontrak.is_zerocek == 1 && data_periode.periode == 1){
-        aktifDokumenKirim.splice(aktifDokumenKirim.length-1, 0, 'zerocek');
-    }
-
-    // cek agar tidak ada yang duplicate
+    // Check to ensure no duplicates
     aktifDokumenKirim = [...new Set(aktifDokumenKirim)];
 
     return aktifDokumenKirim;

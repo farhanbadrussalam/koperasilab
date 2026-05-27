@@ -19,6 +19,7 @@ use App\Models\Kontrak_periode;
 use App\Models\Kontrak_pengguna;
 use App\Models\Kontrak_tld;
 use App\Models\Master_tld;
+use App\Models\Permohonan_dokumen;
 
 use App\Models\Setting_layanan;
 
@@ -37,14 +38,16 @@ class StaffController extends Controller
     protected TldAPI $tld;
     protected NotifController $notif;
     protected mixed $global;
-    public function __construct(){
+    public function __construct()
+    {
         $this->permohonan = resolve(PermohonanAPI::class);
         $this->notif = resolve(NotifController::class);
         $this->tld = resolve(TldAPI::class);
         $this->global = config('customvariabel');
     }
 
-    public function indexApproval(){
+    public function indexApproval()
+    {
         $data = [
             'title' => 'Approval',
             'module' => 'staff-approval'
@@ -75,7 +78,7 @@ class StaffController extends Controller
         notifRead('PenyeliaLAB');
         $userJobs = Auth::user()->jobs;
         $listJobs = array();
-        if($userJobs != null){
+        if ($userJobs != null) {
             foreach ($userJobs as $key => $value) {
                 $dataJobs = Master_jobs::find($value);
                 array_push($listJobs, $dataJobs->jobs_hash);
@@ -95,7 +98,7 @@ class StaffController extends Controller
         $userJobs = Auth::user()->jobs;
         $listJobs = array();
         $role = Auth::user()->getRoleNames()->toArray();
-        if(in_array('Staff Penyelia', $role)){
+        if (in_array('Staff Penyelia', $role)) {
             $dataJobs = Master_jobs::where('status', 14)->first();
             array_push($listJobs, $dataJobs->jobs_hash);
         }
@@ -125,7 +128,8 @@ class StaffController extends Controller
         ];
         return view('pages.staff.petugas.index', $data);
     }
-    public function indexJenisPembayaran() {
+    public function indexJenisPembayaran()
+    {
         $data = [
             'title' => 'Metode Pembayaran',
             'module' => 'staff-jenis-pembayaran'
@@ -182,29 +186,74 @@ class StaffController extends Controller
             'permohonan.pelanggan.perusahaan',
         )->find($idPenyelia);
 
-        if(!$query)
+        if (!$query) {
+            // Check if it is a Permohonan_dokumen instead!
+            $doc = Permohonan_dokumen::with([
+                'permohonan',
+                'kontrak',
+                'kontrak.periode',
+                'kontrak.jenisTld',
+                'kontrak.jenis_layanan',
+                'kontrak.jenis_layanan_parent',
+                'kontrak.layanan_jasa',
+                'kontrak.pelanggan',
+                'kontrak.pelanggan.perusahaan',
+            ])->find($idPenyelia);
+
+            if ($doc) {
+                // Construct a mock/virtual Penyelia object!
+                $kontrak = $doc->kontrak;
+                $permohonanData = $doc->permohonan ?: (object) [
+                    'tipe_kontrak' => $kontrak->tipe_kontrak ?? null,
+                    'jenis_layanan_parent' => $kontrak->jenis_layanan_parent ?? null,
+                    'jenis_layanan' => $kontrak->jenis_layanan ?? null,
+                    'jenis_tld' => $kontrak->jenisTld ?? null,
+                    'layanan_jasa' => $kontrak->layanan_jasa ?? null,
+                    'periode' => $doc->periode,
+                    'created_at' => $doc->created_at,
+                    'kontrak' => $kontrak,
+                    'is_have_tld' => $kontrak->is_have_tld ?? 0,
+                    'is_zerocek' => $kontrak->is_zerocek ?? 0,
+                    'pelanggan' => $kontrak->pelanggan ?? null,
+                    'dokumen' => collect([$doc])
+                ];
+
+                $query = new Penyelia([
+                    'periode' => $doc->periode,
+                    'status' => 2,
+                    'created_at' => $doc->created_at,
+                    'is_surpeng_signed' => $doc->ttd ? 1 : 0
+                ]);
+                $query->id_penyelia = $doc->id_dokumen;
+                $query->setRelation('permohonan', $permohonanData);
+                $query->setRelation('petugas', collect([]));
+                $query->setRelation('penyelia_map', collect([]));
+            }
+        }
+
+        if (!$query)
             abort(404);
 
         // mengambil data jobs
         $listJobs = array();
         $listJobsParalel = array();
-        if(count($query->penyelia_map) != 0){
+        if (count($query->penyelia_map) != 0) {
             foreach ($query->penyelia_map as $key => $value) {
                 $dataJobs = Master_jobs::find(decryptor($value->jobs_hash));
                 $dataJobs['order'] = $value->order;
 
-                if($value->point_jobs == null){
+                if ($value->point_jobs == null) {
                     array_push($listJobs, $dataJobs);
-                }else{
+                } else {
                     array_push($listJobsParalel, $dataJobs);
                 }
             }
-        }else{
+        } else {
             // Mengambil jobs dari layanan jasa
             $type = '';
-            if($query->permohonan->tipe_kontrak == 'adendum'){
-                if($query->permohonan->is_zerocek == 1){
-                    if($query->permohonan->is_have_tld == 1){
+            if ($query->permohonan->tipe_kontrak == 'adendum') {
+                if ($query->permohonan->is_zerocek == 1) {
+                    if ($query->permohonan->is_have_tld == 1) {
                         $type = 'havetld';
                     } else if ($query->permohonan->is_have_tld == 0) {
                         $type = 'nonhavetld';
@@ -212,12 +261,12 @@ class StaffController extends Controller
                 } else {
                     $type = 'adendum';
                 }
-            }else {
+            } else {
                 $JL = jenislayanan($query->permohonan->jenis_layanan_parent, $query->permohonan->jenis_layanan);
-                if(in_array($JL, $this->global['arr_putus'])) {
+                if (in_array($JL, $this->global['arr_putus'])) {
                     $type = 'putus';
                 } else {
-                    if($query->permohonan->is_have_tld == 1){
+                    if ($query->permohonan->is_have_tld == 1) {
                         $type = 'havetld';
                     } else if ($query->permohonan->is_have_tld == 0) {
                         $type = 'nonhavetld';
@@ -271,23 +320,23 @@ class StaffController extends Controller
     public function verifikasiPermohonan(string $idPermohonan)
     {
         notifRead('Permohonan', $idPermohonan);
-        $arrTandaTerima = [1,4, 7];
+        $arrTandaTerima = [1, 4, 7];
         $id = decryptor($idPermohonan);
         $pertanyaan_tr = false;
         $dataPermohonan = Permohonan::with(
-                            'file_lhu',
-                            'layanan_jasa:id_layanan,nama_layanan',
-                            'jenisTld:id_jenisTld,name',
-                            'jenis_layanan:id_jenisLayanan,name,parent',
-                            'jenis_layanan_parent',
-                            'permohonan_pengguna',
-                            'pelanggan',
-                            'pelanggan.perusahaan',
-                            'pelanggan.perusahaan.alamat',
-                            'tandaterima',
-                        )->where('id_permohonan', $id)->first();
+            'file_lhu',
+            'layanan_jasa:id_layanan,nama_layanan',
+            'jenisTld:id_jenisTld,name',
+            'jenis_layanan:id_jenisLayanan,name,parent',
+            'jenis_layanan_parent',
+            'permohonan_pengguna',
+            'pelanggan',
+            'pelanggan.perusahaan',
+            'pelanggan.perusahaan.alamat',
+            'tandaterima',
+        )->where('id_permohonan', $id)->first();
 
-        if(!$dataPermohonan)
+        if (!$dataPermohonan)
             abort(404);
 
         if ($dataPermohonan->locked_by && $dataPermohonan->locked_by != Auth::user()->id) {
@@ -303,12 +352,12 @@ class StaffController extends Controller
             'locked_at' => Carbon::now()
         ]);
 
-        if($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)){
+        if ($dataPermohonan && in_array($dataPermohonan->jenis_layanan_parent->id_jenisLayanan, $arrTandaTerima)) {
             $pertanyaan_tr = Master_pertanyaan::where('id_layananjasa', $dataPermohonan->layanan_jasa->id_layanan)->get();
         }
-        if(isset($dataPermohonan->list_tld) && count($dataPermohonan->list_tld) > 0){
+        if (isset($dataPermohonan->list_tld) && count($dataPermohonan->list_tld) > 0) {
             $dataPermohonan->tldKontrol = Master_tld::whereIn('id_tld', $dataPermohonan->list_tld)->get();
-        } else if($dataPermohonan->tld_kontrol){
+        } else if ($dataPermohonan->tld_kontrol) {
             $dataPermohonan->tldKontrol = $dataPermohonan->tld_kontrol;
         }
 
@@ -342,12 +391,63 @@ class StaffController extends Controller
         $idPeriode = decryptor($periode) ?? false;
         $data = false;
 
-        if($id){
-            if($periode) {
+        if ($id) {
+            if ($periode) {
                 // melakukan set kontrak adendum
                 $kontrakPeriode = Kontrak_periode::where('id_periode', $idPeriode)->first();
-                if($kontrakPeriode){
+                if ($kontrakPeriode) {
                     setKontrakAdendum($id, $kontrakPeriode->periode);
+
+                    // Generate surpeng document if not exists and associated permohonan is null
+                    $associatedPermohonan = Permohonan::where('id_kontrak', $id)->where('periode', $kontrakPeriode->periode)->first();
+                    if (!$associatedPermohonan && !$kontrakPeriode->nomer_surpeng) {
+                        $noSurpeng = generateNoDokumen('surpeng');
+                        $kontrakPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
+
+                        $dokumen = Permohonan_dokumen::firstOrNew([
+                            'id_kontrak' => $id,
+                            'periode' => $kontrakPeriode->periode,
+                            'jenis' => 'surpeng'
+                        ]);
+
+                        if (!$dokumen->exists) {
+                            $template = \App\Models\Documents::where('jenis', 'body')
+                                ->where('name', 'SuratPengantar')
+                                ->where('status', '1')
+                                ->first();
+
+                            $dokumen->fill([
+                                'id_doc_template' => $template->id_doc ?? null,
+                                'nama' => "Surat Pengantar (Periode " . $kontrakPeriode->periode . ")",
+                                'created_by' => Auth::id(),
+                                'status' => 1
+                            ]);
+                        }
+
+                        $dokumen->nomer = $noSurpeng;
+                        $dokumen->save();
+
+                        // Send notification to Manager Administrasi
+                        $kontrakObj = Kontrak::with(['layanan_jasa'])->find($id);
+                        if ($kontrakObj) {
+                            $us = Auth::user();
+                            $sk = $kontrakObj->layanan_jasa ? $kontrakObj->layanan_jasa->satuankerja_id : null;
+
+                            $userQueryAdmin = User::role('Manager Administrasi')
+                                ->when($sk, function ($query) use ($sk) {
+                                    return $query->whereRaw('JSON_CONTAINS(satuankerja_id, ?)', [(string) $sk]);
+                                });
+
+                            $dataNotifAdmin = array(
+                                'pesan' => 'Permintaan persetujuan Surat Pengantar untuk no kontrak <b>' . $kontrakObj->no_kontrak . '</b> diajukan oleh <b>' . $us->name . '</b>',
+                                'url' => '/manager/surpeng/v/' . $dokumen->dokumen_hash,
+                                'event' => 'Surpeng',
+                                'event_id' => $dokumen->dokumen_hash,
+                            );
+
+                            \App\Services\Notifier::send($userQueryAdmin, $dataNotifAdmin);
+                        }
+                    }
                 }
 
                 $data = Kontrak::with([
@@ -378,36 +478,38 @@ class StaffController extends Controller
                     'periode.permohonan.lhu.pengiriman',
                     'periode.permohonan.pengiriman',
                     'periode.permohonan.file_lhu',
+                    'periode.permohonan.dokumen',
                     'periode.permohonan.pelanggan:id,id_perusahaan,name',
                     'periode.permohonan.pelanggan.perusahaan',
                     'periode.permohonan.pelanggan.perusahaan.alamat',
+                    'dokumen'
                 ])->find($id);
 
                 // cek tld apakah sudah di kirim atau belum
                 $statusTld = Pengiriman::with([
-                    'detail' => function($q){
+                    'detail' => function ($q) {
                         return $q->where('jenis', 'tld');
                     },
                     'permohonan',
                 ])->where('id_kontrak', $id)
-                ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode[0]->periode)
-                ->whereHas('permohonan', function($q) use ($idPeriode){
-                    $q->where('tipe_kontrak', '!=', 'adendum');
-                })
-                ->first();
+                    ->where('periode', $data->periode[0]->periode == 1 ? 0 : $data->periode[0]->periode)
+                    ->whereHas('permohonan', function ($q) use ($idPeriode) {
+                        $q->where('tipe_kontrak', '!=', 'adendum');
+                    })
+                    ->first();
                 $data->statusTld = $statusTld->status ?? false;
                 $data->sumber = 'kontrak';
 
                 // Pengecekan adendum di kontrak periode
                 $data->adendum = Kontrak_detail::with([
-                        'entitas' => function (MorphTo $morphTo) {
-                            $morphTo->morphWith([
-                                Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-                            ]);
-                        },
-                        'tld_1',
-                        'tld_2',
-                    ])
+                    'entitas' => function (MorphTo $morphTo) {
+                        $morphTo->morphWith([
+                            Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                        ]);
+                    },
+                    'tld_1',
+                    'tld_2',
+                ])
                     ->where('id_kontrak', $id)
                     ->where('periode', $data->periode[0]->periode)
                     ->where('status', 2) // status 2 = adendum
@@ -439,17 +541,18 @@ class StaffController extends Controller
                     'pengiriman',
                     'pengiriman.detail',
                     'file_lhu',
+                    'dokumen',
                     'pelanggan:id,id_perusahaan,name',
                     'pelanggan.perusahaan',
                     'pelanggan.perusahaan.alamat',
                 ])->find($id);
                 $data->sumber = 'permohonan';
 
-                if($data->pengiriman == null){
+                if ($data->pengiriman == null) {
                     $data->pengiriman_baru = Pengiriman::with('detail')->where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
                 }
             }
-        }else{
+        } else {
             return redirect()->back();
         }
 
@@ -481,7 +584,7 @@ class StaffController extends Controller
         // ->first();
         $periodeNow = Kontrak_periode::select('periode')->where('id_periode', $periode)->first();
 
-        if(!$periodeNow){
+        if (!$periodeNow) {
             // melanjutkan periode berikutnya
             $periodeNow = Kontrak_periode::select('periode', 'end_date')->where('id_kontrak', $idKontrak)->where('periode', '>', 0)->orderBy('periode', 'desc')->first();
             $next = $periodeNow->periode + 1;
@@ -539,7 +642,8 @@ class StaffController extends Controller
         return redirect(Route('staff.pengiriman.permohonan.kirim.kontrak', [$idHash, $periodePengembalian->periode_hash]));
     }
 
-    private function generateNoPengiriman() {
+    private function generateNoPengiriman()
+    {
         // Format tanggal: milisecond (timestamp)
         $milliseconds = round(microtime(true) * 1000);
 
@@ -552,7 +656,8 @@ class StaffController extends Controller
         return $noPengiriman;
     }
 
-    private function createPermohonan(int $idKontrak, int $periode){
+    private function createPermohonan(int $idKontrak, int $periode)
+    {
         $dataKontrak = Kontrak::find($idKontrak);
 
         $params = [
@@ -581,6 +686,5 @@ class StaffController extends Controller
             Log::error("permohonan creation failed: " . $permohonanResponse->getContent());
             // ... consider throwing an exception or other error handling
         }
-
     }
 }

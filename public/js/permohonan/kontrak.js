@@ -117,20 +117,42 @@ function loadData(page = 1) {
             }
 
             const JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
-            // let activePeriode = '';
+            let activePeriode = '';
+            let lastPeriodeKontrak = false;
             let htmlPengembalian = '';
-            // for (const periode of data.periode) {
-                // const dokumenAktif = periodeMapDocument(periode, data, arrFind);
-                // const isComplete = cekPeriodeComplete(periode, detailPengiriman, data, dokumenAktif);
 
-                // let jml_periode = data.periode_count;
-                // if(!tmpArrSewa.includes(JL)){
-                //     if(data.is_zerocek && !data.is_have_tld){
-                //         jml_periode = jml_periode - 1;
-                //     }
-                // }
-            // }
-            let lastPeriodeKontrak = (data.jml_periode) == data.periode_active?.periode;
+            for (const periode of data.periode) {
+                if (periode.periode == 1 && data.is_zerocek == 1) {
+                    let permohonanZerocek = null;
+                    if (data.is_have_tld == 1) {
+                        let periodOne = data.periode.find(p => p.periode == 1);
+                        if (periodOne && periodOne.permohonan) {
+                            permohonanZerocek = periodOne.permohonan;
+                        }
+                    } else {
+                        let periodZero = data.periode.find(p => p.periode == 0);
+                        if (periodZero && periodZero.permohonan) {
+                            permohonanZerocek = periodZero.permohonan;
+                        }
+                    }
+                    periode.permohonan_zerocek = permohonanZerocek;
+                }
+
+                const dokumenAktif = periodeMapDocument(periode, data, arrFind);
+                const isComplete = cekPeriodeComplete(periode, detailPengiriman, data, dokumenAktif);
+
+                let jml_periode_val = data.periode_count;
+                if(!tmpArrSewa.includes(JL)){
+                    if(data.is_zerocek && !data.is_have_tld){
+                        jml_periode_val = jml_periode_val - 1;
+                    }
+                }
+                if(!isComplete){
+                    activePeriode = periode;
+                    break;
+                }
+                lastPeriodeKontrak = (jml_periode_val) == periode.periode;
+            }
 
             if(lastPeriodeKontrak && role.includes('Staff Pengiriman')){
                 htmlPengembalian = pengembalianTLD(data);
@@ -166,6 +188,14 @@ function loadData(page = 1) {
                 htmlStatusKontrak = '';
             }
 
+            let htmlZeroCek = data.is_zerocek == 1 
+                ? `<span class="badge bg-info-subtle fw-normal rounded-pill text-info-emphasis"><i class="bi bi-check-circle me-1"></i>Zero Check</span>` 
+                : `<span class="badge bg-danger-subtle fw-normal rounded-pill text-danger-emphasis"><i class="bi bi-x-circle me-1"></i>Bukan Zero Check</span>`;
+            
+            let htmlHaveTld = data.is_have_tld == 1 
+                ? `<span class="badge bg-primary-subtle fw-normal rounded-pill text-primary-emphasis"><i class="bi bi-check-circle me-1"></i>Mempunyai TLD</span>` 
+                : `<span class="badge bg-danger-subtle fw-normal rounded-pill text-danger-emphasis"><i class="bi bi-x-circle me-1"></i>Tidak Mempunyai TLD</span>`;
+
             // progress kontrak
             let jml_periode = data.periode_all.jml_periode;
             let periode_selesai = data.periode.filter(d => d.periode != 0 && d.selesai == 1).length;
@@ -196,6 +226,8 @@ function loadData(page = 1) {
                             <div class="gap-2">
                                 <span class="badge bg-secondary-subtle fw-normal rounded-pill text-secondary-emphasis">${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}</span>
                                 ${htmlStatusKontrak}
+                                ${htmlZeroCek}
+                                ${htmlHaveTld}
                             </div>
                             <div>
                                 ${statusFormat('kontrak',data.status)}
@@ -238,10 +270,11 @@ function loadData(page = 1) {
                             </div>
                         </div>
                         ${(() => {
-                            if(data.periode_active) {
+                            let targetPeriode = activePeriode || data.periode_active;
+                            if(targetPeriode) {
                                 let html = `
                                     <div class="px-3" id="listPeriodeNow${i}">
-                                        ${modalPeriode.htmlPeriode(data.periode_active, data, detailPengiriman, arrFind)}
+                                        ${modalPeriode.htmlPeriode(targetPeriode, data, detailPengiriman, arrFind)}
                                         ${role.includes('Staff Pengiriman') ? htmlPengembalian : ''}
                                     </div>
                                 `;

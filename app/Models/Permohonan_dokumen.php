@@ -130,4 +130,15 @@ class Permohonan_dokumen extends Model
     public function usersig(){
         return $this->belongsTo(user::class, 'ttd_by', 'id');
     }
+
+    public function permohonan()
+    {
+        return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function kontrak()
+    {
+        return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
+    }
 }
+
