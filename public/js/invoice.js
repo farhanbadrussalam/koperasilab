@@ -392,6 +392,7 @@ class Invoice {
 
             if (this.dataKeuangan.pph) {
                 let mediaPph = this.dataKeuangan.media_bukti_bayar_pph;
+                $('#paymentPphProofSection').show();
                 $('#paymentPphProof').empty();
                 let previewPph = new UploadComponent('paymentPphProof', {
                     mode: 'preview',

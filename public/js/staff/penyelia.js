@@ -304,7 +304,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         } else if (isSurpengSigned === 1) {
                             surpengBtn.icon = 'bi-check2-all';
                             surpengBtn.class = 'btn-light text-success';
-                            surpengBtn.title = 'Surat Pengantar Selesai (Signed)';                            
+                            surpengBtn.title = 'Surat Pengantar Selesai (Signed)';
                         } else {
                             surpengBtn.icon = 'bi-x-circle';
                             surpengBtn.class = 'btn-light text-danger';

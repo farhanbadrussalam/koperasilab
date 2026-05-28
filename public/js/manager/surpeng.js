@@ -119,15 +119,22 @@ function _renderCardItem(lhu) {
         title: 'Verifikasi Surat Pengantar'
     };
 
+    let docPeriode = permohonan.periode;
+    let docPeriodeNow = false;
+
     if (lhu.status != 1 && hasTugas) {
         if (docSurpeng) {
             tugasBtn = {
                 ...tugasBtn,
-                attr: `data-url="laporan/${docSurpeng.jenis}/${permohonan.kontrak.kontrak_hash}/${lhu.periode}"
+                attr: `data-url="laporan/${docSurpeng.jenis}/${permohonan.kontrak.kontrak_hash}/${docSurpeng.periode}"
                 data-title="Dokumen Surat Pengantar"
                 data-idpenyelia="${lhu.penyelia_hash}"
+                data-periode="${docSurpeng.periode}"
                 onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"`,
             }
+
+            docPeriodeNow = permohonan.kontrak.periode.find(p => p.periode == docSurpeng.periode);
+            docPeriode = docSurpeng.periode;
         }
         if (isSurpengSigned === 1) {
             tugasBtn = {
@@ -248,15 +255,15 @@ function _renderCardItem(lhu) {
         statusPenyelia: htmlStatus,
         jenisTld: permohonan.jenis_tld?.name ?? '-',
         namaLayanan: permohonan.layanan_jasa?.nama_layanan,
-        periode: permohonan.periode,
+        periode: docPeriode,
+        periodeNow: docPeriodeNow,
         created_at: permohonan.created_at,
         kontrak: permohonan.kontrak?.no_kontrak,
         id: lhu.penyelia_hash,
         is_have_tld: permohonan.is_have_tld,
         is_zerocek: permohonan.is_zerocek,
         note: '',
-        pelanggan: permohonan.pelanggan.name,
-        divTimelineTugas: timeline
+        pelanggan: permohonan.pelanggan.name
     };
 
     return {
@@ -395,13 +402,14 @@ function btnShowDoc(obj) {
     const url = $(obj).data('url');
     const title = $(obj).data('title') || 'Dokumen';
     const idPenyelia = $(obj).data('idpenyelia');
+    const periode = $(obj).data('periode');
     modalDoc.show(url, {
         title: title,
         formHtml: `
         <div class="d-flex gap-2 flex-column">
             <div class="text-center m-2" id="signatureSurpeng"></div>
             <div class="mt-1 text-center">
-                <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${idPenyelia}')">Simpan Tanda Tangan</button>
+                <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${idPenyelia}', '${periode}')">Simpan Tanda Tangan</button>
             </div>
         </div>
         `
@@ -415,7 +423,7 @@ function btnShowDoc(obj) {
     });
 }
 
-function saveSignature(obj, id_penyelia) {
+function saveSignature(obj, id_penyelia, periode) {
     let [ttdValue, ttdBy] = signaturePad.getValue();
 
     if (!ttdValue) {
@@ -429,6 +437,7 @@ function saveSignature(obj, id_penyelia) {
     params.append('ttd', ttdValue);
     params.append('ttd_by', ttdBy);
     params.append('idPenyelia', id_penyelia);
+    params.append('periode', periode);
 
     spinner('show', $(obj));
 

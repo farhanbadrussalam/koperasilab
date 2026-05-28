@@ -335,11 +335,11 @@ class PenyeliaAPI extends Controller
                     Permohonan_dokumen::create($dataParams);
                 }
 
-                $dokumenSurpeng = Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)->where('jenis', 'surpeng')->first();
+                $id_kontrak = $penyelia->permohonan->id_kontrak;
+                $periode_ = $penyelia->periode;
+                $kPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode_ == 0 ? 1 : $periode_)->first();
+                $dokumenSurpeng = Permohonan_dokumen::where('periode', $kPeriode->periode)->where('id_kontrak', $id_kontrak)->where('jenis', 'surpeng')->first();
                 if (!$dokumenSurpeng) {
-                    $id_kontrak = $penyelia->permohonan->id_kontrak;
-                    $periode_ = $penyelia->periode;
-                    $kPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode_ == 0 ? 1 : $periode_)->first();
                     if ($kPeriode && !$kPeriode->nomer_surpeng) {
                         $noSurpeng = generateNoDokumen('surpeng');
                         $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
@@ -359,6 +359,10 @@ class PenyeliaAPI extends Controller
                             'status' => 1
                         ));
                     }
+                } else {
+                    $dokumenSurpeng->update(array(
+                        'id_permohonan' => $penyelia->id_permohonan
+                    ));
                 }
             }
 
@@ -412,6 +416,7 @@ class PenyeliaAPI extends Controller
             $idPenyelia = $request->has('idPenyelia') ? decryptor($request->idPenyelia) : false;
             $ttd = $request->has('ttd') ? decryptor($request->ttd) : false;
             $ttd_by = $request->has('ttd_by') ? decryptor($request->ttd_by) : false;
+            $periode = $request->has('periode') ? $request->periode : false;
 
             $params = array();
 
@@ -421,7 +426,7 @@ class PenyeliaAPI extends Controller
                     // Update the signature in Permohonan_dokumen if the surpeng document exists, 
                     // else it might be created later in ReportController.
                     $dokumenSurpeng = Permohonan_dokumen::where('id_kontrak', $penyelia->permohonan->id_kontrak)
-                        ->where('periode', $penyelia->periode)
+                        ->where('periode', $periode)
                         ->where('jenis', 'surpeng')
                         ->first();
 
@@ -865,13 +870,13 @@ class PenyeliaAPI extends Controller
                 $sk = Auth::user()->satuankerja_id ?: [0];
                 $query = Permohonan_dokumen::where('jenis', 'surpeng')
                     ->whereNull('ttd')
-                    ->where(function ($q) use ($sk) {
-                        $q->whereHas('permohonan.layanan_jasa', function ($q2) use ($sk) {
-                            $q2->whereIn('satuankerja_id', is_array($sk) ? $sk : [$sk]);
-                        })->orWhereHas('kontrak.layanan_jasa', function ($q2) use ($sk) {
-                            $q2->whereIn('satuankerja_id', is_array($sk) ? $sk : [$sk]);
-                        });
-                    })
+                    // ->where(function ($q) use ($sk) {
+                    //     $q->whereHas('permohonan.layanan_jasa', function ($q2) use ($sk) {
+                    //         $q2->whereIn('satuankerja_id', is_array($sk) ? $sk : [$sk]);
+                    //     })->orWhereHas('kontrak.layanan_jasa', function ($q2) use ($sk) {
+                    //         $q2->whereIn('satuankerja_id', is_array($sk) ? $sk : [$sk]);
+                    //     });
+                    // })
                     ->with([
                         'permohonan',
                         'permohonan.layanan_jasa:id_layanan,nama_layanan',
@@ -889,6 +894,7 @@ class PenyeliaAPI extends Controller
                         'permohonan.kontrak.jenis_layanan_parent:id_jenisLayanan,name',
                         'permohonan.dokumen',
                         'permohonan.dokumen.doc_template',
+                        'permohonan.lhu',
                         'kontrak',
                         'kontrak.periode',
                         'kontrak.jenisTld',
@@ -953,9 +959,7 @@ class PenyeliaAPI extends Controller
                     ];
 
                     return (object) [
-                        'id_penyelia' => $doc->id_dokumen,
-                        'penyelia_hash' => $doc->dokumen_hash,
-                        'id_permohonan' => $doc->id_permohonan,
+                        'penyelia_hash' => $permohonanData->lhu->penyelia_hash,
                         'permohonan_hash' => $doc->permohonan_hash,
                         'periode' => $doc->periode,
                         'status' => 2, // lhu.status != 1

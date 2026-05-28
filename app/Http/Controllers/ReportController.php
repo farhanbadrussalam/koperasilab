@@ -1072,7 +1072,7 @@ class ReportController extends Controller
                     'id_permohonan' => $id_permohonan ?? null,
                     'id_doc_template' => $template->id_doc,
                     'jenis' => "surpeng",
-                    "nama" => "Surat Pengantar ($textPeriode)",
+                    "nama" => "Surat Pengantar",
                     "nomer" => $noSurpeng,
                     "created_by" => Auth::user()->id,
                     "status" => 1

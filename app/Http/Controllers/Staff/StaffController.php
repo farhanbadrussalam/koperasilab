@@ -418,7 +418,7 @@ class StaffController extends Controller
 
                             $dokumen->fill([
                                 'id_doc_template' => $template->id_doc ?? null,
-                                'nama' => "Surat Pengantar (Periode " . $kontrakPeriode->periode . ")",
+                                'nama' => "Surat Pengantar",
                                 'created_by' => Auth::id(),
                                 'status' => 1
                             ]);
