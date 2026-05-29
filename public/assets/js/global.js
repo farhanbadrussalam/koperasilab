@@ -284,8 +284,8 @@ function statusFormat(feature, status) {
     status = Number(status);
 
     // Helper untuk membuat badge modern dengan ikon
-    const createBadge = (color, icon, text) => {
-        return `<span class="badge bg-${color}-subtle text-${color} border border-${color}-subtle px-2 py-1 fw-medium align-items-center">
+    const createBadge = (color, icon, text, textColor = '') => {
+        return `<span class="badge bg-${color}-subtle text-${textColor || color} border border-${color}-subtle px-2 py-1 fw-medium align-items-center">
                     <i class="bi ${icon} me-1"></i> ${text}
                 </span>`;
     };
@@ -293,7 +293,7 @@ function statusFormat(feature, status) {
     if (feature == 'jadwal') {
         switch (status) {
             case 0: return createBadge('secondary', 'bi-person-dash', 'Belum ditugaskan');
-            case 1: return createBadge('info', 'bi-send', 'Diajukan');
+            case 1: return createBadge('info', 'bi-send', 'Diajukan', 'dark');
             case 2: return createBadge('success', 'bi-check2-circle', 'Bersedia');
             case 9: return createBadge('danger', 'bi-x-circle', 'Menolak');
             default: return createBadge('danger', 'bi-slash-circle', 'Dibatalkan');
@@ -302,8 +302,8 @@ function statusFormat(feature, status) {
         switch (status) {
             case 1: return createBadge('secondary', 'bi-file-earmark-plus', 'Pengajuan');
             case 2: return createBadge('primary', 'bi-shield-check', 'Terverifikasi');
-            case 3: return createBadge('info', 'bi-gear-wide-connected', 'Proses pelaksana LAB');
-            case 4: return createBadge('info', 'bi-truck', 'Proses Pengiriman');
+            case 3: return createBadge('info', 'bi-gear-wide-connected', 'Proses pelaksana LAB', 'dark');
+            case 4: return createBadge('info', 'bi-truck', 'Proses Pengiriman', 'dark');
             case 5: return createBadge('success', 'bi-check-circle-fill', 'Selesai');
             case 80: return createBadge('secondary', 'bi-pencil-square', 'Draft');
             case 90: return createBadge('danger', 'bi-x-circle', 'Ditolak');
@@ -320,7 +320,7 @@ function statusFormat(feature, status) {
         }
     } else if (feature == 'pengiriman') {
         switch (status) {
-            case 1: return createBadge('info', 'bi-truck', 'Sedang dikirim');
+            case 1: return createBadge('info', 'bi-truck', 'Sedang dikirim', 'dark');
             case 2: return createBadge('success', 'bi-box-seam', 'Sudah diterima');
             case 3: return createBadge('primary', 'bi-arrow-repeat', 'Proses Pengiriman');
             default: return createBadge('secondary', 'bi-dash-circle', 'Belum dikirim');
@@ -352,7 +352,7 @@ function statusFormat(feature, status) {
         };
 
         if (status == 5) return createStatusText('success', 'bi-check-all', 'Sudah dibayar');
-        if (status == 4) return createStatusText('info', 'bi-hourglass-split', 'Sedang dikonfirmasi');
+        if (status == 4) return createStatusText('info', 'bi-hourglass-split', 'Sedang dikonfirmasi', 'dark');
         if (status == 3) return createStatusText('warning', 'bi-cash-stack', 'Perlu dibayar');
         return createStatusText('danger', 'bi-x-circle', 'Belum dibayar');
     } else if (feature == 'kontrak') {

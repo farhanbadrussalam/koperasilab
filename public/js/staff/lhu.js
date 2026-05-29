@@ -119,7 +119,7 @@ function loadData(page = 1) {
             let canUpdateProgress = false;
             let isUploadDoc = false;
             let htmlStatus = statusFormat('penyelia', lhu.status);
-            const permohonan_periode = permohonan.periode == 0 ? 1 : permohonan.periode;
+            const permohonan_periode = lhu.periode_used;
 
             // button action
             btnAction += `

@@ -48,7 +48,7 @@ class PelangganController extends Controller
         return view('pages.permohonan.kontrak.index', $data);
     }
 
-    public function evaluasiKontrak($idKontrak, $idPeriode)
+    public function evaluasiKontrak(string $idKontrak, string $idPeriode)
     {
         $periodeNow = Kontrak_periode::with([
             'permohonan',

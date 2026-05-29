@@ -1,6 +1,6 @@
 let filterComp = false;
 let signaturePad = false;
-let dataPenyelia = false;
+let dataSurpeng = false;
 let modalDoc = false;
 $(function () {
     loadData();
@@ -65,7 +65,7 @@ function loadData(page = 1) {
     $(`#list-placeholder`).show();
     $(`#list-container`).hide();
     ajaxGet(`api/v1/penyelia/list`, params, result => {
-        dataPenyelia = result.data;
+        dataSurpeng = result.data;
 
         if (result.data.length === 0) {
             $(`#list-container`).html(htmlNoData()).show();
@@ -74,16 +74,13 @@ function loadData(page = 1) {
             return;
         }
 
-        const divTimelineTugas = [];
-        const html = result.data.map(lhu => {
-            const { cardHtml, timeline } = _renderCardItem(lhu);
-            divTimelineTugas.push(timeline);
+        const html = result.data.map(doc => {
+            const { cardHtml } = _renderCardItem(doc);
             return cardHtml;
         }).join('');
 
         $(`#list-container`).html(html).show();
         $(`#list-pagination`).html(createPaginationHTML(result.pagination));
-        divTimelineTugas.forEach(t => t.render());
         $(`#list-placeholder`).hide();
     });
 }
@@ -92,25 +89,9 @@ function loadData(page = 1) {
  * Helper to render a single card item for Surat Pengantar
  * @param {Object} lhu
  */
-function _renderCardItem(lhu) {
-    const permohonan = lhu.permohonan;
-    const isSurpengSigned = lhu.is_surpeng_signed;
-    const isPengajuanSigned = lhu.is_pengajuan_signed;
-    const hasTugas = lhu.penyelia_map.length > 0;
-    const docPengujian = permohonan.dokumen.find(d => d.jenis === 'SuratPengujian');
-    const docSurpeng = permohonan.dokumen.find(d => d.jenis === 'surpeng');
-
-    let btnDocSurpeng = ``;
-    let btnDocPengujian = ``;
-    let htmlStatus = '';
-
-    // status jobs yang aktif
-    htmlStatus = statusFormat('penyelia', lhu.status);
-    let aktifJobs = lhu.penyelia_map.filter(d => d.status == 1);
-    aktifJobs.map(d => {
-        htmlStatus += statusFormat('penyelia', d.jobs.status);
-    });
-
+function _renderCardItem(doc) {
+    const permohonan = doc.permohonan;
+    const isSurpengSigned = doc.ttd ? true : false;
     // Config: Button Surat Pengantar
     let tugasBtn = {
         icon: 'bi-check2-circle',
@@ -119,49 +100,37 @@ function _renderCardItem(lhu) {
         title: 'Verifikasi Surat Pengantar'
     };
 
-    let docPeriode = permohonan.periode;
     let docPeriodeNow = false;
 
-    if (lhu.status != 1 && hasTugas) {
-        if (docSurpeng) {
-            tugasBtn = {
-                ...tugasBtn,
-                attr: `data-url="laporan/${docSurpeng.jenis}/${permohonan.kontrak.kontrak_hash}/${docSurpeng.periode}"
-                data-title="Dokumen Surat Pengantar"
-                data-idpenyelia="${lhu.penyelia_hash}"
-                data-periode="${docSurpeng.periode}"
-                onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"`,
-            }
+    tugasBtn = {
+        ...tugasBtn,
+        attr: `data-url="laporan/${doc.jenis}/${doc.kontrak.kontrak_hash}/${doc.periode}"
+        data-title="Dokumen Surat Pengantar"
+        data-idhash="${doc.dokumen_hash}"
+        onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"`,
+    }
 
-            docPeriodeNow = permohonan.kontrak.periode.find(p => p.periode == docSurpeng.periode);
-            docPeriode = docSurpeng.periode;
-        }
-        if (isSurpengSigned === 1) {
-            tugasBtn = {
-                ...tugasBtn,
-                icon: 'bi-check2-all',
-                class: 'btn-light text-success',
-                title: 'Surat Pengantar Selesai (Signed)',
-                attr: `href="${base_url}/manager/surpeng/s/${lhu.penyelia_hash}"`
-            };
-        } else if (isSurpengSigned === 2) {
-            tugasBtn = {
-                ...tugasBtn,
-                icon: 'bi-x-circle',
-                class: 'btn-light text-danger',
-                title: 'Surat Pengantar Ditolak',
-                attr: `href="${base_url}/manager/surpeng/s/${lhu.penyelia_hash}"`
-            };
-        }
-    } else {
+    docPeriodeNow = doc.kontrak.periode.find(p => p.periode == doc.periode);
+
+    // Config: Button Surat Pengantar
+    if (isSurpengSigned) {
         tugasBtn = {
             ...tugasBtn,
-            icon: 'bi-info-circle',
-            class: 'btn-light text-secondary',
-            title: 'Surat Pengantar Belum Dibuat',
-            attr: `disabled`
-        }
+            icon: 'bi-check2-all',
+            class: 'btn-light text-success',
+            title: 'Surat Pengantar Selesai (Signed)',
+            attr: `href="${base_url}/manager/surpeng/s/${doc.penyelia_hash}"`
+        };
     }
+    // else if (isSurpengSigned === 2) {
+    //     tugasBtn = {
+    //         ...tugasBtn,
+    //         icon: 'bi-x-circle',
+    //         class: 'btn-light text-danger',
+    //         title: 'Surat Pengantar Ditolak',
+    //         attr: `href="${base_url}/manager/surpeng/s/${doc.penyelia_hash}"`
+    //     };
+    // }
 
     let btnAction2 = `
         <div class="d-flex justify-content-between gap-1">
@@ -171,66 +140,6 @@ function _renderCardItem(lhu) {
         </div>
     `;
 
-    // Config: Button Surat Pengujian (Conditional)
-    if (jenislayanan(permohonan.jenis_layanan_parent, permohonan.jenis_layanan) === 'EvaluasiTanpaKontrak') {
-        let pengujianBtn = {
-            icon: 'bi-check2-circle',
-            class: 'btn-light text-primary-emphasis',
-            attr: `onclick="verifikasiPengujian(this)"`,
-            title: 'Verifikasi Surat Pengujian'
-        };
-
-        if (docPengujian) {
-            btnDocPengujian = `
-                <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                    data-url="laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}"
-                    data-title="Dokumen Surat Pengujian"
-                    onclick="btnShowDoc(this)"
-                    title="Lihat Surat Pengujian">
-                    <i class="bi bi-file-earmark-text"></i>
-                </button>
-            `;
-
-            if (isPengajuanSigned === 1) {
-                pengujianBtn = {
-                    ...pengujianBtn,
-                    icon: 'bi-check2-all',
-                    class: 'btn-light text-success',
-                    title: 'Surat Pengujian Selesai (Signed)',
-                    attr: `disabled`
-                };
-            } else if (isPengajuanSigned === 2) {
-                pengujianBtn = {
-                    ...pengujianBtn,
-                    icon: 'bi-x-circle',
-                    class: 'btn-light text-danger',
-                    title: 'Surat Pengujian Ditolak',
-                    attr: `disabled`
-                };
-            }
-        } else {
-            pengujianBtn = {
-                ...pengujianBtn,
-                icon: 'bi-info-circle',
-                class: 'btn-light text-secondary',
-                title: 'Surat Pengujian Belum Dibuat',
-                attr: `disabled`
-            };
-        }
-
-        // btnAction2 = `
-        //     <div class="d-flex justify-content-center flex-column gap-2">
-        //         ${btnAction2}
-        //         <div class="d-flex justify-content-between gap-1">
-        //             <button class="btn ${pengujianBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${pengujianBtn.title}" ${pengujianBtn.attr}>
-        //                 <i class="bi ${pengujianBtn.icon}"></i> Surat Pengujian
-        //             </button>
-        //             ${btnDocPengujian}
-        //         </div>
-        //     </div>
-        // `;
-    }
-
     const btnAction = `
         <li>
             <a class="dropdown-item small cursor-pointer" title="Show detail" onclick="showDetail(this)">
@@ -239,36 +148,27 @@ function _renderCardItem(lhu) {
         </li>
     `;
 
-    const timeline = new Timeline({
-        timeline: lhu.penyelia_map,
-        status: lhu.status,
-        id: lhu.penyelia_hash,
-        startDate: lhu.start_date,
-        endDate: lhu.end_date
-    });
-
     const params = {
-        tipeKontrak: permohonan.tipe_kontrak,
-        jenisLayananParent: permohonan.jenis_layanan_parent.name,
-        jenisLayanan: permohonan.jenis_layanan.name,
+        // tipeKontrak: doc.kontrak.tipe_kontrak,
+        jenisLayananParent: doc.kontrak.jenis_layanan_parent.name,
+        jenisLayanan: doc.kontrak.jenis_layanan.name,
+        kontrak: doc.kontrak?.no_kontrak,
         format: 'penyelia',
-        statusPenyelia: htmlStatus,
-        jenisTld: permohonan.jenis_tld?.name ?? '-',
-        namaLayanan: permohonan.layanan_jasa?.nama_layanan,
-        periode: docPeriode,
+        statusPenyelia: '',
+        jenisTld: doc.kontrak.jenis_tld?.name ?? '-',
+        namaLayanan: doc.kontrak.layanan_jasa?.nama_layanan,
+        periode: doc.periode,
         periodeNow: docPeriodeNow,
-        created_at: permohonan.created_at,
-        kontrak: permohonan.kontrak?.no_kontrak,
-        id: lhu.penyelia_hash,
-        is_have_tld: permohonan.is_have_tld,
-        is_zerocek: permohonan.is_zerocek,
+        created_at: doc.kontrak.created_at,
+        id: doc.dokumen_hash,
+        is_have_tld: doc.kontrak.is_have_tld,
+        is_zerocek: doc.kontrak.is_zerocek,
         note: '',
-        pelanggan: permohonan.pelanggan.name
+        pelanggan: doc.kontrak.pelanggan.name
     };
 
     return {
-        cardHtml: cardComponent(params, { btnMenuAction: btnAction, btnAction: btnAction2 }),
-        timeline
+        cardHtml: cardComponent(params, { btnAction: btnAction2 })
     };
 }
 
@@ -279,74 +179,8 @@ function showDetail(obj) {
     const idPenyelia = $(obj).parent().parent().data("id");
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }
+
 function clearFilter() { }
-
-function verifikasiPengujian(obj) {
-    const idPenyelia = $(obj).closest('[data-id]').data('id');
-    let find = dataPenyelia.find(d => d.penyelia_hash == idPenyelia);
-
-    // jenis pengujian
-    let zrcek = find.permohonan.is_zerocek ? 'Zero Check' : '';
-    let lJasa = find.permohonan.layanan_jasa.nama_layanan;
-    let jTld = find.permohonan.jenis_tld.name;
-    let jenisPengujian = zrcek + ' ' + lJasa + ' ' + jTld;
-
-    // sample
-    let htmlSample = `<div>${lJasa} ${jTld}</div>`;
-
-    let kontrak = find.permohonan.kontrak;
-
-    // template surat pengujian
-    let dataSurat = find.permohonan.dokumen.find(d => d.doc_template?.name == 'SuratPengujian');
-    let template = find.template_surat.find(d => d.name == 'SuratPengujian');
-
-    let htmlPeriode = '';
-    // periode
-    for (const periode of kontrak.periode) {
-        let startDate = dateFormat(periode.start_date, 6);
-        let endDate = dateFormat(periode.end_date, 6);
-
-        htmlPeriode += `<div>${kontrak.jumlah_kontrol} + ${kontrak.jumlah_pengguna} ${startDate} - ${endDate}</div>`;
-    }
-
-    // load pertanyaan
-    let htmlPertanyaan = '<div class="list-pertanyaan">';
-    for (const [i, pertanyaan] of template.data_pertanyaan.entries()) {
-        // mengambil jawaban
-        const foundAnswer = dataSurat.content_value?.alasan?.find(d => d.id == pertanyaan.id_pertanyaan);
-        const answer = foundAnswer?.answer ?? '-'; // Menggunakan optional chaining dan nullish coalescing
-        htmlPertanyaan += `
-            <div class="mb-2">
-                <label class="fw-bold text-dark mb-2 d-block">${i + 1}. ${pertanyaan.pertanyaan}</label>
-                <div class="p-2 rounded bg-light border-start border-4 ${answer == 'siap' ? 'border-success' : 'border-danger'} shadow-sm" style="font-size: 0.9rem;">
-                    ${answer}
-                </div>
-            </div>
-        `;
-    }
-    htmlPertanyaan += '</div>';
-
-    // SIGNATURE
-    const canvas = $(PengujianComponent.selectors.ttd);
-    signaturePad = new SignatureSelect(canvas, {
-        inputId: 'managerValid',
-        label: 'Nyatakan valid & Benar',
-        placeholder: 'Menunggu validasi petugas...',
-        signerUser: userActive
-    });
-
-    const dataPreview = {
-        pemilik: find.permohonan.pelanggan.perusahaan.nama_perusahaan,
-        alamat: find.permohonan.pelanggan.perusahaan.alamat[0].alamat,
-        jenis_pengujian: jenisPengujian,
-        samples: [htmlSample, htmlPeriode],
-        pertanyaan: htmlPertanyaan
-    }
-    PengujianComponent.open(dataPreview, 'verify', {
-        onApprove: () => { approvePengujian(idPenyelia) },
-        onDecline: () => { declinePengujian(idPenyelia) }
-    });
-}
 
 function approvePengujian(id) {
     let [ttdValue, ttdBy] = signaturePad.getValue();
@@ -379,37 +213,17 @@ function approvePengujian(id) {
     });
 }
 
-function declinePengujian(id) {
-    PengujianComponent.hide();
-    showNoteAlertSwal((reason) => {
-        showLoadingSwal('show');
-        const params = new FormData();
-        params.append('idPenyelia', id);
-        params.append('type', 'decline');
-        params.append('catatan', reason);
-        ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
-            if (result.meta.code == 200) {
-                showLoadingSwal('hide');
-                loadData();
-            }
-        }, error => {
-            showLoadingSwal('hide');
-        });
-    }, 'Tolak Surat Pengujian', 'Silahkan berikan Alasan Penolakan');
-}
-
 function btnShowDoc(obj) {
     const url = $(obj).data('url');
     const title = $(obj).data('title') || 'Dokumen';
-    const idPenyelia = $(obj).data('idpenyelia');
-    const periode = $(obj).data('periode');
+    const idHash = $(obj).data('idhash');
     modalDoc.show(url, {
         title: title,
         formHtml: `
         <div class="d-flex gap-2 flex-column">
             <div class="text-center m-2" id="signatureSurpeng"></div>
             <div class="mt-1 text-center">
-                <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${idPenyelia}', '${periode}')">Simpan Tanda Tangan</button>
+                <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${idHash}')">Simpan Tanda Tangan</button>
             </div>
         </div>
         `
@@ -423,7 +237,7 @@ function btnShowDoc(obj) {
     });
 }
 
-function saveSignature(obj, id_penyelia, periode) {
+function saveSignature(obj, id_hash) {
     let [ttdValue, ttdBy] = signaturePad.getValue();
 
     if (!ttdValue) {
@@ -436,8 +250,7 @@ function saveSignature(obj, id_penyelia, periode) {
     let params = new FormData();
     params.append('ttd', ttdValue);
     params.append('ttd_by', ttdBy);
-    params.append('idPenyelia', id_penyelia);
-    params.append('periode', periode);
+    params.append('id_hash', id_hash);
 
     spinner('show', $(obj));
 

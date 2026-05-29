@@ -131,7 +131,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     const hasTugas = penyelia.penyelia_map.length > 0;
                     const docPengujian = permohonan.dokumen.find(d => d.jenis === 'SuratPengujian');
                     const docTugas = permohonan.dokumen.find(d => d.jenis === 'surattugas');
-                    const docSurpeng = permohonan.dokumen.find(d => d.jenis === 'surpeng');
+                    const docSurpeng = penyelia.dokumen_surpeng.find(d => d.periode == penyelia.periode_used);
 
                     let actionButtons = [];
 
@@ -291,7 +291,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     if (docSurpeng) {
                         btnDocSurpeng = `
                             <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                                data-url="laporan/${docSurpeng.jenis}/${docSurpeng.permohonan_hash}/${penyelia.permohonan.periode == 0 ? 1 : penyelia.permohonan.periode}"
+                                data-url="laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${docSurpeng.periode}"
                                 data-title="Dokumen Surat Pengantar"
                                 onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
                                 <i class="bi bi-file-earmark-text"></i>

@@ -380,10 +380,11 @@
             }
 
             if (periodeNext && !isModal) {
+                let findPengirimanTLD = cekStatusPeriode.find(d => d.jenis == 'tld' && d.periode == periodeNext.periode);
                 htmlInformasi = `
                         <div class="d-flex flex-column text-start small">
                             <span class="text-secondary small fw-medium mb-1">TLD Periode ${periodeNext.periode}</span>
-                            <div>${statusFormat('pengiriman', statusKirimTldNext)}</div>
+                            <div>${statusFormat('pengiriman', findPengirimanTLD?.status)}</div>
                         </div>
                     `;
             }
@@ -432,16 +433,10 @@
                         if (tldSelesai) {
                             let actionNext = '';
                             if (!statusKirimTldNext) {
-                                actionNext = htmlBtnTld;
-                            } else {
-                                actionNext = statusFormat('pengiriman', statusKirimTldNext);
-                            }
-
-                            if (periodeNext && statusKirimTldNext != 2) {
                                 htmlAction = `
                                         <div class="d-flex flex-column text-start gap-1">
                                             <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.periode}</span>
-                                            <div>${actionNext}</div>
+                                            <div>${htmlBtnTld}</div>
                                         </div>
                                     `;
                             }

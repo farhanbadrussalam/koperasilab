@@ -81,9 +81,11 @@ class Penyelia extends Model
     protected $fillable = [
         'id_permohonan',
         'id_pengiriman',
+        'id_kontrak',
         'start_date',
         'end_date',
         'periode',
+        'periode_used',
         'status',
         'ttd',
         'ttd_by',
@@ -118,9 +120,11 @@ class Penyelia extends Model
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'periode' => 'integer',
+        'periode_used' => 'integer',
         'status' => 'integer',
         'id_penyelia' => 'integer',
         'id_permohonan' => 'integer',
+        'id_kontrak' => 'integer',
         'ttd_by' => 'integer',
         'created_by' => 'integer',
         'document' => 'json',
@@ -222,6 +226,11 @@ class Penyelia extends Model
     public function periodenow()
     {
         return $this->belongsTo(Kontrak_periode::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function dokumenSurpeng()
+    {
+        return $this->hasMany(Permohonan_dokumen::class, 'id_kontrak', 'id_kontrak')->where('jenis', 'surpeng');
     }
 
     /**

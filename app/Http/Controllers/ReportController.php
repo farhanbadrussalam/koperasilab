@@ -1028,7 +1028,7 @@ class ReportController extends Controller
         $is_download = $request->get('dl') ? true : false;
         $type = $request->get('type') ? $request->get('type') : 'full';
         // mengambil id permohonan
-        $id_permohonan = Kontrak_periode::select('id_permohonan')->where('id_kontrak', $id)->where('periode', $periode_)->first()->id_permohonan;
+        $id_permohonan = Kontrak_periode::select('id_permohonan')->where('id_kontrak', $id)->where('periode', $periode_)->first()?->id_permohonan;
         $periode = $periode_ == 0 ? 1 : $periode_;
 
         if ($id == null) {
@@ -1065,18 +1065,18 @@ class ReportController extends Controller
             $kontrakPeriode->save();
 
             if (!$dokumen) {
-                $textPeriode = $kontrakPeriode->status == 2 ? "Pengembalian" : "Periode $periode";
-                $dokumen = Permohonan_dokumen::create(array(
-                    'periode' => $periode_,
-                    'id_kontrak' => $id,
-                    'id_permohonan' => $id_permohonan ?? null,
-                    'id_doc_template' => $template->id_doc,
-                    'jenis' => "surpeng",
-                    "nama" => "Surat Pengantar",
-                    "nomer" => $noSurpeng,
-                    "created_by" => Auth::user()->id,
-                    "status" => 1
-                ));
+                // $textPeriode = $kontrakPeriode->status == 2 ? "Pengembalian" : "Periode $periode";
+                // $dokumen = Permohonan_dokumen::create(array(
+                //     'periode' => $periode_,
+                //     'id_kontrak' => $id,
+                //     'id_permohonan' => $id_permohonan ?? null,
+                //     'id_doc_template' => $template->id_doc,
+                //     'jenis' => "surpeng",
+                //     "nama" => "Surat Pengantar",
+                //     "nomer" => $noSurpeng,
+                //     "created_by" => Auth::user()->id,
+                //     "status" => 1
+                // ));
             } else {
                 $dokumen->nomer = $noSurpeng;
                 $dokumen->save();
@@ -1353,11 +1353,11 @@ class ReportController extends Controller
             $periodeNow = $query->permohonan->periode_next[0];
             $alias = 'ZC';
         } else {
-            $periode_label = $query->permohonan->periodenow->periode;
-            if ($query->permohonan->periodenow->periode == 0) {
+            $periode_label = $query->periode_used;
+            if ($query->periode_used == 0) {
                 $periode_label = 1;
             }
-            $getKperiode = Kontrak_periode::where('id_kontrak', $query->permohonan->id_kontrak)->where('periode', $periode_label)->first();
+            $getKperiode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->where('periode', $periode_label)->first();
             $periodeNow = $getKperiode->toArray();
 
             $alias = substr($query->permohonan->kontrak->no_kontrak, 0, 1);
@@ -1371,7 +1371,7 @@ class ReportController extends Controller
             },
             'tld_1',
             'tld_2'
-        ])->where('id_kontrak', $query->permohonan->id_kontrak)->get();
+        ])->where('id_kontrak', $query->id_kontrak)->get();
 
         $data = array();
 
