@@ -1476,8 +1476,8 @@ class PermohonanAPI extends Controller
 
                             if ($invoiceData->getStatusCode() != 200) {
                                 $content = $invoiceData->getData();
-                                Log::error("Invoice creation failed: " . $content->msg);
-                                throw new \Exception($content->msg ?? 'Gagal membuat invoice');
+                                Log::error("Invoice creation failed: " . $content->data->msg);
+                                throw new \Exception($content->data->msg ?? 'Gagal membuat invoice');
                             }
                         }
                     }
@@ -1506,8 +1506,8 @@ class PermohonanAPI extends Controller
 
                         if ($penyeliaData->getStatusCode() != 200) {
                             $content = json_decode($penyeliaData->getContent());
-                            Log::error("Penyelia creation failed: " . $content->msg);
-                            throw new \Exception($content->msg ?? 'Gagal membuat penyelia');
+                            Log::error("Penyelia creation failed: " . $content->data->msg);
+                            throw new \Exception($content->data->msg ?? 'Gagal membuat penyelia');
                         }
                     }
                 } else {

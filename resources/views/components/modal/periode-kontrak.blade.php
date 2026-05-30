@@ -432,7 +432,7 @@
                     if (statusKirimTld == 2) {
                         if (tldSelesai) {
                             let actionNext = '';
-                            if (!statusKirimTldNext) {
+                            if (!statusKirimTldNext && periodeNext) {
                                 htmlAction = `
                                         <div class="d-flex flex-column text-start gap-1">
                                             <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.periode}</span>

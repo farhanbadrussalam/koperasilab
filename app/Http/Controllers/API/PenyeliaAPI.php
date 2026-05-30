@@ -90,6 +90,7 @@ class PenyeliaAPI extends Controller
                 ->where('id_permohonan', $idPermohonan)->first();
             if ($dataPemohonan) {
                 $params['periode'] = $dataPemohonan->periode ? $dataPemohonan->periode : 0;
+                $params['periode_used'] = null;
 
                 if ($dataPemohonan->is_zerocek == 1 && $dataPemohonan->is_have_tld == 0) {
                     $params['periode_used'] = 1;
@@ -102,10 +103,12 @@ class PenyeliaAPI extends Controller
                 }
 
                 // cek dokumen surat pengantar 
-                $suratPengantar = Permohonan_dokumen::where('id_kontrak', $dataPemohonan->id_kontrak)->where('periode', $params['periode_used'])->where('jenis', 'surpeng')->first();
-                if ($suratPengantar && $suratPengantar->ttd) {
-                    $params['is_surpeng_signed'] = 1;
-                    $params['verify_surpeng_at'] = Carbon::now();
+                if ($params['periode_used']) {
+                    $suratPengantar = Permohonan_dokumen::where('id_kontrak', $dataPemohonan->id_kontrak)->where('periode', $params['periode_used'])->where('jenis', 'surpeng')->first();
+                    if ($suratPengantar && $suratPengantar->ttd) {
+                        $params['is_surpeng_signed'] = 1;
+                        $params['verify_surpeng_at'] = Carbon::now();
+                    }
                 }
 
                 $params['id_kontrak'] = $dataPemohonan->id_kontrak;
@@ -216,7 +219,7 @@ class PenyeliaAPI extends Controller
                     $params['verify_surat_tugas_at'] = date('Y-m-d H:i:s');
                     $params['is_surat_tugas_signed'] = 1;
 
-                    if ($penyelia->is_surpeng_signed == 1 && ($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak')) {
+                    if (($penyelia->periode_used == null || $penyelia->is_surpeng_signed == 1) && ($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak')) {
                         $params['status'] = 10;
                         $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
                     }
@@ -358,7 +361,7 @@ class PenyeliaAPI extends Controller
                     }
 
                     $templateSurpeng = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
-                    if ($templateSurpeng) {
+                    if ($templateSurpeng && $penyelia->periode_used) {
                         Permohonan_dokumen::create(array(
                             'periode' => $penyelia->periode_used,
                             'id_kontrak' => $id_kontrak,
@@ -664,7 +667,15 @@ class PenyeliaAPI extends Controller
             ->where('periode', $penyelia->permohonan->periode)
             ->first();
 
+        $arrUpdate = array();
+        if (!$penyelia->periode_used && $jobsNow->jobs->status == 17) {
+            $arrUpdate = array(
+                'is_stopped' => 1
+            );
+        }
+
         $jobsNow->update(array(
+            ...$arrUpdate,
             'status' => $sProgress == 'done' ? 2 : 0,
             'note' => $note,
             'done_by' => $sProgress == 'done' ? Auth::user()->id : null,
@@ -764,7 +775,7 @@ class PenyeliaAPI extends Controller
                 );
                 Notifier::send($userQuery, $dataNotif);
             } else {
-                if ($jobsNow->jobs->status == 17) {
+                if ($jobsNow->jobs->status == 17 && $penyelia->periode_used) {
                     $isPeriodOne = $getPeriodeNow->count_tld == 1 || $penyelia->periode == 0;
                     foreach ($penyelia->permohonan->kontrak->kontrak_detail as $value) {
                         $tld = $isPeriodOne ? $value->tld_1 : $value->tld_2;

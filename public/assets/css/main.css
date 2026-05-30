@@ -402,6 +402,26 @@ a {
   background: #87d2ff;
 }
 
+#progressbar li.stopped:before {
+  background: #ff4d4d;
+  content: "\2715"; /* Unicode character for 'X' */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+}
+
+#progressbar li.stopped span {
+  color: #a0a0a0;
+  text-decoration: line-through;
+}
+
+/* Membuat garis penghubung dari/ke elemen stopped menjadi abu-abu pudar */
+#progressbar li.stopped:after {
+  background: #e9ecef;
+}
+
 #progressbar li.active:before {
   content: "";
   color: #fff;

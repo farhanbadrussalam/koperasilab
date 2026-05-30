@@ -280,53 +280,54 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         `);
                     }
 
-                    // Konfigurasi Tombol Surat Pengantar
-                    let surpengBtn = {
-                        icon: 'bi-hourglass-split',
-                        class: 'btn-outline-secondary',
-                        attr: 'disabled',
-                        title: 'Menunggu Surat Pengantar'
-                    };
+                    if (penyelia.periode_used) {
+                        // Konfigurasi Tombol Surat Pengantar
+                        let surpengBtn = {
+                            icon: 'bi-hourglass-split',
+                            class: 'btn-outline-secondary',
+                            attr: 'disabled',
+                            title: 'Menunggu Surat Pengantar'
+                        };
 
-                    if (docSurpeng) {
-                        btnDocSurpeng = `
-                            <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                                data-url="laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${docSurpeng.periode}"
-                                data-title="Dokumen Surat Pengantar"
-                                onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
-                                <i class="bi bi-file-earmark-text"></i>
-                            </button>
-                        `;
-                        if (!isSurpengSigned) {
-                            surpengBtn.icon = 'bi-clock-history';
-                            surpengBtn.class = 'btn-light text-warning-emphasis';
-                            surpengBtn.title = 'Menunggu TTD Surat Pengantar';
-                        } else if (isSurpengSigned === 1) {
-                            surpengBtn.icon = 'bi-check2-all';
-                            surpengBtn.class = 'btn-light text-success';
-                            surpengBtn.title = 'Surat Pengantar Selesai (Signed)';
-                        } else {
-                            surpengBtn.icon = 'bi-x-circle';
-                            surpengBtn.class = 'btn-light text-danger';
-                            surpengBtn.title = 'Surat Pengantar Ditolak';
-
-                            btnNoteSurpeng = `
-                                <a class="btn btn-outline-warning btn-sm text-nowrap rounded-pill" title="Catatan Surat Pengantar" data-type="spg" onclick="btnNote(this)">
-                                    <i class="bi bi-chat-left-text"></i>
-                                </a>
+                        if (docSurpeng) {
+                            btnDocSurpeng = `
+                                <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
+                                    data-url="laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${docSurpeng.periode}"
+                                    data-title="Dokumen Surat Pengantar"
+                                    onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </button>
                             `;
-                        }
-                    }
+                            if (!isSurpengSigned) {
+                                surpengBtn.icon = 'bi-clock-history';
+                                surpengBtn.class = 'btn-light text-warning-emphasis';
+                                surpengBtn.title = 'Menunggu TTD Surat Pengantar';
+                            } else if (isSurpengSigned === 1) {
+                                surpengBtn.icon = 'bi-check2-all';
+                                surpengBtn.class = 'btn-light text-success';
+                                surpengBtn.title = 'Surat Pengantar Selesai (Signed)';
+                            } else {
+                                surpengBtn.icon = 'bi-x-circle';
+                                surpengBtn.class = 'btn-light text-danger';
+                                surpengBtn.title = 'Surat Pengantar Ditolak';
 
-                    actionButtons.push(`
-                        <div class="d-flex justify-content-between gap-1">
-                            <button class="btn ${surpengBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${surpengBtn.title}" ${surpengBtn.attr} style="cursor: default; pointer-events: none;">
-                                <i class="bi ${surpengBtn.icon}"></i> Surat Pengantar
-                            </button>
-                            ${btnDocSurpeng}
-                            ${btnNoteSurpeng}
-                        </div>
-                    `);
+                                btnNoteSurpeng = `
+                                    <a class="btn btn-outline-warning btn-sm text-nowrap rounded-pill" title="Catatan Surat Pengantar" data-type="spg" onclick="btnNote(this)">
+                                        <i class="bi bi-chat-left-text"></i>
+                                    </a>
+                                `;
+                            }
+                        }
+                        actionButtons.push(`
+                            <div class="d-flex justify-content-between gap-1">
+                                <button class="btn ${surpengBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${surpengBtn.title}" ${surpengBtn.attr} style="cursor: default; pointer-events: none;">
+                                    <i class="bi ${surpengBtn.icon}"></i> Surat Pengantar
+                                </button>
+                                ${btnDocSurpeng}
+                                ${btnNoteSurpeng}
+                            </div>
+                        `);
+                    }
 
                     btnAction2 = `
                         <div class="d-flex justify-content-center flex-column gap-2">
