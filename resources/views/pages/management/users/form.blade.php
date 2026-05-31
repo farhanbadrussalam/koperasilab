@@ -202,7 +202,7 @@
             <!-- Right Side: Assignments & Personal Details -->
             <div class="col-lg-6 d-flex flex-column gap-4">
                 <!-- Card 2: Assignments -->
-                <div class="card border-0 shadow-sm rounded-4 hover-shadow">
+                <div class="card border-0 shadow-sm rounded-4 hover-shadow" id="penugasan_card">
                     <div class="card-body p-4">
                         <h5 class="card-section-title text-dark mb-4">Konfigurasi Penugasan</h5>
 
@@ -410,7 +410,23 @@
                 $('#tugas_lhu').addClass('d-none');
                 $('#inputTugasLhu').val(null).trigger('change');
                 
-                if(role && role.length > 0) {
+                // Check if role "Pelanggan" is selected
+                let selectedOptions = $('#inputRole').select2('data') || [];
+                let isPelanggan = selectedOptions.some(opt => opt.text.trim() === 'Pelanggan');
+
+                if (isPelanggan) {
+                    $('#penugasan_card').addClass('d-none');
+                    $('#inputSatuanKerja').removeAttr('required').val(null).trigger('change');
+                    if ($('#inputSatuanKerja').parsley()) {
+                        $('#inputSatuanKerja').parsley().reset();
+                        $('#inputSatuanKerja').next('.select2-container').find('.select2-selection').removeClass('border-danger border-success');
+                    }
+                } else {
+                    $('#penugasan_card').removeClass('d-none');
+                    $('#inputSatuanKerja').attr('required', true);
+                }
+                
+                if(role && role.length > 0 && !isPelanggan) {
                     ajaxGet(`management/getPermisionInRole`, {'role' : role}, result => {
                         let data = result.data;
                         if(data.includes('Staff/lhu')) {

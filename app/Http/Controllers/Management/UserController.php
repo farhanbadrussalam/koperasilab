@@ -184,6 +184,20 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $isPelanggan = false;
+        if ($request->has('role')) {
+            foreach ($request->role as $encRole) {
+                try {
+                    $roleId = decryptor($encRole);
+                    $roleObj = Role::find($roleId);
+                    if ($roleObj && $roleObj->name === 'Pelanggan') {
+                        $isPelanggan = true;
+                        break;
+                    }
+                } catch (\Exception $e) {}
+            }
+        }
+
         $arrValidator = [
             'name' => ['required', 'string', 'max:255'],
             'nik' => ['required'],
@@ -192,7 +206,7 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'satuanKerja' => ['required'],
+            'satuanKerja' => [$isPelanggan ? 'nullable' : 'required'],
             'role' => ['required']
         ];
         $arrMessage = messageSanity($arrValidator);
@@ -203,10 +217,13 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'satuankerja_id' => []
         ];
 
-        foreach ($request->satuanKerja as $key => $value) {
-            $paramsUser['satuankerja_id'][] = (int) decryptor($value);
+        if ($request->satuanKerja) {
+            foreach ($request->satuanKerja as $key => $value) {
+                $paramsUser['satuankerja_id'][] = (int) decryptor($value);
+            }
         }
 
         $role = $request->role; // json
@@ -296,13 +313,27 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $isPelanggan = false;
+        if ($request->has('role')) {
+            foreach ($request->role as $encRole) {
+                try {
+                    $roleId = decryptor($encRole);
+                    $roleObj = Role::find($roleId);
+                    if ($roleObj && $roleObj->name === 'Pelanggan') {
+                        $isPelanggan = true;
+                        break;
+                    }
+                } catch (\Exception $e) {}
+            }
+        }
+
         $arrValidator = [
             'name' => ['required', 'string', 'max:255'],
             'nik' => ['required'],
             'jenis_kelamin' => ['required'],
             'email' => ['required', 'string', 'email', 'max:255'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
-            'satuanKerja' => ['required'],
+            'satuanKerja' => [$isPelanggan ? 'nullable' : 'required'],
             'role' => ['required']
         ];
         $arrMessage = messageSanity($arrValidator);
@@ -328,9 +359,9 @@ class UserController extends Controller
                 return (int) decryptor($item);
             }, $request->tugas_lhu);
         }
-        $d_user->satuankerja_id = array_map(function ($item) {
+        $d_user->satuankerja_id = $request->satuanKerja ? array_map(function ($item) {
             return (int) decryptor($item);
-        }, $request->satuanKerja);
+        }, $request->satuanKerja) : [];
         $d_user->update();
 
         $avatarId = $profile ? $profile->avatar : null;
