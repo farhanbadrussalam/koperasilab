@@ -65,6 +65,13 @@ class RadiasiController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'nama_radiasi' => 'required|unique:master_radiasi,nama_radiasi'
+        ], [
+            'nama_radiasi.required' => 'Nama radiasi wajib diisi.',
+            'nama_radiasi.unique' => 'Nama radiasi sudah terdaftar.'
+        ]);
+
         DB::beginTransaction();
         try {
             Master_radiasi::create([
@@ -114,9 +121,17 @@ class RadiasiController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $targetId = decryptor($request->id_radiasi ?? $id);
+        $request->validate([
+            'nama_radiasi' => 'required|unique:master_radiasi,nama_radiasi,' . $targetId . ',id_radiasi'
+        ], [
+            'nama_radiasi.required' => 'Nama radiasi wajib diisi.',
+            'nama_radiasi.unique' => 'Nama radiasi sudah terdaftar.'
+        ]);
+
         DB::beginTransaction();
         try {
-            $radiasi = Master_radiasi::findOrFail(decryptor($request->id_radiasi));
+            $radiasi = Master_radiasi::findOrFail($targetId);
             $radiasi->update([
                 'nama_radiasi' => $request->nama_radiasi
             ]);

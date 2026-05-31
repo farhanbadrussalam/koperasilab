@@ -163,8 +163,10 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPerusahaanById/{idPerusahaan}', 'getPerusahaanById');
         Route::post('/uploadSuratKuasa', 'uploadSuratKuasa');
         Route::post('/uploadStempel', 'uploadStempel');
+        Route::post('/uploadAvatar', 'uploadAvatar');
         Route::delete('/destroySuratKuasa/{idPerusahaan}/{idMedia}', 'destroySuratKuasa');
         Route::delete('/destroyStempel/{idPerusahaan}/{idMedia}', 'destroyStempel');
+        Route::delete('/destroyAvatar/{idPerusahaan}/{idMedia}', 'destroyAvatar');
         Route::get('/getHistoryPic/{idPerusahaan}', 'getHistoryPic');
     });
 

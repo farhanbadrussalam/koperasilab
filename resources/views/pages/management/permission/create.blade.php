@@ -1,24 +1,40 @@
-<div class="modal fade" id="create_modal" tabindex="-1" aria-labelledby="modal_title" aria-hidden="true">
-    <div class="modal-dialog modal-sm modal-dialog-centered modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Create Permission</h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="form-create" method="post">
-            @csrf
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label for="inputNamePermission" class="form-label">Name permission</label>
-                    <input type="text" name="name" id="inputNamePermission" class="form-control" autocomplete="false" required>
+<div class="modal fade" id="create_modal" tabindex="-1" aria-labelledby="createModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-primary-subtle text-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-shield-plus fs-5"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold text-dark" id="createModalTitle">Create Permission</h5>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-footer justify-content-between text-end">
-              <button type="submit" class="btn btn-primary" id="btn-create">Save</button>
-            </div>
-        </form>
-      </div>
-      <!-- /.modal-content -->
+            <form id="form-create" method="post" data-parsley-validate>
+                @csrf
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <div class="mb-3">
+                        <label for="inputNamePermission" class="form-label fw-semibold text-secondary">Name Permission <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               name="name" 
+                               id="inputNamePermission" 
+                               class="form-control rounded-3" 
+                               placeholder="e.g. Management-read"
+                               autocomplete="off" 
+                               required
+                               data-parsley-minlength="3"
+                               data-parsley-maxlength="50"
+                               data-parsley-trigger="input"
+                               data-parsley-required-message="Nama hak akses harus diisi."
+                               data-parsley-minlength-message="Nama minimal 3 karakter."
+                               data-parsley-maxlength-message="Nama maksimal 50 karakter.">
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 px-4 pb-4 pt-2 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill" id="btn-create">Simpan</button>
+                </div>
+            </form>
+        </div>
     </div>
-    <!-- /.modal-dialog -->
 </div>

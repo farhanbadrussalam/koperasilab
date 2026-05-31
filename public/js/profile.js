@@ -21,6 +21,73 @@ $(function () {
         }
     }
 
+    // upload avatar profile instantly via AJAX
+    $('#profile-avatar-input').on('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        // validate size and mime type
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+            Swal.fire({
+                icon: 'warning',
+                text: 'Format gambar harus PNG, JPG, atau JPEG'
+            });
+            this.value = '';
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'warning',
+                text: 'Ukuran gambar maksimal 2MB'
+            });
+            this.value = '';
+            return;
+        }
+
+        // Show spinner/loading visual
+        Swal.fire({
+            title: 'Sedang Mengunggah...',
+            text: 'Harap tunggu sebentar',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('idHash', profile.user_hash);
+
+        ajaxPost('api/v1/profile/uploadAvatar', formData, result => {
+            Swal.close();
+            if (result.meta.message === 'Fail') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: result.data.msg || 'Terjadi kesalahan saat mengunggah avatar.'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Foto profil berhasil diperbarui',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        }, error => {
+            Swal.close();
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Terjadi kesalahan sistem.'
+            });
+        });
+    });
+
     // upload stempel
     uploadStempel = new UploadComponent('upload-stempel', {
         camera: false,

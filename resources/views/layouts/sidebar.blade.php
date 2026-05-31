@@ -19,20 +19,22 @@ $hiddenPelanggan = true;
 
         <!-- Sidebar navigation-->
         <nav class="sidebar-nav scroll-sidebar shadow-sm" data-simplebar="">
-            <ul id="sidebarnav" class="p-0">
-                {{-- kalau role nya bukan pelanggan --}}
-                @if (!Auth::user()->hasRole('Pelanggan'))
-                <li class="nav-small-cap">
-                    <i class="bi bi-list nav-small-cap-icon fs-4"></i>
-                    <span class="hide-menu">Satuan Kerja</span>
-                </li>
-                @endif
-
+            <!-- Sidebar User Profile Card -->
+            <div class="sidebar-profile-card">
+                <div class="profile-name" title="{{ Auth::user()->name }}">{{ Auth::user()->name }}</div>
+                <div class="profile-role">
+                    {{ count(Auth::user()->getRoleNames()) != 0 ? Auth::user()->getRoleNames()[0] : 'Member' }}
+                </div>
                 @if(count(Auth::user()->satuankerja) > 0)
-                @foreach(Auth::user()->satuankerja as $i => $satuan)
-                <span class="badge text-bg-secondary">{{ $satuan->name }}</span>
-                @endforeach
+                <div class="profile-satuan-container">
+                    @foreach(Auth::user()->satuankerja as $satuan)
+                        <span class="badge-satuan" title="{{ $satuan->name }}">{{ $satuan->name }}</span>
+                    @endforeach
+                </div>
                 @endif
+            </div>
+
+            <ul id="sidebarnav" class="p-0">
                 <!-- MAIN MENU -->
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
@@ -300,14 +302,14 @@ $hiddenPelanggan = true;
 
                 @can('Management')
                 <!-- MANAGEMENT MENU -->
-                <li class="nav-small-cap cursoron" data-bs-toggle="collapse" data-bs-target="#collapseManagement" aria-expanded="false" aria-controls="collapseManagement">
+                <li class="nav-small-cap cursoron" data-bs-toggle="collapse" data-bs-target="#collapseManagement" aria-expanded="{{ $title == 'Management' ? 'true' : 'false' }}" aria-controls="collapseManagement">
                     <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center w-100">
                         <span class="hide-menu">Management</span>
-                        <i id="icon_collapse" class="bi {{ $title == 'Management' ? 'bi-chevron-up' : 'bi-chevron-down' }}"></i>
+                        <i id="icon_collapse" class="bi bi-chevron-down"></i>
                     </div>
                 </li>
-                <div class="collapse {{ $title == 'Management' ? 'show' : '' }}" id="collapseManagement">
+                <div class="collapse sidebar-submenu {{ $title == 'Management' ? 'show' : '' }}" id="collapseManagement">
                     <li class="sidebar-item">
                         <a class="sidebar-link {{ $module == 'permission' ? 'active' : '' }}"
                             href="{{ route('permission.index') }}" aria-expanded="false">

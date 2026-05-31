@@ -8,14 +8,14 @@
                     <div class="col-lg-4">
                         <div class="card border-0 shadow-sm rounded-4 text-center p-4 position-sticky" style="top: 7rem;">
                             <div class="position-relative d-inline-block mx-auto mb-3">
-                                <div class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold shadow-sm border border-4 border-white shadow fs-1"
-                                        style="width: 120px; height: 120px; background-color: #55c57a;">
-                                    {{ substr($profile->name, 0, 1) }}
+                                <div id="profile-avatar-container">
+                                    {!! renderUserAvatar($profile, false, '120px', 'border border-4 border-white shadow fs-1') !!}
                                 </div>
-                                {{-- <button class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 border border-2 border-white"
-                                        title="Ganti Foto" style="width: 35px; height: 35px;">
+                                <button class="btn btn-primary btn-sm rounded-circle position-absolute bottom-0 end-0 border border-2 border-white shadow-sm"
+                                        title="Ganti Foto" style="width: 35px; height: 35px;" onclick="$('#profile-avatar-input').click()">
                                     <i class="bi bi-camera-fill"></i>
-                                </button> --}}
+                                </button>
+                                <input type="file" id="profile-avatar-input" class="d-none" accept="image/png, image/jpeg, image/jpg">
                             </div>
                             <h5 class="fw-bold text-dark mb-1">{{ $profile->name }}</h5>
                             <p class="text-muted small mb-3">{{ $profile->jabatan ?? 'Pelanggan' }}</p>

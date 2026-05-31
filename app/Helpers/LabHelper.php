@@ -372,9 +372,66 @@ if (!function_exists('getAvatar')) {
             }
         }
 
-        return $urlDev;
     }
 }
+
+if (!function_exists('renderUserAvatar')) {
+    /**
+     * Render user avatar and optionally the user's name.
+     *
+     * @param mixed $user The user object
+     * @param bool $showName Whether to show the name alongside the avatar
+     * @param string $size Custom size for the avatar (e.g., '35px' or '40px')
+     * @param string $additionalClasses Additional CSS classes for the avatar container/image
+     * @return string HTML output
+     */
+    function renderUserAvatar($user, bool $showName = true, string $size = '35px', string $additionalClasses = '')
+    {
+        if (!$user) {
+            $avatarUrl = asset('assets/img/default-avatar.jpg');
+            $name = '-';
+            $initial = '?';
+        } else {
+            $name = $user->name;
+            $initial = strtoupper(substr($name, 0, 1));
+            
+            // Fetch avatar from relation or fallback
+            if ($user->profile && $user->profile->media) {
+                // If it is stored in Master_media table
+                $avatarUrl = asset('storage/' . $user->profile->media->file_path . '/' . $user->profile->media->file_hash);
+            } elseif ($user->profile && $user->profile->avatar && !is_numeric($user->profile->avatar)) {
+                // Fallback if the legacy text filename is stored directly
+                $avatarUrl = asset('storage/images/avatar/' . $user->profile->avatar);
+            } else {
+                $avatarUrl = null;
+            }
+        }
+
+        // Clean values to prevent XSS
+        $escName = e($name);
+        $escInitial = e($initial);
+        $escSize = e($size);
+        $escClasses = e($additionalClasses);
+
+        if ($avatarUrl) {
+            $avatarHtml = '<img src="' . e($avatarUrl) . '" alt="' . $escName . '" width="' . $escSize . '" height="' . $escSize . '" class="rounded-circle ' . $escClasses . '" style="width: ' . $escSize . '; height: ' . $escSize . '; object-fit: cover;" onerror="this.outerHTML=\'<div class=\\\'rounded-circle bg-primary-subtle text-primary d-inline-flex align-items-center justify-content-center ' . $escClasses . '\\\' style=\\\'width: ' . $escSize . '; height: ' . $escSize . '; font-weight: 600; font-size: calc(' . $escSize . ' * 0.4);\\\'>' . $escInitial . '</div>\'">';
+        } else {
+            // High-premium soft-gradient or pastel background with initials
+            $bgColors = ['#55c57a', '#3f51b5', '#2979ff', '#aa00ff', '#ff6d00', '#00bfa5', '#ec407a'];
+            $colorIdx = $user ? (ord(substr($name, 0, 1)) % count($bgColors)) : 0;
+            $bgColor = $bgColors[$colorIdx];
+
+            $avatarHtml = '<div class="rounded-circle text-white fw-bold d-inline-flex align-items-center justify-content-center shadow-sm ' . $escClasses . '" style="width: ' . $escSize . '; height: ' . $escSize . '; background-color: ' . $bgColor . '; font-size: calc(' . $escSize . ' * 0.45); line-height: 1;">' . $escInitial . '</div>';
+        }
+
+        if ($showName) {
+            return '<div class="d-inline-flex align-items-center gap-2">' . $avatarHtml . '<span class="fw-semibold text-dark text-truncate">' . $escName . '</span></div>';
+        }
+
+        return $avatarHtml;
+    }
+}
+
 
 if (!function_exists('strPad')) {
     function strPad(int $angka, $jumlah = 3)

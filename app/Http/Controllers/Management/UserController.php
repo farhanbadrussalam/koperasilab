@@ -86,26 +86,27 @@ class UserController extends Controller
 
         return DataTables::of($query)
             ->addIndexColumn()
+            ->editColumn('name', function ($data) {
+                $avatarHtml = renderUserAvatar($data, false, '32px', 'me-2');
+                return '<div class="d-flex align-items-center">' . $avatarHtml . '<span class="fw-semibold text-dark">' . $data->name . '</span></div>';
+            })
+            ->editColumn('email', function ($data) {
+                return '<span class="text-secondary"><i class="bi bi-envelope text-body-tertiary me-1"></i>' . $data->email . '</span>';
+            })
             ->addColumn('action', function ($data) {
-                return '
-                        <a href="' . route('users.edit', encryptor($data->id)) . '" class="btn btn-outline-warning btn-sm m-1" ><i class="bi bi-pencil-square"></i> Edit</a>
-                    ';
+                return '<div class="text-center"><a href="' . route('users.edit', encryptor($data->id)) . '" class="btn btn-outline-primary btn-sm rounded-pill px-3 transition-all hover-scale shadow-sm"><i class="bi bi-pencil-square me-1"></i>Edit</a></div>';
             })
             ->addColumn('role', function ($data) {
                 if (count($data->getRoleNames()) != 0) {
-                    $text = '';
-                    $isLhu = false;
-                    foreach ($data->getRoleNames() as $key => $value) {
-                        $text .= '<span class="badge text-bg-secondary">' . $value . '</span> ';
-                        if ($value == 'Staff LHU') $isLhu = true;
-                    }
-                    if ($isLhu) {
+                    $roles = $data->getRoleNames()->toArray();
+                    $text = '<span class="text-dark fw-medium">' . implode(', ', $roles) . '</span>';
+                    if (in_array('Staff LHU', $roles)) {
                         $countJobs = $data->jobs ? count($data->jobs) : 0;
-                        $text .= '<br><span class="text-primary cursor-pointer" data-id="' . $data->user_hash . '" onclick="showTugas(this)">(' . $countJobs . ' Tugas)</span>';
+                        $text .= ' <span class="text-primary cursor-pointer small font-monospace fw-semibold ms-1" data-id="' . $data->user_hash . '" onclick="showTugas(this)">(' . $countJobs . ' Tugas)</span>';
                     }
                     return $text;
                 } else {
-                    return '-';
+                    return '';
                 }
             })
             ->addColumn('satuankerja', function ($data) {
@@ -114,20 +115,26 @@ class UserController extends Controller
                 } else {
                     $satuankerja = $data->satuankerja_id ? [$data->satuankerja_id] : null;
                 }
-                $textSatuan = $satuankerja ? array_map(function ($item) {
-                    $name = Satuan_kerja::find($item)->name;
-                    return '<span class="badge text-bg-secondary">' . $name . '</span>';
-                }, $satuankerja) : [];
-                return "<div class='d-flex flex-wrap align-items-center gap-1'>" . implode('', $textSatuan) . "</div>";
+                $names = [];
+                if ($satuankerja) {
+                    foreach ($satuankerja as $item) {
+                        $sk = Satuan_kerja::find($item);
+                        if ($sk) $names[] = $sk->name;
+                    }
+                }
+                return count($names) > 0 ? '<span class="text-secondary small fw-medium">' . implode(', ', $names) . '</span>' : '';
             })
             ->addColumn('tugas', function ($data) {
-                $tugas = $data->jobs ? array_map(function ($item) {
-                    $name = Master_jobs::find($item)->name;
-                    return '<span class="badge text-bg-secondary">' . $name . '</span>';
-                }, $data->jobs) : [];
-                return "<div class='d-flex flex-wrap align-items-center gap-1'>" . implode('', $tugas) . "</div>";
+                $tugasNames = [];
+                if ($data->jobs) {
+                    foreach ($data->jobs as $item) {
+                        $job = Master_jobs::find($item);
+                        if ($job) $tugasNames[] = $job->name;
+                    }
+                }
+                return count($tugasNames) > 0 ? '<span class="text-secondary small fw-medium">' . implode(', ', $tugasNames) . '</span>' : '-';
             })
-            ->rawColumns(['action', 'role', 'satuankerja', 'tugas'])
+            ->rawColumns(['name', 'email', 'action', 'role', 'satuankerja', 'tugas'])
             ->make(true);
     }
 
@@ -184,7 +191,7 @@ class UserController extends Controller
             'jenis_kelamin' => ['required'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            // 'avatar' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'satuanKerja' => ['required'],
             'role' => ['required']
         ];
@@ -220,11 +227,17 @@ class UserController extends Controller
 
         $user->syncRoles($idsRole);
 
-        if ($user) {
+        $avatarId = null;
+        if ($request->file('avatar')) {
+            $avatarMedia = app(\App\Http\Controllers\MediaController::class)->upload($request->file('avatar'), 'avatar');
+            $avatarMedia->store();
+            $avatarId = $avatarMedia->getIdMedia();
+        }
 
+        if ($user) {
             $profile = Profile::create([
                 'user_id' => $user->id,
-                'avatar' => null,
+                'avatar' => $avatarId,
                 'nik' => $request->nik,
                 'no_hp' => $request->no_telepon,
                 'jenis_kelamin' => $request->jenis_kelamin,
@@ -288,6 +301,7 @@ class UserController extends Controller
             'nik' => ['required'],
             'jenis_kelamin' => ['required'],
             'email' => ['required', 'string', 'email', 'max:255'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'satuanKerja' => ['required'],
             'role' => ['required']
         ];
@@ -319,20 +333,21 @@ class UserController extends Controller
         }, $request->satuanKerja);
         $d_user->update();
 
-        $avatar = null;
+        $avatarId = $profile ? $profile->avatar : null;
         if ($request->file('avatar')) {
-            // Menghapus file sebelumnya
-            if (Storage::exists('public/images/avatar' . $profile->avatar)) {
-                Storage::delete('public/images/avatar' . $profile->avatar);
+            if ($profile && $profile->avatar && is_numeric($profile->avatar)) {
+                app(\App\Http\Controllers\MediaController::class)->update($request->file('avatar'), $profile->avatar);
+                $avatarId = $profile->avatar;
+            } else {
+                if ($profile && $profile->avatar && !is_numeric($profile->avatar)) {
+                    if (Storage::exists('public/images/avatar/' . $profile->avatar)) {
+                        Storage::delete('public/images/avatar/' . $profile->avatar);
+                    }
+                }
+                $avatarMedia = app(\App\Http\Controllers\MediaController::class)->upload($request->file('avatar'), 'avatar');
+                $avatarMedia->store();
+                $avatarId = $avatarMedia->getIdMedia();
             }
-
-            $image = $request->file('avatar');
-
-            $filename = 'avatar_' . md5($id) . '.' . $image->getClientOriginalExtension();
-
-            $path = $image->storeAs('public/images/avatar', $filename);
-
-            $avatar = $filename;
         }
 
         if ($profile) {
@@ -340,7 +355,7 @@ class UserController extends Controller
             $profile->no_hp = $request->no_telepon;
             $profile->jenis_kelamin = $request->jenis_kelamin;
             $profile->alamat = $request->alamat;
-            $profile->avatar = $avatar;
+            $profile->avatar = $avatarId;
             $profile->update();
         } else {
             profile::create(array(
@@ -349,7 +364,7 @@ class UserController extends Controller
                 'no_hp' => $request->no_telepon,
                 'jenis_kelamin' => $request->jenis_kelamin,
                 'alamat' => $request->alamat,
-                'avatar' => $avatar
+                'avatar' => $avatarId
             ));
         }
 

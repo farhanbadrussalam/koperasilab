@@ -1,22 +1,38 @@
 <div class="modal fade" id="createRadiasiModal" tabindex="-1" aria-labelledby="createRadiasiModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="createRadiasiModalLabel">Create Radiasi</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <form id="form-create" method="post">
-            <div class="modal-body">
-                @csrf
-                <div class="mb-3">
-                    <label for="inputNamaRadiasi" class="form-label">Nama Radiasi</label>
-                    <input type="text" name="nama_radiasi" id="inputNamaRadiasi" class="form-control" autocomplete="false" required>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
+                <div class="d-flex align-items-center">
+                    <div class="icon-box bg-primary-subtle text-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-activity fs-5"></i>
+                    </div>
+                    <h5 class="modal-title fw-bold text-dark" id="createRadiasiModalLabel">Create Radiasi</h5>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-footer text-end">
-                <button type="submit" class="btn btn-primary" id="btn-create">Save</button>
-            </div>
-        </form>
-      </div>
+            <form id="form-create" method="post" data-parsley-validate>
+                @csrf
+                <div class="modal-body px-4 pt-3 pb-2">
+                    <div class="mb-3">
+                        <label for="inputNamaRadiasi" class="form-label fw-semibold text-secondary">Nama Radiasi <span class="text-danger">*</span></label>
+                        <input type="text" 
+                               name="nama_radiasi" 
+                               id="inputNamaRadiasi" 
+                               class="form-control rounded-3" 
+                               placeholder="e.g. Sinar-X / Gamma"
+                               autocomplete="off" 
+                               required
+                               data-parsley-minlength="3"
+                               data-parsley-trigger="input"
+                               data-parsley-required-message="Nama radiasi wajib diisi."
+                               data-parsley-minlength-message="Nama minimal 3 karakter.">
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 px-4 pb-4 pt-2 d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill" id="btn-create">Simpan</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>

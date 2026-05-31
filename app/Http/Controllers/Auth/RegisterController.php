@@ -64,19 +64,16 @@ class RegisterController extends Controller
      */
     protected function validator(array $data)
     {
-        $arrValidation = [];
+        $arrValidation = [
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ];
         if (env('APP_ENV') == 'production') {
-            $arrValidation = [
-                // 'avatar' => 'required|image|mimes:jpeg,png,jpg,gif',//|max:2048
+            $arrValidation = array_merge($arrValidation, [
                 'g-recaptcha-response' => ['required', 'captcha'],
-            ];
+            ]);
         }
 
         $arrMessage = messageSanity($arrValidation);
-        // 'avatar.required' => 'Avatar harus diupload',
-        // 'avatar.image' => 'Avatar harus berupa gambar',
-        // 'avatar.mimes' => 'Avatar hanya boleh berupa format jpeg,png,jpg,gif',
-        // 'avatar.max' => 'Avatar maksimal 2048 Kb',
 
         return Validator::make($data, $arrValidation, $arrMessage);
     }
@@ -178,13 +175,21 @@ class RegisterController extends Controller
             'realtime_notifications' => 0
         ])->assignRole('Pelanggan');
 
+        $avatarId = null;
+        if (request()->file('avatar')) {
+            $avatarMedia = $this->mediaController->upload(request()->file('avatar'), 'avatar');
+            $avatarMedia->store();
+            $avatarId = $avatarMedia->getIdMedia();
+        }
+
         Profile::create([
             'user_id' => $user->id,
             'nik' => $data['nik'],
             'no_hp' => $data['telepon'],
             'jenis_kelamin' => $data['jenis_kelamin'],
             'alamat' => $data['alamat'],
-            'surat_kuasa' => $suratKuasaId
+            'surat_kuasa' => $suratKuasaId,
+            'avatar' => $avatarId
         ]);
 
         return $user;
