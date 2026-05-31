@@ -169,15 +169,6 @@
             $('[data-bs-toggle="tooltip"]').attr('data-bs-placement', 'bottom')
             $('[data-bs-toggle="tooltip"]').tooltip()
 
-            $("#collapseManagement").on('show.bs.collapse', function () {
-                $('#icon_collapse').addClass('bi-chevron-up');
-                $('#icon_collapse').removeClass('bi-chevron-down');
-            });
-
-            $("#collapseManagement").on('hide.bs.collapse', function () {
-                $('#icon_collapse').addClass('bi-chevron-down');
-                $('#icon_collapse').removeClass('bi-chevron-up');
-            });
 
             // Mengecek session
             setInterval(() => {
