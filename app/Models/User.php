@@ -218,4 +218,16 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Penyelia_petugas::class, 'id_user', 'id')->with('map_active');
     }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordNotification($token));
+    }
 }
+
