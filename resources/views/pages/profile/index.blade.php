@@ -15,6 +15,12 @@
                                         title="Ganti Foto" style="width: 35px; height: 35px;" onclick="$('#profile-avatar-input').click()">
                                     <i class="bi bi-camera-fill"></i>
                                 </button>
+                                @if($profile->profile && $profile->profile->avatar)
+                                <button class="btn btn-danger btn-sm rounded-circle position-absolute bottom-0 start-0 border border-2 border-white shadow-sm"
+                                        title="Hapus Foto" id="btn-delete-avatar" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                                @endif
                                 <input type="file" id="profile-avatar-input" class="d-none" accept="image/png, image/jpeg, image/jpg">
                             </div>
                             <h5 class="fw-bold text-dark mb-1">{{ $profile->name }}</h5>
