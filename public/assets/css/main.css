@@ -404,7 +404,8 @@ a {
 
 #progressbar li.stopped:before {
   background: #ff4d4d;
-  content: "\2715"; /* Unicode character for 'X' */
+  content: "\2715";
+  /* Unicode character for 'X' */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -795,47 +796,52 @@ thead {
 
 /* Reusable Premium Avatar CSS */
 .profile-avatar-container {
-    position: relative;
-    width: 110px;
-    height: 110px;
-    margin: 0 auto;
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto;
 }
+
 .profile-avatar-preview {
-    width: 110px;
-    height: 110px;
-    object-fit: cover;
-    border: 4px solid #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    border-radius: 50%;
-    transition: all 0.3s ease;
+  width: 110px;
+  height: 110px;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  transition: all 0.3s ease;
 }
+
 .profile-avatar-upload-btn {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 32px;
-    height: 32px;
-    background-color: #55c57a; /* Default green */
-    color: #fff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background-color: #55c57a;
+  /* Default green */
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
 }
+
 .profile-avatar-upload-btn:hover {
-    transform: scale(1.1);
-    background-color: #3fa163;
+  transform: scale(1.1);
+  background-color: #3fa163;
 }
 
 /* User Form Variant (Blue) */
 .profile-avatar-upload-btn.btn-blue {
-    background-color: var(--bs-primary) !important;
+  background-color: var(--bs-primary) !important;
 }
+
 .profile-avatar-upload-btn.btn-blue:hover {
-    background-color: #0b5ed7 !important;
+  background-color: #0b5ed7 !important;
 }
 
 /* ==========================================================================
@@ -844,244 +850,289 @@ thead {
 
 /* 1. Left Sidebar Floating Glassmorphic Container */
 .left-sidebar {
-    background: #ffffff !important;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02) !important;
-    border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: #ffffff !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* 2. Brand Logo & Typography Upgrade */
 .brand-logo {
-    padding: 24px 20px 16px 24px !important;
-    height: auto !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.03) !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
+  padding: 24px 20px 16px 24px !important;
+  height: auto !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
 }
+
 .brand-logo .brand-text {
-    font-family: 'Outfit', 'Inter', sans-serif !important;
-    font-weight: 700 !important;
-    font-size: 1.15rem !important;
-    letter-spacing: -0.5px !important;
-    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    transition: opacity 0.3s ease;
+  font-family: 'Outfit', 'Inter', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1.15rem !important;
+  letter-spacing: -0.5px !important;
+  background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: opacity 0.3s ease;
 }
 
 /* 3. Sidebar Mini Profile Card (Personalized Info Area) */
 .sidebar-profile-card {
-    background: linear-gradient(135deg, rgba(13, 110, 253, 0.03) 0%, rgba(13, 110, 253, 0.005) 100%);
-    border: 1px solid rgba(13, 110, 253, 0.06);
-    border-radius: 12px;
-    padding: 14px;
-    margin: 16px 14px 12px 14px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.005);
-    transition: all 0.3s ease;
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.03) 0%, rgba(13, 110, 253, 0.005) 100%);
+  border: 1px solid rgba(13, 110, 253, 0.06);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 16px 14px 12px 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.005);
+  transition: all 0.3s ease;
 }
+
 .sidebar-profile-card:hover {
-    background: linear-gradient(135deg, rgba(13, 110, 253, 0.05) 0%, rgba(13, 110, 253, 0.01) 100%);
-    border-color: rgba(13, 110, 253, 0.12);
-    box-shadow: 0 6px 16px rgba(13, 110, 253, 0.03);
+  background: linear-gradient(135deg, rgba(13, 110, 253, 0.05) 0%, rgba(13, 110, 253, 0.01) 100%);
+  border-color: rgba(13, 110, 253, 0.12);
+  box-shadow: 0 6px 16px rgba(13, 110, 253, 0.03);
 }
+
 .sidebar-profile-card .profile-name {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: #1a202c;
-    margin-bottom: 2px;
-    font-family: 'Outfit', 'Inter', sans-serif !important;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 2px;
+  font-family: 'Outfit', 'Inter', sans-serif !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
+
 .sidebar-profile-card .profile-role {
-    font-size: 10px;
-    font-weight: 600;
-    color: #718096;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
+
 .sidebar-profile-card .profile-satuan-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
 }
+
 .sidebar-profile-card .badge-satuan {
-    background-color: rgba(13, 110, 253, 0.06) !important;
-    color: #0d6efd !important;
-    font-size: 9.5px !important;
-    font-weight: 600 !important;
-    padding: 3px 8px !important;
-    border-radius: 20px !important;
-    border: 1px solid rgba(13, 110, 253, 0.1) !important;
-    transition: all 0.2s ease;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
+  background-color: rgba(13, 110, 253, 0.06) !important;
+  color: #0d6efd !important;
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  padding: 3px 8px !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(13, 110, 253, 0.1) !important;
+  transition: all 0.2s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
 }
+
 .sidebar-profile-card .badge-satuan:hover {
-    background-color: #0d6efd !important;
-    color: #ffffff !important;
-    transform: translateY(-1px);
+  background-color: #0d6efd !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
 }
 
 /* 4. Category Headers (nav-small-cap) Styling */
 .sidebar-nav .nav-small-cap {
-    font-family: 'Outfit', 'Inter', sans-serif !important;
-    font-size: 10px !important;
-    font-weight: 700 !important;
-    letter-spacing: 1.2px !important;
-    text-transform: uppercase !important;
-    color: #a0aec0 !important;
-    padding: 22px 16px 8px 16px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 8px !important;
-    border-top: 1px solid rgba(0, 0, 0, 0.02);
-    margin-top: 10px;
+  font-family: 'Outfit', 'Inter', sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.2px !important;
+  text-transform: uppercase !important;
+  color: #a0aec0 !important;
+  padding: 22px 16px 8px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.02);
+  margin-top: 10px;
 }
+
 .sidebar-nav .nav-small-cap:first-of-type {
-    border-top: none;
-    margin-top: 0;
+  border-top: none;
+  margin-top: 0;
 }
+
 .sidebar-nav .nav-small-cap-icon {
-    display: none !important; /* Hide old icon layout */
+  display: none !important;
+  /* Hide old icon layout */
 }
 
 /* 5. Navigation Items & Links */
 .sidebar-nav {
-    padding: 8px 8px 24px 8px !important;
+  padding: 8px 8px 24px 8px !important;
 }
+
 .sidebar-nav .sidebar-item {
-    margin: 2px 8px !important;
-    list-style: none !important;
+  margin: 2px 8px !important;
+  list-style: none !important;
 }
+
 .sidebar-nav .sidebar-link {
-    display: flex !important;
-    align-items: center !important;
-    padding: 10px 14px !important;
-    border-radius: 10px !important;
-    color: #4a5568 !important;
-    font-size: 13.5px !important;
-    font-weight: 500 !important;
-    text-decoration: none !important;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    margin-bottom: 2px !important;
-    background: transparent !important;
-    border: 1px solid transparent !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+  color: #4a5568 !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin-bottom: 2px !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
 }
+
 .sidebar-nav .sidebar-link i {
-    font-size: 1.1rem !important;
-    margin-right: 12px !important;
-    color: #718096 !important;
-    transition: all 0.25s ease !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 20px;
-    height: 20px;
+  font-size: 1.1rem !important;
+  margin-right: 12px !important;
+  color: #718096 !important;
+  transition: all 0.25s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px;
+  height: 20px;
 }
+
 .sidebar-nav .sidebar-link:hover {
-    background-color: rgba(13, 110, 253, 0.04) !important;
-    color: #0d6efd !important;
-    border-color: rgba(13, 110, 253, 0.02) !important;
-    transform: translateX(4px) !important;
+  background-color: rgba(13, 110, 253, 0.04) !important;
+  color: #0d6efd !important;
+  border-color: rgba(13, 110, 253, 0.02) !important;
+  transform: translateX(4px) !important;
 }
+
 .sidebar-nav .sidebar-link:hover i {
-    color: #0d6efd !important;
-    transform: scale(1.15) !important;
+  color: #0d6efd !important;
+  transform: scale(1.15) !important;
 }
 
 /* 6. Active Navigation Link State */
 .sidebar-nav .sidebar-link.active {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
-    color: #ffffff !important;
-    font-weight: 600 !important;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.18) !important;
-    border-color: transparent !important;
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.18) !important;
+  border-color: transparent !important;
 }
+
 .sidebar-nav .sidebar-link.active i {
-    color: #ffffff !important;
-    transform: scale(1.05) !important;
+  color: #ffffff !important;
+  transform: scale(1.05) !important;
 }
+
 .sidebar-nav .sidebar-link.active:hover {
-    color: #ffffff !important;
-    transform: translateX(4px) !important;
+  color: #ffffff !important;
+  transform: translateX(4px) !important;
 }
 
 /* 7. Collapsible Submenu Timeline Hierarchy */
 .sidebar-submenu {
-    padding-left: 10px !important;
-    margin-left: 20px !important;
-    border-left: 1.5px dashed rgba(0, 0, 0, 0.06) !important;
-    margin-top: 2px !important;
-    margin-bottom: 6px !important;
-    transition: all 0.3s ease !important;
+  padding-left: 10px !important;
+  margin-left: 20px !important;
+  border-left: 1.5px dashed rgba(0, 0, 0, 0.06) !important;
+  margin-top: 2px !important;
+  margin-bottom: 6px !important;
+  transition: all 0.3s ease !important;
 }
+
 .sidebar-submenu .sidebar-item {
-    margin: 1px 0 !important;
+  margin: 1px 0 !important;
 }
+
 .sidebar-submenu .sidebar-link {
-    padding: 8px 12px !important;
-    font-size: 13px !important;
-    border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
 }
+
 .sidebar-submenu .sidebar-link i {
-    font-size: 8px !important;
-    width: auto !important;
-    height: auto !important;
-    margin-right: 10px !important;
-    color: #a0aec0 !important;
+  font-size: 8px !important;
+  width: auto !important;
+  height: auto !important;
+  margin-right: 10px !important;
+  color: #a0aec0 !important;
 }
+
 .sidebar-submenu .sidebar-link.active i {
-    background-color: #ffffff !important;
-    border-radius: 50% !important;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.8) !important;
+  background-color: #ffffff !important;
+  border-radius: 50% !important;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8) !important;
 }
+
 .sidebar-submenu .sidebar-link:hover i {
-    color: #0d6efd !important;
-    transform: scale(1.3) !important;
+  color: #0d6efd !important;
+  transform: scale(1.3) !important;
 }
 
 /* 8. Collapse Chevron Smooth Rotations */
 .nav-small-cap[aria-expanded="true"] #icon_collapse {
-    transform: rotate(180deg) !important;
+  transform: rotate(180deg) !important;
 }
+
 #icon_collapse {
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    color: #718096 !important;
-    font-size: 14px !important;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  color: #718096 !important;
+  font-size: 14px !important;
 }
+
 .nav-small-cap.cursoron {
-    cursor: pointer !important;
-    transition: background-color 0.2s ease;
-    border-radius: 8px;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
 }
+
 .nav-small-cap.cursoron:hover {
-    background-color: rgba(0, 0, 0, 0.02) !important;
+  background-color: rgba(0, 0, 0, 0.02) !important;
 }
 
 /* 9. Glowing Notification Badges */
 .sidebar-link .badge {
-    font-size: 9px !important;
-    padding: 4px 8px !important;
-    font-weight: 700 !important;
-    border-radius: 20px !important;
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
-    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
-    color: #ffffff !important;
-    border: none !important;
-    transition: all 0.2s ease;
+  font-size: 9px !important;
+  padding: 4px 8px !important;
+  font-weight: 700 !important;
+  border-radius: 20px !important;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2) !important;
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  transition: all 0.2s ease;
 }
+
 .sidebar-link:hover .badge {
-    transform: scale(1.08);
+  transform: scale(1.08);
+}
+
+/* Styling untuk evaluasi */
+.hover-shadow-sm {
+  transition: all 0.25s ease;
+}
+
+.hover-shadow-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .08) !important;
+}
+
+.tracking-wide {
+  letter-spacing: 0.05em;
+}
+
+.sticky-sidebar {
+  position: sticky;
+  top: 2rem;
 }

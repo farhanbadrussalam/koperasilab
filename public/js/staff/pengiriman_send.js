@@ -30,7 +30,8 @@ if (informasi.sumber == 'permohonan') {
         dokumen: informasi.dokumen,
         periode_aktif: periode_aktif,
         adendum: false,
-        periode_all: informasi.kontrak.periode_all
+        periode_all: informasi.kontrak.periode_all,
+        periode_next: informasi.kontrak.periode_next
     }
 } else {
     dataOrderPengiriman = {
@@ -55,7 +56,8 @@ if (informasi.sumber == 'permohonan') {
         dokumen: informasi.periode[0].permohonan?.dokumen ?? informasi.dokumen?.filter(d => d.periode == informasi.periode[0].periode),
         periode_aktif: informasi.periode[0],
         adendum: informasi.adendum,
-        periode_all: informasi.periode_all
+        periode_all: informasi.periode_all,
+        periode_next: informasi.periode_next
     }
 }
 
@@ -432,7 +434,11 @@ function updateSelectDocument() {
                 if (doc.checked) {
                     $('#btnCetakSurat').html('<i class="bi bi-printer me-2"></i>Cetak Surat Pengantar');
                     $('#btnCetakSurat').attr('onclick', 'btnShowDoc(this)');
-                    $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/${dataOrderPengiriman.periode_aktif.periode == 0 ? 1 : dataOrderPengiriman.periode_aktif.periode}`);
+                    if (dataOrderPengiriman.periode_next) {
+                        $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/1`);
+                    } else {
+                        $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/${dataOrderPengiriman.periode_aktif.periode == 0 ? 1 : dataOrderPengiriman.periode_aktif.periode}`);
+                    }
                     $('#btnCetakSurat').attr('data-title', `Surat Pengantar TLD`);
                     $('#btnCetakSurat').removeClass('btn-outline-primary').addClass('btn-outline-secondary');
 

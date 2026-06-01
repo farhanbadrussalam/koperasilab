@@ -84,16 +84,6 @@
                                     periode</button>
                             </div>
                         </div>
-                        <div class="col-md-12" id="form-switch">
-                            <div class="form-check form-switch" id="switch-tld">
-                                <input class="form-check-input" type="checkbox" role="switch" id="haveTld" checked>
-                                <label class="form-check-label" for="haveTld">Anda Memiliki TLD</label>
-                            </div>
-                            <div class="form-check form-switch" id="switch-zerocek">
-                                <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
-                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero Check</label>
-                            </div>
-                        </div>
                         <div class="col-md-6" id="form-periode-next">
                             <label class="col-form-label" for="periode_next">Periode pemakaian selanjutnya</label>
                             <div class="input-group mb-3">
@@ -103,6 +93,16 @@
                                     id="btn-clear-periode-next">Clear</button>
                                 <button class="btn btn-outline-secondary" type="button" id="btn-periode-next">Select
                                     periode</button>
+                            </div>
+                        </div>
+                        <div class="col-md-12" id="form-switch">
+                            <div class="form-check form-switch" id="switch-tld">
+                                <input class="form-check-input" type="checkbox" role="switch" id="haveTld" checked>
+                                <label class="form-check-label" for="haveTld">Anda Memiliki TLD</label>
+                            </div>
+                            <div class="form-check form-switch" id="switch-zerocek">
+                                <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
+                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero Check</label>
                             </div>
                         </div>
                         <div class="col-md-6" id="form-jum-pengguna">

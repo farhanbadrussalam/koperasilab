@@ -204,7 +204,7 @@ class PenyeliaAPI extends Controller
             $status && $params['status'] = $status;
             $params['is_surat_tugas_signed'] = null;
 
-            $penyelia = Penyelia::with(['permohonan', 'permohonan.jenis_layanan', 'permohonan.jenis_layanan_parent', 'permohonan.layanan_jasa:id_layanan,satuankerja_id', 'permohonan.kontrak'])->find($idPenyelia);
+            $penyelia = Penyelia::with(['kontrak', 'permohonan', 'permohonan.jenis_layanan', 'permohonan.jenis_layanan_parent', 'permohonan.layanan_jasa:id_layanan,satuankerja_id', 'permohonan.kontrak'])->find($idPenyelia);
             if ($penyelia) {
                 // simpan ttd di dokumen
                 if ($ttd) {
@@ -361,7 +361,7 @@ class PenyeliaAPI extends Controller
                     }
 
                     $templateSurpeng = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
-                    if ($templateSurpeng && $penyelia->periode_used) {
+                    if ($templateSurpeng && ($penyelia->periode_used || $penyelia->kontrak->periode_next)) {
                         Permohonan_dokumen::create(array(
                             'periode' => $penyelia->periode_used,
                             'id_kontrak' => $id_kontrak,
@@ -1001,6 +1001,7 @@ class PenyeliaAPI extends Controller
                     'permohonan.dokumen',
                     'permohonan.dokumen.doc_template',
                     'dokumenSurpeng',
+                    'kontrak'
                 ])
                 ->filterByStatus($status, $typePencarian, $menu)
                 ->filterByCustomFilters($filter)

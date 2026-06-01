@@ -24,10 +24,10 @@ $(function () {
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'kontrak',
-        filter : {
-            status : true,
-            jenis_tld : true,
-            no_kontrak : true,
+        filter: {
+            status: true,
+            jenis_tld: true,
+            no_kontrak: true,
             date_range: true
         }
     })
@@ -35,7 +35,7 @@ $(function () {
     // SETUP FILTER
     filterComp.on('filter.change', () => loadData());
 
-    $(`#list-pagination`).on('click', 'a', function(e){
+    $(`#list-pagination`).on('click', 'a', function (e) {
         e.preventDefault();
         const pageno = e.target.dataset.page;
         loadData(pageno);
@@ -61,7 +61,7 @@ function loadData(page = 1) {
     filterValue.periode && (params.filter.periode = filterValue.periode);
     (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -88,24 +88,24 @@ function loadData(page = 1) {
                     htmlLastPeriod = `<span>Periode Selesai</span>`;
                     break;
                 default:
-                    if(periodeNow?.endDate){
+                    if (periodeNow?.endDate) {
                         let remaining = getDaysRemaining(periodeNow.endDate);
                         htmlLastPeriod = `
                             <span>${periodeNow.name}</span>
                             <span>Sisa ${remaining} hari</span>
                         `;
-                    }else{
+                    } else {
                         htmlLastPeriod = ``;
                     }
                     break;
             }
 
             let detailPengiriman = [];
-            let arrFind = ['tld', 'lhu','invoice'];
+            let arrFind = ['tld', 'lhu', 'invoice'];
 
             for (const pengiriman of data.pengiriman) {
                 let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
-                if(detail.length > 0){
+                if (detail.length > 0) {
                     detail.map(d => detailPengiriman.push({
                         jenis: d.jenis,
                         periode: d.periode ? d.periode : (pengiriman.periode ? pengiriman.periode : 0),
@@ -142,21 +142,21 @@ function loadData(page = 1) {
                 const isComplete = cekPeriodeComplete(periode, detailPengiriman, data, dokumenAktif);
 
                 let jml_periode_val = data.periode_count;
-                if(!tmpArrSewa.includes(JL)){
-                    if(data.is_zerocek && !data.is_have_tld){
+                if (!tmpArrSewa.includes(JL)) {
+                    if (data.is_zerocek && !data.is_have_tld) {
                         jml_periode_val = jml_periode_val - 1;
                     }
                 }
-                if(!isComplete){
+                if (!isComplete) {
                     activePeriode = periode;
                     break;
                 }
                 lastPeriodeKontrak = (jml_periode_val) == periode.periode;
             }
 
-            if(lastPeriodeKontrak && role.includes('Staff Pengiriman')){
+            if (lastPeriodeKontrak && role.includes('Staff Pengiriman')) {
                 htmlPengembalian = pengembalianTLD(data);
-            } else if(lastPeriodeKontrak) {
+            } else if (lastPeriodeKontrak) {
                 htmlPengembalian = pengembalianTLD(data);
             }
 
@@ -171,8 +171,8 @@ function loadData(page = 1) {
             ` : '';
 
             let btnTTD = '';
-            if(role.includes('Manager') || role.includes('General Manager')) {
-                if(!status_ttd_kontrak && document_kontrak){
+            if (role.includes('Manager') || role.includes('General Manager')) {
+                if (!status_ttd_kontrak && document_kontrak) {
                     btnTTD = `
                         <div class="mb-2 text-end fs-8">
                             <button class="btn btn-sm btn-outline-primary" onclick="showDocument('${data.kontrak_hash}', '${document_kontrak?.jenis}', 'Dokumen Kontrak')">
@@ -184,16 +184,16 @@ function loadData(page = 1) {
             }
 
             let htmlStatusKontrak = status_ttd_kontrak ? `<span class="badge bg-success-subtle fw-normal rounded-pill text-success-emphasis">Sudah Ditandatangani</span>` : `<span class="badge bg-warning-subtle fw-normal rounded-pill text-warning-emphasis">Belum Ditandatangani</span>`;
-            if(role.includes('Pelanggan')){
+            if (role.includes('Pelanggan')) {
                 htmlStatusKontrak = '';
             }
 
-            let htmlZeroCek = data.is_zerocek == 1 
-                ? `<span class="badge bg-info-subtle fw-normal rounded-pill text-info-emphasis"><i class="bi bi-check-circle me-1"></i>Zero Check</span>` 
+            let htmlZeroCek = data.is_zerocek == 1
+                ? `<span class="badge bg-info-subtle fw-normal rounded-pill text-info-emphasis"><i class="bi bi-check-circle me-1"></i>Zero Check</span>`
                 : `<span class="badge bg-danger-subtle fw-normal rounded-pill text-danger-emphasis"><i class="bi bi-x-circle me-1"></i>Bukan Zero Check</span>`;
-            
-            let htmlHaveTld = data.is_have_tld == 1 
-                ? `<span class="badge bg-primary-subtle fw-normal rounded-pill text-primary-emphasis"><i class="bi bi-check-circle me-1"></i>Mempunyai TLD</span>` 
+
+            let htmlHaveTld = data.is_have_tld == 1
+                ? `<span class="badge bg-primary-subtle fw-normal rounded-pill text-primary-emphasis"><i class="bi bi-check-circle me-1"></i>Mempunyai TLD</span>`
                 : `<span class="badge bg-danger-subtle fw-normal rounded-pill text-danger-emphasis"><i class="bi bi-x-circle me-1"></i>Tidak Mempunyai TLD</span>`;
 
             // progress kontrak
@@ -201,7 +201,7 @@ function loadData(page = 1) {
             let periode_selesai = data.periode.filter(d => d.periode != 0 && d.selesai == 1).length;
             let progress = Math.round((periode_selesai / jml_periode) * 100);
             let txtProgress = '';
-            if(progress == 100){
+            if (progress == 100) {
                 txtProgress = 'Selesai';
             } else {
                 txtProgress = `${periode_selesai}/${jml_periode}`;
@@ -230,7 +230,7 @@ function loadData(page = 1) {
                                 ${htmlHaveTld}
                             </div>
                             <div>
-                                ${statusFormat('kontrak',data.status)}
+                                ${statusFormat('kontrak', data.status)}
                             </div>
                         </div>
                         <div class="col-md-5 col-12">
@@ -270,32 +270,32 @@ function loadData(page = 1) {
                             </div>
                         </div>
                         ${(() => {
-                            let targetPeriode = activePeriode || data.periode_active;
-                            if(targetPeriode) {
-                                let html = `
+                    let targetPeriode = activePeriode || data.periode_active;
+                    let html = '';
+                    if (targetPeriode) {
+                        html = `
                                     <div class="px-3" id="listPeriodeNow${i}">
                                         ${modalPeriode.htmlPeriode(targetPeriode, data, detailPengiriman, arrFind)}
                                         ${role.includes('Staff Pengiriman') ? htmlPengembalian : ''}
                                     </div>
                                 `;
-                                // menampilkan button untuk melihat periode lain jika ada lebih dari 1 periode
-                                if(data.periode_all?.jml_periode > 1) {
-                                    html += `
-                                        <div class="text-center">
-                                            <button class="btn btn-sm w-100 btn-light" onclick="showPeriode('${data.kontrak_hash}')">Lihat Periode Lain</button>
-                                        </div>
-                                    `;
-                                 }
-                                return html;
-                            }
-                            return '';
-                        })()}
+                        // menampilkan button untuk melihat periode lain jika ada lebih dari 1 periode
+                    }
+                    if (data.periode_all?.jml_periode > 1) {
+                        html += `
+                                    <div class="text-center">
+                                        <button class="btn btn-sm w-100 btn-light" onclick="showPeriode('${data.kontrak_hash}')">Lihat Periode Lain</button>
+                                    </div>
+                                `;
+                    }
+                    return html;
+                })()}
                     </div>
                 </div>
             `;
         }
 
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -308,7 +308,7 @@ function loadData(page = 1) {
     });
 }
 
-function showDocument(id_kontrak, jenis, title){
+function showDocument(id_kontrak, jenis, title) {
     let url = `laporan/${jenis}/${id_kontrak}`;
 
     modalDoc.show(url, {
@@ -331,10 +331,10 @@ function showDocument(id_kontrak, jenis, title){
     });
 }
 
-function saveSignature(obj, id_kontrak){
+function saveSignature(obj, id_kontrak) {
     let [ttdValue, ttdBy] = signaturePad.getValue();
 
-    if(!ttdValue){
+    if (!ttdValue) {
         return Swal.fire({
             icon: "warning",
             text: "Harap berikan tanda tangan terlebih dahulu.",
@@ -368,7 +368,7 @@ function showPeriode(id_kontrak) {
     modalPeriode.show(id_kontrak);
 }
 
-function showAdendumInformasi(obj){
+function showAdendumInformasi(obj) {
     let id_periode = $(obj).data('id');
     let periode = $(obj).data('periode');
     let url = `api/v1/kontrak/getKontrakPeriode/${id_periode}`;
@@ -379,33 +379,33 @@ function showAdendumInformasi(obj){
     });
 }
 
-function cekTldComplete(){
+function cekTldComplete() {
 
 }
 
 function cekPenyelia(penyelia, jobs_point) {
     let search = penyelia?.penyelia_map.find(d => d.jobs.name == jobs_point);
-    if(search?.status == 2) {
+    if (search?.status == 2) {
         return true;
     }
 
     return false;
 }
 
-function buttonEvaluasi(data_periode, data_kontrak, active){
+function buttonEvaluasi(data_periode, data_kontrak, active) {
     let result = false;
     let btnEvaluasi = '';
-    if(!data_periode.permohonan) {
+    if (!data_periode.permohonan) {
         result = active;
     }
 
     return result;
 }
 
-function buttonTLD(data_periode, data_kontrak, active){
+function buttonTLD(data_periode, data_kontrak, active) {
     let result = false;
     let btnEvaluasi = '';
-    if(!data_periode.permohonan) {
+    if (!data_periode.permohonan) {
         result = active;
     }
 
@@ -416,24 +416,24 @@ function reload() {
     loadData();
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
     loadData();
 }
 
-function showDetail(obj){
+function showDetail(obj) {
     const id = $(obj).closest('.dropdown-menu').data('id');
     let url = `api/v1/kontrak/getById/${id}`;
     detail.show(url);
 }
 
-function pengembalianTLD(data){
+function pengembalianTLD(data) {
     let htmlBtnTld = `<a class="btn btn-sm btn-outline-primary" href="${base_url}/staff/pengiriman/pengembalian/${data.kontrak_hash}"><i class="bi bi-send-fill"></i> Kirim TLD</a>`;
     let htmlAction = ``;
     let jumlah = 0;
     let html = ``;
     let tldTidakDigunakan = data.rincian_list_tld;
-    if(tldTidakDigunakan.length > 0){
+    if (tldTidakDigunakan.length > 0) {
         jumlah = tldTidakDigunakan.length;
         let countTld = tldTidakDigunakan[0].count_tld;
 
@@ -441,16 +441,16 @@ function pengembalianTLD(data){
         orderPeriode.sort((a, b) => b.periode - a.periode);
         let ambil = false;
         for (const item of orderPeriode) {
-            if(item.count_tld === countTld) {
+            if (item.count_tld === countTld) {
                 ambil = item;
                 break;
             }
         }
 
-        if(ambil.status == 2) return '';
+        if (ambil.status == 2) return '';
 
         let tldSelesai = cekPenyelia(ambil.penyelia, 'Pelabelan TLD');
-        if(tldSelesai && role.includes('Staff Pengiriman')) {
+        if (tldSelesai && role.includes('Staff Pengiriman')) {
             htmlAction = htmlBtnTld;
         }
 
@@ -464,7 +464,7 @@ function pengembalianTLD(data){
         endDate.setMonth(endDate.getMonth() + 3);
         endDate.setDate(0);
 
-        if(data.periode_next) {
+        if (data.periode_next) {
             startDate = new Date(data.periode_next[0].start_date);
             endDate = new Date(data.periode_next[0].end_date);
         }

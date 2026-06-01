@@ -104,7 +104,7 @@ function _renderCardItem(doc) {
 
     tugasBtn = {
         ...tugasBtn,
-        attr: `data-url="laporan/${doc.jenis}/${doc.kontrak.kontrak_hash}/${doc.periode}"
+        attr: `data-url="laporan/${doc.jenis}/${doc.kontrak.kontrak_hash}/${doc.kontrak.periode_next ? 1 : doc.periode}"
         data-title="Dokumen Surat Pengantar"
         data-idhash="${doc.dokumen_hash}"
         onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"`,

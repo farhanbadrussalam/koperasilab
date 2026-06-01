@@ -41,11 +41,15 @@ function cardComponent(data, options = {}) {
         if (data.periode == 1 && data.is_have_tld && data.is_zerocek) {
             per += ' + Zero Check';
         }
-        if(data.periodeNow){
-            if(data.periodeNow.periode != 0){
+        if (data.periodeNow) {
+            if (data.periodeNow.periode != 0) {
                 let rangeDate = range_date(data.periodeNow.start_date, data.periodeNow.end_date, 1);
                 per += `<span class="text-muted">: ${rangeDate.start} - ${rangeDate.end}</span>`
             }
+        }
+
+        if (data.periode == null) {
+            per = 'Periode berikutnya';
         }
         return `
             <span class="small">
@@ -319,7 +323,7 @@ function cardPenggunaComponent(data, options = {}) {
     }
 
     const elementList = `
-        <div class="card border mb-2 hover-shadow-sm transition-all">
+        <div class="card border mb-2">
             <div class="card-body py-2 px-3">
                 <div class="row align-items-center">
                     <div class="col-auto d-flex align-items-center mb-2 mb-md-0">
@@ -355,7 +359,7 @@ function cardPenggunaComponent(data, options = {}) {
                         ` : ``}
 
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-light border-0 rounded-circle" type="button" data-bs-toggle="dropdown">
+                            <button class="btn btn-sm btn-light border-0 rounded-circle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}'>
                                 <i class="bi bi-three-dots-vertical"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 overflow-hidden">
@@ -403,22 +407,19 @@ function cardPenggunaComponent(data, options = {}) {
  * @return {string} The HTML string of the card component.
  */
 function cardKontrolComponent(data, options = {}) {
-    let btnRemove = '';
     let htmlAddKontrol = '';
     let htmlEvaluasi = '';
-    if (options.is_btn_remove) {
-        btnRemove = `<button type="button" class="btn btn-sm btn-outline-danger" data-id="${data.tldHash}" onclick="deleteKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>`;
-    }
 
     if (options.is_have_tld) {
-        htmlEvaluasi = `<hr class="my-2">`;
+        htmlEvaluasi = `<hr class="my-2 opacity-50">`;
 
         for ([i, rincian] of data.rincian.entries()) {
             htmlEvaluasi += `
                 <div class="col-12 mb-2">
-                    <div class="input-group">
-                        <input type="text" class="form-control form-control-sm" id="tldNoSeri_${data.index}_${i}_kontrol" value="${rincian.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
-                        <button type="button" class="input-group-text btn btn-sm btn-outline-secondary" data-id="tldNoSeri_${data.index}_${i}_kontrol" title="Change" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil"></i> Ganti</button>
+                    <label class="form-label small fw-bold text-muted mb-1" style="font-size: 0.72rem;">TLD Seri #${i + 1}</label>
+                    <div class="input-group shadow-xs rounded overflow-hidden">
+                        <input type="text" class="form-control form-control-sm bg-light border-end-0" id="tldNoSeri_${data.index}_${i}_kontrol" value="${rincian.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
+                        <button type="button" class="btn btn-sm btn-outline-primary border-start-0 px-3 fw-bold" data-id="tldNoSeri_${data.index}_${i}_kontrol" title="Ganti" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil me-1"></i> Ganti</button>
                     </div>
                 </div>
             `;
@@ -427,14 +428,15 @@ function cardKontrolComponent(data, options = {}) {
 
     if (options.add_kontrol) {
         htmlAddKontrol = `
-            <div class="col-auto text-end ms-auto d-flex justify-content-between gap-2">
-                <div class="cursor-pointer rounded-circle" data-id="${data.tldHash}" onclick="changeCountKontrol('plus', ${data.rincian.length}, this)">
-                    <i class="bi bi-plus-circle text-primary"></i>
-                </div>
-                <div>${data.rincian.length}</div>
-                <div class="cursor-pointer rounded-circle" data-id="${data.tldHash}" onclick="changeCountKontrol('minus', ${data.rincian.length}, this)">
-                    <i class="bi bi-dash-circle text-danger"></i>
-                </div>
+            <div class="d-inline-flex align-items-center bg-light border rounded-pill px-2 py-1 shadow-sm gap-2">
+                <span class="small fw-bold text-muted me-1" style="font-size: 0.72rem;">Jumlah:</span>
+                <button type="button" class="btn btn-xs btn-link p-0 text-danger lh-1" data-id="${data.tldHash}" onclick="changeCountKontrol('minus', ${data.rincian.length}, this)" style="font-size: 1.15rem;">
+                    <i class="bi bi-dash-circle-fill"></i>
+                </button>
+                <span class="fw-bold text-dark px-1" style="min-width: 15px; text-align: center;">${data.rincian.length}</span>
+                <button type="button" class="btn btn-xs btn-link p-0 text-primary lh-1" data-id="${data.tldHash}" onclick="changeCountKontrol('plus', ${data.rincian.length}, this)" style="font-size: 1.15rem;">
+                    <i class="bi bi-plus-circle-fill"></i>
+                </button>
             </div>
         `;
     }
@@ -448,42 +450,83 @@ function cardKontrolComponent(data, options = {}) {
         `;
     }
 
+    let hasActions = !data.htmlDisabled || options.is_btn_remove;
+    let htmlActionsDropdown = '';
+
+    if (hasActions) {
+        let dropdownItems = '';
+        if (!data.htmlDisabled) {
+            dropdownItems += `
+                <li>
+                    <a class="dropdown-item small" href="javascript:void(0)" data-id="tldNoSeri_${data.index}_kontrol" onclick="openInventory(this, 'kontrol')">
+                        <i class="bi bi-pencil me-2 text-primary"></i>Ganti TLD
+                    </a>
+                </li>
+            `;
+        }
+        if (options.is_btn_remove) {
+            dropdownItems += `
+                <li>
+                    <a class="dropdown-item small text-danger" href="javascript:void(0)" data-id="${data.tldHash}" onclick="deleteKontrol(this)">
+                        <i class="bi bi-trash me-2"></i>Hapus Kontrol
+                    </a>
+                </li>
+            `;
+        }
+
+        htmlActionsDropdown = `
+            <div class="dropdown">
+                <button class="btn btn-sm btn-light border-0 rounded-circle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 overflow-hidden">
+                    ${dropdownItems}
+                </ul>
+            </div>
+        `;
+    }
+
     const elementList = `
-    <div class="card border mb-1 hover-shadow-sm transition-all">
-        <div class="card-body p-3 ">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
+    <div class="card border mb-2">
+        <div class="card-body py-2 px-3">
+            <div class="row align-items-center">
+                <!-- Sisi Kiri: Checkbox & Nama Kontrol -->
+                <div class="col-auto d-flex align-items-center mb-2 mb-md-0">
                     ${data.isCheckedEvaluasi ? `
                         <div class="p-2">
-                            <input class="form-check-input"
+                            <input class="form-check-input shadow-xs"
                                 name="checkTldKontrol" type="checkbox"
-                                value="${data.idHash}" aria-label="Checkbox for following text input"
+                                value="${data.idHash}" aria-label=""
                                 id="checkTldKontrol${data.index}">
                         </div>
                     ` : ``}
                     <div>
-                        <h6 class="mb-0 fw-bold text-dark small">${data.name}</h6>
-                        <small class="text-muted d-none">Unit Pembanding</small>
+                        <h6 class="mb-0 fw-bold text-dark small d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-primary"></i> ${data.name}
+                        </h6>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <input type="hidden" class="form-control rounded-start" value="${data.no_seri_tld}" id="tldNoSeri_${data.index}_kontrol" placeholder="Pilih No Seri" readonly>
+
+                <!-- Sisi Kanan: Badges, Counter, Serial Number & Dropdown Aksi -->
+                <div class="ms-auto col-auto text-md-end d-flex justify-content-between justify-content-md-end align-items-center gap-2">
+                    <input type="hidden" value="${data.no_seri_tld ?? ''}" id="tldNoSeri_${data.index}_kontrol">
+                    
                     ${txtStatus}
-                    ${options.label_tld ? `
-                        <span class="font-monospace fw-bold text-dark bg-white px-3 py-1 rounded border shadow-sm" id="tldNoSeri_${data.index}_kontrol_view">${data.no_seri_tld ?? 'Tidak ada'}</span>
-                    ` : ``}
+                    
                     ${htmlAddKontrol}
-                    ${btnRemove}
-                    ${!data.htmlDisabled ? `
-                        <button type="button"
-                            class="btn btn-sm btn-link text-decoration-none ms-2"
-                            data-id="tldNoSeri_${data.index}_kontrol"
-                            onclick="openInventory(this, 'kontrol')">Ganti</button>
+
+                    ${options.label_tld ? `
+                        <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border" 
+                            id="tldNoSeri_${data.index}_kontrol_view">${data.no_seri_tld ? data.no_seri_tld : 'Tidak Ada'}</span>
                     ` : ``}
+
+                    ${htmlActionsDropdown}
                 </div>
-            </div>
-            <div class="col-12">
-                ${htmlEvaluasi ?? ''}
+
+                <!-- Sisi Bawah: Form Evaluasi Multi-TLD Kontrol (jika ada) -->
+                <div class="col-md-12">
+                    ${htmlEvaluasi ?? ''}
+                </div>
             </div>
         </div>
     </div>
@@ -499,7 +542,7 @@ function cardKontrolComponent(data, options = {}) {
  */
 function showItemsDetail(encodedItems, idPengiriman) {
     const items = JSON.parse(decodeURIComponent(encodedItems));
-    
+
     let rows = '';
     items.forEach((item, index) => {
         let jenis = item.jenis ? (item.jenis === 'lhu' ? 'LHU' : (item.jenis === 'tld' ? 'TLD' : item.jenis.charAt(0).toUpperCase() + item.jenis.slice(1))) : '-';
@@ -507,7 +550,7 @@ function showItemsDetail(encodedItems, idPengiriman) {
         if (item.periode !== undefined && item.periode !== null) {
             periodeText = item.periode == 0 ? '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill fw-normal fs-8">Zero Check</span>' : `Periode ${item.periode}`;
         }
-        
+
         rows += `
             <tr>
                 <td class="text-center font-monospace small">${index + 1}</td>

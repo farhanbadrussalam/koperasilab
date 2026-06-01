@@ -7,9 +7,9 @@ $(function () {
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'pengiriman',
-        filter : {
+        filter: {
             search: true,
-            no_kontrak : true
+            no_kontrak: true
         }
     });
     // SETUP FILTER
@@ -42,13 +42,13 @@ $(function () {
 
         let isComplete = true;
         for (const selectDocument of arrSelectDocument) {
-            if(!selectDocument.checked){
+            if (!selectDocument.checked) {
                 isComplete = false;
                 break;
             }
         }
 
-        if(arrImgBukti.length === 0){
+        if (arrImgBukti.length === 0) {
             Swal.fire({
                 icon: "warning",
                 text: "Tambahkan bukti penerima"
@@ -56,7 +56,7 @@ $(function () {
             return;
         }
 
-        if(isComplete){
+        if (isComplete) {
             const isLhuSend = $('#isLhuSend').val();
             Swal.fire({
                 title: 'Konfirmasi Penerimaan Dokumen',
@@ -81,7 +81,7 @@ $(function () {
                     spinner('show', $(obj.target));
                     ajaxPost('api/v1/pengiriman/diterima', formData, result => {
                         spinner('hide', $(obj.target));
-                        if(result.meta.code == 200) {
+                        if (result.meta.code == 200) {
                             Swal.fire({
                                 icon: "success",
                                 text: "Document diterima"
@@ -118,7 +118,7 @@ function loadData(page = 1) {
     filterValue.search && (params.filter.search = filterValue.search);
     filterValue.no_kontrak && (params.filter.no_kontrak = filterValue.no_kontrak);
 
-    if(Object.keys(params.filter).length > 0) {
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -131,7 +131,7 @@ function loadData(page = 1) {
         let html = '';
         for (const [i, data] of result.data.entries()) {
             let htmlButton = '<button class="btn btn-outline-info btn-sm mb-2" onclick="showDetail(this)">Detail</button>';
-            if(data.status == 1){
+            if (data.status == 1) {
                 htmlButton += `<button class="btn btn-outline-primary btn-sm mb-2" onclick="showModalDiterima(this)">Diterima</button>`;
             }
 
@@ -152,7 +152,7 @@ function loadData(page = 1) {
                 btnAction: htmlButton
             });
         }
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -170,7 +170,7 @@ function loadData(page = 1) {
  *
  * @param {Object} obj - The DOM element that triggered the function.
  */
-function showModalDiterima(obj){
+function showModalDiterima(obj) {
     const id = $(obj).parent().parent().data('id');
     ajaxGet(`api/v1/pengiriman/getById/${id}`, false, result => {
         const data = result.data;
@@ -193,7 +193,7 @@ function showModalDiterima(obj){
         // Cek kelengkapan
         let htmlJenis = '';
         $('#surpengDiv').html(''); // Reset surpeng div
-        
+
         for (const detail of data.detail) {
             switch (detail.jenis) {
                 case 'invoice':
@@ -219,7 +219,7 @@ function showModalDiterima(obj){
                 case 'lhu':
                     $('#isLhuSend').val(true);
                     let htmlPeriode = !detail.periode ? 'Zero Check' : `Periode ${detail.periode}`;
-                    if(detail.periode == 1 && data.kontrak.is_zerocek == 1) {
+                    if (detail.periode == 1 && data.kontrak.is_zerocek == 1) {
                         htmlPeriode += ` + Zero Check`;
                     }
 
@@ -269,7 +269,7 @@ function showModalDiterima(obj){
                     // Menampilkan dokumen surpeng
                     let htmlSurpeng = '';
                     let findKontrakPeriode = data.kontrak.periode.find(periode => periode.periode == detail.periode);
-                    if(findKontrakPeriode?.nomer_surpeng){
+                    if (findKontrakPeriode?.nomer_surpeng) {
                         htmlSurpeng += `
                             <div class="card border border-primary-subtle shadow-sm rounded-3 overflow-hidden bg-white hover-shadow transition-all mb-3">
                                 <div class="card-body p-3">
@@ -283,7 +283,7 @@ function showModalDiterima(obj){
                                                 <small class="text-body-tertiary">Terbit: ${dateFormat(detail.created_at, 1)}</small>
                                             </div>
                                         </div>
-                                        <a href="${base_url}/laporan/surpeng/${data.kontrak.kontrak_hash}/${detail.periode ?? 0}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                        <a href="${base_url}/laporan/surpeng/${data.kontrak.kontrak_hash}/${data.kontrak.periode_next ? 1 : detail.periode ?? 0}" target="_blank" class="btn btn-sm btn-outline-danger rounded-pill px-3">
                                             <i class="bi bi-printer me-1"></i> Cetak PDF
                                         </a>
                                     </div>
@@ -321,21 +321,21 @@ function showModalDiterima(obj){
     });
 }
 
-function resetForm(){
+function resetForm() {
     buktiPenerima.addData([]);
     $('#list-kelengkapan').html('');
 }
 
-function reload(){
+function reload() {
     loadData();
 }
 
-function showDetail(obj){
+function showDetail(obj) {
     const id = $(obj).parent().parent().data("id");
     detail.show(`api/v1/pengiriman/getById/${id}`);
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
     loadData();
 }

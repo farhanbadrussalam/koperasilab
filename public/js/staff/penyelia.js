@@ -280,7 +280,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         `);
                     }
 
-                    if (penyelia.periode_used) {
+                    if (penyelia.periode_used || penyelia.kontrak.periode_next) {
                         // Konfigurasi Tombol Surat Pengantar
                         let surpengBtn = {
                             icon: 'bi-hourglass-split',
@@ -292,7 +292,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         if (docSurpeng) {
                             btnDocSurpeng = `
                                 <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                                    data-url="laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${docSurpeng.periode}"
+                                    data-url="laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${penyelia.kontrak.periode_next ? 1 : docSurpeng.periode}"
                                     data-title="Dokumen Surat Pengantar"
                                     onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
                                     <i class="bi bi-file-earmark-text"></i>

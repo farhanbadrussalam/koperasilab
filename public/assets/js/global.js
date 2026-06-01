@@ -2,6 +2,12 @@ const tmpArrEvaluasi = ['KontrakEvaluasi', 'EvaluasiTanpaKontrak'];
 const tmpArrSewa = ['KontrakSewa'];
 const tmpArrPutus = ['EvaluasiTanpaKontrak', 'ZerocekTanpaKontrak'];
 const StringZerocek = 'ZeroCekTanpaKontrak';
+$(function () {
+    if (typeof bootstrap !== 'undefined') {
+        bootstrap.Dropdown.Default.boundary = 'viewport';
+        bootstrap.Dropdown.Default.popperConfig = { strategy: 'fixed' };
+    }
+});
 /**
  * Formats a number into Indonesian Rupiah currency format.
  *
@@ -1169,18 +1175,32 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen) {
             } else {
                 // For other contract types (e.g. Evaluasi):
                 // If it does not have TLD (is_have_tld == 0), skip TLD on all periods except Periode 0.
-                if (kontrak.is_have_tld == 0 && data_periode.periode != 0) continue;
+                // if (kontrak.is_have_tld == 0 && data_periode.periode != 0) continue;
 
                 // For KontrakEvaluasi: skip on Periode 1 and 2 unless is_zerocek == 1 and is_have_tld == 1.
-                if (JL === 'KontrakEvaluasi' && (data_periode.periode == 1 || data_periode.periode == 2)) {
-                    if (kontrak.is_zerocek != 1 || kontrak.is_have_tld != 1) {
-                        continue;
+                if (JL === 'KontrakEvaluasi') {
+                    if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 0) {
+                        if (data_periode.periode == 0) continue;
                     }
+
+                    if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 1) {
+                        if (data_periode.periode == 1 || data_periode.periode == 2) {
+                            continue;
+                        }
+                    }
+                    // if (kontrak.is_zerocek != 1 || kontrak.is_have_tld != 1) {
+
+                    // }
+                    // if (kontrak.is_zerocek != 1 || kontrak.is_have_tld != 1) {
+                    //     continue;
+                    // }
+
+                    // if(data_periode.periode == 1 || data_periode.periode == 2){}
                 }
 
-                if (kontrak.is_have_tld == 0 && kontrak.is_zerocek == 1) {
-                    if (data_periode.periode == 0) continue;
-                };
+                // if (kontrak.is_have_tld == 0 && kontrak.is_zerocek == 1) {
+                //     if (data_periode.periode == 0) continue;
+                // };
             }
         }
         if (doc === 'lhu') {

@@ -60,6 +60,11 @@ $(function () {
         const isChecked = $(this).is(':checked');
         $('input[name="checkTldPengguna"]').prop('checked', isChecked);
     });
+
+    $('#checkAllTldKontrol').on('change', function () {
+        const isChecked = $(this).is(':checked');
+        $('input[name="checkTldKontrol"]').prop('checked', isChecked);
+    });
 })
 
 function loadTld() {

@@ -479,15 +479,12 @@ class PermohonanAPI extends Controller
             }
 
             // Tentukan field berdasarkan ganjil genap periode
-            $isPeriodOne = $kontrakPeriode->count_tld == 1;
-            $tldField = $isPeriodOne ? 'tld_1' : 'tld_2';
-            $periodeField = $isPeriodOne ? 'periode_tld_1' : 'periode_tld_2';
-            $statusField = $isPeriodOne ? 'status_tld_1' : 'status_tld_2';
+            $field = $kontrakPeriode->field_periode;
 
             $updateFields = [
-                $tldField => $newTldId,
-                $periodeField => $permohonan->periode,
-                $statusField => 3
+                $field['tld_field'] => $newTldId,
+                $field['periode_field'] => $permohonan->periode,
+                $field['status_field'] => 3
             ];
 
             if ($source === 'map') {
@@ -496,7 +493,7 @@ class PermohonanAPI extends Controller
                 }
             } else {
                 // Reset status TLD lama jika ada
-                if ($oldTldId = $sourceData->{$tldField}) {
+                if ($oldTldId = $sourceData->{$field['tld_field']}) {
                     Master_tld::find($oldTldId)?->update(['status' => 0, 'digunakan' => null]);
                 }
 
@@ -1432,6 +1429,26 @@ class PermohonanAPI extends Controller
                         $this->createdKontrak($request->idPermohonan, $no_kontrak);
                     } else {
                         $no_kontrak = $dataPermohonan->kontrak->no_kontrak;
+                        if ($dataPermohonan->is_have_tld) {
+                            $idKontrak = $dataPermohonan->kontrak->id_kontrak;
+                            $listTld = $request->listTld ? json_decode($request->listTld) : [];
+                            $kontrakPeriode = Kontrak_periode::where('id_kontrak', $idKontrak)->where('id_permohonan', $idPermohonan)->first();
+
+                            foreach ($listTld as $item) {
+                                $idTld = (int) decryptor($item->tld);
+                                $id = decryptor($item->id);
+                                $permohonanDetail = Permohonan_detail::find($id);
+
+                                if ($permohonanDetail && $kontrakPeriode) {
+                                    $field = $kontrakPeriode->field_periode;
+                                    Kontrak_detail::where('id_kontrak', $idKontrak)
+                                        ->where($field['tld_field'], $idTld)
+                                        ->update([
+                                            $field['status_field'] => 3 // TLD di serahkan ke LAB
+                                        ]);
+                                }
+                            }
+                        }
                     }
 
                     $dataPermohonan->update($arrayUpdate);

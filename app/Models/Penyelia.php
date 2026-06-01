@@ -233,6 +233,11 @@ class Penyelia extends Model
         return $this->hasMany(Permohonan_dokumen::class, 'id_kontrak', 'id_kontrak')->where('jenis', 'surpeng');
     }
 
+    public function kontrak()
+    {
+        return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
+    }
+
     /**
      * Scope untuk menambah subquery active_job_order
      */

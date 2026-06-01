@@ -407,11 +407,17 @@ class ReportController extends Controller
                 if (isset($params['permohonan']) && $params['permohonan']->is_zerocek == 1) {
                     $zerocek = " & Hasil Zero Check";
                 }
+                $start_date = $data->periode_next ? $data->periode_next[0]['start_date'] : $params['kontrak_periode']->start_date;
+                $end_date = $data->periode_next ? $data->periode_next[0]['end_date'] : $params['kontrak_periode']->end_date;
 
                 $vars["NOMOR"] = $params["dokumen"]->nomer;
-                $vars["PERIODE_AWAL"] = convert_date($params['kontrak_periode']->start_date, 6);
-                $vars["PERIODE_SELESAI"] = convert_date($params['kontrak_periode']->end_date, 6);
-                $vars["PERIODE_NOW"] = $params['kontrak_periode']->status == 2 ? "periode pengembalian" : "periode {$params['kontrak_periode']->periode}";
+                $vars["PERIODE_AWAL"] = convert_date($start_date, 6);
+                $vars["PERIODE_SELESAI"] = convert_date($end_date, 6);
+                if ($data->periode_next) {
+                    $vars['PERIODE_NOW'] = "periode berikutnya";
+                } else {
+                    $vars["PERIODE_NOW"] = $params['kontrak_periode']->status == 2 ? "periode pengembalian" : "periode {$params['kontrak_periode']->periode}";
+                }
                 $vars["TGL_BUAT"] = convert_date($params["dokumen"]->created_at, 2);
 
                 $vars["JML_UNIT"] = $data->jumlah_pengguna + $data->jumlah_kontrol;
@@ -1049,7 +1055,11 @@ class ReportController extends Controller
 
         // mengambil dokumen surat pengantar
         $dokumen = Permohonan_dokumen::where("id_kontrak", $id)
-            ->where("periode", $periode_)
+            ->when($query->periode_next, function ($q) use ($periode_) {
+                return $q->whereNull('periode');
+            }, function ($q) use ($periode_) {
+                return $q->where("periode", $periode_);
+            })
             ->where("jenis", "surpeng")->first();
 
         $template = Documents::with(['footer', 'header'])

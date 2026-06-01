@@ -212,4 +212,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
-

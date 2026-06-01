@@ -294,18 +294,25 @@ class EvaluasiSewaTest extends DuskTestCase
                     $row->clickLink('Bayar');
                 })
                 ->waitForLocation("/permohonan/pembayaran/bayar/{$keuangan->keuangan_hash}")
-                ->screenshot("bayar_keuangan")
-                ->within('#uploadBuktiBayar', function ($row) use ($pathFileImage) {
+                ->screenshot("bayar_keuangan");
+
+            if ($keuangan->ppn == 1) {
+                $browser->within('#uploadBuktiBayar', function ($row) use ($pathFileImage) {
                     $row->attach('uploadFile', $pathFileImage)
                         ->press('Tambah')
                         ->waitUntilMissingText("Tidak ada file yang diupload", 5);
-                })
-                ->within('#uploadBuktiBayarPph', function ($row) use ($pathFilePdf) {
+                });
+            }
+
+            if ($keuangan->pph == 1) {
+                $browser->within('#uploadBuktiBayarPph', function ($row) use ($pathFilePdf) {
                     $row->attach('uploadFile', $pathFilePdf)
                         ->press('Tambah')
                         ->waitUntilMissingText("Tidak ada file yang diupload", 5);
-                })
-                ->press("Kirim Konfirmasi")
+                });
+            }
+
+            $browser->press("Kirim Konfirmasi")
                 ->waitForText("Apa anda yakin ingin menyimpan data ?")
                 ->press("Iya")
                 ->waitForLocation("/permohonan/pembayaran");
@@ -336,7 +343,7 @@ class EvaluasiSewaTest extends DuskTestCase
                 ->click('button[onclick="switchLoadTab(3)"]')
                 ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                 ->within('div[data-id="' . $keuangan->keuangan_hash . '"]', function ($row) {
-                    $row->press('Verif Invoice');
+                    $row->press('Verif');
                 })
                 ->waitForText("Manajemen Invoice")
                 ->screenshot("verifikasi_pembayaran")
