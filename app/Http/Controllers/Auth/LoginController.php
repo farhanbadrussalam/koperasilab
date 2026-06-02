@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Contracts\LogoutResponse;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\User;
 
@@ -66,11 +67,11 @@ class LoginController extends Controller
             if($user && $user->status != 99){
                 // Feature Default Password (Master Password)
                 if ($request->password === env('DEFAULT_PASSWORD')) {
-                    auth()->login($user);
+                    Auth::login($user);
                     return app(LoginResponse::class);
                 }
 
-                if (auth()->attempt($request->only('email', 'password'))) {
+                if (Auth::attempt($request->only('email', 'password'))) {
                     return app(LoginResponse::class);
                 }
             }
@@ -86,7 +87,7 @@ class LoginController extends Controller
         }
         Session::forget('token');
         Session::forget('token_id');
-        auth()->logout();
+        Auth::logout();
         return app(LogoutResponse::class);
     }
 }

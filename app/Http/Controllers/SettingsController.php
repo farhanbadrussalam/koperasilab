@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Traits\RestApi;
 
 use DB;
+use Illuminate\Support\Facades\Auth;
 
 class SettingsController extends Controller
 {
@@ -13,7 +14,7 @@ class SettingsController extends Controller
     public function toggleRealtime(Request $request) {
         DB::beginTransaction();
         try {
-            $user = auth()->user();
+            $user = Auth::user();
             info("User " . $user->id . " toggle realtime notifications");
             $user->realtime_notifications = $request->realtime;
             $user->save();

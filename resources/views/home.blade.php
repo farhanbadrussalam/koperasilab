@@ -1,7 +1,7 @@
 @extends('layouts.main')
 @php
     $dashboardActive = true;
-    $user = auth()->user();
+    $user = Auth::user();
     $newPic = null;
     $changePIC = false;
     $verifyUser = false;
@@ -25,11 +25,11 @@
 @endphp
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Selamat Datang, {{ auth()->user()->name }}</h1>
-    </div>
-
     @if($dashboardActive)
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0 text-gray-800">Dashboard</h4>
+        <x-filter-date styleType="global" default="monthly" />
+    </div>
     <div class="row">
         <div class="col-lg-8">
             <div class="row g-2 mb-3">
@@ -98,6 +98,17 @@
                     <x-dashboard.skeleton.summary-skeleton />
                 </div>
                 @endcan
+
+                @canany(['Staff/keuangan', 'Manager/keuangan'])
+                    <div id="widget-summary-invoice"
+                        class="ajax-widget col-6 summary-active"
+                        data-url="dashboard/widgets/summary-cards"
+                        data-jenis="invoice"
+                        data-skeleton="dashboard/skeleton/summary">
+    
+                        <x-dashboard.skeleton.summary-skeleton />
+                    </div>
+                @endcan
             </div>
 
             @canany(['Permohonan/pengajuan', 'Staff/permohonan', 'Manager/pengajuan'])
@@ -110,6 +121,7 @@
                 <x-dashboard.skeleton.service-chart-skeleton />
             </div>
             @endcan
+
 
             @canany(['Staff/pengiriman'])
             <div id="widget-expedisi-stats"
@@ -186,15 +198,6 @@
 
             @canany(['Staff/keuangan', 'Manager/keuangan'])
             <div class="row g-4">
-                <div class="col-12">
-                    <div id="widget-finance-inv-active"
-                        class="ajax-widget h-100"
-                        data-url="dashboard/widgets/finance-inv-active"
-                        data-skeleton="dashboard/skeleton/service-chart">
-
-                        <x-dashboard.skeleton.service-chart-skeleton />
-                    </div>
-                </div>
                 <div class="col-12">
                     <div id="widget-finance-charts"
                         class="ajax-widget"
@@ -365,7 +368,7 @@
 
     @elseif($verifyUser)
         @php
-            $hasRequest = auth()->user()->request_verify_instansi;
+            $hasRequest = Auth::user()->request_verify_instansi;
         @endphp
         {{-- ===================== VERIFY USER SCREEN ===================== --}}
         <div class="card border-0 shadow-sm rounded-4">
@@ -533,9 +536,87 @@
 @push('scripts')
     @if ($dashboardActive)
         <script>
+            let currentGlobalFilter = 'monthly';
+
+            function applyFilter(button, filter, text) {
+                const styleType = button.getAttribute('data-type');
+                if(styleType === 'global') {
+                    currentGlobalFilter = filter;
+                    document.getElementById('globalFilterText').innerText = text;
+                    
+                    document.querySelectorAll('.ajax-widget').forEach(widget => {
+                        widget.removeAttribute('data-filter');
+                    });
+                    loadAllWidgets();
+                } else {
+                    const widget = button.closest('.ajax-widget');
+                    if(widget) {
+                        widget.setAttribute('data-filter', filter);
+                        // Update text if element exists
+                        const filterTextEl = widget.querySelector('.widget-filter-text');
+                        if (filterTextEl && text) {
+                            filterTextEl.innerText = text;
+                        }
+                        load(widget);
+                    }
+                }
+            }
+
+            function initWidgetDatePicker() {
+                document.querySelectorAll('.widget-custom-date').forEach(function(el) {
+                    // Skip if already initialized
+                    if (el._flatpickr) return;
+
+                    flatpickr(el, {
+                        mode: 'range',
+                        dateFormat: 'Y-m-d',
+                        onChange: function(selectedDates, dateStr, instance) {
+                            if (selectedDates.length === 2) {
+                                const isGlobal = instance.element.getAttribute('data-scope') === 'global';
+                                
+                                if (isGlobal) {
+                                    // Handle global filter
+                                    currentGlobalFilter = dateStr;
+                                    const textEl = document.getElementById('globalFilterText');
+                                    if (textEl) textEl.innerText = dateStr;
+                                    
+                                    document.querySelectorAll('.ajax-widget').forEach(widget => {
+                                        widget.removeAttribute('data-filter');
+                                    });
+                                    loadAllWidgets();
+                                } else {
+                                    // Handle per-widget filter
+                                    const widget = instance.element.closest('.ajax-widget');
+                                    if (widget) {
+                                        widget.setAttribute('data-filter', dateStr);
+                                        const filterTextEl = widget.querySelector('.widget-filter-text');
+                                        if (filterTextEl) filterTextEl.innerText = dateStr;
+                                        load(widget);
+                                    }
+                                }
+                                
+                                // Close bootstrap dropdown manually
+                                const dropdownEl = instance.element.closest('.dropdown');
+                                if (dropdownEl) {
+                                    const toggle = dropdownEl.querySelector('[data-bs-toggle="dropdown"]');
+                                    if (toggle) {
+                                        if (typeof bootstrap !== 'undefined' && bootstrap.Dropdown) {
+                                            bootstrap.Dropdown.getInstance(toggle)?.hide();
+                                        } else if (typeof $ !== 'undefined') {
+                                            $(toggle).dropdown('hide');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            }
+
             $(document).ready(function() {
                 cekSummaryCard();
                 loadAllWidgets();
+                initWidgetDatePicker(); // init global date picker
             });
 
             function cekSummaryCard(){
@@ -564,9 +645,14 @@
                 let params = {};
                 jenis && (params.jenis = jenis);
 
+                const widgetFilter = widget.getAttribute('data-filter');
+                params.date_filter = widgetFilter ? widgetFilter : currentGlobalFilter;
+
                 ajaxGet(url, params, result => {
                     widget.style.opacity = 0;
                     widget.innerHTML = result.html;
+                    
+                    initWidgetDatePicker(); // Re-initialize datepickers inside the newly loaded widget
 
                     executeScripts(widget);
 

@@ -1,19 +1,24 @@
-@props(['charts' => [], 'data_layanan' => [], 'isEmpty' => false, 'title' => 'Statistik', 'icon' => ''])
+@props(['charts' => [], 'data_layanan' => [], 'isEmpty' => false, 'title' => 'Statistik', 'icon' => '', 'withFilter' => false, 'filterDefault' => '', 'idWidget' => ''])
 
 <div class="card shadow-sm border-0 rounded-4 mb-4">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center rounded-top-4">
         <h6 class="m-0 font-weight-bold text-dark">
             <i class="bi bi-{{ $icon }} me-2 text-primary"></i>{{$title}}
         </h6>
-        @if(!empty($data_layanan) && count($data_layanan) > 0)
-        <div class="w-25">
-            <select name="layanan" id="select_layanan" class="form-select form-select-sm">
-                @foreach($data_layanan as $layanan)
-                    <option value="{{ $layanan->layanan_hash }}">{{ $layanan->nama_layanan }}</option>
-                @endforeach
-            </select>
+        <div class="d-flex align-items-center gap-2">
+            @if(!empty($data_layanan) && count($data_layanan) > 0)
+            <div class="w-auto">
+                <select name="layanan" id="select_layanan" class="form-select form-select-sm">
+                    @foreach($data_layanan as $layanan)
+                        <option value="{{ $layanan->layanan_hash }}">{{ $layanan->nama_layanan }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @endif
+            @if($withFilter)
+            <x-filter-date styleType="full" default="{{ $filterDefault }}" />
+            @endif
         </div>
-        @endif
     </div>
 
     <div class="card-body d-flex flex-row align-items-center justify-content-center">
@@ -83,11 +88,19 @@
                     }
                 };
             } else if (['bar', 'line', 'area'].includes(chartConfig.type)) {
+                let series = [];
+                let series_name = Array.isArray(chartConfig.series_name) ? chartConfig.series_name : [chartConfig.series_name];
+                let series_data = Array.isArray(chartConfig.data) ? chartConfig.data : [chartConfig.data];
+
+                series_name.forEach((name, index) => {
+                    series.push({
+                        name: name,
+                        data: series_data[index] ? series_data[index].value : []
+                    });
+                });
+
                 options = {
-                    series: [{
-                        name: chartConfig.series_name || 'Data',
-                        data: chartConfig.data.value
-                    }],
+                    series: series,
                     chart: {
                         type: chartConfig.type,
                         height: chartConfig.height || 320,
@@ -95,7 +108,7 @@
                         fontFamily: 'Nunito, sans-serif'
                     },
                     xaxis: {
-                        categories: chartConfig.data.category,
+                        categories: series_data[0].category,
                     },
                     yaxis: {
                         title: {
@@ -103,9 +116,14 @@
                         },
                         labels: {
                             formatter: function (value) {
+                                if(chartConfig.format === 'currency') {
+                                    return formatRupiah((value / 1000000)) + " Jt";
+                                }
+
                                 if (Math.floor(value) === value) {
                                     return value;
                                 }
+
                                 return value;
                             }
                         }
@@ -128,9 +146,15 @@
                     tooltip: {
                         y: {
                             formatter: function(value) {
+                                if(chartConfig.format === 'currency') {
+                                    return formatRupiah((value / 1000000)) + " Jt";
+                                }
                                 return value + " " + (chartConfig.tooltip_suffix || '')
                             }
                         }
+                    },
+                    stroke: {
+                        curve: chartConfig.curve || 'smooth'
                     }
                 };
 

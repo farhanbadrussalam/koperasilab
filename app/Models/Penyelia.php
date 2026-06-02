@@ -5,6 +5,7 @@ namespace App\Models;
 use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @property int $id_penyelia
@@ -252,7 +253,7 @@ class Penyelia extends Model
                 return $query->whereIn('id_jobs', $status)
                     ->where('status', $statusLhu)
                     ->whereHas('petugas', function ($q) {
-                        return $q->where('id_user', auth()->id());
+                        return $q->where('id_user', Auth::id());
                     });
             });
         });

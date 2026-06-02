@@ -773,7 +773,7 @@ if (!function_exists('convertTableWidthsToPx')) {
 }
 
 if (!function_exists('calculateInvoice')) {
-    function calculateInvoice($total_harga, $diskon = [], $ppn = false, $pph = false)
+    function calculateInvoice($total_harga = 0, $diskon = [], $ppn = false, $pph = false)
     {
         $subJumlah = 0;
 

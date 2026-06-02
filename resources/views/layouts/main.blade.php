@@ -7,8 +7,8 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="realtime" content="{{ auth()->user()->realtime_notifications ? '1' : '0' }}">
-    <meta name="auth-id" content="{{ auth()->id() }}">
+    <meta name="realtime" content="{{ Auth::user()->realtime_notifications ? '1' : '0' }}">
+    <meta name="auth-id" content="{{ Auth::id() }}">
 
     <title>{{ config('app.name', 'Laravel') }} | {{ count(Auth::user()->getRoleNames()) != 0 ? Auth::user()->getRoleNames()[0] : '' }}</title>
 
@@ -181,7 +181,7 @@
 
             // Mengecek session
             setInterval(() => {
-                const authenticated = @json(auth()->check());
+                const authenticated = @json(Auth::check());
                 if (!authenticated) {
                     Swal.fire({
                         icon: 'error',

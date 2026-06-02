@@ -155,7 +155,7 @@ $hiddenPelanggan = true;
                 {{-- END PERMOHONAN --}}
 
                 {{-- STAFF --}}
-                @if(auth()->user()->hasAnyRole(['Staff Admin', 'Staff keuangan', 'Staff Penyelia', 'Staff LHU']))
+                @if(Auth::user()->hasAnyRole(['Staff Admin', 'Staff keuangan', 'Staff Penyelia', 'Staff LHU']))
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">STAFF</span>
@@ -259,7 +259,7 @@ $hiddenPelanggan = true;
                 {{-- END STAFF --}}
 
                 {{-- Manager --}}
-                @if(auth()->user()->hasAnyRole(['Manager', 'General manager']))
+                @if(Auth::user()->hasAnyRole(['Manager', 'General manager']))
                 <li class="nav-small-cap">
                     <i class="bi bi-list nav-small-cap-icon fs-4"></i>
                     <span class="hide-menu">Manager</span>
