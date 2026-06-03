@@ -5,7 +5,6 @@ namespace App\Models;
 use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * @property int $id_penyelia

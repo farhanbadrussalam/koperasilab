@@ -1,5 +1,6 @@
 let filterComp = false;
 let signaturePad = false;
+let signaturePad2 = false;
 let dataPenyelia = false;
 let modalDoc = new ModalDocument();
 $(function () {
@@ -116,12 +117,12 @@ function _renderCardItem(lhu) {
     };
 
     if (lhu.status != 1 && hasTugas) {
-        btnDocTugas = `
-            <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                data-url="laporan/${docTugas.jenis}/${docTugas.permohonan_hash}" data-title="Dokumen Surat Tugas"
-                onclick="btnShowDoc(this)" title="Lihat Surat Tugas">
-                <i class="bi bi-file-earmark-text"></i>
-            </button>
+        tugasBtn.attr = `
+            data-url="laporan/${docTugas.jenis}/${docTugas.permohonan_hash}"
+            data-title="Dokumen Surat Tugas"
+            data-type="suratTugas"
+            data-idhash="${lhu.penyelia_hash}"
+            onclick="btnShowDoc(this)"
         `;
         if (isTugasSigned === 1) {
             tugasBtn = {
@@ -129,7 +130,11 @@ function _renderCardItem(lhu) {
                 icon: 'bi-check2-all',
                 class: 'btn-light text-success',
                 title: 'Surat Tugas Selesai (Signed)',
-                attr: `href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}"`
+                attr: `
+                    data-url="laporan/${docTugas.jenis}/${docTugas.permohonan_hash}"
+                    data-title="Dokumen Surat Tugas"
+                    onclick="btnShowDoc(this)"
+                `
             };
         } else if (isTugasSigned === 2) {
             tugasBtn = {
@@ -137,7 +142,11 @@ function _renderCardItem(lhu) {
                 icon: 'bi-x-circle',
                 class: 'btn-light text-danger',
                 title: 'Surat Tugas Ditolak',
-                attr: `href="${base_url}/manager/surat_tugas/s/${lhu.penyelia_hash}"`
+                attr: `
+                    data-url="laporan/${docTugas.jenis}/${docTugas.permohonan_hash}"
+                    data-title="Dokumen Surat Tugas"
+                    onclick="btnShowDoc(this)
+                `
             };
         }
     } else {
@@ -155,7 +164,6 @@ function _renderCardItem(lhu) {
             <a class="btn ${tugasBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${tugasBtn.title}" ${tugasBtn.attr}>
                 <i class="bi ${tugasBtn.icon}"></i> Surat Tugas
             </a>
-            ${btnDocTugas}
         </div>
     `;
 
@@ -173,6 +181,7 @@ function _renderCardItem(lhu) {
                 <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
                     data-url="laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}"
                     data-title="Dokumen Surat Pengujian"
+                    data-type="suratPengujian"
                     onclick="btnShowDoc(this)"
                     title="Lihat Surat Pengujian">
                     <i class="bi bi-file-earmark-text"></i>
@@ -389,7 +398,69 @@ function declinePengujian(id) {
 function btnShowDoc(obj) {
     const url = $(obj).data('url');
     const title = $(obj).data('title') || 'Dokumen';
-    modalDoc.show(url, {
+    const type = $(obj).data('type');
+    const idHash = $(obj).data('idhash');
+
+    const options = {
         title: title
+    };
+
+    if (type == 'suratTugas') {
+        options.withForm = true;
+        options.formHtml = `
+            <div class="d-flex gap-2 flex-column">
+                <div class="text-center m-2" id="signatureCanvas"></div>
+                <div class="mt-1 text-center">
+                    <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${idHash}', 'suratTugas')">Simpan Tanda Tangan</button>
+                </div>
+            </div>
+        `;
+    } else {
+        options.withForm = false;
+    }
+    modalDoc.show(url, options);
+
+    if (type == 'suratTugas') {
+        signaturePad2 = new SignatureSelect(document.getElementById('signatureCanvas'), {
+            inputId: 'signature_surat_tugas',
+            label: "Tanda Tangan Surat Tugas",
+            placeholder: "Silakan tanda tangani di sini",
+            signerUser: userActive
+        });
+    }
+}
+
+
+function saveSignature(obj, id_hash, type) {
+    let [ttdValue, ttdBy] = signaturePad2.getValue();
+
+    if (!ttdValue) {
+        return Swal.fire({
+            icon: "warning",
+            text: "Harap berikan tanda tangan terlebih dahulu.",
+        });
+    }
+
+    let params = new FormData();
+    params.append('ttd', ttdValue);
+    params.append('ttd_by', ttdBy);
+    params.append('idPenyelia', id_hash);
+
+    spinner('show', $(obj));
+
+    ajaxPost(`api/v1/penyelia/actionSuratTugas`, params, result => {
+        Swal.fire({
+            icon: "success",
+            text: 'Tanda tangan berhasil disimpan.',
+        });
+        modalDoc.hide();
+        loadData();
+        spinner('hide', $(obj));
+    }, error => {
+        Swal.fire({
+            icon: "error",
+            text: error.responseJSON?.msg ?? 'Terjadi kesalahan saat menyimpan tanda tangan.',
+        });
+        spinner('hide', $(obj));
     });
 }

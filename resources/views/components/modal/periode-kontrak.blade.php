@@ -239,9 +239,6 @@
                 let htmlDoc = ``;
                 let statusKirimTld = false;
                 let statusKirimTldNext = false;
-                // if (kontrak.no_kontrak == 'E-0003/JKRL/V/2026') {
-                //     console.log(aktifDokumenKirim);
-                // }
 
                 for (const doc of aktifDokumenKirim) {
                     let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc &&
@@ -401,7 +398,11 @@
                             <div>${statusFormat('pengiriman', findPengirimanTLD?.status)}</div>
                         </div>
                     `;
+                    if (kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1 && data.periode == 1) {
+                        htmlInformasi = ``;
+                    }
                 }
+
                 if (this.isPelanggan) {
                     if (kontrak.is_zerocek == 1 && data.periode == 1) {
                         let findPeriodeZerocek = kontrak.periode.find(cek => cek.periode == 0);

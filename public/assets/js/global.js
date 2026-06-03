@@ -1188,6 +1188,12 @@ function periodeMapDocument(data_periode, kontrak, arrFindDokumen) {
                             continue;
                         }
                     }
+
+                    if (kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
+                        if (data_periode.periode == 1 || data_periode.periode == 2) {
+                            continue;
+                        }
+                    }
                     // if (kontrak.is_zerocek != 1 || kontrak.is_have_tld != 1) {
 
                     // }

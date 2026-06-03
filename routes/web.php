@@ -196,6 +196,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/expedition-stats', 'expeditionStats')->name('expedition-stats');
 
                 Route::get('/track-search', 'trackSearch')->name('track-search');
+                Route::get('/contract-search', 'contractSearch')->name('contract-search');
+                Route::get('/contract-search-options', 'contractSearchOptions')->name('contract-search-options');
             });
         });
         Route::prefix('skeleton')->name('skeleton.')->group(function () {
