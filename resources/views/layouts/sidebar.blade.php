@@ -300,6 +300,16 @@ $hiddenPelanggan = true;
                 </li>
                 @endcan
 
+                @can('Manager/produktivitas')
+                <li class="sidebar-item">
+                    <a class="sidebar-link {{ $module == 'manager-produktivitas' ? 'active' : '' }}"
+                        href="{{ route('manager.produktivitas') }}" aria-expanded="false">
+                        <i class="bi bi-bar-chart-line-fill"></i>
+                        <span class="hide-menu">Produktivitas Petugas</span>
+                    </a>
+                </li>
+                @endcan
+
                 @can('Management')
                 <!-- MANAGEMENT MENU -->
                 <li class="nav-small-cap cursoron" data-bs-toggle="collapse" data-bs-target="#collapseManagement" aria-expanded="{{ $title == 'Management' ? 'true' : 'false' }}" aria-controls="collapseManagement">

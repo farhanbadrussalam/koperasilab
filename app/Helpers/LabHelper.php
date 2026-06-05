@@ -371,7 +371,6 @@ if (!function_exists('getAvatar')) {
                 $urlDev = asset("storage/images/avatar/" . $user->profile->avatar);
             }
         }
-
     }
 }
 
@@ -392,9 +391,13 @@ if (!function_exists('renderUserAvatar')) {
             $name = '-';
             $initial = '?';
         } else {
+            // jika $user ini adalah id user
+            if (is_numeric($user)) {
+                $user = User::find($user);
+            }
             $name = $user->name;
             $initial = strtoupper(substr($name, 0, 1));
-            
+
             // Fetch avatar from relation or fallback
             if ($user->profile && $user->profile->media) {
                 // If it is stored in Master_media table

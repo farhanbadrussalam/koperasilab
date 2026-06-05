@@ -744,7 +744,7 @@ tl-item.active .tl-dot:before {
 .dataTables_length,
 .dataTables_info,
 thead {
-  display: none !important;
+  /* display: none; */
 }
 
 .hover-effect:hover {
