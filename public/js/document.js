@@ -49,6 +49,8 @@ class ModalDocument {
         };
         if (this.options.withForm) {
             this.showForm();
+        } else {
+            this.hideForm();
         }
         this.loadData(url);
         $(`#${this.options.id}`).modal('show');

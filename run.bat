@@ -33,9 +33,10 @@ echo [5] test_bayar_keuangan
 echo [6] test_verifikasi_pembayaran
 echo [7] test_create_surattugas
 echo [8] test_ttd_manager_surattugas
-echo [9] test_progress_lab
-echo [10] test_pengiriman_send
-echo [11] test_pengiriman_pelanggan
+echo [9] test_ttd_manager_surpeng
+echo [10] test_progress_lab
+echo [11] test_pengiriman_send
+echo [12] test_pengiriman_pelanggan
 echo.
 echo [0] Keluar
 echo =================================================
@@ -62,9 +63,10 @@ if "%choice%"=="5" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_bayar_keuangan 
 if "%choice%"=="6" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_verifikasi_pembayaran & set DUSK_TITLE=Dusk: Verifikasi Pembayaran & goto RUN_DUSK
 if "%choice%"=="7" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_create_surattugas & set DUSK_TITLE=Dusk: Create Surattugas & goto RUN_DUSK
 if "%choice%"=="8" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_ttd_manager_surattugas & set DUSK_TITLE=Dusk: TTD Manager Surattugas & goto RUN_DUSK
-if "%choice%"=="9" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_progress_lab & set DUSK_TITLE=Dusk: Progress Lab & goto RUN_DUSK
-if "%choice%"=="10" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_pengiriman_send & set DUSK_TITLE=Dusk: Pengiriman Send & goto RUN_DUSK
-if "%choice%"=="11" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_pengiriman_pelanggan & set DUSK_TITLE=Dusk: Pengiriman Pelanggan & goto RUN_DUSK
+if "%choice%"=="9" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_ttd_manager_surpeng & set DUSK_TITLE=Dusk: TTD Manager Surpeng & goto RUN_DUSK
+if "%choice%"=="10" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_progress_lab & set DUSK_TITLE=Dusk: Progress Lab & goto RUN_DUSK
+if "%choice%"=="11" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_pengiriman_send & set DUSK_TITLE=Dusk: Pengiriman Send & goto RUN_DUSK
+if "%choice%"=="12" set DUSK_ARGS=--filter=EvaluasiSewaTest::test_pengiriman_pelanggan & set DUSK_TITLE=Dusk: Pengiriman Pelanggan & goto RUN_DUSK
 if "%choice%"=="0" goto KELUAR
 
 echo.

@@ -107,6 +107,7 @@ function _renderCardItem(doc) {
         attr: `data-url="laporan/${doc.jenis}/${doc.kontrak.kontrak_hash}/${doc.kontrak.periode_next ? 1 : doc.periode}"
         data-title="Dokumen Surat Pengantar"
         data-idhash="${doc.dokumen_hash}"
+        data-ttd="0"
         onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"`,
     }
 
@@ -119,19 +120,13 @@ function _renderCardItem(doc) {
             icon: 'bi-check2-all',
             class: 'btn-light text-success',
             title: 'Surat Pengantar Selesai (Signed)',
-            attr: `href="${base_url}/manager/surpeng/s/${doc.penyelia_hash}"`
+            attr: `data-url="laporan/${doc.jenis}/${doc.kontrak.kontrak_hash}/${doc.kontrak.periode_next ? 1 : doc.periode}"
+                data-title="Dokumen Surat Pengantar"
+                data-idhash="${doc.dokumen_hash}"
+                data-ttd="1"
+                onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"`
         };
     }
-    // else if (isSurpengSigned === 2) {
-    //     tugasBtn = {
-    //         ...tugasBtn,
-    //         icon: 'bi-x-circle',
-    //         class: 'btn-light text-danger',
-    //         title: 'Surat Pengantar Ditolak',
-    //         attr: `href="${base_url}/manager/surpeng/s/${doc.penyelia_hash}"`
-    //     };
-    // }
-
     let btnAction2 = `
         <div class="d-flex justify-content-between gap-1">
             <button class="btn ${tugasBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${tugasBtn.title}" ${tugasBtn.attr}>
@@ -217,24 +212,35 @@ function btnShowDoc(obj) {
     const url = $(obj).data('url');
     const title = $(obj).data('title') || 'Dokumen';
     const idHash = $(obj).data('idhash');
-    modalDoc.show(url, {
-        title: title,
-        formHtml: `
+    const isTtd = $(obj).data('ttd');
+
+    const options = {
+        title: title
+    };
+
+    if (isTtd == '0') {
+        options.withForm = true;
+        options.formHtml = `
         <div class="d-flex gap-2 flex-column">
-            <div class="text-center m-2" id="signatureSurpeng"></div>
+            <div class="text-center m-2" id="signatureCanvas"></div>
             <div class="mt-1 text-center">
                 <button class="btn btn-sm btn-primary" id="saveSignature" onclick="saveSignature(this, '${idHash}')">Simpan Tanda Tangan</button>
             </div>
         </div>
-        `
-    });
+        `;
+    } else {
+        options.withForm = false;
+    }
+    modalDoc.show(url, options);
 
-    signaturePad = new SignatureSelect(document.getElementById('signatureSurpeng'), {
-        inputId: 'signature_surpeng',
-        label: "Tanda Tangan Surat Pengujian",
-        placeholder: "Silakan tanda tangani di sini",
-        signerUser: userActive
-    });
+    if (isTtd == '0') {
+        signaturePad = new SignatureSelect(document.getElementById('signatureCanvas'), {
+            inputId: 'signature_surpeng',
+            label: "Tanda Tangan Surat Pengujian",
+            placeholder: "Silakan tanda tangani di sini",
+            signerUser: userActive
+        });
+    }
 }
 
 function saveSignature(obj, id_hash) {

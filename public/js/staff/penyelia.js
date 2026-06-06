@@ -290,22 +290,21 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         };
 
                         if (docSurpeng) {
-                            btnDocSurpeng = `
-                                <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                                    data-url="laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${penyelia.kontrak.periode_next ? 1 : docSurpeng.periode}"
-                                    data-title="Dokumen Surat Pengantar"
-                                    onclick="btnShowDoc(this)" title="Lihat Surat Pengantar">
-                                    <i class="bi bi-file-earmark-text"></i>
-                                </button>
+                            let attr = `
+                                data-url="laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${penyelia.kontrak.periode_next ? 1 : docSurpeng.periode}"
+                                data-title="Dokumen Surat Pengantar"
+                                onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"
                             `;
                             if (!isSurpengSigned) {
                                 surpengBtn.icon = 'bi-clock-history';
                                 surpengBtn.class = 'btn-light text-warning-emphasis';
                                 surpengBtn.title = 'Menunggu TTD Surat Pengantar';
+                                surpengBtn.attr = attr;
                             } else if (isSurpengSigned === 1) {
                                 surpengBtn.icon = 'bi-check2-all';
                                 surpengBtn.class = 'btn-light text-success';
                                 surpengBtn.title = 'Surat Pengantar Selesai (Signed)';
+                                surpengBtn.attr = attr;
                             } else {
                                 surpengBtn.icon = 'bi-x-circle';
                                 surpengBtn.class = 'btn-light text-danger';
@@ -320,10 +319,9 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         }
                         actionButtons.push(`
                             <div class="d-flex justify-content-between gap-1">
-                                <button class="btn ${surpengBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${surpengBtn.title}" ${surpengBtn.attr} style="cursor: default; pointer-events: none;">
+                                <button class="btn ${surpengBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${surpengBtn.title}" ${surpengBtn.attr}>
                                     <i class="bi ${surpengBtn.icon}"></i> Surat Pengantar
                                 </button>
-                                ${btnDocSurpeng}
                                 ${btnNoteSurpeng}
                             </div>
                         `);

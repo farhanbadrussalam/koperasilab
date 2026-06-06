@@ -10,6 +10,7 @@ use App\Models\Penyelia_map;
 use Laravel\Dusk\Browser;
 use Tests\DuskTestCase;
 use App\Models\Permohonan;
+use App\Models\Permohonan_dokumen;
 use App\Models\Setting_layanan;
 use App\Models\User;
 
@@ -456,19 +457,56 @@ class EvaluasiSewaTest extends DuskTestCase
             $penyelia = Penyelia::with('permohonan')->where('status', 2)->orderBy('id_penyelia', 'desc')->first();
 
             $this->loginUser($browser, $user)
-                ->visit("manager/surat_tugas", $this->waitingTime)
+                ->visit("manager/surat_tugas")
                 ->waitForLocation("/manager/surat_tugas", $this->waitingTime)
                 ->waitUntilMissing('#list-placeholder', $this->waitingTime)
                 ->within('div[data-id="' . $penyelia->penyelia_hash . '"]', function ($row) {
                     $row->clickLink('Surat Tugas');
                 })
-                ->waitForLocation("/manager/surat_tugas/v/{$penyelia->penyelia_hash}")
-                ->click("#managerValid")
-                ->press("Setujui")
-                ->waitForText("verif surat tugas?")
-                ->press("Iya")
-                ->waitForLocation("/manager/surat_tugas")
+                ->waitFor('#signatureCanvas', $this->waitingTime)
+                ->script("document.getElementById('signature_surat_tugas').click();");
+
+            $browser->pause(500)
+                ->click('#saveSignature')
+                ->waitForText("Tanda tangan berhasil disimpan.", $this->waitingTime)
+                ->press("OK")
                 ->screenshot("ttd_manager_surattugas");
+
+            // LOGOUT
+            $browser->click('#userDropdown')
+                ->waitForLink('Logout') // Ganti pause dengan wait yang lebih andal
+                ->clickLink('Logout')
+                ->assertPathIs('/')
+                ->assertSee('NuklindoLab Koperasi JKRL') // Pastikan kembali ke halaman login
+                ->screenshot('logout_success');
+        });
+    }
+
+    /**
+     * @group penyelia
+     * @group evaluasi-sewa
+     */
+    public function test_ttd_manager_surpeng(): void
+    {
+        $user = User::where('email', $this->managerKeuangan)->first(); // Keuangan
+        $this->browse(function (Browser $browser) use ($user) {
+            $dokumenSurpeng = Permohonan_dokumen::where('jenis', 'surpeng')->whereNull('ttd')->orderBy('id_dokumen', 'desc')->first();
+
+            $this->loginUser($browser, $user)
+                ->visit("manager/surpeng")
+                ->waitForLocation("/manager/surpeng", $this->waitingTime)
+                ->waitUntilMissing('#list-placeholder', $this->waitingTime)
+                ->within('div[data-id="' . $dokumenSurpeng->dokumen_hash . '"]', function ($row) {
+                    $row->press('Surat Pengantar');
+                })
+                ->waitFor('#signatureCanvas', $this->waitingTime)
+                ->script("document.getElementById('signature_surpeng').click();");
+
+            $browser->pause(500)
+                ->click('#saveSignature')
+                ->waitForText("Tanda tangan berhasil disimpan.", $this->waitingTime)
+                ->press("OK")
+                ->screenshot("ttd_manager_surpeng");
 
             // LOGOUT
             $browser->click('#userDropdown')
