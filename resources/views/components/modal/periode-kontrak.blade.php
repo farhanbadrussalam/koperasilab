@@ -268,6 +268,12 @@
                             htmlRange =
                                 `<small class="text-secondary small fw-medium ms-1">(${rangeDate.start} - ${rangeDate.end})</small>`;
                         }
+                    } else {
+                        if (data.periode == 2 && kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
+                            let findPeriodeNext = cekStatusPeriode.find(cek => cek.periode == data.periode + 1 && cek
+                                .jenis == 'tld' && cek.tipe_kontrak != 'adendum');
+                            statusKirimTldNext = findPeriodeNext?.status;
+                        }
                     }
 
                     let htmlStatusInvoice = '';
@@ -341,7 +347,9 @@
                 let htmlInformasi = ``;
 
                 let showEvaluasi = true;
-                if (isModal && kontrak.periode_active && data.periode > kontrak.periode_active.periode) {
+                if (data.status == 2) {
+                    showEvaluasi = false;
+                } else if (isModal && kontrak.periode_active && data.periode > kontrak.periode_active.periode) {
                     showEvaluasi = false;
                 }
 
@@ -354,8 +362,13 @@
                 let periodeNext = kontrak.periode.find(d => d.periode == data.periode + 1);
                 let htmlBtnTld = ``;
                 if (periodeNext) {
+                    if (data.status == 1) { // Status 1 == Periodik
+                        htmlBtnTld =
+                            `<a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" href="${base_url}/staff/pengiriman/permohonan/kirim/${kontrak.kontrak_hash}/${periodeNext.periode_hash}"><i class="bi bi-send-fill me-1"></i>Kirim TLD</a>`;
+                    }
+                } else if (data.status == 2) { // Status 2 == Pengembalian
                     htmlBtnTld =
-                        `<a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" href="${base_url}/staff/pengiriman/permohonan/kirim/${kontrak.kontrak_hash}/${periodeNext.periode_hash}"><i class="bi bi-send-fill me-1"></i>Kirim TLD</a>`;
+                        `<a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" href="${base_url}/staff/pengiriman/permohonan/kirim/${kontrak.kontrak_hash}/${data.periode_hash}"><i class="bi bi-send-fill me-1"></i>Kirim TLD</a>`;
                 }
 
                 let targetPermohonan = data.permohonan;
@@ -394,7 +407,7 @@
                         .periode);
                     htmlInformasi = `
                         <div class="d-flex flex-column text-start small">
-                            <span class="text-secondary small fw-medium mb-1">TLD Periode ${periodeNext.periode}</span>
+                            <span class="text-secondary small fw-medium mb-1">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
                             <div>${statusFormat('pengiriman', findPengirimanTLD?.status)}</div>
                         </div>
                     `;
@@ -446,24 +459,44 @@
                     if (aktifDokumenKirim.includes('tld')) {
                         if (statusKirimTld == 2) {
                             if (tldSelesai) {
-                                let actionNext = '';
                                 if (!statusKirimTldNext && periodeNext) {
                                     htmlAction = `
                                         <div class="d-flex flex-column text-start gap-1">
-                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.periode}</span>
+                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
                                             <div>${htmlBtnTld}</div>
                                         </div>
                                     `;
+                                    htmlInformasi = '';
                                 }
                             } else {
                                 if (periodeNext) {
                                     htmlAction = `
                                         <div class="d-flex flex-column text-start gap-1">
-                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.periode}</span>
+                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
                                             <div>${htmlStatusPenyelia}</div>
                                         </div>
                                     `;
                                 }
+                            }
+                        } else if (data.status == 2) {
+                            htmlAction = `
+                                <div class="d-flex flex-column text-start gap-1">
+                                    <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode Pengembalian</span>
+                                    <div>${htmlBtnTld}</div>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        if (data.periode == 2 && kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
+                            if (!statusKirimTldNext && periodeNext) {
+                                htmlAction = `
+                                    <div class="d-flex flex-column text-start gap-1">
+                                        <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
+                                        <div>${htmlBtnTld}</div>
+                                    </div>
+                                `;
+
+                                htmlInformasi = '';
                             }
                         }
                     }

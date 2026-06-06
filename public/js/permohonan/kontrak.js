@@ -198,7 +198,7 @@ function loadData(page = 1) {
 
             // progress kontrak
             let jml_periode = data.periode_all.jml_periode;
-            let periode_selesai = data.periode.filter(d => d.periode != 0 && d.selesai == 1).length;
+            let periode_selesai = data.periode.filter(d => d.periode != 0 && d.selesai == 1 && d.status == 1).length;
             let progress = Math.round((periode_selesai / jml_periode) * 100);
             let txtProgress = '';
             if (progress == 100) {
@@ -274,19 +274,19 @@ function loadData(page = 1) {
                     let html = '';
                     if (targetPeriode) {
                         html = `
-                                    <div class="px-3" id="listPeriodeNow${i}">
-                                        ${modalPeriode.htmlPeriode(targetPeriode, data, detailPengiriman, arrFind)}
-                                        ${role.includes('Staff Pengiriman') ? htmlPengembalian : ''}
-                                    </div>
-                                `;
+                            <div class="px-3" id="listPeriodeNow${i}">
+                                ${modalPeriode.htmlPeriode(targetPeriode, data, detailPengiriman, arrFind)}
+                                ${role.includes('Staff Pengiriman') ? htmlPengembalian : ''}
+                            </div>
+                        `;
                         // menampilkan button untuk melihat periode lain jika ada lebih dari 1 periode
                     }
                     if (data.periode_all?.jml_periode > 1) {
                         html += `
-                                    <div class="text-center">
-                                        <button class="btn btn-sm w-100 btn-light" onclick="showPeriode('${data.kontrak_hash}')">Lihat Periode Lain</button>
-                                    </div>
-                                `;
+                            <div class="text-center">
+                                <button class="btn btn-sm w-100 btn-light" onclick="showPeriode('${data.kontrak_hash}')">Lihat Periode Lain</button>
+                            </div>
+                        `;
                     }
                     return html;
                 })()}

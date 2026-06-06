@@ -297,15 +297,13 @@ class EvaluasiSewaTest extends DuskTestCase
                 ->waitForLocation("/permohonan/pembayaran/bayar/{$keuangan->keuangan_hash}")
                 ->screenshot("bayar_keuangan");
 
-            if ($keuangan->ppn == 1) {
-                $browser->within('#uploadBuktiBayar', function ($row) use ($pathFileImage) {
-                    $row->attach('uploadFile', $pathFileImage)
-                        ->press('Tambah')
-                        ->waitUntilMissingText("Tidak ada file yang diupload", 5);
-                });
-            }
+            $browser->within('#uploadBuktiBayar', function ($row) use ($pathFileImage) {
+                $row->attach('uploadFile', $pathFileImage)
+                    ->press('Tambah')
+                    ->waitUntilMissingText("Tidak ada file yang diupload", 5);
+            });
 
-            if ($keuangan->pph == 1) {
+            if ($keuangan->pph > 0) {
                 $browser->within('#uploadBuktiBayarPph', function ($row) use ($pathFilePdf) {
                     $row->attach('uploadFile', $pathFilePdf)
                         ->press('Tambah')
@@ -631,8 +629,8 @@ class EvaluasiSewaTest extends DuskTestCase
                 ->within('div[data-id="' . $pengiriman->id_pengiriman . '"]', function ($row) {
                     $row->press('Diterima');
                 })
-                ->waitForText("Dokumen diterima");
-            $browser->waitFor('#list-kelengkapan', $this->waitingTime);
+                ->waitForText("Konfirmasi Penerimaan Dokumen")
+                ->waitFor('#list-kelengkapan input[type="checkbox"]', $this->waitingTime);
 
             // 1. Ambil semua elemen checkbox di dalam list
             $checkboxes = $browser->elements('#list-kelengkapan input[type="checkbox"]');
@@ -647,7 +645,7 @@ class EvaluasiSewaTest extends DuskTestCase
                 ->press("Tambah")
                 ->waitUntilMissingText("Tidak ada file yang diupload", $this->waitingTime)
                 ->click("#btnSendDocument")
-                ->waitForText("Konfirmasi Penerimaan Dokumen")
+                ->waitForText("Apakah Anda yakin ingin menandai dokumen ini sebagai diterima?")
                 ->press("Ya, terima!")
                 ->waitForText("Document diterima", $this->waitingTime)
                 ->press("OK")

@@ -35,8 +35,6 @@
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <label for="input_password"
                                         class="form-label text-main body-medium mb-0">Password</label>
-                                    <a href="{{ route('password.request') }}" class="text-decoration-none"
-                                        style="color: #0d6efd; font-size: 14px; font-weight: 500;">Lupa password?</a>
                                 </div>
                                 <div class="input-group mb-2">
                                     <div class="input-group-text border-0 bg-body-secondary" id="basic-addon1">
@@ -51,6 +49,10 @@
                                         onclick="showPassword(this)">
                                         <i class="bi bi-eye"></i>
                                     </div>
+                                </div>
+                                <div class="d-flex justify-content-end">
+                                    <a href="{{ route('password.request') }}" class="text-decoration-none"
+                                        style="color: #0d6efd; font-size: 14px; font-weight: 500;">Lupa password?</a>
                                 </div>
                                 @error('password')
                                     <div class="invalid-feedback d-block">{{ $message }}</div>

@@ -482,6 +482,7 @@ class StaffController extends Controller
                     'periode.permohonan.pelanggan:id,id_perusahaan,name',
                     'periode.permohonan.pelanggan.perusahaan',
                     'periode.permohonan.pelanggan.perusahaan.alamat',
+                    'periode.permohonan.alamat',
                     'dokumen'
                 ])->find($id);
 
@@ -522,6 +523,7 @@ class StaffController extends Controller
                     'jenis_layanan:id_jenisLayanan,name,parent',
                     'jenis_layanan_parent',
                     'kontrak',
+                    'alamat',
                     'kontrak.periode',
                     'kontrak.pengiriman',
                     'kontrak.pengiriman.detail',

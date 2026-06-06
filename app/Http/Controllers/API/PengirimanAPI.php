@@ -449,7 +449,9 @@ class PengirimanAPI extends Controller
             if (!$kontrakPeriode->selesai) { // jika value nya null
                 info("Proses pengecekan di periode : " . $query->periode);
                 $cekPeriode = false;
-                if (isset($query->permohonan) && $query->permohonan->tipe_kontrak != 'adendum') {
+                if ($kontrakPeriode->status == 2) {
+                    $cekPeriode = true;
+                } else if (isset($query->permohonan) && $query->permohonan->tipe_kontrak != 'adendum') {
                     $cekPeriode = cekPeriodeComplete($query->id_kontrak, $query->periode);
                 }
                 if ($cekPeriode) {

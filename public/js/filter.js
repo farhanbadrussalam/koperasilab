@@ -128,33 +128,24 @@ class FilterComponent {
         if (filterName == 'no_kontrak') {
             $('#filterSearchKontrak').select2({
                 theme: "bootstrap-5",
-                placeholder: this.placeholder?.no_kontrak ?? 'No Kontrak',
+                placeholder: this.placeholder?.no_kontrak ?? 'No Kontrak atau instansi',
                 allowClear: true,
                 ajax: {
-                    url: `${base_url}/api/v1/kontrak/search`,
+                    url: `${base_url}/dashboard/widgets/contract-search-options`,
                     dataType: 'json',
                     type: 'GET',
                     processing: true,
                     serverSide: true,
                     delay: 250,
-                    headers: {
-                        'Authorization': `Bearer ${bearer}`,
-                        'Content-Type': 'application/json'
-                    },
                     data: function (params) {
                         let queryParams = {
-                            no_kontrak: params.term
+                            keyword: params.term
                         }
                         return queryParams;
                     },
                     processResults: function (response) {
                         return {
-                            results: response.data && response.data.map((list) => {
-                                return {
-                                    id: list.kontrak_hash,
-                                    text: list.no_kontrak
-                                }
-                            })
+                            results: response.options
                         }
                     }
                 }

@@ -31,7 +31,8 @@ if (informasi.sumber == 'permohonan') {
         periode_aktif: periode_aktif,
         adendum: false,
         periode_all: informasi.kontrak.periode_all,
-        periode_next: informasi.kontrak.periode_next
+        periode_next: informasi.kontrak.periode_next,
+        alamat: informasi.alamat
     }
 } else {
     dataOrderPengiriman = {
@@ -57,7 +58,8 @@ if (informasi.sumber == 'permohonan') {
         periode_aktif: informasi.periode[0],
         adendum: informasi.adendum,
         periode_all: informasi.periode_all,
-        periode_next: informasi.periode_next
+        periode_next: informasi.periode_next,
+        alamat: false
     }
 }
 
@@ -111,12 +113,21 @@ function openInventory(obj, jenis) {
 function load_form(unusedKontrol = [], unusedPengguna = []) {
     // Inisialisasi Alamat
     let htmlAlamat = '<option value="">Pilih alamat</option>';
+
     for (const [i, value] of dataOrderPengiriman.pelanggan.perusahaan.alamat.entries()) {
         if (value.status) {
-            htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
+            let checked = '';
+            if (value.alamat_hash == dataOrderPengiriman.alamat.alamat_hash) {
+                checked = 'selected';
+            }
+            htmlAlamat += `<option value='${i}' ${checked}>Alamat ${value.jenis}</option>`;
         }
     }
     $('#select_alamat').html(htmlAlamat);
+
+    if (dataOrderPengiriman.alamat) {
+        $('#alamatTujuan').val(dataOrderPengiriman.alamat.alamat + ", " + dataOrderPengiriman.alamat.kode_pos);
+    }
 
     $('#list-document').empty();
 

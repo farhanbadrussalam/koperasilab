@@ -214,7 +214,7 @@ class Kontrak extends Model
 
     public function getPeriodeAllAttribute()
     {
-        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->get();
+        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->where('status', 1)->get();
         $jmlBulan = 0;
         $periodeAwal = "";
         $periodeAkhir = "";
