@@ -235,15 +235,17 @@ $(function () {
         }, { onErrorPopup: false });
     });
 
-    $('#checkAllTldPengguna').on('change', function () {
-        const isChecked = $(this).is(':checked');
-        $('input[name="checkTldPengguna"]').prop('checked', isChecked);
-    });
-
-    $('#checkAllTldKontrol').on('change', function () {
-        const isChecked = $(this).is(':checked');
-        $('input[name="checkTldKontrol"]').prop('checked', isChecked);
-    });
+    if(dataPermohonan.is_have_tld == 1){
+        $('#checkAllTldPengguna').on('change', function () {
+            const isChecked = $(this).is(':checked');
+            $('input[name="checkTldPengguna"]').prop('checked', isChecked);
+        });
+    
+        $('#checkAllTldKontrol').on('change', function () {
+            const isChecked = $(this).is(':checked');
+            $('input[name="checkTldKontrol"]').prop('checked', isChecked);
+        });
+    }
 });
 
 function loadPelanggan() {

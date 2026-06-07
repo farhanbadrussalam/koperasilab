@@ -363,8 +363,8 @@ function statusFormat(feature, status) {
         return createStatusText('danger', 'bi-x-circle', 'Belum dibayar');
     } else if (feature == 'kontrak') {
         switch (status) {
-            case 1: return createBadge('primary', 'bi-play-circle', 'Kontrak sedang berjalan');
-            case 2: return createBadge('success', 'bi-check-circle', 'Kontrak selesai');
+            case 1: return createBadge('primary', 'bi-play-circle', 'sedang berjalan');
+            case 2: return createBadge('success', 'bi-check-circle', 'selesai');
         }
     }
 

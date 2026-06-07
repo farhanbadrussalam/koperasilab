@@ -25,6 +25,12 @@
             <!-- Sidebar User Profile Card -->
             <div class="sidebar-profile-card">
                 <div class="profile-name" title="{{ Auth::user()->name }}">{{ Auth::user()->name }}</div>
+                {{-- Jika role nya pelanggan tampilkan nama perusahaannya --}}
+                @if ($rolePelanggan)
+                    <div class="profile-role" title="{{ Auth::user()->perusahaan->nama_perusahaan }}">
+                        {{ Auth::user()->perusahaan->nama_perusahaan }}
+                    </div>
+                @endif
                 <div class="profile-role">
                     {{ count(Auth::user()->getRoleNames()) != 0 ? Auth::user()->getRoleNames()[0] : 'Member' }}
                 </div>
@@ -83,7 +89,7 @@
                         <a class="sidebar-link {{ $module == 'permohonan-kontrak' ? 'active' : '' }}"
                             href="{{ route('permohonan.kontrak') }}" aria-expanded="false">
                             <span><i class="bi bi-card-list"></i></span>
-                            <span class="hide-menu">Kontrak</span>
+                            <span class="hide-menu">Transaksi</span>
                         </a>
                     </li>
                 @endcan

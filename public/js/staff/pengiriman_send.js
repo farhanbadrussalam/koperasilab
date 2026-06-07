@@ -117,7 +117,7 @@ function load_form(unusedKontrol = [], unusedPengguna = []) {
     for (const [i, value] of dataOrderPengiriman.pelanggan.perusahaan.alamat.entries()) {
         if (value.status) {
             let checked = '';
-            if (value.alamat_hash == dataOrderPengiriman.alamat.alamat_hash) {
+            if (value.alamat_hash == dataOrderPengiriman.alamat?.alamat_hash) {
                 checked = 'selected';
             }
             htmlAlamat += `<option value='${i}' ${checked}>Alamat ${value.jenis}</option>`;

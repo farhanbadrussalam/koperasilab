@@ -1,9 +1,9 @@
 @extends('layouts.main')
 
 @section('content')
-@php
-    $document_kontrak = $keuangan->permohonan->kontrak->document_kontrak->first();
-@endphp
+    @php
+        $document_kontrak = $keuangan->permohonan->kontrak->document_kontrak->first();
+    @endphp
     <div class="content-wrapper">
         <div class="container-fluid">
             <div class="d-flex align-items-center justify-content-between mb-4">
@@ -20,25 +20,30 @@
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-sm rounded-4 mb-4">
                         <div class="card-body p-4">
-                            <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Detail Invoice & Kontrak</h6>
+                            <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Detail Invoice & Kontrak
+                            </h6>
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <div class="p-3 bg-light rounded-3 border h-100">
                                         <small class="text-muted d-block mb-1">No. Kontrak</small>
-                                        <span class="fw-bold text-primary font-monospace">{{ $keuangan->permohonan->kontrak?->no_kontrak ?? '' }}</span>
+                                        <span
+                                            class="fw-bold text-primary font-monospace">{{ $keuangan->permohonan->kontrak?->no_kontrak ?? '' }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="p-3 bg-light rounded-3 border h-100">
                                         <small class="text-muted d-block mb-1">Pelanggan / Instansi</small>
-                                        <span class="fw-bold text-dark d-block">{{ $keuangan->permohonan->pelanggan->name }}</span>
-                                        <small class="text-muted">{{ $keuangan->permohonan->pelanggan->perusahaan->nama_perusahaan }}</small>
+                                        <span
+                                            class="fw-bold text-dark d-block">{{ $keuangan->permohonan->pelanggan->name }}</span>
+                                        <small
+                                            class="text-muted">{{ $keuangan->permohonan->pelanggan->perusahaan->nama_perusahaan }}</small>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="p-3 bg-light rounded-3 border h-100">
                                         <small class="text-muted d-block mb-1">Jenis Layanan</small>
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle">{{ $keuangan->permohonan->jenis_layanan_parent->name }}-{{ $keuangan->permohonan->jenis_layanan->name }}</span>
+                                        <span
+                                            class="badge bg-info-subtle text-info border border-info-subtle">{{ $keuangan->permohonan->jenis_layanan_parent->name }}-{{ $keuangan->permohonan->jenis_layanan->name }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -100,20 +105,26 @@
                     <div class="sticky-sidebar">
                         <div class="card border-0 shadow-sm rounded-4 mb-3">
                             <div class="card-body p-4">
-                                <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Dokumen Pendukung</h6>
+                                <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Dokumen Pendukung
+                                </h6>
                                 <div class="d-flex gap-3 flex-column">
-                                    <button data-url="{{ 'laporan/invoice/'.$keuangan->keuangan_hash }}" data-title="Invoice Penagihan" onclick="openModalDoc(this)"
+                                    <button data-url="{{ 'laporan/invoice/' . $keuangan->keuangan_hash }}"
+                                        data-title="Invoice Penagihan" onclick="openModalDoc(this)"
                                         class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
                                         <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
                                         <span class="fw-bold d-block small">Invoice Penagihan</span>
                                         <small class="text-muted">PDF</small>
                                     </button>
-                                    <button data-url="{{ 'laporan/'.$document_kontrak->jenis.'/'.$keuangan->permohonan->kontrak_hash }}" data-title="Kontrak MoU" onclick="openModalDoc(this)"
-                                        class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
-                                        <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
-                                        <span class="fw-bold d-block small">Kontrak MoU</span>
-                                        <small class="text-muted">PDF</small>
-                                    </button>
+                                    @if ($document_kontrak)
+                                        <button
+                                            data-url="{{ 'laporan/' . $document_kontrak->jenis . '/' . $keuangan->permohonan->kontrak_hash }}"
+                                            data-title="Kontrak MoU" onclick="openModalDoc(this)"
+                                            class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
+                                            <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
+                                            <span class="fw-bold d-block small">Kontrak MoU</span>
+                                            <small class="text-muted">PDF</small>
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -127,7 +138,8 @@
                                     </p>
                                 </div>
                                 <p class="small mb-0 opacity-75" style="line-height: 1.4;">
-                                    * Note : Kwitansi asli dan TLD akan kami kirimkan setelah menerima bukti pembayaran. <br>
+                                    * Note : Kwitansi asli dan TLD akan kami kirimkan setelah menerima bukti pembayaran.
+                                    <br>
                                     (Mohon Bukti Potong PPh 23 dikirimkan kepada kami apabila memotongnya).
                                 </p>
                             </div>

@@ -42,7 +42,7 @@ class PelangganController extends Controller
     public function indexKontrak()
     {
         $data = [
-            'title' => 'Kontrak',
+            'title' => 'Transaksi',
             'module' => 'permohonan-kontrak'
         ];
         return view('pages.permohonan.kontrak.index', $data);

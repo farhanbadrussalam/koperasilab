@@ -362,4 +362,200 @@ class KontrakAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), "Fail", 500);
         }
     }
+
+    public function destroyByNoKontrak(Request $request)
+    {
+        if (env('APP_ENV') === 'production' && (!Auth::check() || !Auth::user()->hasRole('Super Admin'))) {
+            return $this->errorRequest(403, 'Unauthorized. API ini hanya boleh digunakan di lingkungan development atau oleh Super Admin.');
+        }
+
+        $no_kontrak = $request->no_kontrak ?? $request->query('no_kontrak');
+        if (empty($no_kontrak)) {
+            return $this->errorRequest(400, 'Parameter no_kontrak wajib diisi.');
+        }
+
+        $kontrak = Kontrak::where('no_kontrak', $no_kontrak)->first();
+        if (!$kontrak) {
+            return $this->errorRequest(404, "Kontrak dengan no_kontrak '{$no_kontrak}' tidak ditemukan.");
+        }
+        $id_kontrak = $kontrak->id_kontrak;
+
+        $permohonanIds = \App\Models\Permohonan::where('id_kontrak', $id_kontrak)->pluck('id_permohonan')->toArray();
+        $penyeliaIds = \App\Models\Penyelia::where('id_kontrak', $id_kontrak)
+            ->orWhereIn('id_permohonan', $permohonanIds)
+            ->pluck('id_penyelia')
+            ->toArray();
+        $penyeliaMapIds = \App\Models\Penyelia_map::whereIn('id_penyelia', $penyeliaIds)->pluck('id_map')->toArray();
+        $pengirimanIds = \App\Models\Pengiriman::where('id_kontrak', $id_kontrak)
+            ->orWhereIn('id_permohonan', $permohonanIds)
+            ->pluck('id_pengiriman')
+            ->toArray();
+        $keuanganIds = \App\Models\Keuangan::whereIn('id_permohonan', $permohonanIds)->pluck('id_keuangan')->toArray();
+
+        $penggunaIdsFromTld = \App\Models\Kontrak_tld::where('id_kontrak', $id_kontrak)->pluck('id_pengguna')->toArray();
+        $penggunaIdsFromMap = \App\Models\Kontrak_pengguna::where('id_kontrak', $id_kontrak)->pluck('id_pengguna_divisi')->toArray();
+        $allPenggunaIds = array_unique(array_filter(array_merge($penggunaIdsFromTld, $penggunaIdsFromMap)));
+
+        $mediaIds = [];
+        if ($kontrak->file_lhu) {
+            $mediaIds[] = $kontrak->file_lhu;
+        }
+
+        $permohonanMedias = \App\Models\Permohonan::where('id_kontrak', $id_kontrak)->pluck('file_lhu')->filter()->toArray();
+        $mediaIds = array_merge($mediaIds, $permohonanMedias);
+
+        $penyeliaDocs = \App\Models\Penyelia::where('id_kontrak', $id_kontrak)
+            ->orWhereIn('id_permohonan', $permohonanIds)
+            ->pluck('document')
+            ->filter()
+            ->toArray();
+        foreach ($penyeliaDocs as $doc) {
+            $decoded = is_array($doc) ? $doc : json_decode($doc, true);
+            if (is_array($decoded)) {
+                $mediaIds = array_merge($mediaIds, $decoded);
+            }
+        }
+
+        $keuanganRecords = \App\Models\Keuangan::whereIn('id_permohonan', $permohonanIds)->get();
+        foreach ($keuanganRecords as $keu) {
+            if (is_array($keu->document_faktur)) {
+                $mediaIds = array_merge($mediaIds, $keu->document_faktur);
+            }
+            if (is_array($keu->bukti_bayar)) {
+                $mediaIds = array_merge($mediaIds, $keu->bukti_bayar);
+            }
+            if (is_array($keu->bukti_bayar_pph)) {
+                $mediaIds = array_merge($mediaIds, $keu->bukti_bayar_pph);
+            }
+        }
+
+        $pengirimanRecords = \App\Models\Pengiriman::where('id_kontrak', $id_kontrak)
+            ->orWhereIn('id_permohonan', $permohonanIds)
+            ->get();
+        foreach ($pengirimanRecords as $peng) {
+            if (is_array($peng->bukti_pengiriman)) {
+                $mediaIds = array_merge($mediaIds, $peng->bukti_pengiriman);
+            }
+            if (is_array($peng->bukti_penerima)) {
+                $mediaIds = array_merge($mediaIds, $peng->bukti_penerima);
+            }
+        }
+
+        $mediaIds = array_unique(array_filter($mediaIds));
+
+        DB::beginTransaction();
+        try {
+            \App\Models\Master_tld::withTrashed()->where('digunakan', $no_kontrak)->update([
+                'status' => 0,
+                'digunakan' => null
+            ]);
+
+            if (!empty($allPenggunaIds)) {
+                \App\Models\Master_pengguna::withTrashed()->whereIn('id_pengguna', $allPenggunaIds)->update([
+                    'status' => 1
+                ]);
+            }
+
+            if (!empty($mediaIds)) {
+                $medias = \App\Models\Master_media::whereIn('id', $mediaIds)->get();
+                foreach ($medias as $media) {
+                    if ($media->file_path === 'dokumen/pengguna' || $media->file_path === 'images/avatar') {
+                        continue;
+                    }
+                    $path = 'public/' . $media->file_path . '/' . $media->file_hash;
+                    if (\Storage::exists($path)) {
+                        \Storage::delete($path);
+                    }
+                    $media->delete();
+                }
+            }
+
+            \App\Models\Log_proses::where(function($q) use ($id_kontrak, $permohonanIds, $keuanganIds, $pengirimanIds, $penyeliaIds) {
+                $q->where(function($sub) use ($id_kontrak) {
+                    $sub->where('subject_type', 'App\Models\Kontrak')->where('subject_id', $id_kontrak);
+                })->orWhere(function($sub) use ($permohonanIds) {
+                    $sub->where('subject_type', 'App\Models\Permohonan')->whereIn('subject_id', $permohonanIds);
+                })->orWhere(function($sub) use ($keuanganIds) {
+                    $sub->where('subject_type', 'App\Models\Keuangan')->whereIn('subject_id', $keuanganIds);
+                })->orWhere(function($sub) use ($pengirimanIds) {
+                    $sub->where('subject_type', 'App\Models\Pengiriman')->whereIn('subject_id', $pengirimanIds);
+                })->orWhere(function($sub) use ($penyeliaIds) {
+                    $sub->where('subject_type', 'App\Models\Penyelia')->whereIn('subject_id', $penyeliaIds);
+                });
+            })->delete();
+
+            \App\Models\Log_activity::where(function($q) use ($id_kontrak, $permohonanIds, $keuanganIds, $pengirimanIds, $penyeliaIds) {
+                $q->where(function($sub) use ($id_kontrak) {
+                    $sub->where('subject_type', 'App\Models\Kontrak')->where('subject_id', $id_kontrak);
+                })->orWhere(function($sub) use ($permohonanIds) {
+                    $sub->where('subject_type', 'App\Models\Permohonan')->whereIn('subject_id', $permohonanIds);
+                })->orWhere(function($sub) use ($keuanganIds) {
+                    $sub->where('subject_type', 'App\Models\Keuangan')->whereIn('subject_id', $keuanganIds);
+                })->orWhere(function($sub) use ($pengirimanIds) {
+                    $sub->where('subject_type', 'App\Models\Pengiriman')->whereIn('subject_id', $pengirimanIds);
+                })->orWhere(function($sub) use ($penyeliaIds) {
+                    $sub->where('subject_type', 'App\Models\Penyelia')->whereIn('subject_id', $penyeliaIds);
+                });
+            })->delete();
+
+            if (!empty($keuanganIds)) {
+                \App\Models\Log_keuangan::whereIn('id_keuangan', $keuanganIds)->delete();
+            }
+            if (!empty($pengirimanIds)) {
+                \App\Models\Log_pengiriman::whereIn('id_pengiriman', $pengirimanIds)->delete();
+            }
+            if (!empty($penyeliaIds)) {
+                \App\Models\Log_penyelia::whereIn('id_penyelia', $penyeliaIds)->delete();
+            }
+            if (!empty($permohonanIds)) {
+                \App\Models\Log_permohonan::whereIn('id_permohonan', $permohonanIds)->delete();
+            }
+
+            if (!empty($penyeliaIds) || !empty($penyeliaMapIds)) {
+                \App\Models\Penyelia_petugas::whereIn('id_penyelia', $penyeliaIds)
+                    ->orWhereIn('id_map', $penyeliaMapIds)
+                    ->delete();
+                \App\Models\Penyelia_map::whereIn('id_penyelia', $penyeliaIds)->delete();
+            }
+            if (!empty($penyeliaIds)) {
+                \App\Models\Penyelia::whereIn('id_penyelia', $penyeliaIds)->delete();
+            }
+
+            if (!empty($keuanganIds)) {
+                \App\Models\Keuangan_diskon::whereIn('id_keuangan', $keuanganIds)->delete();
+                \App\Models\Keuangan::whereIn('id_keuangan', $keuanganIds)->delete();
+            }
+
+            if (!empty($pengirimanIds)) {
+                \App\Models\Pengiriman_detail::whereIn('id_pengiriman', $pengirimanIds)->delete();
+                \App\Models\Pengiriman::whereIn('id_pengiriman', $pengirimanIds)->delete();
+            }
+
+            if (!empty($permohonanIds)) {
+                \App\Models\Permohonan_detail::whereIn('id_permohonan', $permohonanIds)->delete();
+                \App\Models\Permohonan_dokumen::whereIn('id_permohonan', $permohonanIds)
+                    ->orWhere('id_kontrak', $id_kontrak)
+                    ->delete();
+                \App\Models\Permohonan_pengguna::whereIn('id_permohonan', $permohonanIds)->delete();
+                \App\Models\Permohonan_tandaterima::whereIn('id_permohonan', $permohonanIds)->delete();
+                \App\Models\Permohonan_tld::whereIn('id_permohonan', $permohonanIds)->delete();
+                \App\Models\Permohonan::whereIn('id_permohonan', $permohonanIds)->delete();
+            }
+
+            \App\Models\Kontrak_detail::where('id_kontrak', $id_kontrak)->delete();
+            \App\Models\Kontrak_map::where('id_kontrak', $id_kontrak)->delete();
+            \App\Models\Kontrak_pengguna::where('id_kontrak', $id_kontrak)->delete();
+            \App\Models\Kontrak_periode::where('id_kontrak', $id_kontrak)->delete();
+            \App\Models\Kontrak_tld::where('id_kontrak', $id_kontrak)->delete();
+
+            $kontrak->delete();
+
+            DB::commit();
+            return $this->output(['msg' => 'Kontrak dan data terkait berhasil dihapus.'], 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(['msg' => 'Terjadi kesalahan: ' . $ex->getMessage()], 'Fail', 500);
+        }
+    }
 }

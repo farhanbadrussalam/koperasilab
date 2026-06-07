@@ -125,6 +125,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/sign', 'signKontrak');
         Route::get('/getKontrakPeriode/{idPeriode}', 'getKontrakPeriode');
         Route::get('/getKontrakTld', 'getKontrakTld');
+        Route::delete('/destroy-by-no-kontrak', 'destroyByNoKontrak');
         // Route::delete('/destroy/{kontrak_hash}', 'destroy');
     });
 

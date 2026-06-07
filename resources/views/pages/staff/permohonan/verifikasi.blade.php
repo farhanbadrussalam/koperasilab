@@ -194,12 +194,14 @@
                                     <div class="d-flex justify-content-between mb-3 align-items-center">
                                         <h6 class="text-uppercase text-muted small fw-bold tracking-wide mb-0">Daftar
                                             Pengguna TLD</h6>
-                                        <div class="form-check form-switch mb-0">
-                                            <input class="form-check-input cursor-pointer" type="checkbox"
-                                                id="checkAllTldPengguna">
-                                            <label class="form-check-label small fw-bold text-muted cursor-pointer"
-                                                for="checkAllTldPengguna">Pilih Semua</label>
-                                        </div>
+                                        @if ($permohonan->is_have_tld == 1)
+                                            <div class="form-check form-switch mb-0">
+                                                <input class="form-check-input cursor-pointer" type="checkbox"
+                                                    id="checkAllTldPengguna">
+                                                <label class="form-check-label small fw-bold text-muted cursor-pointer"
+                                                    for="checkAllTldPengguna">Pilih Semua</label>
+                                            </div>
+                                        @endif
                                     </div>
 
                                     <div id="pengguna-list-container"></div>
@@ -210,12 +212,14 @@
                                         <div class="d-flex justify-content-between mb-2 align-items-center">
                                             <h6 class="text-uppercase text-muted small fw-bold tracking-wide">TLD Kontrol
                                             </h6>
-                                            <div class="form-check form-switch mb-0">
-                                                <input class="form-check-input cursor-pointer" type="checkbox"
-                                                    id="checkAllTldKontrol">
-                                                <label class="form-check-label small fw-bold text-muted cursor-pointer"
-                                                    for="checkAllTldKontrol">Pilih Semua</label>
-                                            </div>
+                                            @if ($permohonan->is_have_tld == 1)
+                                                <div class="form-check form-switch mb-0">
+                                                    <input class="form-check-input cursor-pointer" type="checkbox"
+                                                        id="checkAllTldKontrol">
+                                                    <label class="form-check-label small fw-bold text-muted cursor-pointer"
+                                                        for="checkAllTldKontrol">Pilih Semua</label>
+                                                </div>
+                                            @endif
                                         </div>
                                         <div class="card bg-light border-0">
                                             <div id="tld-kontrol-content"></div>

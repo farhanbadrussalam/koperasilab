@@ -85,7 +85,7 @@ class PenyeliaAPI extends Controller
             }
 
             // menambahkan periode
-            $dataPemohonan = Permohonan::select('periode', 'id_layanan', 'id_kontrak')
+            $dataPemohonan = Permohonan::select('periode', 'id_layanan', 'id_kontrak', 'is_zerocek', 'is_have_tld')
                 ->with('layanan_jasa:id_layanan,satuankerja_id', 'kontrak:id_kontrak,no_kontrak')
                 ->where('id_permohonan', $idPermohonan)->first();
             if ($dataPemohonan) {
