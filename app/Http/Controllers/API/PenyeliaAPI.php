@@ -219,7 +219,9 @@ class PenyeliaAPI extends Controller
                     $params['verify_surat_tugas_at'] = date('Y-m-d H:i:s');
                     $params['is_surat_tugas_signed'] = 1;
 
-                    if (($penyelia->periode_used == null || $penyelia->is_surpeng_signed == 1) && ($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak')) {
+                    // if (($penyelia->periode_used == null || $penyelia->is_surpeng_signed == 1) && ($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak')) {
+
+                    if ($penyelia->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak') {
                         $params['status'] = 10;
                         $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
                     }
@@ -662,6 +664,10 @@ class PenyeliaAPI extends Controller
 
     private function processJobProses(mixed $penyelia, mixed $jobsNow, mixed $jobsNext, mixed  $sProgress, mixed  $note, mixed $idPenyelia)
     {
+        if ($sProgress == 'done' && $jobsNext && in_array($jobsNext->jobs->status, [16, 20]) && $penyelia->periode_used && $penyelia->is_surpeng_signed != 1) {
+            throw new \Exception("Proses berikutnya ({$jobsNext->jobs->name}) ditangguhkan karena Surat Pengantar belum ditandatangani.");
+        }
+
         $getPeriodeNow = Kontrak_periode::select('count_tld')
             ->where('id_kontrak', $penyelia->permohonan->id_kontrak)
             ->where('periode', $penyelia->permohonan->periode)
@@ -1372,7 +1378,7 @@ class PenyeliaAPI extends Controller
             if ($type == 'approve') {
                 $updateData['is_pengajuan_signed'] = 1;
                 $updateData['verify_pengajuan_at'] = date('Y-m-d H:i:s');
-                if ($penyelia->is_surat_tugas_signed == 1 && $penyelia->is_surpeng_signed == 1) {
+                if ($penyelia->is_surat_tugas_signed == 1) {
                     $updateData['status'] = 10;
                     $this->activePelaksanaLAB($penyelia->id_permohonan, $idPenyelia);
                 }
@@ -1430,24 +1436,30 @@ class PenyeliaAPI extends Controller
 
         // mengganti status penyelia_map
         $subQuery = Penyelia_map::with('jobs')->where('id_penyelia', $idPenyelia)->where('order', 1)->where('point_jobs', null)->first();
-        $subQuery->update(array('status' => 1));
+        if ($subQuery && $subQuery->status == 0) {
+            if (in_array($subQuery->jobs->status, [16, 20]) && $penyelia->periode_used && $penyelia->is_surpeng_signed != 1) {
+                // Jangan aktifkan terlebih dahulu, biarkan status 0 (ditangguhkan)
+            } else {
+                $subQuery->update(array('status' => 1));
 
-        // mengambil id user yang ada di jobs
-        $petugasUser = Penyelia_petugas::select('id_user')->where('id_map', $subQuery->id_map)->where('id_penyelia', $idPenyelia)->get();
-        // send notifikasi kepada petugas
-        $userQuery = array();
-        foreach ($petugasUser as $value) {
-            array_push($userQuery, $value->id_user);
+                // mengambil id user yang ada di jobs
+                $petugasUser = Penyelia_petugas::select('id_user')->where('id_map', $subQuery->id_map)->where('id_penyelia', $idPenyelia)->get();
+                // send notifikasi kepada petugas
+                $userQuery = array();
+                foreach ($petugasUser as $value) {
+                    array_push($userQuery, $value->id_user);
+                }
+                $dataNotif = array(
+                    'pesan' => "Proses <b>{$subQuery->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> di mulai",
+                    'url' => '/staff/lhu',
+                    'event' => 'PenyeliaLAB',
+                    'event_id' => $penyelia->penyelia_hash,
+                );
+                Notifier::send($userQuery, $dataNotif);
+
+                $sideJobs = Penyelia_map::where('point_jobs', $subQuery->id_jobs)->where('id_penyelia', $idPenyelia)->first();
+                $sideJobs && $sideJobs->update(array('status' => 1));
+            }
         }
-        $dataNotif = array(
-            'pesan' => "Proses <b>{$subQuery->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> di mulai",
-            'url' => '/staff/lhu',
-            'event' => 'PenyeliaLAB',
-            'event_id' => $penyelia->penyelia_hash,
-        );
-        Notifier::send($userQuery, $dataNotif);
-
-        $sideJobs = Penyelia_map::where('point_jobs', $subQuery->id_jobs)->where('id_penyelia', $idPenyelia)->first();
-        $sideJobs && $sideJobs->update(array('status' => 1));
     }
 }

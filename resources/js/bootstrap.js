@@ -1,5 +1,4 @@
 import * as bootstrap from 'bootstrap';
-window.bootstrap = bootstrap;
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
  * to our Laravel back-end. This library automatically handles sending the
@@ -13,6 +12,16 @@ import Swiper from 'swiper/bundle';
 
 import "toastr/build/toastr.min.css";
 import 'swiper/css/bundle';
+
+window.bootstrap = bootstrap;
+if (window.bootstrap && window.bootstrap.Modal) {
+    window.bootstrap.Modal.prototype._initializeFocusTrap = function () {
+        return {
+            activate: function () { },
+            deactivate: function () { }
+        };
+    };
+}
 
 window.axios = axios;
 
@@ -48,13 +57,13 @@ window.Echo = new Echo({
     forceTLS: cfg.forceTLS,
     enabledTransports: ['ws', 'wss'],
     auth: {
-    headers: {
-        'X-CSRF-TOKEN': csrfToken,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json',
-        // jika gunakan Bearer token (API) uncomment:
-        // 'Authorization': `Bearer ${localStorage.getItem('api_token')}`
-    }
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            // jika gunakan Bearer token (API) uncomment:
+            // 'Authorization': `Bearer ${localStorage.getItem('api_token')}`
+        }
     }
 });
 

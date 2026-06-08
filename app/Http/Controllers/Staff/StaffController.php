@@ -93,6 +93,15 @@ class StaffController extends Controller
         return view('pages.staff.lhu.index', $data);
     }
 
+    public function indexPenyimpanan()
+    {
+        $data = [
+            'title' => 'Penyimpanan TLD',
+            'module' => 'staff-penyimpanan'
+        ];
+        return view('pages.staff.penyimpanan.index', $data);
+    }
+
     public function indexPenyelia()
     {
         $userJobs = Auth::user()->jobs;

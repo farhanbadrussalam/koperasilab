@@ -229,5 +229,16 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $this->notify(new \App\Notifications\ResetPasswordNotification($token));
     }
+
+    public function hasPenyimpananJob()
+    {
+        $userJobs = $this->jobs;
+        if ($userJobs != null) {
+            return Master_jobs::whereIn('id_jobs', $userJobs)
+                ->where('status', 17)
+                ->exists();
+        }
+        return false;
+    }
 }
 

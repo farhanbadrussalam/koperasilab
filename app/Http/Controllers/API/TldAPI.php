@@ -179,4 +179,81 @@ class TldAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
+
+    public function getPenyimpanan(Request $request)
+    {
+        try {
+            $details = \App\Models\Kontrak_detail::with([
+                'kontrak.pelanggan.perusahaan',
+                'tld_awal',
+                'tld_second',
+                'entitas'
+            ])
+            ->where(function($query) {
+                $query->where('status_tld_1', 5)
+                      ->orWhere('status_tld_2', 5);
+            })
+            ->where('status', 1)
+            ->get();
+
+            $storageTlds = [];
+
+            foreach ($details as $detail) {
+                if ($detail->status_tld_1 == 5 && $detail->tld_awal) {
+                    $storageTlds[] = [
+                        'id_kontrak' => $detail->id_kontrak,
+                        'no_kontrak' => $detail->kontrak->no_kontrak ?? '-',
+                        'perusahaan' => $detail->kontrak->pelanggan->perusahaan->nama_perusahaan ?? '-',
+                        'tld_id' => $detail->tld_awal->id_tld,
+                        'no_seri_tld' => $detail->tld_awal->no_seri_tld,
+                        'jenis_tld' => $detail->tld_awal->jenis,
+                        'periode' => $detail->periode_tld_1,
+                        'pengguna' => $detail->entitas->name ?? '-',
+                    ];
+                }
+
+                if ($detail->status_tld_2 == 5 && $detail->tld_second) {
+                    $storageTlds[] = [
+                        'id_kontrak' => $detail->id_kontrak,
+                        'no_kontrak' => $detail->kontrak->no_kontrak ?? '-',
+                        'perusahaan' => $detail->kontrak->pelanggan->perusahaan->nama_perusahaan ?? '-',
+                        'tld_id' => $detail->tld_second->id_tld,
+                        'no_seri_tld' => $detail->tld_second->no_seri_tld,
+                        'jenis_tld' => $detail->tld_second->jenis,
+                        'periode' => $detail->periode_tld_2,
+                        'pengguna' => $detail->entitas->name ?? '-',
+                    ];
+                }
+            }
+
+            $grouped = [];
+            foreach ($storageTlds as $tld) {
+                $key = $tld['id_kontrak'] . '_' . $tld['periode'];
+                if (!isset($grouped[$key])) {
+                    $penyelia = \App\Models\Penyelia::where('id_kontrak', $tld['id_kontrak'])
+                        ->where('periode', $tld['periode'])
+                        ->first();
+
+                    $grouped[$key] = [
+                        'id_kontrak' => $tld['id_kontrak'],
+                        'no_kontrak' => $tld['no_kontrak'],
+                        'perusahaan' => $tld['perusahaan'],
+                        'periode' => $tld['periode'],
+                        'penyelia_hash' => $penyelia ? $penyelia->penyelia_hash : null,
+                        'tlds' => []
+                    ];
+                }
+                $grouped[$key]['tlds'][] = [
+                    'no_seri_tld' => $tld['no_seri_tld'],
+                    'jenis_tld' => $tld['jenis_tld'],
+                    'pengguna' => $tld['pengguna']
+                ];
+            }
+
+            return $this->output(array_values($grouped), 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
 }

@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.show.surat_tugas');
 
             Route::get('/lhu', 'indexLhu')->middleware(['permission:Staff/lhu'])->name('staff.lhu');
+            Route::get('/penyimpanan', 'indexPenyimpanan')->middleware(['permission:Staff/lhu'])->name('staff.penyimpanan');
             Route::get('/lhu/petugas', 'indexPetugas')->middleware(['permission:Staff/lhu/petugas'])->name('staff.lhu.petugas');
 
             Route::get('/pengiriman', 'indexPengiriman')->name('staff.pengiriman');

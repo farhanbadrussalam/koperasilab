@@ -210,6 +210,7 @@ class ReportController extends Controller
         if ($is_download && $type == 'original') {
             $ttd = false;
             $template->header = false;
+            $template->footer = false;
         }
 
         $variables['TTD_IMG'] = $ttd ? "
@@ -635,6 +636,7 @@ class ReportController extends Controller
         if ($is_download && $type == 'original') {
             $ttd = false;
             $template->header = false;
+            $template->footer = false;
         }
 
         $variables['TTD'] = $ttd ? "
@@ -762,6 +764,7 @@ class ReportController extends Controller
             $ttd = false;
             $ttd_pemohon = false;
             $template->header = false;
+            $template->footer = false;
         }
 
         $variables['TTD_PENERIMA'] = $ttd ? "
@@ -929,6 +932,7 @@ class ReportController extends Controller
         if ($is_download && $type == 'original') {
             $ttd = false;
             $template->header = false;
+            $template->footer = false;
         }
 
         $variables["TTD"] = $ttd ? "
@@ -1122,6 +1126,7 @@ class ReportController extends Controller
         if ($is_download && $type == 'original') {
             $ttd = false;
             $template->header = false;
+            $template->footer = false;
         }
 
         $variables["TTD"] = $ttd ? "
@@ -1314,6 +1319,7 @@ class ReportController extends Controller
             $ttd_1 = false;
             $ttd_2 = false;
             $template->header = false;
+            $template->footer = false;
         }
 
         $variables["TTD_1"] = $ttd_1 ? "
@@ -1460,6 +1466,7 @@ class ReportController extends Controller
         if ($is_download && $type == 'original') {
             $ttd = false;
             $template->header = false;
+            $template->footer = false;
         }
 
         $variables['TTD'] = $ttd ? "
@@ -1598,6 +1605,7 @@ class ReportController extends Controller
         if ($is_download && $type == 'original') {
             $variables['TTD'] = '<br><br><br>';
             $template->header = false;
+            $template->footer = false;
         }
 
         // Generate PDF
@@ -1724,6 +1732,7 @@ class ReportController extends Controller
             $ttd_manajer = false;
             $ttd_pelanggan = false;
             $template->header = false;
+            $template->footer = false;
         }
 
         $variables['TTD_MANAJER'] = $ttd_manajer ? "
@@ -1911,6 +1920,7 @@ class ReportController extends Controller
         if ($is_download && $type == 'original') {
             $variables['TTD'] = '<br><br><br>';
             $template->header = false;
+            $template->footer = false;
         }
 
         // generate pdf

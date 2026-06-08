@@ -172,20 +172,17 @@ function _renderCardItem(lhu) {
         let pengujianBtn = {
             icon: 'bi-check2-circle',
             class: 'btn-light text-primary-emphasis',
-            attr: `onclick="verifikasiPengujian(this)"`,
+            attr: ``,
             title: 'Verifikasi Surat Pengujian'
         };
 
         if (docPengujian) {
-            btnDocPengujian = `
-                <button class="btn btn-outline-primary btn-sm text-nowrap rounded-pill"
-                    data-url="laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}"
-                    data-title="Dokumen Surat Pengujian"
-                    data-type="suratPengujian"
-                    onclick="btnShowDoc(this)"
-                    title="Lihat Surat Pengujian">
-                    <i class="bi bi-file-earmark-text"></i>
-                </button>
+            pengujianBtn.attr = `
+                data-url="laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}"
+                data-title="Dokumen Surat Pengujian"
+                data-type="suratPengujian"
+                data-idhash="${lhu.penyelia_hash}"
+                onclick="btnShowDoc(this)"
             `;
 
             if (isPengajuanSigned === 1) {
@@ -194,7 +191,11 @@ function _renderCardItem(lhu) {
                     icon: 'bi-check2-all',
                     class: 'btn-light text-success',
                     title: 'Surat Pengujian Selesai (Signed)',
-                    attr: `disabled`
+                    attr: `
+                        data-url="laporan/${docPengujian.jenis}/${docPengujian.permohonan_hash}"
+                        data-title="Dokumen Surat Pengujian"
+                        onclick="btnShowDoc(this)"
+                    `
                 };
             } else if (isPengajuanSigned === 2) {
                 pengujianBtn = {
@@ -222,7 +223,6 @@ function _renderCardItem(lhu) {
                     <button class="btn ${pengujianBtn.class} btn-sm text-nowrap rounded-pill w-100" title="${pengujianBtn.title}" ${pengujianBtn.attr}>
                         <i class="bi ${pengujianBtn.icon}"></i> Surat Pengujian
                     </button>
-                    ${btnDocPengujian}
                 </div>
             </div>
         `;
@@ -346,7 +346,7 @@ function verifikasiPengujian(obj) {
 }
 
 function approvePengujian(id) {
-    let [ttdValue, ttdBy] = signaturePad.getValue();
+    let [ttdValue, ttdBy] = signaturePad2.getValue();
     if (!ttdValue) {
         return Swal.fire({
             icon: "warning",
@@ -368,7 +368,8 @@ function approvePengujian(id) {
             timerProgressBar: true,
             showConfirmButton: false
         }).then(() => {
-            PengujianComponent.hide();
+            showLoadingSwal('hide');
+            modalDoc.hide();
             loadData();
         });
     }, error => {
@@ -377,7 +378,6 @@ function approvePengujian(id) {
 }
 
 function declinePengujian(id) {
-    PengujianComponent.hide();
     showNoteAlertSwal((reason) => {
         showLoadingSwal('show');
         const params = new FormData();
@@ -386,8 +386,17 @@ function declinePengujian(id) {
         params.append('catatan', reason);
         ajaxPost('api/v1/penyelia/approvePengujian', params, result => {
             if (result.meta.code == 200) {
-                showLoadingSwal('hide');
-                loadData();
+                Swal.fire({
+                    icon: "error",
+                    text: 'Surat pengujian ditolak.',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                }).then(() => {
+                    showLoadingSwal('hide');
+                    modalDoc.hide();
+                    loadData();
+                });
             }
         }, error => {
             showLoadingSwal('hide');
@@ -415,12 +424,23 @@ function btnShowDoc(obj) {
                 </div>
             </div>
         `;
+    } else if (type == 'suratPengujian') {
+        options.withForm = true;
+        options.formHtml = `
+            <div class="d-flex gap-2 flex-column">
+                <div class="text-center m-2" id="signatureCanvas"></div>
+                <div class="mt-1 text-center">
+                    <button type="button" class="btn btn-danger btn-sm fw-semibold" onclick="declinePengujian('${idHash}')">Tolak</button>
+                    <button class="btn btn-sm btn-primary" onclick="approvePengujian('${idHash}')">Setuju</button>
+                </div>
+            </div>
+        `;
     } else {
         options.withForm = false;
     }
     modalDoc.show(url, options);
 
-    if (type == 'suratTugas') {
+    if (type == 'suratTugas' || type == 'suratPengujian') {
         signaturePad2 = new SignatureSelect(document.getElementById('signatureCanvas'), {
             inputId: 'signature_surat_tugas',
             label: "Tanda Tangan Surat Tugas",
@@ -445,6 +465,10 @@ function saveSignature(obj, id_hash, type) {
     params.append('ttd', ttdValue);
     params.append('ttd_by', ttdBy);
     params.append('idPenyelia', id_hash);
+
+    if (type == 'suratTugas') {
+        params.append('type', 'suratTugas');
+    }
 
     spinner('show', $(obj));
 

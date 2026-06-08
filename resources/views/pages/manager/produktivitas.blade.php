@@ -114,7 +114,7 @@
 
         <div class="row g-3 mb-4">
             {{-- ===== CHART ===== --}}
-            <div class="col-12 col-lg-6">
+            <div class="col-12">
                 <div class="card border-0 shadow-sm rounded-4 h-100">
                     <div class="card-body p-3 p-md-4">
                         <h6 class="fw-bold text-dark mb-1">
@@ -137,7 +137,7 @@
             </div>
 
             {{-- ===== JOB BREAKDOWN MINI ===== --}}
-            <div class="col-12 col-lg-6">
+            <div class="col-12">
                 <div class="card border-0 shadow-sm rounded-4 h-100">
                     <div class="card-body p-3 p-md-4">
                         <h6 class="fw-bold text-dark mb-1">
@@ -145,15 +145,15 @@
                             Breakdown per Jenis Pekerjaan
                         </h6>
                         <p class="text-muted small mb-3">Distribusi jumlah pekerjaan selesai berdasarkan jenis</p>
-                        <div id="breakdown-wrapper" style="min-height:260px;">
+                        <div id="breakdown-wrapper" style="min-height:100px;">
                             <div id="breakdown-placeholder" class="d-flex align-items-center justify-content-center"
-                                style="height:260px">
+                                style="height:100px">
                                 <div class="text-center text-muted">
                                     <div class="spinner-border spinner-border-sm text-success mb-2"></div>
                                     <div class="small">Memuat data...</div>
                                 </div>
                             </div>
-                            <div id="breakdown-list" class="d-none"></div>
+                            <div id="breakdown-list" class="row g-3 d-none"></div>
                         </div>
                     </div>
                 </div>
@@ -173,12 +173,6 @@
                         <thead class="table-dark">
                             <tr>
                                 <th class="text-nowrap">Nama Petugas</th>
-                                {{-- Kolom dinamis dari master_jobs --}}
-                                {{-- @foreach ($masterJobs as $job)
-                                    <th class="text-center text-nowrap" title="{{ $job->name }}">
-                                        {{ $job->name }}
-                                    </th>
-                                @endforeach --}}
                                 <th class="text-center text-nowrap text-success">✔ Selesai</th>
                                 <th class="text-center text-nowrap text-warning">⟳ Proses</th>
                                 <th class="text-center fw-bold">Total</th>

@@ -254,6 +254,15 @@
                                 class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('PenyeliaLAB')) d-none @endif">{{ notifUnreadCount('PenyeliaLAB') }}</span>
                         </a>
                     </li>
+                    @if (Auth::user()->hasPenyimpananJob())
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ $module == 'staff-penyimpanan' ? 'active' : '' }}"
+                                href="{{ route('staff.penyimpanan') }}" aria-expanded="false">
+                                <span><i class="bi bi-archive"></i></span>
+                                <span class="hide-menu">Penyimpanan TLD</span>
+                            </a>
+                        </li>
+                    @endif
                 @endcan
 
                 @can('Staff/keuangan')

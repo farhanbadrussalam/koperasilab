@@ -196,6 +196,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/searchTldNotUsed', [TldApi::class, 'searchTldNotUsed']);
         Route::get('/searchTld', [TldApi::class, 'searchTld']);
         Route::post('/action', [TldApi::class, 'action']);
+        Route::get('/getPenyimpanan', [TldApi::class, 'getPenyimpanan']);
     });
 
     Route::prefix('pengguna')->controller(PenggunaAPI::class)->group(function () {

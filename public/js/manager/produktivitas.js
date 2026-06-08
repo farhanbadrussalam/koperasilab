@@ -315,15 +315,28 @@ function updateBreakdown(data) {
         return;
     }
 
-    // Hitung total per jenis pekerjaan
+    // Hitung total per jenis pekerjaan dan cari petugas teraktif per proses
     const jobTotals = {};
     masterJobIds.forEach((id, idx) => {
-        jobTotals[id] = { name: masterJobNames[idx], total: 0 };
+        jobTotals[id] = {
+            name: masterJobNames[idx],
+            total: 0,
+            topStaffName: null,
+            topStaffAvatar: null,
+            topStaffCount: 0
+        };
     });
 
     data.forEach(row => {
         masterJobIds.forEach(id => {
-            jobTotals[id].total += parseInt(row['job_' + id + '_s']) || 0;
+            const selesai = parseInt(row['job_' + id + '_s']) || 0;
+            jobTotals[id].total += selesai;
+
+            if (selesai > jobTotals[id].topStaffCount) {
+                jobTotals[id].topStaffCount = selesai;
+                jobTotals[id].topStaffName = row.nama_petugas;
+                jobTotals[id].topStaffAvatar = row.avatar;
+            }
         });
     });
 
@@ -347,15 +360,28 @@ function updateBreakdown(data) {
         const pct = Math.round((job.total / maxTotal) * 100);
         const color = colors[idx % colors.length];
         html += `
-            <div class="breakdown-item">
-                <div class="flex-grow-1 me-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="fw-semibold small" style="color:${color}">${job.name}</span>
-                        <span class="fw-bold small">${job.total}</span>
+            <div class="col-12 col-md-6">
+                <div class="breakdown-item d-flex flex-column gap-1.5 p-3 rounded-3 border bg-light h-100">
+                    <div class="w-100">
+                        <div class="d-flex justify-content-between mb-1 align-items-center">
+                            <span class="fw-semibold small" style="color:${color}">${job.name}</span>
+                            <span class="fw-bold small text-dark">${job.total} <span class="text-muted" style="font-size:0.75rem;font-weight:normal;">selesai</span></span>
+                        </div>
                     </div>
-                    <div class="bg-light rounded-pill" style="height:6px">
+                    ${job.topStaffName ? `
+                    <div class="d-flex align-items-center mt-1 text-muted gap-2" style="font-size: 0.72rem;">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-secondary"><i class="bi bi-fire text-warning me-0.5"></i> Teraktif:</span>
+                            <span class="fw-semibold text-dark">${job.topStaffName}</span>
+                        </div>
+                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill font-monospace fw-bold" style="font-size: 0.68rem; padding: 0.25em 0.6em;">
+                            ${job.topStaffCount} selesai
+                        </span>
+                    </div>
+                    <div class="bg-secondary bg-opacity-10 rounded-pill mt-1" style="height:3px">
                         <div class="breakdown-bar" style="width:${pct}%;background:${color}"></div>
                     </div>
+                    ` : ''}
                 </div>
             </div>`;
     });
