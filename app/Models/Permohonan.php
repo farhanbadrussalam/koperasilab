@@ -137,7 +137,8 @@ class Permohonan extends Model
         'created_at',
         'verify_at',
         'locked_by',
-        'locked_at'
+        'locked_at',
+        'bulan_mulai'
     ];
 
     protected $hidden = [
@@ -180,7 +181,8 @@ class Permohonan extends Model
         'created_by' => 'integer',
         'is_have_tld' => 'integer',
         'is_zerocek' => 'integer',
-        'locked_by' => 'integer'
+        'locked_by' => 'integer',
+        'bulan_mulai' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()

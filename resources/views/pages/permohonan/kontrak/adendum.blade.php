@@ -40,6 +40,18 @@
                             </div>
                         </div>
 
+                        <div class="row g-3 mb-3 d-none" id="container-bulan-mulai">
+                            <label class="form-label small fw-bold text-dark">Pilih Bulan Mulai Layanan Adendum</label>
+                            <div class="input-group shadow-sm rounded-3 overflow-hidden px-0">
+                                <span class="input-group-text bg-white border-end-0 ps-3">
+                                    <i class="bi bi-calendar-event text-primary"></i>
+                                </span>
+                                <select class="form-select bg-white border-start-0 py-3" id="bulan-mulai" style="cursor: pointer;">
+                                    <option value="" disabled selected>Pilih Bulan Mulai...</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-between align-items-end mb-3">
                             <h6 class="text-uppercase text-muted small fw-bold mb-0 tracking-wide">
                                 <span class="bg-primary text-white rounded-circle px-2 py-1 me-1">2</span> Daftar Pengguna TLD

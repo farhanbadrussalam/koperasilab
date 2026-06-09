@@ -338,7 +338,7 @@ function cardPenggunaComponent(data, options = {}) {
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle bg-light text-primary fw-bold d-none justify-content-center align-items-center me-2"
                                 style="width: 35px; height: 35px;">${inisial}</div>
-                            <div class="gap-2>
+                            <div class="gap-2">
                                 <h6 class="mb-0 fw-bold text-dark small d-flex gap-2 align-items-center">${data.name} ${htmlPergantian}</h6>
                                 <div>
                                     <small class="text-muted">${data.divisi}</small>

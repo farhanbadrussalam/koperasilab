@@ -80,7 +80,9 @@
                                     status: pengiriman.status,
                                     no_resi: pengiriman.no_resi ?? false,
                                     tipe_kontrak: pengiriman.permohonan ? pengiriman.permohonan
-                                        .tipe_kontrak : false
+                                        .tipe_kontrak : false,
+                                    permohonan_hash: pengiriman.permohonan ? pengiriman.permohonan
+                                        .permohonan_hash : false
                                 }));
                             }
                         }
@@ -154,8 +156,18 @@
 
                 let htmlAdendum = ``;
                 if (data.adendum?.length > 0) {
-                    htmlAdendum =
-                        `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill cursoron px-2 ms-2" data-id="${data.periode_hash}" data-periode="${data.periode}" onclick="showAdendumInformasi(this)"><i class="bi bi-journal-text me-1"></i>${data.adendum.length} Adendum</span>`;
+                    htmlAdendum = `
+                        <button class="btn btn-sm btn-outline-warning rounded-pill px-2 ms-2 fw-semibold d-inline-flex align-items-center gap-1"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#collapseAdendum-${data.periode_hash}"
+                                aria-expanded="false"
+                                aria-controls="collapseAdendum-${data.periode_hash}">
+                            <i class="bi bi-journal-text"></i>
+                            <span>${data.adendum.length} Adendum</span>
+                            <i class="bi bi-chevron-down small ms-1"></i>
+                        </button>
+                    `;
                 }
 
                 if (isModal) {
@@ -192,6 +204,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                ${this._generateAdendumCollapseHtml(data, cekStatusPeriode)}
                             </div>
                         </div>
                     `;
@@ -229,6 +242,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                ${this._generateAdendumCollapseHtml(data, cekStatusPeriode)}
                             </div>
                         </div>
                     `;
@@ -531,6 +545,107 @@
                     htmlAction,
                     htmlInformasi
                 };
+            }
+
+            _generateAdendumCollapseHtml(data, cekStatusPeriode = []) {
+                if (!data.adendum || data.adendum.length === 0) return '';
+
+                let html = `
+                    <div class="collapse mt-3 border-top pt-3" id="collapseAdendum-${data.periode_hash}">
+                        <div class="d-flex flex-column gap-2">
+                `;
+
+                data.adendum.forEach((adendum, index) => {
+                    let jmlPergantian = adendum.permohonan_detail?.filter(detail => detail.type === 'ganti')
+                        .length ?? 0;
+                    let jmlPenambahan = adendum.permohonan_detail?.filter(detail => detail.type === 'baru')
+                        .length ?? 0;
+
+                    // Cari pengiriman LHU adendum
+                    let findLhuAdendum = cekStatusPeriode.find(cek =>
+                        cek.permohonan_hash === adendum.permohonan_hash &&
+                        cek.jenis === 'lhu'
+                    );
+
+                    // Cari pengiriman Invoice adendum (hanya jika ada penambahan)
+                    let findInvoiceAdendum = jmlPenambahan > 0 ? cekStatusPeriode.find(cek =>
+                        cek.permohonan_hash === adendum.permohonan_hash &&
+                        cek.jenis === 'invoice'
+                    ) : null;
+
+                    let htmlInvoice = '';
+                    if (jmlPenambahan > 0) {
+                        let statusInvoice = findInvoiceAdendum ? findInvoiceAdendum.status : 0;
+                        let textStatusInvoice = statusFormat('pengiriman', statusInvoice);
+                        if (adendum.invoice) {
+                            let statusInv = statusFormat('invoice', adendum.invoice.status);
+                            if (adendum.invoice.status == 3 && role.includes('Pelanggan')) {
+                                statusInv =
+                                    `<a href="${base_url}/permohonan/pembayaran/bayar/${adendum.invoice.keuangan_hash}">${statusInv}</a>`;
+                            }
+                            textStatusInvoice += ` (${statusInv})`;
+                        }
+                        htmlInvoice = `
+                            <div class="d-flex align-items-center gap-1 small text-secondary">
+                                <i class="bi bi-receipt-cutoff text-warning"></i>
+                                <span class="fw-semibold">Invoice:</span>
+                                <span>${textStatusInvoice}</span>
+                            </div>
+                        `;
+                    }
+
+                    let statusLhu = findLhuAdendum ? findLhuAdendum.status : 0;
+                    let htmlLhu = `
+                        <div class="d-flex align-items-center gap-1 small text-secondary">
+                            <i class="bi bi-file-earmark-check text-warning"></i>
+                            <span class="fw-semibold">LHU:</span>
+                            <span>${statusFormat('pengiriman', statusLhu)}</span>
+                        </div>
+                    `;
+
+                    html += `
+                        <div class="p-3 bg-warning bg-opacity-10 border border-warning-subtle rounded-3">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                        <i class="bi bi-file-earmark-text-fill fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-0">Adendum #${index + 1}</h6>
+                                        <small class="text-secondary"><i class="bi bi-calendar-event me-1"></i>${dateFormat(adendum.created_at, 4)}</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+                                    <div class="d-flex gap-1">
+                                        <span class="badge rounded-pill bg-info-subtle text-info-emphasis border border-info-subtle fw-normal">
+                                            Ganti: ${jmlPergantian}
+                                        </span>
+                                        <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-normal">
+                                            Baru: ${jmlPenambahan}
+                                        </span>
+                                    </div>
+                                    <div class="fw-bold text-primary-emphasis">${formatRupiah(adendum.total_harga)}</div>
+                                    <a class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-xs d-flex align-items-center gap-1"
+                                        target="_blank" href="${base_url}/laporan/adendum/${adendum.permohonan_hash}">
+                                        <i class="bi bi-file-pdf"></i> PDF
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-4 mt-2 border-top pt-2 flex-wrap">
+                                ${htmlInvoice}
+                                ${htmlLhu}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+                return html;
             }
         }
     </script>

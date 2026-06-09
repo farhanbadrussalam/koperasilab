@@ -63,12 +63,13 @@ class PermohonanAPI extends Controller
         DB::beginTransaction();
         try {
             $note = $request->note ? $request->note : null;
-            $pengguna = $request->pengguna ? json_decode($request->pengguna) : false;
-            $kontrol = $request->kontrol ? json_decode($request->kontrol) : false;
+            $pengguna = $request->pengguna ? json_decode($request->pengguna) : [];
+            $kontrol = $request->kontrol ? json_decode($request->kontrol) : [];
             $idPeriode = $request->idPeriode ? decryptor($request->idPeriode) : false;
             $idKontrak = $request->id_kontrak ? decryptor($request->id_kontrak) : false;
             $totalHarga = $request->sub_total ? $request->sub_total : false;
             $isZeroCek = (int) $request->is_zerocek;
+            $bulanMulai = $request->bulan_mulai ? (int) $request->bulan_mulai : 1;
 
             $dataKontrak = Kontrak::find($idKontrak);
             $dataPeriode = Kontrak_periode::find($idPeriode);
@@ -89,6 +90,7 @@ class PermohonanAPI extends Controller
             $data['tipe_kontrak'] = 'adendum';
             $data['id_kontrak'] = $idKontrak;
             $data['periode'] = $dataPeriode->periode;
+            $data['bulan_mulai'] = $bulanMulai;
             $data['jenis_tld'] = $dataKontrak->jenis_tld;
             $data['jumlah_pengguna'] = $jumPenggunaBaru;
             $data['jumlah_kontrol'] = $jumKontrolBaru;

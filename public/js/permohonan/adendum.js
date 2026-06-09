@@ -3,7 +3,8 @@ let arrOption = {
     periode: false,
     pengguna: [],
     kontrol: [],
-    subTotal: 0
+    subTotal: 0,
+    bulan_mulai: 1
 };
 let arr_pengguna = [];
 let arr_kontrol = [];
@@ -16,11 +17,11 @@ let tmpArrTldKontrol = [];
 let tldSelector;
 
 $(function () {
-    inventoryTld = new Inventory_tld({preview: true});
+    inventoryTld = new Inventory_tld({ preview: true });
     inventoryTld.on('inventory.selected', (e) => {
         const detail = e.detail;
 
-        if(detail.data_tld.jenis == 'pengguna'){
+        if (detail.data_tld.jenis == 'pengguna') {
             let tldPengguna = tmpArrTldPengguna.find(d => d.index == detail.selected);
             arrOption.pengguna[tldPengguna.id].tld = detail.data_tld;
             tldPengguna.tld = detail.data_tld;
@@ -96,13 +97,18 @@ $(function () {
     document.addEventListener('pengguna.hide', (event) => {
         pengguna_old = false;
     })
+
+    $('#bulan-mulai').on('change', function () {
+        arrOption.bulan_mulai = parseInt($(this).val());
+        calcPrice();
+    });
 });
 
-function simpanAdendum(obj){
+function simpanAdendum(obj) {
     const note = $('#catatan').val();
 
     // Validasi
-    if(!arrOption.periode){
+    if (!arrOption.periode) {
         return Swal.fire({
             icon: 'warning',
             text: 'Tolong pilih periode!'
@@ -125,7 +131,7 @@ function simpanAdendum(obj){
             tld: value.tld.tld_hash
         }));
 
-    if(arrPengguna.length == 0 && arrKontrol.length == 0){
+    if (arrPengguna.length == 0 && arrKontrol.length == 0) {
         return Swal.fire({
             icon: 'warning',
             text: 'Pengguna atau Kontrol tidak ada perubahan!'
@@ -145,6 +151,7 @@ function simpanAdendum(obj){
     params.append('id_kontrak', dataKontrak.kontrak_hash);
     params.append('sub_total', subTotal);
     params.append('is_zerocek', zerocek ? 1 : 0);
+    params.append('bulan_mulai', arrOption.bulan_mulai || 1);
 
     spinner('show', $(obj));
     Swal.fire({
@@ -165,7 +172,7 @@ function simpanAdendum(obj){
                     timerProgressBar: true,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = base_url+"/permohonan/pengajuan";
+                    window.location.href = base_url + "/permohonan/pengajuan";
                 })
             }, error => {
                 spinner('hide', $(obj));
@@ -176,12 +183,12 @@ function simpanAdendum(obj){
     })
 }
 
-function simpanPeriode(){
+function simpanPeriode() {
     const dataPeriode = periodeJs.getData();
 
-    if(dataPeriode){
+    if (dataPeriode) {
         $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
-        if(dataPeriode.length == 1) {
+        if (dataPeriode.length == 1) {
             $('#periode-pemakaian').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
         } else {
             $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
@@ -196,25 +203,26 @@ function simpanPeriode(){
  * @param {Element} listPeriode - Element of periode list
  * @param {Object} periode - Object of periode data
  */
-function loadPeriode(){
+function loadPeriode() {
     const listPeriode = document.getElementById("content-pilih-periode");
     const periode = dataKontrak.periode;
     let html = '';
 
-    // Cari nomor periode yang aktif saat ini berdasarkan tanggal
+    // Cari nomor periode yang aktif saat ini berdasarkan data kontrak atau tanggal
     const now = Date.now();
     const activePeriodeObj = periode.find(p => p.periode != 0 && now >= new Date(p.start_date) && now <= new Date(p.end_date));
-    const activePeriodeNum = activePeriodeObj ? activePeriodeObj.periode : null;
+    const activePeriodeNum = dataKontrak.periode_active ? dataKontrak.periode_active.periode : (activePeriodeObj ? activePeriodeObj.periode : null);
+
 
     periode.forEach((data, index) => {
-        if(data.periode == 0) return;
+        if (data.periode == 0) return;
 
         let htmlAktif = '';
         let is_aktif = (activePeriodeNum !== null && data.periode === activePeriodeNum);
         let is_berdekatan = (activePeriodeNum !== null && data.periode === activePeriodeNum + 1);
         let is_berdekatan_belakang = (activePeriodeNum !== null && data.periode <= activePeriodeNum - 1);
 
-        if(is_aktif){
+        if (is_aktif) {
             htmlAktif = `<span class="badge bg-info-subtle text-dark">Aktif</span>`;
         }
 
@@ -240,9 +248,9 @@ function loadPeriode(){
     listPeriode.innerHTML = html;
 }
 
-function loadKontrakTld(){
+function loadKontrakTld() {
     let params = {
-        id_kontrak : dataKontrak.kontrak_hash
+        id_kontrak: dataKontrak.kontrak_hash
     }
 
     ajaxGet(`api/v1/kontrak/getKontrakTld`, params, result => {
@@ -257,7 +265,7 @@ function loadKontrakTld(){
     });
 }
 
-function loadPengguna(){
+function loadPengguna() {
     // load tld pengguna
     for (const [i, value] of arr_pengguna.entries()) {
         arrOption.pengguna.push({
@@ -280,7 +288,7 @@ function loadPengguna(){
  *
  * @param {Array} arr_kontrol - array of tld kontrol data
  */
-function loadKontrol(){
+function loadKontrol() {
     arr_kontrol.map((value, idx) => {
         arrOption.kontrol.push({
             status: 'lama',
@@ -303,7 +311,7 @@ function loadKontrol(){
  * @param {Array} arrOption.pengguna - array of pengguna data
  * @return {String} htmlPengguna - the generated html for the pengguna list
  */
-function loadHtmlPengguna(){
+function loadHtmlPengguna() {
     tmpArrTld = [];
     tmpArrTldPengguna = [];
     const htmlPengguna = arrOption.pengguna.map((value, i) => {
@@ -314,7 +322,7 @@ function loadHtmlPengguna(){
             : '';
 
         const findPergantian = arrOption.pengguna.find(d => d.status == 'ganti' && d.pengguna.pengguna_hash == pengguna.pengguna_hash);
-        if(value.status != 'ganti'){
+        if (value.status != 'ganti') {
             const data = {
                 index: i,
                 idHash: pengguna.pengguna_hash,
@@ -328,24 +336,24 @@ function loadHtmlPengguna(){
             };
 
             let haveTld = false;
-            if(arrOption.periode) {
-                let findTldPengguna = arr_pengguna.find(d => d.entitas.pengguna_hash == pengguna.pengguna_hash && d.jenis == 'pengguna');
+            if (arrOption.periode) {
+                let findTldPengguna = arr_pengguna.find(d => d.entitas?.pengguna_hash == pengguna.pengguna_hash && d.jenis == 'pengguna');
                 data['no_seri_tld'] = arrOption.periode.count_tld == 1 ? findTldPengguna?.tld_1?.no_seri_tld : findTldPengguna?.tld_2?.no_seri_tld;
                 haveTld = dataKontrak.is_have_tld == 1 ? true : false;
             }
 
-            if(value.status == 'lama'){
+            if (value.status == 'lama') {
                 haveTld = false;
             }
 
-            if(value.status == 'baru'){
+            if (value.status == 'baru') {
                 tmpArrTldPengguna.push({
                     id: i,
                     index: `tldNoSeri_${i}_pengguna`,
                     tld: value.tld?.tld_hash
                 });
 
-                if(value.tld){
+                if (value.tld) {
                     data['no_seri_tld'] = value.tld.no_seri_tld;
                 }
             }
@@ -365,7 +373,7 @@ function loadHtmlPengguna(){
     calcPrice();
 }
 
-function loadHtmlKontrol(){
+function loadHtmlKontrol() {
     tmpArrTldKontrol = [];
     const htmlKontrol = arrOption.kontrol.map((value, idx) => {
         const kodeLencana = idx >= 1 ? `C${idx}` : 'C';
@@ -378,7 +386,7 @@ function loadHtmlKontrol(){
         };
 
         let haveTld = false;
-        if(arrOption.periode) {
+        if (arrOption.periode) {
             let findTldKontrol = arr_kontrol.find(d => d.kontrak_detail_hash == value.id && d.jenis == 'kontrol');
             data['no_seri_tld'] = arrOption.periode.count_tld == 1 ? findTldKontrol?.tld_1?.no_seri_tld : findTldKontrol?.tld_2?.no_seri_tld;
             haveTld = dataKontrak.is_have_tld == 1 ? true : false;
@@ -387,18 +395,18 @@ function loadHtmlKontrol(){
             ]
         }
 
-        if(value.status == 'lama'){
+        if (value.status == 'lama') {
             haveTld = false;
         }
 
-        if(value.status == 'baru'){
+        if (value.status == 'baru') {
             tmpArrTldKontrol.push({
                 id: idx,
                 index: `tldNoSeri_${idx}_0_kontrol`,
                 tld: value.tld?.tld_hash,
             });
 
-            if(value.tld){
+            if (value.tld) {
                 data['no_seri_tld'] = value.tld.no_seri_tld;
             }
         }
@@ -420,18 +428,18 @@ function btnPilihPengguna(obj) {
 
     const data = arrOption.pengguna.find(v => v.pengguna.pengguna_hash == id)
 
-    if(!data){
+    if (!data) {
         ajaxGet(`api/v1/pengguna/getDataById/${id}`, false, result => {
             let params = {};
 
-            if(pengguna_old){
+            if (pengguna_old) {
                 // hapus pengguna baru yang double
                 arrOption.pengguna.findIndex((value, index) => {
-                    if(value){
-                        if(value?.pengguna?.pengguna_hash == pengguna_old.pengguna_hash && value.status == 'ganti'){
+                    if (value) {
+                        if (value?.pengguna?.pengguna_hash == pengguna_old.pengguna_hash && value.status == 'ganti') {
                             pengguna_selected.findIndex((value_2, index) => {
-                                if(value_2){
-                                    if(value_2 == value.pengguna_baru.pengguna_hash){
+                                if (value_2) {
+                                    if (value_2 == value.pengguna_baru.pengguna_hash) {
                                         pengguna_selected.splice(index, 1);
                                         return false;
                                     }
@@ -474,39 +482,40 @@ function removePengguna(obj) {
     let id = $(obj).data('id');
 
     arrOption.pengguna.findIndex((value, index) => {
-        if(value){
-            if(value.pengguna.pengguna_hash == id){
+        if (value) {
+            if (value.pengguna.pengguna_hash == id) {
                 arrOption.pengguna.splice(index, 1);
             }
         }
     })
 
     pengguna_selected.findIndex((value, index) => {
-        if(value && value == id){
+        if (value && value == id) {
             pengguna_selected.splice(index, 1);
         }
     })
     loadHtmlPengguna();
 }
 
-function pilihPeriode(obj){
+function pilihPeriode(obj) {
     const index = $(obj).data('periode');
     const is_aktif = $(obj).data('aktif');
     const periode = dataKontrak.periode[index];
 
     arrOption.periode = periode;
     $('#periode-pemakaian').val(`Periode ${periode.periode} (${dateFormat(periode.start_date, 4)} - ${dateFormat(periode.end_date, 4)})`);
-    // Cari nomor periode yang aktif saat ini berdasarkan tanggal
+    // Cari nomor periode yang aktif saat ini berdasarkan data kontrak atau tanggal
     const now = Date.now();
     const activePeriodeObj = dataKontrak.periode.find(p => p.periode != 0 && now >= new Date(p.start_date) && now <= new Date(p.end_date));
+    const activePeriodeNum = dataKontrak.periode_active ? dataKontrak.periode_active.periode : (activePeriodeObj ? activePeriodeObj.periode : null);
 
-    if(periode.periode < activePeriodeObj.periode){
+    if (activePeriodeNum !== null && periode.periode < activePeriodeNum) {
         $('#btn-add-pengguna').removeClass('d-block').addClass('d-none');
         $('#btn-add-kontrol').removeClass('d-block').addClass('d-none');
         arrOption.pengguna.map(d => {
-            if(d.status == 'baru') {
+            if (d.status == 'baru') {
                 pengguna_selected.findIndex((value, index) => {
-                    if(value && value == d.pengguna.pengguna_hash){
+                    if (value && value == d.pengguna.pengguna_hash) {
                         pengguna_selected.splice(index, 1);
                     }
                 })
@@ -524,7 +533,7 @@ function pilihPeriode(obj){
     $('#modal-pilih-periode').modal('hide');
 }
 
-function gantiPengguna(obj){
+function gantiPengguna(obj) {
     let id = $(obj).data('id');
 
     let find = arrOption.pengguna.find(d => d.pengguna.pengguna_hash == id);
@@ -533,21 +542,42 @@ function gantiPengguna(obj){
     tldSelector.show(pengguna_selected);
 }
 
-function calcPrice(){
+function calcPrice() {
+    if (!arrOption.periode) {
+        $('#total-harga').html(formatRupiah(0));
+        arrOption.subTotal = 0;
+        return;
+    }
+
     let hargaLayanan = Number(dataKontrak.harga_layanan);
     let jumPengguna = arrOption.pengguna.filter(d => d.status == 'baru').length;
     let jumKontrol = arrOption.kontrol.filter(d => d.status == 'baru').length;
     let jumlahPenambahan = jumPengguna + jumKontrol;
-    let jumPeriode = dataKontrak.periode.filter(item => item.periode >= arrOption.periode.periode).length;
 
-    let subTotal = hargaLayanan * jumPeriode;
+    if (arrOption.periode && jumlahPenambahan > 0) {
+        $('#container-bulan-mulai').removeClass('d-none').addClass('d-block');
+        if ($('#container-bulan-mulai').attr('data-periode-num') !== String(arrOption.periode.periode)) {
+            $('#container-bulan-mulai').attr('data-periode-num', arrOption.periode.periode);
+            updateBulanMulaiSelect(arrOption.periode);
+        }
+    } else {
+        $('#container-bulan-mulai').removeClass('d-block').addClass('d-none');
+        $('#container-bulan-mulai').removeAttr('data-periode-num');
+        arrOption.bulan_mulai = 1;
+    }
 
-    subTotal *= jumlahPenambahan;
+    let sisaPeriodeMendatang = dataKontrak.periode.filter(item => item.periode > arrOption.periode.periode).length;
+    let tarifBulanan = hargaLayanan / 3;
+    let bulanMulai = arrOption.bulan_mulai || 1;
+    let sisaBulanPeriodeIni = 3 - (bulanMulai - 1);
+    let totalBulan = sisaBulanPeriodeIni + (sisaPeriodeMendatang * 3);
+
+    let subTotal = tarifBulanan * totalBulan * jumlahPenambahan;
     $('#total-harga').html(formatRupiah(subTotal));
 
     arrOption.subTotal = subTotal;
 
-    if(subTotal > 0){
+    if (subTotal > 0) {
         $('#useZeroCek').prop('checked', true);
         $('#useZeroCek').prop('disabled', true);
     } else {
@@ -556,37 +586,66 @@ function calcPrice(){
     }
 }
 
-function deletePergantian(obj){
+function deletePergantian(obj) {
     let id = $(obj).data('id');
     arrOption.pengguna.findIndex((value, index) => {
-        if(value){
-            if(value.pengguna_baru.pengguna_hash == id){
+        if (value) {
+            if (value.pengguna_baru.pengguna_hash == id) {
                 arrOption.pengguna.splice(index, 1);
                 return false;
             }
         }
     })
     pengguna_selected.findIndex((value, index) => {
-        if(value && value == id){
+        if (value && value == id) {
             pengguna_selected.splice(index, 1);
         }
     })
     loadHtmlPengguna();
 }
-function deleteKontrol(obj){
+function deleteKontrol(obj) {
     let id = $(obj).data('id');
-
+ 
     arrOption.kontrol.splice(id, 1);
     loadHtmlKontrol();
 }
 
-function openInventory(obj, jenis){
+function openInventory(obj, jenis) {
     let id = $(obj).data('id');
     let arr = [];
-    if(jenis == 'pengguna'){
+    if (jenis == 'pengguna') {
         arr = tmpArrTldPengguna;
-    } else if(jenis == 'kontrol'){
+    } else if (jenis == 'kontrol') {
         arr = tmpArrTldKontrol;
     }
     inventoryTld.show(id, arr, jenis);
+}
+
+function updateBulanMulaiSelect(periode) {
+    const $select = $('#bulan-mulai');
+    $select.empty();
+
+    if (!periode || !periode.start_date) return;
+
+    const startDateStr = String(periode.start_date);
+    const parts = startDateStr.split('-');
+    const year = parseInt(parts[0], 10);
+    const monthIndex = parseInt(parts[1], 10) - 1; // 0-based index
+    const monthNames = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    for (let i = 0; i < 3; i++) {
+        let curMonth = monthIndex + i;
+        let curYear = year;
+        if (curMonth > 11) {
+            curMonth -= 12;
+            curYear += 1;
+        }
+        const monthName = monthNames[curMonth];
+        $select.append(`<option value="${i + 1}" ${i === 0 ? 'selected' : ''}>Bulan ${i + 1} (${monthName} ${curYear})</option>`);
+    }
+
+    arrOption.bulan_mulai = 1;
 }

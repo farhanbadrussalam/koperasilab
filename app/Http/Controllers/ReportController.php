@@ -349,9 +349,17 @@ class ReportController extends Controller
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
                 $vars["PERUSAHAAN"] = $data->pelanggan?->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->pelanggan?->perusahaan->alamat[0]->alamat;
-                $vars["JENIS_PENGUJIAN"] = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
-                $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol";
-                $vars["PERIODE"] = ($data->periode > 0 ? "Periode " . $data->periode : "Periode zero Check");
+                $vars["JENIS_PENGUJIAN"] = $data->is_zerocek == 1 ? 'Zero Check' : 'Evaluasi TLD';
+                $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna + " . $data->jumlah_kontrol . " Kontrol";
+                $textPeriode = "Periode " . $data->periode;
+                if ($data->periode > 0) {
+                    if ($data->is_zerocek == 1) {
+                        $textPeriode .= " + Zero Check";
+                    }
+                } else {
+                    $textPeriode = "Periode Zero Check";
+                }
+                $vars["PERIODE"] = $textPeriode;
                 $vars["TGL_PENERIMAAN"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["TGL_SELESAI"] = $params['selesaiPengujian'] ? convert_date($params['selesaiPengujian'], 2) : '';
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
@@ -492,16 +500,21 @@ class ReportController extends Controller
 
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["NO_SURAT"] = $data->dokumen[0]->nomer;
-                $vars['TUJUAN'] = env('NAMA_PERUSAHAAN');
-                $vars['ALAMAT_TUJUAN'] = env('ALAMAT_PERUSAHAAN');
-                $vars['TELEPON'] = env('TELEPON_PERUSAHAAN');
+                $vars['TUJUAN'] = $lab_perusahaan;
+                $vars['ALAMAT_TUJUAN'] = $lab_alamat;
+                $vars['TELEPON'] = $lab_telp;
                 $vars['PERUSAHAAN'] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars['JENIS_LAYANAN'] = $data->jenis_layanan->name;
                 $vars['JENIS_TLD'] = $data->jenisTld->name;
                 $vars['LAYANAN_JASA'] = $data->layanan_jasa->nama_layanan;
                 $vars['NO_KONTRAK'] = $data->kontrak->no_kontrak;
                 $vars['JUMLAH_TLD'] = $data->jumlah_pengguna + $data->jumlah_kontrol;
-                $range = range_date($params['periode']->start_date, $params['periode']->end_date, 1);
+
+                $startDate = $params['periode']->start_date;
+                if ($data->bulan_mulai && $data->bulan_mulai > 1) {
+                    $startDate = \Carbon\Carbon::parse($startDate)->addMonths($data->bulan_mulai - 1)->toDateTimeString();
+                }
+                $range = range_date($startDate, $params['periode']->end_date, 1);
                 $vars['PERIODE'] = $range['start'] . '-' . $range['end'];
                 $vars['LOKASI'] = $data->pelanggan->perusahaan->alamat[0]->kota;
 
@@ -852,7 +865,7 @@ class ReportController extends Controller
             }
             $tdContent .= '</tr>';
         }
-        $jenisPengujian = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
+        $jenisPengujian = $data->is_zerocek == 1 ? 'Zero Check' : 'Evaluasi TLD';
 
         return [
             "RINCIAN" => '

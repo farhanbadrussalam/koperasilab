@@ -458,11 +458,12 @@
                             </div>
                             @if ($permohonan->tipe_kontrak == 'adendum')
                                 <div id="document-adendum" class="d-flex gap-3 flex-column">
-                                    <a href="{{ url('laporan/adendum/' . $permohonan->permohonan_hash) }}" target="_blank"
+                                    <button data-url="laporan/adendum/{{ $permohonan->permohonan_hash }}"
+                                        data-title="Laporan Adendum" onclick="btnShowDoc(this)"
                                         class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
                                         <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
                                         <span class="fw-bold d-block small">Permohonan Adendum</span>
-                                    </a>
+                                    </button>
                                 </div>
                             @endif
                         </div>

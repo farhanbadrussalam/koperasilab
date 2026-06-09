@@ -235,12 +235,12 @@ $(function () {
         }, { onErrorPopup: false });
     });
 
-    if(dataPermohonan.is_have_tld == 1){
+    if (dataPermohonan.is_have_tld == 1) {
         $('#checkAllTldPengguna').on('change', function () {
             const isChecked = $(this).is(':checked');
             $('input[name="checkTldPengguna"]').prop('checked', isChecked);
         });
-    
+
         $('#checkAllTldKontrol').on('change', function () {
             const isChecked = $(this).is(':checked');
             $('input[name="checkTldKontrol"]').prop('checked', isChecked);
@@ -797,4 +797,12 @@ function templateTld(state) {
 function openInventory(obj, jenis) {
     let id = $(obj).data('id');
     inventoryTld.show(id, tmpArrTld, jenis);
+}
+
+function btnShowDoc(obj) {
+    const url = $(obj).data('url');
+    const title = $(obj).data('title') || 'Dokumen';
+    modalDoc.show(url, {
+        title: title
+    });
 }
