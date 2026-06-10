@@ -230,6 +230,14 @@
                             <span class="hide-menu">List Pengiriman</span>
                         </a>
                     </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'staff-pengiriman-adendum' ? 'active' : '' }}"
+                            href="{{ route('staff.pengiriman.adendum') }}" aria-expanded="false">
+                            <span><i class="bi bi-file-earmark-plus"></i></span>
+                            <span class="hide-menu">Pengiriman Adendum</span>
+                            <span class="badge rounded-pill ms-auto bg-danger d-none" id="adendum-sidebar-badge">0</span>
+                        </a>
+                    </li>
                 @endcan
 
                 @can('Staff/penyelia')

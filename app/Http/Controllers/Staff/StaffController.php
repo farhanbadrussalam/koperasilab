@@ -326,6 +326,15 @@ class StaffController extends Controller
         return view('pages.staff.pengiriman.permohonan', $data);
     }
 
+    public function indexPengirimanAdendum()
+    {
+        $data = [
+            'title' => 'Pengiriman Adendum',
+            'module' => 'staff-pengiriman-adendum'
+        ];
+        return view('pages.staff.pengiriman.adendum', $data);
+    }
+
     public function verifikasiPermohonan(string $idPermohonan)
     {
         notifRead('Permohonan', $idPermohonan);

@@ -116,6 +116,98 @@ class PengirimanAPI extends Controller
         }
     }
 
+    public function listAdendum(Request $request)
+    {
+        $limit = $request->has('limit') ? $request->limit : 10;
+        $page = $request->has('page') ? $request->page : 1;
+        $noKontrak = $request->has('no_kontrak') ? $request->no_kontrak : '';
+        $filter = $request->has('filter') ? $request->filter : [];
+
+        DB::beginTransaction();
+        try {
+            $query = Permohonan::with([
+                'layanan_jasa:id_layanan,nama_layanan',
+                'jenisTld:id_jenisTld,name',
+                'jenis_layanan:id_jenisLayanan,name,parent',
+                'jenis_layanan_parent',
+                'pelanggan:id,id_perusahaan,name',
+                'pelanggan.perusahaan',
+                'kontrak',
+                'pengiriman',
+                'invoice',
+                'invoice.pengiriman',
+                'lhu',
+                'lhu.pengiriman',
+                'permohonan_detail'
+            ])
+                ->where('tipe_kontrak', 'adendum')
+                ->whereIn('status', [2, 3, 4, 5])
+                ->when($noKontrak, function ($q, $search) {
+                    return $q->where(function ($sub) use ($search) {
+                        $sub->whereHas('kontrak', function ($q) use ($search) {
+                            $q->where('no_kontrak', $search);
+                        });
+                    });
+                })
+                ->when($filter, function ($q, $filter) {
+                    foreach ($filter as $key => $value) {
+                        if ($key == 'id_perusahaan') {
+                            $q->whereHas('pelanggan.perusahaan', function ($q) use ($value) {
+                                $q->where('id_perusahaan', decryptor($value));
+                            });
+                        } else {
+                            $q->where($key, decryptor($value));
+                        }
+                    }
+                });
+
+            // Filter secara manual untuk adendum yang status pengiriman dokumennya belum selesai
+            $query->where(function ($q) {
+                // Pengiriman LHU belum selesai
+                $q->whereDoesntHave('lhu.pengiriman', function ($sub) {
+                    $sub->whereIn('status', [1, 2, 3]);
+                })
+                    // ATAU Pengiriman Invoice belum selesai (untuk adendum yang memiliki penambahan pengguna baru)
+                    ->orWhere(function ($sub) {
+                        $sub->whereHas('permohonan_detail', function ($detail) {
+                            $detail->where('type', 'baru');
+                        })->whereDoesntHave('invoice.pengiriman', function ($ship) {
+                            $ship->whereIn('status', [1, 2, 3]);
+                        });
+                    });
+            });
+
+            $total = $query->count();
+            $data = $query->orderBy('created_at', 'DESC')
+                ->offset(($page - 1) * $limit)
+                ->limit($limit)
+                ->get();
+
+            // Setup pagination manual
+            $pagination = [
+                'total' => $total,
+                'per_page' => $limit,
+                'current_page' => $page,
+                'last_page' => ceil($total / $limit),
+                'from' => ($page - 1) * $limit + 1,
+                'to' => min($page * $limit, $total)
+            ];
+            $this->pagination = $pagination;
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'Success',
+                'data' => $data,
+                'pagination' => $pagination
+            ], 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return response()->json(array('msg' => $ex->getMessage()), 500);
+        }
+    }
+
     public function listPengiriman(Request $request)
     {
         $limit = $request->has('limit') ? $request->limit : 10;
@@ -130,7 +222,8 @@ class PengirimanAPI extends Controller
                 'kontrak.pelanggan',
                 'kontrak.pelanggan.perusahaan',
                 'detail',
-                'alamat'
+                'alamat',
+                'permohonan'
             ])
                 ->orderBy('recived_at', 'ASC')
                 ->orderBy('created_at', 'DESC')

@@ -116,7 +116,7 @@ function cardComponent(data, options = {}) {
                 <button type="button" 
                         class="btn btn-xs btn-outline-primary rounded-pill px-2 py-0 border-primary-subtle bg-primary-subtle text-primary" 
                         style="font-size: 0.72rem; line-height: 1.5; vertical-align: middle;"
-                        onclick="showItemsDetail('${encoded}', '${idPengiriman}')">
+                        onclick="showItemsDetail('${encoded}', '${idPengiriman}', ${data.is_zerocek})">
                     <i class="bi bi-eye-fill me-1"></i>${count} Items
                 </button>
             </span>
@@ -540,7 +540,7 @@ function cardKontrolComponent(data, options = {}) {
  * @param {string} encodedItems - URL-encoded JSON string of the items array.
  * @param {string} idPengiriman - ID of the shipment.
  */
-function showItemsDetail(encodedItems, idPengiriman) {
+function showItemsDetail(encodedItems, idPengiriman, isZerocek) {
     const items = JSON.parse(decodeURIComponent(encodedItems));
 
     let rows = '';
@@ -549,6 +549,12 @@ function showItemsDetail(encodedItems, idPengiriman) {
         let periodeText = '-';
         if (item.periode !== undefined && item.periode !== null) {
             periodeText = item.periode == 0 ? '<span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill fw-normal fs-8">Zero Check</span>' : `Periode ${item.periode}`;
+        }
+
+        if (jenis == 'LHU') {
+            if (isZerocek && item.periode > 0) {
+                periodeText += ' + Zero Check';
+            }
         }
 
         rows += `

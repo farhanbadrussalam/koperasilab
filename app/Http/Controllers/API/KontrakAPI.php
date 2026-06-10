@@ -26,97 +26,98 @@ class KontrakAPI extends Controller
     use RestApi;
     protected $media, $log, $pagination;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->media = resolve(MediaController::class);
         $this->log = resolve(LogController::class);
     }
 
-    public function listKontrak(Request $request){
+    public function listKontrak(Request $request)
+    {
         $limit = $request->limit ?? 10;
         $page = $request->page ?? 1;
         $filter = $request->filter ?? [];
 
         // cek role
         $idPelanggan = false;
-        if(Auth::user()->hasRole('Pelanggan')){
+        if (Auth::user()->hasRole('Pelanggan')) {
             $idPelanggan = Auth::user()->id;
         }
 
         DB::beginTransaction();
         try {
             $query = Kontrak::with([
-                        'pengguna',
-                        'periode' => function($q) use ($filter) {
-                            if(isset($filter['date_range']))
-                                $q->whereBetween('start_date', [$filter['date_range'][0], $filter['date_range'][1]])->whereNull('id_permohonan');
+                'pengguna',
+                'periode' => function ($q) use ($filter) {
+                    if (isset($filter['date_range']))
+                        $q->whereBetween('start_date', [$filter['date_range'][0], $filter['date_range'][1]])->whereNull('id_permohonan');
 
-                            $q->whereIn('status', [1, 2]);
-                        },
-                        'periode.permohonan',
-                        'periode.permohonan.jenis_layanan',
-                        'periode.permohonan.jenis_layanan_parent',
-                        'periode.permohonan.file_lhu',
-                        'periode.permohonan.invoice',
-                        'periode.permohonan.lhu',
-                        'periode.permohonan.lhu.penyelia_map',
-                        'periode.permohonan.lhu.penyelia_map.jobs',
-                        'periode.penyelia',
-                        'periode.penyelia.penyelia_map',
-                        'periode.penyelia.penyelia_map.jobs',
-                        'layanan_jasa:id_layanan,nama_layanan',
-                        'jenisTld:id_jenisTld,name',
-                        'jenis_layanan:id_jenisLayanan,name,parent',
-                        'jenis_layanan_parent',
-                        'pelanggan:id,id_perusahaan,name',
-                        'pelanggan.perusahaan',
-                        'pengiriman:id_pengiriman,id_kontrak,no_resi,status,id_permohonan',
-                        'pengiriman.detail',
-                        'pengiriman.permohonan:id_permohonan,periode,tipe_kontrak',
-                        'tld_aktif:id_tld,digunakan,no_seri_tld,status',
-                        'kontrak_detail',
-                        'kontrak_detail.tld_1',
-                        'kontrak_detail.tld_2',
-                        'kontrak_detail.entitas' => function (MorphTo $morphTo) {
-                            $morphTo->morphWith([
-                                Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-                            ]);
-                        },
-                        'rincian_list_tld' => function($q) {
-                            $q->whereIn('status', [5,6]);
+                    $q->whereIn('status', [1, 2]);
+                },
+                'periode.permohonan',
+                'periode.permohonan.jenis_layanan',
+                'periode.permohonan.jenis_layanan_parent',
+                'periode.permohonan.file_lhu',
+                'periode.permohonan.invoice',
+                'periode.permohonan.lhu',
+                'periode.permohonan.lhu.penyelia_map',
+                'periode.permohonan.lhu.penyelia_map.jobs',
+                'periode.penyelia',
+                'periode.penyelia.penyelia_map',
+                'periode.penyelia.penyelia_map.jobs',
+                'layanan_jasa:id_layanan,nama_layanan',
+                'jenisTld:id_jenisTld,name',
+                'jenis_layanan:id_jenisLayanan,name,parent',
+                'jenis_layanan_parent',
+                'pelanggan:id,id_perusahaan,name',
+                'pelanggan.perusahaan',
+                'pengiriman:id_pengiriman,id_kontrak,no_resi,status,id_permohonan',
+                'pengiriman.detail',
+                'pengiriman.permohonan:id_permohonan,periode,tipe_kontrak',
+                'tld_aktif:id_tld,digunakan,no_seri_tld,status',
+                'kontrak_detail',
+                'kontrak_detail.tld_1',
+                'kontrak_detail.tld_2',
+                'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
+                'rincian_list_tld' => function ($q) {
+                    $q->whereIn('status', [5, 6]);
+                }
+            ])
+                ->withCount('periode')
+                ->when($idPelanggan, function ($q, $idPelanggan) {
+                    // mengambil id dari history_pic
+                    $id_pic = array();
+                    foreach (Auth::user()->perusahaan->history_pic as $key => $pic) {
+                        array_push($id_pic, $pic->id);
+                    }
+                    return $q->where('id_pelanggan', $id_pic);
+                })
+                ->when($filter, function ($q, $filter) {
+                    foreach ($filter as $key => $value) {
+                        if ($key == 'date_range') {
+                            $q->whereHas('periode', function ($p) use ($value) {
+                                $p->whereBetween('start_date', [$value[0], $value[1]])->whereNull('id_permohonan');
+                            });
+                        } else if ($key == 'periode') {
+                        } else {
+                            $q->where($key, decryptor($value));
                         }
-                    ])
-                    ->withCount('periode')
-                    ->when($idPelanggan, function($q, $idPelanggan){
-                        // mengambil id dari history_pic
-                        $id_pic = array();
-                        foreach (Auth::user()->perusahaan->history_pic as $key => $pic) {
-                            array_push($id_pic, $pic->id);
-                        }
-                        return $q->where('id_pelanggan', $id_pic);
-                    })
-                    ->when($filter, function($q, $filter) {
-                        foreach ($filter as $key => $value) {
-                            if($key == 'date_range') {
-                                $q->whereHas('periode', function($p) use ($value) {
-                                    $p->whereBetween('start_date', [$value[0], $value[1]])->whereNull('id_permohonan');
-                                });
-                            } else if ($key == 'periode') {
+                    }
+                });
 
-                            } else {
-                                $q->where($key, decryptor($value));
-                            }
-                        }
-                    });
-
-            if(Auth::user()->status == 2){
+            if (Auth::user()->status == 2) {
                 $query = $query->where('status', '2');
             }
 
             $query = $query->orderBy('status', 'asc')
-            ->orderBy('created_at', 'desc')
-            ->offset(($page - 1) * $limit)
-            ->limit($limit)
-            ->paginate($limit);
+                ->orderBy('created_at', 'desc')
+                ->offset(($page - 1) * $limit)
+                ->limit($limit)
+                ->paginate($limit);
 
             // Filter range periode start_date - end_date
             $arr = $query->toArray();
@@ -158,19 +159,20 @@ class KontrakAPI extends Controller
     //     return $dataNew;
     // }
 
-    public function actionKontrak(Request $request){
+    public function actionKontrak(Request $request)
+    {
         $action = $request->action;
         $data = $request->data;
         $id = $request->id;
 
         DB::beginTransaction();
         try {
-            if($action == "add"){
+            if ($action == "add") {
                 $dataKontrak = Kontrak::create($data);
                 $id = $dataKontrak->id_kontrak;
-            } else if($action == "edit"){
+            } else if ($action == "edit") {
                 Kontrak::where('id_kontrak', $id)->update($data);
-            } else if($action == "delete"){
+            } else if ($action == "delete") {
                 Kontrak::where('id_kontrak', $id)->get()->each->delete();
             }
 
@@ -183,49 +185,50 @@ class KontrakAPI extends Controller
         }
     }
 
-    public function getKontrakById(string $id){
+    public function getKontrakById(string $id)
+    {
         $id = decryptor($id);
 
         DB::beginTransaction();
         try {
             $query = Kontrak::with([
-                        'periode' => function($q) {
-                            $q->whereIn('status', [1, 2]);
-                        },
-                        'periode.permohonan',
-                        'periode.permohonan.jenis_layanan',
-                        'periode.permohonan.jenis_layanan_parent',
-                        'periode.permohonan.file_lhu',
-                        'periode.permohonan.invoice',
-                        'periode.permohonan.lhu',
-                        'periode.permohonan.lhu.penyelia_map',
-                        'periode.permohonan.lhu.penyelia_map.jobs',
-                        'periode.penyelia',
-                        'periode.penyelia.penyelia_map',
-                        'periode.penyelia.penyelia_map.jobs',
-                        'invoice',
-                        'layanan_jasa:id_layanan,nama_layanan',
-                        'jenisTld:id_jenisTld,name',
-                        'jenis_layanan:id_jenisLayanan,name,parent',
-                        'jenis_layanan_parent',
-                        'pelanggan:id,id_perusahaan,name',
-                        'pelanggan.perusahaan',
-                        'pengiriman:id_pengiriman,id_kontrak,no_resi,status',
-                        'pengiriman.detail',
-                        'pengiriman.permohonan:id_permohonan,periode',
-                        'tld_aktif:id_tld,digunakan,no_seri_tld,status',
-                        'kontrak_detail',
-                        'kontrak_detail.tld_1',
-                        'kontrak_detail.tld_2',
-                        'kontrak_detail.entitas' => function (MorphTo $morphTo) {
-                            $morphTo->morphWith([
-                                Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-                            ]);
-                        },
-                    ])
-                    ->withCount('periode')
-                    ->where('id_kontrak', $id)
-                    ->first();
+                'periode' => function ($q) {
+                    $q->whereIn('status', [1, 2]);
+                },
+                'periode.permohonan',
+                'periode.permohonan.jenis_layanan',
+                'periode.permohonan.jenis_layanan_parent',
+                'periode.permohonan.file_lhu',
+                'periode.permohonan.invoice',
+                'periode.permohonan.lhu',
+                'periode.permohonan.lhu.penyelia_map',
+                'periode.permohonan.lhu.penyelia_map.jobs',
+                'periode.penyelia',
+                'periode.penyelia.penyelia_map',
+                'periode.penyelia.penyelia_map.jobs',
+                'invoice',
+                'layanan_jasa:id_layanan,nama_layanan',
+                'jenisTld:id_jenisTld,name',
+                'jenis_layanan:id_jenisLayanan,name,parent',
+                'jenis_layanan_parent',
+                'pelanggan:id,id_perusahaan,name',
+                'pelanggan.perusahaan',
+                'pengiriman:id_pengiriman,id_kontrak,no_resi,status,id_permohonan',
+                'pengiriman.detail',
+                'pengiriman.permohonan:id_permohonan,periode,tipe_kontrak,id_kontrak',
+                'tld_aktif:id_tld,digunakan,no_seri_tld,status',
+                'kontrak_detail',
+                'kontrak_detail.tld_1',
+                'kontrak_detail.tld_2',
+                'kontrak_detail.entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
+            ])
+                ->withCount('periode')
+                ->where('id_kontrak', $id)
+                ->first();
 
             $adendums = Permohonan::with(['permohonan_detail', 'invoice', 'lhu'])
                 ->where('id_kontrak', $id)
@@ -246,17 +249,18 @@ class KontrakAPI extends Controller
         }
     }
 
-    public function searchKontrak(Request $request){
+    public function searchKontrak(Request $request)
+    {
         DB::beginTransaction();
         try {
             $no_kontrak = $request->has('no_kontrak') ? $request->no_kontrak : false;
             $data = array();
 
-            if(!empty($no_kontrak)){
+            if (!empty($no_kontrak)) {
                 $idPelanggan = Auth::user()->hasRole('Pelanggan') ? Auth::user()->id : false;
                 $data = Kontrak::when($idPelanggan, fn($q) => $q->where('id_pelanggan', $idPelanggan))
-                        ->where('no_kontrak', 'like', '%'.$no_kontrak.'%')
-                        ->get();
+                    ->where('no_kontrak', 'like', '%' . $no_kontrak . '%')
+                    ->get();
             }
 
             DB::commit();
@@ -268,7 +272,8 @@ class KontrakAPI extends Controller
         }
     }
 
-    public function getKontrakTld(Request $request){
+    public function getKontrakTld(Request $request)
+    {
         $idKontrak = $request->has('id_kontrak') ? decryptor($request->id_kontrak) : false;
 
         DB::beginTransaction();
@@ -292,17 +297,18 @@ class KontrakAPI extends Controller
         }
     }
 
-    public function signKontrak(Request $request){
+    public function signKontrak(Request $request)
+    {
         $id_kontrak = decryptor($request->id_kontrak);
         $ttdValue = decryptor($request->ttd);
         $ttdBy = decryptor($request->ttd_by);
 
-        if(empty($ttdValue) || empty($ttdBy)){
+        if (empty($ttdValue) || empty($ttdBy)) {
             return $this->output(array('msg' => 'Tanda tangan dan nama penandatangan harus diisi'), "Fail", 400);
         }
 
-         // cek apakah kontrak sudah memiliki ttd
-         $kontrak_dokumen = Permohonan_dokumen::where('id_kontrak', $id_kontrak)
+        // cek apakah kontrak sudah memiliki ttd
+        $kontrak_dokumen = Permohonan_dokumen::where('id_kontrak', $id_kontrak)
             ->whereIn('jenis', ['kontrak', 'KontrakPengujian'])
             ->first();
 
@@ -310,9 +316,9 @@ class KontrakAPI extends Controller
             return $this->output(array('msg' => 'Dokumen kontrak tidak ditemukan'), "Fail", 404);
         }
 
-         if($kontrak_dokumen->ttd != null){
-             return $this->output(array('msg' => 'Kontrak sudah memiliki tanda tangan'), "Fail", 400);
-         }
+        if ($kontrak_dokumen->ttd != null) {
+            return $this->output(array('msg' => 'Kontrak sudah memiliki tanda tangan'), "Fail", 400);
+        }
 
         DB::beginTransaction();
         try {
@@ -326,7 +332,8 @@ class KontrakAPI extends Controller
         }
     }
 
-    public function getKontrakPeriode($idPeriode){
+    public function getKontrakPeriode($idPeriode)
+    {
         $idPeriode = decryptor($idPeriode);
 
         DB::beginTransaction();
@@ -471,30 +478,30 @@ class KontrakAPI extends Controller
                 }
             }
 
-            \App\Models\Log_proses::where(function($q) use ($id_kontrak, $permohonanIds, $keuanganIds, $pengirimanIds, $penyeliaIds) {
-                $q->where(function($sub) use ($id_kontrak) {
+            \App\Models\Log_proses::where(function ($q) use ($id_kontrak, $permohonanIds, $keuanganIds, $pengirimanIds, $penyeliaIds) {
+                $q->where(function ($sub) use ($id_kontrak) {
                     $sub->where('subject_type', 'App\Models\Kontrak')->where('subject_id', $id_kontrak);
-                })->orWhere(function($sub) use ($permohonanIds) {
+                })->orWhere(function ($sub) use ($permohonanIds) {
                     $sub->where('subject_type', 'App\Models\Permohonan')->whereIn('subject_id', $permohonanIds);
-                })->orWhere(function($sub) use ($keuanganIds) {
+                })->orWhere(function ($sub) use ($keuanganIds) {
                     $sub->where('subject_type', 'App\Models\Keuangan')->whereIn('subject_id', $keuanganIds);
-                })->orWhere(function($sub) use ($pengirimanIds) {
+                })->orWhere(function ($sub) use ($pengirimanIds) {
                     $sub->where('subject_type', 'App\Models\Pengiriman')->whereIn('subject_id', $pengirimanIds);
-                })->orWhere(function($sub) use ($penyeliaIds) {
+                })->orWhere(function ($sub) use ($penyeliaIds) {
                     $sub->where('subject_type', 'App\Models\Penyelia')->whereIn('subject_id', $penyeliaIds);
                 });
             })->delete();
 
-            \App\Models\Log_activity::where(function($q) use ($id_kontrak, $permohonanIds, $keuanganIds, $pengirimanIds, $penyeliaIds) {
-                $q->where(function($sub) use ($id_kontrak) {
+            \App\Models\Log_activity::where(function ($q) use ($id_kontrak, $permohonanIds, $keuanganIds, $pengirimanIds, $penyeliaIds) {
+                $q->where(function ($sub) use ($id_kontrak) {
                     $sub->where('subject_type', 'App\Models\Kontrak')->where('subject_id', $id_kontrak);
-                })->orWhere(function($sub) use ($permohonanIds) {
+                })->orWhere(function ($sub) use ($permohonanIds) {
                     $sub->where('subject_type', 'App\Models\Permohonan')->whereIn('subject_id', $permohonanIds);
-                })->orWhere(function($sub) use ($keuanganIds) {
+                })->orWhere(function ($sub) use ($keuanganIds) {
                     $sub->where('subject_type', 'App\Models\Keuangan')->whereIn('subject_id', $keuanganIds);
-                })->orWhere(function($sub) use ($pengirimanIds) {
+                })->orWhere(function ($sub) use ($pengirimanIds) {
                     $sub->where('subject_type', 'App\Models\Pengiriman')->whereIn('subject_id', $pengirimanIds);
-                })->orWhere(function($sub) use ($penyeliaIds) {
+                })->orWhere(function ($sub) use ($penyeliaIds) {
                     $sub->where('subject_type', 'App\Models\Penyelia')->whereIn('subject_id', $penyeliaIds);
                 });
             })->delete();

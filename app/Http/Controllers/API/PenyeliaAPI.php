@@ -85,20 +85,22 @@ class PenyeliaAPI extends Controller
             }
 
             // menambahkan periode
-            $dataPemohonan = Permohonan::select('periode', 'id_layanan', 'id_kontrak', 'is_zerocek', 'is_have_tld')
+            $dataPemohonan = Permohonan::select('periode', 'id_layanan', 'id_kontrak', 'is_zerocek', 'is_have_tld', 'tipe_kontrak')
                 ->with('layanan_jasa:id_layanan,satuankerja_id', 'kontrak:id_kontrak,no_kontrak')
                 ->where('id_permohonan', $idPermohonan)->first();
             if ($dataPemohonan) {
                 $params['periode'] = $dataPemohonan->periode ? $dataPemohonan->periode : 0;
                 $params['periode_used'] = null;
 
-                if ($dataPemohonan->is_zerocek == 1 && $dataPemohonan->is_have_tld == 0) {
-                    $params['periode_used'] = 1;
-                } else {
-                    $periodeUsed = Kontrak_periode::where('id_kontrak', $dataPemohonan->id_kontrak)->where('periode', $dataPemohonan->periode + 2)->first();
+                if ($dataPemohonan->tipe_kontrak != 'adendum') {
+                    if ($dataPemohonan->is_zerocek == 1 && $dataPemohonan->is_have_tld == 0) {
+                        $params['periode_used'] = 1;
+                    } else {
+                        $periodeUsed = Kontrak_periode::where('id_kontrak', $dataPemohonan->id_kontrak)->where('periode', $dataPemohonan->periode + 2)->first();
 
-                    if ($periodeUsed) {
-                        $params['periode_used'] = $periodeUsed->periode;
+                        if ($periodeUsed) {
+                            $params['periode_used'] = $periodeUsed->periode;
+                        }
                     }
                 }
 

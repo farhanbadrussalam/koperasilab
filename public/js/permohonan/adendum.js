@@ -605,7 +605,7 @@ function deletePergantian(obj) {
 }
 function deleteKontrol(obj) {
     let id = $(obj).data('id');
- 
+
     arrOption.kontrol.splice(id, 1);
     loadHtmlKontrol();
 }

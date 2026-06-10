@@ -12,6 +12,20 @@ use App\Models\Permohonan_dokumen;
 use App\Models\Permohonan_pengguna;
 use App\Models\Permohonan_tandaterima;
 use App\Models\Permohonan_detail;
+use App\Models\Penyelia;
+use App\Models\Penyelia_petugas;
+use App\Models\Penyelia_map;
+use App\Models\Log_penyelia;
+use App\Models\Keuangan;
+use App\Models\Keuangan_diskon;
+use App\Models\Log_keuangan;
+use App\Models\Pengiriman;
+use App\Models\Pengiriman_detail;
+use App\Models\Log_pengiriman;
+use App\Models\Log_proses;
+use App\Models\Log_activity;
+use App\Models\Log_permohonan;
+use App\Models\Permohonan_tld;
 
 use App\Models\Documents;
 use App\Models\Master_jenisLayanan;
@@ -753,6 +767,96 @@ class PermohonanAPI extends Controller
         }
     }
 
+    public function destroyAdendum(string $id)
+    {
+        $user = Auth::user();
+        if (!$user || !($user->hasRole('Super Admin') || $user->getRoleNames()->contains('Developer'))) {
+            return $this->output(array('msg' => 'Akses ditolak. Hanya Developer atau Super Admin yang diperbolehkan.'), 'Fail', 403);
+        }
+
+        $idDecrypted = decryptor($id);
+        if (!$idDecrypted) {
+            return $this->output(array('msg' => 'ID Permohonan tidak valid'), 'Fail', 400);
+        }
+        $id = (int) $idDecrypted;
+
+        DB::beginTransaction();
+        try {
+            $permohonan = Permohonan::where('id_permohonan', $id)->first();
+            if (!$permohonan) {
+                return $this->output(array('msg' => 'Data permohonan tidak ditemukan'), 'Fail', 404);
+            }
+
+            if ($permohonan->tipe_kontrak !== 'adendum') {
+                return $this->output(array('msg' => 'Data yang ingin dihapus bukan merupakan adendum'), 'Fail', 400);
+            }
+
+            // 1. Bersihkan Penyelia
+            $penyeliaIds = Penyelia::where('id_permohonan', $id)->pluck('id_penyelia')->toArray();
+            if (!empty($penyeliaIds)) {
+                Penyelia_petugas::whereIn('id_penyelia', $penyeliaIds)->delete();
+                Penyelia_map::whereIn('id_penyelia', $penyeliaIds)->delete();
+                Log_penyelia::whereIn('id_penyelia', $penyeliaIds)->delete();
+                Penyelia::whereIn('id_penyelia', $penyeliaIds)->delete();
+            }
+
+            // 2. Bersihkan Keuangan
+            $keuanganIds = Keuangan::where('id_permohonan', $id)->pluck('id_keuangan')->toArray();
+            if (!empty($keuanganIds)) {
+                Keuangan_diskon::whereIn('id_keuangan', $keuanganIds)->delete();
+                Log_keuangan::whereIn('id_keuangan', $keuanganIds)->delete();
+                Keuangan::whereIn('id_keuangan', $keuanganIds)->delete();
+            }
+
+            // 3. Bersihkan Pengiriman
+            $pengirimanIds = Pengiriman::where('id_permohonan', $id)->pluck('id_pengiriman')->toArray();
+            if (!empty($pengirimanIds)) {
+                Pengiriman_detail::whereIn('id_pengiriman', $pengirimanIds)->delete();
+                Log_pengiriman::whereIn('id_pengiriman', $pengirimanIds)->delete();
+                Pengiriman::whereIn('id_pengiriman', $pengirimanIds)->delete();
+            }
+
+            // 4. Bersihkan Log Proses & Activity Permohonan
+            Log_proses::where('subject_type', 'App\Models\Permohonan')->where('subject_id', $id)->delete();
+            Log_activity::where('subject_type', 'App\Models\Permohonan')->where('subject_id', $id)->delete();
+            Log_permohonan::where('id_permohonan', $id)->delete();
+
+            // 5. Bersihkan tabel relasi permohonan anak lainnya
+            Permohonan_tandaterima::where('id_permohonan', $id)->delete();
+            Permohonan_tld::where('id_permohonan', $id)->delete();
+
+            $dataTld = Permohonan_detail::where('id_permohonan', $id)->get();
+            if ($dataTld) {
+                foreach ($dataTld as $item) {
+                    if ($item->jenis == 'pengguna') {
+                        Master_pengguna::find($item->id_pengguna_divisi)?->update(['status' => 1]);
+                    }
+                    if ($item->id_tld) {
+                        Master_tld::find($item->id_tld)?->update(['status' => 0]);
+                    }
+                }
+            }
+
+            Permohonan_pengguna::where('id_permohonan', $id)->get()->each->delete();
+            Permohonan_detail::where('id_permohonan', $id)->get()->each->delete();
+            Permohonan_dokumen::where('id_permohonan', $id)->where('jenis', 'adendum')->get()->each->delete();
+            $permohonan->delete();
+
+            // hapus `notifikasi`
+            $this->notif->deleteNotification(new Request([
+                'id_event' => $id,
+                'event' => 'Permohonan',
+            ]));
+
+            DB::commit();
+            return $this->output(array('msg' => 'Adendum berhasil dihapus!'));
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
     public function destroyTandaterima(string $id)
     {
         $id = decryptor($id);
@@ -1315,6 +1419,19 @@ class PermohonanAPI extends Controller
                     'locked_by' => null,
                     'locked_at' => null
                 ));
+
+                // simpan ttd di dokumen
+                $docTandaterima = Permohonan_dokumen::where('id_permohonan', $idPermohonan)
+                    ->where('jenis', 'tandaterima')
+                    ->where('status', 1)
+                    ->first();
+
+                if ($docTandaterima) {
+                    $docTandaterima->update([
+                        'ttd' => $ttd,
+                        'ttd_by' => $ttdBy
+                    ]);
+                }
 
                 // buatkan invoice jika total harga lebih besar dari 0
                 if ($dataPermohonan->total_harga > 0) {

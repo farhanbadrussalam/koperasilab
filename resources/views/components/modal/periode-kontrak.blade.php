@@ -70,6 +70,7 @@
                         let detailPengiriman = [];
                         let arrFind = ['invoice', 'tld', 'lhu'];
 
+                        console.log(kontrak.pengiriman);
                         for (const pengiriman of kontrak.pengiriman) {
                             let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
                             if (detail.length > 0) {
@@ -257,7 +258,6 @@
                 for (const doc of aktifDokumenKirim) {
                     let findPeriode = cekStatusPeriode.find(cek => cek.periode == data.periode && cek.jenis == doc &&
                         cek.tipe_kontrak != 'adendum');
-
                     if (doc === 'zerocek') {
                         let zerocekLhuPeriode = kontrak.is_have_tld == 1 ? 1 : 0;
                         findPeriode = cekStatusPeriode.find(cek => cek.periode == zerocekLhuPeriode && cek.jenis ==
