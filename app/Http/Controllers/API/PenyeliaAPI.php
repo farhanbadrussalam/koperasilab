@@ -666,7 +666,8 @@ class PenyeliaAPI extends Controller
 
     private function processJobProses(mixed $penyelia, mixed $jobsNow, mixed $jobsNext, mixed  $sProgress, mixed  $note, mixed $idPenyelia)
     {
-        if ($sProgress == 'done' && $jobsNext && in_array($jobsNext->jobs->status, [16, 20]) && $penyelia->periode_used && $penyelia->is_surpeng_signed != 1) {
+        //  && $penyelia->periode_used
+        if ($sProgress == 'done' && $jobsNext && in_array($jobsNext->jobs->status, [16, 20]) && $penyelia->is_surpeng_signed != 1) {
             throw new \Exception("Proses berikutnya ({$jobsNext->jobs->name}) ditangguhkan karena Surat Pengantar belum ditandatangani.");
         }
 

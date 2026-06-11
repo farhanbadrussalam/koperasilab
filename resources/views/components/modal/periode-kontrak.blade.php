@@ -161,9 +161,9 @@
                         <button class="btn btn-sm btn-outline-warning rounded-pill px-2 ms-2 fw-semibold d-inline-flex align-items-center gap-1"
                                 type="button"
                                 data-bs-toggle="collapse"
-                                data-bs-target="#collapseAdendum-${data.periode_hash}"
+                                data-bs-target="#collapseAdendum${isModal ? '-modal' : ''}-${data.periode_hash}"
                                 aria-expanded="false"
-                                aria-controls="collapseAdendum-${data.periode_hash}">
+                                aria-controls="collapseAdendum${isModal ? '-modal' : ''}-${data.periode_hash}">
                             <i class="bi bi-journal-text"></i>
                             <span>${data.adendum.length} Adendum</span>
                             <i class="bi bi-chevron-down small ms-1"></i>
@@ -205,7 +205,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                ${this._generateAdendumCollapseHtml(data, cekStatusPeriode)}
+                                ${this._generateAdendumCollapseHtml(data, cekStatusPeriode, isModal)}
                             </div>
                         </div>
                     `;
@@ -220,7 +220,6 @@
                                         <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
                                             <span class="fw-bold fs-6 text-primary-emphasis">${textPeriode}</span>
                                             ${htmlRangeDate}
-                                            ${htmlAdendum}
                                         </div>
                                         <div class="row row-cols-1 row-cols-sm-2 g-2">
                                             ${htmlDoc}
@@ -243,7 +242,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                ${this._generateAdendumCollapseHtml(data, cekStatusPeriode)}
                             </div>
                         </div>
                     `;
@@ -547,11 +545,11 @@
                 };
             }
 
-            _generateAdendumCollapseHtml(data, cekStatusPeriode = []) {
+            _generateAdendumCollapseHtml(data, cekStatusPeriode = [], isModal = false) {
                 if (!data.adendum || data.adendum.length === 0) return '';
 
                 let html = `
-                    <div class="collapse mt-3 border-top pt-3" id="collapseAdendum-${data.periode_hash}">
+                    <div class="collapse mt-3 border-top pt-3" id="collapseAdendum${isModal ? '-modal' : ''}-${data.periode_hash}">
                         <div class="d-flex flex-column gap-2">
                 `;
 
