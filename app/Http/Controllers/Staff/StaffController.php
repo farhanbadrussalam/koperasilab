@@ -414,8 +414,6 @@ class StaffController extends Controller
                 // melakukan set kontrak adendum
                 $kontrakPeriode = Kontrak_periode::where('id_periode', $idPeriode)->first();
                 if ($kontrakPeriode) {
-                    setKontrakAdendum($id, $kontrakPeriode->periode);
-
                     // Generate surpeng document if not exists and associated permohonan is null
                     $associatedPermohonan = Permohonan::where('id_kontrak', $id)->where('periode', $kontrakPeriode->periode)->first();
                     if (!$associatedPermohonan && !$kontrakPeriode->nomer_surpeng) {

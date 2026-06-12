@@ -88,6 +88,23 @@ class PermohonanAPI extends Controller
             $dataKontrak = Kontrak::find($idKontrak);
             $dataPeriode = Kontrak_periode::find($idPeriode);
 
+            if (!$dataKontrak || !$dataPeriode) {
+                return $this->output(['msg' => 'Kontrak atau Periode tidak ditemukan.'], 'Fail', 422);
+            }
+
+            $periodeActive = $dataKontrak->periode_active;
+            if (!$periodeActive) {
+                return $this->output(['msg' => 'Tidak ada periode aktif pada kontrak ini.'], 'Fail', 422);
+            }
+
+            $activePeriodeNum = $periodeActive->periode;
+            $selisih = $dataPeriode->periode - $activePeriodeNum;
+
+            // Validasi batasan periode adendum (-1, 0, 1)
+            if ($selisih < -1 || $selisih > 1) {
+                return $this->output(['msg' => 'Periode adendum tidak valid. Hanya diperbolehkan untuk periode sebelumnya, aktif, atau berikutnya.'], 'Fail', 422);
+            }
+
             $jumPenggunaBaru = count(array_filter($pengguna, function ($item) {
                 return $item->status == 'baru';
             }));
@@ -95,6 +112,29 @@ class PermohonanAPI extends Controller
             $jumKontrolBaru = count(array_filter($kontrol, function ($item) {
                 return $item->status == 'baru';
             }));
+
+            // Validasi penambahan baru pada P-1 (periode sebelumnya)
+            if ($selisih === -1) {
+                if ($jumPenggunaBaru > 0 || $jumKontrolBaru > 0) {
+                    return $this->output(['msg' => 'Tidak diperbolehkan menambah pengguna baru pada periode sebelumnya.'], 'Fail', 422);
+                }
+            }
+
+            // Validasi aturan: jika periode berjalan/berikutnya, dan TLD berikutnya sudah dikirim, maka tidak boleh ada penambahan pengguna baru
+            if ($selisih >= 0) {
+                $checkPeriode = $dataPeriode->periode + 1;
+                $isTldNextSent = \App\Models\Pengiriman::where('id_kontrak', $idKontrak)
+                    ->where('periode', $checkPeriode)
+                    ->whereHas('detail', function ($q) {
+                        $q->where('jenis', 'tld');
+                    })
+                    ->whereIn('status', [1, 2, 3])
+                    ->exists();
+
+                if ($isTldNextSent && ($jumPenggunaBaru > 0 || $jumKontrolBaru > 0)) {
+                    return $this->output(['msg' => 'Tidak diperbolehkan menambah pengguna baru karena TLD untuk periode berikutnya sudah dikirim.'], 'Fail', 422);
+                }
+            }
 
             $data = array();
 

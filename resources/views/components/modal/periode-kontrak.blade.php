@@ -70,7 +70,6 @@
                         let detailPengiriman = [];
                         let arrFind = ['invoice', 'tld', 'lhu'];
 
-                        console.log(kontrak.pengiriman);
                         for (const pengiriman of kontrak.pengiriman) {
                             let detail = pengiriman.detail.filter(detail => arrFind.includes(detail.jenis));
                             if (detail.length > 0) {
@@ -171,6 +170,8 @@
                     `;
                 }
 
+                let periodeActive = kontrak.periode_active.periode;
+
                 if (isModal) {
                     // Tampilan ketika di dalam Info Modal
                     return `
@@ -205,7 +206,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                ${this._generateAdendumCollapseHtml(data, cekStatusPeriode, isModal)}
+                                ${this._generateAdendumCollapseHtml(data, cekStatusPeriode, isModal, periodeActive)}
                             </div>
                         </div>
                     `;
@@ -545,7 +546,7 @@
                 };
             }
 
-            _generateAdendumCollapseHtml(data, cekStatusPeriode = [], isModal = false) {
+            _generateAdendumCollapseHtml(data, cekStatusPeriode = [], isModal = false, periodeActive = null) {
                 if (!data.adendum || data.adendum.length === 0) return '';
 
                 let html = `
@@ -571,7 +572,14 @@
                         cek.jenis === 'invoice'
                     ) : null;
 
+                    // Cari pengiriman TLD adendum
+                    let findTldAdendum = cekStatusPeriode.find(cek =>
+                        cek.permohonan_hash === adendum.permohonan_hash &&
+                        cek.jenis === 'tld'
+                    ) ?? null;
+
                     let htmlInvoice = '';
+                    let htmlTld = '';
                     if (jmlPenambahan > 0) {
                         let statusInvoice = findInvoiceAdendum ? findInvoiceAdendum.status : 0;
                         let textStatusInvoice = statusFormat('pengiriman', statusInvoice);
@@ -588,6 +596,19 @@
                                 <i class="bi bi-receipt-cutoff text-warning"></i>
                                 <span class="fw-semibold">Invoice:</span>
                                 <span>${textStatusInvoice}</span>
+                            </div>
+                        `;
+
+                        // if (data.periode == periodeActive) {
+                        // }
+                        let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                        let textStatusTld = statusFormat('pengiriman', statusTld);
+
+                        htmlTld = `
+                            <div class="d-flex align-items-center gap-1 small text-secondary">
+                                <i class="bi bi-file-earmark-text-fill text-warning"></i>
+                                <span class="fw-semibold">TLD:</span>
+                                <span>${textStatusTld}</span>
                             </div>
                         `;
                     }
@@ -634,6 +655,7 @@
                             <div class="d-flex gap-4 mt-2 border-top pt-2 flex-wrap">
                                 ${htmlInvoice}
                                 ${htmlLhu}
+                                ${htmlTld}
                             </div>
                         </div>
                     `;

@@ -814,7 +814,12 @@ class PenyeliaAPI extends Controller
 
             if ($penyelia->permohonan->tipe_kontrak == 'adendum' && $penyelia->permohonan->is_zerocek == 0) {
                 $permohonan->update(['status' => 5]);
-                setKontrakAdendum($penyelia->permohonan->id_kontrak, $penyelia->permohonan->periode);
+                
+                // Hanya aktifkan adendum jika tidak memiliki penambahan pengguna baru (type = baru)
+                $hasPenambahan = $permohonan->permohonan_detail()->where('type', 'baru')->exists();
+                if (!$hasPenambahan) {
+                    setKontrakAdendum($penyelia->permohonan->id_kontrak, $penyelia->permohonan->periode);
+                }
             } else {
                 $permohonan->update(['status' => 4]);
             }

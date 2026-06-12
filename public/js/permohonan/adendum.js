@@ -220,7 +220,7 @@ function loadPeriode() {
         let htmlAktif = '';
         let is_aktif = (activePeriodeNum !== null && data.periode === activePeriodeNum);
         let is_berdekatan = (activePeriodeNum !== null && data.periode === activePeriodeNum + 1);
-        let is_berdekatan_belakang = (activePeriodeNum !== null && data.periode <= activePeriodeNum - 1);
+        let is_berdekatan_belakang = (activePeriodeNum !== null && data.periode === activePeriodeNum - 1);
 
         if (is_aktif) {
             htmlAktif = `<span class="badge bg-info-subtle text-dark">Aktif</span>`;
@@ -509,7 +509,9 @@ function pilihPeriode(obj) {
     const activePeriodeObj = dataKontrak.periode.find(p => p.periode != 0 && now >= new Date(p.start_date) && now <= new Date(p.end_date));
     const activePeriodeNum = dataKontrak.periode_active ? dataKontrak.periode_active.periode : (activePeriodeObj ? activePeriodeObj.periode : null);
 
-    if (activePeriodeNum !== null && periode.periode < activePeriodeNum) {
+    const isTldNextSent = dataKontrak.tld_sent_status && dataKontrak.tld_sent_status[periode.periode + 1] ? true : false;
+
+    if ((activePeriodeNum !== null && periode.periode < activePeriodeNum) || isTldNextSent) {
         $('#btn-add-pengguna').removeClass('d-block').addClass('d-none');
         $('#btn-add-kontrol').removeClass('d-block').addClass('d-none');
         arrOption.pengguna.map(d => {

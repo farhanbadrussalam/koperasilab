@@ -133,7 +133,9 @@ class PengirimanAPI extends Controller
                 'pelanggan:id,id_perusahaan,name',
                 'pelanggan.perusahaan',
                 'kontrak',
+                // 'kontrak.periode_active',
                 'pengiriman',
+                'pengiriman_tld',
                 'invoice',
                 'invoice.pengiriman',
                 'lhu',
@@ -174,6 +176,16 @@ class PengirimanAPI extends Controller
                         })->whereDoesntHave('invoice.pengiriman', function ($ship) {
                             $ship->whereIn('status', [1, 2, 3]);
                         });
+                    })
+                    // ATAU Pengiriman TLD adendum belum selesai (untuk adendum penambahan pada periode aktif)
+                    ->orWhere(function ($sub) {
+                        $sub->whereHas('permohonan_detail', function ($detail) {
+                            $detail->where('type', 'baru');
+                        })
+                            ->whereRaw('permohonan.periode = (SELECT MIN(periode) FROM kontrak_periode WHERE kontrak_periode.id_kontrak = permohonan.id_kontrak AND kontrak_periode.selesai IS NULL AND kontrak_periode.periode != 0)')
+                            ->whereDoesntHave('pengiriman_tld', function ($ship) {
+                                $ship->whereIn('status', [1, 2, 3]);
+                            });
                     });
             });
 
@@ -590,21 +602,49 @@ class PengirimanAPI extends Controller
                     ? ['status_tld_1' => 2, 'periode_tld_1' => $periodeNow]
                     : ['status_tld_2' => 2, 'periode_tld_2' => $periodeNow];
 
-                Kontrak_detail::where('id_kontrak', $query->id_kontrak)->where('status', 1)->update($updateData);
+                $tldField = $isPeriodOne ? 'tld_1' : 'tld_2';
+                $tldIds = [];
+                foreach ($query->detail->where('jenis', 'tld') as $detailItem) {
+                    if (!empty($detailItem->list_tld)) {
+                        $tldIds = array_merge($tldIds, $detailItem->list_tld);
+                    }
+                }
+                $tldIds = array_unique(array_filter($tldIds));
+
+                if (!empty($tldIds)) {
+                    Kontrak_detail::where('id_kontrak', $query->id_kontrak)
+                        ->whereIn($tldField, $tldIds)
+                        ->whereIn('status', [1, 2])
+                        ->update($updateData);
+                } else {
+                    Kontrak_detail::where('id_kontrak', $query->id_kontrak)
+                        ->whereIn('status', [1, 2])
+                        ->update($updateData);
+                }
 
                 // menambahkan ke kontrak_map untuk mendaftarkan tld dan pengguna yang di pakai
-                $kontrakDetail = Kontrak_detail::where('id_kontrak', $query->id_kontrak)->where('status', 1)->get();
+                $kontrakDetail = Kontrak_detail::where('id_kontrak', $query->id_kontrak)
+                    ->whereIn('status', [1, 2])
+                    ->get();
                 foreach ($kontrakDetail as $item) {
                     $idTld = $isPeriodOne ? $item->tld_1 : $item->tld_2;
-                    Kontrak_map::create([
-                        'id_kontrak' => $item->id_kontrak,
-                        'id_kontrak_detail' => $item->id,
-                        'id_tld' => $isPeriodOne ? $item->tld_1 : $item->tld_2,
-                        'id_pengguna_divisi' => $item->id_pengguna_divisi,
-                        'jenis' => $item->jenis,
-                        'periode' => $periodeNow,
-                        'created_by' => Auth::user()->id
-                    ]);
+                    if ($idTld) {
+                        Kontrak_map::firstOrCreate([
+                            'id_kontrak' => $item->id_kontrak,
+                            'id_kontrak_detail' => $item->id,
+                            'periode' => $periodeNow,
+                        ], [
+                            'id_tld' => $idTld,
+                            'id_pengguna_divisi' => $item->id_pengguna_divisi,
+                            'jenis' => $item->jenis,
+                            'created_by' => Auth::user()->id
+                        ]);
+                    }
+                }
+
+                // AKTIVASI ADENDUM: Jika pengiriman TLD ini terasosiasi dengan permohonan adendum
+                if ($query->permohonan && $query->permohonan->tipe_kontrak == 'adendum') {
+                    setKontrakAdendum($query->id_kontrak, $query->periode);
                 }
             }
 
@@ -753,7 +793,16 @@ class PengirimanAPI extends Controller
                 } else if ($kontrakPeriode->count_tld == 2) {
                     $update['status_tld_2'] = 5;
                 }
-                Kontrak_detail::where('id_kontrak', $fileBukti->id_kontrak)->where('status', 1)->update($update);
+                // Ambil daftar TLD dari detail pengiriman untuk mengembalikan status TLD spesifik jika ada
+                $tldField = $kontrakPeriode->count_tld == 1 ? 'tld_1' : 'tld_2';
+                if (!empty($detailTld->list_tld)) {
+                    Kontrak_detail::where('id_kontrak', $fileBukti->id_kontrak)
+                        ->whereIn($tldField, $detailTld->list_tld)
+                        ->whereIn('status', [1, 2])
+                        ->update($update);
+                } else {
+                    Kontrak_detail::where('id_kontrak', $fileBukti->id_kontrak)->whereIn('status', [1, 2])->update($update);
+                }
 
                 $kontrakPeriode->update([
                     'nomer_surpeng' => null,

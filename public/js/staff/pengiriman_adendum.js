@@ -83,6 +83,14 @@ function loadData(page = 1) {
                 // Cari pengiriman Invoice adendum (hanya jika ada penambahan)
                 let findInvoiceAdendum = (jmlPenambahan > 0 && data.invoice) ? data.invoice.pengiriman : null;
 
+                // Cari pengiriman TLD adendum (hanya jika ada penambahan dan periode adendum == periode aktif kontrak)
+                let findTldAdendum = null;
+                let isAdendumPeriodeAktif = false;
+                if (jmlPenambahan > 0 && data.kontrak?.periode_active?.periode == data.periode) {
+                    isAdendumPeriodeAktif = true;
+                    findTldAdendum = data.pengiriman_tld;
+                }
+
                 // Dokumen status info
                 let htmlInvoice = '';
                 if (jmlPenambahan > 0) {
@@ -107,6 +115,17 @@ function loadData(page = 1) {
                         <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
                     </div>
                 `;
+
+                let htmlTld = '';
+                if (isAdendumPeriodeAktif) {
+                    let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                    htmlTld = `
+                        <div class="col-md-6 border-top py-2 d-flex justify-content-between align-items-center">
+                            <span class="small fw-semibold text-secondary"><i class="bi bi-cpu me-2"></i>TLD Adendum</span>
+                            <span class="small">${statusFormat('pengiriman', statusTld)}</span>
+                        </div>
+                    `;
+                }
 
                 // Tombol aksi kirim
                 let htmlBtn = `<a class="btn btn-primary rounded-pill px-4 shadow-sm btn-sm fw-bold d-flex align-items-center gap-1" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan_hash}"><i class="bi bi-send-fill"></i> Kirim Dokumen</a>`;
@@ -148,6 +167,7 @@ function loadData(page = 1) {
                             <div class="row g-3 px-2">
                                 ${htmlInvoice}
                                 ${htmlLhu}
+                                ${htmlTld}
                             </div>
                         </div>
                     </div>

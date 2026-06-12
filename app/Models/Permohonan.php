@@ -263,6 +263,14 @@ class Permohonan extends Model
         return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
     }
 
+    public function pengiriman_tld()
+    {
+        return $this->hasOne(Pengiriman::class, 'id_permohonan', 'id_permohonan')
+            ->whereHas('detail', function ($q) {
+                $q->where('jenis', 'tld');
+            });
+    }
+
     public function file_lhu()
     {
         return $this->hasOne(Master_media::class, 'id', 'file_lhu');

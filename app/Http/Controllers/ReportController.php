@@ -1166,35 +1166,46 @@ class ReportController extends Controller
         $html = '';
         $no = 1;
         $countKontrol = 0;
-        $kontrakDetail = Kontrak_detail::with([
-            'entitas'
-        ])
-            ->where('id_kontrak', $data->id_kontrak)
-            ->where('status', 1)
-            ->get();
+        $isAdendum = isset($params['permohonan']) && $params['permohonan']->tipe_kontrak == 'adendum';
 
-        // jika ada dendum yang baru akan di masukkan ke kontrak detail dengan jenis kontrol, jadi untuk menampilkan di surat pengantar hanya yang jenis pengguna saja, sedangkan yang jenis kontrol akan dihitung jumlahnya saja
-        $detailAdendum = kontrak_detail::with([
-            'entitas',
-            'penggunaLama'
-        ])
-            ->where('id_kontrak', $data->id_kontrak)
-            ->where('status', 2)
-            ->where('periode', $params['periode'])
-            ->get();
+        if ($isAdendum) {
+            $kontrakDetail = \App\Models\Permohonan_detail::with([
+                'entitas'
+            ])
+                ->where('id_permohonan', $params['permohonan']->id_permohonan)
+                ->where('type', 'baru')
+                ->get();
+        } else {
+            $kontrakDetail = Kontrak_detail::with([
+                'entitas'
+            ])
+                ->where('id_kontrak', $data->id_kontrak)
+                ->where('status', 1)
+                ->get();
 
-        foreach ($detailAdendum as $value) {
-            if ($value->jenis == 'pengguna') {
-                if ($value->type == 'ganti') {
-                    $index = $kontrakDetail->search(function ($item) use ($value) {
-                        return $item->id_pengguna_divisi == $value->pengguna_lama;
-                    });
+            // jika ada dendum yang baru akan di masukkan ke kontrak detail dengan jenis kontrol, jadi untuk menampilkan di surat pengantar hanya yang jenis pengguna saja, sedangkan yang jenis kontrol akan dihitung jumlahnya saja
+            $detailAdendum = kontrak_detail::with([
+                'entitas',
+                'penggunaLama'
+            ])
+                ->where('id_kontrak', $data->id_kontrak)
+                ->where('status', 2)
+                ->where('periode', $params['periode'])
+                ->get();
 
-                    if ($index !== false) {
-                        $kontrakDetail[$index] = $value;
+            foreach ($detailAdendum as $value) {
+                if ($value->jenis == 'pengguna') {
+                    if ($value->type == 'ganti') {
+                        $index = $kontrakDetail->search(function ($item) use ($value) {
+                            return $item->id_pengguna_divisi == $value->pengguna_lama;
+                        });
+
+                        if ($index !== false) {
+                            $kontrakDetail[$index] = $value;
+                        }
+                    } else {
+                        $kontrakDetail->push($value);
                     }
-                } else {
-                    $kontrakDetail->push($value);
                 }
             }
         }
@@ -1392,15 +1403,33 @@ class ReportController extends Controller
             $alias = substr($query->permohonan->kontrak->no_kontrak, 0, 1);
         }
 
-        $listTld = Kontrak_detail::with([
-            'entitas' => function (MorphTo $morphTo) {
-                $morphTo->morphWith([
-                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-                ]);
-            },
-            'tld_1',
-            'tld_2'
-        ])->where('id_kontrak', $query->id_kontrak)->get();
+        $isAdendum = $query->permohonan && $query->permohonan->tipe_kontrak == 'adendum';
+
+        if ($isAdendum) {
+            $listTld = \App\Models\Permohonan_detail::with([
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                }
+            ])
+                ->where('id_permohonan', $query->id_permohonan)
+                ->where('type', 'baru')
+                ->get();
+        } else {
+            $listTld = Kontrak_detail::with([
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
+                'tld_1',
+                'tld_2'
+            ])
+                ->where('id_kontrak', $query->id_kontrak)
+                ->where('status', 1)
+                ->get();
+        }
 
         $data = array();
 
