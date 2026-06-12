@@ -21,6 +21,128 @@ $(function () {
         }
     }
 
+    // upload avatar profile instantly via AJAX
+    $('#profile-avatar-input').on('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        // validate size and mime type
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+            Swal.fire({
+                icon: 'warning',
+                text: 'Format gambar harus PNG, JPG, atau JPEG'
+            });
+            this.value = '';
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'warning',
+                text: 'Ukuran gambar maksimal 2MB'
+            });
+            this.value = '';
+            return;
+        }
+
+        // Show spinner/loading visual
+        Swal.fire({
+            title: 'Sedang Mengunggah...',
+            text: 'Harap tunggu sebentar',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('idHash', profile.user_hash);
+
+        ajaxPost('api/v1/profile/uploadAvatar', formData, result => {
+            Swal.close();
+            if (result.meta.message === 'Fail') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal',
+                    text: result.data.msg || 'Terjadi kesalahan saat mengunggah avatar.'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Foto profil berhasil diperbarui',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    location.reload();
+                });
+            }
+        }, error => {
+            Swal.close();
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: 'Terjadi kesalahan sistem.'
+            });
+        });
+    });
+
+    // delete avatar profile instantly via AJAX
+    $('#btn-delete-avatar').on('click', function () {
+        Swal.fire({
+            title: 'Hapus Foto Profil?',
+            text: "Foto profil Anda akan dikembalikan ke inisial default.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const userHash = profile.user_hash;
+                const mediaHash = profile.profile?.media?.media_hash;
+
+                if (!userHash || !mediaHash) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Informasi avatar tidak valid.'
+                    });
+                    return;
+                }
+
+                ajaxDelete(`api/v1/profile/destroyAvatar/${userHash}/${mediaHash}`, result => {
+                    Swal.close();
+                    if (result.meta.message === 'Fail') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: result.data.msg || 'Terjadi kesalahan saat menghapus avatar.'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'success',
+                            text: 'Foto profil berhasil dihapus',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            location.reload();
+                        });
+                    }
+                }, error => {
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan sistem.'
+                    });
+                });
+            }
+        });
+    });
+
     // upload stempel
     uploadStempel = new UploadComponent('upload-stempel', {
         camera: false,
@@ -845,7 +967,7 @@ function previewKopSurat(obj) {
     });
 }
 
-$(document).on('change', '.switch-sama-utama', function() {
+$(document).on('change', '.switch-sama-utama', function () {
     let target = $(this).data('target');
     if ($(this).is(':checked')) {
         $(`#body-alamat-${target}-active`).removeClass('d-none').addClass('d-block');
@@ -855,13 +977,13 @@ $(document).on('change', '.switch-sama-utama', function() {
         $(`#body-alamat-${target}-active`).removeClass('d-block').addClass('d-none');
         $(`#body-alamat-${target}-inactive`).removeClass('d-none').addClass('d-block');
         $(`#kota_${target}, #kode_pos_${target}, #alamat_${target}`).removeAttr('required');
-        
+
         let parsleyKota = $(`#kota_${target}`).parsley();
         let parsleyKodePos = $(`#kode_pos_${target}`).parsley();
         let parsleyAlamat = $(`#alamat_${target}`).parsley();
-        if(parsleyKota) parsleyKota.reset();
-        if(parsleyKodePos) parsleyKodePos.reset();
-        if(parsleyAlamat) parsleyAlamat.reset();
+        if (parsleyKota) parsleyKota.reset();
+        if (parsleyKodePos) parsleyKodePos.reset();
+        if (parsleyAlamat) parsleyAlamat.reset();
     }
 });
 
@@ -877,7 +999,7 @@ function simpanSemuaAlamat(btn) {
     const arrJenis = ['tld', 'lhu', 'invoice'];
     arrJenis.forEach(j => {
         if ($(`#switch-sama-${j}`).is(':checked')) {
-            params.append(`status_${j}`, 1); 
+            params.append(`status_${j}`, 1);
         } else {
             params.append(`status_${j}`, 0);
         }
@@ -885,7 +1007,7 @@ function simpanSemuaAlamat(btn) {
 
     ajaxPost('api/v1/profile/action/tambah_semua_alamat', params, result => {
         spinner('hide', $(btn));
-        if(result.meta.code == 200) {
+        if (result.meta.code == 200) {
             Swal.fire({
                 icon: 'success',
                 text: 'Data alamat berhasil disimpan',

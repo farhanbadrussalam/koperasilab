@@ -28,7 +28,7 @@ class ProfileController extends Controller
     public function index()
     {
         $profile = user::with([
-            'profile', 'perusahaan', 
+            'profile', 'profile.media', 'perusahaan', 
             'perusahaan.alamat', 
             'perusahaan.stempel_perusahaan',
             'profile.suratkuasa'

@@ -28,7 +28,10 @@ use DB;
 class KeuanganAPI extends Controller
 {
     use RestApi;
-    protected $media, $log, $pagination, $notif;
+    protected MediaController $media;
+    protected NotifController $notif;
+    protected mixed $log;
+    protected mixed $pagination;
 
     public function __construct()
     {
@@ -75,7 +78,7 @@ class KeuanganAPI extends Controller
                 $createBy = Auth::user()->id;
             }
 
-            $query = Keuangan::with(
+            $query = Keuangan::with([
                 'permohonan',
                 'diskon',
                 'usersig',
@@ -86,8 +89,11 @@ class KeuanganAPI extends Controller
                 'permohonan.pelanggan',
                 'permohonan.pelanggan.perusahaan',
                 'permohonan.kontrak',
-                'permohonan.kontrak.periode'
-            )
+                'permohonan.kontrak.periode',
+                'dokumen' => function ($q) {
+                    $q->whereIn('jenis', ['invoice', 'kwitansi']);
+                }
+            ])
                 ->orderBy('created_at', 'DESC')
                 ->offset(($page - 1) * $limit)
                 ->when($status, function ($q, $status) {
@@ -177,7 +183,7 @@ class KeuanganAPI extends Controller
         }
     }
 
-    public function destroyJenisPembayaran($id)
+    public function destroyJenisPembayaran(string $id)
     {
         DB::beginTransaction();
         try {
@@ -254,7 +260,7 @@ class KeuanganAPI extends Controller
         }
     }
 
-    public function getKeuangan($idKeuangan)
+    public function getKeuangan(string $idKeuangan)
     {
         $idKeuangan = $idKeuangan ? decryptor($idKeuangan) : false;
         DB::beginTransaction();
@@ -427,6 +433,7 @@ class KeuanganAPI extends Controller
                 $no_kwitansi = generateNoDokumen('kwitansi', $keuangan->id_permohonan);
                 Permohonan_dokumen::create(array(
                     'id_kontrak' => Permohonan::find($keuangan->id_permohonan)->id_kontrak,
+                    'id_permohonan' => $keuangan->id_permohonan,
                     'id_doc_template' => $template->id_doc,
                     'created_by' => Auth::user()->id,
                     'nama' => 'Kwitansi',
@@ -652,7 +659,7 @@ class KeuanganAPI extends Controller
         }
     }
 
-    public function destroyBuktiBayar($idKeuangan, $idMedia)
+    public function destroyBuktiBayar(string $idKeuangan, string $idMedia)
     {
         $idMedia = decryptor($idMedia);
         $idKeuangan = decryptor($idKeuangan);
@@ -685,7 +692,7 @@ class KeuanganAPI extends Controller
         }
     }
 
-    public function destroyBuktiBayarPph($idKeuangan, $idMedia)
+    public function destroyBuktiBayarPph(string $idKeuangan, string $idMedia)
     {
         $idMedia = decryptor($idMedia);
         $idKeuangan = decryptor($idKeuangan);
@@ -719,7 +726,7 @@ class KeuanganAPI extends Controller
     }
 
 
-    public function destroyFaktur($idKeuangan, $idMedia)
+    public function destroyFaktur(string $idKeuangan, string $idMedia)
     {
         $idMedia = decryptor($idMedia);
         $idKeuangan = decryptor($idKeuangan);
@@ -748,6 +755,60 @@ class KeuanganAPI extends Controller
             info($ex);
             DB::rollBack();
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function updateDokumen(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $idKeuangan = decryptor($request->id_hash);
+            $tanggal_terbit = $request->tanggal_terbit ? date('Y-m-d', strtotime($request->tanggal_terbit)) : null;
+            $jenis_dokumen = $request->jenis_dokumen ?? false;
+            $nomer = $request->nomer ?? null;
+            $catatan = $request->catatan ?? null;
+
+            $dataKeuangan = Keuangan::find($idKeuangan);
+            if (!$dataKeuangan) {
+                throw new \Exception("Data Keuangan tidak ditemukan");
+            }
+
+            if ($jenis_dokumen) {
+                $dokumen = Permohonan_dokumen::where('id_permohonan', $dataKeuangan->id_permohonan)
+                    ->where('jenis', $jenis_dokumen)
+                    ->first();
+
+                if ($dokumen) {
+                    $updateDokumen = [
+                        'catatan' => $catatan,
+                        'nomer' => $nomer,
+                        'variables' => null
+                    ];
+
+                    if ($jenis_dokumen == 'invoice') {
+                        $updateDokumen['published_at'] = $tanggal_terbit;
+                        if ($nomer) {
+                            $dataKeuangan->no_invoice = $nomer;
+                        }
+                    } elseif ($jenis_dokumen == 'kwitansi') {
+                        $dataKeuangan->paid_at = $tanggal_terbit;
+                    }
+
+                    $dokumen->update($updateDokumen);
+                }
+            }
+
+            if ($dataKeuangan->isDirty()) {
+                $dataKeuangan->save();
+            }
+
+            DB::commit();
+
+            return $this->output(['msg' => 'Dokumen berhasil diupdate']);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(['msg' => $ex->getMessage()], 'Fail', 500);
         }
     }
 

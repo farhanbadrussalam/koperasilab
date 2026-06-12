@@ -42,13 +42,13 @@ class PelangganController extends Controller
     public function indexKontrak()
     {
         $data = [
-            'title' => 'Kontrak',
+            'title' => 'Transaksi',
             'module' => 'permohonan-kontrak'
         ];
         return view('pages.permohonan.kontrak.index', $data);
     }
 
-    public function evaluasiKontrak($idKontrak, $idPeriode)
+    public function evaluasiKontrak(string $idKontrak, string $idPeriode)
     {
         $periodeNow = Kontrak_periode::with([
             'permohonan',
@@ -150,7 +150,7 @@ class PelangganController extends Controller
                 'module' => 'permohonan-kontrak',
             ];
 
-            $data['kontrak'] = Kontrak::with([
+            $kontrak = Kontrak::with([
                 'pelanggan',
                 'pelanggan.perusahaan',
                 'layanan_jasa',
@@ -159,6 +159,22 @@ class PelangganController extends Controller
                 'jenisTld',
                 'periode'
             ])->where('id_kontrak', $idKontrak)->first();
+
+            if ($kontrak) {
+                $tldSentStatus = [];
+                foreach ($kontrak->periode as $p) {
+                    $tldSentStatus[$p->periode] = \App\Models\Pengiriman::where('id_kontrak', $idKontrak)
+                        ->where('periode', $p->periode)
+                        ->whereHas('detail', function ($q) {
+                            $q->where('jenis', 'tld');
+                        })
+                        ->whereIn('status', [1, 2, 3])
+                        ->exists();
+                }
+                $kontrak->tld_sent_status = $tldSentStatus;
+            }
+
+            $data['kontrak'] = $kontrak;
 
             return view('pages.permohonan.kontrak.adendum', $data);
         } else {

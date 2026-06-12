@@ -5,7 +5,6 @@ namespace App\Models;
 use Auth;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * @property int $id_penyelia
@@ -81,9 +80,11 @@ class Penyelia extends Model
     protected $fillable = [
         'id_permohonan',
         'id_pengiriman',
+        'id_kontrak',
         'start_date',
         'end_date',
         'periode',
+        'periode_used',
         'status',
         'ttd',
         'ttd_by',
@@ -118,9 +119,11 @@ class Penyelia extends Model
         'start_date' => 'datetime',
         'end_date' => 'datetime',
         'periode' => 'integer',
+        'periode_used' => 'integer',
         'status' => 'integer',
         'id_penyelia' => 'integer',
         'id_permohonan' => 'integer',
+        'id_kontrak' => 'integer',
         'ttd_by' => 'integer',
         'created_by' => 'integer',
         'document' => 'json',
@@ -224,6 +227,16 @@ class Penyelia extends Model
         return $this->belongsTo(Kontrak_periode::class, 'id_permohonan', 'id_permohonan');
     }
 
+    public function dokumenSurpeng()
+    {
+        return $this->hasMany(Permohonan_dokumen::class, 'id_kontrak', 'id_kontrak')->where('jenis', 'surpeng');
+    }
+
+    public function kontrak()
+    {
+        return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
+    }
+
     /**
      * Scope untuk menambah subquery active_job_order
      */
@@ -253,7 +266,7 @@ class Penyelia extends Model
                 return $query->whereIn('id_jobs', $status)
                     ->where('status', $statusLhu)
                     ->whereHas('petugas', function ($q) {
-                        return $q->where('id_user', Auth::id());
+                        return $q->where('id_user', Auth::user()->id);
                     });
             });
         });
@@ -276,8 +289,10 @@ class Penyelia extends Model
                         $v->where('id_jobs', $idJobs)->where('status', 1);
                     });
                 } else if ($key === 'date_range') {
-                    $q->where('start_date', '<=', $value[1])
-                        ->where('end_date', '>=', $value[0]);
+                    $q->whereHas('periodenow', function ($v) use ($value) {
+                        $v->where('start_date', '<=', $value[1])
+                            ->where('end_date', '>=', $value[0]);
+                    });
                 } else if ($key === 'periode') {
                     $q->where('periode', $value);
                 } else {

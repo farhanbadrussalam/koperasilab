@@ -23,7 +23,7 @@
         <div class="my-3">
             <div class="body-placeholder my-3" id="list-placeholder-pengiriman">
                 @for ($i = 0; $i < 5; $i++)
-                <div class="card mb-2">
+                    <div class="card mb-2">
                     <div class="card-body row align-items-center">
                         <div class="placeholder-glow col-12 col-md-3 d-flex flex-column">
                             <div class="placeholder w-50 mb-1"></div>
@@ -44,20 +44,20 @@
                             <div class="placeholder w-50 mb-1"></div>
                         </div>
                     </div>
-                </div>
-                @endfor
             </div>
-            <div class="body-placeholder my-3" id="list-placeholder-pengiriman">
+            @endfor
+        </div>
+        <div class="body-placeholder my-3" id="list-placeholder-pengiriman">
 
-            </div>
-            <div class="body my-3" id="list-container-pengiriman">
+        </div>
+        <div class="body my-3" id="list-container-pengiriman">
 
-            </div>
-            <div aria-label="Page navigation example" id="list-pagination-pengiriman">
+        </div>
+        <div aria-label="Page navigation example" id="list-pagination-pengiriman">
 
-            </div>
         </div>
     </div>
+</div>
 </div>
 <div class="modal fade" id="modal-buat-pengiriman" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -148,22 +148,23 @@
                     <select class="form-select" id="jasa_kurir" name="jasa_kurir" required>
                         <option value="" selected disabled>Pilih Jasa Kurir</option>
                         @foreach ($ekspedisi as $value)
-                            <option value="{{ $value->ekspedisi_hash }}">{{ $value->name }}</option>
+                        <option value="{{ $value->ekspedisi_hash }}">{{ $value->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label for="noResi" class="form-label">No Resi<span class="text-danger ms-1">*</span></label>
-                    <input type="text" class="form-control" id="noResi" name="noResi" required>
+                    <label for="noResi" class="form-label">No Resi</label>
+                    <input type="text" class="form-control" id="noResi" name="noResi">
                 </div>
                 <div class="mb-3">
                     <label for="" class="form-label">Upload bukti pengiriman<span class="text-danger ms-1">*</span></label>
                     <div id="uploadBuktiPengiriman"></div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="submit" form="formKirimDokumen" id="btn-kirim" class="btn btn-primary" onclick="kirimDokumen(this)">Kirim</button>
+
+            <div class="modal-footer border-0 p-2 d-flex justify-content-between gap-2">
+                <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Close</button>
+                <button type="submit" form="formKirimDokumen" id="btn-kirim" class="btn btn-primary rounded-3 flex-grow-1" onclick="kirimDokumen(this)">Kirim</button>
             </div>
         </div>
     </div>
@@ -171,5 +172,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/staff/pengiriman.js') }}"></script>
+<script src="{{ asset('js/staff/pengiriman.js') }}"></script>
 @endpush

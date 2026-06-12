@@ -57,10 +57,10 @@ class FilterAPI extends Controller
             $perusahaan = $request->has('perusahaan') ? $request->perusahaan : false;
             $data = array();
 
-            if(!empty($perusahaan)){
+            if (!empty($perusahaan)) {
                 $data = Perusahaan::where('status', 1)
-                        ->where('nama_perusahaan', 'like', '%'.$perusahaan.'%')
-                        ->get();
+                    ->where('nama_perusahaan', 'like', '%' . $perusahaan . '%')
+                    ->get();
             }
 
             DB::commit();
@@ -74,134 +74,61 @@ class FilterAPI extends Controller
 
     public function getStatus(Request $request)
     {
-        DB::beginTransaction();
         try {
-            $jenis = $request->has('jenis') ? $request->jenis : false;
-            switch ($jenis) {
-                case 'kontrak':
-                    $status = [
-                        array(
-                            'id' => encryptor(1),
-                            'name' => 'Aktif',
-                        )
-                    ];
-                    break;
-                case 'penyelia':
-                    $jobs = Master_jobs::all();
-                    $arrJobs = $jobs->map(function($item) {
-                        return [
-                            'id' => $item->jobs_hash,
-                            'name' => $item->name
-                        ];
-                    })->toArray();
-                    $status = array_merge([
-                        [
-                            'id' => encryptor(1),
-                            'name' => 'Pengajuan',
-                        ],
-                        [
-                            'id' => encryptor(2),
-                            'name' => 'TTD Manager',
-                        ],
-                    ], $arrJobs, [
-                        [
-                            'id' => encryptor(3),
-                            'name' => 'Selesai',
-                        ]
-                    ]);
-                    break;
-                case 'manager-invoice':
-                    $status = [
-                        array(
-                            'id' => encryptor(2),
-                            'name' => 'Verifikasi',
-                        ),
-                        array(
-                            'id' => encryptor(3),
-                            'name' => 'Perlu dibayar',
-                        ),
-                        array(
-                            'id' => encryptor(4),
-                            'name' => 'Menunggu konfirmasi',
-                        ),
-                        array(
-                            'id' => encryptor(5),
-                            'name' => 'Pembayaran diterima',
-                        )
-                    ];
-                    break;
-                case 'pembayaran':
-                    $status = [
-                        array(
-                            'id' => encryptor(3),
-                            'name' => 'Perlu dibayar',
-                        ),
-                        array(
-                            'id' => encryptor(4),
-                            'name' => 'Menunggu konfirmasi',
-                        ),
-                        array(
-                            'id' => encryptor(5),
-                            'name' => 'Pembayaran diterima',
-                        )
-                    ];
-                    break;
-                case 'pengguna':
-                    $status = [
-                        array(
-                            'id' => encryptor(1),
-                            'name' => 'Tidak Aktif',
-                        ),
-                        array(
-                            'id' => encryptor(2),
-                            'name' => 'Pengajuan',
-                        ),
-                        array(
-                            'id' => encryptor(3),
-                            'name' => 'Aktif',
-                        )
-                    ];
-                    break;
-                case 'tld':
-                    $status = [
-                        array(
-                            'id' => encryptor(1),
-                            'name' => 'Digunakan',
-                        ),
-                        array(
-                            'id' => encryptor(0),
-                            'name' => 'Tidak Digunakan',
-                        )
-                    ];
-                    break;
-                default:
-                    $status = [
-                        array(
-                            'id' => encryptor(1),
-                            'name' => 'Pengajuan',
-                        ),
-                        array(
-                            'id' => encryptor(2),
-                            'name' => 'Terverifikasi',
-                        ),
-                        array(
-                            'id' => encryptor(3),
-                            'name' => 'Proses LAB',
-                        ),
-                        array(
-                            'id' => encryptor(5),
-                            'name' => 'Selesai',
-                        )
-                    ];
-                    break;
-            }
+            $status = match ($request->input('jenis')) {
+                'kontrak' => [
+                    ['id' => encryptor(1), 'name' => 'Aktif']
+                ],
+                'penyelia' => array_merge(
+                    [
+                        ['id' => encryptor(1), 'name' => 'Pengajuan'],
+                        ['id' => encryptor(2), 'name' => 'TTD Manager'],
+                    ],
+                    Master_jobs::all()->map(fn($item) => [
+                        'id' => $item->jobs_hash,
+                        'name' => $item->name
+                    ])->toArray(),
+                    [
+                        ['id' => encryptor(3), 'name' => 'Selesai']
+                    ]
+                ),
+                'manager-invoice' => [
+                    ['id' => encryptor(2), 'name' => 'Verifikasi'],
+                    ['id' => encryptor(3), 'name' => 'Perlu dibayar'],
+                    ['id' => encryptor(4), 'name' => 'Menunggu konfirmasi'],
+                    ['id' => encryptor(5), 'name' => 'Pembayaran diterima']
+                ],
+                'pembayaran' => [
+                    ['id' => encryptor(3), 'name' => 'Perlu dibayar'],
+                    ['id' => encryptor(4), 'name' => 'Menunggu konfirmasi'],
+                    ['id' => encryptor(5), 'name' => 'Pembayaran diterima']
+                ],
+                'pengguna' => [
+                    ['id' => encryptor(1), 'name' => 'Tidak Aktif'],
+                    ['id' => encryptor(2), 'name' => 'Pengajuan'],
+                    ['id' => encryptor(3), 'name' => 'Aktif']
+                ],
+                'tld' => [
+                    ['id' => encryptor(1), 'name' => 'Digunakan'],
+                    ['id' => encryptor(0), 'name' => 'Tidak Digunakan']
+                ],
+                'pengiriman' => [
+                    ['id' => encryptor(1), 'name' => 'Sedang dikirim'],
+                    ['id' => encryptor(2), 'name' => 'Sudah diterima'],
+                    ['id' => encryptor(3), 'name' => 'Proses Pengiriman']
+                ],
+                default => [
+                    ['id' => encryptor(1), 'name' => 'Pengajuan'],
+                    ['id' => encryptor(2), 'name' => 'Terverifikasi'],
+                    ['id' => encryptor(3), 'name' => 'Proses LAB'],
+                    ['id' => encryptor(5), 'name' => 'Selesai']
+                ],
+            };
 
-            DB::commit();
             return $this->output($status, 200);
         } catch (\Exception $ex) {
             info($ex);
-            DB::rollBack();
-            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+            return $this->output(['msg' => $ex->getMessage()], 'Fail', 500);
         }
     }
 
@@ -223,7 +150,7 @@ class FilterAPI extends Controller
                 break;
             case 'satuan_kerja':
                 $allData = Satuan_kerja::all();
-                $data = $allData->map(function($item) {
+                $data = $allData->map(function ($item) {
                     return [
                         'id' => $item->satuan_hash,
                         'name' => $item->name
@@ -232,7 +159,7 @@ class FilterAPI extends Controller
                 break;
             case 'roles':
                 $allData = Role::all();
-                $data = $allData->map(function($item) {
+                $data = $allData->map(function ($item) {
                     return [
                         'id' => $item->name,
                         'name' => $item->name

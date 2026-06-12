@@ -1,918 +1,1003 @@
-const periode = [];
-const idPermohonan = $('#id_permohonan').val();
-let arrKontrolTmp = [];
-let typeLayanan = '';
-let typeLayanan2 = '';
-let datatable_ = false;
-let arrListPengguna = [];
-let JL = '';
-let haveTldChecked = false;
-let useZeroCek = true;
+/**
+ * PengajuanTambahManager
+ * Refactored modular manager for managing permohonan/pengajuan_tambah form.
+ */
+class PengajuanTambahManager {
+    constructor() {
+        // State
+        this.idPermohonan = $('#id_permohonan').val();
+        this.price = window.price || 0;
+        this.arrKontrolTmp = [];
+        this.typeLayanan = '';
+        this.typeLayanan2 = '';
+        this.JL = '';
+        this.tmpArrTldPengguna = [];
+        this.tmpArrTldKontrol = [];
 
-let inventoryTldPengguna = false;
-let tmpArrTldPengguna = [];
-let tmpArrTldKontrol = [];
+        // Plugins
+        this.inventoryTld = null;
+        this.tldSelector = null;
+        this.penggunaForm = null;
+        this.periodeJs = null;
+        this.periodeNextJs = null;
 
-const formInputan = $('#form-inputan');
-const formTipeKontrak = $('#form-tipe-kontrak');
-const formPeriode = $('#form-periode');
-const formJenisTld = $('#form-jenis-tld');
-const formJumPengguna = $('#form-jum-pengguna');
-const formJumKontrol = $('#form-jum-kontrol');
-const formPic = $('#form-pic');
-const formNoHp = $('#form-nohp');
-const formAlamat = $('#form-alamat');
-const formPeriodeNext = $('#form-periode-next');
-const formPeriode1 = $('#form-periode-1');
-const formPeriode2 = $('#form-periode-2');
-const formTotalHarga = $('#form-total-harga');
-const formZeroCek = $('#form-zero-cek');
-const btnAddPengguna = $('#btn-add-pengguna');
-
-const modalNamaPengguna = $('#nama_pengguna');
-const modalJenisRadiasi = $('#jenis_radiasi');
-
-let tldSelector,penggunaForm;
-
-const optionsUploadKTP = {
-    allowedFileExtensions: ['png', 'gif', 'jpeg', 'jpg']
-};
-
-// let ktpPenggunaUpload = false;
-$(function () {
-    inventoryTld = new Inventory_tld({preview: true});
-    inventoryTld.on('inventory.selected', (e) => {
-        const detail = e.detail;
-        const split = detail.selected;
-
-        const params = new FormData();
-
-        if(detail.data_tld.jenis == 'pengguna'){
-            let index = tmpArrTldPengguna.findIndex(d => d.index == split);
-            if(index > -1){
-                params.append('id', tmpArrTldPengguna[index].id);
-            }
-        } else {
-            let index = tmpArrTldKontrol.findIndex(d => d.index == split);
-            if(index > -1){
-                params.append('id', tmpArrTldKontrol[index].id);
-            }
-        }
-
-        params.append('id_tld', detail.data_tld.tld_hash);
-
-        ajaxPost(`api/v1/permohonan/action_tld`, params, result => {
-            if(detail.data_tld.jenis == 'pengguna'){
-                loadPengguna();
-            } else {
-                loadKontrol();
-            }
-        });
-    });
-
-    tldSelector = new TldPenggunaSelector({
-        apiUrl: `${base_url}/management/getDataPengguna`,
-        type: 'selected'
-    });
-    penggunaForm = new PenggunaForm();
-
-    $('#btn-add-pengguna').on('click', () => {
-        tldSelector.show();
-    });
-
-    document.addEventListener('pengguna.request_create', () => {
-        penggunaForm.showAdd(); // Buka form create kosong
-    });
-
-    document.addEventListener('pengguna.request_edit', (event) => {
-        penggunaForm.showEdit(event.detail?.data?.id); // Buka form edit
-    });
-
-    document.addEventListener('pengguna.saved', (e) => {
-        tldSelector.reload();
-        tldSelector.show();
-    })
-
-    let htmlAlamat = '<option value="">Pilih alamat</option>';
-
-    if(dataPermohonan?.pelanggan?.perusahaan?.alamat){
-        for (const [i,value] of Object.entries(dataPermohonan.pelanggan.perusahaan.alamat)) {
-            htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
-        }
+        // DOM elements cache
+        this.dom = {
+            formInputan: $('#form-inputan'),
+            formTipeKontrak: $('#form-tipe-kontrak'),
+            formPeriode: $('#form-periode'),
+            formJenisTld: $('#form-jenis-tld'),
+            formJumPengguna: $('#form-jum-pengguna'),
+            formJumKontrol: $('#form-jum-kontrol'),
+            formPic: $('#form-pic'),
+            formNoHp: $('#form-nohp'),
+            formAlamat: $('#form-alamat'),
+            formPeriodeNext: $('#form-periode-next'),
+            formPeriode1: $('#form-periode-1'),
+            formPeriode2: $('#form-periode-2'),
+            formTotalHarga: $('#form-total-harga'),
+            formZeroCek: $('#form-zero-cek'),
+            btnAddPengguna: $('#btn-add-pengguna'),
+            jenisLayanan: $('#jenis_layanan'),
+            jenisLayanan2: $('#jenis_layanan_2'),
+            layananJasa: $('#layanan_jasa'),
+            selectAlamat: $('#selectAlamat'),
+            txtAlamat: $('#txt_alamat'),
+            jenisTld: $('#jenis_tld'),
+            jumPengguna: $('#jum_pengguna'),
+            jumKontrol: $('#jum_kontrol'),
+            periodePemakaian: $('#periode-pemakaian'),
+            periodeNext: $('#periode_next'),
+            zeroCek: $('#zero_cek'),
+            totalHarga: $('#total_harga'),
+            haveTld: $('#haveTld'),
+            useZeroCek: $('#useZeroCek'),
+            switchZerocek: $('#switch-zerocek'),
+            formSwitch: $('#form-switch'),
+            
+            // Buttons
+            btnClearPeriode: $('#btn-clear-periode'),
+            btnClearPeriodeNext: $('#btn-clear-periode-next'),
+            btnPeriode: $('#btn-periode'),
+            btnPeriodeNext: $('#btn-periode-next'),
+            btnBuatForm: $('#btn-buat-form'),
+            divBuatForm: $('#div-buat-form'),
+            simpanDraf: $('#simpanDraf'),
+            simpanPengajuan: $('#simpanPengajuan')
+        };
     }
 
-    $('#selectAlamat').html(htmlAlamat);
+    /**
+     * Entry point to boot the manager
+     */
+    init() {
+        this.initPlugins();
+        this.initAlamat();
+        this.bindEvents();
+        this.resetForm();
+        this.cekLayanan();
+    }
 
-    $('#selectAlamat').on('change', obj => {
-        if(dataPermohonan){
-            const perusahaan = dataPermohonan.pelanggan.perusahaan;
+    /**
+     * Setup custom modules & libraries
+     */
+    initPlugins() {
+        this.inventoryTld = new Inventory_tld({ preview: true });
+        this.inventoryTld.on('inventory.selected', (e) => this.handleInventorySelected(e));
 
-            if(perusahaan.alamat[obj.target.value]){
-                $('#txt_alamat').val(perusahaan.alamat[obj.target.value].alamat + ", "+ perusahaan.alamat[obj.target.value].kode_pos);
-            }else{
-                $('#txt_alamat').val('');
+        this.tldSelector = new TldPenggunaSelector({
+            apiUrl: `${base_url}/management/getDataPengguna`,
+            type: 'selected'
+        });
+
+        this.penggunaForm = new PenggunaForm();
+
+        // Periode instantiation
+        const getPeriode = this.dom.periodePemakaian.attr('data-periode');
+        const getPeriodeNext = this.dom.periodeNext.attr('data-periode');
+
+        this.periodeJs = new Periode(getPeriode, {
+            id_element: 1,
+        });
+
+        this.periodeNextJs = new Periode(getPeriodeNext, {
+            max: 1,
+            textPeriode: 'Periode Berikutnya',
+            id_element: 2
+        });
+
+        // Register flatpickr
+        $('#tanggal_lahir').flatpickr({
+            enableTime: false,
+            dateFormat: "Y-m-d"
+        });
+    }
+
+    /**
+     * Fill address dropdown based on pelanggan details
+     */
+    initAlamat() {
+        let htmlAlamat = '<option value="">Pilih alamat</option>';
+        if (dataPermohonan?.pelanggan?.perusahaan?.alamat) {
+            for (const [i, value] of Object.entries(dataPermohonan.pelanggan.perusahaan.alamat)) {
+                htmlAlamat += `<option value='${i}'>Alamat ${value.jenis}</option>`;
             }
         }
-    });
+        this.dom.selectAlamat.html(htmlAlamat);
+    }
 
-    function resetForm(){
-        formTipeKontrak.hide();
-        formPic.hide();
-        formNoHp.hide();
-        formAlamat.hide();
-        formPeriodeNext.hide();
-        formPeriode.hide();
-        formJenisTld.hide();
-        formJumPengguna.hide();
-        formJumKontrol.hide();
-        formTotalHarga.hide();
-        formPeriode1.hide();
-        formPeriode2.hide();
-        // formZeroCek.hide();
+    /**
+     * Map all UI event listeners
+     */
+    bindEvents() {
+        // Form & input bindings
+        this.dom.btnAddPengguna.on('click', () => this.tldSelector.show());
 
-        $('#form-switch').hide();
+        $('#btn-add-kontrol').on('click', () => {
+            $('#modal-add-kontrol').modal('show');
+        });
+
+        this.dom.selectAlamat.on('change', (e) => this.handleAlamatChange(e));
+        this.dom.jenisLayanan.on('change', (e) => this.handleJenisLayananChange(e));
+        this.dom.jenisTld.on('change', (e) => this.handleJenisTldChange(e));
+
+        // Save actions
+        this.dom.simpanDraf.on('click', (e) => this.save(true, e.target));
+        this.dom.simpanPengajuan.on('click', (e) => this.save(false, e.target));
+
+        // Periode actions
+        this.dom.btnPeriode.on('click', () => this.periodeJs.show());
+        this.dom.btnPeriodeNext.on('click', () => this.periodeNextJs.show());
+
+        this.periodeJs.on('periode.simpan.1', () => this.simpanPeriode());
+        this.periodeNextJs.on('periode.simpan.2', () => this.simpanPeriodeNext());
+
+        this.dom.btnClearPeriode.on('click', () => this.clearPeriode());
+        this.dom.btnClearPeriodeNext.on('click', () => this.clearPeriodeNext());
+
+        // Create form
+        this.dom.btnBuatForm.on('click', (e) => this.handleBuatForm(e));
+
+        // TLD Switch
+        this.dom.haveTld.on('change', (e) => this.handleHaveTldChange(e));
+
+        // Custom Document Event Listeners
+        document.addEventListener('pengguna.request_create', () => {
+            this.penggunaForm.showAdd();
+        });
+
+        document.addEventListener('pengguna.request_edit', (event) => {
+            this.penggunaForm.showEdit(event.detail?.data?.id);
+        });
+
+        document.addEventListener('pengguna.saved', () => {
+            this.tldSelector.reload();
+            this.tldSelector.show();
+        });
+
+        document.addEventListener('pengguna.pilih', (event) => {
+            const obj = event.detail.html;
+            this.btnPilihPengguna(obj);
+        });
+    }
+
+    /**
+     * Clear & hide fields inside the form
+     */
+    resetForm() {
+        this.dom.formTipeKontrak.hide();
+        this.dom.formPic.hide();
+        this.dom.formNoHp.hide();
+        this.dom.formAlamat.hide();
+        this.dom.formPeriodeNext.hide();
+        this.dom.formPeriode.hide();
+        this.dom.formJenisTld.hide();
+        this.dom.formJumPengguna.hide();
+        this.dom.formJumKontrol.hide();
+        this.dom.formTotalHarga.hide();
+        this.dom.formPeriode1.hide();
+        this.dom.formPeriode2.hide();
+
+        this.dom.formSwitch.hide();
 
         $('#no_kontrak').val('');
         $('#durasi').val('');
-        $('#jenis_tld').val('');
-        $('#jum_kontrol').val('');
+        this.dom.jenisTld.val('');
+        this.dom.jumKontrol.val('');
         $('#pic').val('');
         $('#nohp').val('');
-        $('#periode_next').val('');
+        this.dom.periodeNext.val('');
         $('#periode_1').val('');
         $('#periode_2').val('');
-        $('#total_harga').val('');
-        $('#zero_cek').val('');
+        this.dom.totalHarga.val('');
+        this.dom.zeroCek.val('');
     }
 
-    $('#btn-add-kontrol').on('click', () => {
-        $('#modal-add-kontrol').modal('show');
-    });
+    /**
+     * Handle address dropdown change
+     */
+    handleAlamatChange(e) {
+        if (dataPermohonan) {
+            const perusahaan = dataPermohonan.pelanggan.perusahaan;
+            const key = e.target.value;
+            if (perusahaan.alamat[key]) {
+                this.dom.txtAlamat.val(`${perusahaan.alamat[key].alamat}, ${perusahaan.alamat[key].kode_pos}`);
+            } else {
+                this.dom.txtAlamat.val('');
+            }
+        }
+    }
 
-    $('#jenis_layanan').on('change', obj => {
-        let jenisLayanan = obj.target.value;
+    /**
+     * Handle primary service dropdown change to fetch child services
+     */
+    handleJenisLayananChange(e) {
+        const jenisLayanan = e.target.value;
 
-        if(jenisLayanan == ''){
-            formInputan.addClass('d-none').removeClass('d-block');
-            $('#jenis_layanan_2').html('<option value="">Pilih</option>');
+        if (jenisLayanan === '') {
+            this.dom.formInputan.addClass('d-none').removeClass('d-block');
+            this.dom.jenisLayanan2.html('<option value="">Pilih</option>');
             return;
         }
 
-        if(dataPermohonan.layanan_jasa) return;
+        if (dataPermohonan.layanan_jasa) return;
 
-        spinner('show', $('#label-jenis-layanan-2'), {place: 'after'});
+        spinner('show', $('#label-jenis-layanan-2'), { place: 'after' });
         ajaxGet(`api/v1/permohonan/getChildJenisLayanan/${jenisLayanan}`, false, (result) => {
-            if(result.meta.code == 200){
-                let parent = result.data;
-
+            if (result.meta.code === 200) {
                 let html = '<option value="">Pilih</option>';
-
-                parent.child.forEach((list) => {
+                result.data.child.forEach((list) => {
                     html += `<option value='${list.jenis_layanan_hash}'>${list.name}</option>`;
                 });
 
-                formInputan.addClass('d-none').removeClass('d-block');
-                $('#jenis_layanan_2').html(html);
-                html = '';
+                this.dom.formInputan.addClass('d-none').removeClass('d-block');
+                this.dom.jenisLayanan2.html(html);
                 spinner('hide', $('#label-jenis-layanan-2'));
             }
-        })
-        return;
-    });
+        });
+    }
 
-    $('#jenis_tld').on('change', obj => {
-        const idJenisLayanan = $('#jenis_layanan_2').val();
-        const idJenisTld = obj.target.value;
+    /**
+     * Handle TLD type dropdown change to retrieve service pricing
+     */
+    handleJenisTldChange(e) {
+        const idJenisLayanan = this.dom.jenisLayanan2.val();
+        const idJenisTld = e.target.value;
 
-        spinner('show', $('#label_total_harga'), {place: 'after'});
-        if(idJenisLayanan && idJenisTld){
-            const params = {
-                idJenisLayanan : idJenisLayanan,
-                idJenisTld : idJenisTld
-            }
+        spinner('show', $('#label_total_harga'), { place: 'after' });
+        if (idJenisLayanan && idJenisTld) {
+            const params = { idJenisLayanan, idJenisTld };
             ajaxGet(`api/v1/permohonan/getPrice`, params, result => {
-                let price = result.data.price;
+                const price = result.data.price;
+                this.price = price;
                 window.price = price;
 
-                calcPrice();
+                this.calcPrice();
                 spinner('hide', $('#label_total_harga'));
-            })
-        }else {
+            });
+        } else {
+            this.price = 0;
             window.price = 0;
-            calcPrice();
+            this.calcPrice();
             spinner('hide', $('#label_total_harga'));
         }
-    });
+    }
 
-    $('#simpanDraf').on('click', obj => {
-        let valjenisTld = $('#jenis_tld').val();
-        let valperiodePemakaian = $('#periode-pemakaian').attr('data-periode');
-        let valPeriodeNext = $('#periode_next').attr('data-periode');
-        let valjumPengguna = $('#jum_pengguna').val();
-        let valjumKontrol = $('#jum_kontrol').val();
-        let valAlamat = $('#selectAlamat').val();
-        let valtotalHarga = $('#total_harga').val();
-        let valHargaLayanan = window.price;
-        let haveTld = $('#haveTld').is(':checked');
-        let useZeroCek = $('#useZeroCek').is(':checked');
+    /**
+     * Handle "Buat Form" action to save and initialize form layout
+     */
+    handleBuatForm(e) {
+        spinner('show', e.target);
+        const jenisLayanan = this.dom.jenisLayanan.val();
+        const jenisLayanan2 = this.dom.jenisLayanan2.val();
+        const layananJasa = this.dom.layananJasa.val();
 
-        Swal.fire({
-            text: "Simpan permohonan sebagai draf?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, proceed!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Proceed with the action
-                const formData = new FormData();
-                formData.append('idPermohonan', idPermohonan);
+        this.typeLayanan = this.dom.jenisLayanan.find(':selected').text();
+        this.typeLayanan2 = this.dom.jenisLayanan2.find(':selected').text();
+        this.JL = jenislayanan({ name: this.typeLayanan }, { name: this.typeLayanan2 });
 
-                formData.append('alamat', valAlamat);
-                formData.append('tipeKontrak', 'kontrak baru');
-                formData.append('jenisTld', valjenisTld);
-                formData.append('periodePemakaian', valperiodePemakaian);
-                formData.append('periodeNext', valPeriodeNext);
-                formData.append('jumlahPengguna', valjumPengguna);
-                formData.append('jumlahKontrol', valjumKontrol);
-                formData.append('hargaLayanan', valHargaLayanan);
-                formData.append('totalHarga', valtotalHarga);
-                formData.append('haveTld', haveTld ? 1 : 0);
-                formData.append('is_zerocek', useZeroCek ? 1 : 0);
-                formData.append('note', '');
-                formData.append('status', 80);
-
-                if(haveTld && useZeroCek) {
-                    formData.append('periode', 1);
-                } else {
-                    formData.append('periode', useZeroCek ? 0 : 1);
-                }
-
-                spinner('show', obj.target);
-                ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Pengajuan disimpan sebagai draf',
-                        timer: 1200,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = base_url+"/permohonan/pengajuan";
-                    });
-                }, error => {
-                    spinner('hide', obj.target);
-                });
-            }
-        })
-    })
-
-    $('#simpanPengajuan').on('click', obj => {
-        let valjenisTld = $('#jenis_tld').val();
-        let valperiodePemakaian = $('#periode-pemakaian').attr('data-periode');
-        let valPeriodeNext = $('#periode_next').attr('data-periode');
-        let valjumPengguna = $('#jum_pengguna').val();
-        let valjumKontrol = $('#jum_kontrol').val();
-        let valAlamat = $('#selectAlamat').val();
-        let valtotalHarga = $('#total_harga').val();
-        let valHargaLayanan = window.price;
-        let haveTld = $('#haveTld').is(':checked');
-        let useZeroCek = $('#useZeroCek').is(':checked');
-
-        dataPermohonan.pelanggan.perusahaan.alamat[valAlamat] ? valAlamat = dataPermohonan.pelanggan.perusahaan.alamat[valAlamat].alamat_hash : false;
-
-        const sanityCek = [];
-
-        const periodeNextShow = formPeriodeNext.is(':visible');
-        if(periodeNextShow && !valPeriodeNext) sanityCek.push('Periode Selanjutnya');
-
-        if (!valjenisTld) sanityCek.push('Jenis TLD');
-        if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
-        if (valjumPengguna == 0) sanityCek.push('Jumlah Pengguna');
-        // if (valjumKontrol == 0) sanityCek.push('Jumlah Kontrol');
-
-        if(sanityCek.length > 0){
-            return Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: `Data berikut masih kosong: ${sanityCek.join(', ')}`
-            });
-        }
-
-        Swal.fire({
-            title: 'Apa kamu yakin?',
-            text: "Apakah Anda ingin melanjutkan tindakan ini?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, proceed!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Proceed with the action
-                const formData = new FormData();
-                formData.append('idPermohonan', idPermohonan);
-
-                // formData.append('pic', valpic);
-                // formData.append('noHp', valnoHp);
-                formData.append('alamat', valAlamat);
-
-                formData.append('tipeKontrak', 'kontrak baru');
-                formData.append('jenisTld', valjenisTld);
-                formData.append('periodePemakaian', valperiodePemakaian);
-                formData.append('periodeNext', valPeriodeNext);
-                formData.append('jumlahPengguna', valjumPengguna);
-                formData.append('jumlahKontrol', valjumKontrol);
-                formData.append('hargaLayanan', valHargaLayanan);
-                formData.append('totalHarga', valtotalHarga);
-                formData.append('haveTld', haveTld ? 1 : 0);
-                formData.append('is_zerocek', useZeroCek ? 1 : 0);
-                formData.append('note', '');
-
-                if(haveTld && useZeroCek) {
-                    formData.append('periode', 1);
-                } else {
-                    formData.append('periode', useZeroCek ? 0 : 1);
-                }
-
-                spinner('show', obj.target);
-                ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
-                    Swal.fire({
-                        icon: 'success',
-                        text: 'Pengajuan berhasil dibuat',
-                        timer: 1200,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    }).then(() => {
-                        window.location.href = base_url+"/permohonan/pengajuan";
-                    });
-                }, error => {
-                    spinner('hide', obj.target);
-                });
-            }
-        });
-    });
-
-    $('#btn-clear-periode').on('click', obj => {
-        $('#periode-pemakaian').val('');
-        $('#periode-pemakaian').attr('data-periode', '');
-        $('#periode-pemakaian').attr('data-jumperiode', '');
-        $('#btn-clear-periode').addClass('d-none').removeClass('d-block');
-        periodeJs.addData([]);
-        calcPrice();
-    });
-
-    $('#btn-clear-periode-next').on('click', obj => {
-        $('#periode_next').val('');
-        $('#periode_next').attr('data-periode', '');
-        $('#periode_next').attr('data-jumperiode', '');
-        $('#btn-clear-periode-next').addClass('d-none').removeClass('d-block');
-        periodeNextJs.addData([]);
-    });
-
-    $('#btn-buat-form').on('click', obj => {
-        spinner('show', obj.target);
-        const jenisLayanan = $('#jenis_layanan').val();
-        const jenisLayanan2 = $('#jenis_layanan_2').val();
-        const layananJasa = $('#layanan_jasa').val();
-        typeLayanan = $('#jenis_layanan').find(':selected').text();
-        typeLayanan2 = $('#jenis_layanan_2').find(':selected').text();
-        JL = jenislayanan({name: $('#jenis_layanan').find(':selected').text()}, {name: $('#jenis_layanan_2').find(':selected').text()});
-
-        if(jenisLayanan == '' || jenisLayanan2 == '' || layananJasa == ''){
+        if (jenisLayanan === '' || jenisLayanan2 === '' || layananJasa === '') {
             Swal.fire({
                 icon: 'warning',
                 title: 'Oops...',
                 text: 'Data berikut masih kosong: Jenis Layanan, Layanan Jasa'
             });
-            return spinner('hide', obj.target);
+            return spinner('hide', e.target);
         }
 
         const formData = new FormData();
-        formData.append('idPermohonan', idPermohonan);
+        formData.append('idPermohonan', this.idPermohonan);
         formData.append('jenisLayanan1', jenisLayanan);
         formData.append('jenisLayanan2', jenisLayanan2);
         formData.append('idLayanan', layananJasa);
-        formData.append('status', 80); // masih draft
+        formData.append('status', 80);
 
-        ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, result => {
-            openForm();
+        ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, () => {
+            this.openForm();
 
-            // disable untuk form jenisLayanan, jenisLayanan2, dan layananJasa
-            $('#jenis_layanan').attr('readonly', true).addClass('bg-secondary-subtle');
-            $('#jenis_layanan_2').attr('readonly', true).addClass('bg-secondary-subtle');
-            $('#layanan_jasa').attr('readonly', true).addClass('bg-secondary-subtle');
+            // Disable controls
+            this.dom.jenisLayanan.attr('readonly', true).addClass('bg-secondary-subtle');
+            this.dom.jenisLayanan2.attr('readonly', true).addClass('bg-secondary-subtle');
+            this.dom.layananJasa.attr('readonly', true).addClass('bg-secondary-subtle');
 
-            // menghilangkan button buat form
-            $('#div-buat-form').addClass('d-none').removeClass('d-block');
-
-            spinner('hide', obj.target);
-        }, error => {
-            spinner('hide', obj.target);
+            this.dom.divBuatForm.addClass('d-none').removeClass('d-block');
+            spinner('hide', e.target);
+        }, () => {
+            spinner('hide', e.target);
         });
-    });
+    }
 
-    $('#tanggal_lahir').flatpickr({
-        enableTime: false,
-        dateFormat: "Y-m-d"
-    });
+    /**
+     * Handle inventory item selection
+     */
+    handleInventorySelected(e) {
+        const detail = e.detail;
+        const split = detail.selected;
+        const params = new FormData();
 
-    $('#haveTld').on('change', obj => {
-        let layananActive = jenislayanan({name: $('#jenis_layanan').find(':selected').text()}, {name: $('#jenis_layanan_2').find(':selected').text()});
-        if (obj.target.checked) {
-            $('#useZeroCek').prop('checked', false);
-            if(StringZerocek == layananActive) {
-                $('#useZeroCek').prop('checked', true);
-            } else {
-                $('#switch-zerocek').show();
+        if (detail.data_tld.jenis === 'pengguna') {
+            const index = this.tmpArrTldPengguna.findIndex(d => d.index === split);
+            if (index > -1) {
+                params.append('id', this.tmpArrTldPengguna[index].id);
             }
         } else {
-            if(StringZerocek == layananActive) {
-                $('#useZeroCek').prop('checked', true);
-            } else {
-                $('#useZeroCek').prop('checked', false);
-                $('#switch-zerocek').hide();
+            const index = this.tmpArrTldKontrol.findIndex(d => d.index === split);
+            if (index > -1) {
+                params.append('id', this.tmpArrTldKontrol[index].id);
             }
         }
 
-        loadPengguna();
-        loadKontrol();
-    });
+        params.append('id_tld', detail.data_tld.tld_hash);
 
-    document.addEventListener('pengguna.pilih', (event) => {
-        const obj = event.detail.html;
+        ajaxPost(`api/v1/permohonan/action_tld`, params, () => {
+            if (detail.data_tld.jenis === 'pengguna') {
+                this.loadPengguna();
+            } else {
+                this.loadKontrol();
+            }
+        });
+    }
 
-        btnPilihPengguna(obj);
-    })
+    /**
+     * Handle have TLD toggle switch change
+     */
+    handleHaveTldChange(e) {
+        const layananActive = jenislayanan(
+            { name: this.dom.jenisLayanan.find(':selected').text() },
+            { name: this.dom.jenisLayanan2.find(':selected').text() }
+        );
 
-    resetForm();
-    // cek jika id_layanan sudah ada
-    cekLayanan();
-})
-// js add periode
-let getPeriode = $('#periode-pemakaian').attr('data-periode');
-let getPeriodeNext = $('#periode_next').attr('data-periode');
-const periodeJs = new Periode(getPeriode, {
-    id_element: 1,
-});
-const periodeNextJs = new Periode(getPeriodeNext, {
-    max: 1,
-    textPeriode: 'Periode Berikutnya',
-    id_element: 2
-});
-
-$('#btn-periode').on('click', obj => {
-    periodeJs.show();
-});
-
-periodeJs.on('periode.simpan.1', simpanPeriode);
-
-$('#btn-periode-next').on('click', obj => {
-    periodeNextJs.show();
-});
-
-periodeNextJs.on('periode.simpan.2', simpanPeriodeNext);
-
-function simpanPeriodeNext() {
-    const dataPeriode = periodeNextJs.getData();
-    if(dataPeriode){
-        $('#periode_next').attr('data-periode', JSON.stringify(dataPeriode));
-        if(dataPeriode.length == 1) {
-            $('#periode_next').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+        if (e.target.checked) {
+            // Memiliki TLD
+            this.dom.useZeroCek.prop('checked', false);
+            if (StringZerocek === layananActive) {
+                this.dom.useZeroCek.prop('checked', true);
+            } else if (layananActive === 'KontrakEvaluasi' || tmpArrEvaluasi.includes(layananActive)) {
+                // Untuk Kontrak evaluasi, jika memiliki TLD, zerocek menjadi optional (tampilkan switch-zerocek)
+                this.dom.switchZerocek.show();
+            } else {
+                this.dom.switchZerocek.show();
+            }
         } else {
-            $('#periode_next').val(dataPeriode.length + ' Periode');
+            // Tidak memiliki TLD
+            if (StringZerocek === layananActive) {
+                this.dom.useZeroCek.prop('checked', true);
+            } else if (layananActive === 'KontrakEvaluasi' || tmpArrEvaluasi.includes(layananActive)) {
+                // Untuk Kontrak evaluasi, jika TIDAK memiliki TLD, otomatis menggunakan zerocek & sembunyikan switch
+                this.dom.useZeroCek.prop('checked', true);
+                this.dom.switchZerocek.hide();
+            } else {
+                this.dom.useZeroCek.prop('checked', false);
+                this.dom.switchZerocek.hide();
+            }
         }
-        $('#periode_next').attr('data-jumperiode', dataPeriode.length);
-        $('#btn-clear-periode-next').addClass('d-block').removeClass('d-none');
+
+        this.loadPengguna();
+        this.loadKontrol();
     }
-}
-function simpanPeriode() {
-    const dataPeriode = periodeJs.getData();
-    if(dataPeriode){
-        $('#periode-pemakaian').attr('data-periode', JSON.stringify(dataPeriode));
-        if(dataPeriode.length == 1) {
-            $('#periode-pemakaian').val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
-        } else {
-            $('#periode-pemakaian').val(dataPeriode.length + ' Periode');
+
+    /**
+     * Save/Submit Form generic function
+     */
+    save(isDraft, eventTarget) {
+        const valjenisTld = this.dom.jenisTld.val();
+        const valperiodePemakaian = this.dom.periodePemakaian.attr('data-periode');
+        const valPeriodeNext = this.dom.periodeNext.attr('data-periode');
+        const valjumPengguna = this.dom.jumPengguna.val();
+        const valjumKontrol = this.dom.jumKontrol.val();
+        let valAlamat = this.dom.selectAlamat.val();
+        const valtotalHarga = this.dom.totalHarga.val();
+        const valHargaLayanan = this.price;
+        const haveTld = this.dom.haveTld.is(':checked');
+        const useZeroCek = this.dom.useZeroCek.is(':checked');
+
+        if (!isDraft) {
+            const sanityCek = [];
+            const periodeNextShow = this.dom.formPeriodeNext.is(':visible');
+            if (periodeNextShow && !valPeriodeNext) sanityCek.push('Periode Selanjutnya');
+            if (!valjenisTld) sanityCek.push('Jenis TLD');
+            if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
+            if (Number(valjumPengguna) === 0) sanityCek.push('Jumlah Pengguna');
+
+            if (sanityCek.length > 0) {
+                return Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: `Data berikut masih kosong: ${sanityCek.join(', ')}`
+                });
+            }
+
+            // Map address hash
+            if (dataPermohonan?.pelanggan?.perusahaan?.alamat?.[valAlamat]) {
+                valAlamat = dataPermohonan.pelanggan.perusahaan.alamat[valAlamat].alamat_hash;
+            }
         }
-        $('#periode-pemakaian').attr('data-jumperiode', dataPeriode.length);
-        $('#btn-clear-periode').addClass('d-block').removeClass('d-none');
-    }
 
-    calcPrice();
-}
+        const alertTitle = isDraft ? 'Simpan permohonan sebagai draf?' : 'Apa kamu yakin?';
+        const alertText = isDraft ? '' : 'Apakah Anda ingin melanjutkan tindakan ini?';
+        const successText = isDraft ? 'Pengajuan disimpan sebagai draf' : 'Pengajuan berhasil dibuat';
 
-function loadPengguna(){
-    let params = {
-        idPermohonan: idPermohonan
-    }
-    tmpArrTldPengguna = [];
-    let haveTld = $('#haveTld').is(':checked');
-    ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
-        if(result.meta.code == 200){
-            let html = '';
-            if(result.data){
-                for (const [i, value] of result.data.entries()) {
-                    let pengguna = value.entitas;
-                    let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
+        Swal.fire({
+            title: alertTitle,
+            text: alertText,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, proceed!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const formData = new FormData();
+                formData.append('idPermohonan', this.idPermohonan);
+                formData.append('alamat', valAlamat);
+                formData.append('tipeKontrak', 'kontrak baru');
+                formData.append('jenisTld', valjenisTld);
+                formData.append('periodePemakaian', valperiodePemakaian);
+                formData.append('periodeNext', valPeriodeNext);
+                formData.append('jumlahPengguna', valjumPengguna);
+                formData.append('jumlahKontrol', valjumKontrol);
+                formData.append('hargaLayanan', valHargaLayanan);
+                formData.append('totalHarga', valtotalHarga);
+                formData.append('haveTld', haveTld ? 1 : 0);
+                formData.append('is_zerocek', useZeroCek ? 1 : 0);
+                formData.append('note', '');
 
-                    const dataCard = {
-                        index: i,
-                        idHash: value.permohonan_detail_hash,
-                        name: pengguna.name,
-                        divisi: pengguna.divisi?.name || '',
-                        isCheckedEvaluasi: false,
-                        radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
-                        fileKtp: fileKtp,
-                        no_seri_tld: value.tld?.no_seri_tld || '',
-                        htmlDisabled: true
-                    }
-
-                    html += cardPenggunaComponent(dataCard, {
-                        is_have_tld: (tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld,
-                        status: value.type,
-                        label_tld: false,
-                        is_btn_remove: true
-                    });
-
-                    tmpArrTldPengguna.push({
-                        id: value.permohonan_detail_hash,
-                        index: `tldNoSeri_${i}_pengguna`
-                    });
+                if (isDraft) {
+                    formData.append('status', 80);
                 }
-            }
 
-            if(result.data.length == 0){
-                html = `
-                    <div class="d-flex flex-column align-items-center py-4">
-                        <span class="fw-bold text-muted">Tidak ada pengguna</span>
-                    </div>
-                `;
-            }
-            $('#jum_pengguna').val(result.data.length);
-
-            calcPrice();
-            $('#pengguna-list-container').html(html);
-            showPopupReload();
-        }
-    });
-}
-function removePengguna(obj){
-    let idPengguna = $(obj).data('id');
-
-    ajaxDelete(`api/v1/permohonan/destroyPengguna/${idPengguna}/${idPermohonan}`, result => {
-        Swal.fire({
-            icon: 'success',
-            text: result.data.msg,
-            timer: 1200,
-            timerProgressBar: true,
-            showConfirmButton: false
-        }).then(() => {
-            loadPengguna()
-        });
-    }, error => {
-        Swal.fire({
-            icon: "error",
-            text: 'Server error',
-        });
-        console.error(error.responseJSON.data.msg);
-    })
-}
-
-function deleteKontrol(obj){
-    let idDivisi = $(obj).data('id');
-
-    if(!idDivisi){
-        idDivisi = 'default';
-    }
-    ajaxDelete(`api/v1/permohonan/destroyKontrol/${idPermohonan}/${idDivisi}`, result => {
-        Swal.fire({
-            icon: 'success',
-            text: result.data.msg,
-            timer: 1200,
-            timerProgressBar: true,
-            showConfirmButton: false
-        }).then(() => {
-            loadKontrol()
-        });
-    }, error => {
-        Swal.fire({
-            icon: "error",
-            text: 'Server error',
-        });
-        console.error(error.responseJSON.data.msg);
-    })
-}
-
-{/* <div class="input-group mb-1">
-<input type="text" class="form-control" name="kodeLencanaKontrol" value="${kode.kode_lencana}" data-index="${i}" placeholder="Masukkan Kode Lencana" oninput="addFormKontrol(this)" />
-<button type="button" class="input-group-text btn btn-sm btn-outline-danger" data-index="${i}" onclick="removeFormKontrol(this)" title="Delete"><i class="bi bi-trash"></i></button>
-</div> */}
-function loadKontrol(){
-    let html = '';
-    let haveTld = $('#haveTld').is(':checked');
-    tmpArrTldKontrol = [];
-    ajaxGet(`api/v1/permohonan/listKontrol`, {idPermohonan: idPermohonan}, result => {
-        // mengambil data kontrol
-        arrKontrolTmp = result.data.tldPermohonan;
-        let jumKontrol = 0;
-        for (const [key, value] of Object.entries(arrKontrolTmp)) {
-            let firstData = value[0];
-
-            let data = {
-                index: key,
-                name: `Kontrol ${firstData.entitas?.name ?? ''} C`,
-                kode: 'C',
-                isCheckedEvaluasi: false,
-                tldHash: firstData.id_pengguna_divisi,
-                no_seri_tld: firstData.tld?.no_seri_tld || false,
-                htmlDisabled: true,
-                rincian: value
-            };
-
-            html += cardKontrolComponent(data, {
-                is_btn_remove: true,
-                label_tld: false,
-                add_kontrol: true,
-                is_have_tld: (tmpArrEvaluasi.includes(JL) || StringZerocek == JL) && haveTld
-            });
-
-            value.map((info, i) => {
-                tmpArrTldKontrol.push({
-                    id: info.permohonan_detail_hash,
-                    index: `tldNoSeri_${key}_${i}_kontrol`
-                });
-            })
-
-            jumKontrol += value.length;
-        }
-
-        if(arrKontrolTmp.length == 0){
-            html = `
-                <div class="d-flex flex-column align-items-center py-4">
-                    <span class="fw-bold text-muted">Tidak ada kontrol</span>
-                </div>
-            `;
-        }
-        $('#jum_kontrol').val(jumKontrol);
-        calcPrice();
-
-        $('#kontrol-list-container').html(html);
-    });
-}
-function addFormKontrol(obj = false) {
-    $('#modal-add-kontrol').modal('show');
-
-}
-function removeFormKontrol(obj){
-    const index = $(obj).data('index');
-    arrKontrolTmp.splice(index, 1);
-
-    loadKontrol();
-}
-function calcPrice(){
-    let price = window.price;
-    let subTotal = price;
-    let per = $('#periode-pemakaian').attr('data-jumperiode');
-    let jumlah = Number($('#jum_pengguna').val()) + Number($('#jum_kontrol').val());
-
-    if(per){
-        subTotal *= Number(per);
-    }
-
-    if(jumlah != 0){
-        subTotal *= jumlah;
-    }
-    $('#total_harga').val(subTotal);
-
-    maskReload();
-}
-
-function showHideCollapse(obj){
-    const collapse = obj;
-    if(!collapse.classList.contains('show')) {
-        collapse.innerHTML = '<i class="bi bi-eye"></i> Tampilkan';
-    } else {
-        collapse.innerHTML = '<i class="bi bi-eye-slash"></i> Lebih sedikit';
-    }
-    collapse.classList.toggle('show');
-}
-
-function openInventory(obj, jenis){
-    let id = $(obj).data('id');
-    let arr = [];
-    if(jenis == 'pengguna'){
-        arr = tmpArrTldPengguna;
-    } else if(jenis == 'kontrol'){
-        arr = tmpArrTldKontrol;
-    }
-    inventoryTld.show(id, arr, jenis);
-}
-
-function btnPilihPengguna(obj){
-    let id = $(obj).length > 0 ? $(obj).data('id') : obj;
-
-    const params = new FormData();
-    params.append('idPengguna', id);
-    params.append('idPermohonan', idPermohonan);
-    spinner('show', $(obj));
-    ajaxPost(`api/v1/permohonan/tambahPengguna`, params, result => {
-        loadPengguna();
-        loadKontrol();
-        $('#modal-add-tld-pengguna').modal('hide');
-        $('#modal-add-pengguna').modal('hide');
-        spinner('hide', $(obj));
-    }, error => {
-        spinner('hide', $(obj));
-    })
-}
-
-function openForm(){
-    const layanan = $('#jenis_layanan_2').val();
-    let html = '<option value="">Pilih</option>';
-    $('#form-kode-lencana-pengguna').hide();
-    arrKontrolTmp = [];
-
-    // disable untuk form jenisLayanan, jenisLayanan2, dan layananJasa
-    $('#jenis_layanan').attr('disabled', true).addClass('bg-secondary-subtle');
-    $('#jenis_layanan_2').attr('disabled', true).addClass('bg-secondary-subtle');
-    $('#layanan_jasa').attr('disabled', true).addClass('bg-secondary-subtle');
-
-    if(layanan == ''){
-        $('#form-inputan').addClass('d-none').removeClass('d-block');
-    }else{
-        ajaxGet(`api/v1/permohonan/getJenisTld/${layanan}`, false, result => {
-            if(result.meta.code == 200){
-                let list = result.data;
-
-                list.forEach(value => {
-                    html += `<option value="${value.jenis_tld.jenis_tld_hash}">${value.jenis_tld.name}</option>`
-                });
-
-                $('#jenis_tld').html(html);
-                if(tmpArrSewa.includes(JL)) {
-                    $('#useZeroCek').prop('checked', true);
-                    $('#haveTld').prop('checked', false);
-                    loadKontrol();
-                    loadPengguna();
+                if (haveTld && useZeroCek) {
+                    formData.append('periode', 1);
                 } else {
-                    dataPermohonan.is_zerocek == 0 ? $('#useZeroCek').prop('checked', false).trigger('change') : $('#useZeroCek').prop('checked', true).trigger('change');
-                    dataPermohonan.is_have_tld == 0 ? $('#haveTld').prop('checked', false).trigger('change') : $('#haveTld').prop('checked', true).trigger('change');
-                    // $('#useZeroCek').prop('checked', false);
-                    // $('#haveTld').prop('checked', true);
-                    $('#switch-zerocek').show();
-                    $('#form-switch').show();
+                    formData.append('periode', useZeroCek ? 0 : 1);
                 }
 
-                switch (typeLayanan.toLowerCase()) {
-                    case 'kontrak':
-                        // load data
-                        $('#jenis_tld').val(dataPermohonan.jenis_tld?.jenis_tld_hash).trigger('change');
-                        periodeJs.addData(dataPermohonan.periode_pemakaian);
-                        simpanPeriode();
-
-                        // show
-                        btnAddPengguna.addClass('d-block').removeClass('d-none');
-                        formTipeKontrak.show();
-                        formPeriode.show();
-                        formJenisTld.show();
-                        formJumPengguna.show();
-                        formJumKontrol.show();
-                        formTotalHarga.show();
-                        break;
-                    case 'evaluasi':
-                        // load data
-                        $('#jenis_tld').val(dataPermohonan.jenis_tld?.jenis_tld_hash).trigger('change');
-                        periodeJs.addData(dataPermohonan.periode_pemakaian);
-                        simpanPeriode();
-                        periodeNextJs.addData(dataPermohonan.periode_next);
-                        simpanPeriodeNext();
-
-                        // show
-                        formTipeKontrak.show();
-                        formPeriode.show();
-                        formJenisTld.show();
-                        formJumKontrol.show();
-                        formJumPengguna.show();
-                        formAlamat.show();
-                        formTotalHarga.show();
-                        formPeriodeNext.show();
-                        periodeJs.maxPeriode = 1;
-                        formJenisTld.addClass('col-md-12').removeClass('col-md-6');
-                        $('#form-switch').hide();
-                        break;
-                    case 'zero cek':
-                        formTipeKontrak.show();
-                        formPeriode.show();
-                        formJenisTld.show();
-                        formJumKontrol.show();
-                        formJumPengguna.show();
-                        formAlamat.show();
-                        formTotalHarga.show();
-                        periodeJs.maxPeriode = 2;
-                        $('#useZeroCek').prop('checked', true);
-                        $('#switch-zerocek').hide();
-                        break;
-                    case 'adendum':
-                        btnAddPengguna.addClass('d-block').removeClass('d-none');
-                        formTipeKontrak.show();
-                        formPeriode.show();
-                        formJenisTld.show();
-                        formJumPengguna.show();
-                        formJumKontrol.show();
-                        formTotalHarga.show();
-                        break;
-                    case 'pembelian':
-                        formJenisTld.show();
-                        formJumPengguna.show();
-                        formJumKontrol.show();
-                        formPeriode1.show();
-                        formPeriode2.show();
-                        formTotalHarga.show();
-                        break;
-                }
-
-                $('#form-inputan').addClass('d-block').removeClass('d-none');
+                spinner('show', eventTarget);
+                ajaxPost(`api/v1/permohonan/tambahPengajuan`, formData, () => {
+                    Swal.fire({
+                        icon: 'success',
+                        text: successText,
+                        timer: 1200,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.href = `${base_url}/permohonan/pengajuan`;
+                    });
+                }, () => {
+                    spinner('hide', eventTarget);
+                });
             }
         });
     }
-    return;
-}
 
-function cekLayanan(){
-    if(dataPermohonan.layanan_jasa){
-        $('#id_layanan').val(dataPermohonan.layanan_jasa.layanan_hash).trigger('change');
-        $('#jenis_layanan').val(dataPermohonan.jenis_layanan_parent.jenis_layanan_hash).trigger('change');
-        $('#jenis_layanan_2').html(`<option value="${dataPermohonan.jenis_layanan.jenis_layanan_hash}">${dataPermohonan.jenis_layanan.name}</option>`);
-
-        typeLayanan = dataPermohonan.jenis_layanan_parent.name;
-        typeLayanan2 = dataPermohonan.jenis_layanan.name;
-        JL = jenislayanan(dataPermohonan.jenis_layanan_parent, dataPermohonan.jenis_layanan);
-
-
-        // menghilangkan button buat form
-        $('#div-buat-form').addClass('d-none').removeClass('d-block');
-
-        openForm();
+    /**
+     * Clear Selected Periode
+     */
+    clearPeriode() {
+        this.dom.periodePemakaian.val('');
+        this.dom.periodePemakaian.attr('data-periode', '');
+        this.dom.periodePemakaian.attr('data-jumperiode', '');
+        this.dom.btnClearPeriode.addClass('d-none').removeClass('d-block');
+        this.periodeJs.addData([]);
+        this.calcPrice();
     }
-}
 
-function remove(){
-    ajaxDelete(`api/v1/permohonan/destroyPermohonan/${idPermohonan}`, result => {
-        Swal.fire({
-            icon: 'success',
-            text: result.data.msg,
-            timer: 1200,
-            timerProgressBar: true,
-            showConfirmButton: false
-        }).then(() => {
-            window.location.href = base_url+"/permohonan/pengajuan";
-        });
-    }, error => {
-        const result = error.responseJSON;
-        if(result?.meta?.code && result.meta.code == 500){
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.data.msg);
-        }else{
-            Swal.fire({
-                icon: "error",
-                text: 'Server error',
-            });
-            console.error(result.message);
+    /**
+     * Clear Selected Next Periode
+     */
+    clearPeriodeNext() {
+        this.dom.periodeNext.val('');
+        this.dom.periodeNext.attr('data-periode', '');
+        this.dom.periodeNext.attr('data-jumperiode', '');
+        this.dom.btnClearPeriodeNext.addClass('d-none').removeClass('d-block');
+        this.periodeNextJs.addData([]);
+    }
+
+    /**
+     * Save callback from Periode Next module
+     */
+    simpanPeriodeNext() {
+        const dataPeriode = this.periodeNextJs.getData();
+        if (dataPeriode) {
+            this.dom.periodeNext.attr('data-periode', JSON.stringify(dataPeriode));
+            if (dataPeriode.length === 1) {
+                this.dom.periodeNext.val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+            } else {
+                this.dom.periodeNext.val(dataPeriode.length + ' Periode');
+            }
+            this.dom.periodeNext.attr('data-jumperiode', dataPeriode.length);
+            this.dom.btnClearPeriodeNext.addClass('d-block').removeClass('d-none');
         }
-    });
-}
+    }
 
-function changeCountKontrol(type, count, obj){
-    let id = $(obj).data('id');
-    const params = new FormData();
-    if(type == 'plus'){
-        params.append('aksi', 'tambah');
-    } else {
-        if(count == 1){
+    /**
+     * Save callback from Periode module
+     */
+    simpanPeriode() {
+        const dataPeriode = this.periodeJs.getData();
+        if (dataPeriode) {
+            this.dom.periodePemakaian.attr('data-periode', JSON.stringify(dataPeriode));
+            if (dataPeriode.length === 1) {
+                this.dom.periodePemakaian.val(`${dateFormat(dataPeriode[0].start_date, 4)} - ${dateFormat(dataPeriode[0].end_date, 4)}`);
+            } else {
+                this.dom.periodePemakaian.val(dataPeriode.length + ' Periode');
+            }
+            this.dom.periodePemakaian.attr('data-jumperiode', dataPeriode.length);
+            this.dom.btnClearPeriode.addClass('d-block').removeClass('d-none');
+        }
+
+        this.calcPrice();
+    }
+
+    /**
+     * Fetch list of Pengguna and render components
+     */
+    loadPengguna() {
+        const params = { idPermohonan: this.idPermohonan };
+        this.tmpArrTldPengguna = [];
+        const haveTld = this.dom.haveTld.is(':checked');
+
+        ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
+            if (result.meta.code === 200) {
+                let html = '';
+                if (result.data) {
+                    for (const [i, value] of result.data.entries()) {
+                        const pengguna = value.entitas;
+                        const fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
+
+                        const dataCard = {
+                            index: i,
+                            idHash: value.permohonan_detail_hash,
+                            name: pengguna.name,
+                            divisi: pengguna.divisi?.name || '',
+                            isCheckedEvaluasi: false,
+                            radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
+                            fileKtp: fileKtp,
+                            no_seri_tld: value.tld?.no_seri_tld || '',
+                            htmlDisabled: true
+                        };
+
+                        html += cardPenggunaComponent(dataCard, {
+                            is_have_tld: (tmpArrEvaluasi.includes(this.JL) || StringZerocek === this.JL) && haveTld,
+                            status: value.type,
+                            label_tld: false,
+                            is_btn_remove: true
+                        });
+
+                        this.tmpArrTldPengguna.push({
+                            id: value.permohonan_detail_hash,
+                            index: `tldNoSeri_${i}_pengguna`
+                        });
+                    }
+                }
+
+                if (result.data.length === 0) {
+                    html = `
+                        <div class="d-flex flex-column align-items-center py-4">
+                            <span class="fw-bold text-muted">Tidak ada pengguna</span>
+                        </div>
+                    `;
+                }
+                this.dom.jumPengguna.val(result.data.length);
+
+                this.calcPrice();
+                $('#pengguna-list-container').html(html);
+                showPopupReload();
+            }
+        });
+    }
+
+    /**
+     * Delete Pengguna details
+     */
+    removePengguna(obj) {
+        const idPengguna = $(obj).data('id');
+
+        ajaxDelete(`api/v1/permohonan/destroyPengguna/${idPengguna}/${this.idPermohonan}`, result => {
             Swal.fire({
-                icon: 'warning',
-                text: 'Kontrol tidak bisa dihapus',
+                icon: 'success',
+                text: result.data.msg,
                 timer: 1200,
                 timerProgressBar: true,
                 showConfirmButton: false
-            })
-            return;
-        }
-        params.append('aksi', 'hapus');
+            }).then(() => {
+                this.loadPengguna();
+            });
+        }, error => {
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(error.responseJSON.data.msg);
+        });
     }
 
-    params.append('id_permohonan', idPermohonan);
-    if(id)
-        params.append('id_divisi', id);
+    /**
+     * Delete Kontrol details
+     */
+    deleteKontrol(obj) {
+        let idDivisi = $(obj).data('id');
 
-    params.append('jenis', 'kontrol');
-    params.append('type', 'baru');
+        if (!idDivisi) {
+            idDivisi = 'default';
+        }
+        ajaxDelete(`api/v1/permohonan/destroyKontrol/${this.idPermohonan}/${idDivisi}`, result => {
+            Swal.fire({
+                icon: 'success',
+                text: result.data.msg,
+                timer: 1200,
+                timerProgressBar: true,
+                showConfirmButton: false
+            }).then(() => {
+                this.loadKontrol();
+            });
+        }, error => {
+            Swal.fire({
+                icon: "error",
+                text: 'Server error',
+            });
+            console.error(error.responseJSON.data.msg);
+        });
+    }
 
-    ajaxPost('api/v1/permohonan/action_tld', params, result => {
-        loadKontrol();
-    })
+    /**
+     * Fetch list of Kontrol and render components
+     */
+    loadKontrol() {
+        let html = '';
+        const haveTld = this.dom.haveTld.is(':checked');
+        this.tmpArrTldKontrol = [];
+
+        ajaxGet(`api/v1/permohonan/listKontrol`, { idPermohonan: this.idPermohonan }, result => {
+            this.arrKontrolTmp = result.data.tldPermohonan;
+            let jumKontrol = 0;
+
+            for (const [key, value] of Object.entries(this.arrKontrolTmp)) {
+                const firstData = value[0];
+
+                const data = {
+                    index: key,
+                    name: `Kontrol ${firstData.entitas?.name ?? ''} C`,
+                    kode: 'C',
+                    isCheckedEvaluasi: false,
+                    tldHash: firstData.id_pengguna_divisi,
+                    no_seri_tld: firstData.tld?.no_seri_tld || false,
+                    htmlDisabled: true,
+                    rincian: value
+                };
+
+                html += cardKontrolComponent(data, {
+                    is_btn_remove: true,
+                    label_tld: false,
+                    add_kontrol: true,
+                    is_have_tld: (tmpArrEvaluasi.includes(this.JL) || StringZerocek === this.JL) && haveTld
+                });
+
+                value.map((info, i) => {
+                    this.tmpArrTldKontrol.push({
+                        id: info.permohonan_detail_hash,
+                        index: `tldNoSeri_${key}_${i}_kontrol`
+                    });
+                });
+
+                jumKontrol += value.length;
+            }
+
+            const isEmptyKontrol = !this.arrKontrolTmp || 
+                (Array.isArray(this.arrKontrolTmp) && this.arrKontrolTmp.length === 0) || 
+                (typeof this.arrKontrolTmp === 'object' && Object.keys(this.arrKontrolTmp).length === 0);
+
+            if (isEmptyKontrol) {
+                html = `
+                    <div class="d-flex flex-column align-items-center py-4">
+                        <span class="fw-bold text-muted">Tidak ada kontrol</span>
+                    </div>
+                `;
+            }
+            this.dom.jumKontrol.val(jumKontrol);
+            this.calcPrice();
+
+            $('#kontrol-list-container').html(html);
+        });
+    }
+
+    /**
+     * Plus/Minus control badges click handler
+     */
+    changeCountKontrol(type, count, obj) {
+        const id = $(obj).data('id');
+        const params = new FormData();
+
+        if (type === 'plus') {
+            params.append('aksi', 'tambah');
+        } else {
+            if (count === 1) {
+                Swal.fire({
+                    icon: 'warning',
+                    text: 'Kontrol tidak bisa dihapus',
+                    timer: 1200,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                });
+                return;
+            }
+            params.append('aksi', 'hapus');
+        }
+
+        params.append('id_permohonan', this.idPermohonan);
+        if (id) {
+            params.append('id_divisi', id);
+        }
+
+        params.append('jenis', 'kontrol');
+        params.append('type', 'baru');
+
+        ajaxPost('api/v1/permohonan/action_tld', params, () => {
+            this.loadKontrol();
+        });
+    }
+
+    /**
+     * Real-time price calculation logic
+     */
+    calcPrice() {
+        const price = this.price;
+        let subTotal = price;
+        const per = this.dom.periodePemakaian.attr('data-jumperiode');
+        const jumlah = Number(this.dom.jumPengguna.val()) + Number(this.dom.jumKontrol.val());
+
+        if (per) {
+            subTotal *= Number(per);
+        }
+
+        if (jumlah !== 0) {
+            subTotal *= jumlah;
+        }
+        this.dom.totalHarga.val(subTotal);
+
+        maskReload();
+    }
+
+    /**
+     * Expand/Collapse view toggler
+     */
+    showHideCollapse(obj) {
+        const collapse = obj;
+        if (!collapse.classList.contains('show')) {
+            collapse.innerHTML = '<i class="bi bi-eye"></i> Tampilkan';
+        } else {
+            collapse.innerHTML = '<i class="bi bi-eye-slash"></i> Lebih sedikit';
+        }
+        collapse.classList.toggle('show');
+    }
+
+    /**
+     * Show TLD selector inventory dialog
+     */
+    openInventory(obj, jenis) {
+        const id = $(obj).data('id');
+        let arr = [];
+        if (jenis === 'pengguna') {
+            arr = this.tmpArrTldPengguna;
+        } else if (jenis === 'kontrol') {
+            arr = this.tmpArrTldKontrol;
+        }
+        this.inventoryTld.show(id, arr, jenis);
+    }
+
+    /**
+     * Select a user/pengguna and link them to permohonan
+     */
+    btnPilihPengguna(obj) {
+        const id = $(obj).length > 0 ? $(obj).data('id') : obj;
+
+        const params = new FormData();
+        params.append('idPengguna', id);
+        params.append('idPermohonan', this.idPermohonan);
+
+        spinner('show', $(obj));
+        ajaxPost(`api/v1/permohonan/tambahPengguna`, params, () => {
+            this.loadPengguna();
+            this.loadKontrol();
+            $('#modal-add-tld-pengguna').modal('hide');
+            $('#modal-add-pengguna').modal('hide');
+            spinner('hide', $(obj));
+        }, () => {
+            spinner('hide', $(obj));
+        });
+    }
+
+    /**
+     * Configures the active form layout based on selected service details
+     */
+    openForm() {
+        const layanan = this.dom.jenisLayanan2.val();
+        let html = '<option value="">Pilih</option>';
+        $('#form-kode-lencana-pengguna').hide();
+        this.arrKontrolTmp = [];
+
+        // Disable elements
+        this.dom.jenisLayanan.attr('disabled', true).addClass('bg-secondary-subtle');
+        this.dom.jenisLayanan2.attr('disabled', true).addClass('bg-secondary-subtle');
+        this.dom.layananJasa.attr('disabled', true).addClass('bg-secondary-subtle');
+
+        if (layanan === '') {
+            this.dom.formInputan.addClass('d-none').removeClass('d-block');
+        } else {
+            ajaxGet(`api/v1/permohonan/getJenisTld/${layanan}`, false, result => {
+                if (result.meta.code === 200) {
+                    result.data.forEach(value => {
+                        html += `<option value="${value.jenis_tld.jenis_tld_hash}">${value.jenis_tld.name}</option>`;
+                    });
+
+                    this.dom.jenisTld.html(html);
+
+                    if (tmpArrSewa.includes(this.JL)) {
+                        this.dom.useZeroCek.prop('checked', true);
+                        this.dom.haveTld.prop('checked', false);
+                        this.loadKontrol();
+                        this.loadPengguna();
+                    } else {
+                        // Trigger haveTld change to establish correct UI visibility
+                        dataPermohonan.is_have_tld === 0 ? this.dom.haveTld.prop('checked', false).trigger('change') : this.dom.haveTld.prop('checked', true).trigger('change');
+
+                        // Set the actual saved zerocek value
+                        dataPermohonan.is_zerocek === 0 ? this.dom.useZeroCek.prop('checked', false) : this.dom.useZeroCek.prop('checked', true);
+
+                        this.dom.formSwitch.show();
+                    }
+
+                    switch (this.typeLayanan.toLowerCase()) {
+                        case 'kontrak':
+                            this.dom.jenisTld.val(dataPermohonan.jenis_tld?.jenis_tld_hash).trigger('change');
+                            this.periodeJs.addData(dataPermohonan.periode_pemakaian);
+                            this.simpanPeriode();
+
+                            this.dom.btnAddPengguna.addClass('d-block').removeClass('d-none');
+                            this.dom.formTipeKontrak.show();
+                            this.dom.formPeriode.show();
+                            this.dom.formJenisTld.show();
+                            this.dom.formJumPengguna.show();
+                            this.dom.formJumKontrol.show();
+                            this.dom.formTotalHarga.show();
+                            break;
+
+                        case 'evaluasi':
+                            this.dom.jenisTld.val(dataPermohonan.jenis_tld?.jenis_tld_hash).trigger('change');
+                            this.periodeJs.addData(dataPermohonan.periode_pemakaian);
+                            this.simpanPeriode();
+                            this.periodeNextJs.addData(dataPermohonan.periode_next);
+                            this.simpanPeriodeNext();
+
+                            this.dom.formTipeKontrak.show();
+                            this.dom.formPeriode.show();
+                            this.dom.formJenisTld.show();
+                            this.dom.formJumKontrol.show();
+                            this.dom.formJumPengguna.show();
+                            this.dom.formAlamat.show();
+                            this.dom.formTotalHarga.show();
+                            this.dom.formPeriodeNext.show();
+                            this.periodeJs.maxPeriode = 1;
+                            this.dom.formJenisTld.addClass('col-md-12').removeClass('col-md-6');
+                            this.dom.formSwitch.show();
+                            break;
+
+                        case 'zero cek':
+                            this.dom.formTipeKontrak.show();
+                            this.dom.formPeriode.show();
+                            this.dom.formJenisTld.show();
+                            this.dom.formJumKontrol.show();
+                            this.dom.formJumPengguna.show();
+                            this.dom.formAlamat.show();
+                            this.dom.formTotalHarga.show();
+                            this.periodeJs.maxPeriode = 2;
+                            this.dom.useZeroCek.prop('checked', true);
+                            this.dom.switchZerocek.hide();
+                            break;
+
+                        case 'adendum':
+                            this.dom.btnAddPengguna.addClass('d-block').removeClass('d-none');
+                            this.dom.formTipeKontrak.show();
+                            this.dom.formPeriode.show();
+                            this.dom.formJenisTld.show();
+                            this.dom.formJumPengguna.show();
+                            this.dom.formJumKontrol.show();
+                            this.dom.formTotalHarga.show();
+                            break;
+
+                        case 'pembelian':
+                            this.dom.formJenisTld.show();
+                            this.dom.formJumPengguna.show();
+                            this.dom.formJumKontrol.show();
+                            this.dom.formPeriode1.show();
+                            this.dom.formPeriode2.show();
+                            this.dom.formTotalHarga.show();
+                            break;
+                    }
+
+                    this.dom.formInputan.addClass('d-block').removeClass('d-none');
+                }
+            });
+        }
+    }
+
+    /**
+     * Check current permohonan service status and setup layouts accordingly
+     */
+    cekLayanan() {
+        if (dataPermohonan.layanan_jasa) {
+            $('#id_layanan').val(dataPermohonan.layanan_jasa.layanan_hash).trigger('change');
+            this.dom.jenisLayanan.val(dataPermohonan.jenis_layanan_parent.jenis_layanan_hash).trigger('change');
+            this.dom.jenisLayanan2.html(`<option value="${dataPermohonan.jenis_layanan.jenis_layanan_hash}">${dataPermohonan.jenis_layanan.name}</option>`);
+
+            this.typeLayanan = dataPermohonan.jenis_layanan_parent.name;
+            this.typeLayanan2 = dataPermohonan.jenis_layanan.name;
+            this.JL = jenislayanan(dataPermohonan.jenis_layanan_parent, dataPermohonan.jenis_layanan);
+
+            this.dom.divBuatForm.addClass('d-none').removeClass('d-block');
+            this.openForm();
+        }
+    }
+
+    /**
+     * Destroy Permohonan completely
+     */
+    remove() {
+        ajaxDelete(`api/v1/permohonan/destroyPermohonan/${this.idPermohonan}`, result => {
+            Swal.fire({
+                icon: 'success',
+                text: result.data.msg,
+                timer: 1200,
+                timerProgressBar: true,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = `${base_url}/permohonan/pengajuan`;
+            });
+        }, error => {
+            const result = error.responseJSON;
+            if (result?.meta?.code && result.meta.code === 500) {
+                Swal.fire({ icon: "error", text: 'Server error' });
+                console.error(result.data.msg);
+            } else {
+                Swal.fire({ icon: "error", text: 'Server error' });
+                console.error(result?.message || 'Unknown error');
+            }
+        });
+    }
 }
+
+// Global scope instantiation & bridge logic mapping
+let manager;
+$(function () {
+    manager = new PengajuanTambahManager();
+    manager.init();
+});
+
+// Bridge to maintain support for inline HTML onclick calls
+window.remove = () => manager.remove();
+window.removePengguna = (obj) => manager.removePengguna(obj);
+window.deleteKontrol = (obj) => manager.deleteKontrol(obj);
+window.changeCountKontrol = (type, count, obj) => manager.changeCountKontrol(type, count, obj);
+window.openInventory = (obj, jenis) => manager.openInventory(obj, jenis);
+window.showHideCollapse = (obj) => manager.showHideCollapse(obj);
+window.btnPilihPengguna = (obj) => manager.btnPilihPengguna(obj);

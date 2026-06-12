@@ -27,20 +27,14 @@
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle p-1 rounded-pill border border-2 border-white shadow-sm transition-all"
                     id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false"
                     style="outline: 2px solid #e9ecef;">
-                        <div class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold shadow-sm"
-                                style="width: 40px; height: 40px; background-color: #55c57a;">
-                            {{ substr(Auth::user()->name, 0, 1) }}
-                        </div>
+                        {!! renderUserAvatar(Auth::user(), false, '40px') !!}
                 </a>
 
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2"
                     aria-labelledby="userDropdown" style="min-width: 240px; animation: slideIn 0.2s ease;">
                     <li>
                         <div class="d-flex align-items-center p-2 mb-2 border-bottom pb-3">
-                            <div class="rounded-circle d-flex justify-content-center align-items-center me-3 text-white fw-bold shadow-sm"
-                                    style="width: 40px; height: 40px; background-color: #55c57a;">
-                                {{ substr(Auth::user()->name, 0, 1) }}
-                            </div>
+                            {!! renderUserAvatar(Auth::user(), false, '40px', 'me-3') !!}
                             <div class="overflow-hidden">
                                 <h6 class="mb-0 fw-bold text-dark text-truncate">{{ Auth::user()->name }}</h6>
                                 <small class="text-muted text-truncate d-block" style="font-size: 0.75rem;">

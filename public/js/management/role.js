@@ -42,8 +42,28 @@ $(function () {
     filterComp.on('filter.change', () => datatable_role?.ajax.reload());
 })
 
+$(function () {
+    // Group select all button logic
+    $(document).on('click', '.btn-toggle-group', function(e) {
+        e.preventDefault();
+        const groupSlug = $(this).data('group');
+        const isEditModal = $(this).closest('.modal').attr('id') === 'editRoleModal';
+        const checkboxClass = isEditModal ? '.edit-perm-checkbox' : '.create-perm-checkbox';
+        const checkboxes = $(checkboxClass + `[data-group-class="${groupSlug}"]`);
+        
+        const allChecked = checkboxes.length === checkboxes.filter(':checked').length;
+        checkboxes.prop('checked', !allChecked).trigger('change');
+    });
+});
+
 function btnEdit(obj) {
     let idRole = $(obj).data('id');
+
+    // Reset Parsley validation and checked states on opening
+    const formParsley = $('#form-edit').parsley();
+    formParsley.reset();
+    $('#form-edit').find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+    $('input[name="permissionEdit[]"]').prop('checked', false);
 
     ajaxGet(`management/roles/${idRole}`, false, result => {
         if (result.meta.code == 200) {
@@ -61,10 +81,15 @@ function btnEdit(obj) {
 
 $('#form-edit').on("submit", (evt) => {
     evt.preventDefault();
+    const formParsley = $('#form-edit').parsley();
+    if (!formParsley.validate()) {
+        return;
+    }
     const formData = new FormData(evt.target);
+    const idRole = $('#inputEditIdRole').val();
 
     spinner('show', $('#btn-edit'));
-    ajaxPost(`management/roles/update`, formData, result => {
+    ajaxPost(`management/roles/${idRole}`, formData, result => {
         if (result.meta.code == 200) {
             Swal.fire({
                 icon: 'success',
@@ -78,11 +103,17 @@ $('#form-edit').on("submit", (evt) => {
                 datatable_role?.ajax.reload();
             })
         }
+    }, error => {
+        spinner('hide', $('#btn-edit'));
     })
 })
 
 $('#form-create').on("submit", (evt) => {
     evt.preventDefault();
+    const formParsley = $('#form-create').parsley();
+    if (!formParsley.validate()) {
+        return;
+    }
     const formData = new FormData(evt.target);
     spinner('show', $('#btn-create'));
 
@@ -129,6 +160,10 @@ function resetForm() {
     // reset checkbox permission
     $('input[name="permission[]"]').prop('checked', false);
     $('input[name="permissionEdit[]"]').prop('checked', false);
+    
+    // reset Parsley validation
+    $('#form-create').parsley().reset();
+    $('#form-create').find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
 }
 
 function reload() {

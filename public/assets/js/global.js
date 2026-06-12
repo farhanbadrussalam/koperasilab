@@ -2,6 +2,12 @@ const tmpArrEvaluasi = ['KontrakEvaluasi', 'EvaluasiTanpaKontrak'];
 const tmpArrSewa = ['KontrakSewa'];
 const tmpArrPutus = ['EvaluasiTanpaKontrak', 'ZerocekTanpaKontrak'];
 const StringZerocek = 'ZeroCekTanpaKontrak';
+$(function () {
+    if (typeof bootstrap !== 'undefined') {
+        bootstrap.Dropdown.Default.boundary = 'viewport';
+        bootstrap.Dropdown.Default.popperConfig = { strategy: 'fixed' };
+    }
+});
 /**
  * Formats a number into Indonesian Rupiah currency format.
  *
@@ -85,15 +91,15 @@ function maskReload(value, type = null) {
 }
 maskReload();
 
-function showPopupReload(){
+function showPopupReload() {
     $('.show-popup-image').magnificPopup({
         type: 'image',
         closeBtnInside: false,
         callbacks: {
-            open: function() {
+            open: function () {
                 $('body').addClass('mfp-open');
             },
-            close: function() {
+            close: function () {
                 $('body').removeClass('mfp-open');
             }
         },
@@ -284,8 +290,8 @@ function statusFormat(feature, status) {
     status = Number(status);
 
     // Helper untuk membuat badge modern dengan ikon
-    const createBadge = (color, icon, text) => {
-        return `<span class="badge bg-${color}-subtle text-${color} border border-${color}-subtle px-2 py-1 fw-medium align-items-center">
+    const createBadge = (color, icon, text, textColor = '') => {
+        return `<span class="badge bg-${color}-subtle text-${textColor || color} border border-${color}-subtle px-2 py-1 fw-medium align-items-center">
                     <i class="bi ${icon} me-1"></i> ${text}
                 </span>`;
     };
@@ -293,7 +299,7 @@ function statusFormat(feature, status) {
     if (feature == 'jadwal') {
         switch (status) {
             case 0: return createBadge('secondary', 'bi-person-dash', 'Belum ditugaskan');
-            case 1: return createBadge('info', 'bi-send', 'Diajukan');
+            case 1: return createBadge('info', 'bi-send', 'Diajukan', 'dark');
             case 2: return createBadge('success', 'bi-check2-circle', 'Bersedia');
             case 9: return createBadge('danger', 'bi-x-circle', 'Menolak');
             default: return createBadge('danger', 'bi-slash-circle', 'Dibatalkan');
@@ -302,8 +308,8 @@ function statusFormat(feature, status) {
         switch (status) {
             case 1: return createBadge('secondary', 'bi-file-earmark-plus', 'Pengajuan');
             case 2: return createBadge('primary', 'bi-shield-check', 'Terverifikasi');
-            case 3: return createBadge('info', 'bi-gear-wide-connected', 'Proses pelaksana LAB');
-            case 4: return createBadge('info', 'bi-truck', 'Proses Pengiriman');
+            case 3: return createBadge('info', 'bi-gear-wide-connected', 'Proses pelaksana LAB', 'dark');
+            case 4: return createBadge('info', 'bi-truck', 'Proses Pengiriman', 'dark');
             case 5: return createBadge('success', 'bi-check-circle-fill', 'Selesai');
             case 80: return createBadge('secondary', 'bi-pencil-square', 'Draft');
             case 90: return createBadge('danger', 'bi-x-circle', 'Ditolak');
@@ -320,13 +326,13 @@ function statusFormat(feature, status) {
         }
     } else if (feature == 'pengiriman') {
         switch (status) {
-            case 1: return createBadge('info', 'bi-truck', 'Sedang dikirim');
+            case 1: return createBadge('info', 'bi-truck', 'Sedang dikirim', 'dark');
             case 2: return createBadge('success', 'bi-box-seam', 'Sudah diterima');
             case 3: return createBadge('primary', 'bi-arrow-repeat', 'Proses Pengiriman');
             default: return createBadge('secondary', 'bi-dash-circle', 'Belum dikirim');
         }
     } else if (feature == 'penyelia') {
-        switch (status){
+        switch (status) {
             case 1: case 5: return createBadge('secondary', 'bi-file-earmark-plus', 'Pengajuan');
             case 2: return createBadge('primary', 'bi-person-check', 'TTD manager');
             case 3: return createBadge('success', 'bi-check-circle', 'LHU Selesai');
@@ -343,22 +349,22 @@ function statusFormat(feature, status) {
             case 20: return createBadge('primary', 'bi-bookmark-check', 'Proses Pelabelan');
         }
     } else if (feature == 'invoice') {
-            // Menggunakan format teks berwarna dengan ikon tanpa background (badge)
-            // untuk membedakan status finansial dengan status operasional lainnya.
-            const createStatusText = (color, icon, text) => {
-                return `<span class="text-${color} d-inline-flex align-items-center" style="font-size: 0.85rem;">
+        // Menggunakan format teks berwarna dengan ikon tanpa background (badge)
+        // untuk membedakan status finansial dengan status operasional lainnya.
+        const createStatusText = (color, icon, text) => {
+            return `<span class="text-${color} d-inline-flex align-items-center" style="font-size: 0.85rem;">
                             <i class="bi ${icon} me-1"></i> ${text}
                         </span>`;
-            };
+        };
 
-            if(status == 5) return createStatusText('success', 'bi-check-all', 'Sudah dibayar');
-            if(status == 4) return createStatusText('info', 'bi-hourglass-split', 'Sedang dikonfirmasi');
-            if(status == 3) return createStatusText('warning', 'bi-cash-stack', 'Perlu dibayar');
-            return createStatusText('danger', 'bi-x-circle', 'Belum dibayar');
+        if (status == 5) return createStatusText('success', 'bi-check-all', 'Sudah dibayar');
+        if (status == 4) return createStatusText('info', 'bi-hourglass-split', 'Sedang dikonfirmasi', 'dark');
+        if (status == 3) return createStatusText('warning', 'bi-cash-stack', 'Perlu dibayar');
+        return createStatusText('danger', 'bi-x-circle', 'Belum dibayar');
     } else if (feature == 'kontrak') {
         switch (status) {
-            case 1: return createBadge('primary', 'bi-play-circle', 'Kontrak sedang berjalan');
-            case 2: return createBadge('success', 'bi-check-circle', 'Kontrak selesai');
+            case 1: return createBadge('primary', 'bi-play-circle', 'sedang berjalan');
+            case 2: return createBadge('success', 'bi-check-circle', 'selesai');
         }
     }
 
@@ -483,7 +489,7 @@ function stringSplit(str, prefix) {
 }
 
 function formatSelect2Staff(state) {
-    if(!state.id){
+    if (!state.id) {
         return state.text;
     }
 
@@ -587,9 +593,13 @@ function unmask(data) {
  * @param {Function} [callback=() => {}] - The function to call if the request is successful.
  * @param {Function} [onError=() => {}] - The function to call if the request fails.
  */
-function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgress = false, onMiddleware = true) {
+function ajaxPost(url, params, callback = () => { }, onError = () => { }, options = {}) {
+    const onMiddleware = options?.onMiddleware ?? true;
+    const onProgress = options?.onProgress ?? false;
+    const onErrorPopup = options?.onErrorPopup ?? true;
+
     params.append('_token', csrf);
-    let xhr = onProgress ? {xhr: onProgress} : false;
+    let xhr = onProgress ? { xhr: onProgress } : false;
     $.ajax({
         url: `${base_url}/${url}`,
         method: 'POST',
@@ -603,29 +613,31 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgre
         ...xhr
     }).done(callback).fail(error => {
         const result = error.responseJSON;
-        switch (result?.meta?.code) {
-            case 500:
-                Swal.fire({
-                    icon: "error",
-                    text: 'Terjadi kesalahan. Silakan coba lagi.',
-                });
-                console.error(result.data.msg);
-                break;
-            case 422:
-            case 400:
-                Swal.fire({
-                    icon: "warning",
-                    text: result.data.msg,
-                });
-                console.info(result.data.msg);
-                break;
-            default:
-                Swal.fire({
-                    icon: "error",
-                    text: 'Terjadi kesalahan. Silakan coba lagi.',
-                });
-                console.error(error.responseText);
-                break;
+        if (onErrorPopup) {
+            switch (result?.meta?.code) {
+                case 500:
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan. Silakan coba lagi.',
+                    });
+                    console.error(result.data.msg);
+                    break;
+                case 422:
+                case 400:
+                    Swal.fire({
+                        icon: "warning",
+                        text: result.data.msg,
+                    });
+                    console.info(result.data.msg);
+                    break;
+                default:
+                    Swal.fire({
+                        icon: "error",
+                        text: 'Terjadi kesalahan. Silakan coba lagi.',
+                    });
+                    console.error(error.responseText);
+                    break;
+            }
         }
 
         onError(error);
@@ -640,7 +652,7 @@ function ajaxPost(url, params, callback = () => {}, onError = () => {}, onProgre
  * @param {Function} [callback=() => {}] - The function to call if the request is successful.
  * @param {Function} [onError=() => {}] - The function to call if the request fails.
  */
-function ajaxGet(url, params, callback = () => {}, onError = () => {}, options = {}) {
+function ajaxGet(url, params, callback = () => { }, onError = () => { }, options = {}) {
     const onMiddleware = options?.onMiddleware ?? true;
     const onErrorPopup = options?.onErrorPopup ?? true;
 
@@ -656,14 +668,14 @@ function ajaxGet(url, params, callback = () => {}, onError = () => {}, options =
         data: params
     }).done(callback).fail(error => {
         const result = error.responseJSON;
-        if(result?.meta?.code && result.meta.code == 500){
+        if (result?.meta?.code && result.meta.code == 500) {
             Swal.fire({
                 icon: "error",
                 text: 'Terjadi kesalahan. Silakan coba lagi.',
             });
             console.error(result.data.msg);
-        }else{
-            if(onErrorPopup){
+        } else {
+            if (onErrorPopup) {
                 Swal.fire({
                     icon: "error",
                     text: 'Terjadi kesalahan. Silakan coba lagi.',
@@ -683,7 +695,7 @@ function ajaxGet(url, params, callback = () => {}, onError = () => {}, options =
  * @param {Function} [callback=() => {}] - The callback function to execute if the request is successful.
  * @param {Function} [onError=() => {}] - The callback function to execute if the request fails.
  */
-function ajaxDelete(url, callback = () => {}, onError = () => {}){
+function ajaxDelete(url, callback = () => { }, onError = () => { }) {
     Swal.fire({
         icon: 'warning',
         title: 'Are you sure?',
@@ -710,13 +722,13 @@ function ajaxDelete(url, callback = () => {}, onError = () => {}){
                 }
             }).done(callback).fail(error => {
                 const result = error.responseJSON;
-                if(result?.meta?.code && result.meta.code == 500){
+                if (result?.meta?.code && result.meta.code == 500) {
                     Swal.fire({
                         icon: "error",
                         text: 'Terjadi kesalahan. Silakan coba lagi.',
                     });
                     console.error(result.data.msg);
-                }else{
+                } else {
                     Swal.fire({
                         icon: "error",
                         text: 'Terjadi kesalahan. Silakan coba lagi.',
@@ -730,11 +742,11 @@ function ajaxDelete(url, callback = () => {}, onError = () => {}){
     })
 }
 
-function printMedia(media, folder=false, option = {}){
+function printMedia(media, folder = false, option = {}) {
     const options = {
         download: option.download == undefined ? true : option.download,
         date: option.date == undefined ? true : option.date,
-        size:  option.size == undefined ? true : option.size,
+        size: option.size == undefined ? true : option.size,
         onRemove: option.onRemove == undefined ? false : option.onRemove,
         isHtml: option.isHtml == undefined ? false : option.isHtml
     }
@@ -742,7 +754,7 @@ function printMedia(media, folder=false, option = {}){
     const dateContent = options.date ? `<span class="text-submain caption text-secondary">${dateFormat(media.created_at, 1)}</span>` : '';
     const sizeContent = options.size ? `<small class="text-submain caption" style="margin-top: -3px;">${formatBytes(media.file_size)}</small>` : '';
 
-    if(options.isHtml){
+    if (options.isHtml) {
         return `
             <div
                 class="d-flex align-items-center justify-content-between px-3 shadow-sm cursoron document border">
@@ -835,19 +847,19 @@ function printMedia(media, folder=false, option = {}){
  * @param {string|boolean} [options.width=false] - The width of the spinner.
  * @param {string|boolean} [options.height=false] - The height of the spinner.
  */
-function spinner(status = 'show', obj, options = {}){
+function spinner(status = 'show', obj, options = {}) {
     options = {
         place: options.place ? options.place : 'before', // after or before
         width: options.width ? options.width : false,
         height: options.height ? options.height : false,
         margin: options.margin ? options.margin : false,
     }
-    if(status == 'show'){
+    if (status == 'show') {
         const spin = document.createElement('span');
         spin.role = 'status';
         options.width && (spin.style.width = options.width);
         options.height && (spin.style.height = options.height);
-        if(options.place == 'after'){
+        if (options.place == 'after') {
             spin.className = `spinner-border spinner-border-sm ms-1`;
             $(obj).attr('disabled', true).append(spin);
         } else {
@@ -855,12 +867,12 @@ function spinner(status = 'show', obj, options = {}){
             $(obj).attr('disabled', true).prepend(spin);
         }
         spin.style.margin = options.margin;
-    }else if(status == 'hide'){
+    } else if (status == 'hide') {
         $(obj).attr('disabled', false).children('.spinner-border').remove();
     }
 }
 
-function validate(...data){
+function validate(...data) {
     console.log(data);
 }
 
@@ -885,7 +897,7 @@ function showPreviewKtp(obj) {
  * @param {number} [options.height=120] - Height of the signature pad.
  * @returns {SignaturePad} - The created SignaturePad instance.
  */
-function signature(parent, options){
+function signature(parent, options) {
     options = {
         text: options.text ? options.text : '',
         name: options.name ? options.name : '',
@@ -918,7 +930,7 @@ function signature(parent, options){
     name.className = 'text-center mb-0';
     name.innerText = `(${options.name})`;
 
-    if(options.defaultSig){
+    if (options.defaultSig) {
         // Create Element img default
         const img = document.createElement('img');
         img.className = 'rounded border p-0';
@@ -927,7 +939,7 @@ function signature(parent, options){
         img.src = options.defaultSig;
 
         parent.appendChild(img);
-    }else{
+    } else {
         parent.appendChild(btnRemove);
         parent.appendChild(canvas);
     }
@@ -963,7 +975,7 @@ function getCurrentPeriod(periods) {
         }
     });
 
-    if(periods.length >= 1){
+    if (periods.length >= 1) {
         // Jika hari ini sebelum semua periode dimulai
         if (today < new Date(periods[0].start_date)) {
             return "notstarted";
@@ -1015,7 +1027,7 @@ function diffToday(date) {
 }
 
 
-function htmlNoData(){
+function htmlNoData() {
     return `
         <div class="d-flex flex-column align-items-center py-3">
             <svg width="90" height="90" fill="currentColor" class="bi bi-inbox text-muted" viewBox="0 0 16 16">
@@ -1026,7 +1038,7 @@ function htmlNoData(){
     `;
 }
 
-function jenislayanan(parent, child){
+function jenislayanan(parent, child) {
     let text = (parent.name + ' ' + child.name).replace(/\s+/g, '');
     return text;
 }
@@ -1036,7 +1048,7 @@ function findVariabelInCkeditor(content) {
     const regex = /\{\{.*?\}\}/g;
     const matches = content.match(regex);
     // pecahkan menjadi text nya aja tanpa {{}}
-    if(matches){
+    if (matches) {
         for (let i = 0; i < matches.length; i++) {
             matches[i] = matches[i].replace(/\{\{|\}\}/g, '');
         }
@@ -1044,10 +1056,10 @@ function findVariabelInCkeditor(content) {
     return matches;
 }
 
-function contenMetodePembayaran(content, variabels = []){
+function contenMetodePembayaran(content, variabels = []) {
     for (let i = 0; i < variabels.length; i++) {
         for (let j = 0; j < variabels[i].length; j++) {
-            content = content.replace('{{'+variabels[i][j].key+'}}', variabels[i][j].value);
+            content = content.replace('{{' + variabels[i][j].key + '}}', variabels[i][j].value);
         }
     }
     return content;
@@ -1056,55 +1068,76 @@ function contenMetodePembayaran(content, variabels = []){
 function getPeriodeAwal(data) {
     let JL = jenislayanan(data.jenis_layanan_parent, data.jenis_layanan);
     let periodeAwal = [];
-    if(data.is_zerocek == 1) {
-        if(data.is_have_tld == 0){
+    if (data.is_zerocek == 1) {
+        if (data.is_have_tld == 0) {
             periodeAwal = [0];
-        } else if(data.is_have_tld == 1 && JL != StringZerocek){
+        } else if (data.is_have_tld == 1 && JL != StringZerocek) {
             periodeAwal = [1, 2];
         }
-    } else if(data.is_zerocek == 0) {
-        if(data.is_have_tld == 1 && JL != 'EvaluasiTanpaKontrak'){
+    } else if (data.is_zerocek == 0) {
+        if (data.is_have_tld == 1 && JL != 'EvaluasiTanpaKontrak') {
             periodeAwal = [1, 2];
         }
     }
     return periodeAwal;
 }
 
-function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen){
+function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen) {
     const periodeAwal = getPeriodeAwal(data_kontrak);
     // Pengecekan Invoice apakah sudah di bayar atau belum
-    if(data_periode.permohonan?.invoice){
+    if (data_periode.permohonan?.invoice) {
         if (data_periode.permohonan.invoice.status != 5) return false;
     }
     detail_pengiriman = detail_pengiriman.filter(item => item.tipe_kontrak != 'adendum');
     // pengecekan jenis layanan
     for (const doc of arrFindDokumen) {
-        let findPeriode = detail_pengiriman.find(cek => cek.periode == data_periode.periode && cek.jenis == doc);
+        let docSearch = doc;
+        let periodeSearch = data_periode.periode;
 
-        if(role.includes('Staff Pengiriman') && data_periode.periode != periodeAwal[0]) {
-            if(periodeAwal.includes(data_periode.periode)) {
-                return true;
-            }
-            // cek tld sudah di kirim atau belum
-            if(doc === 'tld'){
-                if(!findPeriode) {
-                    return false;
-                } else if (findPeriode?.status != 2) {
-                    return false;
-                }
-            }
+        if (doc === 'zerocek') {
+            docSearch = 'lhu';
+            periodeSearch = data_kontrak.is_have_tld == 1 ? 1 : 0;
+        }
 
-            if (data_kontrak.periode_all?.jml_periode && (data_kontrak.periode_all.jml_periode - data_periode.periode) < 2) {
-                if (doc === 'lhu') {
-                    if (!findPeriode || findPeriode.status != 2) {
-                        return false;
-                    }
-                }
+        if (doc === 'tld' && data_periode.periode == 0) {
+            periodeSearch = 1;
+        }
+
+        if (doc === 'invoice') {
+            if (data_kontrak.is_zerocek == 1 && data_periode.periode == 1) {
+                periodeSearch = data_kontrak.is_have_tld == 1 ? 1 : 0;
             }
-        } else{
-            if (!findPeriode || findPeriode.status != 2) {
-                return false;
-            }
+        }
+
+        let findPeriode = detail_pengiriman.find(cek => cek.periode == periodeSearch && cek.jenis == docSearch);
+
+        if (!findPeriode || findPeriode.status != 2) {
+            return false;
+        }
+        if (role.includes('Staff Pengiriman') && data_periode.periode != periodeAwal[0]) {
+            // if(periodeAwal.includes(data_periode.periode)) {
+            //     return true;
+            // }
+            // // cek tld sudah di kirim atau belum
+            // if(doc === 'tld'){
+            //     if(!findPeriode) {
+            //         return false;
+            //     } else if (findPeriode?.status != 2) {
+            //         return false;
+            //     }
+            // }
+
+            // if (data_kontrak.periode_all?.jml_periode && (data_kontrak.periode_all.jml_periode - data_periode.periode) < 2) {
+            //     if (doc === 'lhu') {
+            //         if (!findPeriode || findPeriode.status != 2) {
+            //             return false;
+            //         }
+            //     }
+            // }
+        } else {
+            // if (!findPeriode || findPeriode.status != 2) {
+            //     return false;
+            // }
 
             // if(findPeriode?.tipe_kontrak == 'adendum')
             //     continue;
@@ -1113,77 +1146,142 @@ function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFi
     return true;
 }
 
-function periodeMapDocument(data_periode, kontrak, arrFindDokumen){
+function periodeMapDocument(data_periode, kontrak, arrFindDokumen) {
     const JL = jenislayanan(kontrak.jenis_layanan_parent, kontrak.jenis_layanan);
-    const periodeAwal = getPeriodeAwal(kontrak);
     let lastPeriode = (kontrak.periode_count) == data_periode.periode;
 
     let aktifDokumenKirim = [];
     for (const doc of arrFindDokumen) {
-        if (doc === 'invoice' && !data_periode.permohonan?.invoice) continue;
+        if (doc === 'invoice') {
+            // Rule 3: For contracts with zerocek = true and have_tld = true, Periode 1 has the invoice of the zero-check/periode 1.
+            if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 1 && data_periode.periode == 1) {
+                if (!data_periode.permohonan?.invoice && !data_periode.permohonan_zerocek?.invoice) continue;
+                aktifDokumenKirim.push(doc);
+                continue;
+            }
+            // Rule 1 & 2: For contracts with zerocek = true and have_tld = false, on Periode 1, show standard invoice.
+            if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 0 && data_periode.periode == 1) {
+                if (!data_periode.permohonan?.invoice) continue;
+                aktifDokumenKirim.push(doc);
+                continue;
+            }
+            // For Periode 0 (Rule 1 & 2) or any other periods, show invoice if exists.
+            if (!data_periode.permohonan?.invoice) continue;
+        }
         if (doc === 'tld') {
-            if (lastPeriode && tmpArrSewa.includes(JL)) continue;
-            if (periodeAwal.includes(data_periode.periode)) continue;
-            // if (data_periode.tipe_kontrak == 'adendum') continue;
+            // For Sewa: TLD is ALWAYS shown on all periods.
+            if (tmpArrSewa.includes(JL)) {
+                if (data_periode.periode == 0) continue;
+            } else {
+                // For other contract types (e.g. Evaluasi):
+                // If it does not have TLD (is_have_tld == 0), skip TLD on all periods except Periode 0.
+                // if (kontrak.is_have_tld == 0 && data_periode.periode != 0) continue;
+
+                // For KontrakEvaluasi: skip on Periode 1 and 2 unless is_zerocek == 1 and is_have_tld == 1.
+                if (JL === 'KontrakEvaluasi') {
+                    if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 0) {
+                        if (data_periode.periode == 0) continue;
+                    }
+
+                    if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 1) {
+                        if (data_periode.periode == 1 || data_periode.periode == 2) {
+                            continue;
+                        }
+                    }
+
+                    if (kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
+                        if (data_periode.periode == 1 || data_periode.periode == 2) {
+                            continue;
+                        }
+                    }
+                    // if (kontrak.is_zerocek != 1 || kontrak.is_have_tld != 1) {
+
+                    // }
+                    // if (kontrak.is_zerocek != 1 || kontrak.is_have_tld != 1) {
+                    //     continue;
+                    // }
+
+                    // if(data_periode.periode == 1 || data_periode.periode == 2){}
+                }
+
+                // if (kontrak.is_have_tld == 0 && kontrak.is_zerocek == 1) {
+                //     if (data_periode.periode == 0) continue;
+                // };
+            }
         }
         if (doc === 'lhu') {
-            if(data_periode.status == 2) continue;
+            if (data_periode.status == 2) continue;
+
+            // For zero-check on Periode 0 (Rule 1 & 2): show zerocek (labeled "LHU ZeroCheck") instead of lhu.
+            if (kontrak.is_zerocek == 1 && data_periode.periode == 0) {
+                aktifDokumenKirim.push('zerocek');
+                continue;
+            }
+
+            // For zero-check on Periode 1 (Rule 3): show zerocek instead of lhu.
+            if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 1 && data_periode.periode == 1) {
+                aktifDokumenKirim.push('zerocek');
+                continue;
+            }
         }
 
         aktifDokumenKirim.push(doc);
     }
 
+    // Check to ensure no duplicates
+    aktifDokumenKirim = [...new Set(aktifDokumenKirim)];
+
     return aktifDokumenKirim;
 }
 
 function extractImgSrcSet(html) {
-  const box = document.createElement('div');
-  box.innerHTML = html;
-  return new Set([...box.querySelectorAll('img')].map(img => img.getAttribute('src')));
+    const box = document.createElement('div');
+    box.innerHTML = html;
+    return new Set([...box.querySelectorAll('img')].map(img => img.getAttribute('src')));
 }
 
 function hslToHex(hsl) {
-  const [h, s, l] = hsl.match(/\d+(\.\d+)?/g).map(Number);
-  const a = s * Math.min(l / 100, 1 - l / 100) / 100;
-  const f = n => {
-    const k = (n + h / 30) % 12;
-    const color = l/100 - a * Math.max(Math.min(k-3, 9-k, 1), -1);
-    return Math.round(255 * color).toString(16).padStart(2, '0');
-  };
-  return `#${f(0)}${f(8)}${f(4)}`;
+    const [h, s, l] = hsl.match(/\d+(\.\d+)?/g).map(Number);
+    const a = s * Math.min(l / 100, 1 - l / 100) / 100;
+    const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l / 100 - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, '0');
+    };
+    return `#${f(0)}${f(8)}${f(4)}`;
 }
 
 // convert semua inline style di HTML
 function convertHslToHex(html) {
-  return html.replace(/hsl\([^)]+\)/g, match => hslToHex(match));
+    return html.replace(/hsl\([^)]+\)/g, match => hslToHex(match));
 }
 
 function isReminderPeriod(period, offset, hNow = null, unit = "month") {
-//   const periodDate = new Date(period);
-  const now = hNow ? new Date(hNow) : new Date();
+    //   const periodDate = new Date(period);
+    const now = hNow ? new Date(hNow) : new Date();
 
-  // Hitung H-offset
-  let hMinus = new Date(period);
+    // Hitung H-offset
+    let hMinus = new Date(period);
 
-  switch (unit) {
-    case "month":
-      hMinus.setMonth(hMinus.getMonth() - offset);
-      break;
-    case "week":
-      hMinus.setDate(hMinus.getDate() - offset * 7);
-      break;
-    case "day":
-      hMinus.setDate(hMinus.getDate() - offset);
-      break;
-    default:
-      throw new Error("Unit tidak dikenali. Gunakan 'month', 'week', atau 'day'.");
-  }
+    switch (unit) {
+        case "month":
+            hMinus.setMonth(hMinus.getMonth() - offset);
+            break;
+        case "week":
+            hMinus.setDate(hMinus.getDate() - offset * 7);
+            break;
+        case "day":
+            hMinus.setDate(hMinus.getDate() - offset);
+            break;
+        default:
+            throw new Error("Unit tidak dikenali. Gunakan 'month', 'week', atau 'day'.");
+    }
 
-  // Batas akhir = sehari sebelum periode
-  let beforePeriod = new Date(period);
-  beforePeriod.setDate(beforePeriod.getDate() - 1);
-//   return now >= hMinus && now <= beforePeriod;
-  return now >= hMinus;
+    // Batas akhir = sehari sebelum periode
+    let beforePeriod = new Date(period);
+    beforePeriod.setDate(beforePeriod.getDate() - 1);
+    //   return now >= hMinus && now <= beforePeriod;
+    return now >= hMinus;
 }
 
 function showPassword(obj) {
@@ -1197,9 +1295,9 @@ function showPassword(obj) {
     }
 }
 
-function checkEmail(obj, email, jenis){
+function checkEmail(obj, email, jenis) {
     // mengecek formatnya email
-    if(!email.match(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)){
+    if (!email.match(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/)) {
         return;
     };
 
@@ -1211,7 +1309,7 @@ function checkEmail(obj, email, jenis){
     })
     ajaxPost('api/v1/check_email', params, result => {
         let _email = $(obj).parsley();
-        if(result.meta.message == 'Fail'){
+        if (result.meta.message == 'Fail') {
             $(obj).removeClass('is-invalid').addClass('is-valid');
             _email.removeError('emailMessage');
         } else {
@@ -1227,7 +1325,7 @@ function checkEmail(obj, email, jenis){
     }, false, false);
 }
 
-function checkNIK(obj, nik){
+function checkNIK(obj, nik) {
     const params = new FormData();
     params.append('nik', nik);
     spinner('show', $(obj).parent().find('.form-label'), {
@@ -1235,7 +1333,7 @@ function checkNIK(obj, nik){
     })
     ajaxPost('api/v1/check_nik', params, result => {
         let _nik = $(obj).parsley();
-        if(result.meta.message == 'Fail'){
+        if (result.meta.message == 'Fail') {
             $(obj).removeClass('is-invalid').addClass('is-valid');
             _nik.removeError('nikMessage');
         } else {
@@ -1252,7 +1350,7 @@ function checkNIK(obj, nik){
 }
 
 function toUTCDateOnly(d) {
-  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
 }
 
 /**
@@ -1260,14 +1358,14 @@ function toUTCDateOnly(d) {
  * Jika tanggal tidak ada di bulan tujuan (mis. 31 → Feb), turunkan ke tanggal terakhir di bulan itu.
  */
 function addCalendarMonths(date, months) {
-  const y = date.getUTCFullYear();
-  const m = date.getUTCMonth();
-  const d = date.getUTCDate();
-  const target = new Date(Date.UTC(y, m + months, 1));
-  // set ke min(tanggal-asal, jumlah-hari-di-bulan-target)
-  const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
-  target.setUTCDate(Math.min(d, lastDay));
-  return target;
+    const y = date.getUTCFullYear();
+    const m = date.getUTCMonth();
+    const d = date.getUTCDate();
+    const target = new Date(Date.UTC(y, m + months, 1));
+    // set ke min(tanggal-asal, jumlah-hari-di-bulan-target)
+    const lastDay = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+    target.setUTCDate(Math.min(d, lastDay));
+    return target;
 }
 
 /**
@@ -1275,35 +1373,35 @@ function addCalendarMonths(date, months) {
  * Mengembalikan { sign: 1|-1|0, months, days } dengan months & days selalu non-negatif.
  */
 function diffMonthsDays(fromDate, toDate) {
-  const from = toUTCDateOnly(fromDate);
-  const to = toUTCDateOnly(toDate);
+    const from = toUTCDateOnly(fromDate);
+    const to = toUTCDateOnly(toDate);
 
-  if (from.getTime() === to.getTime()) {
-    return { sign: 0, months: 0, days: 0 };
-  }
+    if (from.getTime() === to.getTime()) {
+        return { sign: 0, months: 0, days: 0 };
+    }
 
-  let sign = 1;
-  let start = from, end = to;
-  if (from > to) {
-    sign = -1;
-    start = to;
-    end = from;
-  }
+    let sign = 1;
+    let start = from, end = to;
+    if (from > to) {
+        sign = -1;
+        start = to;
+        end = from;
+    }
 
-  // Hitung bulan penuh
-  let months = (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + (end.getUTCMonth() - start.getUTCMonth());
-  const anchor = addCalendarMonths(start, months);
+    // Hitung bulan penuh
+    let months = (end.getUTCFullYear() - start.getUTCFullYear()) * 12 + (end.getUTCMonth() - start.getUTCMonth());
+    const anchor = addCalendarMonths(start, months);
 
-  if (anchor > end) {
-    months -= 1;
-  }
+    if (anchor > end) {
+        months -= 1;
+    }
 
-  const anchor2 = addCalendarMonths(start, months);
-  const msPerDay = 24 * 60 * 60 * 1000;
-  // Selisih hari kalender; gunakan pembulatan ke atas untuk menghindari efek jam
-  const days = Math.round((toUTCDateOnly(end) - toUTCDateOnly(anchor2)) / msPerDay);
+    const anchor2 = addCalendarMonths(start, months);
+    const msPerDay = 24 * 60 * 60 * 1000;
+    // Selisih hari kalender; gunakan pembulatan ke atas untuk menghindari efek jam
+    const days = Math.round((toUTCDateOnly(end) - toUTCDateOnly(anchor2)) / msPerDay);
 
-  return { sign, months, days };
+    return { sign, months, days };
 }
 
 /**
@@ -1320,27 +1418,27 @@ function diffMonthsDays(fromDate, toDate) {
  *  - futurePrefix: "Sisa" (default)
  */
 function formatTimeLeftID(fromDate, toDate, opts = {}) {
-  const { sign, months, days } = diffMonthsDays(fromDate, toDate);
-  const zeroLabel = opts.zeroLabel ?? "Hari ini";
-  const pastPrefix = opts.pastPrefix ?? "Lewat";
-  const futurePrefix = opts.futurePrefix ?? "Sisa";
+    const { sign, months, days } = diffMonthsDays(fromDate, toDate);
+    const zeroLabel = opts.zeroLabel ?? "Hari ini";
+    const pastPrefix = opts.pastPrefix ?? "Lewat";
+    const futurePrefix = opts.futurePrefix ?? "Sisa";
 
-  if (sign === 0 && months === 0 && days === 0) return zeroLabel;
+    if (sign === 0 && months === 0 && days === 0) return zeroLabel;
 
-  const parts = [];
-  if (months) parts.push(`${months} bulan`);
-  if (days) parts.push(`${days} hari`);
-  const core = parts.join(" ");
+    const parts = [];
+    if (months) parts.push(`${months} bulan`);
+    if (days) parts.push(`${days} hari`);
+    const core = parts.join(" ");
 
-  if (sign > 0) return `${futurePrefix} ${core}`;
-  return `${pastPrefix} ${core}`;
+    if (sign > 0) return `${futurePrefix} ${core}`;
+    return `${pastPrefix} ${core}`;
 }
 
 function timeLeftUntilHMinusOneMonth(targetDate, opts = {}) {
-  const today = new Date();
-  const target = toUTCDateOnly(targetDate);
-//   const hMinus1 = addCalendarMonths(target, -1);
-  return formatTimeLeftID(today, target, opts);
+    const today = new Date();
+    const target = toUTCDateOnly(targetDate);
+    //   const hMinus1 = addCalendarMonths(target, -1);
+    return formatTimeLeftID(today, target, opts);
 }
 
 // Fungsi Helper untuk menghidupkan script mati

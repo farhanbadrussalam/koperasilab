@@ -126,7 +126,7 @@ function loadData(page = 1, menu) {
             let htmlPeriode = false;
             if(data.lhu) {
                 htmlPeriode = data.lhu?.periode == 0 ? "Zero Check" : `Periode ${data.lhu.periode}`;
-                if(data.lhu.periode == 1 && data.is_zerocek == 1 && data.is_have_tld == 1) {
+                if(data.lhu.periode == 1 && data.is_zerocek == 1) {
                     htmlPeriode += " + Zero Check";
                 }
             }
@@ -151,7 +151,7 @@ function loadData(page = 1, menu) {
             // Data custom
             let htmlCustom = '';
             if(data.file_lhu){
-                arrDocCustom.push({jenis: "lhu zero cek", media: data.file_lhu});
+                arrDocCustom.push({jenis: "lhu zero check", media: data.file_lhu});
             }
             for (const custom of arrDocCustom) {
                 let urlDocCustom = custom.media ? `<a href="${base_url}/storage/${custom.media.file_path}/${custom.media.file_hash}" class="text-black" target="_blank" ><i class="bi bi-printer-fill"></i> Cetak Document</a>` : false;
@@ -321,6 +321,7 @@ function periodeMapDocument_pengiriman(data_periode, kontrak, arrFindDokumen){
         if (doc === 'invoice' && !data_periode?.invoice) continue;
         if (doc === 'tld') {
             if (lastPeriode && tmpArrSewa.includes(JL)) continue;
+            if (JL === 'KontrakEvaluasi' && (data_periode.periode == 1 || data_periode.periode == 2)) continue;
             if (periodeAwal.includes(data_periode.periode)) continue;
             if (data_periode.tipe_kontrak == 'adendum') continue;
         }

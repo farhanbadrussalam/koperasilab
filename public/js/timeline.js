@@ -48,9 +48,17 @@ class Timeline {
         }).join('');
 
         let pointJobs = false;
+        let isTrackStopped = false; // Flag untuk menandai jalur sudah dihentikan
         const htmlTimelineParalel = this.dataTimelineParalel.map(tugas => {
             pointJobs = tugas.jobs_paralel;
-            const jobActive = tugas.status === 2 ? 'active' : (tugas.status === 1 ? 'onprogress' : '');
+            let jobActive = tugas.status === 2 ? 'active' : (tugas.status === 1 ? 'onprogress' : '');
+            if (isTrackStopped) {
+                jobActive = 'stopped';
+            }
+            // Jika status tugas ini is_stopped true, flag dinyalakan
+            if (tugas.is_stopped) {
+                isTrackStopped = true;
+            }
             return `<li class="${jobActive} step0 cursor-pointer" data-idmap="${tugas.map_hash}" data-id="${this.options.id}" style="width: ${this.widthCalc}%;"><span class="px-1">${tugas.jobs.name}</span></li>`;
         }).join('');
 
@@ -71,11 +79,11 @@ class Timeline {
         </div>
         `;
     }
-    buttonCreate(){
+    buttonCreate() {
         const rangeDate = range_date(this.options.start_date, this.options.end_date, 3);
 
         let htmlProgress = ``;
-        if(this.options.timeline.length > 0){
+        if (this.options.timeline.length > 0) {
             htmlProgress = `
                 <div>
                     <a class="py-1 text-decoration-none btn-show-hide-progress fw-semibold fs-8" href="#timeline-progress-${this.options.id}" data-bs-toggle="collapse"
@@ -122,6 +130,18 @@ class Timeline {
 
     modalTimeline(obj) {
         const $el = $(obj.currentTarget);
+
+        if ($el.hasClass('stopped')) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Proses Dihentikan',
+                text: 'Proses ini tidak dapat dilanjutkan karena tidak ada periode layanan berikutnya (N+2).',
+                confirmButtonText: 'Tutup',
+                confirmButtonColor: '#3085d6',
+            });
+            return;
+        }
+
         const idmap = $el.data('idmap');
         const $iconContainer = $el.find('span');
         const originalHtml = $iconContainer.html();
@@ -210,11 +230,11 @@ class Timeline {
         this._bindEventListeners();
     }
 
-    on(eventName, callback = () => {}) {
+    on(eventName, callback = () => { }) {
         return document.addEventListener(eventName, callback);
     }
 
-    destroy(){
+    destroy() {
 
     }
 }

@@ -12,6 +12,20 @@ use App\Models\Permohonan_dokumen;
 use App\Models\Permohonan_pengguna;
 use App\Models\Permohonan_tandaterima;
 use App\Models\Permohonan_detail;
+use App\Models\Penyelia;
+use App\Models\Penyelia_petugas;
+use App\Models\Penyelia_map;
+use App\Models\Log_penyelia;
+use App\Models\Keuangan;
+use App\Models\Keuangan_diskon;
+use App\Models\Log_keuangan;
+use App\Models\Pengiriman;
+use App\Models\Pengiriman_detail;
+use App\Models\Log_pengiriman;
+use App\Models\Log_proses;
+use App\Models\Log_activity;
+use App\Models\Log_permohonan;
+use App\Models\Permohonan_tld;
 
 use App\Models\Documents;
 use App\Models\Master_jenisLayanan;
@@ -63,15 +77,33 @@ class PermohonanAPI extends Controller
         DB::beginTransaction();
         try {
             $note = $request->note ? $request->note : null;
-            $pengguna = $request->pengguna ? json_decode($request->pengguna) : false;
-            $kontrol = $request->kontrol ? json_decode($request->kontrol) : false;
+            $pengguna = $request->pengguna ? json_decode($request->pengguna) : [];
+            $kontrol = $request->kontrol ? json_decode($request->kontrol) : [];
             $idPeriode = $request->idPeriode ? decryptor($request->idPeriode) : false;
             $idKontrak = $request->id_kontrak ? decryptor($request->id_kontrak) : false;
             $totalHarga = $request->sub_total ? $request->sub_total : false;
             $isZeroCek = (int) $request->is_zerocek;
+            $bulanMulai = $request->bulan_mulai ? (int) $request->bulan_mulai : 1;
 
             $dataKontrak = Kontrak::find($idKontrak);
             $dataPeriode = Kontrak_periode::find($idPeriode);
+
+            if (!$dataKontrak || !$dataPeriode) {
+                return $this->output(['msg' => 'Kontrak atau Periode tidak ditemukan.'], 'Fail', 422);
+            }
+
+            $periodeActive = $dataKontrak->periode_active;
+            if (!$periodeActive) {
+                return $this->output(['msg' => 'Tidak ada periode aktif pada kontrak ini.'], 'Fail', 422);
+            }
+
+            $activePeriodeNum = $periodeActive->periode;
+            $selisih = $dataPeriode->periode - $activePeriodeNum;
+
+            // Validasi batasan periode adendum (-1, 0, 1)
+            if ($selisih < -1 || $selisih > 1) {
+                return $this->output(['msg' => 'Periode adendum tidak valid. Hanya diperbolehkan untuk periode sebelumnya, aktif, atau berikutnya.'], 'Fail', 422);
+            }
 
             $jumPenggunaBaru = count(array_filter($pengguna, function ($item) {
                 return $item->status == 'baru';
@@ -81,6 +113,29 @@ class PermohonanAPI extends Controller
                 return $item->status == 'baru';
             }));
 
+            // Validasi penambahan baru pada P-1 (periode sebelumnya)
+            if ($selisih === -1) {
+                if ($jumPenggunaBaru > 0 || $jumKontrolBaru > 0) {
+                    return $this->output(['msg' => 'Tidak diperbolehkan menambah pengguna baru pada periode sebelumnya.'], 'Fail', 422);
+                }
+            }
+
+            // Validasi aturan: jika periode berjalan/berikutnya, dan TLD berikutnya sudah dikirim, maka tidak boleh ada penambahan pengguna baru
+            if ($selisih >= 0) {
+                $checkPeriode = $dataPeriode->periode + 1;
+                $isTldNextSent = \App\Models\Pengiriman::where('id_kontrak', $idKontrak)
+                    ->where('periode', $checkPeriode)
+                    ->whereHas('detail', function ($q) {
+                        $q->where('jenis', 'tld');
+                    })
+                    ->whereIn('status', [1, 2, 3])
+                    ->exists();
+
+                if ($isTldNextSent && ($jumPenggunaBaru > 0 || $jumKontrolBaru > 0)) {
+                    return $this->output(['msg' => 'Tidak diperbolehkan menambah pengguna baru karena TLD untuk periode berikutnya sudah dikirim.'], 'Fail', 422);
+                }
+            }
+
             $data = array();
 
             $data['id_layanan'] = $dataKontrak->id_layanan;
@@ -89,6 +144,7 @@ class PermohonanAPI extends Controller
             $data['tipe_kontrak'] = 'adendum';
             $data['id_kontrak'] = $idKontrak;
             $data['periode'] = $dataPeriode->periode;
+            $data['bulan_mulai'] = $bulanMulai;
             $data['jenis_tld'] = $dataKontrak->jenis_tld;
             $data['jumlah_pengguna'] = $jumPenggunaBaru;
             $data['jumlah_kontrol'] = $jumKontrolBaru;
@@ -479,15 +535,12 @@ class PermohonanAPI extends Controller
             }
 
             // Tentukan field berdasarkan ganjil genap periode
-            $isPeriodOne = $kontrakPeriode->count_tld == 1;
-            $tldField = $isPeriodOne ? 'tld_1' : 'tld_2';
-            $periodeField = $isPeriodOne ? 'periode_tld_1' : 'periode_tld_2';
-            $statusField = $isPeriodOne ? 'status_tld_1' : 'status_tld_2';
+            $field = $kontrakPeriode->field_periode;
 
             $updateFields = [
-                $tldField => $newTldId,
-                $periodeField => $permohonan->periode,
-                $statusField => 3
+                $field['tld_field'] => $newTldId,
+                $field['periode_field'] => $permohonan->periode,
+                $field['status_field'] => 3
             ];
 
             if ($source === 'map') {
@@ -496,7 +549,7 @@ class PermohonanAPI extends Controller
                 }
             } else {
                 // Reset status TLD lama jika ada
-                if ($oldTldId = $sourceData->{$tldField}) {
+                if ($oldTldId = $sourceData->{$field['tld_field']}) {
                     Master_tld::find($oldTldId)?->update(['status' => 0, 'digunakan' => null]);
                 }
 
@@ -747,6 +800,96 @@ class PermohonanAPI extends Controller
 
             DB::commit();
             return $this->output(array('msg' => 'Data gagal dihapus'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroyAdendum(string $id)
+    {
+        $user = Auth::user();
+        if (!$user || !($user->hasRole('Super Admin') || $user->getRoleNames()->contains('Developer'))) {
+            return $this->output(array('msg' => 'Akses ditolak. Hanya Developer atau Super Admin yang diperbolehkan.'), 'Fail', 403);
+        }
+
+        $idDecrypted = decryptor($id);
+        if (!$idDecrypted) {
+            return $this->output(array('msg' => 'ID Permohonan tidak valid'), 'Fail', 400);
+        }
+        $id = (int) $idDecrypted;
+
+        DB::beginTransaction();
+        try {
+            $permohonan = Permohonan::where('id_permohonan', $id)->first();
+            if (!$permohonan) {
+                return $this->output(array('msg' => 'Data permohonan tidak ditemukan'), 'Fail', 404);
+            }
+
+            if ($permohonan->tipe_kontrak !== 'adendum') {
+                return $this->output(array('msg' => 'Data yang ingin dihapus bukan merupakan adendum'), 'Fail', 400);
+            }
+
+            // 1. Bersihkan Penyelia
+            $penyeliaIds = Penyelia::where('id_permohonan', $id)->pluck('id_penyelia')->toArray();
+            if (!empty($penyeliaIds)) {
+                Penyelia_petugas::whereIn('id_penyelia', $penyeliaIds)->delete();
+                Penyelia_map::whereIn('id_penyelia', $penyeliaIds)->delete();
+                Log_penyelia::whereIn('id_penyelia', $penyeliaIds)->delete();
+                Penyelia::whereIn('id_penyelia', $penyeliaIds)->delete();
+            }
+
+            // 2. Bersihkan Keuangan
+            $keuanganIds = Keuangan::where('id_permohonan', $id)->pluck('id_keuangan')->toArray();
+            if (!empty($keuanganIds)) {
+                Keuangan_diskon::whereIn('id_keuangan', $keuanganIds)->delete();
+                Log_keuangan::whereIn('id_keuangan', $keuanganIds)->delete();
+                Keuangan::whereIn('id_keuangan', $keuanganIds)->delete();
+            }
+
+            // 3. Bersihkan Pengiriman
+            $pengirimanIds = Pengiriman::where('id_permohonan', $id)->pluck('id_pengiriman')->toArray();
+            if (!empty($pengirimanIds)) {
+                Pengiriman_detail::whereIn('id_pengiriman', $pengirimanIds)->delete();
+                Log_pengiriman::whereIn('id_pengiriman', $pengirimanIds)->delete();
+                Pengiriman::whereIn('id_pengiriman', $pengirimanIds)->delete();
+            }
+
+            // 4. Bersihkan Log Proses & Activity Permohonan
+            Log_proses::where('subject_type', 'App\Models\Permohonan')->where('subject_id', $id)->delete();
+            Log_activity::where('subject_type', 'App\Models\Permohonan')->where('subject_id', $id)->delete();
+            Log_permohonan::where('id_permohonan', $id)->delete();
+
+            // 5. Bersihkan tabel relasi permohonan anak lainnya
+            Permohonan_tandaterima::where('id_permohonan', $id)->delete();
+            Permohonan_tld::where('id_permohonan', $id)->delete();
+
+            $dataTld = Permohonan_detail::where('id_permohonan', $id)->get();
+            if ($dataTld) {
+                foreach ($dataTld as $item) {
+                    if ($item->jenis == 'pengguna') {
+                        Master_pengguna::find($item->id_pengguna_divisi)?->update(['status' => 1]);
+                    }
+                    if ($item->id_tld) {
+                        Master_tld::find($item->id_tld)?->update(['status' => 0]);
+                    }
+                }
+            }
+
+            Permohonan_pengguna::where('id_permohonan', $id)->get()->each->delete();
+            Permohonan_detail::where('id_permohonan', $id)->get()->each->delete();
+            Permohonan_dokumen::where('id_permohonan', $id)->where('jenis', 'adendum')->get()->each->delete();
+            $permohonan->delete();
+
+            // hapus `notifikasi`
+            $this->notif->deleteNotification(new Request([
+                'id_event' => $id,
+                'event' => 'Permohonan',
+            ]));
+
+            DB::commit();
+            return $this->output(array('msg' => 'Adendum berhasil dihapus!'));
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();
@@ -1312,8 +1455,23 @@ class PermohonanAPI extends Controller
                     'ttd' => $ttd,
                     'ttd_by' => $ttdBy,
                     'verify_at' => date('Y-m-d H:i:s'),
-                    'status' => 2
+                    'status' => 2,
+                    'locked_by' => null,
+                    'locked_at' => null
                 ));
+
+                // simpan ttd di dokumen
+                $docTandaterima = Permohonan_dokumen::where('id_permohonan', $idPermohonan)
+                    ->where('jenis', 'tandaterima')
+                    ->where('status', 1)
+                    ->first();
+
+                if ($docTandaterima) {
+                    $docTandaterima->update([
+                        'ttd' => $ttd,
+                        'ttd_by' => $ttdBy
+                    ]);
+                }
 
                 // buatkan invoice jika total harga lebih besar dari 0
                 if ($dataPermohonan->total_harga > 0) {
@@ -1389,6 +1547,8 @@ class PermohonanAPI extends Controller
                     $arrayUpdate['status'] = 2; // pengajuan di setujui oleh front desk
                     $arrayUpdate['ttd'] = $ttd;
                     $arrayUpdate['ttd_by'] = $ttdBy;
+                    $arrayUpdate['locked_by'] = null;
+                    $arrayUpdate['locked_at'] = null;
 
                     // simpan ttd di dokumen
                     Permohonan_dokumen::where('id_permohonan', $idPermohonan)
@@ -1428,6 +1588,26 @@ class PermohonanAPI extends Controller
                         $this->createdKontrak($request->idPermohonan, $no_kontrak);
                     } else {
                         $no_kontrak = $dataPermohonan->kontrak->no_kontrak;
+                        if ($dataPermohonan->is_have_tld) {
+                            $idKontrak = $dataPermohonan->kontrak->id_kontrak;
+                            $listTld = $request->listTld ? json_decode($request->listTld) : [];
+                            $kontrakPeriode = Kontrak_periode::where('id_kontrak', $idKontrak)->where('id_permohonan', $idPermohonan)->first();
+
+                            foreach ($listTld as $item) {
+                                $idTld = (int) decryptor($item->tld);
+                                $id = decryptor($item->id);
+                                $permohonanDetail = Permohonan_detail::find($id);
+
+                                if ($permohonanDetail && $kontrakPeriode) {
+                                    $field = $kontrakPeriode->field_periode;
+                                    Kontrak_detail::where('id_kontrak', $idKontrak)
+                                        ->where($field['tld_field'], $idTld)
+                                        ->update([
+                                            $field['status_field'] => 3 // TLD di serahkan ke LAB
+                                        ]);
+                                }
+                            }
+                        }
                     }
 
                     $dataPermohonan->update($arrayUpdate);
@@ -1472,8 +1652,8 @@ class PermohonanAPI extends Controller
 
                             if ($invoiceData->getStatusCode() != 200) {
                                 $content = $invoiceData->getData();
-                                Log::error("Invoice creation failed: " . $content->msg);
-                                throw new \Exception($content->msg ?? 'Gagal membuat invoice');
+                                Log::error("Invoice creation failed: " . $content->data->msg);
+                                throw new \Exception($content->data->msg ?? 'Gagal membuat invoice');
                             }
                         }
                     }
@@ -1502,14 +1682,16 @@ class PermohonanAPI extends Controller
 
                         if ($penyeliaData->getStatusCode() != 200) {
                             $content = json_decode($penyeliaData->getContent());
-                            Log::error("Penyelia creation failed: " . $content->msg);
-                            throw new \Exception($content->msg ?? 'Gagal membuat penyelia');
+                            Log::error("Penyelia creation failed: " . $content->data->msg);
+                            throw new \Exception($content->data->msg ?? 'Gagal membuat penyelia');
                         }
                     }
                 } else {
                     $note = $request->note ? $request->note : '';
                     $arrayUpdate['note'] = $note;
                     $arrayUpdate['status'] = 90; // Pengajuan di tolak oleh front desk
+                    $arrayUpdate['locked_by'] = null;
+                    $arrayUpdate['locked_at'] = null;
                     $dataPermohonan->update($arrayUpdate);
 
                     // send notif to pelanggan
@@ -1641,7 +1823,7 @@ class PermohonanAPI extends Controller
         // Tambah periode
         if ($dataPermohonan->periode_pemakaian) {
             if ($dataPermohonan->is_zerocek == 1 && $dataPermohonan->is_have_tld == 0) {
-                // zero cek
+                // zero Check
                 Kontrak_periode::create(array(
                     'id_kontrak' => $dataKontrak->id_kontrak,
                     'periode' => 0,
@@ -1724,6 +1906,45 @@ class PermohonanAPI extends Controller
                 'nomer' => $no_kontrak
             );
             Permohonan_dokumen::create($data);
+        }
+    }
+    public function pingLock(Request $request)
+    {
+        try {
+            $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            if ($idPermohonan) {
+                $dataPermohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
+                if ($dataPermohonan && $dataPermohonan->locked_by == Auth::user()->id) {
+                    $dataPermohonan->update([
+                        'locked_at' => date('Y-m-d H:i:s')
+                    ]);
+                    return $this->output(array('msg' => 'Lock updated'));
+                }
+            }
+            return $this->output(array('msg' => 'Failed'), 'Fail', 200);
+        } catch (\Exception $ex) {
+            info($ex);
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+    public function unlockLock(Request $request)
+    {
+        try {
+            $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
+            if ($idPermohonan) {
+                $dataPermohonan = Permohonan::where('id_permohonan', $idPermohonan)->first();
+                if ($dataPermohonan && $dataPermohonan->locked_by == Auth::user()->id) {
+                    $dataPermohonan->update([
+                        'locked_by' => null,
+                        'locked_at' => null
+                    ]);
+                    return $this->output(array('msg' => 'Lock released'));
+                }
+            }
+            return $this->output(array('msg' => 'Failed'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
 }

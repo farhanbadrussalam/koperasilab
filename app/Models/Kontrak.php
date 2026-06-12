@@ -176,13 +176,45 @@ class Kontrak extends Model
 
     public function getPeriodeActiveAttribute()
     {
-        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->whereNull('selesai')->orderBy('periode', 'asc')->first();
+        $allowZero = ($this->is_zerocek && !$this->is_have_tld);
+
+        $periode = Kontrak_periode::with([
+            'permohonan',
+            'permohonan.jenis_layanan_parent',
+            'permohonan.jenis_layanan',
+            'permohonan.invoice',
+            'permohonan.lhu',
+            'permohonan.lhu.penyelia_map',
+            'permohonan.lhu.penyelia_map.jobs',
+        ])
+            ->where('id_kontrak', $this->id_kontrak)
+            ->whereNull('selesai')
+            ->when(!$allowZero, function ($q) {
+                $q->whereNot('periode', 0);
+            })
+            ->orderBy('periode', 'asc')->first();
+
+
+        if ($periode && $this->is_zerocek && $periode->periode == 1) {
+            $permohonan = Permohonan::with([
+                'jenis_layanan_parent',
+                'jenis_layanan',
+                'invoice',
+                'lhu',
+                'lhu.penyelia_map',
+                'lhu.penyelia_map.jobs',
+            ])->where('id_kontrak', $this->id_kontrak)
+                ->whereIn('periode', [0, 1])->first();
+
+            $periode->permohonan_zerocek = $permohonan;
+        }
+
         return $periode;
     }
 
     public function getPeriodeAllAttribute()
     {
-        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->get();
+        $periode = Kontrak_periode::where('id_kontrak', $this->id_kontrak)->where('status', 1)->get();
         $jmlBulan = 0;
         $periodeAwal = "";
         $periodeAkhir = "";
@@ -190,16 +222,16 @@ class Kontrak extends Model
 
         foreach ($periode as $key => $item) {
             // mengambil periode awal
-            if($item->periode == 1) {
+            if ($item->periode == 1) {
                 $periodeAwal = $item->start_date;
             }
 
             // mengambil periode akhir
-            if($key == count($periode) - 1) {
+            if ($key == count($periode) - 1) {
                 $periodeAkhir = $item->end_date;
             }
 
-            if($item->periode != 0){
+            if ($item->periode != 0) {
                 $jmlPeriode++;
             }
         }
@@ -213,67 +245,83 @@ class Kontrak extends Model
         return $result;
     }
 
-    public function jenisTld(){
-        return $this->belongsTo(Master_jenistld::class,'jenis_tld', 'id_jenisTld');
+    public function jenisTld()
+    {
+        return $this->belongsTo(Master_jenistld::class, 'jenis_tld', 'id_jenisTld');
     }
 
-    public function jenis_layanan(){
-        return $this->belongsTo(Master_jenisLayanan::class,'jenis_layanan_2', 'id_jenisLayanan');
+    public function jenis_layanan()
+    {
+        return $this->belongsTo(Master_jenisLayanan::class, 'jenis_layanan_2', 'id_jenisLayanan');
     }
 
-    public function jenis_layanan_parent(){
-        return $this->belongsTo(Master_jenisLayanan::class,'jenis_layanan_1', 'id_jenisLayanan');
+    public function jenis_layanan_parent()
+    {
+        return $this->belongsTo(Master_jenisLayanan::class, 'jenis_layanan_1', 'id_jenisLayanan');
     }
 
-    public function layanan_jasa() {
+    public function layanan_jasa()
+    {
         return $this->belongsTo(Master_layanan_jasa::class, 'id_layanan', 'id_layanan');
     }
 
-    public function pengguna() {
+    public function pengguna()
+    {
         return $this->hasMany(Kontrak_tld::class, 'id_kontrak', 'id_kontrak');
     }
 
-    public function pelanggan() {
+    public function pelanggan()
+    {
         return $this->belongsTo(User::class, 'id_pelanggan', 'id')->withTrashed();
     }
 
-    public function periode(){
+    public function periode()
+    {
         return $this->hasMany(Kontrak_periode::class, 'id_kontrak', 'id_kontrak');
     }
 
-    public function pengiriman(){
+    public function pengiriman()
+    {
         return $this->hasMany(Pengiriman::class, 'id_kontrak', 'id_kontrak');
     }
 
-    public function invoice() {
+    public function invoice()
+    {
         return $this->belongsTo(Keuangan::class, 'id_keuangan', 'id_keuangan');
     }
 
-    public function rincian_list_tld(){
+    public function rincian_list_tld()
+    {
         return $this->hasMany(Kontrak_tld::class, 'id_kontrak', 'id_kontrak');
     }
 
-    public function tld_aktif(){
+    public function tld_aktif()
+    {
         return $this->hasMany(Master_tld::class, 'digunakan', 'no_kontrak')->withTrashed();
     }
 
-    public function signature(){
+    public function signature()
+    {
         return $this->belongsTo(User::class, 'ttd_by', 'id')->withTrashed();
     }
 
-    public function dokumen(){
+    public function dokumen()
+    {
         return $this->hasMany(Permohonan_dokumen::class, 'id_kontrak', 'id_kontrak');
     }
 
-    public function permohonan(){
+    public function permohonan()
+    {
         return $this->belongsTo(Permohonan::class, 'id_kontrak', 'id_kontrak');
     }
 
-    public function kontrak_detail(){
+    public function kontrak_detail()
+    {
         return $this->hasMany(Kontrak_detail::class, 'id_kontrak', 'id_kontrak')->where('status', 1);
     }
 
-    public function kontrak_map(){
+    public function kontrak_map()
+    {
         return $this->hasMany(Kontrak_map::class, 'id_kontrak', 'id_kontrak');
     }
 }

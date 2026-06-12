@@ -135,7 +135,10 @@ class Permohonan extends Model
         'flag_read',
         'created_by',
         'created_at',
-        'verify_at'
+        'verify_at',
+        'locked_by',
+        'locked_at',
+        'bulan_mulai'
     ];
 
     protected $hidden = [
@@ -177,7 +180,9 @@ class Permohonan extends Model
         'file_lhu' => 'integer',
         'created_by' => 'integer',
         'is_have_tld' => 'integer',
-        'is_zerocek' => 'integer'
+        'is_zerocek' => 'integer',
+        'locked_by' => 'integer',
+        'bulan_mulai' => 'integer'
     ];
 
     public function getPermohonanHashAttribute()
@@ -256,6 +261,14 @@ class Permohonan extends Model
     public function pengiriman()
     {
         return $this->belongsTo(Pengiriman::class, 'id_pengiriman', 'id_pengiriman');
+    }
+
+    public function pengiriman_tld()
+    {
+        return $this->hasOne(Pengiriman::class, 'id_permohonan', 'id_permohonan')
+            ->whereHas('detail', function ($q) {
+                $q->where('jenis', 'tld');
+            });
     }
 
     public function file_lhu()

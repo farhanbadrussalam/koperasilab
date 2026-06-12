@@ -4,6 +4,7 @@
 let detail = false;
 let buktiPengiriman = false;
 let filterComp = false;
+let isUpdateMode = false;
 $(function () {
     loadData(1);
     detail = new Detail({
@@ -18,9 +19,12 @@ $(function () {
 
     filterComp = new FilterComponent('list-filter', {
         jenis: 'pengiriman',
-        filter : {
+        showOnLoad: true, // Filter akan ditampilkan saat pertama kali dimuat
+        filter: {
+            status: true,
+            perusahaan: true,
+            no_kontrak: true,
             search: true,
-            no_kontrak : true
         }
     });
     // SETUP FILTER
@@ -51,7 +55,9 @@ function loadData(page = 1) {
 
     filterValue.search && (params.filter.search = filterValue.search);
     filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
-    if(Object.keys(params.filter).length > 0) {
+    filterValue.status && (params.filter.status = filterValue.status);
+    filterValue.perusahaan && (params.filter.perusahaan = filterValue.perusahaan);
+    if (Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length);
         $('#countFilter').removeClass('d-none');
     } else {
@@ -62,14 +68,20 @@ function loadData(page = 1) {
     $(`#list-container-pengiriman`).hide();
     ajaxGet(`api/v1/pengiriman/list`, params, result => {
         let html = '';
+        let btnUpdateResi = `<button class="btn btn-outline-warning btn-sm" onclick="showFormUpdateResi(this)">Update Resi</button>`;
         for (const [i, data] of result.data.entries()) {
             let htmlButton = `<button class="btn btn-outline-info btn-sm" onclick="showDetail(this)">Detail</button>`;
 
-            if(data.status == 3){
+            if (data.status == 3) {
                 htmlButton += `<button class="btn btn-outline-primary btn-sm" onclick="showFormPengiriman(this)">Kirim</button>`;
                 htmlButton += `<button class="btn btn-outline-danger btn-sm" onclick="removePengiriman(this)">Delete</button>`;
-            } else if(data.status == 1) {
+            } else if (data.status == 1) {
+                htmlButton += btnUpdateResi;
                 htmlButton += `<button class="btn btn-outline-danger btn-sm" onclick="batalKirimDokumen(this)">Batal kirim</button>`;
+            } else if (data.status == 2) {
+                if (data.no_resi == null) {
+                    htmlButton += btnUpdateResi;
+                }
             }
 
             const dataCard = {
@@ -79,18 +91,19 @@ function loadData(page = 1) {
                 created_at: data.created_at,
                 kontrak: data.kontrak?.no_kontrak ?? '',
                 title: data.id_pengiriman,
-                no_resi : data.no_resi,
+                no_resi: data.no_resi,
                 pelanggan: data.kontrak.pelanggan.name,
                 items: data.detail,
                 alamat: data.alamat,
-                perusahaan: data.kontrak.pelanggan.perusahaan.nama_perusahaan
+                perusahaan: data.kontrak.pelanggan.perusahaan.nama_perusahaan,
+                is_zerocek: data.permohonan?.is_zerocek
             }
 
             html += cardComponent(dataCard, {
                 btnAction: htmlButton
             });
         }
-        if(result.data.length == 0){
+        if (result.data.length == 0) {
             html = htmlNoData();
         }
 
@@ -107,7 +120,7 @@ function loadData(page = 1) {
  * Removes a pengiriman (shipment) by its ID.
  * @param {Object} obj - The DOM element that triggered the removal.
  */
-function removePengiriman(obj){
+function removePengiriman(obj) {
     let idPengiriman = $(obj).parent().parent().data('id');
     ajaxDelete(`api/v1/pengiriman/destroy/${idPengiriman}`, result => {
         Swal.fire({
@@ -121,13 +134,13 @@ function removePengiriman(obj){
         });
     }, error => {
         const result = error.responseJSON;
-        if(result?.meta?.code && result.meta.code == 500){
+        if (result?.meta?.code && result.meta.code == 500) {
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
             });
             console.error(result.data.msg);
-        }else{
+        } else {
             Swal.fire({
                 icon: "error",
                 text: 'Server error',
@@ -140,7 +153,7 @@ function removePengiriman(obj){
 /**
  * Shows the detail modal for a pengiriman (shipment).
  */
-function showDetailPengiriman(){
+function showDetailPengiriman() {
     $('#modal-detail-pengiriman').modal('show');
 }
 
@@ -148,25 +161,61 @@ function showDetailPengiriman(){
  * Shows the form modal for sending a pengiriman (shipment).
  * @param {Object} obj - The DOM element that triggered the form display.
  */
-function showFormPengiriman(obj){
+function showFormPengiriman(obj) {
     let idPengiriman = $(obj).parent().parent().data('id');
     $('#no_pengiriman').val(idPengiriman);
+
+    isUpdateMode = false;
+    $('#kirimDokumenModalLabel').text('Kirim Dokumen');
+    $('#uploadBuktiPengiriman').parent().show(); // Show proof upload container
+    $('#noResi').val('');
+    $('#jasa_kurir').val('');
 
     $('#modal-kirim-dokumen').modal('show');
 }
 
 /**
- * Sends a pengiriman (shipment) document.
- * @param {Object} obj - The DOM element that triggered the send action.
+ * Shows the form modal for updating a pengiriman (shipment) receipt info.
+ * @param {Object} obj - The DOM element that triggered the form display.
  */
-function kirimDokumen(obj){
+function showFormUpdateResi(obj) {
+    let idPengiriman = $(obj).parent().parent().data('id');
+    $('#no_pengiriman').val(idPengiriman);
+
+    isUpdateMode = true;
+    $('#kirimDokumenModalLabel').text('Update No Resi / Jasa Kurir');
+    $('#uploadBuktiPengiriman').parent().hide(); // Hide proof upload container
+
+    // Fetch current details to pre-fill
+    showLoadingSwal('show');
+    ajaxGet(`api/v1/pengiriman/getById/${idPengiriman}`, false, res => {
+        showLoadingSwal('hide');
+        let data = res.data;
+        $('#noResi').val(data.no_resi ?? '');
+        if (data.ekspedisi) {
+            $('#jasa_kurir').val(data.ekspedisi.ekspedisi_hash);
+        } else {
+            $('#jasa_kurir').val('');
+        }
+        $('#modal-kirim-dokumen').modal('show');
+    }, error => {
+        showLoadingSwal('hide');
+        Swal.fire({ icon: 'error', text: 'Gagal mengambil data pengiriman' });
+    });
+}
+
+/**
+ * Sends or updates a pengiriman (shipment) document.
+ * @param {Object} obj - The DOM element that triggered the action.
+ */
+function kirimDokumen(obj) {
     let idPengiriman = $('#no_pengiriman').val();
     let noResi = $('#noResi').val();
     let idEkspedisi = $('#jasa_kurir').val();
     let arrImgBukti = buktiPengiriman.getData();
 
     // Check for empty fields and show warning if any
-    if(arrImgBukti.length == 0){
+    if (!isUpdateMode && arrImgBukti.length == 0) {
         Swal.fire({ icon: 'warning', text: 'Bukti pengiriman tidak boleh kosong' });
         return;
     }
@@ -174,37 +223,35 @@ function kirimDokumen(obj){
         Swal.fire({ icon: 'warning', text: 'Ekspedisi tidak boleh kosong' });
         return;
     }
-    if (!noResi) {
-        Swal.fire({ icon: 'warning', text: 'No resi tidak boleh kosong' });
-        return;
-    }
 
     Swal.fire({
         title: 'Apakah Anda yakin?',
-        text: "Apakah Anda ingin mengirim dokumen ini?",
+        text: isUpdateMode ? "Apakah Anda ingin memperbarui informasi pengiriman?" : "Apakah Anda ingin mengirim dokumen ini?",
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Ya, kirim!',
+        confirmButtonText: isUpdateMode ? 'Ya, perbarui!' : 'Ya, kirim!',
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
             let data = new FormData();
             data.append('idPengiriman', idPengiriman);
-            data.append('noResi', noResi);
+            data.append('noResi', noResi ?? '');
             data.append('idEkspedisi', idEkspedisi);
-            data.append('status', 1);
-            data.append('sendAt', new Date().toISOString());
-            arrImgBukti.forEach((d) => {
-                data.append('buktiPengiriman[]', d.file);
-            });
+            if (!isUpdateMode) {
+                data.append('status', 1);
+                data.append('sendAt', new Date().toISOString());
+                arrImgBukti.forEach((d) => {
+                    data.append('buktiPengiriman[]', d.file);
+                });
+            }
 
             spinner('show', $(obj));
             ajaxPost(`api/v1/pengiriman/action`, data, result => {
                 Swal.fire({
                     icon: 'success',
-                    text: 'Dokumen berhasil dikirim',
+                    text: isUpdateMode ? 'Informasi berhasil diperbarui' : 'Dokumen berhasil dikirim',
                     timer: 1200,
                     timerProgressBar: true,
                     showConfirmButton: false
@@ -235,7 +282,7 @@ function kirimDokumen(obj){
  * @fires Swal.fire - To show confirmation and success/error messages.
  * @fires ajaxPost - To send the cancellation request to the server.
  */
-function batalKirimDokumen(obj){
+function batalKirimDokumen(obj) {
     let idPengiriman = $(obj).parent().parent().data('id');
 
     Swal.fire({
@@ -275,7 +322,7 @@ function batalKirimDokumen(obj){
     });
 }
 
-function reload(){
+function reload() {
     loadData(1);
 }
 
@@ -286,18 +333,18 @@ $('#list-pagination-pengiriman').on('click', 'a', function (e) {
     loadData(pageno);
 });
 
-function showDetail(obj){
+function showDetail(obj) {
     const id = $(obj).parent().parent().data("id");
     detail.show(`api/v1/pengiriman/getById/${id}`);
 }
 
-function resetModal(){
+function resetModal() {
     $('#noResi').val('');
-    $('#idEkspedisi').val('');
+    $('#jasa_kurir').val('');
     buktiPengiriman.clearFile();
 }
 
-function clearFilter(){
+function clearFilter() {
     filterComp.clear();
     loadData();
 }

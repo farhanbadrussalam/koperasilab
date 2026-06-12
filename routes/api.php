@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix("permohonan")->controller(PermohonanAPI::class)->group(function () {
         Route::delete('/destroyPermohonan/{id}', 'destroyPermohonan');
+        Route::delete('/destroyAdendum/{id}', 'destroyAdendum');
         Route::get('/listPengajuan', 'listPengajuan');
         Route::get('/listPengguna', 'listPengguna');
         Route::get('/listKontrol', 'listKontrol');
@@ -80,6 +81,8 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPengajuanById/{id}', 'getPengajuanById');
         Route::post('/verifikasi/cek', 'verifPermohonan');
         Route::post('/verifikasi/adendum', 'verifAdendum');
+        Route::post('/verifikasi/ping', 'pingLock');
+        Route::post('/verifikasi/unlock', 'unlockLock');
         Route::post('/verifikasi/tambahTandaterima', 'tambahTandaterima');
         Route::delete('/destroyTandaterima/{idPermohonan}', 'destroyTandaterima');
         Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');
@@ -89,6 +92,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
         Route::post('/action', 'keuanganAction');
+        Route::post('/updateDokumen', 'updateDokumen');
         Route::post('/actionJenisPembayaran', 'actionJenisPembayaran');
         Route::get('/listKeuangan', 'listKeuangan');
         Route::get('/listJenisPembayaran', 'listJenisPembayaran');
@@ -109,6 +113,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/buatPengiriman', 'buatPengiriman');
         Route::get('/list', 'listPengiriman');
         Route::get('/listPermohonan', 'listPermohonan');
+        Route::get('/listAdendum', 'listAdendum');
         Route::get('/getById/{pengiriman_hash}', 'getPengirimanById');
         Route::get('/getPermohonan', 'getPermohonan');
         Route::delete('/destroy/{pengiriman_hash}', 'destroy');
@@ -122,6 +127,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/sign', 'signKontrak');
         Route::get('/getKontrakPeriode/{idPeriode}', 'getKontrakPeriode');
         Route::get('/getKontrakTld', 'getKontrakTld');
+        Route::delete('/destroy-by-no-kontrak', 'destroyByNoKontrak');
         // Route::delete('/destroy/{kontrak_hash}', 'destroy');
     });
 
@@ -160,8 +166,10 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPerusahaanById/{idPerusahaan}', 'getPerusahaanById');
         Route::post('/uploadSuratKuasa', 'uploadSuratKuasa');
         Route::post('/uploadStempel', 'uploadStempel');
+        Route::post('/uploadAvatar', 'uploadAvatar');
         Route::delete('/destroySuratKuasa/{idPerusahaan}/{idMedia}', 'destroySuratKuasa');
         Route::delete('/destroyStempel/{idPerusahaan}/{idMedia}', 'destroyStempel');
+        Route::delete('/destroyAvatar/{idPerusahaan}/{idMedia}', 'destroyAvatar');
         Route::get('/getHistoryPic/{idPerusahaan}', 'getHistoryPic');
     });
 
@@ -190,6 +198,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/searchTldNotUsed', [TldApi::class, 'searchTldNotUsed']);
         Route::get('/searchTld', [TldApi::class, 'searchTld']);
         Route::post('/action', [TldApi::class, 'action']);
+        Route::get('/getPenyimpanan', [TldApi::class, 'getPenyimpanan']);
     });
 
     Route::prefix('pengguna')->controller(PenggunaAPI::class)->group(function () {

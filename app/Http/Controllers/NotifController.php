@@ -49,21 +49,26 @@ class NotifController extends Controller
         DB::beginTransaction();
         try {
             $user = Auth::user();
-            $limit = $request->limit ?? 10;
+            $page = intval($request->page ?? 1);
+            $limit = intval($request->limit ?? 10);
+            $offset = ($page - 1) * $limit;
             $type = $request->type ?? 'all';
+
             $latestNotification = $user->notifications()->latest()
-                ->when($type, function($q, $type) use ($limit) {
-                    if($type == 'unread'){
-                        return $q->whereNull('read_at');
-                    } else {
-                        return $q->limit($limit);
-                    }
-                })->get();
+                ->when($type == 'unread', function($q) {
+                    return $q->whereNull('read_at');
+                })
+                ->skip($offset)
+                ->take($limit)
+                ->get();
+
             $unreadCount = notifUnreadCount();
             DB::commit();
             return $this->output(array(
                 'list' => $latestNotification,
-                'unreadCount' => $unreadCount
+                'unreadCount' => $unreadCount,
+                'hasMore' => count($latestNotification) === $limit,
+                'page' => $page
             ));
         } catch (\Exception $ex) {
             DB::rollBack();

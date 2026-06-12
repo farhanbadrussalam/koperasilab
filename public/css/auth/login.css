@@ -18,3 +18,53 @@ body {
         padding-right: 15px;
     }
 }
+
+/* ===== Terms & Conditions Modal ===== */
+#termsModal .modal-content {
+    border-radius: 16px !important;
+}
+
+#termsModal .modal-header {
+    border-radius: 16px 16px 0 0;
+    padding: 1.25rem 1.5rem;
+}
+
+#termsModal .modal-body {
+    scrollbar-width: thin;
+    scrollbar-color: #0d6efd44 transparent;
+}
+
+#termsModal .modal-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+#termsModal .modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#termsModal .modal-body::-webkit-scrollbar-thumb {
+    background-color: #0d6efd66;
+    border-radius: 20px;
+}
+
+#termsModal .terms-section {
+    padding: 0.5rem 0;
+    transition: background 0.2s ease;
+}
+
+#termsModal .terms-section:hover {
+    background-color: #f8f9ff;
+    border-radius: 8px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+#termsModal hr {
+    margin: 0.75rem 0;
+}
+
+#termsModal .badge {
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    padding: 0.35em 0.65em;
+}

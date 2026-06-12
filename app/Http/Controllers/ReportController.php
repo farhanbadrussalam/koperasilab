@@ -34,7 +34,7 @@ class ReportController extends Controller
     protected array $global;
     public function __construct()
     {
-        $this->global = config('customvariabel');
+        $this->global = config('customvariabel') ?? [];
     }
 
     private function generatePDF(string $title, Documents $template, array $variables = [], array $htmlKeys = [], string $css = '')
@@ -103,9 +103,11 @@ class ReportController extends Controller
 
         return $bytes->stream('dummy.pdf');
     }
-    public function invoice(String $id)
+    public function invoice(Request $request, String $id)
     {
         $idKeuangan = decryptor($id);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
 
         if ($idKeuangan == null) {
             return redirect()->back();
@@ -204,6 +206,13 @@ class ReportController extends Controller
         } else {
             $ttd = $dokumen->ttd ?? "";
         }
+
+        if ($is_download && $type == 'original') {
+            $ttd = false;
+            $template->header = false;
+            $template->footer = false;
+        }
+
         $variables['TTD_IMG'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='" . $data['stempel'] . "' class='img-fluid img-stempel' alt='Stempel-Lab'>
@@ -215,6 +224,9 @@ class ReportController extends Controller
         $bytes = $this->generatePDF("Invoice", $template, $variables, ['CATATAN_PEMBAYARAN', 'NOTICE', 'TTD_IMG', 'RINCIAN']);
         $filename = 'invoice-' . now()->format('Ymd-His') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
     }
 
@@ -233,7 +245,7 @@ class ReportController extends Controller
         $htmlPpn = '';
         if ($data->ppn) {
             $htmlPpn .= '<tr>
-                <td>PPN ' . $data->ppn . '%</td>
+                <td>PPN</td>
                 <td>' . formatCurrency($dataKeuangan['jumPpn']) . '</td>
             </tr>';
         }
@@ -289,11 +301,12 @@ class ReportController extends Controller
             case 'Invoice':
                 $rangeDate = range_date($params['periode_start']['start_date'], $params['periode_end']['end_date'], 2);
 
+                $tglTerbit = $data->permohonan->dokumen[0]->published_at ?? $data->permohonan->dokumen[0]->created_at;
                 $vars["NOMOR"] = $data->no_invoice;
                 $vars["LAMPIRAN"] = "Faktur Pajak";
                 $vars["PERIHAL"] = "Invoice " . $data->permohonan->jenis_layanan_parent->name . " " . $data->permohonan->layanan_jasa->nama_layanan . " " . $data->permohonan->jenisTld->name;
                 $vars["LOKASI"] = $lab_lokasi;
-                $vars["TANGGAL"] = convert_date($data->permohonan->dokumen[0]->created_at, 2);
+                $vars["TANGGAL"] = convert_date($tglTerbit, 2);
                 $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->alamat;
                 $vars["KODE_POS"] = $data->permohonan->pelanggan->perusahaan->alamat[0]->kode_pos;
@@ -336,9 +349,17 @@ class ReportController extends Controller
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
                 $vars["PERUSAHAAN"] = $data->pelanggan?->perusahaan->nama_perusahaan;
                 $vars["ALAMAT"] = $data->pelanggan?->perusahaan->alamat[0]->alamat;
-                $vars["JENIS_PENGUJIAN"] = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
-                $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna +" . $data->jumlah_kontrol . " Kontrol";
-                $vars["PERIODE"] = ($data->periode > 0 ? "Periode " . $data->periode : "Periode zero cek");
+                $vars["JENIS_PENGUJIAN"] = $data->is_zerocek == 1 ? 'Zero Check' : 'Evaluasi TLD';
+                $vars["JUMLAH"] = $data->jumlah_pengguna . " Pengguna + " . $data->jumlah_kontrol . " Kontrol";
+                $textPeriode = "Periode " . $data->periode;
+                if ($data->periode > 0) {
+                    if ($data->is_zerocek == 1) {
+                        $textPeriode .= " + Zero Check";
+                    }
+                } else {
+                    $textPeriode = "Periode Zero Check";
+                }
+                $vars["PERIODE"] = $textPeriode;
                 $vars["TGL_PENERIMAAN"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["TGL_SELESAI"] = $params['selesaiPengujian'] ? convert_date($params['selesaiPengujian'], 2) : '';
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
@@ -387,18 +408,25 @@ class ReportController extends Controller
                 $vars["TGL_MULAI"] = convert_date($data->lhu->start_date, 2);
                 $vars["TGL_SELESAI"] = convert_date($data->lhu->end_date, 2);
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
+                $vars["PERIODE"] = $data->periode == 0 ? 'Zero Check' : "Periode {$data->periode}";
                 $vars = array_merge($vars, $this->contentSuratTugas($data, $params));
                 break;
             case "SuratPengantar":
                 $zerocek = '';
                 if (isset($params['permohonan']) && $params['permohonan']->is_zerocek == 1) {
-                    $zerocek = " & Hasil Zero Cek";
+                    $zerocek = " & Hasil Zero Check";
                 }
+                $start_date = $data->periode_next ? $data->periode_next[0]['start_date'] : $params['kontrak_periode']->start_date;
+                $end_date = $data->periode_next ? $data->periode_next[0]['end_date'] : $params['kontrak_periode']->end_date;
 
                 $vars["NOMOR"] = $params["dokumen"]->nomer;
-                $vars["PERIODE_AWAL"] = convert_date($params['kontrak_periode']->start_date, 6);
-                $vars["PERIODE_SELESAI"] = convert_date($params['kontrak_periode']->end_date, 6);
-                $vars["PERIODE_NOW"] = $params['kontrak_periode']->status == 2 ? "periode pengembalian" : "periode {$params['kontrak_periode']->periode}";
+                $vars["PERIODE_AWAL"] = convert_date($start_date, 6);
+                $vars["PERIODE_SELESAI"] = convert_date($end_date, 6);
+                if ($data->periode_next) {
+                    $vars['PERIODE_NOW'] = "periode berikutnya";
+                } else {
+                    $vars["PERIODE_NOW"] = $params['kontrak_periode']->status == 2 ? "periode pengembalian" : "periode {$params['kontrak_periode']->periode}";
+                }
                 $vars["TGL_BUAT"] = convert_date($params["dokumen"]->created_at, 2);
 
                 $vars["JML_UNIT"] = $data->jumlah_pengguna + $data->jumlah_kontrol;
@@ -417,6 +445,9 @@ class ReportController extends Controller
                 break;
             case "Kwitansi":
                 $rangeDate = range_date($params['periode_start'], $params['periode_end'], 2);
+                $type = ($data->status == 5 ? 'L' : '') .
+                    ($data->pph ? 'PH' : '') .
+                    ($data->ppn ? 'N' : '');
 
                 $vars["NOMOR"] = $data->permohonan->kontrak->dokumen[0]->nomer;
                 $vars["PERUSAHAAN"] = $data->permohonan->pelanggan->perusahaan->nama_perusahaan;
@@ -433,9 +464,7 @@ class ReportController extends Controller
                 $vars["TGL_BUAT"] = convert_date($data->paid_at, 2);
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["LOKASI_BUAT"] = $lab_lokasi;
-                $vars["TYPE"] = ($data->status == 5 ? 'L' : '') .
-                    ($data->pph ? 'PH' : '') .
-                    ($data->ppn ? 'N' : '');
+                $vars["TYPE"] = $params['catatan'] ?? $type;
                 $vars = array_merge($vars, $this->contentKwitansi($data, $params));
                 break;
             case "SuratPengujian":
@@ -471,16 +500,21 @@ class ReportController extends Controller
 
                 $vars["TGL_BUAT"] = convert_date($data->dokumen[0]->created_at, 2);
                 $vars["NO_SURAT"] = $data->dokumen[0]->nomer;
-                $vars['TUJUAN'] = env('NAMA_PERUSAHAAN');
-                $vars['ALAMAT_TUJUAN'] = env('ALAMAT_PERUSAHAAN');
-                $vars['TELEPON'] = env('TELEPON_PERUSAHAAN');
+                $vars['TUJUAN'] = $lab_perusahaan;
+                $vars['ALAMAT_TUJUAN'] = $lab_alamat;
+                $vars['TELEPON'] = $lab_telp;
                 $vars['PERUSAHAAN'] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars['JENIS_LAYANAN'] = $data->jenis_layanan->name;
                 $vars['JENIS_TLD'] = $data->jenisTld->name;
                 $vars['LAYANAN_JASA'] = $data->layanan_jasa->nama_layanan;
                 $vars['NO_KONTRAK'] = $data->kontrak->no_kontrak;
                 $vars['JUMLAH_TLD'] = $data->jumlah_pengguna + $data->jumlah_kontrol;
-                $range = range_date($params['periode']->start_date, $params['periode']->end_date, 1);
+
+                $startDate = $params['periode']->start_date;
+                if ($data->bulan_mulai && $data->bulan_mulai > 1) {
+                    $startDate = \Carbon\Carbon::parse($startDate)->addMonths($data->bulan_mulai - 1)->toDateTimeString();
+                }
+                $range = range_date($startDate, $params['periode']->end_date, 1);
                 $vars['PERIODE'] = $range['start'] . '-' . $range['end'];
                 $vars['LOKASI'] = $data->pelanggan->perusahaan->alamat[0]->kota;
 
@@ -539,9 +573,11 @@ class ReportController extends Controller
         return $vars;
     }
 
-    public function kwitansi(String $id)
+    public function kwitansi(Request $request, String $id)
     {
         $idKeuangan = decryptor($id);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
 
         if ($idKeuangan == null) {
             return redirect()->back();
@@ -590,6 +626,7 @@ class ReportController extends Controller
         // mengambil template kwitansi
         $dokumen = $query->permohonan->kontrak->dokumen->first();
         if ($dokumen) {
+            $data['catatan'] = $dokumen->catatan;
             $template = $dokumen->doc_template;
 
             if ($dokumen->variables) {
@@ -608,6 +645,13 @@ class ReportController extends Controller
         } else {
             $ttd = $dokumen->ttd ?? "";
         }
+
+        if ($is_download && $type == 'original') {
+            $ttd = false;
+            $template->header = false;
+            $template->footer = false;
+        }
+
         $variables['TTD'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='" . $data['stempel'] . "' class='img-fluid img-stempel' style='' alt='Stempel-Lab'>
@@ -619,46 +663,34 @@ class ReportController extends Controller
         $bytes = $this->generatePDF("Kwitansi", $template, $variables, ['RINCIAN', 'TTD']);
         $filename = 'kwitansi-' . now()->format('Ymd-His') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
+
         return $bytes->stream($filename);
-        // $pdf = PDF::loadView('report.kwitansi', $data);
-        // $pdf->render();
-        // return $pdf->stream();
     }
 
     private function contentKwitansi(Keuangan $data, ?array $params = null)
     {
-        $subJumlah = 0;
-
         $tbl_rincian = "";
+        $dataKeuangan = calculateInvoice($data->permohonan->total_harga, $data->diskon, $data->ppn, $data->pph);
 
-        if ($data->diskon) {
-            foreach ($data->diskon as $item) {
-                $item->jumDiskon = $data->permohonan->total_harga * ($item->diskon / 100);
-                $subJumlah += $item->jumDiskon;
-
-                $tbl_rincian .= '
-                    <tr>
-                        <td width="20%"></td>
-                        <td><p class="lh-16">' . $item->name . ' ' . $item->diskon . '%</p></td>
-                        <td style="text-align: right">' . formatCurrency($item->jumDiskon) . ' ,-</td>
-                    </tr>
-                ';
-            }
+        foreach ($dataKeuangan['diskon'] as $item) {
+            $tbl_rincian .= '
+                <tr>
+                    <td width="20%"></td>
+                    <td><p class="lh-16">' . $item->name . ' ' . $item->diskon . '%</p></td>
+                    <td style="text-align: right">' . formatCurrency($item->jumDiskon) . ' ,-</td>
+                </tr>
+            ';
         }
-
-        $jumAfterDiskon = $data->permohonan->total_harga - $subJumlah;
-
-        $jumPph = $data->pph ? $jumAfterDiskon * ($data->pph / 100) : 0;
-        $jumAfterPph = $jumAfterDiskon - $jumPph;
-        $jumPpn = $data->ppn ? $jumAfterPph * ($data->ppn / 100) : 0;
-        $subTotal = $jumAfterPph + $jumPpn;
 
         if ($data->pph) {
             $tbl_rincian .= '
                 <tr>
                     <td width="20%"></td>
                     <td><p class="lh-16">PPH ' . $data->pph . '%</p></td>
-                    <td style="text-align: right">- ' . formatCurrency($jumPph) . ' ,-</td>
+                    <td style="text-align: right">- ' . formatCurrency($dataKeuangan['jumPph']) . ' ,-</td>
                 </tr>
             ';
         }
@@ -667,8 +699,8 @@ class ReportController extends Controller
             $tbl_rincian .= '
                 <tr>
                     <td width="20%"></td>
-                    <td><p class="lh-16">PPN ' . $data->ppn . '%</p></td>
-                    <td style="text-align: right">' . formatCurrency($jumPpn) . ' ,-</td>
+                    <td><p class="lh-16">PPN</p></td>
+                    <td style="text-align: right">' . formatCurrency($dataKeuangan['jumPpn']) . ' ,-</td>
                 </tr>
             ';
         }
@@ -679,14 +711,16 @@ class ReportController extends Controller
                     ' . $tbl_rincian . '
                 </table>
             ',
-            "HARGA_TOTAL" => formatCurrency($subTotal),
-            "HARGA_TOTAL_HRF" => angkaKeHuruf($subTotal)
+            "HARGA_TOTAL" => formatCurrency($dataKeuangan['subTotal']),
+            "HARGA_TOTAL_HRF" => angkaKeHuruf($dataKeuangan['subTotal']),
         ];
     }
 
-    public function tandaTerima(String $idPermohonan)
+    public function tandaTerima(Request $request, String $idPermohonan)
     {
         $idPermohonan = decryptor($idPermohonan);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
 
         if ($idPermohonan == null) {
             return redirect()->back();
@@ -736,6 +770,16 @@ class ReportController extends Controller
         } else {
             $ttd = $dokumen->ttd ?? "";
         }
+
+        $ttd_pemohon = $query->pelanggan->ttd_image ?? "";
+
+        if ($is_download && $type == 'original') {
+            $ttd = false;
+            $ttd_pemohon = false;
+            $template->header = false;
+            $template->footer = false;
+        }
+
         $variables['TTD_PENERIMA'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='" . $data['stempel'] . "' class='img-fluid img-stempel' alt='Stempel-Lab'>
@@ -744,7 +788,6 @@ class ReportController extends Controller
         " : "<br><br><br>";
         $variables['TTD_PENERIMA_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
 
-        $ttd_pemohon = $query->pelanggan->ttd_image ?? "";
         $variables['TTD_PEMOHON'] = $ttd_pemohon ? "
             <div style='text-align: center;'>
                 <img src='$ttd_pemohon' alt='TTD_PEMOHON' width='100px' height='100px'>
@@ -757,6 +800,9 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
     }
 
@@ -819,7 +865,7 @@ class ReportController extends Controller
             }
             $tdContent .= '</tr>';
         }
-        $jenisPengujian = $data->periode ? 'Evaluasi TLD' : 'Zero Check';
+        $jenisPengujian = $data->is_zerocek == 1 ? 'Zero Check' : 'Evaluasi TLD';
 
         return [
             "RINCIAN" => '
@@ -835,9 +881,11 @@ class ReportController extends Controller
         ];
     }
 
-    public function suratTugas(String $id)
+    public function suratTugas(Request $request, String $id)
     {
         $id = decryptor($id);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
 
         if ($id == null) {
             return redirect()->back();
@@ -893,6 +941,13 @@ class ReportController extends Controller
         } else {
             $ttd = $dokumen->ttd ?? "";
         }
+
+        if ($is_download && $type == 'original') {
+            $ttd = false;
+            $template->header = false;
+            $template->footer = false;
+        }
+
         $variables["TTD"] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='" . $data['stempel'] . "' class='img-fluid img-stempel' alt='Stempel-Lab'>
@@ -906,16 +961,10 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
-        // return response($bytes, 200, [
-        //     'Content-Type'        => 'application/pdf',
-        //     'Content-Disposition' => 'inline; filename="'.$filename.'"',
-        // ]);
-        // $pdf = PDF::loadView('report.suratTugas', $data);
-
-        // $pdf->render();
-
-        // return $pdf->stream();
     }
 
     private function contentSuratTugas(Permohonan $data, $params)
@@ -996,11 +1045,13 @@ class ReportController extends Controller
      * @return \Illuminate\Http\Response The PDF stream response.
      */
 
-    public function suratPengantar($id  = null, $periode_ = null)
+    public function suratPengantar(Request $request, $id  = null, $periode_ = null)
     {
         $id = decryptor($id);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
         // mengambil id permohonan
-        $id_permohonan = Kontrak_periode::select('id_permohonan')->where('id_kontrak', $id)->where('periode', $periode_)->first()->id_permohonan;
+        $id_permohonan = Kontrak_periode::select('id_permohonan')->where('id_kontrak', $id)->where('periode', $periode_)->first()?->id_permohonan;
         $periode = $periode_ == 0 ? 1 : $periode_;
 
         if ($id == null) {
@@ -1021,7 +1072,11 @@ class ReportController extends Controller
 
         // mengambil dokumen surat pengantar
         $dokumen = Permohonan_dokumen::where("id_kontrak", $id)
-            ->where("periode", $periode_)
+            ->when($query->periode_next, function ($q) use ($periode_) {
+                return $q->whereNull('periode');
+            }, function ($q) use ($periode_) {
+                return $q->where("periode", $periode_);
+            })
             ->where("jenis", "surpeng")->first();
 
         $template = Documents::with(['footer', 'header'])
@@ -1037,24 +1092,24 @@ class ReportController extends Controller
             $kontrakPeriode->save();
 
             if (!$dokumen) {
-                $textPeriode = $kontrakPeriode->status == 2 ? "Pengembalian" : "Periode $periode";
-                $dokumen = Permohonan_dokumen::create(array(
-                    'periode' => $periode_,
-                    'id_kontrak' => $id,
-                    'id_permohonan' => $id_permohonan ?? null,
-                    'id_doc_template' => $template->id_doc,
-                    'jenis' => "surpeng",
-                    "nama" => "Surat Pengantar ($textPeriode)",
-                    "nomer" => $noSurpeng,
-                    "created_by" => Auth::user()->id,
-                    "status" => 1
-                ));
+                // $textPeriode = $kontrakPeriode->status == 2 ? "Pengembalian" : "Periode $periode";
+                // $dokumen = Permohonan_dokumen::create(array(
+                //     'periode' => $periode_,
+                //     'id_kontrak' => $id,
+                //     'id_permohonan' => $id_permohonan ?? null,
+                //     'id_doc_template' => $template->id_doc,
+                //     'jenis' => "surpeng",
+                //     "nama" => "Surat Pengantar",
+                //     "nomer" => $noSurpeng,
+                //     "created_by" => Auth::user()->id,
+                //     "status" => 1
+                // ));
             } else {
                 $dokumen->nomer = $noSurpeng;
                 $dokumen->save();
             }
         } else {
-            // yang ini di comment lagi karna jadi issue saat pengiriman periode zero cek
+            // yang ini di comment lagi karna jadi issue saat pengiriman periode zero Check
             // return redirect()->back();
         }
 
@@ -1080,6 +1135,13 @@ class ReportController extends Controller
         if ($dokumen->ttd_image) {
             $ttd = $dokumen->ttd_image;
         }
+
+        if ($is_download && $type == 'original') {
+            $ttd = false;
+            $template->header = false;
+            $template->footer = false;
+        }
+
         $variables["TTD"] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='" . $data['stempel'] . "' class='img-fluid img-stempel' alt='Stempel-Lab'>
@@ -1093,6 +1155,9 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
     }
 
@@ -1101,35 +1166,46 @@ class ReportController extends Controller
         $html = '';
         $no = 1;
         $countKontrol = 0;
-        $kontrakDetail = Kontrak_detail::with([
-            'entitas'
-        ])
-            ->where('id_kontrak', $data->id_kontrak)
-            ->where('status', 1)
-            ->get();
+        $isAdendum = isset($params['permohonan']) && $params['permohonan']->tipe_kontrak == 'adendum';
 
-        // jika ada dendum yang baru akan di masukkan ke kontrak detail dengan jenis kontrol, jadi untuk menampilkan di surat pengantar hanya yang jenis pengguna saja, sedangkan yang jenis kontrol akan dihitung jumlahnya saja
-        $detailAdendum = kontrak_detail::with([
-            'entitas',
-            'penggunaLama'
-        ])
-            ->where('id_kontrak', $data->id_kontrak)
-            ->where('status', 2)
-            ->where('periode', $params['periode'])
-            ->get();
+        if ($isAdendum) {
+            $kontrakDetail = \App\Models\Permohonan_detail::with([
+                'entitas'
+            ])
+                ->where('id_permohonan', $params['permohonan']->id_permohonan)
+                ->where('type', 'baru')
+                ->get();
+        } else {
+            $kontrakDetail = Kontrak_detail::with([
+                'entitas'
+            ])
+                ->where('id_kontrak', $data->id_kontrak)
+                ->where('status', 1)
+                ->get();
 
-        foreach ($detailAdendum as $value) {
-            if ($value->jenis == 'pengguna') {
-                if ($value->type == 'ganti') {
-                    $index = $kontrakDetail->search(function ($item) use ($value) {
-                        return $item->id_pengguna_divisi == $value->pengguna_lama;
-                    });
+            // jika ada dendum yang baru akan di masukkan ke kontrak detail dengan jenis kontrol, jadi untuk menampilkan di surat pengantar hanya yang jenis pengguna saja, sedangkan yang jenis kontrol akan dihitung jumlahnya saja
+            $detailAdendum = kontrak_detail::with([
+                'entitas',
+                'penggunaLama'
+            ])
+                ->where('id_kontrak', $data->id_kontrak)
+                ->where('status', 2)
+                ->where('periode', $params['periode'])
+                ->get();
 
-                    if ($index !== false) {
-                        $kontrakDetail[$index] = $value;
+            foreach ($detailAdendum as $value) {
+                if ($value->jenis == 'pengguna') {
+                    if ($value->type == 'ganti') {
+                        $index = $kontrakDetail->search(function ($item) use ($value) {
+                            return $item->id_pengguna_divisi == $value->pengguna_lama;
+                        });
+
+                        if ($index !== false) {
+                            $kontrakDetail[$index] = $value;
+                        }
+                    } else {
+                        $kontrakDetail->push($value);
                     }
-                } else {
-                    $kontrakDetail->push($value);
                 }
             }
         }
@@ -1170,9 +1246,11 @@ class ReportController extends Controller
         ];
     }
 
-    public function kontrak($id = null)
+    public function kontrak(Request $request, $id = null)
     {
         $id = decryptor($id);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
 
         if ($id == null) {
             return redirect()->back();
@@ -1261,6 +1339,13 @@ class ReportController extends Controller
             $ttd_2 = $dokumen->ttd ?? "";
         }
 
+        if ($is_download && $type == 'original') {
+            $ttd_1 = false;
+            $ttd_2 = false;
+            $template->header = false;
+            $template->footer = false;
+        }
+
         $variables["TTD_1"] = $ttd_1 ? "
             <div style='text-align: center;'>
                 <img src='$ttd_1' alt='TTD PIHAK 1' width='100px' height='100px'>
@@ -1279,6 +1364,9 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
     }
 
@@ -1305,25 +1393,43 @@ class ReportController extends Controller
             $periodeNow = $query->permohonan->periode_next[0];
             $alias = 'ZC';
         } else {
-            $periode_label = $query->permohonan->periodenow->periode;
-            if ($query->permohonan->periodenow->periode == 0) {
+            $periode_label = $query->periode_used;
+            if ($query->periode_used == 0) {
                 $periode_label = 1;
             }
-            $getKperiode = Kontrak_periode::where('id_kontrak', $query->permohonan->id_kontrak)->where('periode', $periode_label)->first();
+            $getKperiode = Kontrak_periode::where('id_kontrak', $query->id_kontrak)->where('periode', $periode_label)->first();
             $periodeNow = $getKperiode->toArray();
 
             $alias = substr($query->permohonan->kontrak->no_kontrak, 0, 1);
         }
 
-        $listTld = Kontrak_detail::with([
-            'entitas' => function (MorphTo $morphTo) {
-                $morphTo->morphWith([
-                    Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
-                ]);
-            },
-            'tld_1',
-            'tld_2'
-        ])->where('id_kontrak', $query->permohonan->id_kontrak)->get();
+        $isAdendum = $query->permohonan && $query->permohonan->tipe_kontrak == 'adendum';
+
+        if ($isAdendum) {
+            $listTld = \App\Models\Permohonan_detail::with([
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                }
+            ])
+                ->where('id_permohonan', $query->id_permohonan)
+                ->where('type', 'baru')
+                ->get();
+        } else {
+            $listTld = Kontrak_detail::with([
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
+                    ]);
+                },
+                'tld_1',
+                'tld_2'
+            ])
+                ->where('id_kontrak', $query->id_kontrak)
+                ->where('status', 1)
+                ->get();
+        }
 
         $data = array();
 
@@ -1352,9 +1458,11 @@ class ReportController extends Controller
      * @param  int  $idPermohonan  ID permohonan
      * @return \Illuminate\Http\Response
      */
-    public function SuratPengujian($idPermohonan)
+    public function SuratPengujian(Request $request, $idPermohonan)
     {
         $idPermohonan = decryptor($idPermohonan);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
         if ($idPermohonan == null) {
             return redirect()->back();
         }
@@ -1396,6 +1504,13 @@ class ReportController extends Controller
         } else {
             $ttd = $dokumen->ttd ?? "";
         }
+
+        if ($is_download && $type == 'original') {
+            $ttd = false;
+            $template->header = false;
+            $template->footer = false;
+        }
+
         $variables['TTD'] = $ttd ? "
             <div style='text-align: center;'>
                 <img src='" . $data['stempel'] . "' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
@@ -1407,12 +1522,15 @@ class ReportController extends Controller
         $bytes = $this->generatePdf($data['title'], $template, $variables, ["RINCIAN", "RINCIAN_2", "TTD"]);
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
     }
 
     private function contentSuratPengujian(mixed $data, array $params)
     {
-        $zrcek = $data->permohonan->is_zerocek ? 'Zero Cek' : '';
+        $zrcek = $data->permohonan->is_zerocek ? 'Zero Check' : '';
         $lJasa = $data->permohonan->layanan_jasa->satuankerja->name;
         $jTld = $data->permohonan->jenisTld->name;
 
@@ -1475,9 +1593,11 @@ class ReportController extends Controller
         ];
     }
 
-    public function PermohonanEvaluasi(string $idPermohonan)
+    public function PermohonanEvaluasi(Request $request, string $idPermohonan)
     {
         $idPermohonan = decryptor($idPermohonan);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
 
         if ($idPermohonan == null) {
             return redirect()->back();
@@ -1524,11 +1644,20 @@ class ReportController extends Controller
 
         $template->header = $header;
 
+        if ($is_download && $type == 'original') {
+            $variables['TTD'] = '<br><br><br>';
+            $template->header = false;
+            $template->footer = false;
+        }
+
         // Generate PDF
         $bytes = $this->generatePDF('Permohonan Evaluasi', $template, $variables, ['TTD', 'CONTENT']);
 
         $filename = 'Permohonan Evaluasi - ' . date('Y-m-d') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
     }
 
@@ -1564,9 +1693,11 @@ class ReportController extends Controller
         ];
     }
 
-    public function KontrakPengujian(string $id)
+    public function KontrakPengujian(Request $request, string $id)
     {
         $id = decryptor($id);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
 
         if ($id == null) {
             return redirect()->back();
@@ -1631,6 +1762,21 @@ class ReportController extends Controller
         } else {
             $ttd_manajer = $dokumen->ttd ?? "";
         }
+
+        // TTD PELANGGAN
+        if ($query->pelanggan->ttd_image) {
+            $ttd_pelanggan = $query->pelanggan->ttd_image;
+        } else {
+            $ttd_pelanggan = $query->pelanggan->ttd ?? "";
+        }
+
+        if ($is_download && $type == 'original') {
+            $ttd_manajer = false;
+            $ttd_pelanggan = false;
+            $template->header = false;
+            $template->footer = false;
+        }
+
         $variables['TTD_MANAJER'] = $ttd_manajer ? "
             <div style='text-align: center;'>
                 <img src='" . $data['stempel'] . "' class='img-fluid img-stempel' style='margin-left: 15%;' alt='Stempel-Lab'>
@@ -1639,12 +1785,6 @@ class ReportController extends Controller
         " : "<br><br><br>";
         $variables['TTD_BY_MANAJER'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
 
-        // TTD PELANGGAN
-        if ($query->pelanggan->ttd_image) {
-            $ttd_pelanggan = $query->pelanggan->ttd_image;
-        } else {
-            $ttd_pelanggan = $query->pelanggan->ttd ?? "";
-        }
         $variables['TTD_PELANGGAN'] = $ttd_pelanggan ? "
             <div style='text-align: center;'>
                 <img src='$ttd_pelanggan' alt='TTD_PENERIMA' width='100px' height='100px'>
@@ -1665,12 +1805,15 @@ class ReportController extends Controller
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
     }
 
     private function contentKontrakPengujian(mixed $data, $params = [])
     {
-        $zrcek = $data->is_zerocek ? 'Zero Cek' : '';
+        $zrcek = $data->is_zerocek ? 'Zero Check' : '';
         $lJasa = $data->layanan_jasa->satuankerja->name;
         $jTld = $data->jenisTld->name;
 
@@ -1687,14 +1830,14 @@ class ReportController extends Controller
         $diskon = [];
         $ppn = 0;
         $pph = 0;
-        if($data->invoice){
+        if ($data->invoice) {
             $diskon = $data->invoice->diskon;
             $ppn = $data->invoice->ppn;
             $pph = $data->invoice->pph;
         }
-        
+
         $dataKeuangan = calculateInvoice($data->total_harga, $diskon, $ppn, $pph);
-        
+
         // Mengambil personil
         // Mengambil LIST TLD yang digunakan
         $htmlListTld = '';
@@ -1707,7 +1850,7 @@ class ReportController extends Controller
                     <td>' . ($value->tld_awal->merk ?? '') . '</td>
                 </tr>
             ';
-            if($value->tld_second){
+            if ($value->tld_second) {
                 $htmlListTld .= '
                     <tr>
                         <td>' . ($key + 1) . '</td>
@@ -1759,9 +1902,11 @@ class ReportController extends Controller
         ];
     }
 
-    public function adendum(string $idPermohonan)
+    public function adendum(Request $request, string $idPermohonan)
     {
         $idPermohonan = decryptor($idPermohonan);
+        $is_download = $request->get('dl') ? true : false;
+        $type = $request->get('type') ? $request->get('type') : 'full';
 
         $query = Permohonan::with([
             'jenisTld:id_jenisTld,name',
@@ -1813,11 +1958,21 @@ class ReportController extends Controller
             ->first();
 
         $template->header = $header;
+
+        if ($is_download && $type == 'original') {
+            $variables['TTD'] = '<br><br><br>';
+            $template->header = false;
+            $template->footer = false;
+        }
+
         // generate pdf
         $bytes = $this->generatePDF($data['title'], $template, $variables, ['TTD', 'RINCIAN_TLD']);
 
         $filename = $data['title'] . '-' . date('Y-m-d') . '.pdf';
 
+        if ($is_download) {
+            return $bytes->download($filename);
+        }
         return $bytes->stream($filename);
     }
 

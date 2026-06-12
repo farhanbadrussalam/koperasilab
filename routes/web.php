@@ -78,6 +78,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/penyelia/surat_tugas/s/{idPenyelia}', 'createSuratTugas')->name('staff.penyelia.show.surat_tugas');
 
             Route::get('/lhu', 'indexLhu')->middleware(['permission:Staff/lhu'])->name('staff.lhu');
+            Route::get('/penyimpanan', 'indexPenyimpanan')->middleware(['permission:Staff/lhu'])->name('staff.penyimpanan');
             Route::get('/lhu/petugas', 'indexPetugas')->middleware(['permission:Staff/lhu/petugas'])->name('staff.lhu.petugas');
 
             Route::get('/pengiriman', 'indexPengiriman')->name('staff.pengiriman');
@@ -86,6 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/pengiriman/permohonan/kirim/{idKontrak}/{periode}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim.kontrak');
             Route::get('/pengiriman/pengembalian/{idKontrak}', 'buatOrderPengembalian');
             Route::get('/pengiriman/tambah', 'buatCustomPengiriman')->name('staff.pengiriman.tambah');
+            Route::get('/pengiriman/adendum', 'indexPengirimanAdendum')->name('staff.pengiriman.adendum');
 
             Route::get('/perusahaan', 'indexPerusahaan')->middleware(['permission:Staff/perusahaan'])->name('staff.perusahaan');
             Route::get('/jenis/pembayaran', 'indexJenisPembayaran')->name('staff.jenis.pembayaran');
@@ -101,6 +103,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/pengajuan', 'index')->middleware(['permission:Manager/keuangan'])->name('manager.pengajuan');
             Route::get('/surat_tugas', 'indexSuratTugas')->middleware(['permission:Manager/pengajuan'])->name('manager.surat_tugas');
             Route::get('/surpeng', 'indexSurpeng')->middleware(['permission:Manager/surpeng'])->name('manager.surpeng');
+            Route::get('/produktivitas', 'indexProduktivitas')->middleware(['permission:Manager/produktivitas'])->name('manager.produktivitas');
+            Route::get('/produktivitas/getData', 'getDataProduktivitas')->name('manager.produktivitas.getData');
         });
         Route::controller(StaffController::class)->group(function () {
             Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');
@@ -196,6 +200,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/expedition-stats', 'expeditionStats')->name('expedition-stats');
 
                 Route::get('/track-search', 'trackSearch')->name('track-search');
+                Route::get('/contract-search', 'contractSearch')->name('contract-search');
+                Route::get('/contract-search-options', 'contractSearchOptions')->name('contract-search-options');
             });
         });
         Route::prefix('skeleton')->name('skeleton.')->group(function () {
@@ -212,33 +218,3 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
-
-Route::post('password/email', [
-    'as' => 'laravel.password.email',
-    'uses' => 'App\Http\Controllers\Auth\ForgotPasswordController@sendResetLinkEmail'
-]);
-
-Route::get('password/reset', [
-    'as' => 'laravel.password.request',
-    'uses' => 'App\Http\Controllers\Auth\ForgotPasswordController@showLinkRequestForm'
-]);
-
-Route::get('password/reset/{token}', [
-    'as' => 'laravel.password.reset',
-    'uses' => 'App\Http\Controllers\Auth\ResetPasswordController@showResetForm'
-]);
-
-Route::get('password/reset', [
-    'as' => 'laravel.password.update',
-    'uses' => 'App\Http\Controllers\Auth\ResetPasswordController@reset'
-]);
-
-Route::post('password/reset', [
-    'as' => 'laravel.password.update.post',
-    'uses' => 'App\Http\Controllers\Auth\ResetPasswordController@reset'
-]);
-
-Route::get('password/confirm', [
-    'as' => 'laravel.password.confirm',
-    'uses' => 'App\Http\Controllers\Auth\ConfirmPasswordController@showConfirmForm'
-]);

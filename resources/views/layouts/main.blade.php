@@ -169,15 +169,6 @@
             $('[data-bs-toggle="tooltip"]').attr('data-bs-placement', 'bottom')
             $('[data-bs-toggle="tooltip"]').tooltip()
 
-            $("#collapseManagement").on('show.bs.collapse', function () {
-                $('#icon_collapse').addClass('bi-chevron-up');
-                $('#icon_collapse').removeClass('bi-chevron-down');
-            });
-
-            $("#collapseManagement").on('hide.bs.collapse', function () {
-                $('#icon_collapse').addClass('bi-chevron-down');
-                $('#icon_collapse').removeClass('bi-chevron-up');
-            });
 
             // Mengecek session
             setInterval(() => {
@@ -212,6 +203,20 @@
             //     return new bootstrap.Tooltip(tooltipTriggerEl)
             // })
 
+            // Inisialisasi counter badge adendum khusus Staff Pengiriman
+            if (role.includes('Staff Pengiriman')) {
+                const loadAdendumBadge = () => {
+                    ajaxGet('api/v1/pengiriman/listAdendum', { limit: 1 }, result => {
+                        let total = result.pagination?.total ?? 0;
+                        if (total > 0) {
+                            $('#adendum-sidebar-badge').text(total).removeClass('d-none');
+                        } else {
+                            $('#adendum-sidebar-badge').addClass('d-none');
+                        }
+                    });
+                };
+                loadAdendumBadge();
+            }
         })
 
         function loadNotifikasi() {

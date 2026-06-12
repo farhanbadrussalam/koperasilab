@@ -44,10 +44,15 @@ $(function(){
 
 $('#form-edit').on("submit", (evt) => {
     evt.preventDefault();
+    const formParsley = $('#form-edit').parsley();
+    if (!formParsley.validate()) {
+        return;
+    }
     const formData = new FormData(evt.target);
+    const idPermission = $('#inputEditIdPermission').val();
     spinner('show', $('#btn-edit'));
 
-    ajaxPost(`management/permission/update`, formData, result => {
+    ajaxPost(`management/permission/${idPermission}`, formData, result => {
         $('#editPermissionModal').modal('hide');
         resetForm();
         spinner('hide', $('#btn-edit'));
@@ -67,6 +72,10 @@ $('#form-edit').on("submit", (evt) => {
 
 $('#form-create').on("submit", (evt) => {
     evt.preventDefault();
+    const formParsley = $('#form-create').parsley();
+    if (!formParsley.validate()) {
+        return;
+    }
     const formData = new FormData(evt.target);
     spinner('show', $('#btn-create'));
 
@@ -92,6 +101,11 @@ function btnEdit(obj) {
     let value = $(obj).data('value');
 
     $('#editPermissionModal').modal('show');
+
+    // Reset Parsley classes and alerts on opening edit modal
+    const formParsley = $('#form-edit').parsley();
+    formParsley.reset();
+    $('#form-edit').find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
 
     $('#inputEditNamePermission').val(value);
     $('#inputEditIdPermission').val(idPermission);

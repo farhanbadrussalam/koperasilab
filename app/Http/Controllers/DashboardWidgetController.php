@@ -574,6 +574,82 @@ class DashboardWidgetController extends Controller
         return response()->json(['html' => $html]);
     }
 
+    public function contractSearch(Request $request)
+    {
+        $id = $request->input('id');
+        $keyword = $request->input('keyword');
+
+        if (empty($id) && empty($keyword)) {
+            return response()->json([
+                'html' => '<div class="text-center text-muted py-4"><i class="bi bi-exclamation-circle text-warning fs-3 mb-2 d-block"></i> Kata kunci atau ID tidak boleh kosong.</div>'
+            ]);
+        }
+
+        $query = Kontrak::with([
+            'pelanggan.perusahaan',
+            'jenis_layanan',
+            'jenis_layanan_parent',
+            'layanan_jasa',
+            'periode' => function ($q) {
+                $q->orderBy('periode', 'asc');
+            },
+            'periode.permohonan.invoice',
+            'periode.permohonan.lhu.penyelia_map.jobs',
+            'periode.permohonan.pengiriman'
+        ]);
+
+        if ($id) {
+            $idKontrak = decryptor($id);
+            $query->where('id_kontrak', $idKontrak);
+        } else {
+            $query->where(function ($q) use ($keyword) {
+                $q->whereHas('pelanggan.perusahaan', function ($compQ) use ($keyword) {
+                    $compQ->where('nama_perusahaan', 'like', '%' . $keyword . '%');
+                })
+                ->orWhere('no_kontrak', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        $contracts = $query->orderBy('created_at', 'desc')->limit(10)->get();
+
+        $html = view('components.dashboard.contract-search-results', compact('contracts'))->render();
+
+        return response()->json([
+            'html' => $html
+        ]);
+    }
+
+    public function contractSearchOptions(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        if (empty($keyword)) {
+            return response()->json(['options' => []]);
+        }
+
+        $contracts = Kontrak::with(['pelanggan.perusahaan'])
+            ->where(function ($query) use ($keyword) {
+                $query->whereHas('pelanggan.perusahaan', function ($q) use ($keyword) {
+                    $q->where('nama_perusahaan', 'like', '%' . $keyword . '%');
+                })
+                ->orWhere('no_kontrak', 'like', '%' . $keyword . '%');
+            })
+            ->orderBy('created_at', 'desc')
+            ->limit(20)
+            ->get();
+
+        $options = $contracts->map(function ($contract) {
+            $companyName = $contract->pelanggan?->perusahaan?->nama_perusahaan ?? 'Perusahaan tidak diketahui';
+            return [
+                'id' => $contract->kontrak_hash,
+                'text' => $companyName . ' (' . $contract->no_kontrak . ')'
+            ];
+        });
+
+        return response()->json([
+            'options' => $options
+        ]);
+    }
+
     public function jobsPenyelia(Request $request)
     {
 
@@ -607,7 +683,7 @@ class DashboardWidgetController extends Controller
                 'nomor_referensi' => $job->permohonan?->kontrak?->no_kontrak,
                 'nama_perusahaan' => $job->permohonan?->pelanggan?->perusahaan?->nama_perusahaan,
                 'nama_petugas' => $job->permohonan?->pelanggan?->name,
-                'periode' => $job->periode === 0 ? 'Zero Cek' : "Periode {$job->periode}",
+                'periode' => $job->periode === 0 ? 'Zero Check' : "Periode {$job->periode}",
                 'current_step' => $stepNow?->order ?? 0,
                 'total_step' => $mainStep->count(),
                 'step_name' => $stepName,
@@ -710,7 +786,7 @@ class DashboardWidgetController extends Controller
                 'nomor_referensi' => $job->permohonan?->kontrak?->no_kontrak,
                 'nama_perusahaan' => $job->permohonan?->pelanggan?->perusahaan?->nama_perusahaan,
                 'nama_petugas' => $job->permohonan?->pelanggan?->name,
-                'periode' => $job->periode === 0 ? 'Zero Cek' : "Periode {$job->periode}",
+                'periode' => $job->periode === 0 ? 'Zero Check' : "Periode {$job->periode}",
                 'current_step' => $mainStep?->order ?? 0,
                 'deadline' => $job->end_date,
                 'current_step_name' => $mainStep->jobs ? $mainStep->jobs->name : $mainStep->jobs_paralel->name,
