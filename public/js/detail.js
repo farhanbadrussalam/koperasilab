@@ -39,6 +39,12 @@ class Detail {
     _initializeProperties() {
         this.data = null;
         this.info = {};
+
+        // Log pagination variables
+        this.logPage = 1;
+        this.logLoading = false;
+        this.hasMoreLogs = false;
+        this.logUrl = null;
     }
 
     _createCustomEvents() {
@@ -52,6 +58,36 @@ class Detail {
             this._initializeProperties();
             $(`#${this.options.id}-container`).empty();
             $(`#${this.options.id}-loading`).empty();
+        });
+
+        $(`#${this.options.id}`).on('click', '.btn-lihat-dokumen', (e) => {
+            e.preventDefault();
+            const url = $(e.currentTarget).data('url');
+            const title = $(e.currentTarget).data('title') || 'Dokumen';
+            
+            if ($(`#${this.options.id}`).hasClass('offcanvas')) {
+                $(`#${this.options.id}`).offcanvas('hide');
+            } else {
+                $(`#${this.options.id}`).modal('hide');
+            }
+            
+            if (!window.modalDocDetail) {
+                console.log('window.modalDocDetail');
+                window.modalDocDetail = new ModalDocument({ id: 'modalDocDetail' });
+            }
+            window.modalDocDetail.show(url, { title: title });
+        });
+
+        // Bind scroll listener for log tab infinite pagination
+        $(`#${this.options.id}`).on('scroll', '#submenu-log', (e) => {
+            if (this.options.jenis === 'tld' && this.options.tab.log) {
+                const container = $(e.currentTarget);
+                if (container.scrollTop() + container.innerHeight() >= container[0].scrollHeight - 20) {
+                    if (this.hasMoreLogs && !this.logLoading) {
+                        this.loadNextLogPage();
+                    }
+                }
+            }
         });
     }
 
@@ -243,6 +279,22 @@ class Detail {
                     id: this.data.perusahaan_hash
                 }
                 break;
+            case 'tld':
+                this.info = {
+                    no_seri_tld: this.data.no_seri_tld ?? '-',
+                    merk: this.data.merk ?? '-',
+                    jenis: this.data.jenis ?? '-',
+                    status: this.data.status ?? 0,
+                    digunakan: this.data.digunakan ?? null,
+                    pemilik: this.data.pemilik?.nama_perusahaan ?? 'Internal Koperasi',
+                    tanggal_pengadaan: this.data.tanggal_pengadaan ?? '-',
+                    jenisStatus: 'tld',
+                    current_user: this.data.current_assignment?.entitas?.name ?? '-',
+                    current_user_type: this.data.current_assignment?.jenis ?? null,
+                    current_contract: this.data.current_assignment?.permohonan?.kontrak?.no_kontrak ?? this.data.digunakan ?? '-',
+                    logs: this.data.combined_logs ?? []
+                };
+                break;
             default:
 
                 break;
@@ -274,6 +326,9 @@ class Detail {
                     break;
                 case 'kontrak':
                     $(`#${this.options.id}-container`).append(this.createInformationKontrak());
+                    break;
+                case 'tld':
+                    $(`#${this.options.id}-container`).append(this.createInformationTld());
                     break;
                 case 'history_note':
                     $(`#${this.options.id}-container`).append(this.createInformationHistoryNote());
@@ -399,8 +454,14 @@ class Detail {
         $(`#${this.options.id}-container`).html(this._renderSkeleton());
         $(`#${this.options.id}-main`).show();
 
+        this.logUrl = url;
+        this.logPage = 1;
+        this.logLoading = false;
+        this.hasMoreLogs = false;
+
         ajaxGet(url, params, result => {
             this.addData(result.data);
+            this.hasMoreLogs = result.data.has_more_logs ?? false;
             this.loadData();
         }, error => {
             $(`#${this.options.id}-container`).html(`
@@ -409,6 +470,61 @@ class Detail {
                     <p class="mt-2 text-muted">Gagal memuat data detail.</p>
                 </div>
             `);
+        });
+    }
+
+    loadNextLogPage() {
+        if (this.logLoading || !this.hasMoreLogs) {
+            return;
+        }
+
+        this.logLoading = true;
+
+        // Append a small loading spinner at the bottom of the log timeline
+        $('#submenu-log .timeline').append(`
+            <div id="log-mini-spinner" class="text-center py-2">
+                <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            </div>
+        `);
+
+        // Scroll slightly to make sure the spinner is visible
+        let submenuLog = $('#submenu-log');
+        submenuLog.scrollTop(submenuLog[0].scrollHeight);
+
+        ajaxGet(this.logUrl, { page: this.logPage + 1 }, result => {
+            $('#log-mini-spinner').remove();
+            this.logLoading = false;
+
+            if (result.meta.code === 200 && result.data.combined_logs) {
+                let htmlPointLog = '';
+                result.data.combined_logs.forEach((log, i) => {
+                    htmlPointLog += `
+                        <div class="tl-item">
+                            <div class="tl-dot border-primary"></div>
+                            <div class="tl-content lh-1 w-100">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="me-2 w-50">
+                                        ${log.message}
+                                        <div class="fw-bold mt-1">${log.user || ''}</div>
+                                        ${log.note ? `<div class="text-muted mt-1">Note : ${log.note}</div>` : ''}
+                                    </div>
+                                    <div class="text-muted text-end">${dateFormat(log.created_at, 1)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                $('#submenu-log .timeline').append(htmlPointLog);
+
+                this.hasMoreLogs = result.data.has_more_logs ?? false;
+                if (result.data.combined_logs.length > 0) {
+                    this.logPage++;
+                }
+            }
+        }, error => {
+            this.logLoading = false;
+            $('#log-mini-spinner').remove();
         });
     }
 
@@ -656,6 +772,58 @@ class Detail {
 
         return container;
     }
+    createInformationTld() {
+        const container = document.createElement('div');
+        container.className = 'container fs-7';
+
+        $(`#${this.options.id}-title`).text('Detail TLD');
+
+        let badgeStatus = this.info.status === 1 || this.info.digunakan
+            ? '<span class="badge bg-success">Digunakan</span>'
+            : '<span class="badge bg-secondary">Tidak Digunakan</span>';
+
+        container.innerHTML = `
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-hash me-1"></i>No Seri TLD</label>
+                    <div class="text-dark fw-semibold text-break">${this.info.no_seri_tld}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-info-circle me-1"></i>Status</label>
+                    <div>${badgeStatus}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-tag me-1"></i>Merk</label>
+                    <div class="text-dark fw-semibold">${this.info.merk}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-cpu me-1"></i>Jenis TLD</label>
+                    <div class="text-dark fw-semibold text-capitalize">${this.info.jenis}</div>
+                </div>
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-building me-1"></i>Kepemilikan</label>
+                    <div class="text-dark fw-semibold">${this.info.pemilik}</div>
+                </div>
+                <div class="col-12">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-person me-1"></i>Pengguna Aktif Saat Ini</label>
+                    <div class="text-dark fw-semibold">
+                        ${this.info.current_user} 
+                        ${this.info.current_user_type ? `<span class="badge bg-light text-secondary-emphasis fw-normal border ms-1 text-capitalize">${this.info.current_user_type}</span>` : ''}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-file-earmark-text me-1"></i>No Kontrak Aktif</label>
+                    <div class="text-dark fw-semibold">${this.info.current_contract}</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="text-uppercase text-muted fw-bold small d-block mb-1"><i class="bi bi-calendar-event me-1"></i>Tanggal Pengadaan</label>
+                    <div class="text-muted small">${this.info.tanggal_pengadaan !== '-' ? dateFormat(this.info.tanggal_pengadaan, 0) : '-'}</div>
+                </div>
+            </div>
+        `;
+
+        return container;
+    }
     createInformationKontrak() {
         const container = document.createElement('div');
         container.className = 'container fs-7';
@@ -803,7 +971,7 @@ class Detail {
                         </div>
                         <i class="bi bi-chevron-down"></i>
                     </div>
-                    <div class="submenu p-2 rounded-bottom-3 overflow-auto overflow-x-hidden border-top" style="max-height: ${tab.maxHeight ? tab.maxHeight : '30vh'}">
+                    <div class="submenu p-2 rounded-bottom-3 overflow-auto overflow-x-hidden border-top" id="submenu-${tabId}" style="max-height: ${tab.maxHeight ? tab.maxHeight : '30vh'}">
                         ${tab.content}
                     </div>
                 </li>
@@ -956,7 +1124,7 @@ class Detail {
                             </div>
                         </div>
                         <div>
-                            <a type="button" class="btn btn-sm btn-outline-primary" target="_blank" href="${base_url}/laporan/${dokumen.jenis}/${idHash}">Lihat</a>
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-lihat-dokumen" data-url="laporan/${dokumen.jenis}/${idHash}" data-title="${dokumen.nama}">Lihat</button>
                         </div>
                     </div>
                 </div>
@@ -1006,6 +1174,16 @@ class Detail {
 
                 // order by created_at
                 dataLog.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                break;
+            case 'tld':
+                this.info.logs?.forEach(log => {
+                    dataLog.push({
+                        message: log.message,
+                        created_at: log.created_at,
+                        user: log.user,
+                        note: log.note
+                    });
+                });
                 break;
             default:
                 this.data.logs?.forEach(log => {

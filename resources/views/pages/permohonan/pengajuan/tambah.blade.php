@@ -40,7 +40,8 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label for="jenis_layanan_2" class="col-form-label d-none d-md-flex" id="label-jenis-layanan-2">&nbsp;</label>
+                        <label for="jenis_layanan_2" class="col-form-label d-none d-md-flex"
+                            id="label-jenis-layanan-2">&nbsp;</label>
                         <select name="jenis_layanan_2" id="jenis_layanan_2" class="form-select">
                             <option value="">Pilih</option>
                         </select>
@@ -58,11 +59,11 @@
                     @csrf
                     <div class="row g-0 g-md-3">
                         <div class="col-md-6 d-none" id="form-zero-cek">
-                            <label class="col-form-label" for="zero_cek">Pilih zero cek</label>
+                            <label class="col-form-label" for="zero_cek">Pilih zero check</label>
                             <select name="zero_cek" id="zero_cek" class="form-select">
                                 <option value="">Pilih</option>
-                                <option value="zerocek">Dengan zero cek</option>
-                                <option value="tanpazerocek">Tanpa zero cek</option>
+                                <option value="zerocek">Dengan zero check</option>
+                                <option value="tanpazerocek">Tanpa zero check</option>
                             </select>
                         </div>
                         <div class="col-md-6" id="form-jenis-tld">
@@ -83,16 +84,6 @@
                                     periode</button>
                             </div>
                         </div>
-                        <div class="col-md-12" id="form-switch">
-                            <div class="form-check form-switch" id="switch-tld">
-                                <input class="form-check-input" type="checkbox" role="switch" id="haveTld" checked>
-                                <label class="form-check-label" for="haveTld">Anda Memiliki TLD</label>
-                            </div>
-                            <div class="form-check form-switch" id="switch-zerocek">
-                                <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
-                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero Check</label>
-                            </div>
-                        </div>
                         <div class="col-md-6" id="form-periode-next">
                             <label class="col-form-label" for="periode_next">Periode pemakaian selanjutnya</label>
                             <div class="input-group mb-3">
@@ -102,6 +93,16 @@
                                     id="btn-clear-periode-next">Clear</button>
                                 <button class="btn btn-outline-secondary" type="button" id="btn-periode-next">Select
                                     periode</button>
+                            </div>
+                        </div>
+                        <div class="col-md-12" id="form-switch">
+                            <div class="form-check form-switch" id="switch-tld">
+                                <input class="form-check-input" type="checkbox" role="switch" id="haveTld" checked>
+                                <label class="form-check-label" for="haveTld">Anda Memiliki TLD</label>
+                            </div>
+                            <div class="form-check form-switch" id="switch-zerocek">
+                                <input class="form-check-input" type="checkbox" role="switch" id="useZeroCek" checked>
+                                <label class="form-check-label" for="useZeroCek">Menggunakan Zero Check</label>
                             </div>
                         </div>
                         <div class="col-md-6" id="form-jum-pengguna">

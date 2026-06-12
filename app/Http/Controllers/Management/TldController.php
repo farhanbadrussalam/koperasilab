@@ -8,6 +8,8 @@ use Illuminate\Support\Arr;
 use App\Traits\RestApi;
 
 use App\Models\Master_tld;
+use App\Models\Log_activity;
+use App\Models\Permohonan_detail;
 
 use DataTables;
 use DB;
@@ -89,11 +91,12 @@ class TldController extends Controller
                 return $tld->status == 1 || $tld->digunakan ? '<span class="badge bg-success">Digunakan</span><br><small class="text-body-tertiary">' . $tld->digunakan . '</small>' : '<span class="badge bg-secondary">Tidak Digunakan</span>';
             })
             ->addColumn('action', function ($tld) {
+                $btnDetail = '<button data-id="' . $tld->tld_hash . '" class="btn btn-outline-info btn-sm detail rounded-pill" onclick="btnDetail(this)"><i class="bi bi-info-circle"></i></button>';
                 $btn = '<button data-id="' . $tld->tld_hash . '" class="btn btn-outline-warning btn-sm edit rounded-pill" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>';
                 $btnRemove = $tld->status == 0 || !$tld->digunakan ? '<button data-id="'. $tld->tld_hash .'" class="btn btn-outline-danger btn-sm delete rounded-pill" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></button>' : '';
                 return '
                     <div class="d-flex justify-content-center gap-2">
-                        '.$btn . $btnRemove.'
+                        '.$btnDetail . $btn . $btnRemove.'
                     </div>
                 ';
             })
@@ -158,14 +161,148 @@ class TldController extends Controller
      */
     public function show(string $id)
     {
-        //
         DB::beginTransaction();
         try {
-            $tld = Master_tld::findOrFail(decryptor($id));
+            $tldId = decryptor($id);
+            $tld = Master_tld::with(['pemilik'])->findOrFail($tldId);
+
+            // Check if user has role 'Pelanggan'
+            $isPelanggan = Auth::user()->hasRole('Pelanggan');
+
+            // Fetch log activity for this TLD only if the user is NOT Pelanggan
+            $logs = [];
+            if (!$isPelanggan) {
+                $logs = Log_activity::where('subject_type', 'App\Models\Master_tld')
+                    ->where('subject_id', $tldId)
+                    ->with(['causer'])
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
+
+            // Fetch permohonan details (user assignments)
+            $assignments = Permohonan_detail::where('id_tld', $tldId)
+                ->with([
+                    'entitas',
+                    'permohonan.kontrak',
+                    'creator'
+                ])
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            // Active assignment is the first/latest active assignment
+            $currentAssignment = $assignments->where('status', 1)->first();
+            if (!$currentAssignment) {
+                $currentAssignment = $assignments->first();
+            }
+
+            // Combine and format logs into a unified timeline
+            $combinedLogs = [];
+
+            // 1. Process Master_tld log activities (only for staff, not Pelanggan)
+            if (!$isPelanggan) {
+                foreach ($logs as $log) {
+                    $message = $log->description;
+                    $props = $log->properties;
+
+                    if ($log->log_name === 'UPDATE' && is_array($props)) {
+                        $changes = [];
+                        if (isset($props['perubahan'])) {
+                            $perubahan = $props['perubahan'];
+                            $sebelumnya = $props['sebelumnya'] ?? [];
+
+                            if (isset($perubahan['no_seri_tld'])) {
+                                $oldVal = $sebelumnya['no_seri_tld'] ?? 'Kosong';
+                                $newVal = $perubahan['no_seri_tld'];
+                                $changes[] = "Nomor Seri diubah dari <strong>{$oldVal}</strong> menjadi <strong>{$newVal}</strong>";
+                            }
+                            if (isset($perubahan['jenis'])) {
+                                $oldVal = $sebelumnya['jenis'] ?? 'Kosong';
+                                $newVal = $perubahan['jenis'];
+                                $changes[] = "Jenis diubah dari <strong>{$oldVal}</strong> menjadi <strong>{$newVal}</strong>";
+                            }
+                            if (isset($perubahan['merk'])) {
+                                $oldVal = $sebelumnya['merk'] ?? 'Kosong';
+                                $newVal = $perubahan['merk'];
+                                $changes[] = "Merk diubah dari <strong>{$oldVal}</strong> menjadi <strong>{$newVal}</strong>";
+                            }
+                            if (isset($perubahan['status'])) {
+                                $newVal = (int)$perubahan['status'] === 1 ? 'Digunakan' : 'Tidak Digunakan';
+                                $changes[] = "Status TLD berubah menjadi <strong>{$newVal}</strong>";
+                            }
+                            if (isset($perubahan['digunakan'])) {
+                                $newVal = $perubahan['digunakan'] ?? 'Tidak ada';
+                                if ($newVal === 'Tidak ada' || is_null($newVal)) {
+                                    $changes[] = "TLD dilepas dari penggunaan Kontrak";
+                                } else {
+                                    $changes[] = "TLD digunakan untuk Kontrak <strong>{$newVal}</strong>";
+                                }
+                            }
+                        }
+
+                        if (!empty($changes)) {
+                            $message = implode(', ', $changes);
+                        }
+                    } elseif ($log->log_name === 'CREATE') {
+                        $message = "TLD didaftarkan ke sistem dengan nomor seri <strong>{$tld->no_seri_tld}</strong>";
+                    }
+
+                    $combinedLogs[] = [
+                        'message' => $message,
+                        'created_at' => $log->created_at->toIso8601String(),
+                        'user' => $log->causer?->name ?? 'System',
+                        'note' => null
+                    ];
+                }
+            }
+
+            // 2. Process assignments (user changes)
+            foreach ($assignments as $assign) {
+                $userName = $assign->entitas?->name ?? 'Tidak diketahui';
+                $userType = $assign->jenis; // 'pengguna' / 'kontrol'
+                $contractNo = $assign->permohonan?->kontrak?->no_kontrak ?? $assign->permohonan?->no_kontrak ?? 'Tidak ada';
+                $type = $assign->type ?? 'baru'; // baru / ganti
+
+                $roleText = $userType === 'kontrol' ? 'sebagai TLD Kontrol' : 'oleh pengguna';
+
+                $message = "TLD ditugaskan {$roleText} <strong>{$userName}</strong> (Kontrak: <strong>{$contractNo}</strong>)";
+
+                $combinedLogs[] = [
+                    'message' => $message,
+                    'created_at' => $assign->created_at->toIso8601String(),
+                    'user' => $assign->creator?->name ?? 'System',
+                    'note' => $type === 'ganti' ? "Menggantikan: " . ($assign->penggunaLama?->name ?? 'Tidak ada') : null
+                ];
+            }
+
+            // Sort all logs by created_at desc
+            usort($combinedLogs, function ($a, $b) {
+                return strcmp($b['created_at'], $a['created_at']);
+            });
+
+            // Pagination parameters
+            $page = (int) request()->get('page', 1);
+            $limit = (int) request()->get('limit', 10);
+            $offset = ($page - 1) * $limit;
+            $slicedLogs = array_slice($combinedLogs, $offset, $limit);
+            $hasMoreLogs = count($combinedLogs) > ($offset + $limit);
 
             DB::commit();
 
-            return $this->output($tld);
+            // If it is just a paginated log request (page > 1)
+            if (request()->has('page') && (int)request()->get('page') > 1) {
+                return $this->output([
+                    'combined_logs' => $slicedLogs,
+                    'has_more_logs' => $hasMoreLogs
+                ]);
+            }
+
+            // Prepare initial payload
+            $tldData = $tld->toArray();
+            $tldData['current_assignment'] = $currentAssignment;
+            $tldData['combined_logs'] = $slicedLogs;
+            $tldData['has_more_logs'] = $hasMoreLogs;
+
+            return $this->output($tldData);
         } catch (\Exception $ex) {
             info($ex);
             DB::rollBack();

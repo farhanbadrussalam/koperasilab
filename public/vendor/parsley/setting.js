@@ -16,6 +16,15 @@ window.Parsley.setLocale('id');
 window.Parsley.options.successClass = 'is-valid';
 window.Parsley.options.errorClass   = 'is-invalid';
 
+// Custom errors container placement for Bootstrap input-groups
+window.Parsley.options.errorsContainer = function(pField) {
+    let $el = pField.$element;
+    if ($el.closest('.input-group').length) {
+        return $el.closest('.input-group').parent();
+    }
+    return $el.parent();
+};
+
 // ganti warna saat error
 // window.Parsley.on('field:validated', function (field) {
 //     const $element = field.$element;

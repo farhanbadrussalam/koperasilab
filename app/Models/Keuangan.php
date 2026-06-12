@@ -195,4 +195,9 @@ class Keuangan extends Model
     public function metode_pembayaran(){
         return $this->belongsTo(Jenis_pembayaran::class, 'id_jenis_pembayaran', 'id_jenis_pembayaran')->withTrashed();
     }
+    
+    public function dokumen()
+    {
+        return $this->hasMany(Permohonan_dokumen::class, 'id_permohonan', 'id_permohonan');
+    }
 }

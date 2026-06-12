@@ -7,8 +7,8 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="realtime" content="{{ auth()->user()->realtime_notifications ? '1' : '0' }}">
-    <meta name="auth-id" content="{{ auth()->id() }}">
+    <meta name="realtime" content="{{ Auth::user()->realtime_notifications ? '1' : '0' }}">
+    <meta name="auth-id" content="{{ Auth::id() }}">
 
     <title>{{ config('app.name', 'Laravel') }} | {{ count(Auth::user()->getRoleNames()) != 0 ? Auth::user()->getRoleNames()[0] : '' }}</title>
 
@@ -169,19 +169,10 @@
             $('[data-bs-toggle="tooltip"]').attr('data-bs-placement', 'bottom')
             $('[data-bs-toggle="tooltip"]').tooltip()
 
-            $("#collapseManagement").on('show.bs.collapse', function () {
-                $('#icon_collapse').addClass('bi-chevron-up');
-                $('#icon_collapse').removeClass('bi-chevron-down');
-            });
-
-            $("#collapseManagement").on('hide.bs.collapse', function () {
-                $('#icon_collapse').addClass('bi-chevron-down');
-                $('#icon_collapse').removeClass('bi-chevron-up');
-            });
 
             // Mengecek session
             setInterval(() => {
-                const authenticated = @json(auth()->check());
+                const authenticated = @json(Auth::check());
                 if (!authenticated) {
                     Swal.fire({
                         icon: 'error',
@@ -212,6 +203,20 @@
             //     return new bootstrap.Tooltip(tooltipTriggerEl)
             // })
 
+            // Inisialisasi counter badge adendum khusus Staff Pengiriman
+            if (role.includes('Staff Pengiriman')) {
+                const loadAdendumBadge = () => {
+                    ajaxGet('api/v1/pengiriman/listAdendum', { limit: 1 }, result => {
+                        let total = result.pagination?.total ?? 0;
+                        if (total > 0) {
+                            $('#adendum-sidebar-badge').text(total).removeClass('d-none');
+                        } else {
+                            $('#adendum-sidebar-badge').addClass('d-none');
+                        }
+                    });
+                };
+                loadAdendumBadge();
+            }
         })
 
         function loadNotifikasi() {

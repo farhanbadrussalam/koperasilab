@@ -66,13 +66,23 @@ class RolesController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|unique:roles,name',
+            'permission' => 'nullable|array'
+        ], [
+            'name.required' => 'Nama role wajib diisi.',
+            'name.unique' => 'Nama role sudah terdaftar.'
+        ]);
+
         DB::beginTransaction();
         try {
             $role = Role::create(['name' => $request->name]);
 
             // Give permission
-            foreach ($request->permission as $key => $permission) {
-                $role->givePermissionTo($permission);
+            if ($request->has('permission')) {
+                foreach ($request->permission as $key => $permission) {
+                    $role->givePermissionTo($permission);
+                }
             }
 
             DB::commit();
@@ -118,15 +128,25 @@ class RolesController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $targetId = $request->id_role ?? $id;
+        $request->validate([
+            'name' => 'required|unique:roles,name,' . $targetId,
+            'permissionEdit' => 'nullable|array'
+        ], [
+            'name.required' => 'Nama role wajib diisi.',
+            'name.unique' => 'Nama role sudah terdaftar.'
+        ]);
+
         DB::beginTransaction();
         try {
-            $data = Role::findOrFail($request->id_role);
+            $data = Role::findOrFail($targetId);
 
             $data->name = $request->name;
             $data->update();
 
             // Update permission
-            $data->syncPermissions($request->permissionEdit);
+            $permissions = $request->permissionEdit ?? [];
+            $data->syncPermissions($permissions);
 
             DB::commit();
 

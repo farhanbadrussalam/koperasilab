@@ -119,8 +119,21 @@ function loadData(page = 1) {
             let canUpdateProgress = false;
             let isUploadDoc = false;
             let htmlStatus = statusFormat('penyelia', lhu.status);
-            const permohonan_periode = permohonan.periode == 0 ? 1 : permohonan.periode;
+            const permohonan_periode = lhu.kontrak.periode_next ? 1 : lhu.periode_used;
 
+            let btnSurpeng = ``;
+            if (lhu.periode_used) {
+                btnSurpeng = `
+                    <li>
+                        <button class="dropdown-item small cursor-pointer" title="Lihat Surat Pengantar"
+                            data-url="laporan/surpeng/${permohonan.kontrak.kontrak_hash}/${permohonan_periode}"
+                            data-title="Surat Pengantar TLD"
+                            onclick="btnShowDoc(this)">
+                            <i class="bi bi-eye"></i> Surat Pengantar
+                        </button>
+                    </li>    
+                `;
+            }
             // button action
             btnAction += `
                 <li>
@@ -128,20 +141,14 @@ function loadData(page = 1) {
                         <i class="bi bi-info-circle"></i> Detail
                     </a>
                 </li>
-                <li>
-                    <button class="dropdown-item small cursor-pointer" title="Lihat Surat Pengantar"
-                        data-url="laporan/surpeng/${permohonan.kontrak.kontrak_hash}/${permohonan_periode}"
-                        data-title="Surat Pengantar ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode == 0 ? 'zero cek' : permohonan.periode}"
-                        onclick="btnShowDoc(this)">
-                        <i class="bi bi-eye"></i> Surat Pengantar
-                    </button>
-                </li>
+                ${btnSurpeng}
             `;
+
             let btnLabel = `
                 <li>
                     <button class="dropdown-item small cursor-pointer" title="Print Label"
                         data-url="laporan/label/${lhu.penyelia_hash}"
-                        data-title="Label ${permohonan.kontrak.no_kontrak} - Periode ${permohonan.periode == 0 ? 'zero cek' : permohonan.periode}"
+                        data-title="Label TLD"
                         onclick="btnShowDoc(this)">
                         <i class="bi bi-printer"></i> Cetak Label
                     </button>

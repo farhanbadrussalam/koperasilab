@@ -1,14 +1,17 @@
-<div class="modal fade" id="updateProgressModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="invoiceModalLabel" aria-hidden="true">
+<div class="modal fade" id="updateProgressModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="invoiceModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header border-bottom-0 pb-0 pt-4 px-4">
                 <h5 class="modal-title fw-bold text-dark d-flex align-items-center" id="updateProgressModalLabel">
-                    <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
                         <i class="bi bi-bar-chart-steps text-primary fs-5"></i>
                     </div>
                     <span>Update Progress</span>
                 </h5>
-                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="row g-4">
@@ -23,11 +26,13 @@
                             <label for="" class="fw-bold">Status</label>
                             <div>
                                 <div class="form-check form-check-inline" id="divReturnProgress">
-                                    <input class="form-check-input" type="radio" name="statusProgress" id="statusReturn" value="return">
+                                    <input class="form-check-input" type="radio" name="statusProgress"
+                                        id="statusReturn" value="return">
                                     <label class="form-check-label text-danger" for="statusReturn">Return</label>
                                 </div>
                                 <div class="form-check form-check-inline" id="divDoneProgress">
-                                    <input class="form-check-input" type="radio" name="statusProgress" id="statusDone" value="done" checked>
+                                    <input class="form-check-input" type="radio" name="statusProgress" id="statusDone"
+                                        value="done" checked>
                                     <label class="form-check-label text-success" for="statusDone">Done</label>
                                 </div>
                             </div>
@@ -39,15 +44,18 @@
                                     <option value="">Pilih proses</option>
                                 </select>
                                 <span class="mx-3 text-muted"><i class="bi bi-arrow-right"></i></span>
-                                <input type="text" class="form-control bg-light border-0 fw-semibold" name="prosesNext" id="prosesNext" readonly>
+                                <input type="text" class="form-control bg-light border-0 fw-semibold"
+                                    name="prosesNext" id="prosesNext" readonly>
                             </div>
                         </div>
                         <div class="col-sm-12 mb-3">
-                            <label for="inputNote" class="fw-bold text-secondary">Note<span class="text-danger ms-1">*</span></label>
+                            <label for="inputNote" class="fw-bold text-secondary">Note<span
+                                    class="text-danger ms-1">*</span></label>
                             <textarea name="inputNote" id="inputNote" cols="30" rows="5" class="form-control"></textarea>
                         </div>
                         <div id="divUploadDocLhu">
-                            <label for="upload_document" class="col-form-label fw-bold text-secondary">Upload Document LHU<span class="text-danger ms-1">*</span></label>
+                            <label for="upload_document" class="col-form-label fw-bold text-secondary">Upload Document
+                                LHU<span class="text-danger ms-1">*</span></label>
                             <div id="upload_document"></div>
                         </div>
                     </div>
@@ -58,7 +66,8 @@
                 </div>
             </div>
             <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
-                <button type="button" class="btn btn-light fw-semibold px-4 py-2" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-light fw-semibold px-4 py-2"
+                    data-bs-dismiss="modal">Tutup</button>
                 <button class="btn btn-primary fw-semibold px-4 py-2" onclick="simpanProgress(this)">Update</button>
             </div>
         </div>
@@ -85,7 +94,8 @@
                         $('#divUploadDocLhu').hide();
                         $('#prosesNext').val(this.nowSelect.prosesPrev.jobs.name);
                     } else {
-                        this.nowSelect.prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $('#divUploadDocLhu').hide();
+                        this.nowSelect.prosesNow.jobs.upload_doc ? $('#divUploadDocLhu').show() : $(
+                            '#divUploadDocLhu').hide();
                         $('#prosesNext').val(this.nowSelect.prosesNext?.jobs?.name ?? "Finish");
                     }
                 });
@@ -122,7 +132,6 @@
                     this.initUploadDocument(this.nowSelect);
 
                     $('#inputNote').val('');
-                    $('#updateProgressModal').modal('show');
                 });
             }
 
@@ -145,7 +154,8 @@
                 );
 
                 if (userJobs.length > 0) {
-                    this.setProses(userJobs[0]);
+                    this.setProses(userJobs[0], data.periode_used);
+                    $('#updateProgressModal').modal('show');
                 }
 
                 const htmlJobs = userJobs.map((d, index) =>
@@ -153,6 +163,7 @@
                 ).join('');
 
                 $('#prosesNow').html(htmlJobs);
+
             }
 
             /**
@@ -261,15 +272,17 @@
                 }
             }
 
-            setProses(prosesNow) {
+            setProses(prosesNow, periode_used = false) {
                 let prosesNext = false;
                 let prosesPrev = false;
                 if (!prosesNow.point_jobs) {
                     prosesPrev = this.nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1));
                     prosesNext = this.nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1));
                 } else {
-                    prosesPrev = this.nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1) && d.point_jobs);
-                    prosesNext = this.nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1) && d.point_jobs);
+                    prosesPrev = this.nowSelect.penyelia_map.find(d => d.order == (prosesNow.order - 1) && d
+                        .point_jobs);
+                    prosesNext = this.nowSelect.penyelia_map.find(d => d.order == (prosesNow.order + 1) && d
+                        .point_jobs);
                 }
 
                 !prosesPrev ? $('#divReturnProgress').hide() : null;
@@ -277,15 +290,23 @@
 
                 this.nowSelect.prosesNow = prosesNow;
                 this.nowSelect.prosesPrev = prosesPrev;
-                this.nowSelect.prosesNext = prosesNext;
 
-                $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
+                if (!periode_used && prosesNow.jobs.status == 17) {
+                    this.nowSelect.prosesNext = false;
+
+                    $('#prosesNext').val('Selesai (Tersimpan)');
+                } else {
+                    this.nowSelect.prosesNext = prosesNext;
+
+                    $('#prosesNext').val(prosesNext?.jobs?.name ?? "Finish");
+                }
             }
 
             save(obj) {
                 let note = $('#inputNote').val();
                 let sProgress = $(`[name="statusProgress"]:checked`).val();
-                let nextJobs = sProgress == 'done' ? (this.nowSelect?.prosesNext?.map_hash ?? 3) : this.nowSelect?.prosesPrev?.map_hash;
+                let nextJobs = sProgress == 'done' ? (this.nowSelect?.prosesNext?.map_hash ?? 3) : this.nowSelect
+                    ?.prosesPrev?.map_hash;
                 let nowJobs = this.nowSelect?.prosesNow?.map_hash;
 
                 if (note == '') {
@@ -329,7 +350,14 @@
                         });
                     }
                 }, error => {
+                    console.log(error);
+                    Swal.fire({
+                        icon: "warning",
+                        text: error.responseJSON.data.msg,
+                    });
                     spinner('hide', $(obj));
+                }, {
+                    onErrorPopup: false
                 });
             }
         }
@@ -343,6 +371,5 @@
         function simpanProgress(obj) {
             window.ProgressPenyelia.save(obj);
         }
-
     </script>
 @endpush

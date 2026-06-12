@@ -71,6 +71,7 @@ class Permohonan_dokumen extends Model
         'catatan',
         'variables',
         'content_value',
+        'published_at',
         'created_by',
         'created_at',
     ];
@@ -83,6 +84,7 @@ class Permohonan_dokumen extends Model
     protected $appends = [
         'dokumen_hash',
         'permohonan_hash',
+        'kontrak_hash',
         'ttd_image',
     ];
 
@@ -107,13 +109,18 @@ class Permohonan_dokumen extends Model
         return $this->id_permohonan ? encryptor($this->id_permohonan) : null;
     }
 
+    public function getKontrakHashAttribute()
+    {
+        return $this->id_kontrak ? encryptor($this->id_kontrak) : null;
+    }
+
     public function getTtdImageAttribute()
     {
         // Cek apakah user punya record TTD
         if ($this->ttd) {
             $ttd = Master_ttd::withTrashed()->where('id', $this->ttd)->first();
             // Convert Binary kembali ke Base64 String
-            if($ttd) {
+            if ($ttd) {
                 $base64 = $ttd->image_blob;
                 return "data:image/png;base64,{$base64}";
             }
@@ -122,11 +129,23 @@ class Permohonan_dokumen extends Model
         return null; // Atau return path gambar default
     }
 
-    public function doc_template(){
+    public function doc_template()
+    {
         return $this->belongsTo(Documents::class, 'id_doc_template', 'id_doc')->withTrashed();
     }
 
-    public function usersig(){
+    public function usersig()
+    {
         return $this->belongsTo(user::class, 'ttd_by', 'id');
+    }
+
+    public function permohonan()
+    {
+        return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function kontrak()
+    {
+        return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }
 }

@@ -46,6 +46,10 @@ $(function () {
 
     $('#form-create').on("submit", (evt) => {
         evt.preventDefault();
+        const formParsley = $('#form-create').parsley();
+        if (!formParsley.validate()) {
+            return;
+        }
         const formData = new FormData(evt.target);
         spinner('show', $('#btn-create'));
         ajaxPost(`management/radiasi`, formData, result => {
@@ -70,9 +74,14 @@ $(function () {
 
     $('#form-edit').on("submit", (evt) => {
         evt.preventDefault();
+        const formParsley = $('#form-edit').parsley();
+        if (!formParsley.validate()) {
+            return;
+        }
         const formData = new FormData(evt.target);
+        const idRadiasi = $('#id_radiasi').val();
         spinner('show', $('#btn-edit'));
-        ajaxPost(`management/radiasi/update`, formData, result => {
+        ajaxPost(`management/radiasi/${idRadiasi}`, formData, result => {
             if (result.meta.code == 200) {
                 Swal.fire({
                     icon: 'success',
@@ -95,6 +104,12 @@ $(function () {
 
 function btnEdit(el) {
     let id = $(el).data('id');
+    
+    // Reset Parsley validation and styles before showing the modal
+    const formParsley = $('#form-edit').parsley();
+    formParsley.reset();
+    $('#form-edit').find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+
     ajaxGet(`management/radiasi/${id}/edit`, false, result => {
         $('#editRadiasiModal').modal('show');
         $('#id_radiasi').val(result.data.radiasi_hash);

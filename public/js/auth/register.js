@@ -3,10 +3,10 @@ let _upload = false;
 $(function () {
     $('#form-registration').parsley();
 
-    $('#input-email').on('change', function(){
+    $('#input-email').on('change', function () {
         checkEmail(this, $(this).val(), 'user');
     });
-    $('#email_instansi').on('change', function(){
+    $('#email_instansi').on('change', function () {
         checkEmail(this, $(this).val(), 'instansi');
     });
 
@@ -20,12 +20,12 @@ $(function () {
             // Tampilkan input text, sembunyikan select2
             $('#nama_instansi_lama').removeAttr('name required').next('.select2-container').hide();
             if ($('#nama_instansi_lama').parsley()) $('#nama_instansi_lama').parsley().reset();
-            $('#nama_instansi_baru').attr({'name': 'nama_instansi', 'required': true}).show();
+            $('#nama_instansi_baru').attr({ 'name': 'nama_instansi', 'required': true }).show();
         } else {
             // Tampilkan select2, sembunyikan input text
             $('#nama_instansi_baru').removeAttr('name required').hide();
             if ($('#nama_instansi_baru').parsley()) $('#nama_instansi_baru').parsley().reset();
-            $('#nama_instansi_lama').attr({'name': 'nama_instansi', 'required': true}).show();
+            $('#nama_instansi_lama').attr({ 'name': 'nama_instansi', 'required': true }).show();
             $('#nama_instansi_lama').select2({
                 theme: 'bootstrap-5',
                 placeholder: 'Cari Nama Instansi...',
@@ -93,12 +93,12 @@ $(function () {
     });
 })
 
-function searchAkun(obj){
+function searchAkun(obj) {
     let search = $('#input-cek-akun').val();
 
     let cekAkun = $('#input-cek-akun').parsley();
     cekAkun.validate();
-    if(!cekAkun.isValid()){
+    if (!cekAkun.isValid()) {
         return;
     }
     $('#alert-cek-akun').addClass('d-none');
@@ -108,8 +108,8 @@ function searchAkun(obj){
     params.append('search', search);
     ajaxPost('api/v1/search_akun', params, result => {
         $('#input-cek-akun').val('');
-        if(result.meta.message != 'Fail'){
-            $('#alert-cek-akun').html('NIK <b>'+search+'</b> Anda sudah terdaftar di sistem kami');
+        if (result.meta.message != 'Fail') {
+            $('#alert-cek-akun').html('NIK <b>' + search + '</b> Anda sudah terdaftar di sistem kami');
             $('#alert-cek-akun').removeClass('d-none');
         } else {
             $('#registration-form').removeClass('d-none');
@@ -120,10 +120,12 @@ function searchAkun(obj){
         spinner('hide', $(obj));
     }, error => {
         spinner('hide', $(obj));
-    }, false, false);
+    }, {
+        onMiddleware: false
+    });
 }
 
-function changeNik(){
+function changeNik() {
     const nik = $('#input-nik').val();
 
     $('#input-cek-akun').val(nik);
@@ -131,15 +133,15 @@ function changeNik(){
     $('#registration-form').addClass('d-none');
 }
 
-function simpan(){
+function simpan() {
     let statusForm = true;
-    $('.is-invalid').each(function(){
+    $('.is-invalid').each(function () {
         statusForm = false;
     });
 
-    if(statusForm){
+    if (statusForm) {
         const cekSuratKuasa = _upload.getData();
-        if(!cekSuratKuasa){
+        if (!cekSuratKuasa) {
             Swal.fire({
                 icon: 'warning',
                 text: 'Upload surat kuasa terlebih dahulu'
@@ -148,7 +150,7 @@ function simpan(){
         }
 
         // validate form
-        if(!$('#form-registration').parsley().validate()){
+        if (!$('#form-registration').parsley().validate()) {
             return;
         }
 
@@ -171,5 +173,38 @@ function simpan(){
             icon: 'warning',
             text: 'Lengkapi form terlebih dahulu'
         })
+    }
+}
+
+function previewAvatar(obj) {
+    const file = obj.files[0];
+    if (obj.files && file) {
+        const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+        if (!allowedTypes.includes(file.type)) {
+            Swal.fire({
+                icon: 'warning',
+                text: 'Format gambar harus PNG, JPG, atau JPEG'
+            });
+            obj.value = '';
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            Swal.fire({
+                icon: 'warning',
+                text: 'Ukuran gambar maksimal 2MB'
+            });
+            obj.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        const preview = document.getElementById('avatar-preview');
+
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+        }
+
+        reader.readAsDataURL(file);
     }
 }

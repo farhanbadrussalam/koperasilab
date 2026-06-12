@@ -10,6 +10,13 @@ class WidgetNotifikasi {
         this.channel = data.channel;
         this.id = data.id;
         this.idElement = idElement;
+        
+        // Infinite scroll pagination state variables
+        this.currentPage = 1;
+        this.isLoading = false;
+        this.hasMore = true;
+        this.currentType = 'all';
+
         this.loadHtml();
     }
 
@@ -29,13 +36,30 @@ class WidgetNotifikasi {
         $("#setting-notif").on('click', this.showSetting.bind(this));
         $('#realtimeSwitch').on('change', this.realtimeSwitch.bind(this));
 
+        // Bind scroll listener on the scrollable body of notifications
+        $('#body-notif').on('scroll', this.handleScroll.bind(this));
+
         $('#container-notifikasi').on('click', function(e) {
             e.stopPropagation();
-        })
+        });
+    }
+
+    handleScroll(e) {
+        const container = $(e.target);
+        // If we scrolled to the bottom (within 20px of the bottom scroll height)
+        if (container.scrollTop() + container.innerHeight() >= container[0].scrollHeight - 20) {
+            if (this.hasMore && !this.isLoading) {
+                this.loadNotifikasiList();
+            }
+        }
     }
 
     showNotif(info) {
         toastr.info(info.pesan, 'Notifikasi');
+        // Reset pagination and reload from page 1
+        this.currentPage = 1;
+        this.hasMore = true;
+        this.isLoading = false;
         this.loadNotifikasiList();
     }
 
@@ -81,24 +105,51 @@ class WidgetNotifikasi {
     }
 
     loadNotifikasiList(d = null) {
-        let type = "";
         if(d) {
-            type = d.target.dataset.type;
+            this.currentType = d.target.dataset.type || 'all';
+            
+            // Reset pagination state when changing filters
+            this.currentPage = 1;
+            this.hasMore = true;
+            this.isLoading = false;
 
             $('[name="select-notif"]').removeClass('active');
             $(d.target).addClass('active');
             $('#body-setting').addClass('d-none');
             $('#body-notif').removeClass('d-none');
         }
-        spinner('show', $('#spinner-notif'), {
-            width: '50px',
-            height: '50px',
-            margin: '10px',
-            place: 'after'
-        });
-        $('#spinner-notif').show();
-        $('#body-notif').html('');
-        ajaxGet(`getNotif`, {type : type}, result => {
+
+        if (this.isLoading || !this.hasMore) {
+            return;
+        }
+
+        this.isLoading = true;
+
+        if (this.currentPage === 1) {
+            $('#body-notif').html('');
+            spinner('show', $('#spinner-notif'), {
+                width: '50px',
+                height: '50px',
+                margin: '10px',
+                place: 'after'
+            });
+            $('#spinner-notif').show();
+        } else {
+            // Append small inline spinner at the bottom of the list for page > 1 loading feedback
+            $('#body-notif').append(`
+                <li id="mini-spinner" class="list-group-item text-center py-2 border-0 bg-transparent">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                </li>
+            `);
+            // Auto scroll slightly to ensure loading indicator is visible
+            let bodyNotif = $('#body-notif');
+            bodyNotif.scrollTop(bodyNotif[0].scrollHeight);
+        }
+
+        ajaxGet(`getNotif`, { type: this.currentType, page: this.currentPage, limit: 10 }, result => {
+            this.isLoading = false;
+            $('#mini-spinner').remove();
+
             if(result.meta.code == 200){
                 if(result.data.unreadCount > 0){
                     $('#count_lonceng').addClass('d-block').removeClass('d-none');
@@ -128,7 +179,7 @@ class WidgetNotifikasi {
                                         </div>
                                     </a>
                                 </li>
-                            `
+                            `;
                             break;
                         default:
                             html += `
@@ -148,21 +199,40 @@ class WidgetNotifikasi {
                     }
                 }
 
-                if(result.data.list.length == 0){
+                if(this.currentPage === 1 && result.data.list.length == 0){
                     html = `<div class="text-center py-3">No data notifications</div>`;
                 }
-                spinner('hide', $('#spinner-notif'));
-                $('#body-notif').html(html);
+
+                if (this.currentPage === 1) {
+                    spinner('hide', $('#spinner-notif'));
+                    $('#body-notif').html(html);
+                } else {
+                    $('#body-notif').append(html);
+                }
+
+                // Check if we have more notifications
+                this.hasMore = result.data.hasMore;
+                if (result.data.list.length > 0) {
+                    this.currentPage++;
+                }
             }
         }, error => {
-            spinner('hide', $('#spinner-notif'));
-            $('#body-notif').html('<div class="text-center py-3">No data notifications</div>');
-        })
+            this.isLoading = false;
+            $('#mini-spinner').remove();
+            if (this.currentPage === 1) {
+                spinner('hide', $('#spinner-notif'));
+                $('#body-notif').html('<div class="text-center py-3">No data notifications</div>');
+            }
+        });
     }
 
     markAllAsRead(){
         ajaxGet(`markAllAsRead`, false, result => {
             if(result.meta.code == 200){
+                // Reset pagination and reload
+                this.currentPage = 1;
+                this.hasMore = true;
+                this.isLoading = false;
                 this.loadNotifikasiList();
             }
         });

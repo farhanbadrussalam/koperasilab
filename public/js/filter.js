@@ -15,7 +15,8 @@ class FilterComponent {
         this.fp = false;
         this.options = {
             filter: Object.fromEntries(Object.entries(options.filter).filter(([key, value]) => value === true)),
-            multiple: options.multiple ?? []
+            multiple: options.multiple ?? [],
+            showOnLoad: options.showOnLoad ?? false
         };
         this.placeholder = options.placeholder;
 
@@ -127,33 +128,24 @@ class FilterComponent {
         if (filterName == 'no_kontrak') {
             $('#filterSearchKontrak').select2({
                 theme: "bootstrap-5",
-                placeholder: this.placeholder?.no_kontrak ?? 'No Kontrak',
+                placeholder: this.placeholder?.no_kontrak ?? 'No Kontrak atau instansi',
                 allowClear: true,
                 ajax: {
-                    url: `${base_url}/api/v1/kontrak/search`,
+                    url: `${base_url}/dashboard/widgets/contract-search-options`,
                     dataType: 'json',
                     type: 'GET',
                     processing: true,
                     serverSide: true,
                     delay: 250,
-                    headers: {
-                        'Authorization': `Bearer ${bearer}`,
-                        'Content-Type': 'application/json'
-                    },
                     data: function (params) {
                         let queryParams = {
-                            no_kontrak: params.term
+                            keyword: params.term
                         }
                         return queryParams;
                     },
                     processResults: function (response) {
                         return {
-                            results: response.data && response.data.map((list) => {
-                                return {
-                                    id: list.kontrak_hash,
-                                    text: list.no_kontrak
-                                }
-                            })
+                            results: response.options
                         }
                     }
                 }
@@ -213,6 +205,10 @@ class FilterComponent {
         }
 
         if (filterName == 'date_range') {
+            let date = new Date();
+            let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+            let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
             this.fp = $('#filterDateRange').flatpickr({
                 mode: 'range',
                 dateFormat: 'Y-m-d',
@@ -284,9 +280,14 @@ class FilterComponent {
         this.selfElement.empty();
 
         // Membuat elemen collapse
+        let collapseClass = 'collapse w-100';
+        if (this.options.showOnLoad) {
+            collapseClass += ' show';
+        }
+
         const $collapse = $('<div>', {
             id: 'collapseFilter',
-            class: 'collapse w-100' // 'show' agar terbuka secara default
+            class: collapseClass
         });
 
         // Container internal dengan flexbox untuk tata letak filter
@@ -493,7 +494,9 @@ class FilterComponent {
         if (filterName == 'jenis_layanan_child') return $('#filterJenisLayananChild').val();
         if (filterName == 'no_kontrak') return $('#filterSearchKontrak').val();
         if (filterName == 'perusahaan') return $('#filterPerusahaan').val();
-        if (filterName == 'date_range') return this.fp.selectedDates.map(date => date.toISOString().split('T')[0]);
+        if (filterName == 'date_range') return this.fp.selectedDates.map(date => {
+            return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+        });
         if (filterName == 'search') return $('#filterSearch').val();
         if (filterName == 'periode') return $('#filterPeriode').val();
         if (filterName == 'selected_custom') return $('#filterselected_custom').val();

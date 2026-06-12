@@ -96,4 +96,14 @@ class Permohonan_detail extends Model
     {
         return $this->hasOne(Master_pengguna::class, 'id_pengguna', 'pengguna_lama')->withTrashed();
     }
+
+    public function permohonan()
+    {
+        return $this->belongsTo(Permohonan::class, 'id_permohonan', 'id_permohonan');
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
+    }
 }

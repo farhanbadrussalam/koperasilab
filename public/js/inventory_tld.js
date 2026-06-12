@@ -2,14 +2,15 @@ class Inventory_tld {
     constructor(options = {}) {
         this._initializeProperties(options);
 
-        if(this.canShow){
+        if (this.canShow) {
             $('body').append(this.modalCreate);
         }
 
         this.filter = new FilterComponent('filter-inventory-tld', {
-            filter : {
+            filter: {
                 search: true
-            }
+            },
+            showOnLoad: true
         });
 
         this._bindEventListeners();
@@ -49,7 +50,7 @@ class Inventory_tld {
         });
     }
 
-    _loadData(){
+    _loadData() {
         // filter
         const params = {
             page: this.page,
@@ -68,13 +69,13 @@ class Inventory_tld {
         $('#list-inventory-tld').empty();
         ajaxGet(`api/v1/tld/getData`, params, result => {
             for (const tld of result.data) {
-                let checked = '<button type="button" class="btn btn-outline-primary btn-sm btn-pilih-tld" data-tld-hash="'+tld.tld_hash+'">Pilih</button>';
+                let checked = '<button type="button" class="btn btn-outline-primary btn-sm btn-pilih-tld" data-tld-hash="' + tld.tld_hash + '">Pilih</button>';
                 let find = this.selectedArr.find(d => d.tld == tld.tld_hash);
-                if(find){
+                if (find) {
                     checked = '<span class="text-success"><i class="bi bi-check"></i> Terpilih</span>';
                 }
 
-                if(tld.status == 1){
+                if (tld.status == 1) {
                     checked = '';
                 }
 
@@ -100,7 +101,7 @@ class Inventory_tld {
                 `);
             }
 
-            if(result.data.length == 0){
+            if (result.data.length == 0) {
                 $('#list-inventory-tld').append(`
                     <div class="card mb-2 shadow-sm">
                         <div class="card-body p-2">
@@ -134,7 +135,7 @@ class Inventory_tld {
         })
     }
 
-    show(id, arr = [], jenis = false){
+    show(id, arr = [], jenis = false) {
         this.page = 1;
         this.selectedArr = arr;
         this.formTldSelected = id;
@@ -143,7 +144,7 @@ class Inventory_tld {
         $('#modal-inventory-tld').modal('show');
     }
 
-    modalCreate(){
+    modalCreate() {
         return `
             <div class="modal fade" id="modal-inventory-tld" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
@@ -187,11 +188,11 @@ class Inventory_tld {
         `;
     }
 
-    on(eventName, callback = () => {}) {
+    on(eventName, callback = () => { }) {
         return document.addEventListener(eventName, callback);
     }
 
-    destroy(){
+    destroy() {
         $('#modal-inventory-tld').remove();
     }
 }

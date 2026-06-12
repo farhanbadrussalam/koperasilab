@@ -1,6 +1,14 @@
 let datatable_tld = false;
 let filterComp = false;
+let detail = false;
 $(function () {
+    detail = new Detail({
+        jenis: 'tld',
+        tab: {
+            log: true
+        }
+    });
+
     datatable_tld = $('#tld-table').DataTable({
         processing: true,
         serverSide: true,
@@ -114,4 +122,9 @@ function reload(){
 function clearFilter(){
     filterComp.clear();
     reload();
+}
+
+function btnDetail(obj) {
+    const id = $(obj).data('id');
+    detail.show(`management/tld/${id}`);
 }

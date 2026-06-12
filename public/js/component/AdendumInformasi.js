@@ -22,10 +22,12 @@ class AdendumInformasi {
     _createModal(){
         const modalHtml = `
             <div class="modal fade" id="adendumInformasiModal" tabindex="-1" aria-labelledby="adendumInformasiModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="adendumInformasiModalLabel">Adendum Informasi</h5>
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content border-0 shadow">
+                        <div class="modal-header bg-light">
+                            <h5 class="modal-title fw-bold" id="adendumInformasiModalLabel text-dark">
+                                <i class="bi bi-info-circle me-2 text-primary"></i>Adendum Informasi
+                            </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -34,9 +36,8 @@ class AdendumInformasi {
                                     <span class="sr-only"></span>
                                 </div>
                             </div>
-                            <div id="containerContent">
+                            <div id="containerContent" class="p-1">
                                 <!-- Konten adendum informasi akan dimuat di sini -->
-                                <p>Konten adendum informasi akan ditampilkan di sini.</p>
                             </div>
                         </div>
                     </div>
@@ -64,7 +65,17 @@ class AdendumInformasi {
     }
 
     setFormContent(data) {
-        let contentHtml = '<div class="d-flex flex-column gap-2 w-100">';
+        if (!data.adendum || data.adendum.length === 0) {
+            $('#containerContent').html(`
+                <div class="text-center py-5">
+                    <i class="bi bi-clipboard-x fs-1 text-body-tertiary"></i>
+                    <p class="mt-2 text-secondary">Tidak ada data adendum ditemukan.</p>
+                </div>
+            `);
+            return;
+        }
+
+        let contentHtml = '<div class="d-flex flex-column gap-3 w-100">';
         let pengiriman = data.pengiriman || [];
         for (const [index, adendum] of data.adendum.entries()) {
             let jmlPergantian = adendum.permohonan_detail.filter(detail => detail.type === 'ganti').length;
@@ -76,41 +87,44 @@ class AdendumInformasi {
                 let statusInvoice = pengiriman.find(p => p.detail.find(d => d.jenis == 'invoice') && p.permohonan_hash == adendum.permohonan_hash);
                 htmlInvoice = `
                     <div>
-                        <span class="fw-normal">• Invoice</span>
-                        <small class="cursoron hover-1 pe-2">
+                        <span class="text-muted small d-block mb-1">Invoice</span>
+                        <div class="cursoron hover-1">
                             ${statusFormat('pengiriman', statusInvoice?.status)}
-                        </small>
+                        </div>
                     </div>
                 `;
             }
 
             contentHtml += `
-                <div class="border-bottom d-flex justify-content-between align-items-center">
-                    <div class="p-2">
-                        <span class="fw-semibold fs-6">Adendum ${index + 1}</span>
-                        <div >
-                            <small class="fs-6 text-body-tertiary">${dateFormat(adendum.created_at, 4)}</small>
+                <div class="card border border-light-subtle shadow-sm hover-shadow-transition">
+                    <div class="card-body p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h6 class="fw-bold mb-1 text-primary">Adendum #${index + 1}</h6>
+                                <div class="text-body-tertiary small">
+                                    <i class="bi bi-calendar-event me-1"></i>${dateFormat(adendum.created_at, 4)}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold fs-5 text-dark">${formatRupiah(adendum.total_harga)}</div>
+                                <div class="d-flex gap-2 justify-content-end mt-1">
+                                    <span class="badge rounded-pill bg-info-subtle text-info-emphasis border border-info-subtle fw-normal">
+                                        Ganti: ${jmlPergantian}
+                                    </span>
+                                    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-normal">
+                                        Baru: ${jmlPenambahan}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="d-flex gap-2 flex-wrap">
+
+                        <div class="d-flex gap-4 border-top pt-3">
                             ${htmlInvoice}
                             <div>
-                                <span class="fw-normal">• Lhu</span>
-                                <small class="cursoron hover-1 pe-2">
+                                <span class="text-muted small d-block mb-1">LHU</span>
+                                <span class="cursoron hover-1">
                                     ${statusFormat('pengiriman', statusLhu?.status)}
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="p-2 text-end">
-                        <span class="fw-semibold fs-6">${formatRupiah(adendum.total_harga)}</span>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <div>
-                                <span class="fw-normal">Pergantian :</span>
-                                <small class="ps-1">${jmlPergantian}</small>
-                            </div>
-                            <div>
-                                <span class="fw-normal">Penambahan :</span>
-                                <small class="ps-1">${jmlPenambahan}</small>
+                                </span>
                             </div>
                         </div>
                     </div>

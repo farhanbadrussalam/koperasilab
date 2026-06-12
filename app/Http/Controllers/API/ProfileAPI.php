@@ -716,4 +716,84 @@ class ProfileAPI extends Controller
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
         }
     }
+
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+            'idHash' => 'required',
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $idUser = decryptor($request->idHash);
+            $file = $request->file('file');
+
+            $profile = Profile::where('user_id', $idUser)->first();
+            
+            // Hapus avatar lama if any
+            if ($profile && $profile->avatar) {
+                if (is_numeric($profile->avatar)) {
+                    $this->media->destroy($profile->avatar);
+                } else {
+                    if (\Storage::exists('public/images/avatar/' . $profile->avatar)) {
+                        \Storage::delete('public/images/avatar/' . $profile->avatar);
+                    }
+                }
+            }
+
+            $fileUpload = $this->media->upload($file, 'avatar');
+            $fileUpload->store();
+            
+            if ($profile) {
+                $profile->update(['avatar' => $fileUpload->getIdMedia()]);
+            } else {
+                Profile::create([
+                    'user_id' => $idUser,
+                    'avatar' => $fileUpload->getIdMedia(),
+                    'nik' => '-',
+                    'alamat' => '-',
+                    'no_hp' => '-',
+                    'jenis_kelamin' => 'laki-laki'
+                ]);
+            }
+
+            DB::commit();
+
+            $media = $this->media->get($fileUpload->getIdMedia());
+            return $this->output([
+                'msg' => 'Avatar berhasil diupload', 
+                'data' => $media,
+                'url' => asset('storage/' . $media->file_path . '/' . $media->file_hash)
+            ]);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
+
+    public function destroyAvatar(string $idUser, string $idMedia)
+    {
+        $idMedia = decryptor($idMedia);
+        $idUser = decryptor($idUser);
+
+        DB::beginTransaction();
+        try {
+            $profile = Profile::where('user_id', $idUser)->first();
+
+            if ($profile) {
+                $profile->update(['avatar' => null]);
+                $this->media->destroy($idMedia);
+                DB::commit();
+                return $this->output(array('msg' => 'Avatar berhasil dihapus'));
+            }
+
+            return $this->output(array('msg' => 'Avatar gagal dihapus'), 'Fail', 400);
+        } catch (\Exception $ex) {
+            info($ex);
+            DB::rollBack();
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
+    }
 }
