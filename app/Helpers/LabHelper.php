@@ -621,6 +621,7 @@ if (!function_exists('messageSanity')) {
                     'string' => "Harap isi {$fieldLabel} dengan format string yang benar",
                     'captcha' => 'Captcha tidak valid',
                     'confirmed' => 'Password tidak sama dengan Konfirmasi Password',
+                    default => "Format {$fieldLabel} tidak valid ({$error[0]})",
                 };
                 if ($fieldName === 'g-recaptcha-response' && $error === 'required') {
                     $errorMessage[$fieldName . '.' . $error] = 'Harap verifikasi Captcha';
