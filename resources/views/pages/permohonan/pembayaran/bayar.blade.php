@@ -125,6 +125,18 @@
                                             <small class="text-muted">PDF</small>
                                         </button>
                                     @endif
+                                    @if ($keuangan->media->isNotEmpty())
+                                        @foreach ($keuangan->media as $media)
+                                            <button
+                                                data-url="{{ 'storage/' . $media->file_path . '/' . $media->file_hash }}"
+                                                data-title="Faktur Pajak" onclick="openModalDoc(this)"
+                                                class="btn btn-light border rounded-3 p-3 py-2 text-start flex-fill">
+                                                <i class="bi bi-file-earmark-pdf text-danger fs-4 mb-2 d-block"></i>
+                                                <span class="fw-bold d-block small">Faktur Pajak</span>
+                                                <small class="text-muted">PDF</small>
+                                            </button>
+                                        @endforeach
+                                    @endif
                                 </div>
                             </div>
                         </div>
