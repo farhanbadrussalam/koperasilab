@@ -599,18 +599,18 @@
                             </div>
                         `;
 
-                        // if (data.periode == periodeActive) {
-                        // }
-                        let statusTld = findTldAdendum ? findTldAdendum.status : 0;
-                        let textStatusTld = statusFormat('pengiriman', statusTld);
+                        if (adendum.is_periode_berjalan) {
+                            let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                            let textStatusTld = statusFormat('pengiriman', statusTld);
 
-                        htmlTld = `
-                            <div class="d-flex align-items-center gap-1 small text-secondary">
-                                <i class="bi bi-file-earmark-text-fill text-warning"></i>
-                                <span class="fw-semibold">TLD:</span>
-                                <span>${textStatusTld}</span>
-                            </div>
-                        `;
+                            htmlTld = `
+                                <div class="d-flex align-items-center gap-1 small text-secondary">
+                                    <i class="bi bi-file-earmark-text-fill text-warning"></i>
+                                    <span class="fw-semibold">TLD:</span>
+                                    <span>${textStatusTld}</span>
+                                </div>
+                            `;
+                        }
                     }
 
                     let statusLhu = findLhuAdendum ? findLhuAdendum.status : 0;

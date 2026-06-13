@@ -131,6 +131,7 @@ class Permohonan extends Model
         'note',
         'is_have_tld',
         'is_zerocek',
+        'is_periode_berjalan',
         'file_lhu',
         'flag_read',
         'created_by',
@@ -181,6 +182,7 @@ class Permohonan extends Model
         'created_by' => 'integer',
         'is_have_tld' => 'integer',
         'is_zerocek' => 'integer',
+        'is_periode_berjalan' => 'integer',
         'locked_by' => 'integer',
         'bulan_mulai' => 'integer'
     ];

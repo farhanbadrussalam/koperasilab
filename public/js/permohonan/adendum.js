@@ -99,7 +99,8 @@ $(function () {
     })
 
     $('#bulan-mulai').on('change', function () {
-        arrOption.bulan_mulai = parseInt($(this).val());
+        const val = $(this).val();
+        arrOption.bulan_mulai = val ? parseInt(val) : '';
         calcPrice();
     });
 });
@@ -135,6 +136,17 @@ function simpanAdendum(obj) {
         return Swal.fire({
             icon: 'warning',
             text: 'Pengguna atau Kontrol tidak ada perubahan!'
+        })
+    }
+
+    const jumPenggunaBaru = arrOption.pengguna.filter(d => d.status == 'baru').length;
+    const jumKontrolBaru = arrOption.kontrol.filter(d => d.status == 'baru').length;
+    const jumlahPenambahan = jumPenggunaBaru + jumKontrolBaru;
+
+    if (jumlahPenambahan > 0 && $('#container-bulan-mulai').is(':visible') && !arrOption.bulan_mulai) {
+        return Swal.fire({
+            icon: 'warning',
+            text: 'Tidak ada bulan mulai layanan yang tersedia. Silakan pilih periode adendum berikutnya.'
         })
     }
 
@@ -557,10 +569,22 @@ function calcPrice() {
     let jumlahPenambahan = jumPengguna + jumKontrol;
 
     if (arrOption.periode && jumlahPenambahan > 0) {
-        $('#container-bulan-mulai').removeClass('d-none').addClass('d-block');
-        if ($('#container-bulan-mulai').attr('data-periode-num') !== String(arrOption.periode.periode)) {
-            $('#container-bulan-mulai').attr('data-periode-num', arrOption.periode.periode);
-            updateBulanMulaiSelect(arrOption.periode);
+        const now = Date.now();
+        const activePeriodeObj = dataKontrak.periode.find(p => p.periode != 0 && now >= new Date(p.start_date) && now <= new Date(p.end_date));
+        const activePeriodeNum = dataKontrak.periode_active ? dataKontrak.periode_active.periode : (activePeriodeObj ? activePeriodeObj.periode : null);
+        const isPeriodeAktif = (activePeriodeNum !== null && arrOption.periode.periode === activePeriodeNum);
+
+        if (isPeriodeAktif) {
+            $('#container-bulan-mulai').removeClass('d-none').addClass('d-block');
+            if ($('#container-bulan-mulai').attr('data-periode-num') !== String(arrOption.periode.periode)) {
+                $('#container-bulan-mulai').attr('data-periode-num', arrOption.periode.periode);
+                updateBulanMulaiSelect(arrOption.periode, true);
+            }
+        } else {
+            // Periode mendatang (P+1)
+            $('#container-bulan-mulai').removeClass('d-block').addClass('d-none');
+            $('#container-bulan-mulai').removeAttr('data-periode-num');
+            arrOption.bulan_mulai = 1;
         }
     } else {
         $('#container-bulan-mulai').removeClass('d-block').addClass('d-none');
@@ -572,6 +596,7 @@ function calcPrice() {
     let tarifBulanan = hargaLayanan / 3;
     let bulanMulai = arrOption.bulan_mulai || 1;
     let sisaBulanPeriodeIni = 3 - (bulanMulai - 1);
+    sisaBulanPeriodeIni = 3;
     let totalBulan = sisaBulanPeriodeIni + (sisaPeriodeMendatang * 3);
 
     let subTotal = tarifBulanan * totalBulan * jumlahPenambahan;
@@ -579,11 +604,11 @@ function calcPrice() {
 
     arrOption.subTotal = subTotal;
 
-    if (subTotal > 0) {
+    if (jumlahPenambahan > 0) {
         $('#useZeroCek').prop('checked', true);
         $('#useZeroCek').prop('disabled', true);
     } else {
-        $('#useZeroCek').prop('checked', false);
+        // Jika tidak ada penambahan baru, switch Zero Check tidak dikunci
         $('#useZeroCek').prop('disabled', false);
     }
 }
@@ -623,7 +648,7 @@ function openInventory(obj, jenis) {
     inventoryTld.show(id, arr, jenis);
 }
 
-function updateBulanMulaiSelect(periode) {
+function updateBulanMulaiSelect(periode, isPeriodeAktif = false) {
     const $select = $('#bulan-mulai');
     $select.empty();
 
@@ -638,6 +663,18 @@ function updateBulanMulaiSelect(periode) {
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
 
+    const today = new Date();
+    const startDate = new Date(year, monthIndex, parseInt(parts[2], 10));
+
+    let currentPeriodMonth = 0;
+    if (isPeriodeAktif) {
+        const diffMonths = (today.getFullYear() - startDate.getFullYear()) * 12 + (today.getMonth() - startDate.getMonth());
+        currentPeriodMonth = diffMonths + 1;
+    }
+
+    const todayDay = today.getDate();
+    let defaultSelectedSet = false;
+
     for (let i = 0; i < 3; i++) {
         let curMonth = monthIndex + i;
         let curYear = year;
@@ -646,8 +683,29 @@ function updateBulanMulaiSelect(periode) {
             curYear += 1;
         }
         const monthName = monthNames[curMonth];
-        $select.append(`<option value="${i + 1}" ${i === 0 ? 'selected' : ''}>Bulan ${i + 1} (${monthName} ${curYear})</option>`);
+        const monthNumber = i + 1;
+
+        let shouldSkip = false;
+        if (isPeriodeAktif) {
+            if (monthNumber < currentPeriodMonth) {
+                shouldSkip = true;
+            } else if (monthNumber === currentPeriodMonth && todayDay > 20) {
+                shouldSkip = true;
+            }
+        }
+
+        if (!shouldSkip) {
+            const isSelected = !defaultSelectedSet ? 'selected' : '';
+            if (!defaultSelectedSet) {
+                arrOption.bulan_mulai = monthNumber;
+                defaultSelectedSet = true;
+            }
+            $select.append(`<option value="${monthNumber}" ${isSelected}>Bulan ${monthNumber} (${monthName} ${curYear})</option>`);
+        }
     }
 
-    arrOption.bulan_mulai = 1;
+    if (!defaultSelectedSet) {
+        $select.append(`<option value="" disabled selected>Tidak ada bulan yang tersedia</option>`);
+        arrOption.bulan_mulai = '';
+    }
 }

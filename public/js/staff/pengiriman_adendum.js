@@ -85,9 +85,7 @@ function loadData(page = 1) {
 
                 // Cari pengiriman TLD adendum (hanya jika ada penambahan dan periode adendum == periode aktif kontrak)
                 let findTldAdendum = null;
-                let isAdendumPeriodeAktif = false;
-                if (jmlPenambahan > 0 && data.kontrak?.periode_active?.periode == data.periode) {
-                    isAdendumPeriodeAktif = true;
+                if (jmlPenambahan > 0 && data.is_periode_berjalan) {
                     findTldAdendum = data.pengiriman_tld;
                 }
 
@@ -110,17 +108,17 @@ function loadData(page = 1) {
 
                 let statusLhu = findLhuAdendum ? findLhuAdendum.status : 0;
                 let htmlLhu = `
-                    <div class="col-md-6 border-top py-2 d-flex justify-content-between align-items-center">
+                    <div class="col-md-3 border-top py-2 d-flex justify-content-between align-items-center">
                         <span class="small fw-semibold text-secondary"><i class="bi bi-file-earmark-check me-2"></i>LHU Adendum</span>
                         <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
                     </div>
                 `;
 
                 let htmlTld = '';
-                if (isAdendumPeriodeAktif) {
+                if (data.is_periode_berjalan) {
                     let statusTld = findTldAdendum ? findTldAdendum.status : 0;
                     htmlTld = `
-                        <div class="col-md-6 border-top py-2 d-flex justify-content-between align-items-center">
+                        <div class="col-md-3 border-top py-2 d-flex justify-content-between align-items-center">
                             <span class="small fw-semibold text-secondary"><i class="bi bi-cpu me-2"></i>TLD Adendum</span>
                             <span class="small">${statusFormat('pengiriman', statusTld)}</span>
                         </div>

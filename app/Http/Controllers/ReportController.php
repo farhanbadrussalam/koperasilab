@@ -341,6 +341,14 @@ class ReportController extends Controller
                     } else {
                         $vars["PERIODE_RINCIAN"] = "- $periode1";
                     }
+                } else if ($data->tipe_kontrak == 'adendum' && $data->is_zerocek == 1) {
+                    $findPeriode1 = $data->kontrak->periode->where('periode', $data->periode)->first();
+                    $findPeriode2 = $data->kontrak->periode->where('periode', $data->periode + 1)->first();
+
+                    $periode1 = $findPeriode1 ? convert_date($findPeriode1->start_date, 7) . " s/d " . convert_date($findPeriode1->end_date, 7) : '';
+                    $periode2 = $findPeriode2 ? convert_date($findPeriode2->start_date, 7) . " s/d " . convert_date($findPeriode2->end_date, 7) : '';
+
+                    $vars["PERIODE_RINCIAN"] = "- $periode1" . ($periode2 != '' ? "<br> - $periode2" : '');
                 } else {
                     $findPeriode = $data->kontrak->periode->where('periode', $data->periode)->first();
                     $vars["PERIODE_RINCIAN"] = "- " . convert_date($findPeriode->start_date, 7) . " s/d " . convert_date($findPeriode->end_date, 7);
@@ -354,7 +362,16 @@ class ReportController extends Controller
                 $textPeriode = "Periode " . $data->periode;
                 if ($data->periode > 0) {
                     if ($data->is_zerocek == 1) {
-                        $textPeriode .= " + Zero Check";
+                        $showZeroCekText = true;
+                        if ($data->tipe_kontrak === 'adendum') {
+                            $hasPenambahan = $data->permohonan_detail()->where('type', 'baru')->exists();
+                            if (!$hasPenambahan) {
+                                $showZeroCekText = false;
+                            }
+                        }
+                        if ($showZeroCekText) {
+                            $textPeriode .= " + Zero Check";
+                        }
                     }
                 } else {
                     $textPeriode = "Periode Zero Check";
@@ -1050,34 +1067,60 @@ class ReportController extends Controller
         $id = decryptor($id);
         $is_download = $request->get('dl') ? true : false;
         $type = $request->get('type') ? $request->get('type') : 'full';
-        // mengambil id permohonan
-        $id_permohonan = Kontrak_periode::select('id_permohonan')->where('id_kontrak', $id)->where('periode', $periode_)->first()?->id_permohonan;
-        $periode = $periode_ == 0 ? 1 : $periode_;
+        $isAdendum = $request->get('adendum') ? $request->get('adendum') : null;
 
         if ($id == null) {
             return redirect()->back();
         }
+        // Tentukan id_kontrak berdasarkan konteks (adendum vs normal)
+        if ($isAdendum == 1) {
+            // $id adalah id_permohonan, ambil id_kontrak dari relasi Permohonan
+            $id_permohonan = $id;
+            $dataPermohonan = Permohonan::find($id_permohonan);
+            $id_kontrak = $dataPermohonan?->id_kontrak;
+            $periode_ = $dataPermohonan?->periode ?? $periode_;
+        } else {
+            // $id adalah id_kontrak
+            $id_kontrak = $id;
+            $id_permohonan = Kontrak_periode::select('id_permohonan')
+                ->where('id_kontrak', $id_kontrak)
+                ->where('periode', $periode_)
+                ->first()?->id_permohonan;
+        }
+        $periode = $periode_ == 0 ? 1 : $periode_;
 
+        // Ambil data Kontrak — selalu berdasarkan id_kontrak
         $query = Kontrak::with([
             'jenisTld:id_jenisTld,name',
             'pelanggan',
             'pelanggan.perusahaan',
+            'pelanggan.profile',
+            'pelanggan.perusahaan.alamat',
             'layanan_jasa:id_layanan,nama_layanan',
             'jenis_layanan:id_jenisLayanan,name',
             'signature:id,name',
-        ])->find($id);
+            'periode',
+        ])->find($id_kontrak);
 
-        // ambil periode kontrak saat ini
-        $kontrakPeriode = Kontrak_periode::where('id_kontrak', $id)->where('periode', $periode)->first();
+        // Ambil periode kontrak saat ini (berdasarkan id_kontrak)
+        $kontrakPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode)->first();
 
-        // mengambil dokumen surat pengantar
-        $dokumen = Permohonan_dokumen::where("id_kontrak", $id)
-            ->when($query->periode_next, function ($q) use ($periode_) {
-                return $q->whereNull('periode');
-            }, function ($q) use ($periode_) {
-                return $q->where("periode", $periode_);
-            })
-            ->where("jenis", "surpeng")->first();
+        // Ambil dokumen surat pengantar
+        if ($isAdendum == 1) {
+            // Untuk adendum, dokumen surpeng diambil berdasarkan id_permohonan
+            $dokumen = Permohonan_dokumen::where('id_permohonan', $id_permohonan)
+                ->where('jenis', 'surpeng')
+                ->first();
+        } else {
+            $dokumen = Permohonan_dokumen::where('id_kontrak', $id_kontrak)
+                ->when($query->periode_next, function ($q) use ($periode_) {
+                    return $q->whereNull('periode');
+                }, function ($q) use ($periode_) {
+                    return $q->where('periode', $periode_);
+                })
+                ->where('jenis', 'surpeng')
+                ->first();
+        }
 
         $template = Documents::with(['footer', 'header'])
             ->where('jenis', 'body')
@@ -1085,7 +1128,7 @@ class ReportController extends Controller
             ->where('status', '1')
             ->first();
 
-        if ($kontrakPeriode->nomer_surpeng == null) {
+        if ($kontrakPeriode && $kontrakPeriode->nomer_surpeng == null) {
             $noSurpeng = generateNoDokumen('surpeng');
             $kontrakPeriode->nomer_surpeng = $noSurpeng;
             $kontrakPeriode->created_surpeng_at = Carbon::now()->format('Y-m-d');
@@ -1108,9 +1151,6 @@ class ReportController extends Controller
                 $dokumen->nomer = $noSurpeng;
                 $dokumen->save();
             }
-        } else {
-            // yang ini di comment lagi karna jadi issue saat pengiriman periode zero Check
-            // return redirect()->back();
         }
 
         $data['date'] = Carbon::now()->year;
@@ -1123,7 +1163,7 @@ class ReportController extends Controller
         $data['periode'] = $periode;
 
         if ($id_permohonan) {
-            $data["permohonan"] = Permohonan::where('id_permohonan', $id_permohonan)->first();
+            $data['permohonan'] = Permohonan::find($id_permohonan);
         }
         if (isset($dokumen) && $dokumen->variables) {
             $variables = $dokumen->variables ?? [];

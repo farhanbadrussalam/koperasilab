@@ -26,6 +26,7 @@ use App\Models\Setting_layanan;
 use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\PermohonanAPI;
 use App\Http\Controllers\NotifController;
+use App\Models\Documents;
 use App\Models\Kontrak_detail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -427,7 +428,7 @@ class StaffController extends Controller
                         ]);
 
                         if (!$dokumen->exists) {
-                            $template = \App\Models\Documents::where('jenis', 'body')
+                            $template = Documents::where('jenis', 'body')
                                 ->where('name', 'SuratPengantar')
                                 ->where('status', '1')
                                 ->first();
@@ -568,6 +569,32 @@ class StaffController extends Controller
 
                 if ($data->pengiriman == null) {
                     $data->pengiriman_baru = Pengiriman::with('detail')->where('id_kontrak', $data->id_kontrak)->where('periode', $data->periode)->get();
+                }
+
+                if ($data->tipe_kontrak == 'adendum' && $data->is_periode_berjalan == 1) {
+                    // buatkan dokumen surpeng untuk TLD
+                    $dokumen = Permohonan_dokumen::firstOrNew([
+                        'id_permohonan' => $data->id_permohonan,
+                        'periode' => $data->periode,
+                        'jenis' => 'surpeng',
+                    ]);
+
+                    if (!$dokumen->exists) {
+                        $noSurpeng = generateNoDokumen('surpeng');
+                        $template = Documents::where('jenis', 'body')
+                            ->where('name', 'SuratPengantar')
+                            ->first();
+
+                        $dokumen->fill([
+                            'id_doc_template' => $template->id_doc,
+                            'id_kontrak' => $data->id_kontrak,
+                            'nama' => 'Surat Pengantar',
+                            'created_by' => Auth::id(),
+                            'status' => 1,
+                            'nomer' => $noSurpeng
+                        ]);
+                        $dokumen->save();
+                    }
                 }
             }
         } else {

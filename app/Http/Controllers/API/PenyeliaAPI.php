@@ -354,34 +354,62 @@ class PenyeliaAPI extends Controller
                     Permohonan_dokumen::create($dataParams);
                 }
 
-                $id_kontrak = $penyelia->id_kontrak;
-                $periode_ = $penyelia->periode_used;
-                $kPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode_ == 0 ? 1 : $periode_)->first();
-                $dokumenSurpeng = Permohonan_dokumen::where('periode', $kPeriode->periode)->where('id_kontrak', $id_kontrak)->where('jenis', 'surpeng')->first();
-                if (!$dokumenSurpeng) {
-                    if ($kPeriode && !$kPeriode->nomer_surpeng) {
-                        $noSurpeng = generateNoDokumen('surpeng');
-                        $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
-                    }
+                $isAdendum = $penyelia->permohonan->tipe_kontrak == 'adendum' && $penyelia->permohonan->is_periode_berjalan == 1;
 
-                    $templateSurpeng = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
-                    if ($templateSurpeng && ($penyelia->periode_used || $penyelia->kontrak->periode_next)) {
-                        Permohonan_dokumen::create(array(
-                            'periode' => $penyelia->periode_used,
-                            'id_kontrak' => $id_kontrak,
-                            'id_permohonan' => $penyelia->id_permohonan,
-                            'id_doc_template' => $templateSurpeng->id_doc,
-                            'jenis' => "surpeng",
-                            'nama' => "Surat Pengantar",
-                            'nomer' => $kPeriode->nomer_surpeng ?? generateNoDokumen('surpeng'),
-                            'created_by' => Auth::user()->id,
-                            'status' => 1
-                        ));
+                if ($isAdendum) {
+                    // buatkan dokumen surpeng untuk TLD
+                    $dokumen = Permohonan_dokumen::firstOrNew([
+                        'id_permohonan' => $penyelia->id_permohonan,
+                        'periode' => $penyelia->permohonan->periode,
+                        'jenis' => 'surpeng',
+                    ]);
+
+                    if (!$dokumen->exists) {
+                        $noSurpeng = generateNoDokumen('surpeng');
+                        $template = Documents::where('jenis', 'body')
+                            ->where('name', 'SuratPengantar')
+                            ->first();
+
+                        $dokumen->fill([
+                            'id_doc_template' => $template->id_doc,
+                            'id_kontrak' => $penyelia->id_kontrak,
+                            'nama' => 'Surat Pengantar',
+                            'created_by' => Auth::id(),
+                            'status' => 1,
+                            'nomer' => $noSurpeng
+                        ]);
+                        $dokumen->save();
                     }
                 } else {
-                    $dokumenSurpeng->update(array(
-                        'id_permohonan' => $penyelia->id_permohonan
-                    ));
+                    $id_kontrak = $penyelia->id_kontrak;
+                    $periode_ = $penyelia->periode_used;
+                    $kPeriode = Kontrak_periode::where('id_kontrak', $id_kontrak)->where('periode', $periode_ == 0 ? 1 : $periode_)->first();
+                    $dokumenSurpeng = Permohonan_dokumen::where('periode', $kPeriode->periode)->where('id_kontrak', $id_kontrak)->where('jenis', 'surpeng')->first();
+                    if (!$dokumenSurpeng) {
+                        if ($kPeriode && !$kPeriode->nomer_surpeng) {
+                            $noSurpeng = generateNoDokumen('surpeng');
+                            $kPeriode->update(['nomer_surpeng' => $noSurpeng, 'created_surpeng_at' => Carbon::now()]);
+                        }
+
+                        $templateSurpeng = Documents::where('jenis', 'body')->where('name', 'SuratPengantar')->where('status', '1')->first();
+                        if ($templateSurpeng && ($penyelia->periode_used || $penyelia->kontrak->periode_next)) {
+                            Permohonan_dokumen::create(array(
+                                'periode' => $penyelia->periode_used,
+                                'id_kontrak' => $id_kontrak,
+                                'id_permohonan' => $penyelia->id_permohonan,
+                                'id_doc_template' => $templateSurpeng->id_doc,
+                                'jenis' => "surpeng",
+                                'nama' => "Surat Pengantar",
+                                'nomer' => $kPeriode->nomer_surpeng ?? generateNoDokumen('surpeng'),
+                                'created_by' => Auth::user()->id,
+                                'status' => 1
+                            ));
+                        }
+                    } else {
+                        $dokumenSurpeng->update(array(
+                            'id_permohonan' => $penyelia->id_permohonan
+                        ));
+                    }
                 }
             }
 
@@ -814,7 +842,7 @@ class PenyeliaAPI extends Controller
 
             if ($penyelia->permohonan->tipe_kontrak == 'adendum' && $penyelia->permohonan->is_zerocek == 0) {
                 $permohonan->update(['status' => 5]);
-                
+
                 // Hanya aktifkan adendum jika tidak memiliki penambahan pengguna baru (type = baru)
                 $hasPenambahan = $permohonan->permohonan_detail()->where('type', 'baru')->exists();
                 if (!$hasPenambahan) {
@@ -873,70 +901,6 @@ class PenyeliaAPI extends Controller
                     ])
                     ->orderBy('id_dokumen', 'DESC')
                     ->paginate($limit);
-
-                // $query->through(function ($doc) {
-                //     if ($doc->permohonan) {
-                //         $permohonanData = $doc->permohonan;
-                //     } else {
-                //         $kontrak = $doc->kontrak;
-                //         $permohonanData = (object) [
-                //             'tipe_kontrak' => $kontrak?->tipe_kontrak ?? null,
-                //             'jenis_layanan_parent' => $kontrak?->jenis_layanan_parent ?? null,
-                //             'jenis_layanan' => $kontrak?->jenis_layanan ?? null,
-                //             'jenis_tld' => $kontrak?->jenisTld ?? null,
-                //             'layanan_jasa' => $kontrak?->layanan_jasa ?? null,
-                //             'periode' => $doc->periode,
-                //             'created_at' => $doc->created_at,
-                //             'kontrak' => $kontrak,
-                //             'is_have_tld' => $kontrak?->is_have_tld ?? 0,
-                //             'is_zerocek' => $kontrak?->is_zerocek ?? 0,
-                //             'pelanggan' => $kontrak?->pelanggan ?? null,
-                //             'dokumen' => $kontrak?->dokumen ?? []
-                //         ];
-                //     }
-
-                //     // Add $doc itself to the permohonan's documents if not already there
-                //     $docExistsInPermohonan = false;
-                //     if (isset($permohonanData->dokumen)) {
-                //         foreach ($permohonanData->dokumen as $existingDoc) {
-                //             if ($existingDoc->id_dokumen === $doc->id_dokumen) {
-                //                 $docExistsInPermohonan = true;
-                //                 break;
-                //             }
-                //         }
-                //     }
-                //     if (!$docExistsInPermohonan) {
-                //         if (is_array($permohonanData->dokumen)) {
-                //             $permohonanData->dokumen[] = $doc;
-                //         } else if (method_exists($permohonanData->dokumen, 'push')) {
-                //             $permohonanData->dokumen->push($doc);
-                //         } else {
-                //             $permohonanData->dokumen = collect([$doc]);
-                //         }
-                //     }
-
-                //     $penyeliaMap = [
-                //         (object)[
-                //             'status' => 1,
-                //             'jobs' => (object)[
-                //                 'status' => 1
-                //             ]
-                //         ]
-                //     ];
-
-                //     return (object) [
-                //         'penyelia_hash' => $permohonanData->lhu?->penyelia_hash ?? $doc->dokumen_hash,
-                //         'permohonan_hash' => $doc->permohonan_hash,
-                //         'periode' => $doc->periode,
-                //         'status' => 2, // lhu.status != 1
-                //         'is_surpeng_signed' => $doc->ttd ? 1 : 0,
-                //         'is_pengajuan_signed' => null,
-                //         'penyelia_map' => $penyeliaMap,
-                //         'permohonan' => $permohonanData,
-                //         'start_date' => $doc->created_at,
-                //         'end_date' => $doc->created_at,
-                //     ];
-                // });
 
                 $arr = $query->toArray();
                 $this->pagination = Arr::except($arr, 'data');

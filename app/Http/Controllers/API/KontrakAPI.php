@@ -233,6 +233,7 @@ class KontrakAPI extends Controller
             $adendums = Permohonan::with(['permohonan_detail', 'invoice', 'lhu'])
                 ->where('id_kontrak', $id)
                 ->where('tipe_kontrak', 'adendum')
+                ->where('status', '!=', 1)
                 ->get()
                 ->groupBy('periode');
 

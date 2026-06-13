@@ -128,10 +128,11 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     const isTugasSigned = penyelia.is_surat_tugas_signed;
                     const isPengajuanSigned = penyelia.is_pengajuan_signed;
                     const isSurpengSigned = penyelia.is_surpeng_signed;
+                    const isAdendum = penyelia.permohonan?.tipe_kontrak == 'adendum' && penyelia.permohonan.is_periode_berjalan == 1;
                     const hasTugas = penyelia.penyelia_map.length > 0;
                     const docPengujian = permohonan.dokumen.find(d => d.jenis === 'SuratPengujian');
                     const docTugas = permohonan.dokumen.find(d => d.jenis === 'surattugas');
-                    const docSurpeng = penyelia.dokumen_surpeng.find(d => d.periode == penyelia.periode_used);
+                    const docSurpeng = penyelia.dokumen_surpeng.find(d => isAdendum ? d.permohonan_hash == penyelia.permohonan.permohonan_hash : d.periode == penyelia.periode_used);
 
                     let actionButtons = [];
 
@@ -280,7 +281,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         `);
                     }
 
-                    if (penyelia.periode_used || penyelia.kontrak.periode_next) {
+                    if (penyelia.periode_used || penyelia.kontrak.periode_next || isAdendum) {
                         // Konfigurasi Tombol Surat Pengantar
                         let surpengBtn = {
                             icon: 'bi-hourglass-split',
@@ -290,8 +291,15 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         };
 
                         if (docSurpeng) {
+                            let url_laporan = '';
+                            if (isAdendum) {
+                                url_laporan = `laporan/${docSurpeng.jenis}/${docSurpeng.permohonan_hash}/${docSurpeng.periode}?adendum=1`;
+                            } else {
+                                url_laporan = `laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${penyelia.kontrak.periode_next ? 1 : docSurpeng.periode}`;
+                            }
+
                             let attr = `
-                                data-url="laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${penyelia.kontrak.periode_next ? 1 : docSurpeng.periode}"
+                                data-url="${url_laporan}"
                                 data-title="Dokumen Surat Pengantar"
                                 onclick="btnShowDoc(this)" title="Lihat Surat Pengantar"
                             `;

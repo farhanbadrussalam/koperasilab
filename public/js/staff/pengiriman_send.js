@@ -26,6 +26,7 @@ if (informasi.sumber == 'permohonan') {
         lhu: informasi.lhu,
         is_zerocek: informasi.is_zerocek,
         is_have_tld: informasi.is_have_tld,
+        is_periode_berjalan: informasi.is_periode_berjalan,
         file_lhu: informasi.file_lhu,
         dokumen: informasi.dokumen,
         periode_now: periode_now,
@@ -55,6 +56,7 @@ if (informasi.sumber == 'permohonan') {
         lhu: false,
         is_zerocek: informasi.is_zerocek,
         is_have_tld: informasi.is_have_tld,
+        is_periode_berjalan: false,
         file_lhu: false,
         dokumen: informasi.periode[0].permohonan?.dokumen ?? informasi.dokumen?.filter(d => d.periode == informasi.periode[0].periode),
         periode_now: informasi.periode[0],
@@ -170,8 +172,7 @@ function load_form(unusedKontrol = [], unusedPengguna = []) {
     let renderTldAdendum = false;
     if (dataOrderPengiriman.tipe_kontrak == 'adendum') {
         let jmlPenambahan = tldPengguna.filter(p => p.type == 'baru').length + tldKontrol.filter(c => c.type == 'baru').length;
-        let isPeriodeAktif = dataOrderPengiriman.periode == dataOrderPengiriman.periode_aktif?.periode;
-        if (isPeriodeAktif && jmlPenambahan > 0) {
+        if (dataOrderPengiriman.is_periode_berjalan && jmlPenambahan > 0) {
             renderTldAdendum = true;
         }
     }
@@ -467,10 +468,14 @@ function updateSelectDocument() {
                 if (doc.checked) {
                     $('#btnCetakSurat').html('<i class="bi bi-printer me-2"></i>Cetak Surat Pengantar');
                     $('#btnCetakSurat').attr('onclick', 'btnShowDoc(this)');
-                    if (dataOrderPengiriman.periode_next) {
-                        $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/1`);
+                    if (dataOrderPengiriman.tipe_kontrak == 'adendum') {
+                        $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.id_hash}/${dataOrderPengiriman.periode}?adendum=1`);
                     } else {
-                        $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/${dataOrderPengiriman.periode_now.periode == 0 ? 1 : dataOrderPengiriman.periode_now.periode}`);
+                        if (dataOrderPengiriman.periode_next) {
+                            $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/1`);
+                        } else {
+                            $('#btnCetakSurat').attr('data-url', `laporan/surpeng/${dataOrderPengiriman.kontrak_hash}/${dataOrderPengiriman.periode_now.periode == 0 ? 1 : dataOrderPengiriman.periode_now.periode}`);
+                        }
                     }
                     $('#btnCetakSurat').attr('data-title', `Surat Pengantar TLD`);
                     $('#btnCetakSurat').removeClass('btn-outline-primary').addClass('btn-outline-secondary');

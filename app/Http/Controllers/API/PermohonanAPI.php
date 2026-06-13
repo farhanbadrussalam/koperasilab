@@ -113,10 +113,40 @@ class PermohonanAPI extends Controller
                 return $item->status == 'baru';
             }));
 
+            // Validasi wajib Zero Check untuk penambahan pengguna baru
+            if (($jumPenggunaBaru > 0 || $jumKontrolBaru > 0) && $isZeroCek !== 1) {
+                return $this->output(['msg' => 'Zero Check wajib diaktifkan untuk adendum penambahan pengguna baru.'], 'Fail', 422);
+            }
+
             // Validasi penambahan baru pada P-1 (periode sebelumnya)
             if ($selisih === -1) {
                 if ($jumPenggunaBaru > 0 || $jumKontrolBaru > 0) {
                     return $this->output(['msg' => 'Tidak diperbolehkan menambah pengguna baru pada periode sebelumnya.'], 'Fail', 422);
+                }
+            }
+
+            // Validasi cut-off tanggal 20 & bulan mulai untuk periode aktif (P0)
+            if ($selisih === 0 && ($jumPenggunaBaru > 0 || $jumKontrolBaru > 0)) {
+                $today = \Carbon\Carbon::now();
+                $startDate = \Carbon\Carbon::parse($dataPeriode->start_date);
+                $diffMonths = ($today->year - $startDate->year) * 12 + ($today->month - $startDate->month);
+                $currentPeriodMonth = $diffMonths + 1;
+
+                if ($bulanMulai < $currentPeriodMonth) {
+                    return $this->output(['msg' => 'Bulan mulai layanan tidak boleh berada di masa lalu.'], 'Fail', 422);
+                }
+                if ($bulanMulai === $currentPeriodMonth && $today->day > 20) {
+                    return $this->output(['msg' => 'Bulan mulai layanan untuk bulan berjalan sudah ditutup setelah tanggal 20. Silakan pilih bulan berikutnya.'], 'Fail', 422);
+                }
+                if ($currentPeriodMonth > 3 || ($currentPeriodMonth === 3 && $today->day > 20)) {
+                    return $this->output(['msg' => 'Masa adendum untuk periode berjalan saat ini sudah habis. Silakan pilih periode berikutnya.'], 'Fail', 422);
+                }
+            }
+
+            // Validasi bulan mulai untuk periode berikutnya (P+1)
+            if ($selisih === 1 && ($jumPenggunaBaru > 0 || $jumKontrolBaru > 0)) {
+                if ($bulanMulai !== 1) {
+                    return $this->output(['msg' => 'Untuk adendum periode berikutnya, bulan mulai harus diatur penuh satu periode.'], 'Fail', 422);
                 }
             }
 
@@ -135,8 +165,12 @@ class PermohonanAPI extends Controller
                     return $this->output(['msg' => 'Tidak diperbolehkan menambah pengguna baru karena TLD untuk periode berikutnya sudah dikirim.'], 'Fail', 422);
                 }
             }
-
             $data = array();
+
+            if ($activePeriodeNum === $dataPeriode->periode) {
+                $data['is_periode_berjalan'] = 1;
+            }
+
 
             $data['id_layanan'] = $dataKontrak->id_layanan;
             $data['jenis_layanan_1'] = $dataKontrak->jenis_layanan_1;
