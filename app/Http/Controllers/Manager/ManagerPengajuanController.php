@@ -101,6 +101,7 @@ class ManagerPengajuanController extends Controller
         $dateRange     = $request->input('date_range');
         $satuanKerjaId = $request->input('satuan_kerja') ? decryptor($request->input('satuan_kerja')) : null;
         $pencarian     = $request->input('pencarian');
+        $filterJobId   = $request->input('job_id');
 
         // Ambil semua jenis pekerjaan aktif untuk pivot
         $masterJobs = Master_jobs::orderBy('order')->get();
@@ -115,13 +116,16 @@ class ManagerPengajuanController extends Controller
                 $q->where('name', 'like', "%$pencarian%");
             }
         })
-            ->whereHas('penyelia_map', function ($q) use ($dateRange) {
+            ->whereHas('penyelia_map', function ($q) use ($dateRange, $filterJobId) {
                 $q->whereIn('status', [1, 2]); // 1 = dikerjakan, 2 = selesai
                 if ($dateRange) {
                     $q->whereBetween('created_at', [$dateRange[0], $dateRange[1]]);
                 }
+                if ($filterJobId) {
+                    $q->where('id_jobs', $filterJobId);
+                }
             })
-            ->with(['user', 'penyelia_map.jobs'])
+            ->with(['user', 'penyelia_map.jobs', 'penyelia_map.penyelia.permohonan'])
             ->get();
 
         // Pivot: kelompokkan per petugas, pisahkan status dikerjakan vs selesai
@@ -141,6 +145,10 @@ class ManagerPengajuanController extends Controller
             // Pastikan pekerjaan yang dikerjakan termasuk dalam jobs yang ditugaskan ke petugas
             $jobId = $job->id_jobs;
             if (!in_array($jobId, $userJobs)) {
+                continue;
+            }
+
+            if ($filterJobId && $jobId != $filterJobId) {
                 continue;
             }
 
@@ -165,14 +173,24 @@ class ManagerPengajuanController extends Controller
 
             $status = (int) $map->status;
 
-            if ($status === 1) {
-                $pivoted[$uid]['jobs'][$jobId]['dikerjakan']++;
-                $pivoted[$uid]['total_dikerjakan']++;
-            } elseif ($status === 2) {
-                $pivoted[$uid]['jobs'][$jobId]['selesai']++;
-                $pivoted[$uid]['total_selesai']++;
+            // Jika permohonan memiliki TLD (is_have_tld == 1), hitung berdasarkan jumlah TLD
+            $penyelia = $map->penyelia;
+            $permohonan = $penyelia ? $penyelia->permohonan : null;
+            $tldCount = 1;
+
+            if ($permohonan) {
+                $tldCount = ((int) $permohonan->jumlah_pengguna) + ((int) $permohonan->jumlah_kontrol);
+                if ($tldCount <= 0) $tldCount = 1;
             }
-            $pivoted[$uid]['total']++;
+
+            if ($status === 1) {
+                $pivoted[$uid]['jobs'][$jobId]['dikerjakan'] += $tldCount;
+                $pivoted[$uid]['total_dikerjakan'] += $tldCount;
+            } elseif ($status === 2) {
+                $pivoted[$uid]['jobs'][$jobId]['selesai'] += $tldCount;
+                $pivoted[$uid]['total_selesai'] += $tldCount;
+            }
+            $pivoted[$uid]['total'] += $tldCount;
         }
 
         $pivoted = array_values($pivoted);

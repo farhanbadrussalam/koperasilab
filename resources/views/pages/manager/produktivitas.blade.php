@@ -160,8 +160,8 @@
             </div>
         </div>
 
-        {{-- ===== TABEL DETAIL ===== --}}
-        <div class="card border-0 shadow-sm rounded-4">
+        {{-- ===== TABEL DETAIL (Dihide, untuk background process) ===== --}}
+        <div class="card border-0 shadow-sm rounded-4 d-none">
             <div class="card-body p-3 p-md-4">
                 <h6 class="fw-bold text-dark mb-3">
                     <i class="bi bi-table text-info me-2"></i>
@@ -186,6 +186,27 @@
             </div>
         </div>
 
+        {{-- ===== MODAL DETAIL JOB ===== --}}
+        <div class="modal fade" id="modalDetailJob" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow-sm rounded-4">
+                    <div class="modal-header pb-0 border-bottom-0">
+                        <h6 class="modal-title fw-bold text-dark mb-0" id="modalDetailJobTitle">
+                            <i class="bi bi-table text-info me-2"></i>
+                            Detail Produktivitas: <span id="modalJobName"></span>
+                        </h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3 p-md-4">
+                        <div class="table-responsive">
+                            <table id="tbl-produktivitas-job" class="table table-hover table-bordered align-middle small w-100" style="min-width:600px;">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     {{-- Data untuk JS (master_jobs ID list) --}}
@@ -202,108 +223,6 @@
 
 @push('styles')
     <style>
-        .produktivitas-wrapper {
-            max-width: 100%;
-        }
-
-        /* Icon circle header */
-        .prod-icon-circle {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            font-size: 1.1rem;
-            flex-shrink: 0;
-        }
-
-        /* Summary stat cards */
-        .prod-card {
-            transition: transform 0.18s ease, box-shadow 0.18s ease;
-            border-left: 4px solid transparent !important;
-        }
-
-        .prod-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, .1) !important;
-        }
-
-        .prod-card-blue {
-            border-left-color: #4e73df !important;
-        }
-
-        .prod-card-green {
-            border-left-color: #1cc88a !important;
-        }
-
-        .prod-card-orange {
-            border-left-color: #f6c23e !important;
-        }
-
-        .prod-card-purple {
-            border-left-color: #8b5cf6 !important;
-        }
-
-        .prod-stat-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            font-size: 1.05rem;
-        }
-
-        .prod-stat-value {
-            font-size: 1.7rem;
-            font-weight: 700;
-            line-height: 1.1;
-            color: #1a1a2e;
-        }
-
-        .prod-stat-label {
-            font-size: .75rem;
-            color: #6c757d;
-            margin-top: 2px;
-        }
-
-        /* DataTable header */
-        #tbl-produktivitas thead th {
-            white-space: nowrap;
-            font-size: .8rem;
-            font-weight: 600;
-            letter-spacing: .03em;
-        }
-
-        #tbl-produktivitas tbody td {
-            font-size: .82rem;
-            vertical-align: middle;
-        }
-
-        #tbl-produktivitas tbody td.text-center {
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* Job value coloring */
-        .job-val-zero {
-            color: #adb5bd;
-        }
-
-        .job-val-low {
-            color: #1cc88a;
-        }
-
-        .job-val-mid {
-            color: #f6c23e;
-        }
-
-        .job-val-high {
-            color: #e74a3b;
-        }
-
         /* Breakdown list item */
         .breakdown-item {
             display: flex;
@@ -322,6 +241,13 @@
             border-radius: 99px;
             background: linear-gradient(90deg, #4e73df, #1cc88a);
             transition: width .5s ease;
+        }
+
+        .breakdown-clickable:hover {
+            background-color: #f8f9fa !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-color: #dee2e6 !important;
         }
     </style>
 @endpush

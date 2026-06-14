@@ -304,6 +304,7 @@ function loadData(page = 1) {
                 jenisTld: permohonan.jenis_tld?.name ?? '-',
                 namaLayanan: permohonan.layanan_jasa?.nama_layanan,
                 periode: permohonan.periode,
+                periodeNow: permohonan.periodenow,
                 created_at: permohonan.created_at,
                 kontrak: permohonan.kontrak.no_kontrak,
                 id: lhu.penyelia_hash,

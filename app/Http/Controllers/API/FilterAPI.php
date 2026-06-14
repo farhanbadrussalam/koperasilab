@@ -117,6 +117,12 @@ class FilterAPI extends Controller
                     ['id' => encryptor(2), 'name' => 'Sudah diterima'],
                     ['id' => encryptor(3), 'name' => 'Proses Pengiriman']
                 ],
+                'penyimpanan' => [
+                    ['id' => 'di_lab', 'name' => 'Di Lab / Penyimpanan'],
+                    ['id' => 'evaluasi', 'name' => 'Evaluasi'],
+                    ['id' => 'sewa', 'name' => 'Sewa'],
+                    ['id' => 'idle', 'name' => 'Idle / Siap Pakai']
+                ],
                 default => [
                     ['id' => encryptor(1), 'name' => 'Pengajuan'],
                     ['id' => encryptor(2), 'name' => 'Terverifikasi'],

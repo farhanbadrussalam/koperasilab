@@ -1136,3 +1136,106 @@ thead {
   position: sticky;
   top: 2rem;
 }
+
+/* CSS Productivitas */
+.produktivitas-wrapper {
+  max-width: 100%;
+}
+
+/* Icon circle header */
+.prod-icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+/* Summary stat cards */
+.prod-card {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  border-left: 4px solid transparent !important;
+}
+
+.prod-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .1) !important;
+}
+
+.prod-card-blue {
+  border-left-color: #4e73df !important;
+}
+
+.prod-card-green {
+  border-left-color: #1cc88a !important;
+}
+
+.prod-card-orange {
+  border-left-color: #f6c23e !important;
+}
+
+.prod-card-purple {
+  border-left-color: #8b5cf6 !important;
+}
+
+.prod-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 1.05rem;
+}
+
+.prod-stat-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #1a1a2e;
+}
+
+.prod-stat-label {
+  font-size: .75rem;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+/* DataTable header */
+#tbl-produktivitas thead th {
+  white-space: nowrap;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .03em;
+}
+
+#tbl-produktivitas tbody td {
+  font-size: .82rem;
+  vertical-align: middle;
+}
+
+#tbl-produktivitas tbody td.text-center {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Job value coloring */
+.job-val-zero {
+  color: #adb5bd;
+}
+
+.job-val-low {
+  color: #1cc88a;
+}
+
+.job-val-mid {
+  color: #f6c23e;
+}
+
+.job-val-high {
+  color: #e74a3b;
+}

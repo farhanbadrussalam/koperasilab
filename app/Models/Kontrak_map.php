@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\Master_pengguna;
 use App\Models\Master_divisi;
+use App\Models\Kontrak;
 
 /**
  * @property int $id_map
@@ -78,5 +79,10 @@ class Kontrak_map extends Model
     public function tld()
     {
         return $this->belongsTo(Master_tld::class, 'id_tld')->withTrashed();
+    }
+
+    public function kontrak()
+    {
+        return $this->belongsTo(Kontrak::class, 'id_kontrak', 'id_kontrak');
     }
 }

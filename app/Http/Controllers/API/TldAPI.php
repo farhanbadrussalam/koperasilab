@@ -180,77 +180,266 @@ class TldAPI extends Controller
         }
     }
 
-    public function getPenyimpanan(Request $request)
+        public function getPenyimpanan(Request $request)
     {
         try {
-            $details = \App\Models\Kontrak_detail::with([
+            $arrEvaluasi = config('customvariabel.arr_evaluasi');
+            $arrSewa     = config('customvariabel.arr_sewa');
+
+            $filter = $request->input('filter', []);
+            $idKontrakStr = \Illuminate\Support\Arr::get($filter, 'id_kontrak');
+            $periodeVal = \Illuminate\Support\Arr::get($filter, 'periode');
+            $dateRange = \Illuminate\Support\Arr::get($filter, 'date_range');
+            $searchVal = \Illuminate\Support\Arr::get($filter, 'search');
+            $statusVal = \Illuminate\Support\Arr::get($filter, 'status');
+
+            $idKontrak = $idKontrakStr ? decryptor($idKontrakStr) : null;
+
+            // ============================================================
+            // WIDGET 1: TLD di lab, terikat kontrak (status_tld = 5)
+            // ============================================================
+            $detailsQuery = \App\Models\Kontrak_detail::with([
                 'kontrak.pelanggan.perusahaan',
+                'kontrak.jenis_layanan',
+                'kontrak.jenis_layanan_parent',
                 'tld_awal',
                 'tld_second',
                 'entitas'
             ])
-            ->where(function($query) {
-                $query->where('status_tld_1', 5)
-                      ->orWhere('status_tld_2', 5);
-            })
-            ->where('status', 1)
-            ->get();
+                ->where(function ($query) {
+                    $query->where('status_tld_1', 5)
+                        ->orWhere('status_tld_2', 5);
+                })
+                ->where('status', 1);
 
-            $storageTlds = [];
+            if ($idKontrak) {
+                $detailsQuery->where('id_kontrak', $idKontrak);
+            }
+            if ($periodeVal) {
+                $detailsQuery->where(function ($q) use ($periodeVal) {
+                    $q->where('periode_tld_1', $periodeVal)
+                      ->orWhere('periode_tld_2', $periodeVal);
+                });
+            }
+            if ($dateRange && is_array($dateRange) && count($dateRange) == 2) {
+                $detailsQuery->whereHas('kontrak.periode', function ($q) use ($dateRange) {
+                    $q->where('start_date', '<=', $dateRange[1])
+                      ->where('end_date', '>=', $dateRange[0]);
+                });
+            }
+            if ($searchVal) {
+                $detailsQuery->where(function ($q) use ($searchVal) {
+                    $q->whereHas('tld_awal', function ($qt) use ($searchVal) {
+                        $qt->where('no_seri_tld', 'like', "%$searchVal%");
+                    })
+                    ->orWhereHas('tld_second', function ($qt) use ($searchVal) {
+                        $qt->where('no_seri_tld', 'like', "%$searchVal%");
+                    })
+                    ->orWhereHas('entitas', function ($qe) use ($searchVal) {
+                        $qe->where('name', 'like', "%$searchVal%");
+                    })
+                    ->orWhereHas('kontrak.pelanggan.perusahaan', function ($qp) use ($searchVal) {
+                        $qp->where('nama_perusahaan', 'like', "%$searchVal%");
+                    });
+                });
+            }
 
+            $details = $detailsQuery->get();
+
+            $tldDiLab = [];
             foreach ($details as $detail) {
-                if ($detail->status_tld_1 == 5 && $detail->tld_awal) {
-                    $storageTlds[] = [
-                        'id_kontrak' => $detail->id_kontrak,
-                        'no_kontrak' => $detail->kontrak->no_kontrak ?? '-',
-                        'perusahaan' => $detail->kontrak->pelanggan->perusahaan->nama_perusahaan ?? '-',
-                        'tld_id' => $detail->tld_awal->id_tld,
-                        'no_seri_tld' => $detail->tld_awal->no_seri_tld,
-                        'jenis_tld' => $detail->tld_awal->jenis,
-                        'periode' => $detail->periode_tld_1,
-                        'pengguna' => $detail->entitas->name ?? '-',
-                    ];
-                }
-
-                if ($detail->status_tld_2 == 5 && $detail->tld_second) {
-                    $storageTlds[] = [
-                        'id_kontrak' => $detail->id_kontrak,
-                        'no_kontrak' => $detail->kontrak->no_kontrak ?? '-',
-                        'perusahaan' => $detail->kontrak->pelanggan->perusahaan->nama_perusahaan ?? '-',
-                        'tld_id' => $detail->tld_second->id_tld,
-                        'no_seri_tld' => $detail->tld_second->no_seri_tld,
-                        'jenis_tld' => $detail->tld_second->jenis,
-                        'periode' => $detail->periode_tld_2,
-                        'pengguna' => $detail->entitas->name ?? '-',
-                    ];
+                foreach (
+                    [
+                        ['status' => $detail->status_tld_1, 'tld' => $detail->tld_awal, 'periode' => $detail->periode_tld_1],
+                        ['status' => $detail->status_tld_2, 'tld' => $detail->tld_second, 'periode' => $detail->periode_tld_2],
+                    ] as $item
+                ) {
+                    if ($item['status'] == 5 && $item['tld']) {
+                        $getPeriodeNow = \App\Models\Kontrak_periode::where('id_kontrak', $detail->id_kontrak)
+                            ->where('periode', $item['periode'])
+                            ->first();
+                        $penyelia = \App\Models\Penyelia::where('id_kontrak', $detail->id_kontrak)
+                            ->where('id_permohonan', $getPeriodeNow->id_permohonan)
+                            ->whereHas('penyelia_map', function ($q) {
+                                $q->where('id_jobs', 7)->where('status', 1);
+                            })
+                            ->first();
+                        $tldDiLab[] = [
+                            'no_seri_tld'   => $item['tld']->no_seri_tld,
+                            'jenis_tld'     => $item['tld']->jenis,
+                            'no_kontrak'    => $detail->kontrak->no_kontrak ?? '-',
+                            'perusahaan'    => $detail->kontrak->pelanggan->perusahaan->nama_perusahaan ?? '-',
+                            'periode'       => $item['periode'],
+                            'periodenow'    => $getPeriodeNow,
+                            'pengguna'      => $detail->entitas->name ?? '-',
+                            'penyelia_hash' => $penyelia?->penyelia_hash,
+                        ];
+                    }
                 }
             }
 
-            $grouped = [];
-            foreach ($storageTlds as $tld) {
-                $key = $tld['id_kontrak'] . '_' . $tld['periode'];
-                if (!isset($grouped[$key])) {
-                    $penyelia = \App\Models\Penyelia::where('id_kontrak', $tld['id_kontrak'])
-                        ->where('periode', $tld['periode'])
-                        ->first();
+            // ============================================================
+            // WIDGET 2 & 3: TLD di Evaluasi / Sewa (status_tld = 1 atau 2)
+            // ============================================================
+            $detailsAktifQuery = \App\Models\Kontrak_detail::with([
+                'kontrak.pelanggan.perusahaan',
+                'kontrak.jenis_layanan',
+                'kontrak.jenis_layanan_parent',
+                'tld_awal',
+                'tld_second',
+                'entitas'
+            ])
+                ->where(function ($query) {
+                    $query->whereIn('status_tld_1', [1, 2])
+                        ->orWhereIn('status_tld_2', [1, 2]);
+                })
+                ->where('status', 1)
+                ->whereHas('kontrak', function ($q) {
+                    $q->where('status', 1);
+                });
 
-                    $grouped[$key] = [
-                        'id_kontrak' => $tld['id_kontrak'],
-                        'no_kontrak' => $tld['no_kontrak'],
-                        'perusahaan' => $tld['perusahaan'],
-                        'periode' => $tld['periode'],
-                        'penyelia_hash' => $penyelia ? $penyelia->penyelia_hash : null,
-                        'tlds' => []
-                    ];
+            if ($idKontrak) {
+                $detailsAktifQuery->where('id_kontrak', $idKontrak);
+            }
+            if ($periodeVal) {
+                $detailsAktifQuery->where(function ($q) use ($periodeVal) {
+                    $q->where('periode_tld_1', $periodeVal)
+                      ->orWhere('periode_tld_2', $periodeVal);
+                });
+            }
+            if ($dateRange && is_array($dateRange) && count($dateRange) == 2) {
+                $detailsAktifQuery->whereHas('kontrak.periode', function ($q) use ($dateRange) {
+                    $q->where('start_date', '<=', $dateRange[1])
+                      ->where('end_date', '>=', $dateRange[0]);
+                });
+            }
+            if ($searchVal) {
+                $detailsAktifQuery->where(function ($q) use ($searchVal) {
+                    $q->whereHas('tld_awal', function ($qt) use ($searchVal) {
+                        $qt->where('no_seri_tld', 'like', "%$searchVal%");
+                    })
+                    ->orWhereHas('tld_second', function ($qt) use ($searchVal) {
+                        $qt->where('no_seri_tld', 'like', "%$searchVal%");
+                    })
+                    ->orWhereHas('entitas', function ($qe) use ($searchVal) {
+                        $qe->where('name', 'like', "%$searchVal%");
+                    })
+                    ->orWhereHas('kontrak.pelanggan.perusahaan', function ($qp) use ($searchVal) {
+                        $qp->where('nama_perusahaan', 'like', "%$searchVal%");
+                    });
+                });
+            }
+
+            $detailsAktif = $detailsAktifQuery->get();
+
+            $tldEvaluasi = [];
+            $tldSewa     = [];
+
+            foreach ($detailsAktif as $detail) {
+                if (!$detail->kontrak || !$detail->kontrak->jenis_layanan_parent || !$detail->kontrak->jenis_layanan) {
+                    continue;
                 }
-                $grouped[$key]['tlds'][] = [
-                    'no_seri_tld' => $tld['no_seri_tld'],
-                    'jenis_tld' => $tld['jenis_tld'],
-                    'pengguna' => $tld['pengguna']
+                $jl = jenislayanan($detail->kontrak->jenis_layanan_parent, $detail->kontrak->jenis_layanan);
+
+                foreach (
+                    [
+                        ['status' => $detail->status_tld_1, 'tld' => $detail->tld_awal, 'periode' => $detail->periode_tld_1],
+                        ['status' => $detail->status_tld_2, 'tld' => $detail->tld_second, 'periode' => $detail->periode_tld_2],
+                    ] as $item
+                ) {
+                    if (in_array($item['status'], [1, 2]) && $item['tld']) {
+                        $entry = [
+                            'no_seri_tld' => $item['tld']->no_seri_tld,
+                            'jenis_tld'   => $item['tld']->jenis,
+                            'no_kontrak'  => $detail->kontrak->no_kontrak ?? '-',
+                            'perusahaan'  => $detail->kontrak->pelanggan->perusahaan->nama_perusahaan ?? '-',
+                            'periode'     => $item['periode'],
+                            'pengguna'    => $detail->entitas->name ?? '-',
+                        ];
+                        if (in_array($jl, $arrEvaluasi)) {
+                            $tldEvaluasi[] = $entry;
+                        } elseif (in_array($jl, $arrSewa)) {
+                            $tldSewa[] = $entry;
+                        }
+                    }
+                }
+            }
+
+            // ============================================================
+            // WIDGET 4: TLD Idle (status = 0 di master_tld)
+            // ============================================================
+            $idleTldsQuery = \App\Models\Master_tld::where('status', 0)->whereNull('digunakan')->whereNull('kepemilikan');
+
+            if ($searchVal) {
+                $idleTldsQuery->where('no_seri_tld', 'like', "%$searchVal%");
+            }
+
+            if ($idKontrak || $periodeVal || ($dateRange && is_array($dateRange) && count($dateRange) == 2)) {
+                $idleTlds = collect();
+            } else {
+                $idleTlds = $idleTldsQuery->get();
+            }
+
+            $tldIdle = [];
+            foreach ($idleTlds as $tld) {
+                // Ambil history terakhir dari kontrak_map
+                $lastHistory = \App\Models\Kontrak_map::with(['kontrak:id_kontrak,no_kontrak'])
+                    ->where('id_tld', $tld->id_tld)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                $tldIdle[] = [
+                    'no_seri_tld'      => $tld->no_seri_tld,
+                    'jenis_tld'        => $tld->jenis,
+                    'merk'             => $tld->merk,
+                    'tanggal_pengadaan' => $tld->tanggal_pengadaan,
+                    'last_history'     => $lastHistory ? [
+                        'no_kontrak' => $lastHistory->kontrak->no_kontrak ?? '-',
+                        'periode'    => $lastHistory->periode,
+                        'used_at'    => $lastHistory->created_at,
+                    ] : null,
                 ];
             }
 
-            return $this->output(array_values($grouped), 200);
+            // Filter berdasarkan status
+            if ($statusVal) {
+                if ($statusVal == 'di_lab') {
+                    $tldEvaluasi = [];
+                    $tldSewa     = [];
+                    $tldIdle     = [];
+                } elseif ($statusVal == 'evaluasi') {
+                    $tldDiLab    = [];
+                    $tldSewa     = [];
+                    $tldIdle     = [];
+                } elseif ($statusVal == 'sewa') {
+                    $tldDiLab    = [];
+                    $tldEvaluasi = [];
+                    $tldIdle     = [];
+                } elseif ($statusVal == 'idle') {
+                    $tldDiLab    = [];
+                    $tldEvaluasi = [];
+                    $tldSewa     = [];
+                }
+            }
+
+            // ============================================================
+            // SUMMARY COUNTER
+            // ============================================================
+            $summary = [
+                'tld_di_lab'   => count($tldDiLab),
+                'tld_evaluasi' => count($tldEvaluasi),
+                'tld_sewa'     => count($tldSewa),
+                'tld_idle'     => count($tldIdle),
+                'total'        => count($tldDiLab) + count($tldEvaluasi) + count($tldSewa) + count($tldIdle),
+            ];
+
+            return $this->output([
+                'summary'      => $summary,
+                'tld_di_lab'   => $tldDiLab,
+                'tld_evaluasi' => $tldEvaluasi,
+                'tld_sewa'     => $tldSewa,
+                'tld_idle'     => $tldIdle,
+            ], 200);
         } catch (\Exception $ex) {
             info($ex);
             return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);

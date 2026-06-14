@@ -319,6 +319,7 @@ function updateBreakdown(data) {
     const jobTotals = {};
     masterJobIds.forEach((id, idx) => {
         jobTotals[id] = {
+            id: id,
             name: masterJobNames[idx],
             total: 0,
             topStaffName: null,
@@ -361,11 +362,11 @@ function updateBreakdown(data) {
         const color = colors[idx % colors.length];
         html += `
             <div class="col-12 col-md-6">
-                <div class="breakdown-item d-flex flex-column gap-1.5 p-3 rounded-3 border bg-light h-100">
+                <div class="breakdown-item d-flex flex-column gap-1.5 p-3 rounded-3 border bg-light h-100 breakdown-clickable" onclick="showJobDetail('${job.id}', '${job.name}')" style="cursor: pointer; transition: all 0.2s;">
                     <div class="w-100">
                         <div class="d-flex justify-content-between mb-1 align-items-center">
                             <span class="fw-semibold small" style="color:${color}">${job.name}</span>
-                            <span class="fw-bold small text-dark">${job.total} <span class="text-muted" style="font-size:0.75rem;font-weight:normal;">selesai</span></span>
+                            <span class="fw-bold small text-dark">${job.total} <span class="text-muted" style="font-size:0.75rem;font-weight:normal;">TLD selesai</span></span>
                         </div>
                     </div>
                     ${job.topStaffName ? `
@@ -375,7 +376,7 @@ function updateBreakdown(data) {
                             <span class="fw-semibold text-dark">${job.topStaffName}</span>
                         </div>
                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill font-monospace fw-bold" style="font-size: 0.68rem; padding: 0.25em 0.6em;">
-                            ${job.topStaffCount} selesai
+                            ${job.topStaffCount} TLD selesai
                         </span>
                     </div>
                     <div class="bg-secondary bg-opacity-10 rounded-pill mt-1" style="height:3px">
@@ -397,4 +398,114 @@ function reloadData() {
 function clearFilter() {
     filterComp.clear();
     if (prodTable) prodTable.ajax.reload(null, false);
+}
+
+let jobTable = null;
+
+function showJobDetail(jobId, jobName) {
+    $('#modalJobName').text(jobName);
+
+    if (jobTable) {
+        jobTable.destroy();
+        $('#tbl-produktivitas-job').empty();
+    }
+
+    const cols = [
+        {
+            data: 'nama_petugas',
+            title: 'Nama Petugas',
+            render: function (data, type, row) {
+                return `
+                    <div class="d-flex align-items-center gap-2">
+                        ${row.avatar}
+                        <div>
+                            <span class="fw-semibold">${data}</span>
+                        </div>
+                    </div>`;
+            }
+        },
+        {
+            data: null,
+            title: 'Ditugaskan',
+            className: 'text-center align-middle',
+            render: function (data, type, row) {
+                const s = parseInt(row['job_' + jobId + '_s']) || 0;
+                const d = parseInt(row['job_' + jobId + '_d']) || 0;
+                return `<span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">${s + d}</span>`;
+            }
+        },
+        {
+            data: 'job_' + jobId + '_d',
+            title: '<span class="text-warning">⟳ Proses</span>',
+            className: 'text-center align-middle',
+            render: function (data) {
+                const val = parseInt(data) || 0;
+                return `<span class="badge rounded-pill px-2" style="background:rgba(246,194,62,.18);color:#856404;">${val}</span>`;
+            }
+        },
+        {
+            data: 'job_' + jobId + '_s',
+            title: '<span class="text-success">✔ Selesai</span>',
+            className: 'text-center align-middle',
+            render: function (data) {
+                const val = parseInt(data) || 0;
+                return `<span class="badge rounded-pill px-2" style="background:rgba(28,200,138,.15);color:#157347;">${val}</span>`;
+            }
+        },
+        {
+            data: null,
+            title: 'Total',
+            className: 'text-center fw-bold align-middle',
+            render: function (data, type, row) {
+                const s = parseInt(row['job_' + jobId + '_s']) || 0;
+                const d = parseInt(row['job_' + jobId + '_d']) || 0;
+                return `<span class="badge bg-secondary rounded-pill px-3">${s + d}</span>`;
+            }
+        }
+    ];
+
+    jobTable = $('#tbl-produktivitas-job').DataTable({
+        processing: true,
+        serverSide: true,
+        responsive: false,
+        scrollX: true,
+        ajax: {
+            url: dataUrl,
+            type: 'GET',
+            data: function (d) {
+                let filterValue = filterComp && filterComp.getAllValue();
+                if (filterValue.satuan_kerja) d.satuan_kerja = filterValue.satuan_kerja;
+                if (filterValue.search) d.pencarian = filterValue.search;
+                if (filterValue.date_range && filterValue.date_range.length == 2) d.date_range = filterValue.date_range;
+
+                d.job_id = jobId;
+                return d;
+            },
+            dataSrc: function (json) {
+                return json.data;
+            }
+        },
+        columns: cols,
+        pageLength: 10,
+        lengthMenu: [10, 25, 50],
+        language: {
+            search: '<i class="bi bi-search me-1"></i>',
+            searchPlaceholder: 'Cari nama / jabatan...',
+            lengthMenu: 'Tampilkan _MENU_ data',
+            info: 'Menampilkan _START_–_END_ dari _TOTAL_ petugas',
+            infoEmpty: 'Tidak ada data',
+            zeroRecords: 'Tidak ada data ditemukan',
+            paginate: {
+                next: '<i class="bi bi-chevron-right"></i>',
+                previous: '<i class="bi bi-chevron-left"></i>'
+            },
+            processing: '<div class="d-flex align-items-center gap-2"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat data...</div>'
+        },
+        dom: '<"d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3"lf>rtip',
+        drawCallback: function () {
+            $('#tbl-produktivitas-job_filter input').addClass('form-control form-control-sm rounded-3');
+        }
+    });
+
+    $('#modalDetailJob').modal('show');
 }
