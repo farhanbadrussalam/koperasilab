@@ -180,7 +180,7 @@ class TldAPI extends Controller
         }
     }
 
-        public function getPenyimpanan(Request $request)
+    public function getPenyimpanan(Request $request)
     {
         try {
             $arrEvaluasi = config('customvariabel.arr_evaluasi');
@@ -218,13 +218,13 @@ class TldAPI extends Controller
             if ($periodeVal) {
                 $detailsQuery->where(function ($q) use ($periodeVal) {
                     $q->where('periode_tld_1', $periodeVal)
-                      ->orWhere('periode_tld_2', $periodeVal);
+                        ->orWhere('periode_tld_2', $periodeVal);
                 });
             }
             if ($dateRange && is_array($dateRange) && count($dateRange) == 2) {
                 $detailsQuery->whereHas('kontrak.periode', function ($q) use ($dateRange) {
                     $q->where('start_date', '<=', $dateRange[1])
-                      ->where('end_date', '>=', $dateRange[0]);
+                        ->where('end_date', '>=', $dateRange[0]);
                 });
             }
             if ($searchVal) {
@@ -232,15 +232,15 @@ class TldAPI extends Controller
                     $q->whereHas('tld_awal', function ($qt) use ($searchVal) {
                         $qt->where('no_seri_tld', 'like', "%$searchVal%");
                     })
-                    ->orWhereHas('tld_second', function ($qt) use ($searchVal) {
-                        $qt->where('no_seri_tld', 'like', "%$searchVal%");
-                    })
-                    ->orWhereHas('entitas', function ($qe) use ($searchVal) {
-                        $qe->where('name', 'like', "%$searchVal%");
-                    })
-                    ->orWhereHas('kontrak.pelanggan.perusahaan', function ($qp) use ($searchVal) {
-                        $qp->where('nama_perusahaan', 'like', "%$searchVal%");
-                    });
+                        ->orWhereHas('tld_second', function ($qt) use ($searchVal) {
+                            $qt->where('no_seri_tld', 'like', "%$searchVal%");
+                        })
+                        ->orWhereHas('entitas', function ($qe) use ($searchVal) {
+                            $qe->where('name', 'like', "%$searchVal%");
+                        })
+                        ->orWhereHas('kontrak.pelanggan.perusahaan', function ($qp) use ($searchVal) {
+                            $qp->where('nama_perusahaan', 'like', "%$searchVal%");
+                        });
                 });
             }
 
@@ -268,7 +268,7 @@ class TldAPI extends Controller
                             'no_seri_tld'   => $item['tld']->no_seri_tld,
                             'jenis_tld'     => $item['tld']->jenis,
                             'no_kontrak'    => $detail->kontrak->no_kontrak ?? '-',
-                            'perusahaan'    => $detail->kontrak->pelanggan->perusahaan->nama_perusahaan ?? '-',
+                            'perusahaan'    => $detail->kontrak->pelanggan->perusahaan ? $detail->kontrak->pelanggan->perusahaan->kode_perusahaan . ' - ' . $detail->kontrak->pelanggan->perusahaan->nama_perusahaan : '-',
                             'periode'       => $item['periode'],
                             'periodenow'    => $getPeriodeNow,
                             'pengguna'      => $detail->entitas->name ?? '-',
@@ -304,13 +304,13 @@ class TldAPI extends Controller
             if ($periodeVal) {
                 $detailsAktifQuery->where(function ($q) use ($periodeVal) {
                     $q->where('periode_tld_1', $periodeVal)
-                      ->orWhere('periode_tld_2', $periodeVal);
+                        ->orWhere('periode_tld_2', $periodeVal);
                 });
             }
             if ($dateRange && is_array($dateRange) && count($dateRange) == 2) {
                 $detailsAktifQuery->whereHas('kontrak.periode', function ($q) use ($dateRange) {
                     $q->where('start_date', '<=', $dateRange[1])
-                      ->where('end_date', '>=', $dateRange[0]);
+                        ->where('end_date', '>=', $dateRange[0]);
                 });
             }
             if ($searchVal) {
@@ -318,15 +318,15 @@ class TldAPI extends Controller
                     $q->whereHas('tld_awal', function ($qt) use ($searchVal) {
                         $qt->where('no_seri_tld', 'like', "%$searchVal%");
                     })
-                    ->orWhereHas('tld_second', function ($qt) use ($searchVal) {
-                        $qt->where('no_seri_tld', 'like', "%$searchVal%");
-                    })
-                    ->orWhereHas('entitas', function ($qe) use ($searchVal) {
-                        $qe->where('name', 'like', "%$searchVal%");
-                    })
-                    ->orWhereHas('kontrak.pelanggan.perusahaan', function ($qp) use ($searchVal) {
-                        $qp->where('nama_perusahaan', 'like', "%$searchVal%");
-                    });
+                        ->orWhereHas('tld_second', function ($qt) use ($searchVal) {
+                            $qt->where('no_seri_tld', 'like', "%$searchVal%");
+                        })
+                        ->orWhereHas('entitas', function ($qe) use ($searchVal) {
+                            $qe->where('name', 'like', "%$searchVal%");
+                        })
+                        ->orWhereHas('kontrak.pelanggan.perusahaan', function ($qp) use ($searchVal) {
+                            $qp->where('nama_perusahaan', 'like', "%$searchVal%");
+                        });
                 });
             }
 
