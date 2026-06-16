@@ -1283,6 +1283,18 @@ class ReportController extends Controller
                 $countKontrol++;
             }
         }
+
+        $htmlKontrol = '';
+        if ($countKontrol > 0) {
+            $htmlKontrol = '
+                <tr>
+                    <td class="text-center">' . $no . '.</td>
+                    <td style="padding-left: 5px">TLD Kontrol</td>
+                    <td style="padding-left: 5px" class="fw-bold">' . $countKontrol . ' Buah</td>
+                </tr>
+            ';
+        }
+
         return [
             "RINCIAN" => '
                 <table class="table-surattugas" style="margin-top: 15px;">
@@ -1292,11 +1304,7 @@ class ReportController extends Controller
                         <th width="30%">Keterangan</th>
                     </tr>
                     ' . $html . '
-                    <tr>
-                        <td class="text-center">' . $no . '.</td>
-                        <td style="padding-left: 5px">TLD Kontrol</td>
-                        <td style="padding-left: 5px" class="fw-bold">' . $countKontrol . ' Buah</td>
-                    </tr>
+                    ' . $htmlKontrol . '
                 </table>
             '
         ];

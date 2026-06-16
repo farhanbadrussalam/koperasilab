@@ -120,8 +120,7 @@ class FilterAPI extends Controller
                 'penyimpanan' => [
                     ['id' => 'di_lab', 'name' => 'Di Lab / Penyimpanan'],
                     ['id' => 'evaluasi', 'name' => 'Evaluasi'],
-                    ['id' => 'sewa', 'name' => 'Sewa'],
-                    ['id' => 'idle', 'name' => 'Idle / Siap Pakai']
+                    ['id' => 'sewa', 'name' => 'Sewa']
                 ],
                 default => [
                     ['id' => encryptor(1), 'name' => 'Pengajuan'],

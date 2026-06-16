@@ -74,11 +74,12 @@ class EvaluasiSewaTest extends DuskTestCase
                 ->waitForText("Pilih periode", $this->waitingTime);
 
             // Mengisi periode menggunakan perulangan agar lebih rapi dan dinamis
+            $startOfNextMonth = \Carbon\Carbon::today()->addMonth()->startOfMonth();
             $periodes = [
-                ['index' => 0, 'date' => '2026-03-01'],
-                ['index' => 1, 'date' => '2026-06-01', 'text' => 'Periode 2'],
-                ['index' => 2, 'date' => '2026-09-01', 'text' => 'Periode 3'],
-                ['index' => 3, 'date' => '2026-12-01', 'text' => 'Periode 4'],
+                ['index' => 0, 'date' => $startOfNextMonth->format('Y-m-d')],
+                ['index' => 1, 'date' => $startOfNextMonth->copy()->addMonths(3)->format('Y-m-d'), 'text' => 'Periode 2'],
+                ['index' => 2, 'date' => $startOfNextMonth->copy()->addMonths(6)->format('Y-m-d'), 'text' => 'Periode 3'],
+                ['index' => 3, 'date' => $startOfNextMonth->copy()->addMonths(9)->format('Y-m-d'), 'text' => 'Periode 4'],
             ];
 
             foreach ($periodes as $i => $periode) {

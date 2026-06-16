@@ -1,16 +1,15 @@
 /**
  * penyimpanan.js
- * Halaman inventaris TLD di lab.
- * Struktur data API:
- *   { summary, tld_di_lab, tld_evaluasi, tld_sewa, tld_idle }
+ * Halaman penyimpanan TLD — tampilan dikelompokkan per nomor kontrak.
+ * Struktur API response: { summary, kontrak[] }
+ * Setiap kontrak berisi: no_kontrak, perusahaan, tipe, kontrak_pengguna,
+ *   kontrak_kontrol, semua_kembali, tlds[]
  */
 
 // State Global untuk Client-side Pagination
-let allLabTlds = [];
-let allIdleTlds = [];
-let currentPageLab = 1;
-let currentPageIdle = 1;
-const limitPerPage = 5;
+let allKontrakData = [];
+let currentPage = 1;
+const limitPerPage = 8;
 let filterComp = false;
 
 $(function () {
@@ -19,12 +18,9 @@ $(function () {
         jenis: 'penyimpanan',
         filter: {
             no_kontrak: true,
-            date_range: true,
-            search: true,
-            status: true
         },
         placeholder: {
-            search: 'Cari Seri TLD atau Pengguna...'
+            search: 'Cari No. Kontrak, Seri TLD, atau Pengguna...'
         }
     });
 
@@ -33,45 +29,42 @@ $(function () {
 
     loadPenyimpananData();
 
-    // Bind click events untuk pagination
-    $(document).on('click', '#pagination-di-lab .page-link', function (e) {
+    // Pagination
+    $(document).on('click', '#pagination-kontrak .page-link', function (e) {
         e.preventDefault();
         const pageno = parseInt($(this).attr('data-page'));
-        if (pageno) {
-            renderLabTlds(pageno);
-        }
+        if (pageno) renderKontrak(pageno);
     });
 
-    $(document).on('click', '#pagination-idle .page-link', function (e) {
-        e.preventDefault();
-        const pageno = parseInt($(this).attr('data-page'));
-        if (pageno) {
-            renderIdleTlds(pageno);
+    // Buka modal detail via event delegation (hindari masalah escaping JSON di onclick)
+    $(document).on('click', '.btn-detail-tld', function () {
+        const idx = parseInt($(this).attr('data-idx'));
+        if (!isNaN(idx) && allKontrakData[idx]) {
+            showDetailModal(allKontrakData[idx]);
         }
     });
 });
 
+// ============================================================
+// LOAD DATA
+// ============================================================
 function loadPenyimpananData() {
     // Reset tampilan
     $('#placeholder-container').removeClass('d-none');
-    $('#section-di-lab, #section-idle, #empty-state').addClass('d-none');
+    $('#section-kontrak, #empty-state').addClass('d-none');
     $('#summary-counter').css('display', 'none');
-    $('#total-label').text('');
+    // $('#total-label').text('');
 
-    let params = {
-        filter: {}
-    };
-
+    let params = { filter: {} };
     let filterValue = filterComp && filterComp.getAllValue();
     if (filterValue) {
         filterValue.no_kontrak && (params.filter.id_kontrak = filterValue.no_kontrak);
-        (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
-        filterValue.periode && (params.filter.periode = filterValue.periode);
         filterValue.search && (params.filter.search = filterValue.search);
         filterValue.status && (params.filter.status = filterValue.status);
+        (filterValue.date_range && filterValue.date_range.length == 2) && (params.filter.date_range = filterValue.date_range);
     }
 
-    // Tampilkan jumlah filter aktif di UI
+    // Tampilkan jumlah filter aktif
     if (filterValue && Object.keys(params.filter).length > 0) {
         $('#countFilter').html(Object.keys(params.filter).length).removeClass('d-none');
     } else {
@@ -83,71 +76,26 @@ function loadPenyimpananData() {
 
         const data = result.data || {};
         const summary = data.summary || {};
-        const diLab = data.tld_di_lab || [];
-        const evalasi = data.tld_evaluasi || [];
-        const sewa = data.tld_sewa || [];
-        const idle = data.tld_idle || [];
-        const total = summary.total || 0;
+        const kontrak = data.kontrak || [];
 
-        // Tampilkan summary counter di atas
-        $('#count-di-lab').text(summary.tld_di_lab || 0);
-        $('#count-evaluasi').text(summary.tld_evaluasi || 0);
-        $('#count-sewa').text(summary.tld_sewa || 0);
-        $('#count-idle').text(summary.tld_idle || 0);
+        // Update summary counter
+        // $('#count-kontrak').text(summary.total_kontrak || 0);
+        // $('#count-belum-kembali').text(summary.belum_kembali || 0);
+        // $('#count-sudah-kembali').text(summary.sudah_kembali || 0);
         $('#summary-counter').css('display', '');
-        $('#total-label').html(`<i class="bi bi-activity text-primary me-1"></i> Total <b>${total}</b> TLD terpantau`);
+        // $('#total-label').html(
+        //     `<i class="bi bi-activity text-primary me-1"></i> Total <b>${summary.total_tld || 0}</b> TLD terpantau`
+        // );
 
-        if (total === 0) {
+        if (!kontrak.length) {
             $('#empty-state').removeClass('d-none');
             return;
         }
 
-        // ---------- Gabungkan data TLD di LAB (Terikat Kontrak, Evaluasi, Sewa) ----------
-        allLabTlds = [];
-
-        diLab.forEach(function (tld) {
-            allLabTlds.push({
-                ...tld,
-                tipe_penyimpanan: 'di_lab',
-                label_tipe: 'Di Lab'
-            });
-        });
-
-        evalasi.forEach(function (tld) {
-            allLabTlds.push({
-                ...tld,
-                tipe_penyimpanan: 'evaluasi',
-                label_tipe: 'Evaluasi'
-            });
-        });
-
-        sewa.forEach(function (tld) {
-            allLabTlds.push({
-                ...tld,
-                tipe_penyimpanan: 'sewa',
-                label_tipe: 'Sewa'
-            });
-        });
-
-        // ---------- TLD Idle ----------
-        allIdleTlds = idle;
-
-        // ---------- Render Data Terpaginasi ----------
-        if (allLabTlds.length > 0) {
-            $('#badge-di-lab').text(allLabTlds.length);
-            $('#section-di-lab').removeClass('d-none');
-            renderLabTlds(1);
-        } else {
-            $('#section-di-lab').addClass('d-none');
-        }
-
-        if (allIdleTlds.length > 0) {
-            $('#badge-idle').text(allIdleTlds.length);
-            $('#section-idle').removeClass('d-none');
-            renderIdleTlds(1);
-        } else {
-            $('#section-idle').addClass('d-none');
-        }
+        allKontrakData = kontrak;
+        $('#badge-kontrak').text(kontrak.length);
+        $('#section-kontrak').removeClass('d-none');
+        renderKontrak(1);
 
     }, function (err) {
         $('#placeholder-container').addClass('d-none');
@@ -156,187 +104,244 @@ function loadPenyimpananData() {
     });
 }
 
-function renderLabTlds(page = 1) {
-    currentPageLab = page;
+// ============================================================
+// RENDER KARTU PER KONTRAK
+// ============================================================
+function renderKontrak(page = 1) {
+    currentPage = page;
     const startIndex = (page - 1) * limitPerPage;
-    const endIndex = startIndex + limitPerPage;
-    const paginatedData = allLabTlds.slice(startIndex, endIndex);
+    const paginatedData = allKontrakData.slice(startIndex, startIndex + limitPerPage);
 
-    let html = '';
-    if (paginatedData.length === 0) {
-        html = `
+    if (!paginatedData.length) {
+        $('#container-kontrak').html(`
             <div class="text-center py-4 text-muted">
                 <i class="bi bi-inbox fs-3 d-block mb-2 text-secondary"></i>
-                Tidak ada data TLD Aktif di LAB.
+                Tidak ada data kontrak.
             </div>
-        `;
-        $('#container-di-lab').html(html);
-        $('#pagination-di-lab').html('');
+        `);
+        $('#pagination-kontrak').html('');
         return;
     }
 
-    paginatedData.forEach(function (tld) {
-        // Tentukan warna border dan badge berdasarkan tipe
-        let borderClass = '';
-        let statusBadge = '';
-        let actionBtn = '';
+    let html = '';
+    paginatedData.forEach(function (k) {
+        const tipeBadge = getTipeBadge(k.tipe);
 
-        if (tld.tipe_penyimpanan === 'di_lab') {
-            borderClass = 'border-left-lab';
-            statusBadge = `<span class="badge bg-primary-subtle text-primary rounded-pill tld-badge"><i class="bi bi-archive me-1"></i>Di Lab</span>`;
+        html += `
+            <div class="card kontrak-card tipe-${k.tipe} mb-2 shadow-xs">
+                <div class="card-body py-3">
+                    <div class="row align-items-center">
+                        <div class="col-12 col-md-6">
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                ${tipeBadge}
+                                <span class="fw-bold text-dark font-monospace">${k.no_kontrak}</span>
+                            </div>
+                            <div class="text-muted fs-8 mb-1">
+                                <i class="bi bi-building me-1"></i>${k.perusahaan}
+                            </div>
+                        </div>
 
-            actionBtn = tld.penyelia_hash
-                ? `<a href="/staff/lhu?md=${tld.penyelia_hash}" class="btn btn-outline-primary btn-sm fw-semibold">
-                        <i class="bi bi-arrow-up-right-circle me-1"></i>Update LHU
+                        <div class="col-12 col-md-4 mt-2 mt-md-0">
+                            <div class="text-muted fs-9 mb-1">Sesuai Kontrak</div>
+                            <div class="fw-semibold text-dark fs-8">
+                                <span class="me-2"><i class="bi bi-person me-1 text-primary"></i>${k.kontrak_pengguna} Pengguna</span>
+                                <span><i class="bi bi-shield-check me-1 text-secondary"></i>${k.kontrak_kontrol} Kontrol</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-2 text-md-end mt-3 mt-md-0">
+                            <button class="btn btn-outline-primary btn-sm rounded-pill fw-semibold btn-detail-tld"
+                                data-idx="${startIndex + paginatedData.indexOf(k)}">
+                                <i class="bi bi-list-ul me-1"></i>Detail TLD
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    $('#container-kontrak').html(html);
+
+    // Render pagination
+    const totalPages = Math.ceil(allKontrakData.length / limitPerPage);
+    $('#pagination-kontrak').html(createPaginationHTML({ current_page: page, last_page: totalPages }));
+}
+
+// ============================================================
+// HELPER: Badge tipe layanan
+// ============================================================
+function getTipeBadge(tipe) {
+    const map = {
+        evaluasi: `<span class="badge rounded-pill" style="background:rgba(245,158,11,.12);color:#d97706;border:1px solid rgba(245,158,11,.25)"><i class="bi bi-graph-up-arrow me-1"></i>Evaluasi</span>`,
+        sewa: `<span class="badge rounded-pill" style="background:rgba(139,92,246,.12);color:#8b5cf6;border:1px solid rgba(139,92,246,.25)"><i class="bi bi-box-seam me-1"></i>Sewa</span>`,
+        di_lab: `<span class="badge rounded-pill" style="background:rgba(59,130,246,.12);color:#3b82f6;border:1px solid rgba(59,130,246,.25)"><i class="bi bi-archive me-1"></i>Di Lab</span>`,
+    };
+    return map[tipe] || `<span class="badge bg-secondary">${tipe}</span>`;
+}
+
+// ============================================================
+// HELPER: Status pengembalian
+// ============================================================
+function getStatusHtml(semuaKembali) {
+    if (semuaKembali) {
+        return `<span class="badge rounded-pill text-bg-success py-1 px-2">
+                    <i class="bi bi-check2-circle me-1"></i>Semua Sudah Kembali
+                </span>`;
+    }
+    return `<span class="badge rounded-pill text-bg-warning py-1 px-2">
+                <i class="bi bi-hourglass-split me-1"></i>Belum Kembali
+            </span>`;
+}
+
+// ============================================================
+// MODAL DETAIL TLD
+// ============================================================
+function showDetailModal(kontrak) {
+    $('#modal-detail-tld-label').text(`Detail TLD — ${kontrak.no_kontrak}`);
+    $('#modal-detail-tld-subtitle').text(kontrak.perusahaan);
+
+    const tlds = kontrak.tlds || [];
+    if (!tlds.length) {
+        $('#modal-detail-tld-body').html(`
+            <div class="text-center py-4 text-muted">
+                <i class="bi bi-inbox fs-3 d-block mb-2"></i>Tidak ada data TLD.
+            </div>
+        `);
+        $('#modal-detail-tld').modal('show');
+        return;
+    }
+
+    // Kelompokkan TLD berdasarkan periode
+    const tldsByPeriode = {};
+    tlds.forEach(tld => {
+        const p = tld.periode;
+        if (!tldsByPeriode[p]) {
+            tldsByPeriode[p] = [];
+        }
+        tldsByPeriode[p].push(tld);
+    });
+
+    // Urutkan periode ascending
+    const periodes = Object.keys(tldsByPeriode).sort((a, b) => {
+        const pA = parseInt(a);
+        const pB = parseInt(b);
+        return pA - pB;
+    });
+
+    let tabNavHtml = '<ul class="nav nav-tabs mb-3" id="tld-periode-tabs" role="tablist">';
+    let tabContentHtml = '<div class="tab-content" id="tld-periode-tabs-content">';
+
+    periodes.forEach((p, idx) => {
+        const isActive = idx === 0;
+        const activeClass = isActive ? 'active' : '';
+        const showActiveClass = isActive ? 'show active' : '';
+
+        // Urutkan TLD dalam satu periode berdasarkan no_seri_tld
+        const tldsInPeriode = tldsByPeriode[p].sort((a, b) => (a.no_seri_tld || '').localeCompare(b.no_seri_tld || ''));
+        const totalInPeriode = tldsInPeriode.length;
+
+        // Tab Header
+        const tabTitle = p == 0 ? 'Zero Check' : `Periode ${p}`;
+        tabNavHtml += `
+            <li class="nav-item" role="presentation">
+                <button class="nav-link ${activeClass} fw-semibold" id="tab-p-${p}-tab" data-bs-toggle="tab" data-bs-target="#tab-p-${p}" type="button" role="tab">
+                    ${tabTitle} <span class="badge bg-light text-dark border ms-1 fs-9">${totalInPeriode}</span>
+                </button>
+            </li>
+        `;
+
+        // Ringkasan untuk periode ini saja
+        const sudahKembali = tldsInPeriode.filter(t => t.status_tld === 1 || t.status_tld === 5).length;
+        const belumKembali = totalInPeriode - sudahKembali;
+
+        const ringkasanHtml = belumKembali > 0
+            ? `<div class="alert alert-warning py-2 mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span><b>${belumKembali}</b> dari <b>${totalInPeriode}</b> TLD belum kembali ke lab untuk periode ini.</span>
+               </div>`
+            : `<div class="alert alert-success py-2 mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-check2-circle-fill"></i>
+                    <span>Semua <b>${totalInPeriode}</b> TLD sudah kembali ke lab untuk periode ini.</span>
+               </div>`;
+
+        // Baris tabel
+        let rows = '';
+        tldsInPeriode.forEach(function (tld, i) {
+            const isKembali = tld.status_tld === 1 || tld.status_tld === 5;
+            const rowClass = isKembali ? 'tld-row-kembali' : '';
+
+            // Tentukan kelas badge & ikon berdasarkan status TLD yang baru
+            let badgeClass = 'text-bg-secondary';
+            let iconClass = 'bi-info-circle';
+            if (isKembali) {
+                badgeClass = 'text-bg-success';
+                iconClass = 'bi-check2';
+            } else if (tld.status_tld === 2) {
+                badgeClass = 'text-bg-secondary';
+                iconClass = 'bi-person';
+            } else if (tld.status_tld === 3) {
+                badgeClass = 'text-bg-warning text-dark';
+                iconClass = 'bi-graph-up-arrow';
+            } else if (tld.status_tld === 6) {
+                badgeClass = 'text-bg-info text-dark';
+                iconClass = 'bi-send';
+            }
+
+            const statusBadge = `<span class="badge ${badgeClass} rounded-pill py-1 px-2"><i class="bi ${iconClass} me-1"></i>${tld.label_status}</span>`;
+
+            const aksiBtn = (isKembali && tld.penyelia_hash)
+                ? `<a href="/staff/lhu?md=${tld.penyelia_hash}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill">
+                        <i class="bi bi-arrow-up-right-circle me-1"></i>LHU
                    </a>`
-                : `<button class="btn btn-outline-secondary btn-sm fw-semibold" disabled title="Alur LHU belum tersedia">
-                        <i class="bi bi-exclamation-circle me-1"></i>Belum Ada LHU
-                   </button>`;
-        } else if (tld.tipe_penyimpanan === 'evaluasi') {
-            borderClass = 'border-left-evaluasi';
-            statusBadge = `<span class="badge bg-warning-subtle text-warning rounded-pill tld-badge"><i class="bi bi-graph-up-arrow me-1"></i>Evaluasi</span>`;
-        } else if (tld.tipe_penyimpanan === 'sewa') {
-            borderClass = 'border-left-sewa';
-            statusBadge = `<span class="badge rounded-pill tld-badge" style="background:rgba(139,92,246,.12);color:#8b5cf6;"><i class="bi bi-box-seam me-1"></i>Sewa</span>`;
-        }
+                : `<span class="text-muted fs-9">—</span>`;
 
-        const periodeLbl = tld.periode == 0 ? 'Zero Check' : 'Periode ' + tld.periode;
-        let rangeDate = '';
-        if (tld.periodenow && tld.periodenow.periode != 0) {
-            rangeDate = ': ' + range_date(tld.periodenow.start_date, tld.periodenow.end_date, 1).start +
-                ' - ' + range_date(tld.periodenow.start_date, tld.periodenow.end_date, 1).end;
-        }
+            const jenisBadge = tld.jenis === 'kontrol'
+                ? `<span class="badge bg-secondary-subtle text-secondary rounded-pill">Kontrol</span>`
+                : '';
 
-        html += `
-            <div class="card ${borderClass} mb-1 hover-effect transition-all">
-                <div class="card-body d-flex flex-row align-items-center g-3">
-                    <div class="col-12 col-md-4">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="font-monospace fw-bold text-dark fs-3">${tld.no_seri_tld}</span>
-                        </div>
-                        <div class="text-secondary small">
-                            <div class="d-flex align-items-center gap-2">
-                                ${statusBadge}
-                                <span class="badge bg-light text-secondary border rounded-pill py-1 px-2">
-                                    <i class="bi bi-tag me-1"></i>${tld.jenis_tld || '-'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-5">
-                        <div class="fw-semibold text-dark fs-8">${tld.perusahaan}</div>
-                        <div class="text-muted small mt-1">
-                            <span class="me-2"><i class="bi bi-hash"></i><b>${tld.no_kontrak}</b></span>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="text-muted fs-8">Digunakan : <i class="bi bi-person me-1"></i>${tld.pengguna || '-'}</span>
-                        </div>
-                        <div class="text-muted small mt-1">
-                            <span><i class="bi bi-calendar-range me-1"></i>${periodeLbl}${rangeDate}</span>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-3 text-md-end">
-                        <div>
-                            ${actionBtn}
-                        </div>
-                    </div>
+            rows += `
+                <tr class="${rowClass}">
+                    <td class="text-center text-muted">${i + 1}</td>
+                    <td class="font-monospace fw-semibold">${tld.no_seri_tld} ${jenisBadge}</td>
+                    <td>${tld.jenis === 'kontrol' ? '<span class="text-muted">—</span>' : tld.pengguna}</td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end">${aksiBtn}</td>
+                </tr>
+            `;
+        });
+
+        // Tab Content Pane
+        tabContentHtml += `
+            <div class="tab-pane fade ${showActiveClass}" id="tab-p-${p}" role="tabpanel">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="3%" class="text-center">#</th>
+                                <th width="25%">No. Seri TLD</th>
+                                <th>Pemakai</th>
+                                <th width="20%">Status</th>
+                                <th width="12%" class="text-end">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
                 </div>
             </div>
         `;
     });
 
-    $('#container-di-lab').html(html);
+    tabNavHtml += '</ul>';
+    tabContentHtml += '</div>';
 
-    // Render pagination
-    const totalPages = Math.ceil(allLabTlds.length / limitPerPage);
-    const paginationHtml = createPaginationHTML({
-        current_page: page,
-        last_page: totalPages
-    });
-    $('#pagination-di-lab').html(paginationHtml);
+    $('#modal-detail-tld-body').html(tabNavHtml + tabContentHtml);
+    $('#modal-detail-tld').modal('show');
 }
 
-function renderIdleTlds(page = 1) {
-    currentPageIdle = page;
-    const startIndex = (page - 1) * limitPerPage;
-    const endIndex = startIndex + limitPerPage;
-    const paginatedData = allIdleTlds.slice(startIndex, endIndex);
-
-    let html = '';
-    if (paginatedData.length === 0) {
-        html = `
-            <div class="text-center py-4 text-muted">
-                <i class="bi bi-inbox fs-3 d-block mb-2 text-secondary"></i>
-                Tidak ada data TLD Idle.
-            </div>
-        `;
-        $('#container-idle').html(html);
-        $('#pagination-idle').html('');
-        return;
-    }
-
-    paginatedData.forEach(function (tld) {
-        let historyHtml = '';
-        if (tld.last_history) {
-            const usedAt = tld.last_history.used_at ? dateFormat(tld.last_history.used_at, 2) : '-';
-            historyHtml = `
-                <span class="badge history-badge rounded-pill mt-1">
-                    <i class="bi bi-clock-history me-1"></i>
-                    Terakhir: ${tld.last_history.no_kontrak} — Periode ${tld.last_history.periode} (${usedAt})
-                </span>
-            `;
-        } else {
-            historyHtml = `
-                <span class="badge bg-light text-muted border rounded-pill mt-1">
-                    <i class="bi bi-star me-1"></i>Belum pernah digunakan
-                </span>
-            `;
-        }
-
-        html += `
-            <div class="card border-left-idle mb-1 hover-effect transition-all">
-                <div class="card-body d-flex flex-row align-items-center g-3">
-                    <div class="col-12 col-md-4">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="font-monospace fw-bold text-dark fs-3">${tld.no_seri_tld}</span>
-                        </div>
-                        <div class="text-secondary small">
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-success-subtle text-success rounded-pill tld-badge"><i class="bi bi-check2-circle me-1"></i>Idle</span>
-                                <span class="badge bg-light text-secondary border rounded-pill py-1 px-2">
-                                    <i class="bi bi-tag me-1"></i>${tld.jenis_tld || '-'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-5">
-                        <div class="fw-semibold text-secondary small">History Terakhir:</div>
-                        <div class="mt-1">${historyHtml}</div>
-                    </div>
-                    <div class="col-12 col-md-3 text-md-end">
-                        ${tld.merk ? `
-                        <div>
-                            <span class="badge bg-light text-dark border rounded-pill py-1 px-2">
-                                <i class="bi bi-tools me-1"></i>${tld.merk}
-                            </span>
-                        </div>` : ''}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-
-    $('#container-idle').html(html);
-
-    // Render pagination
-    const totalPages = Math.ceil(allIdleTlds.length / limitPerPage);
-    const paginationHtml = createPaginationHTML({
-        current_page: page,
-        last_page: totalPages
-    });
-    $('#pagination-idle').html(paginationHtml);
-}
-
+// ============================================================
+// UTILS
+// ============================================================
 function clearFilter() {
     filterComp.clear();
     loadPenyimpananData();

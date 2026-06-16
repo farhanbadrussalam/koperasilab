@@ -689,7 +689,7 @@ function updateBulanMulaiSelect(periode, isPeriodeAktif = false) {
         if (isPeriodeAktif) {
             if (monthNumber < currentPeriodMonth) {
                 shouldSkip = true;
-            } else if (monthNumber === currentPeriodMonth && todayDay > 20) {
+            } else if (monthNumber === currentPeriodMonth && todayDay > 11) {
                 shouldSkip = true;
             }
         }

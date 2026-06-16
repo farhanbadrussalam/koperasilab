@@ -3,64 +3,50 @@
 @section('content')
     <div class="m-4">
         {{-- Summary Counter --}}
-        <div class="row g-3 mb-4" id="summary-counter" style="display:none!important;">
-            <div class="col-6 col-md-3">
+        {{-- <div class="row g-3 mb-4" id="summary-counter" style="display:none!important;">
+            <div class="col-6 col-md-4">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #3b82f6!important;">
                     <div class="card-body d-flex align-items-center gap-3 py-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
                             style="width:44px;height:44px;background:rgba(59,130,246,.12);">
-                            <i class="bi bi-archive-fill text-primary fs-5"></i>
+                            <i class="bi bi-journal-bookmark-fill text-primary fs-5"></i>
                         </div>
                         <div>
-                            <div class="fw-bold fs-3 lh-1 text-primary" id="count-di-lab">-</div>
-                            <div class="text-muted small mt-1">TLD di Lab</div>
+                            <div class="fw-bold fs-3 lh-1 text-primary" id="count-kontrak">-</div>
+                            <div class="text-muted small mt-1">Total Kontrak Aktif</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-4">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #f59e0b!important;">
                     <div class="card-body d-flex align-items-center gap-3 py-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
                             style="width:44px;height:44px;background:rgba(245,158,11,.12);">
-                            <i class="bi bi-graph-up-arrow text-warning fs-5"></i>
+                            <i class="bi bi-hourglass-split text-warning fs-5"></i>
                         </div>
                         <div>
-                            <div class="fw-bold fs-3 lh-1 text-warning" id="count-evaluasi">-</div>
-                            <div class="text-muted small mt-1">Evaluasi</div>
+                            <div class="fw-bold fs-3 lh-1 text-warning" id="count-belum-kembali">-</div>
+                            <div class="text-muted small mt-1">Kontrak Belum Kembali</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
-                <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #8b5cf6!important;">
-                    <div class="card-body d-flex align-items-center gap-3 py-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                            style="width:44px;height:44px;background:rgba(139,92,246,.12);">
-                            <i class="bi bi-box-seam-fill text-purple fs-5" style="color:#8b5cf6;"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold fs-3 lh-1" style="color:#8b5cf6;" id="count-sewa">-</div>
-                            <div class="text-muted small mt-1">Sewa</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-4">
                 <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #10b981!important;">
                     <div class="card-body d-flex align-items-center gap-3 py-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
                             style="width:44px;height:44px;background:rgba(16,185,129,.12);">
-                            <i class="bi bi-check2-circle text-success fs-5"></i>
+                            <i class="bi bi-check2-all text-success fs-5"></i>
                         </div>
                         <div>
-                            <div class="fw-bold fs-3 lh-1 text-success" id="count-idle">-</div>
-                            <div class="text-muted small mt-1">Idle / Siap Pakai</div>
+                            <div class="fw-bold fs-3 lh-1 text-success" id="count-sudah-kembali">-</div>
+                            <div class="text-muted small mt-1">Kontrak Sudah Kembali</div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
 
         {{-- Tombol Refresh & Filter --}}
         <div class="card shadow-sm">
@@ -71,15 +57,17 @@
                             <i class="bi bi-arrow-clockwise"></i> Refresh data
                         </button>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-outline-secondary btn-sm rounded-start-pill" data-bs-toggle="collapse" data-bs-target="#collapseFilter">
-                                <i class="bi bi-funnel"></i> Filter <span class="badge text-bg-secondary d-none" id="countFilter">0</span>
+                            <button class="btn btn-outline-secondary btn-sm rounded-start-pill" data-bs-toggle="collapse"
+                                data-bs-target="#collapseFilter">
+                                <i class="bi bi-funnel"></i> Filter <span class="badge text-bg-secondary d-none"
+                                    id="countFilter">0</span>
                             </button>
                             <button class="btn btn-outline-danger btn-sm rounded-end-pill" onclick="clearFilter()">
                                 <i class="bi bi-x-circle-fill"></i>
                             </button>
                         </div>
                     </div>
-                    <span class="text-muted small" id="total-label"></span>
+                    {{-- <span class="text-muted small" id="total-label"></span> --}}
                 </div>
 
                 <div id="list-filter"></div>
@@ -117,8 +105,8 @@
             </div>
         </div>
 
-        {{-- ============ CARD 1: TLD DI LAB ============ --}}
-        <div id="section-di-lab" class="d-none mb-4">
+        {{-- ============ SECTION UTAMA: DAFTAR PER KONTRAK ============ --}}
+        <div id="section-kontrak" class="d-none mb-4 mt-4">
             <div class="card shadow-sm">
                 <div
                     class="card-header bg-transparent border-0 pt-4 pb-0 d-flex align-items-center justify-content-between">
@@ -128,41 +116,34 @@
                             <i class="bi bi-archive-fill text-primary fs-5"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold mb-0 text-dark">Daftar TLD di LAB</h5>
-                            <p class="text-muted small mb-0">Daftar TLD aktif yang terpantau (Terikat Kontrak,
-                                Evaluasi, & Sewa)</p>
+                            <h5 class="fw-bold mb-0 text-dark">Daftar TLD per Kontrak</h5>
+                            <p class="text-muted small mb-0">Dikelompokkan berdasarkan nomor kontrak</p>
                         </div>
                     </div>
-                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-semibold" id="badge-di-lab">0</span>
+                    <span class="badge bg-primary rounded-pill px-3 py-2 fw-semibold" id="badge-kontrak">0</span>
                 </div>
                 <div class="card-body px-4 pb-4">
-                    <div id="container-di-lab" class="mt-3"></div>
-                    <div id="pagination-di-lab" class="mt-3"></div>
+                    <div id="container-kontrak" class="mt-3"></div>
+                    <div id="pagination-kontrak" class="mt-3"></div>
                 </div>
             </div>
         </div>
+    </div>
 
-        {{-- ============ CARD 2: TLD IDLE ============ --}}
-        <div id="section-idle" class="d-none mb-4">
-            <div class="card border-0 shadow-sm">
-                <div
-                    class="card-header bg-transparent border-0 pt-4 pb-0 d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                            style="width:36px;height:36px;background:rgba(16,185,129,.12);">
-                            <i class="bi bi-check2-circle text-success fs-5"></i>
-                        </div>
-                        <div>
-                            <h5 class="fw-bold mb-0 text-dark">Daftar TLD Idle</h5>
-                            <p class="text-muted small mb-0">Daftar TLD siap pakai yang sedang berada di
-                                penyimpanan</p>
-                        </div>
+    {{-- ============ MODAL DETAIL TLD ============ --}}
+    <div class="modal fade" id="modal-detail-tld" tabindex="-1" aria-labelledby="modal-detail-tld-label"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="modal-detail-tld-label">Detail TLD</h5>
+                        <p class="text-muted small mb-0" id="modal-detail-tld-subtitle"></p>
                     </div>
-                    <span class="badge bg-success rounded-pill px-3 py-2 fw-semibold" id="badge-idle">0</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="card-body px-4 pb-4">
-                    <div id="container-idle" class="mt-3"></div>
-                    <div id="pagination-idle" class="mt-3"></div>
+                <div class="modal-body" id="modal-detail-tld-body">
+                    {{-- Diisi oleh JS --}}
                 </div>
             </div>
         </div>
@@ -172,47 +153,49 @@
 
 @push('styles')
     <style>
-        .border-left-lab {
-            border-left: 4.5px solid #3b82f6 !important;
+        .kontrak-card {
+            border-left: 4.5px solid #3b82f6;
+            transition: box-shadow 0.2s ease;
         }
 
-        .border-left-evaluasi {
-            border-left: 4.5px solid #f59e0b !important;
+        .kontrak-card:hover {
+            box-shadow: 0 4px 16px rgba(59, 130, 246, .13) !important;
         }
 
-        .border-left-sewa {
-            border-left: 4.5px solid #8b5cf6 !important;
+        .kontrak-card.tipe-evaluasi {
+            border-left-color: #f59e0b;
         }
 
-        .border-left-idle {
-            border-left: 4.5px solid #10b981 !important;
+        .kontrak-card.tipe-sewa {
+            border-left-color: #8b5cf6;
         }
 
-        .tld-badge {
-            font-size: 0.78rem;
-            letter-spacing: 0.02em;
+        .kontrak-card.tipe-di_lab {
+            border-left-color: #3b82f6;
         }
 
-        .history-badge {
-            font-size: 0.75rem;
-            background: rgba(100, 116, 139, .07);
-            color: #475569;
-            border: 1px solid #e2e8f0;
-            padding: 0.3rem 0.6rem;
+        .status-badge-kembali {
+            background: rgba(16, 185, 129, .10);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, .25);
         }
 
-        .fs-9 {
-            font-size: 0.75rem !important;
+        .status-badge-belum {
+            background: rgba(245, 158, 11, .10);
+            color: #d97706;
+            border: 1px solid rgba(245, 158, 11, .25);
+        }
+
+        .tld-row-kembali td {
+            opacity: 0.65;
         }
 
         .fs-8 {
             font-size: 0.85rem !important;
         }
 
-        .btn-xs {
-            padding: 0.25rem 0.75rem;
-            font-size: 0.75rem;
-            border-radius: 20px;
+        .fs-9 {
+            font-size: 0.75rem !important;
         }
     </style>
 @endpush

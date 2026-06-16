@@ -135,10 +135,10 @@ class PermohonanAPI extends Controller
                 if ($bulanMulai < $currentPeriodMonth) {
                     return $this->output(['msg' => 'Bulan mulai layanan tidak boleh berada di masa lalu.'], 'Fail', 422);
                 }
-                if ($bulanMulai === $currentPeriodMonth && $today->day > 20) {
-                    return $this->output(['msg' => 'Bulan mulai layanan untuk bulan berjalan sudah ditutup setelah tanggal 20. Silakan pilih bulan berikutnya.'], 'Fail', 422);
+                if ($bulanMulai === $currentPeriodMonth && $today->day > 11) {
+                    return $this->output(['msg' => 'Bulan mulai layanan untuk bulan berjalan sudah ditutup setelah tanggal 11. Silakan pilih bulan berikutnya.'], 'Fail', 422);
                 }
-                if ($currentPeriodMonth > 3 || ($currentPeriodMonth === 3 && $today->day > 20)) {
+                if ($currentPeriodMonth > 3 || ($currentPeriodMonth === 3 && $today->day > 11)) {
                     return $this->output(['msg' => 'Masa adendum untuk periode berjalan saat ini sudah habis. Silakan pilih periode berikutnya.'], 'Fail', 422);
                 }
             }
