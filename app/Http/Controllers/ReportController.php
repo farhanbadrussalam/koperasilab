@@ -345,13 +345,22 @@ class ReportController extends Controller
                     $findPeriode1 = $data->kontrak->periode->where('periode', $data->periode)->first();
                     $findPeriode2 = $data->kontrak->periode->where('periode', $data->periode + 1)->first();
 
-                    $periode1 = $findPeriode1 ? convert_date($findPeriode1->start_date, 7) . " s/d " . convert_date($findPeriode1->end_date, 7) : '';
+                    $startDate1 = $findPeriode1 ? $findPeriode1->start_date : '';
+                    if ($startDate1 && $data->bulan_mulai && $data->bulan_mulai > 1) {
+                        $startDate1 = \Carbon\Carbon::parse($startDate1)->addMonths($data->bulan_mulai - 1)->toDateTimeString();
+                    }
+
+                    $periode1 = $findPeriode1 ? convert_date($startDate1, 7) . " s/d " . convert_date($findPeriode1->end_date, 7) : '';
                     $periode2 = $findPeriode2 ? convert_date($findPeriode2->start_date, 7) . " s/d " . convert_date($findPeriode2->end_date, 7) : '';
 
                     $vars["PERIODE_RINCIAN"] = "- $periode1" . ($periode2 != '' ? "<br> - $periode2" : '');
                 } else {
                     $findPeriode = $data->kontrak->periode->where('periode', $data->periode)->first();
-                    $vars["PERIODE_RINCIAN"] = "- " . convert_date($findPeriode->start_date, 7) . " s/d " . convert_date($findPeriode->end_date, 7);
+                    $startDate = $findPeriode ? $findPeriode->start_date : '';
+                    if ($data->tipe_kontrak == 'adendum' && $startDate && $data->bulan_mulai && $data->bulan_mulai > 1) {
+                        $startDate = \Carbon\Carbon::parse($startDate)->addMonths($data->bulan_mulai - 1)->toDateTimeString();
+                    }
+                    $vars["PERIODE_RINCIAN"] = $findPeriode ? "- " . convert_date($startDate, 7) . " s/d " . convert_date($findPeriode->end_date, 7) : '';
                 }
                 $vars["JUDUL"] = "TANDA TERIMA PENGUJIAN/KALIBRASI";
                 $vars["NOMOR"] = $data->dokumen->first()->nomer;
@@ -435,6 +444,13 @@ class ReportController extends Controller
                 }
                 $start_date = $data->periode_next ? $data->periode_next[0]['start_date'] : $params['kontrak_periode']->start_date;
                 $end_date = $data->periode_next ? $data->periode_next[0]['end_date'] : $params['kontrak_periode']->end_date;
+
+                if (isset($params['permohonan']) && $params['permohonan']->tipe_kontrak == 'adendum') {
+                    $bulanMulai = $params['permohonan']->bulan_mulai;
+                    if ($bulanMulai && $bulanMulai > 1) {
+                        $start_date = \Carbon\Carbon::parse($start_date)->addMonths($bulanMulai - 1)->toDateTimeString();
+                    }
+                }
 
                 $vars["NOMOR"] = $params["dokumen"]->nomer;
                 $vars["PERIODE_AWAL"] = convert_date($start_date, 6);
@@ -1444,6 +1460,17 @@ class ReportController extends Controller
         }
 
         $isAdendum = $query->permohonan && $query->permohonan->tipe_kontrak == 'adendum';
+
+        if ($isAdendum && $periodeNow) {
+            $bulanMulai = $query->permohonan->bulan_mulai;
+            if ($bulanMulai && $bulanMulai > 1) {
+                if (is_array($periodeNow)) {
+                    $periodeNow['start_date'] = \Carbon\Carbon::parse($periodeNow['start_date'])->addMonths($bulanMulai - 1)->toDateTimeString();
+                } else if (is_object($periodeNow)) {
+                    $periodeNow->start_date = \Carbon\Carbon::parse($periodeNow->start_date)->addMonths($bulanMulai - 1)->toDateTimeString();
+                }
+            }
+        }
 
         if ($isAdendum) {
             $listTld = \App\Models\Permohonan_detail::with([
