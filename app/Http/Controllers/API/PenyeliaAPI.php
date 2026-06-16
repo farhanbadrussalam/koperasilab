@@ -483,8 +483,10 @@ class PenyeliaAPI extends Controller
 
                             $JL = jenislayanan($penyeliaAssociated->permohonan->jenis_layanan_parent, $penyeliaAssociated->permohonan->jenis_layanan);
                             if ($penyeliaAssociated->is_surat_tugas_signed == 1 && ($penyeliaAssociated->is_pengajuan_signed == 1 || $JL != 'EvaluasiTanpaKontrak')) {
-                                $penyeliaAssociated->update(['status' => 10]);
-                                $this->activePelaksanaLAB($penyeliaAssociated->id_permohonan, $penyeliaAssociated->id_penyelia);
+                                if ($penyeliaAssociated->status != 3) {
+                                    $penyeliaAssociated->update(['status' => 10]);
+                                    $this->activePelaksanaLAB($penyeliaAssociated->id_permohonan, $penyeliaAssociated->id_penyelia);
+                                }
                             }
                         }
                     }

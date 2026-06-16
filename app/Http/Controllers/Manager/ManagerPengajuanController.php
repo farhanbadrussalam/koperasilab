@@ -186,11 +186,14 @@ class ManagerPengajuanController extends Controller
             if ($status === 1) {
                 $pivoted[$uid]['jobs'][$jobId]['dikerjakan'] += $tldCount;
                 $pivoted[$uid]['total_dikerjakan'] += $tldCount;
+                $pivoted[$uid]['total'] += $tldCount;
             } elseif ($status === 2) {
-                $pivoted[$uid]['jobs'][$jobId]['selesai'] += $tldCount;
-                $pivoted[$uid]['total_selesai'] += $tldCount;
+                if ($map->done_by === $user->id) {
+                    $pivoted[$uid]['jobs'][$jobId]['selesai'] += $tldCount;
+                    $pivoted[$uid]['total_selesai'] += $tldCount;
+                    $pivoted[$uid]['total'] += $tldCount;
+                }
             }
-            $pivoted[$uid]['total'] += $tldCount;
         }
 
         $pivoted = array_values($pivoted);
