@@ -26,7 +26,7 @@
             <div class="sidebar-profile-card">
                 <div class="profile-name" title="{{ Auth::user()->name }}">{{ Auth::user()->name }}</div>
                 {{-- Jika role nya pelanggan tampilkan nama perusahaannya --}}
-                @if ($rolePelanggan)
+                @if ($rolePelanggan && Auth::user()->id_perusahaan)
                     <div class="profile-role" title="{{ Auth::user()->perusahaan->nama_perusahaan }}">
                         {{ Auth::user()->perusahaan->nama_perusahaan }}
                     </div>
