@@ -155,7 +155,8 @@ class Permohonan extends Model
         'permohonan_hash',
         'kontrak_hash',
         'ttd_image',
-        'periodenow'
+        'periodenow',
+        'layanan'
     ];
 
     protected $casts = [
@@ -208,6 +209,20 @@ class Permohonan extends Model
         }
 
         return null;
+    }
+
+    public function getLayananAttribute()
+    {
+        $parent = Master_jenisLayanan::where('id_jenisLayanan', $this->jenis_layanan_1)->first();
+        $child = Master_jenisLayanan::where('id_jenisLayanan', $this->jenis_layanan_2)->first();
+
+        if (!$parent || !$child) {
+            return null;
+        }
+
+        $JL = jenislayanan($parent, $child);
+
+        return $JL;
     }
 
     public function jenisTld()

@@ -387,18 +387,6 @@
                 let targetPermohonan = data.permohonan;
                 let targetComplete = isComplete;
 
-                // if (kontrak.is_zerocek == 1 && kontrak.is_have_tld == 0 && data.periode == 1) {
-                //     let periodZero = kontrak.periode.find(p => p.periode == 0);
-                //     if (periodZero) {
-                //         let arrFindZero = ['invoice', 'zerocek'];
-                //         let isZerocekComplete = cekPeriodeComplete(periodZero, cekStatusPeriode, kontrak, arrFindZero);
-                //         if (!isZerocekComplete) {
-                //             targetPermohonan = data.permohonan_zerocek;
-                //             targetComplete = isZerocekComplete;
-                //         }
-                //     }
-                // }
-
                 let htmlPermohonan = ``;
                 let htmlBtnSend = ``;
                 if (targetPermohonan && !targetComplete) {
@@ -415,6 +403,7 @@
                     `;
                 }
 
+                let statusPengirimanTLD = false;
                 if (periodeNext && !isModal) {
                     let findPengirimanTLD = cekStatusPeriode.find(d => d.jenis == 'tld' && d.periode == periodeNext
                         .periode);
@@ -424,8 +413,11 @@
                             <div>${statusFormat('pengiriman', findPengirimanTLD?.status)}</div>
                         </div>
                     `;
+
+                    statusPengirimanTLD = findPengirimanTLD?.status;
                     if (kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1 && data.periode == 1) {
                         htmlInformasi = ``;
+                        statusPengirimanTLD = false;
                     }
                 }
 
@@ -438,7 +430,7 @@
                             htmlInformasi += htmlPermohonan;
                         }
                     } else {
-                        if (!targetPermohonan) {
+                        if (!targetPermohonan && statusPengirimanTLD == 2) {
                             htmlAction += htmlBtnEvaluasi;
                         } else {
                             htmlInformasi += htmlPermohonan;

@@ -352,6 +352,12 @@ function loadHtmlPengguna() {
                 let findTldPengguna = arr_pengguna.find(d => d.entitas?.pengguna_hash == pengguna.pengguna_hash && d.jenis == 'pengguna');
                 data['no_seri_tld'] = arrOption.periode.count_tld == 1 ? findTldPengguna?.tld_1?.no_seri_tld : findTldPengguna?.tld_2?.no_seri_tld;
                 haveTld = dataKontrak.is_have_tld == 1 ? true : false;
+
+                // if (dataKontrak.layanan == 'KontrakEvaluasi') {
+                //     if (!dataKontrak.evaluasi_created[arrOption.periode.periode]) {
+                //         haveTld = false;
+                //     }
+                // }
             }
 
             if (value.status == 'lama') {

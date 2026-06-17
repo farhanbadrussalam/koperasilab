@@ -6,19 +6,14 @@ use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-use App\Models\Master_radiasi;
 use App\Models\Master_jenisLayanan;
-use App\Models\Master_tld;
-use App\Models\Master_jenisTLD;
 use App\Models\Master_layanan_jasa;
-use App\Models\Master_divisi;
 
 use App\Models\Perusahaan;
 use App\Models\Permohonan;
 use App\Models\Keuangan;
 use App\Models\Kontrak;
 use App\Models\Kontrak_periode;
-use App\Models\Kontrak_tld;
 
 use App\Http\Controllers\MediaController;
 use App\Models\Master_pengguna;
@@ -163,7 +158,7 @@ class PelangganController extends Controller
             if ($kontrak) {
                 $tldSentStatus = [];
                 foreach ($kontrak->periode as $p) {
-                    $tldSentStatus[$p->periode] = \App\Models\Pengiriman::where('id_kontrak', $idKontrak)
+                    $tldSentStatus[$p->periode] = Pengiriman::where('id_kontrak', $idKontrak)
                         ->where('periode', $p->periode)
                         ->whereHas('detail', function ($q) {
                             $q->where('jenis', 'tld');
@@ -172,6 +167,15 @@ class PelangganController extends Controller
                         ->exists();
                 }
                 $kontrak->tld_sent_status = $tldSentStatus;
+
+                $evaluasiCreated = [];
+                foreach ($kontrak->periode as $p) {
+                    $evaluasiCreated[$p->periode] = Permohonan::where('id_kontrak', $idKontrak)
+                        ->where('periode', $p->periode)
+                        ->whereNot('tipe_kontrak', 'adendum')
+                        ->exists();
+                }
+                $kontrak->evaluasi_created = $evaluasiCreated;
             }
 
             $data['kontrak'] = $kontrak;

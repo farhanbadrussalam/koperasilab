@@ -134,6 +134,7 @@ class Kontrak extends Model
         'periode_all',
         'data_radiasi',
         'periode_active',
+        'layanan'
     ];
 
     protected $casts = [
@@ -243,6 +244,20 @@ class Kontrak extends Model
         $result['periode_akhir'] = $periodeAkhir;
         $result['jml_periode'] = $jmlPeriode;
         return $result;
+    }
+
+    public function getLayananAttribute()
+    {
+        $parent = Master_jenisLayanan::where('id_jenisLayanan', $this->jenis_layanan_1)->first();
+        $child = Master_jenisLayanan::where('id_jenisLayanan', $this->jenis_layanan_2)->first();
+
+        if (!$parent || !$child) {
+            return null;
+        }
+
+        $JL = jenislayanan($parent, $child);
+
+        return $JL;
     }
 
     public function jenisTld()
