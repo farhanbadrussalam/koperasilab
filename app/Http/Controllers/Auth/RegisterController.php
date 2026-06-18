@@ -57,6 +57,36 @@ class RegisterController extends Controller
     }
 
     /**
+     * Handle a registration request for the application.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
+     */
+    public function register(\Illuminate\Http\Request $request)
+    {
+        $this->validator($request->all())->validate();
+
+        try {
+            $user = $this->create($request->all());
+        } catch (\Exception $ex) {
+            info($ex);
+            return redirect()->back()->withInput()->with('error', $ex->getMessage());
+        }
+
+        event(new \Illuminate\Auth\Events\Registered($user));
+
+        $this->guard()->login($user);
+
+        if ($response = $this->registered($request, $user)) {
+            return $response;
+        }
+
+        return $request->wantsJson()
+                    ? new \Illuminate\Http\JsonResponse([], 201)
+                    : redirect($this->redirectPath());
+    }
+
+    /**
      * Get a validator for an incoming registration request.
      *
      * @param  array  $data
@@ -111,9 +141,8 @@ class RegisterController extends Controller
 
             return $user;
         } catch (\Exception $ex) {
-            info($ex);
             DB::rollBack();
-            return redirect()->back()->with('error', $ex->getMessage());
+            throw $ex;
         }
     }
 

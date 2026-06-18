@@ -7,10 +7,10 @@
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="realtime" content="{{ Auth::user()->realtime_notifications ? '1' : '0' }}">
+    <meta name="realtime" content="{{ Auth::check() && Auth::user()->realtime_notifications ? '1' : '0' }}">
     <meta name="auth-id" content="{{ Auth::id() }}">
 
-    <title>{{ config('app.name', 'Laravel') }} | {{ count(Auth::user()->getRoleNames()) != 0 ? Auth::user()->getRoleNames()[0] : '' }}</title>
+    <title>{{ config('app.name', 'Laravel') }}{{ Auth::check() && count(Auth::user()->getRoleNames()) != 0 ? ' | ' . Auth::user()->getRoleNames()[0] : '' }}</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -24,8 +24,9 @@
 
     {{-- Plugin --}}
     <link rel="stylesheet" href="{{ asset('assets/jquery/jquery-ui.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}"/>
-    <link rel="stylesheet" href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}"/>
+    <link rel="stylesheet"
+        href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('assets/dropify/css/dropify.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.css') }}">
@@ -81,17 +82,22 @@
 <body>
 
     <!--  Body Wrapper -->
-    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full" data-sidebar-position="fixed" data-header-position="fixed">
-        <!-- Main Sidebar Container -->
-        @include('layouts.sidebar')
+    <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
+        data-sidebar-position="fixed" data-header-position="fixed">
+        @auth
+            <!-- Main Sidebar Container -->
+            @include('layouts.sidebar')
+        @endauth
 
         <!--  Main wrapper -->
         <div class="body-wrapper">
-            <header class="app-header shadow-sm">
-                <!-- Navbar -->
-                @include('layouts.navbar')
+            @auth
+                <header class="app-header shadow-sm">
+                    <!-- Navbar -->
+                    @include('layouts.navbar')
 
-            </header>
+                </header>
+            @endauth
 
             <div class="container-fluid">
                 @yield('content')
@@ -111,11 +117,11 @@
         const csrf = "{{ csrf_token() }}";
         const base_url = "{{ url('') }}";
         const userActive = @json(Auth::user());
-        const role = @json(Auth::user()->getRoleNames());
-        const permission = @json(Auth::user()->getDirectPermissions());
-        const permissionInRole = @json(Auth::user()->getPermissionsViaRoles());
+        const role = @json(Auth::check() ? Auth::user()->getRoleNames() : []);
+        const permission = @json(Auth::check() ? Auth::user()->getDirectPermissions() : []);
+        const permissionInRole = @json(Auth::check() ? Auth::user()->getPermissionsViaRoles() : []);
         const envirotment = "{{ config('app.env') }}";
-        const statusUser = @json(Auth::user()->status);
+        const statusUser = @json(Auth::check() ? Auth::user()->status : null);
     </script>
     <script src="{{ asset('assets/js/global.js') }}"></script>
     @stack('scripts')
@@ -152,14 +158,16 @@
             host: "{{ env('PUSHER_HOST', '') }}",
             wsPort: "{{ config('broadcasting.connections.pusher.options.port') }}",
             wssPort: "{{ config('broadcasting.connections.pusher.options.port') }}",
-            forceTLS: {{ config('broadcasting.connections.pusher.options.useTLS') ? "true" : "false" }},
+            forceTLS: {{ config('broadcasting.connections.pusher.options.useTLS') ? 'true' : 'false' }},
         };
-        $(function () {
+        $(function() {
             let user = @json(Auth::user());
-            let notifikasi = new WidgetNotifikasi('container-notifikasi',{
-                'channel' : `App.Models.User.${user.id}`,
-                'id' : user.id
-            });
+            if (user) {
+                let notifikasi = new WidgetNotifikasi('container-notifikasi', {
+                    'channel': `App.Models.User.${user.id}`,
+                    'id': user.id
+                });
+            }
 
             // $("#container-time-now").html(dateFormat(new Date(), 1));
             // setInterval(() => {
@@ -171,27 +179,29 @@
 
 
             // Mengecek session
-            setInterval(() => {
-                const authenticated = @json(Auth::check());
-                if (!authenticated) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Session Expired',
-                        text: 'Silahkan login kembali',
-                        showConfirmButton: true
-                    }).then(() => {
-                        document.getElementById('logout-form').submit();
-                    })
-                };
-                // ajaxGet(`check-session`, false, result => {
-                //     if (!result.authenticated) {
+            if (@json(Auth::check())) {
+                setInterval(() => {
+                    const authenticated = @json(Auth::check());
+                    if (!authenticated) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Session Expired',
+                            text: 'Silahkan login kembali',
+                            showConfirmButton: true
+                        }).then(() => {
+                            document.getElementById('logout-form').submit();
+                        })
+                    };
+                    // ajaxGet(`check-session`, false, result => {
+                    //     if (!result.authenticated) {
 
-                //     }
-                // });
-            }, 10000);
+                    //     }
+                    // });
+                }, 10000);
+            }
 
             // Menangkap semua event saat modal manapun mulai ditutup
-            document.addEventListener('hide.bs.modal', function (event) {
+            document.addEventListener('hide.bs.modal', function(event) {
                 if (document.activeElement) {
                     document.activeElement.blur(); // Hilangkan fokus dari tombol apapun
                 }
@@ -206,7 +216,9 @@
             // Inisialisasi counter badge adendum khusus Staff Pengiriman
             if (role.includes('Staff Pengiriman')) {
                 const loadAdendumBadge = () => {
-                    ajaxGet('api/v1/pengiriman/listAdendum', { limit: 1 }, result => {
+                    ajaxGet('api/v1/pengiriman/listAdendum', {
+                        limit: 1
+                    }, result => {
                         let total = result.pagination?.total ?? 0;
                         if (total > 0) {
                             $('#adendum-sidebar-badge').text(total).removeClass('d-none');
@@ -236,18 +248,18 @@
                     `;
                     notif.status == 1 && countLonceng++;
                 }
-                if(countLonceng > 0){
+                if (countLonceng > 0) {
                     $('#count_lonceng').show();
                     $('#count_lonceng').html(countLonceng);
                 }
-                if(result.data.length == 0){
+                if (result.data.length == 0) {
                     html = `<div class="text-center">No data notifications</div>`;
                 }
                 $('#body-notif').html(html);
             })
         }
 
-        function notifGoTo(obj, type){
+        function notifGoTo(obj, type) {
             let notifId = $(obj).data('id');
             let url;
             type = type.toLowerCase();
@@ -259,8 +271,11 @@
                     break;
             }
 
-            ajaxGet(`api/v1/getNotifikasi`, {id: notifId, status: 2}, result => {
-                if(url){
+            ajaxGet(`api/v1/getNotifikasi`, {
+                id: notifId,
+                status: 2
+            }, result => {
+                if (url) {
                     window.location.href = url;
                 }
             })
