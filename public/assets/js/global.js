@@ -1322,7 +1322,7 @@ function checkEmail(obj, email, jenis) {
         spinner('hide', $(obj).parent().find('.form-label'));
     }, error => {
         console.log(error);
-    }, false, {
+    }, {
         onMiddleware: false
     });
 }
@@ -1348,7 +1348,7 @@ function checkNIK(obj, nik) {
         spinner('hide', $(obj).parent().find('.form-label'));
     }, error => {
         console.log(error);
-    }, false, {
+    }, {
         onMiddleware: false
     });
 }
