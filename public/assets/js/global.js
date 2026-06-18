@@ -1322,7 +1322,9 @@ function checkEmail(obj, email, jenis) {
         spinner('hide', $(obj).parent().find('.form-label'));
     }, error => {
         console.log(error);
-    }, false, false);
+    }, false, {
+        onMiddleware: false
+    });
 }
 
 function checkNIK(obj, nik) {
@@ -1346,7 +1348,9 @@ function checkNIK(obj, nik) {
         spinner('hide', $(obj).parent().find('.form-label'));
     }, error => {
         console.log(error);
-    }, false, false);
+    }, false, {
+        onMiddleware: false
+    });
 }
 
 function toUTCDateOnly(d) {

@@ -115,6 +115,8 @@ function loadData(page = 1) {
 
         $('#list-placeholder').hide();
         $('#list-container').show();
+    }, false, {
+        onMiddleware: false
     })
 
 }
