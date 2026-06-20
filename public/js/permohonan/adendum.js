@@ -156,6 +156,7 @@ function simpanAdendum(obj) {
     }
 
     const zerocek = $('#useZeroCek').is(':checked');
+    const isHaveTld = $('#isHaveTld').is(':checked');
 
     const periode = arrOption.periode;
     const subTotal = arrOption.subTotal;
@@ -167,6 +168,7 @@ function simpanAdendum(obj) {
     params.append('idPeriode', periode.periode_hash);
     params.append('id_kontrak', dataKontrak.kontrak_hash);
     params.append('sub_total', subTotal);
+    params.append('is_have_tld', isHaveTld ? 1 : 0);
     params.append('is_zerocek', zerocek ? 1 : 0);
     params.append('bulan_mulai', arrOption.bulan_mulai || 1);
 
@@ -374,7 +376,7 @@ function loadHtmlPengguna() {
                     data['no_seri_tld'] = value.tld.no_seri_tld;
                 }
 
-                if(isHaveTld) haveTld = true;
+                if (isHaveTld) haveTld = true;
             }
 
             return cardPenggunaComponent(data, {

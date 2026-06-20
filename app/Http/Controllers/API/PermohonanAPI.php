@@ -82,8 +82,9 @@ class PermohonanAPI extends Controller
             $idPeriode = $request->idPeriode ? decryptor($request->idPeriode) : false;
             $idKontrak = $request->id_kontrak ? decryptor($request->id_kontrak) : false;
             $totalHarga = $request->sub_total ? $request->sub_total : false;
-            $isZeroCek = (int) $request->is_zerocek;
             $bulanMulai = $request->bulan_mulai ? (int) $request->bulan_mulai : 1;
+            $isZeroCek = (int) $request->is_zerocek;
+            $isHaveTld = (int) $request->is_havetld;
 
             $dataKontrak = Kontrak::find($idKontrak);
             $dataPeriode = Kontrak_periode::find($idPeriode);
@@ -186,7 +187,7 @@ class PermohonanAPI extends Controller
             $data['harga_layanan'] = $dataKontrak->harga_layanan;
             $data['note'] = $note;
             $data['is_zerocek'] = $isZeroCek;
-            $data['is_have_tld'] = $dataKontrak->is_have_tld;
+            $data['is_have_tld'] = $isHaveTld;
             $data['status'] = 1;
             $data['created_by'] = Auth::user()->id;
 
