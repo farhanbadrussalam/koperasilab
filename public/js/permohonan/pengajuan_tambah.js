@@ -419,6 +419,15 @@ class PengajuanTambahManager {
             if (!valperiodePemakaian) sanityCek.push('Periode Pemakaian');
             if (Number(valjumPengguna) === 0) sanityCek.push('Jumlah Pengguna');
 
+            if (haveTld) {
+                const missingTldPengguna = this.tmpArrTldPengguna.some(item => !item.no_seri_tld);
+                const missingTldKontrol = this.tmpArrTldKontrol.some(item => !item.no_seri_tld);
+
+                if (missingTldPengguna || missingTldKontrol) {
+                    sanityCek.push('No Seri TLD (Pengguna / Kontrol)');
+                }
+            }
+
             if (sanityCek.length > 0) {
                 return Swal.fire({
                     icon: 'error',
@@ -586,7 +595,8 @@ class PengajuanTambahManager {
 
                         this.tmpArrTldPengguna.push({
                             id: value.permohonan_detail_hash,
-                            index: `tldNoSeri_${i}_pengguna`
+                            index: `tldNoSeri_${i}_pengguna`,
+                            no_seri_tld: value.tld?.no_seri_tld || ''
                         });
                     }
                 }
@@ -696,7 +706,8 @@ class PengajuanTambahManager {
                 value.map((info, i) => {
                     this.tmpArrTldKontrol.push({
                         id: info.permohonan_detail_hash,
-                        index: `tldNoSeri_${key}_${i}_kontrol`
+                        index: `tldNoSeri_${key}_${i}_kontrol`,
+                        no_seri_tld: info.tld?.no_seri_tld || ''
                     });
                 });
 

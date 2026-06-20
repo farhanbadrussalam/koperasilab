@@ -402,8 +402,10 @@ class KontrakAPI extends Controller
         $keuanganIds = \App\Models\Keuangan::whereIn('id_permohonan', $permohonanIds)->pluck('id_keuangan')->toArray();
 
         $penggunaIdsFromTld = \App\Models\Kontrak_tld::where('id_kontrak', $id_kontrak)->pluck('id_pengguna')->toArray();
-        $penggunaIdsFromMap = \App\Models\Kontrak_pengguna::where('id_kontrak', $id_kontrak)->pluck('id_pengguna_divisi')->toArray();
-        $allPenggunaIds = array_unique(array_filter(array_merge($penggunaIdsFromTld, $penggunaIdsFromMap)));
+        $penggunaIdsFromMap = \App\Models\Kontrak_detail::where('id_kontrak', $id_kontrak)->where('jenis', 'pengguna')->pluck('id_pengguna_divisi')->toArray();
+        $permohonanPenggunaIds = \App\Models\Permohonan_pengguna::whereIn('id_permohonan', $permohonanIds)->pluck('id_pengguna')->toArray();
+        $permohonanTldIds = \App\Models\Permohonan_tld::whereIn('id_permohonan', $permohonanIds)->pluck('id_pengguna')->toArray();
+        $allPenggunaIds = array_unique(array_filter(array_merge($penggunaIdsFromTld, $penggunaIdsFromMap, $permohonanPenggunaIds, $permohonanTldIds)));
 
         $mediaIds = [];
         if ($kontrak->file_lhu) {

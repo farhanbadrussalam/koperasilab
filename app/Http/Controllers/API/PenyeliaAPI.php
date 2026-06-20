@@ -210,7 +210,7 @@ class PenyeliaAPI extends Controller
             if ($penyelia) {
                 // simpan ttd di dokumen
                 if ($ttd) {
-                    $JL = jenislayanan($penyelia->permohonan->jenis_layanan_parent, $penyelia->permohonan->jenis_layanan);
+                    $JL = $penyelia->permohonan->layanan;
                     Permohonan_dokumen::where('id_permohonan', $penyelia->id_permohonan)
                         ->where('jenis', 'surattugas')->where('status', 1)
                         ->update([

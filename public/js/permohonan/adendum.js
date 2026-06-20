@@ -103,6 +103,11 @@ $(function () {
         arrOption.bulan_mulai = val ? parseInt(val) : '';
         calcPrice();
     });
+
+    $('#isHaveTld').on('change', function () {
+        loadHtmlPengguna();
+        loadHtmlKontrol();
+    })
 });
 
 function simpanAdendum(obj) {
@@ -326,6 +331,7 @@ function loadKontrol() {
 function loadHtmlPengguna() {
     tmpArrTld = [];
     tmpArrTldPengguna = [];
+    const isHaveTld = $('#isHaveTld').is(':checked');
     const htmlPengguna = arrOption.pengguna.map((value, i) => {
         let pengguna = value.pengguna;
 
@@ -351,13 +357,6 @@ function loadHtmlPengguna() {
             if (arrOption.periode) {
                 let findTldPengguna = arr_pengguna.find(d => d.entitas?.pengguna_hash == pengguna.pengguna_hash && d.jenis == 'pengguna');
                 data['no_seri_tld'] = arrOption.periode.count_tld == 1 ? findTldPengguna?.tld_1?.no_seri_tld : findTldPengguna?.tld_2?.no_seri_tld;
-                haveTld = dataKontrak.is_have_tld == 1 ? true : false;
-
-                // if (dataKontrak.layanan == 'KontrakEvaluasi') {
-                //     if (!dataKontrak.evaluasi_created[arrOption.periode.periode]) {
-                //         haveTld = false;
-                //     }
-                // }
             }
 
             if (value.status == 'lama') {
@@ -374,6 +373,8 @@ function loadHtmlPengguna() {
                 if (value.tld) {
                     data['no_seri_tld'] = value.tld.no_seri_tld;
                 }
+
+                if(isHaveTld) haveTld = true;
             }
 
             return cardPenggunaComponent(data, {
@@ -393,6 +394,7 @@ function loadHtmlPengguna() {
 
 function loadHtmlKontrol() {
     tmpArrTldKontrol = [];
+    const isHaveTld = $('#isHaveTld').is(':checked');
     const htmlKontrol = arrOption.kontrol.map((value, idx) => {
         const kodeLencana = idx >= 1 ? `C${idx}` : 'C';
         const data = {
@@ -407,7 +409,6 @@ function loadHtmlKontrol() {
         if (arrOption.periode) {
             let findTldKontrol = arr_kontrol.find(d => d.kontrak_detail_hash == value.id && d.jenis == 'kontrol');
             data['no_seri_tld'] = arrOption.periode.count_tld == 1 ? findTldKontrol?.tld_1?.no_seri_tld : findTldKontrol?.tld_2?.no_seri_tld;
-            haveTld = dataKontrak.is_have_tld == 1 ? true : false;
             data['rincian'] = [
                 value
             ]
@@ -427,6 +428,8 @@ function loadHtmlKontrol() {
             if (value.tld) {
                 data['no_seri_tld'] = value.tld.no_seri_tld;
             }
+
+            if (isHaveTld) haveTld = true;
         }
 
         return cardKontrolComponent(data, {
