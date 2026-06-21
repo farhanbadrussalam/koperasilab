@@ -34,12 +34,12 @@
 
             <div class="my-3">
                 <!-- Loading Skeleton Placeholder -->
-                <div class="body-placeholder my-3" id="list-placeholder-adendum">
+                <div class="body-placeholder d-flex flex-column gap-3 my-3" id="list-placeholder-adendum">
                     <!-- Skeleton loader akan dimuat di sini -->
                 </div>
 
                 <!-- Container Data -->
-                <div class="body my-3" id="list-container-adendum">
+                <div class="body d-flex flex-column gap-3 my-3" id="list-container-adendum">
                     <!-- Daftar adendum akan dirender di sini -->
                 </div>
 

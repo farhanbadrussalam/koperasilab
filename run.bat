@@ -80,8 +80,8 @@ goto MENU
 :: Opsi ini membuka dua jendela cmd baru secara otomatis
 echo.
 echo [+] Membuka Koperasi DEV di tab baru...
-wt new-tab --title "Vite" --startingDirectory "%CD%" cmd /k "npm run dev"
-wt new-tab --title "Koperasi Dev" --startingDirectory "%CD%" cmd /k "php artisan optimize:clear & php artisan serve --port=8000"
+wt new-tab --title "Vite" --startingDirectory "%CD%" cmd /k "npm run dev -- --host"
+wt new-tab --title "Koperasi Dev" --startingDirectory "%CD%" cmd /k "php artisan optimize:clear & php artisan serve --host=0.0.0.0 --port=8000"
 goto MENU
 
 :: Label ini diperbaiki dari START_ALL menjadi START_ALL_PROD
