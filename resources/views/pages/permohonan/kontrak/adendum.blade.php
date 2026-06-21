@@ -56,7 +56,7 @@
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" role="switch" id="isHaveTld"
                                             @if ($kontrak->is_have_tld == 1) checked @endif>
-                                        <label class="form-check-label" for="isHaveTld">Memiliki TLD</label>
+                                        <label class="form-check-label" for="isHaveTld">TLD dari Pelanggan</label>
                                     </div>
                                 @endif
                                 <div class="form-check form-switch" id="switch-zerocek">

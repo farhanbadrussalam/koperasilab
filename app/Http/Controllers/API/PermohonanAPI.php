@@ -316,32 +316,6 @@ class PermohonanAPI extends Controller
                     ->where('periode', $periode)->first();
 
                 if ($kontrakPeriode && !empty($listTld)) {
-                    // $isPeriodOne = $kontrakPeriode->count_tld === 1;
-                    // $tldField = $isPeriodOne ? 'tld_1' : 'tld_2';
-                    // $statusField = $isPeriodOne ? 'status_tld_1' : 'status_tld_2';
-
-                    // foreach ($listTld as $value) {
-                    //     $id = decryptor($value);
-                    //     $id_tld = null;
-                    //     $idKontrakDetail = null;
-
-                    //     if ($request->source === 'map') {
-                    //         $data_ = Kontrak_map::find($id);
-                    //         $id_tld = $data_?->id_tld;
-                    //         $idKontrakDetail = $data_?->id_kontrak_detail;
-                    //     } else {
-                    //         $data_ = Kontrak_detail::find($id);
-                    //         $id_tld = $data_?->{$tldField};
-                    //         $idKontrakDetail = $data_?->id;
-                    //     }
-
-                    //     if ($id_tld) {
-                    //         $kontrakDetail = Kontrak_detail::where('id', $idKontrakDetail)->where('status', 1)->first()
-                    //             ?? Kontrak_detail::where($tldField, $id_tld)->where('id_kontrak', $idKontrak)->where('status', 1)->first();
-
-                    //         $kontrakDetail?->update([$statusField => 3]);
-                    //     }
-                    // }
                     $kontrakPeriode->update(['id_permohonan' => $permohonan->id_permohonan]);
                 }
             }
@@ -1855,6 +1829,7 @@ class PermohonanAPI extends Controller
         );
         $dataKontrak = Kontrak::create($params);
 
+
         // Tambah periode
         if ($dataPermohonan->periode_pemakaian) {
             if ($dataPermohonan->is_zerocek == 1 && $dataPermohonan->is_have_tld == 0) {
@@ -1871,6 +1846,7 @@ class PermohonanAPI extends Controller
                 ));
             }
 
+            $periode = 0;
             foreach ($dataPermohonan->periode_pemakaian as $key => $value) {
                 $periode = $key + 1;
                 $status = 1;
@@ -1895,6 +1871,36 @@ class PermohonanAPI extends Controller
                     'created_at' => date('Y-m-d H:i:s')
                 );
                 Kontrak_periode::create($paramsPeriode);
+            }
+
+            // pengembalian
+
+            if ($dataPermohonan->layanan == 'KontrakEvaluasi' && !empty($dataPermohonan->periode_pemakaian)) {
+                $periodePemakaian = $dataPermohonan->periode_pemakaian;
+                $hasPeriodeNext = isset($periodePemakaian[2]);
+
+                if (!$hasPeriodeNext) {
+                    $firstPeriode = $periodePemakaian[0];
+                    $endDateStr = $firstPeriode['end_date'];
+
+                    $countTld = $periode % 2 == 1 ? 1 : 2;
+
+                    $startDate = new DateTime($endDateStr);
+                    $startDate->modify('first day of +4 months');
+
+                    $endDate = clone $startDate;
+                    $endDate->modify('last day of +2 months');
+
+                    Kontrak_periode::create([
+                        'id_kontrak' => $dataKontrak->id_kontrak,
+                        'periode' => $periode,
+                        'count_tld' => $countTld,
+                        'start_date' => $startDate->format('Y-m-d'),
+                        'end_date' => $endDate->format('Y-m-d'),
+                        'status' => 3,
+                        'created_by' => Auth::user()->id
+                    ]);
+                }
             }
         }
 

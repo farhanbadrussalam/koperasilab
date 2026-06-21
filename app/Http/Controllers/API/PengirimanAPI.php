@@ -177,7 +177,7 @@ class PengirimanAPI extends Controller
                             $ship->whereIn('status', [1, 2, 3]);
                         });
                     })
-                    // ATAU Pengiriman TLD adendum belum selesai (untuk adendum penambahan pada periode aktif)
+                    // ATAU Pengiriman TLD adendum belum selesai (untuk adendum penambahan pada periode aktif) dan pengiriman TLD utama sudah terkirim
                     ->orWhere(function ($sub) {
                         $sub->whereHas('permohonan_detail', function ($detail) {
                             $detail->where('type', 'baru');
@@ -185,6 +185,24 @@ class PengirimanAPI extends Controller
                             ->whereRaw('permohonan.periode = (SELECT MIN(periode) FROM kontrak_periode WHERE kontrak_periode.id_kontrak = permohonan.id_kontrak AND kontrak_periode.selesai IS NULL AND kontrak_periode.periode != 0)')
                             ->whereDoesntHave('pengiriman_tld', function ($ship) {
                                 $ship->whereIn('status', [1, 2, 3]);
+                            })
+                            ->whereExists(function ($query) {
+                                $query->select(DB::raw(1))
+                                    ->from('pengiriman')
+                                    ->join('pengiriman_detail', 'pengiriman.id_pengiriman', '=', 'pengiriman_detail.id_pengiriman')
+                                    ->whereColumn('pengiriman.id_kontrak', 'permohonan.id_kontrak')
+                                    ->whereColumn('pengiriman.periode', 'permohonan.periode')
+                                    ->where('pengiriman_detail.jenis', 'tld')
+                                    ->whereIn('pengiriman.status', [1, 2, 3])
+                                    ->where(function ($q) {
+                                        $q->whereNull('pengiriman.id_permohonan')
+                                            ->orWhereExists(function ($sq) {
+                                                $sq->select(DB::raw(1))
+                                                    ->from('permohonan as p2')
+                                                    ->whereColumn('p2.id_permohonan', 'pengiriman.id_permohonan')
+                                                    ->where('p2.tipe_kontrak', '!=', 'adendum');
+                                            });
+                                    });
                             });
                     });
             });

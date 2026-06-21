@@ -446,6 +446,8 @@ class PengajuanTambahManager {
         const alertText = isDraft ? '' : 'Apakah Anda ingin melanjutkan tindakan ini?';
         const successText = isDraft ? 'Pengajuan disimpan sebagai draf' : 'Pengajuan berhasil dibuat';
 
+        let pengembalian = this.validatePengembalian();
+
         Swal.fire({
             title: alertTitle,
             text: alertText,
@@ -479,6 +481,12 @@ class PengajuanTambahManager {
                     formData.append('periode', 1);
                 } else {
                     formData.append('periode', useZeroCek ? 0 : 1);
+                }
+
+                if (pengembalian && pengembalian.status) {
+                    formData.append('is_pengembalian', 1);
+                    formData.append('pengembalian_start', pengembalian.start);
+                    formData.append('pengembalian_end', pengembalian.end);
                 }
 
                 spinner('show', eventTarget);
@@ -968,6 +976,51 @@ class PengajuanTambahManager {
             this.dom.divBuatForm.addClass('d-none').removeClass('d-block');
             this.openForm();
         }
+    }
+
+    /**
+     * Validate pengembalian
+     */
+    validatePengembalian() {
+        let periodePemakaian = this.periodeJs.getData();
+        periodePemakaian = Array.from(periodePemakaian);
+
+        if (periodePemakaian.length === 0) return { status: false };
+
+        // Ambil periode terakhir dari yang dipilih
+        let firstPeriode = periodePemakaian[0];
+        let endDateStr = firstPeriode.end_date;
+
+        // Cek apakah ada periode berikutnya
+        let hasPeriodeNext = periodePemakaian[2] ? true : false;
+
+        // Jika tidak ada periode berikutnya dan bukan sewa, maka ada jadwal pengembalian di N+2
+        if (!hasPeriodeNext && this.JL == 'KontrakEvaluasi') {
+            let endDate = new Date(endDateStr);
+            
+            // first day of +4 months dari endDate
+            let pengembalianStart = new Date(endDate.getFullYear(), endDate.getMonth() + 4, 1);
+            
+            // last day of +2 months dari pengembalianStart
+            let pengembalianEnd = new Date(pengembalianStart.getFullYear(), pengembalianStart.getMonth() + 3, 0);
+
+            let format = (d) => {
+                let month = '' + (d.getMonth() + 1);
+                let day = '' + d.getDate();
+                let year = d.getFullYear();
+                if (month.length < 2) month = '0' + month;
+                if (day.length < 2) day = '0' + day;
+                return [year, month, day].join('-');
+            };
+
+            return {
+                status: true,
+                start: format(pengembalianStart),
+                end: format(pengembalianEnd)
+            };
+        }
+
+        return { status: false };
     }
 
     /**

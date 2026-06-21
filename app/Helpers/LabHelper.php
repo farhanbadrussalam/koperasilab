@@ -1097,7 +1097,7 @@ if (!function_exists('setKontrakAdendum')) {
         if ($periode >= $kontrak->periode_active->periode) {
             $result = Kontrak_detail::where('id_kontrak', $id_kontrak)
                 ->where('status', 2)
-                ->where('periode', '>=', $kontrak->periode_active->periode)
+                ->where('periode', '<=', $kontrak->periode_active->periode)
                 ->get();
 
             foreach ($result as $key => $value) {
