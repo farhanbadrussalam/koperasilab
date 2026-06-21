@@ -88,7 +88,7 @@ function loadData(page = 1) {
 
                 // Dokumen status info (Column 1 Dokumen List)
                 let htmlDocs = '';
-                
+
                 // 1. Invoice Adendum
                 if (jmlPenambahan > 0) {
                     let statusInvoice = findInvoiceAdendum ? findInvoiceAdendum.status : 0;
@@ -101,8 +101,8 @@ function loadData(page = 1) {
                     htmlDocs += `
                         <div class="col">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
-                                <div class="d-flex justify-content-between align-items-center h-100">
-                                    <span class="fw-medium text-dark small"><i class="bi bi-receipt-cutoff text-muted me-2"></i>Invoice Adendum</span>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-medium text-dark small"><i class="bi bi-receipt-cutoff text-muted me-2"></i>Invoice</span>
                                     <span class="small">${textStatusInvoice}</span>
                                 </div>
                                 ${textInvoiceDetails}
@@ -119,8 +119,8 @@ function loadData(page = 1) {
                 htmlDocs += `
                     <div class="col">
                         <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
-                            <div class="d-flex justify-content-between align-items-center h-100">
-                                <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU Adendum</span>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU</span>
                                 <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
                             </div>
                             ${textLhuDetails}
@@ -134,8 +134,8 @@ function loadData(page = 1) {
                     htmlDocs += `
                         <div class="col">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
-                                <div class="d-flex justify-content-between align-items-center h-100">
-                                    <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD Adendum</span>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
                                     <span class="small">${statusFormat('pengiriman', statusTld)}</span>
                                 </div>
                             </div>
@@ -179,14 +179,11 @@ function loadData(page = 1) {
                                             <div>|</div>
                                             <div><i class="bi bi-hash"></i> No Kontrak: <b>${data.kontrak ? data.kontrak.no_kontrak : '-'}</b></div>
                                             <div>|</div>
-                                            <div><i class="bi bi-calendar-check"></i> Disetujui: <b>${dateFormat(data.created_at, 4)}</b></div>
+                                            <div><i class="bi bi-calendar-check"></i> Digunakan: <b>${findDate(data.periodenow.start_date, data.bulan_mulai)}</b></div>
                                         </div>
                                         <div class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill fw-normal px-3 mt-2 small">
                                             Layanan: ${data.jenis_layanan_parent.name} - ${data.jenis_layanan.name}
                                         </div>
-                                    </div>
-                                    <div class="row row-cols-1 row-cols-sm-2 g-2 text-start">
-                                        ${htmlDocs}
                                     </div>
                                 </div>
                                 
@@ -201,6 +198,12 @@ function loadData(page = 1) {
                                     <span class="text-uppercase small fw-bold text-muted d-block mb-2 w-100 text-start">Tindakan</span>
                                     <div class="d-flex flex-column w-100 gap-2">
                                         ${htmlBtn}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12 border-top border-light-subtle py-2 px-md-3">
+                                    <div class="row g-2 text-start">
+                                        ${htmlDocs}
                                     </div>
                                 </div>
                             </div>

@@ -579,19 +579,23 @@
                     if (jmlPenambahan > 0) {
                         let statusInvoice = findInvoiceAdendum ? findInvoiceAdendum.status : 0;
                         let textStatusInvoice = statusFormat('pengiriman', statusInvoice);
+                        let statusInv = '';
                         if (adendum.invoice) {
-                            let statusInv = statusFormat('invoice', adendum.invoice.status);
+                            statusInv = statusFormat('invoice', adendum.invoice.status);
                             if (adendum.invoice.status == 3 && role.includes('Pelanggan')) {
                                 statusInv =
                                     `<a href="${base_url}/permohonan/pembayaran/bayar/${adendum.invoice.keuangan_hash}">${statusInv}</a>`;
                             }
-                            textStatusInvoice += ` (${statusInv})`;
                         }
                         htmlInvoice = `
-                            <div class="d-flex align-items-center gap-1 small text-secondary">
-                                <i class="bi bi-receipt-cutoff text-warning"></i>
-                                <span class="fw-semibold">Invoice:</span>
-                                <span>${textStatusInvoice}</span>
+                            <div class="col">
+                                <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-medium text-dark small"><i class="bi bi-receipt-cutoff text-muted me-2"></i>Invoice</span>
+                                        <span class="small">${textStatusInvoice}</span>
+                                    </div>
+                                    ${statusInv}
+                                </div>
                             </div>
                         `;
 
@@ -600,23 +604,38 @@
                             let textStatusTld = statusFormat('pengiriman', statusTld);
 
                             htmlTld = `
-                                <div class="d-flex align-items-center gap-1 small text-secondary">
-                                    <i class="bi bi-file-earmark-text-fill text-warning"></i>
-                                    <span class="fw-semibold">TLD:</span>
-                                    <span>${textStatusTld}</span>
+                            <div class="col">
+                                <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
+                                        <span class="small">${textStatusTld}</span>
+                                    </div>
                                 </div>
+                            </div>
                             `;
                         }
                     }
 
                     let statusLhu = findLhuAdendum ? findLhuAdendum.status : 0;
                     let htmlLhu = `
-                        <div class="d-flex align-items-center gap-1 small text-secondary">
-                            <i class="bi bi-file-earmark-check text-warning"></i>
-                            <span class="fw-semibold">LHU:</span>
-                            <span>${statusFormat('pengiriman', statusLhu)}</span>
+                        <div class="col">
+                            <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU</span>
+                                    <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
+                                </div>
+                            </div>
                         </div>
                     `;
+
+                    let periodeNow = adendum.periodenow;
+                    let bulan_mulai = adendum.bulan_mulai;
+
+                    // Mengambil nama bulan ke-2 dari range date periodeNow (adendum) dan data (periode)
+                    let mulai_adendum = '';
+                    if (periodeNow) {
+                        mulai_adendum = findDate(periodeNow.start_date, bulan_mulai);
+                    }
 
                     html += `
                         <div class="p-3 bg-warning bg-opacity-10 border border-warning-subtle rounded-3">
@@ -627,7 +646,7 @@
                                     </div>
                                     <div>
                                         <h6 class="fw-bold text-dark mb-0">Adendum #${index + 1}</h6>
-                                        <small class="text-secondary"><i class="bi bi-calendar-event me-1"></i>${dateFormat(adendum.created_at, 4)}</small>
+                                        <small class="text-secondary"><i class="bi bi-calendar-event me-1"></i>${mulai_adendum}</small>
                                     </div>
                                 </div>
                                 

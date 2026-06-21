@@ -286,6 +286,14 @@ function convertDate(tanggal) {
     return date.toLocaleString('en-US', options);
 }
 
+function findDate(tanggal, bulan_mulai) {
+    let startDate = new Date(tanggal);
+    let dateBulanKe2 = new Date(startDate.getFullYear(), startDate.getMonth() + (bulan_mulai - 1), 1);
+    return dateBulanKe2.toLocaleString('id-ID', {
+        month: 'long'
+    }) + ' ' + startDate.getFullYear();
+}
+
 function statusFormat(feature, status) {
     status = Number(status);
 
