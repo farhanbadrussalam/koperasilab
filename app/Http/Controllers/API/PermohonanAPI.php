@@ -48,6 +48,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Auth;
 use DB;
 use Log;
+use DateTime;
 
 class PermohonanAPI extends Controller
 {
@@ -1880,6 +1881,7 @@ class PermohonanAPI extends Controller
                 $hasPeriodeNext = isset($periodePemakaian[2]);
 
                 if (!$hasPeriodeNext) {
+                    $periode++;
                     $firstPeriode = $periodePemakaian[0];
                     $endDateStr = $firstPeriode['end_date'];
 

@@ -443,22 +443,23 @@
                     if (periodeNext) {
                         penyelia2 = kontrak.periode.find(cek => cek.periode == periodeNext.periode - 2 && cek.periode !=
                             0);
-                    }
-
-                    if (penyelia2) {
-                        tldSelesai = cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
-                        if (penyelia2.penyelia && !tldSelesai) {
-                            htmlStatusPenyelia = `
-                                <div class="d-flex flex-column gap-1 align-items-start">
-                                    <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">Penyelia Periode ${penyelia2.periode}</span>
-                                    <div class="badge bg-warning-subtle fw-normal rounded-pill text-warning-emphasis">
-                                        Proses Belum Selesai
+                        if (penyelia2) {
+                            tldSelesai = cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
+                            if (penyelia2.penyelia && !tldSelesai) {
+                                htmlStatusPenyelia = `
+                                    <div class="d-flex flex-column gap-1 align-items-start">
+                                        <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">Penyelia Periode ${penyelia2.periode}</span>
+                                        <div class="badge bg-warning-subtle fw-normal rounded-pill text-warning-emphasis">
+                                            Proses Belum Selesai
+                                        </div>
                                     </div>
-                                </div>
-                            `;
+                                `;
+                            }
+                        } else {
+                            tldSelesai = true;
                         }
                     } else {
-                        tldSelesai = true;
+                        tldSelesai = false;
                     }
 
                     if (aktifDokumenKirim.includes('tld')) {
@@ -484,15 +485,18 @@
                                 }
                             }
                         } else if (data.status == 2) {
-                            htmlAction = `
-                                <div class="d-flex flex-column text-start gap-1">
-                                    <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode Pengembalian</span>
-                                    <div>${htmlBtnTld}</div>
-                                </div>
-                            `;
+                            if (tldSelesai) {
+                                htmlAction = `
+                                    <div class="d-flex flex-column text-start gap-1">
+                                        <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode Pengembalian</span>
+                                        <div>${htmlBtnTld}</div>
+                                    </div>
+                                `;
+                            }
                         }
                     } else {
-                        if (data.periode == 2 && kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
+                        // if (data.periode == 2 && kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
+                        if (data.periode == 2 && kontrak.layanan == 'KontrakEvaluasi') {
                             if (!statusKirimTldNext && periodeNext) {
                                 htmlAction = `
                                     <div class="d-flex flex-column text-start gap-1">

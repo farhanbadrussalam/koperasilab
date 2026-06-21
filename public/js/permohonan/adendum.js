@@ -105,6 +105,18 @@ $(function () {
     });
 
     $('#isHaveTld').on('change', function () {
+        if (!this.checked) {
+            arrOption.pengguna.forEach(p => {
+                if (p.status === 'baru') {
+                    p.tld = false;
+                }
+            });
+            arrOption.kontrol.forEach(k => {
+                if (k.status === 'baru') {
+                    k.tld = false;
+                }
+            });
+        }
         loadHtmlPengguna();
         loadHtmlKontrol();
     })
@@ -127,14 +139,14 @@ function simpanAdendum(obj) {
             pengguna: value.pengguna.pengguna_hash,
             pengguna_baru: value.pengguna_baru?.pengguna_hash,
             status: value.status,
-            tld: value.tld.tld_hash
+            tld: value.tld ? value.tld.tld_hash : null
         }));
 
     const arrKontrol = arrOption.kontrol
         .filter(d => d.status != 'lama')
         .map(value => ({
             status: value.status,
-            tld: value.tld.tld_hash
+            tld: value.tld ? value.tld.tld_hash : null
         }));
 
     if (arrPengguna.length == 0 && arrKontrol.length == 0) {
