@@ -133,6 +133,8 @@ $(function () {
                     timer: 1200,
                     timerProgressBar: true,
                     showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
                 });
             });
         });

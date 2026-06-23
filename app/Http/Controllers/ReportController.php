@@ -267,7 +267,7 @@ class ReportController extends Controller
         }
 
         $result = [
-            "TERBILANG" => angkaKeHuruf($dataKeuangan['subTotal']),
+            "TERBILANG" => angkaKeHuruf($dataKeuangan['subTotal']) . ' rupiah',
             "RINCIAN" => '<table class="table-invoice">
                     <tr>
                         <td>' . $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol . ' Unit
@@ -745,7 +745,7 @@ class ReportController extends Controller
                 </table>
             ',
             "HARGA_TOTAL" => formatCurrency($dataKeuangan['subTotal']),
-            "HARGA_TOTAL_HRF" => angkaKeHuruf($dataKeuangan['subTotal']),
+            "HARGA_TOTAL_HRF" => angkaKeHuruf($dataKeuangan['subTotal']) . ' rupiah',
         ];
     }
 
@@ -1269,6 +1269,9 @@ class ReportController extends Controller
         foreach ($kontrakDetail as $value) {
             if ($value->jenis == 'pengguna') {
                 $htmlDesc = $value->type ?? '';
+                if ($value->type == 'baru' && isset($params['periode']) && $params['periode'] > 2 && !$isAdendum && $value->status == 1) {
+                    $htmlDesc = '';
+                }
                 if ($value->type == 'ganti') {
                     $htmlDesc = ' (Pengganti ' . $value->penggunaLama->name . ')';
                 }
@@ -1384,7 +1387,7 @@ class ReportController extends Controller
                     " . $variables['JML_UNIT'] . " buah " . $variables['LAYANAN_JASA'] . " " . $variables['JENIS_TLD'] . " x " . $variables['PERIODE_JML'] . " Periode x " . formatCurrency($query->harga_layanan) . ",- = " . formatCurrency($query->total_harga) . ",-
                     ditambah PPN " . $invoice->ppn . "% total biaya yang harus dibayar sebesar " . formatCurrency($total) . ",-
                 ";
-                $variables["INVOICE_HRF"] = angkaKeHuruf($total);
+                $variables["INVOICE_HRF"] = angkaKeHuruf($total) . " rupiah";
                 $dokumen->update(['variables' => $variables]);
             }
         }

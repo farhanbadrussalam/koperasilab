@@ -527,8 +527,9 @@ if (!function_exists('generateNoDokumen')) {
 
         $lastNumber = 0;
         if ($lastDoc) {
+            $nomorDokumen = ($jenis === 'invoice') ? $lastDoc->no_invoice : $lastDoc->nomer;
             // Mencari grup angka pertama dalam string nomor dokumen (misal: 0001)
-            preg_match('/\d+/', $lastDoc->nomer, $matches);
+            preg_match('/\d+/', $nomorDokumen, $matches);
             $lastNumber = isset($matches[0]) ? (int)$matches[0] : 0;
         }
         $increment = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);

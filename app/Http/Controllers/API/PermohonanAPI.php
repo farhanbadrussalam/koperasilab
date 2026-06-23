@@ -380,9 +380,9 @@ class PermohonanAPI extends Controller
                 }
             }
 
-            if ($permohonan->status == 1) {
+            $us = Auth::user();
+            if ($permohonan->status == 1 && $us->perusahaan) {
                 $userQuery = User::role('Staff Admin');
-                $us = Auth::user();
                 $dataNotif = array(
                     'pesan' => 'Permohonan baru telah dibuat! Silahkan verifikasi',
                     'url' => '/staff/permohonan/verifikasi/' . $permohonan->permohonan_hash,

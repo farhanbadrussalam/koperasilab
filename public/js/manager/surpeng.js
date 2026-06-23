@@ -2,6 +2,7 @@ let filterComp = false;
 let signaturePad = false;
 let dataSurpeng = false;
 let modalDoc = false;
+let thisTab = 'progress';
 $(function () {
     loadData();
 
@@ -30,10 +31,21 @@ $(function () {
     })
 
     // SETUP FILTER
-    filterComp.on('filter.change', () => loadData());
+    filterComp.on('filter.change', () => loadData(1));
+
+    $('#list-pagination').on('click', 'a', function (e) {
+        e.preventDefault();
+        const pageno = e.target.dataset.page;
+        loadData(pageno);
+    });
 
     loadEvent();
 });
+
+function switchLoadTab(tab) {
+    thisTab = tab;
+    loadData(1);
+}
 
 function loadEvent() {
     // TODO: Load event listeners if needed in the future
@@ -44,6 +56,7 @@ function loadData(page = 1) {
         limit: 10,
         page: page,
         menu: 'ttd-surpeng',
+        tab: thisTab,
         filter: {}
     };
 
@@ -168,14 +181,17 @@ function _renderCardItem(doc) {
 }
 
 function reload() {
-    loadData();
+    loadData(1);
 }
 function showDetail(obj) {
     const idPenyelia = $(obj).parent().parent().data("id");
     detail.show(`api/v1/penyelia/getById/${idPenyelia}`);
 }
 
-function clearFilter() { }
+function clearFilter() {
+    filterComp && filterComp.clear();
+    loadData(1);
+}
 
 function approvePengujian(id) {
     let [ttdValue, ttdBy] = signaturePad.getValue();

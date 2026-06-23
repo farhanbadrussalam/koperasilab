@@ -871,8 +871,38 @@ class PenyeliaAPI extends Controller
         if ($menu === 'ttd-surpeng') {
             DB::beginTransaction();
             try {
+                $tab = $request->input('tab', 'progress');
+
                 $query = Permohonan_dokumen::where('jenis', 'surpeng')
-                    ->whereNull('ttd')
+                    ->when($tab === 'selesai', function ($q) {
+                        return $q->whereNotNull('ttd');
+                    })
+                    ->when($tab === 'progress', function ($q) {
+                        return $q->whereNull('ttd');
+                    })
+                    ->when(isset($filter['id_kontrak']), function ($q) use ($filter) {
+                        return $q->where('id_kontrak', decryptor($filter['id_kontrak']));
+                    })
+                    ->when(isset($filter['id_perusahaan']), function ($q) use ($filter) {
+                        return $q->whereHas('permohonan.pelanggan.perusahaan', function ($p) use ($filter) {
+                            $p->where('id_perusahaan', decryptor($filter['id_perusahaan']));
+                        });
+                    })
+                    ->when(isset($filter['jenis_layanan_1']), function ($q) use ($filter) {
+                        return $q->whereHas('kontrak', function ($k) use ($filter) {
+                            $k->where('jenis_layanan_1', decryptor($filter['jenis_layanan_1']));
+                        });
+                    })
+                    ->when(isset($filter['jenis_layanan_2']), function ($q) use ($filter) {
+                        return $q->whereHas('kontrak', function ($k) use ($filter) {
+                            $k->where('jenis_layanan_2', decryptor($filter['jenis_layanan_2']));
+                        });
+                    })
+                    ->when(isset($filter['jenis_tld']), function ($q) use ($filter) {
+                        return $q->whereHas('kontrak', function ($k) use ($filter) {
+                            $k->where('jenis_tld', decryptor($filter['jenis_tld']));
+                        });
+                    })
                     ->with([
                         'permohonan',
                         'permohonan.layanan_jasa:id_layanan,nama_layanan',

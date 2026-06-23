@@ -1098,6 +1098,9 @@ class Detail {
                 case 'invoice':
                     idHash = invoiceData?.keuangan_hash;
                     break;
+                case 'kwitansi':
+                    idHash = invoiceData?.keuangan_hash;
+                    break;
                 case 'kontrak':
                     idHash = kontrak_hash;
                     break;

@@ -1,7 +1,16 @@
 @extends('layouts.main')
 
 @section('content')
-<div class="card shadow-sm m-4">
+<div class="m-4">
+    <ul class="nav nav-tabs" id="surpengTabs" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab('progress')">Progress</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="false" onclick="switchLoadTab('selesai')">Selesai</button>
+        </li>
+    </ul>
+    <div class="card shadow-sm mt-2">
     <div class="card-body">
         <div class="d-flex">
             <div class="flex-grow-1">
@@ -48,6 +57,7 @@
             <div aria-label="Page navigation example" id="list-pagination"></div>
         </div>
     </div>
+</div>
 </div>
 <x-modal.pengujian />
 @endsection

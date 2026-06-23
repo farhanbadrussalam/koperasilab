@@ -251,11 +251,13 @@ class Periode {
         let lastDate = false;
         if (type == 1 || type == "all") {
             lastDate = this.listPeriode[this.listPeriode.length - 2];
+            let currentLastPeriode = this.listPeriode[this.listPeriode.length - 1];
+            let defaultVal = currentLastPeriode && currentLastPeriode.start_date ? currentLastPeriode.start_date : (lastDate ? lastDate.end_date : (this.defaultDate ? this.defaultDate : null));
             $(".date-periode").flatpickr({
                 altInput: true,
                 locale: "id",
                 // minDate: "today",
-                defaultDate: lastDate ? lastDate.end_date : (this.defaultDate ? this.defaultDate : null),
+                defaultDate: defaultVal,
                 dateFormat: "Y-m-d",
                 altFormat: "j F Y",
                 disable: [

@@ -352,7 +352,10 @@ class KeuanganAPI extends Controller
                 $ttd_by && $dataDocument['ttd_by'] = $ttd_by;
 
                 Permohonan_dokumen::updateOrCreate(
-                    ["nomer" => $invoice->no_invoice],
+                    [
+                        "id_permohonan" => $invoice->id_permohonan,
+                        "jenis" => "invoice"
+                    ],
                     $dataDocument
                 );
 
