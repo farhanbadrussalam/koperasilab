@@ -1093,6 +1093,7 @@ class Detail {
 
         for (const [i, dokumen] of dataDokumen.entries()) {
             let idHash = false;
+            let namaDokumen = dokumen.nama;
             if (exceptDoc.includes(dokumen.jenis)) continue;
             switch (dokumen.jenis) {
                 case 'invoice':
@@ -1108,7 +1109,8 @@ class Detail {
                     idHash = kontrak_hash;
                     break;
                 case 'surpeng':
-                    idHash = kontrak_hash + '/' + periode;
+                    namaDokumen += ` (Periode ${dokumen.periode})`;
+                    idHash = kontrak_hash + '/' + dokumen.periode;
                     break;
                 default:
                     idHash = dataPermohonan.permohonan_hash;
@@ -1120,7 +1122,7 @@ class Detail {
                     <div class="card-body p-1 px-3 d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-3">
                             <div>
-                                <span class="fw-bolder">${dokumen.nama}</span>
+                                <span class="fw-bolder">${namaDokumen}</span>
                                 <div class="text-body-secondary">
                                     <small>${dateFormat(dokumen.created_at, 4)}</small>
                                 </div>

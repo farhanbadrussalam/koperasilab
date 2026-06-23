@@ -39,6 +39,10 @@ $(function() {
                     },
                 ],
             },
+            fontSize: {
+                options: [ '8', '10', '12', '14', '16', '18', '24', '32', '48' ],
+                supportAllValues: true
+            },
         })
         .then( editor => {
             editorInstance = editor;

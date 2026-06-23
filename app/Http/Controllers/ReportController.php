@@ -268,7 +268,7 @@ class ReportController extends Controller
 
         $result = [
             "TERBILANG" => angkaKeHuruf($dataKeuangan['subTotal']) . ' rupiah',
-            "RINCIAN" => '<table class="table-invoice">
+            "RINCIAN" => '<table class="table-invoice" style="font-size: 12px;font-family: times new roman;">
                     <tr>
                         <td>' . $data->permohonan->jumlah_pengguna + $data->permohonan->jumlah_kontrol . ' Unit
                             ' . $data->permohonan->jenisTld->name . ' x ' . $params['count_periode'] . ' Periode x
@@ -314,8 +314,8 @@ class ReportController extends Controller
                 $vars["JENIS_LAYANAN"] = $data->permohonan->jenis_layanan_parent->name;
                 $vars["LAYANAN_JASA"] = $data->permohonan->layanan_jasa->nama_layanan;
                 $vars["JENIS_TLD"] = $data->permohonan->jenisTld->name;
-                $vars["PERIODE_MULAI"] = $rangeDate['start'];
-                $vars["PERIODE_SELESAI"] = $rangeDate['end'];
+                $vars["PERIODE_MULAI"] = convert_date($params['periode_start']['start_date'], 6);
+                $vars["PERIODE_SELESAI"] = convert_date($params['periode_end']['end_date'], 6);
                 $vars["NO_KONTRAK"] = $data->permohonan->kontrak->no_kontrak;
                 $vars["RINCIAN"] = "";
                 $vars["TERBILANG"] = "";
