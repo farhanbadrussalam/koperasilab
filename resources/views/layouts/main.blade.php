@@ -15,69 +15,70 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link rel="stylesheet" href="https://fonts.bunny.net/css?family=Nunito">
-    <link rel="stylesheet" href="{{ asset('assets/font/allFont.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('assets/font/allFont.css') }}">
 
     <!-- Theme adminLTE -->
-    <link rel="stylesheet" href="{{ asset('assets/css/styles.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/main.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('assets/css/styles.min.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('assets/css/app.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('assets/css/main.css') }}">
 
     {{-- Plugin --}}
-    <link rel="stylesheet" href="{{ asset('assets/jquery/jquery-ui.min.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('assets/jquery/jquery-ui.min.css') }}">
     <link rel="stylesheet"
-        href="{{ asset('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}" />
-    <link rel="stylesheet" href="{{ asset('assets/dropify/css/dropify.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/flatpickr/flatpickr.min.css') }}">
+        href="{{ asset_versioned('assets/DataTables/DataTables-1.13.5/css/dataTables.bootstrap5.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset_versioned('assets/sweetalert2/sweetalert2.min.css') }}" />
+    <link rel="stylesheet" href="{{ asset_versioned('assets/dropify/css/dropify.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('vendor/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('vendor/flatpickr/flatpickr.min.css') }}">
 
     <!-- Scripts -->
-    <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
-    <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
-    <script src="{{ asset('assets/DataTables/datatables.min.js') }}"></script>
-    <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
-    <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('assets/dropify/js/dropify.js') }}"></script>
-    <script src="{{ asset('assets/js/app.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/jquery/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/inputmask/jquery.inputmask.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/DataTables/datatables.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/DataTables/DataTables-1.13.5/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/DataTables/DataTables-1.13.5/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/dropify/js/dropify.js') }}"></script>
+    <script src="{{ asset_versioned('assets/js/app.min.js') }}"></script>
     {{-- Select 2 --}}
-    <script src="{{ asset('vendor/select2/js/select2.full.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/select2/js/select2.full.js') }}"></script>
     {{-- Flat pickr --}}
-    <script src="{{ asset('vendor/flatpickr/flatpickr.min.js') }}"></script>
-    <script src="{{ asset('vendor/flatpickr/l10n/id.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/flatpickr/flatpickr.min.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/flatpickr/l10n/id.js') }}"></script>
     {{-- Signature --}}
-    <script src="{{ asset('vendor/signature/signature_pad.umd.min.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/signature/signature_pad.umd.min.js') }}"></script>
     {{-- Magnific Popup --}}
-    <link rel="stylesheet" href="{{ asset('vendor/magnific/magnific-popup.css') }}">
-    <script src="{{ asset('vendor/magnific/jquery.magnific-popup.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset_versioned('vendor/magnific/magnific-popup.css') }}">
+    <script src="{{ asset_versioned('vendor/magnific/jquery.magnific-popup.min.js') }}"></script>
     {{-- Parsley --}}
-    <script src="{{ asset('vendor/parsley/parsley.min.js') }}"></script>
-    <script src="{{ asset('vendor/parsley/setting.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/parsley/parsley.min.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/parsley/setting.js') }}"></script>
     {{-- CKEditor --}}
-    <script src="{{ asset('vendor/ckeditor/build/ckeditor.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/ckeditor/build/ckeditor.js') }}"></script>
 
     {{-- PeriodeJs --}}
-    <script src="{{ asset('js/validation.js') }}"></script>
-    <script src="{{ asset('js/SignatureSelect.js') }}"></script>
-    <script src="{{ asset('js/periode.js') }}"></script>
-    <script src="{{ asset('js/invoice.js') }}"></script>
-    <script src="{{ asset('js/detail.js') }}"></script>
-    <script src="{{ asset('js/upload.js') }}"></script>
-    <script src="{{ asset('js/document.js') }}"></script>
-    <script src="{{ asset('js/timeline.js') }}"></script>
-    <script src="{{ asset('js/filter.js') }}"></script>
-    <script src="{{ asset('js/cardList.js') }}"></script>
-    <script src="{{ asset('js/inventory_tld.js') }}"></script>
-    <script src="{{ asset('js/notifikasi.js') }}"></script>
-    <script src="{{ asset('js/component/AdendumInformasi.js') }}"></script>
+    <script src="{{ asset_versioned('js/validation.js') }}"></script>
+    <script src="{{ asset_versioned('js/SignatureSelect.js') }}"></script>
+    <script src="{{ asset_versioned('js/periode.js') }}"></script>
+    <script src="{{ asset_versioned('js/invoice.js') }}"></script>
+    <script src="{{ asset_versioned('js/detail.js') }}"></script>
+    <script src="{{ asset_versioned('js/upload.js') }}"></script>
+    <script src="{{ asset_versioned('js/document.js') }}"></script>
+    <script src="{{ asset_versioned('js/timeline.js') }}"></script>
+    <script src="{{ asset_versioned('js/filter.js') }}"></script>
+    <script src="{{ asset_versioned('js/cardList.js') }}"></script>
+    <script src="{{ asset_versioned('js/inventory_tld.js') }}"></script>
+    <script src="{{ asset_versioned('js/notifikasi.js') }}"></script>
+    <script src="{{ asset_versioned('js/component/AdendumInformasi.js') }}"></script>
 
     {{-- Logo Aplikasi --}}
-    <link rel="icon" type="image/png" href="{{ asset('images/favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset_versioned('images/favicon.png') }}">
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
+
 
 <body>
 
@@ -123,8 +124,9 @@
         const envirotment = "{{ config('app.env') }}";
         const statusUser = @json(Auth::check() ? Auth::user()->status : null);
     </script>
-    <script src="{{ asset('assets/js/global.js') }}"></script>
+    <script src="{{ asset_versioned('assets/js/global.js') }}"></script>
     @stack('scripts')
+
     <script>
         @if (session('success'))
             Swal.fire({

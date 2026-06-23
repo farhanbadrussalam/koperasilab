@@ -1123,3 +1123,19 @@ if (!function_exists('setKontrakAdendum')) {
         }
     }
 }
+
+if (!function_exists('asset_versioned')) {
+    /**
+     * Generate an asset path for the application with a manual version query string.
+     *
+     * @param string $path
+     * @param string|null $secure
+     * @return string
+     */
+    function asset_versioned($path, $secure = null)
+    {
+        $version = config('app.version', '1.0.0');
+        return asset($path, $secure) . '?v=' . $version;
+    }
+}
+
