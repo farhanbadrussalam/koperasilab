@@ -22,12 +22,14 @@
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-sm rounded-4 mb-4">
                         <div class="card-body p-4">
-                            <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Informasi Kontrak & Pelanggan</h6>
+                            <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Informasi Kontrak &
+                                Pelanggan</h6>
                             <div class="row g-3 mb-4">
                                 <div class="col-md-6">
                                     <div class="p-3 bg-light rounded-3 border h-100">
                                         <small class="text-muted d-block mb-1">No Pengiriman</small>
-                                        <span class="fw-bold text-dark font-monospace" id="no_pengiriman">{{ $noPengiriman }}</span>
+                                        <span class="fw-bold text-dark font-monospace"
+                                            id="no_pengiriman">{{ $noPengiriman }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -35,20 +37,24 @@
                                         <small class="text-muted d-block mb-1">Pelanggan</small>
                                         <div class="d-flex align-items-center">
                                             <i class="bi bi-person-circle me-2 text-primary"></i>
-                                            <span class="fw-bold text-dark">{{ $informasi->pelanggan->perusahaan->nama_perusahaan }} - {{ $informasi->pelanggan->name }}</span>
+                                            <span
+                                                class="fw-bold text-dark">{{ $informasi->pelanggan->perusahaan->nama_perusahaan }}
+                                                - {{ $informasi->pelanggan->name }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="p-3 bg-light rounded-3 border h-100">
                                         <small class="text-muted d-block mb-1">No Kontrak</small>
-                                        <span class="fw-bold text-primary">{{ $informasi->kontrak?->no_kontrak ?? $informasi->no_kontrak ?? '-' }}</span>
+                                        <span
+                                            class="fw-bold text-primary">{{ $informasi->kontrak?->no_kontrak ?? ($informasi->no_kontrak ?? '-') }}</span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="p-3 bg-light rounded-3 border h-100">
                                         <small class="text-muted d-block mb-1">Jenis</small>
-                                        <span class="badge bg-info-subtle text-info border border-info-subtle">{{ $informasi->jenis_layanan_parent->name }}-{{ $informasi->jenis_layanan->name }}</span>
+                                        <span
+                                            class="badge bg-info-subtle text-info border border-info-subtle">{{ $informasi->jenis_layanan_parent->name }}-{{ $informasi->jenis_layanan->name }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -57,12 +63,12 @@
 
                             <h6 class="text-uppercase text-muted small fw-bold mb-3 tracking-wide">Tujuan Pengiriman</h6>
                             <div class="form-group mb-3">
-                                <label class="small fw-bold text-muted mb-2">Pilih Alamat Tujuan <span class="text-danger">*</span></label>
+                                <label class="small fw-bold text-muted mb-2">Pilih Alamat Tujuan <span
+                                        class="text-danger">*</span></label>
                                 <select class="form-select rounded-3 shadow-sm mb-3" id="select_alamat">
                                     <option selected>Pilih alamat</option>
                                 </select>
-                                <textarea class="form-control rounded-3 bg-light"
-                                    cols="30" rows="4" placeholder="Detail alamat lengkap..."
+                                <textarea class="form-control rounded-3 bg-light" cols="30" rows="4" placeholder="Detail alamat lengkap..."
                                     id="alamatTujuan" readonly></textarea>
                             </div>
                         </div>
@@ -85,12 +91,16 @@
                     <div class="sticky-sidebar">
                         <div class="card border-0 shadow-sm rounded-4 mb-3">
                             <div class="card-body p-4">
-                                <h6 class="fw-bold text-dark mb-3 text-center text-uppercase small tracking-wide">Tindakan Pengiriman</h6>
+                                <h6 class="fw-bold text-dark mb-3 text-center text-uppercase small tracking-wide">Tindakan
+                                    Pengiriman</h6>
                                 <div class="d-grid gap-2">
-                                    <button class="btn btn-primary py-3 fw-bold rounded-3 shadow-sm" onclick="buatPengiriman(this)">
+                                    <button class="btn btn-primary py-3 fw-bold rounded-3 shadow-sm"
+                                        onclick="buatPengiriman(this)">
                                         <i class="bi bi-box-seam me-2"></i>Buat Pengiriman
                                     </button>
-                                    <button class="btn btn-outline-secondary py-2 fw-bold rounded-3 d-none" id="btnCetakSurat" onclick="btnShowDoc(this)" data-url="" data-title="Surat Pengantar">
+                                    <button class="btn btn-outline-secondary py-2 fw-bold rounded-3 d-none"
+                                        id="btnCetakSurat" onclick="btnShowDoc(this)" data-url=""
+                                        data-title="Surat Pengantar">
                                         <i class="bi bi-printer me-2"></i>Cetak Surat Pengantar
                                     </button>
                                 </div>
@@ -130,5 +140,5 @@
     <script>
         const informasi = @json($informasi);
     </script>
-    <script src="{{ asset('js/staff/pengiriman_send.js') }}"></script>
+    <script src="{{ asset_versioned('js/staff/pengiriman_send.js') }}"></script>
 @endpush

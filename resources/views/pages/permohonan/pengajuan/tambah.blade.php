@@ -207,5 +207,5 @@
     <script>
         const dataPermohonan = @json($permohonan);
     </script>
-    <script src="{{ asset('js/permohonan/pengajuan_tambah.js') }}"></script>
+    <script src="{{ asset_versioned('js/permohonan/pengajuan_tambah.js') }}"></script>
 @endpush

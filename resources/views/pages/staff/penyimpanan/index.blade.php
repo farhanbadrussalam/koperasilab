@@ -201,5 +201,5 @@
 @endpush
 
 @push('scripts')
-    <script src="{{ asset('js/staff/penyimpanan.js') }}"></script>
+    <script src="{{ asset_versioned('js/staff/penyimpanan.js') }}"></script>
 @endpush

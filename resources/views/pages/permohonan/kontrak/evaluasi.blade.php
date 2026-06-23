@@ -241,5 +241,5 @@
         const pengembalianStart = @json($pengembalianStart);
         const pengembalianEnd = @json($pengembalianEnd);
     </script>
-    <script src="{{ asset('js/permohonan/kontrak_evaluasi.js') }}"></script>
+    <script src="{{ asset_versioned('js/permohonan/kontrak_evaluasi.js') }}"></script>
 @endpush

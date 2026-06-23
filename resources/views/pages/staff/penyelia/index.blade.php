@@ -1,70 +1,75 @@
 @extends('layouts.main')
 
 @section('content')
-<div class="content-wrapper">
-    <section class="content col-md-12">
-        <div class="container">
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="surattugas-tab" onclick="switchLoadTab(1)" data-bs-toggle="tab" data-bs-target="#surattugas-tab-pane" type="button" role="tab" aria-controls="surattugas-tab-pane" aria-selected="true">Penerbitan surat tugas</button>
-                </li>
-            </ul>
-            <div class="card shadow-sm mt-2">
-                <div class="card-body">
-                    <div class="d-flex">
-                        <div class="flex-grow-1">
-                            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i class="bi bi-arrow-clockwise"></i> Refresh data</button>
-                            <div class="btn-group" role="group">
-                                <button class="btn btn-outline-secondary btn-sm rounded-start-pill" data-bs-toggle="collapse" data-bs-target="#collapseFilter">
-                                    <i class="bi bi-funnel"></i> Filter <span class="badge text-bg-secondary d-none" id="countFilter">4</span>
-                                </button>
-                                <button class="btn btn-outline-danger btn-sm rounded-end-pill" onclick="clearFilter()">
-                                    <i class="bi bi-x-circle-fill"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="list-filter"></div>
-                    <div class="my-3">
-                        <div class="body-placeholder my-3" id="list-placeholder">
-                            @for ($i = 0; $i < 3; $i++)
-                            <div class="card mb-2">
-                                <div class="card-body row align-items-center">
-                                    <div class="placeholder-glow col-12 col-md-4 d-flex flex-column">
-                                        <div class="placeholder w-50 mb-1"></div>
-                                        <div class="placeholder w-50 mb-1"></div>
-                                        <div class="placeholder w-50 mb-1"></div>
-                                        <div class="placeholder w-75 mb-1"></div>
-                                    </div>
-                                    <div class="placeholder-glow col-6 col-md-3 text-end text-md-start">
-                                        <div class="placeholder w-50 mb-1"></div>
-                                    </div>
-                                    <div class="placeholder-glow col-6 col-md-2">
-                                        <div class="placeholder w-50 mb-1"></div>
-                                    </div>
-                                    <div class="placeholder-glow col-6 col-md-3 text-center">
-                                        <div class="placeholder w-50 mb-1"></div>
-                                    </div>
+    <div class="content-wrapper">
+        <section class="content col-md-12">
+            <div class="container">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="surattugas-tab" onclick="switchLoadTab(1)" data-bs-toggle="tab"
+                            data-bs-target="#surattugas-tab-pane" type="button" role="tab"
+                            aria-controls="surattugas-tab-pane" aria-selected="true">Penerbitan surat tugas</button>
+                    </li>
+                </ul>
+                <div class="card shadow-sm mt-2">
+                    <div class="card-body">
+                        <div class="d-flex">
+                            <div class="flex-grow-1">
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i
+                                        class="bi bi-arrow-clockwise"></i> Refresh data</button>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-outline-secondary btn-sm rounded-start-pill"
+                                        data-bs-toggle="collapse" data-bs-target="#collapseFilter">
+                                        <i class="bi bi-funnel"></i> Filter <span class="badge text-bg-secondary d-none"
+                                            id="countFilter">4</span>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm rounded-end-pill" onclick="clearFilter()">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </button>
                                 </div>
                             </div>
-                            @endfor
                         </div>
-                        <div class="body my-3" id="list-container"></div>
-                        <div aria-label="Page navigation example" id="list-pagination"></div>
+                        <div id="list-filter"></div>
+                        <div class="my-3">
+                            <div class="body-placeholder my-3" id="list-placeholder">
+                                @for ($i = 0; $i < 3; $i++)
+                                    <div class="card mb-2">
+                                        <div class="card-body row align-items-center">
+                                            <div class="placeholder-glow col-12 col-md-4 d-flex flex-column">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                                <div class="placeholder w-50 mb-1"></div>
+                                                <div class="placeholder w-50 mb-1"></div>
+                                                <div class="placeholder w-75 mb-1"></div>
+                                            </div>
+                                            <div class="placeholder-glow col-6 col-md-3 text-end text-md-start">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                            </div>
+                                            <div class="placeholder-glow col-6 col-md-2">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                            </div>
+                                            <div class="placeholder-glow col-6 col-md-3 text-center">
+                                                <div class="placeholder w-50 mb-1"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endfor
+                            </div>
+                            <div class="body my-3" id="list-container"></div>
+                            <div aria-label="Page navigation example" id="list-pagination"></div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-</div>
+        </section>
+    </div>
 
-<x-modal.pengujian />
-<x-modal.note />
-<!-- /.modal -->
+    <x-modal.pengujian />
+    <x-modal.note />
+    <!-- /.modal -->
 @endsection
 @push('scripts')
     <script>
         const listJobs = @json($listJobs);
     </script>
-    <script src="{{ asset('js/staff/penyelia.js') }}"></script>
+    <script src="{{ asset_versioned('js/staff/penyelia.js') }}"></script>
 @endpush

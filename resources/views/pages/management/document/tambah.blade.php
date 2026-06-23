@@ -77,5 +77,5 @@
         const _data = @json($data ?? []);
         let vars = @json($vars ?? []);
     </script>
-    <script src="{{ asset('js/management/document_tambah.js') }}"></script>
+    <script src="{{ asset_versioned('js/management/document_tambah.js') }}"></script>
 @endpush

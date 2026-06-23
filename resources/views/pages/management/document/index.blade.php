@@ -72,5 +72,5 @@
     </div>
 @endsection
 @push('scripts')
-    <script src="{{ asset('js/management/document.js') }}"></script>
+    <script src="{{ asset_versioned('js/management/document.js') }}"></script>
 @endpush

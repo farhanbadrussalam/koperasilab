@@ -593,5 +593,5 @@
         const tandaterima = @json($pertanyaan);
         const isEvaluasi = "{{ $isEvaluasi }}";
     </script>
-    <script src="{{ asset('js/staff/verifikasi_permohonan.js') }}"></script>
+    <script src="{{ asset_versioned('js/staff/verifikasi_permohonan.js') }}"></script>
 @endpush

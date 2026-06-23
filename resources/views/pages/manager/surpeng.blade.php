@@ -63,5 +63,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/manager/surpeng.js') }}"></script>
+    <script src="{{ asset_versioned('js/manager/surpeng.js') }}"></script>
 @endpush

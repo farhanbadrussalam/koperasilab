@@ -58,5 +58,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/permohonan/kontrak.js') }}"></script>
+    <script src="{{ asset_versioned('js/permohonan/kontrak.js') }}"></script>
 @endpush

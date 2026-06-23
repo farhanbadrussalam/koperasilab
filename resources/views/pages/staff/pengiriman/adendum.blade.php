@@ -53,5 +53,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/staff/pengiriman_adendum.js') }}"></script>
+    <script src="{{ asset_versioned('js/staff/pengiriman_adendum.js') }}"></script>
 @endpush

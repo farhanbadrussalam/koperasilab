@@ -166,5 +166,5 @@
     <script>
         const dataKeuangan = @json($keuangan)
     </script>
-    <script src="{{ asset('js/permohonan/bayar_invoice.js') }}"></script>
+    <script src="{{ asset_versioned('js/permohonan/bayar_invoice.js') }}"></script>
 @endpush

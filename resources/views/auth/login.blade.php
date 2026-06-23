@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <link rel="stylesheet" href="{{ asset('css/auth/login.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('css/auth/login.css') }}">
 
     <div class="row custom-container">
         <div class="d-none d-md-block col-md-5 col-lg-7">

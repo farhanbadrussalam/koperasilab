@@ -199,7 +199,9 @@
                     </div>
                     <div class="modal-body p-3 p-md-4">
                         <div class="table-responsive">
-                            <table id="tbl-produktivitas-job" class="table table-hover table-bordered align-middle small w-100" style="min-width:600px;">
+                            <table id="tbl-produktivitas-job"
+                                class="table table-hover table-bordered align-middle small w-100"
+                                style="min-width:600px;">
                             </table>
                         </div>
                     </div>
@@ -218,7 +220,7 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/manager/produktivitas.js') }}"></script>
+    <script src="{{ asset_versioned('js/manager/produktivitas.js') }}"></script>
 @endpush
 
 @push('styles')
@@ -246,7 +248,7 @@
         .breakdown-clickable:hover {
             background-color: #f8f9fa !important;
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             border-color: #dee2e6 !important;
         }
     </style>

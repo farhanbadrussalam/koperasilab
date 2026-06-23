@@ -15,30 +15,30 @@
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
 
     <!-- Theme adminLTE -->
-    <link rel="stylesheet" href="{{ asset('assets/css/adminlte.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/main.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('assets/css/adminlte.min.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('css/main.css') }}">
 
-    <link rel="stylesheet" href="{{ asset('assets/jquery/jquery-ui.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('assets/jquery/jquery-ui.min.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('vendor/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset_versioned('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.css') }}">
 
-    <script src="{{ asset('assets/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('assets/jquery/jquery-ui.min.js') }}"></script>
-    <script src="{{ asset('assets/inputmask/jquery.inputmask.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/jquery/jquery-ui.min.js') }}"></script>
+    <script src="{{ asset_versioned('assets/inputmask/jquery.inputmask.min.js') }}"></script>
 
-    <link rel="stylesheet" href="{{ asset('assets/sweetalert2/sweetalert2.min.css') }}"/>
-    <script src="{{ asset('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset_versioned('assets/sweetalert2/sweetalert2.min.css') }}"/>
+    <script src="{{ asset_versioned('assets/sweetalert2/sweetalert2.all.min.js') }}"></script>
 
     {{-- Parsley --}}
-    <script src="{{ asset('vendor/parsley/parsley.min.js') }}"></script>
-    <script src="{{ asset('vendor/parsley/setting.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/parsley/parsley.min.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/parsley/setting.js') }}"></script>
 
     {{-- Magnific Popup --}}
-    <link rel="stylesheet" href="{{ asset('vendor/magnific/magnific-popup.css') }}">
-    <script src="{{ asset('vendor/magnific/jquery.magnific-popup.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset_versioned('vendor/magnific/magnific-popup.css') }}">
+    <script src="{{ asset_versioned('vendor/magnific/jquery.magnific-popup.min.js') }}"></script>
 
     {{-- Select 2 --}}
-    <script src="{{ asset('vendor/select2/js/select2.full.js') }}"></script>
+    <script src="{{ asset_versioned('vendor/select2/js/select2.full.js') }}"></script>
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -68,8 +68,9 @@
         };
     </script>
 
-    <script src="{{ asset('assets/js/global.js') }}"></script>
-    <script src="{{ asset('js/upload.js') }}"></script>
+    <script src="{{ asset_versioned('assets/js/global.js') }}"></script>
+    <script src="{{ asset_versioned('js/upload.js') }}"></script>
     @stack('scripts')
+
 </body>
 </html>

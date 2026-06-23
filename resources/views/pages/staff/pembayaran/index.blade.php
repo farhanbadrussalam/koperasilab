@@ -4,8 +4,7 @@
     <div class="row" id="pembayaran-content"></div>
 
     {{-- modal untuk tambah methode pembayaran --}}
-    <div class="modal fade" id="modal-tambah-pembayaran" tabindex="-1"  aria-labelledby="modalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="modal-tambah-pembayaran" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -40,5 +39,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/staff/pembayaran.js') }}"></script>
+    <script src="{{ asset_versioned('js/staff/pembayaran.js') }}"></script>
 @endpush

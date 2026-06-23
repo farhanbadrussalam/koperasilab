@@ -10,7 +10,8 @@
                             <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i
                                     class="bi bi-arrow-clockwise"></i> Refresh data</button>
                         </div>
-                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="tambahPengguna()"><i class="bi bi-plus"></i> Create Pengguna</button>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="tambahPengguna()"><i
+                                class="bi bi-plus"></i> Create Pengguna</button>
                     </div>
                     <div class="mb-3" id="list-filter"></div>
                     <div class="row mt-2" style="min-height: 50vh">
@@ -31,5 +32,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('js/management/pengguna.js') }}"></script>
+    <script src="{{ asset_versioned('js/management/pengguna.js') }}"></script>
 @endpush

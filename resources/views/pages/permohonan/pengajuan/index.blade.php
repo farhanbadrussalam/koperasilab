@@ -58,5 +58,5 @@
 </div>
 @endsection
 @push('scripts')
-<script src="{{ asset('js/permohonan/pengajuan.js') }}"></script>
+<script src="{{ asset_versioned('js/permohonan/pengajuan.js') }}"></script>
 @endpush

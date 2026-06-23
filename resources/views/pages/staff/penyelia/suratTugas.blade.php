@@ -20,7 +20,9 @@
                 </div>
                 <div class="col-md-6 col-12">
                     <label class="fw-bolder">Jumlah</label>
-                    <div>{{ $penyelia->permohonan->jumlah_pengguna . ' Pengguna + ' . $penyelia->permohonan->jumlah_kontrol . ' Kontrol'  }}</div>
+                    <div>
+                        {{ $penyelia->permohonan->jumlah_pengguna . ' Pengguna + ' . $penyelia->permohonan->jumlah_kontrol . ' Kontrol' }}
+                    </div>
                 </div>
                 <div class="col-md-6 col-12">
                     <label class="fw-bolder">Tipe Kontrak</label>
@@ -49,81 +51,90 @@
                 <hr>
                 <div class="col-md-6 col-12 mb-4">
                     <label for="" class="fw-bolder">Tanggal Mulai<span class="text-danger ms-1">*</span></label>
-                    <input type="text" name="date_start" id="date_start" class="form-control datepicker {{ in_array($type, ['verif', 'show']) ? "bg-secondary-subtle" : '' }}" value="{{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? convert_date($penyelia->start_date, 2) : $penyelia->start_date) : '' }}" {{ in_array($type, ['verif', 'show']) ? "readonly" : '' }}>
+                    <input type="text" name="date_start" id="date_start"
+                        class="form-control datepicker {{ in_array($type, ['verif', 'show']) ? 'bg-secondary-subtle' : '' }}"
+                        value="{{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? convert_date($penyelia->start_date, 2) : $penyelia->start_date) : '' }}"
+                        {{ in_array($type, ['verif', 'show']) ? 'readonly' : '' }}>
                 </div>
                 <div class="col-md-6 col-12 mb-4">
                     <label for="" class="fw-bolder">Tanggal Selesai<span class="text-danger ms-1">*</span></label>
                     <input type="text" name="date_end" id="date_end"
-                        class="form-control {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? "bg-secondary-subtle" : '') : "bg-secondary-subtle" }}"
-                        value="{{ $penyelia->end_date ? (in_array($type, ['verif', 'show']) ? convert_date($penyelia->end_date, 2) : $penyelia->end_date) : '' }}" {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? "readonly" : '') : "readonly" }} >
+                        class="form-control {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? 'bg-secondary-subtle' : '') : 'bg-secondary-subtle' }}"
+                        value="{{ $penyelia->end_date ? (in_array($type, ['verif', 'show']) ? convert_date($penyelia->end_date, 2) : $penyelia->end_date) : '' }}"
+                        {{ $penyelia->start_date ? (in_array($type, ['verif', 'show']) ? 'readonly' : '') : 'readonly' }}>
                 </div>
                 {{-- Load list jobs --}}
                 <ul id="sortJobs">
                     @foreach ($jobs as $job)
-                    <li class="col-12" data-idjobs="{{ $job->jobs_hash }}">
-                        <div class="card shadow-sm border-1 rounded-4 mb-2">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div class="fw-bolder">@if (!in_array($type, ['verif', 'show']))
-                                        <span class="moveon cursormove"><i class="bi bi-grip-vertical"></i></span>
-                                    @endif {{ $job->name }}</div>
-                                    @if (!in_array($type, ['verif', 'show']))
-                                    <button class="btn btn-primary btn-sm"
-                                        onclick="tambahPetugas('{{ $job->jobs_hash }}', {{ $loop->index }}, '{{ $job->name }}')"><i
-                                            class="bi bi-person-plus-fill"></i> Tambah petugas</button>
-                                    @endif
-                                </div>
-                                <div class="mt-3" id="list-petugas-{{ $job->jobs_hash }}">
-                                    <p class="w-100 text-center fs-4 m-auto"><i class="bi bi-person-fill-slash"></i> Belum
-                                        ada petugas</p>
+                        <li class="col-12" data-idjobs="{{ $job->jobs_hash }}">
+                            <div class="card shadow-sm border-1 rounded-4 mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="fw-bolder">
+                                            @if (!in_array($type, ['verif', 'show']))
+                                                <span class="moveon cursormove"><i class="bi bi-grip-vertical"></i></span>
+                                            @endif {{ $job->name }}
+                                        </div>
+                                        @if (!in_array($type, ['verif', 'show']))
+                                            <button class="btn btn-primary btn-sm"
+                                                onclick="tambahPetugas('{{ $job->jobs_hash }}', {{ $loop->index }}, '{{ $job->name }}')"><i
+                                                    class="bi bi-person-plus-fill"></i> Tambah petugas</button>
+                                        @endif
+                                    </div>
+                                    <div class="mt-3" id="list-petugas-{{ $job->jobs_hash }}">
+                                        <p class="w-100 text-center fs-4 m-auto"><i class="bi bi-person-fill-slash"></i>
+                                            Belum
+                                            ada petugas</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </li>
+                        </li>
                     @endforeach
                 </ul>
-                @if(count($jobsParalel) > 0)
-                <div>Tugas yang akan di lakukan setelah proses {{ $jobsPoint->name }}</div>
+                @if (count($jobsParalel) > 0)
+                    <div>Tugas yang akan di lakukan setelah proses {{ $jobsPoint->name }}</div>
                 @endif
                 {{-- Load List jobs paralel --}}
                 <ul id="sortJobsParalel">
                     @foreach ($jobsParalel as $job)
-                    <li class="col-12" data-idjobs="{{ $job->jobs_hash }}">
-                        <div class="card shadow-sm border-1 rounded-4 mb-2">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div class="fw-bolder">
+                        <li class="col-12" data-idjobs="{{ $job->jobs_hash }}">
+                            <div class="card shadow-sm border-1 rounded-4 mb-2">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div class="fw-bolder">
+                                            @if (!in_array($type, ['verif', 'show']))
+                                                <span class="moveon cursormove"><i class="bi bi-grip-vertical"></i></span>
+                                            @endif {{ $job->name }}
+                                        </div>
                                         @if (!in_array($type, ['verif', 'show']))
-                                        <span class="moveon cursormove"><i class="bi bi-grip-vertical"></i></span>
-                                        @endif {{ $job->name }}
+                                            <button class="btn btn-primary btn-sm"
+                                                onclick="tambahPetugas('{{ $job->jobs_hash }}', {{ $loop->index }}, '{{ $job->name }}', true)">
+                                                <i class="bi bi-person-plus-fill"></i> Tambah petugas
+                                            </button>
+                                        @endif
                                     </div>
-                                    @if (!in_array($type, ['verif', 'show']))
-                                        <button class="btn btn-primary btn-sm" onclick="tambahPetugas('{{ $job->jobs_hash }}', {{ $loop->index }}, '{{ $job->name }}', true)">
-                                            <i class="bi bi-person-plus-fill"></i> Tambah petugas
-                                        </button>
-                                    @endif
-                                </div>
-                                <div class="mt-3" id="list-petugas-{{ $job->jobs_hash }}">
-                                    <p class="w-100 text-center fs-4 m-auto"><i class="bi bi-person-fill-slash"></i> Belum
-                                        ada petugas</p>
+                                    <div class="mt-3" id="list-petugas-{{ $job->jobs_hash }}">
+                                        <p class="w-100 text-center fs-4 m-auto"><i class="bi bi-person-fill-slash"></i>
+                                            Belum
+                                            ada petugas</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </li>
+                        </li>
                     @endforeach
                 </ul>
 
-                @if (($type == 'show' && $penyelia->ttd) || ($type == 'verif'))
-                <div class="col-md-12 d-flex justify-content-center">
-                    <div class="wrapper text-center" id="content-ttd-1"></div>
-                </div>
+                @if (($type == 'show' && $penyelia->ttd) || $type == 'verif')
+                    <div class="col-md-12 d-flex justify-content-center">
+                        <div class="wrapper text-center" id="content-ttd-1"></div>
+                    </div>
                 @endif
                 <div class="col-12 text-end">
-                    @if($type == 'verif')
-                    <button class="btn btn-danger" onclick="rejectSuratTugas(this)">Tolak</button>
-                    <button class="btn btn-success" onclick=saveSuratTugas(this)>Setujui</button>
+                    @if ($type == 'verif')
+                        <button class="btn btn-danger" onclick="rejectSuratTugas(this)">Tolak</button>
+                        <button class="btn btn-success" onclick=saveSuratTugas(this)>Setujui</button>
                     @elseif($type != 'show')
-                    <button class="btn btn-success" onclick=saveSuratTugas(this)>Simpan</button>
+                        <button class="btn btn-success" onclick=saveSuratTugas(this)>Simpan</button>
                     @endif
                 </div>
             </div>
@@ -133,7 +144,8 @@
         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="modalAddPetugasLabel">List petugas <span id="modal-name-jobs">Penyelia LAB</span></h1>
+                    <h1 class="modal-title fs-5" id="modalAddPetugasLabel">List petugas <span id="modal-name-jobs">Penyelia
+                            LAB</span></h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -143,8 +155,10 @@
                 </div>
                 <div class="modal-footer justify-content-start">
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-danger" id="btnClearPetugas" onclick="removeAddPetugas()"><span class="bi bi-x"></span></button>
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="btnPilihPetugas">Pilih <span id="jumlah-petugas">0</span> Petugas</button>
+                        <button type="button" class="btn btn-danger" id="btnClearPetugas"
+                            onclick="removeAddPetugas()"><span class="bi bi-x"></span></button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                            id="btnPilihPetugas">Pilih <span id="jumlah-petugas">0</span> Petugas</button>
                     </div>
                 </div>
             </div>
@@ -159,5 +173,5 @@
         const dataPenyelia = @json($penyelia);
         const typeSurat = "{{ $type }}";
     </script>
-    <script src="{{ asset('js/staff/surat_tugas.js') }}"></script>
+    <script src="{{ asset_versioned('js/staff/surat_tugas.js') }}"></script>
 @endpush

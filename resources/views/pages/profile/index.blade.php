@@ -655,6 +655,6 @@
             $('#actionBtnProfile').removeClass('d-none');
         }
     </script>
-    <script src="{{ asset('js/profile.js') }}"></script>
-    <script src="{{ asset('js/kop_surat.js') }}"></script>
+    <script src="{{ asset_versioned('js/profile.js') }}"></script>
+    <script src="{{ asset_versioned('js/kop_surat.js') }}"></script>
 @endpush
