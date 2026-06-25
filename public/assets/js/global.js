@@ -1591,3 +1591,18 @@ function showSwal(title, text, icon = 'success') {
         timer: 2000,
     });
 }
+
+// fungsi untuk validasi TLD adendum 
+// kontrak evaluasi tld dari lab dan menggunakan zerocek = kontrak sewa 
+function validateTldAdendum(data){
+    const is_zerocek = data.is_zerocek;
+    const is_have_tld = data.is_have_tld;
+    const is_periode_berjalan = data.is_periode_berjalan;
+    const isSendTld = data.is_send_tld;
+    
+    // TLD di kirim terpisah
+    if (is_periode_berjalan && isSendTld) 
+        return true;
+
+    return false;
+}

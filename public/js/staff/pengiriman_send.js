@@ -35,7 +35,8 @@ if (informasi.sumber == 'permohonan') {
         periode_all: informasi.kontrak.periode_all,
         periode_next: informasi.kontrak.periode_next,
         periode: informasi.periode,
-        alamat: informasi.alamat
+        alamat: informasi.alamat,
+        kontrak_detail: informasi.kontrak.kontrak_detail
     }
 } else {
     dataOrderPengiriman = {
@@ -65,7 +66,8 @@ if (informasi.sumber == 'permohonan') {
         periode_all: informasi.periode_all,
         periode_next: informasi.periode_next,
         periode: false,
-        alamat: false
+        alamat: false,
+        kontrak_detail: informasi.kontrak_detail
     }
 }
 
@@ -171,10 +173,17 @@ function load_form(unusedKontrol = [], unusedPengguna = []) {
 
     let renderTldAdendum = false;
     if (dataOrderPengiriman.tipe_kontrak == 'adendum') {
-        let jmlPenambahan = tldPengguna.filter(p => p.type == 'baru').length + tldKontrol.filter(c => c.type == 'baru').length;
-        if (dataOrderPengiriman.is_periode_berjalan && jmlPenambahan > 0) {
-            renderTldAdendum = true;
-        }
+        const detailTld = dataOrderPengiriman?.kontrak_detail?.find(d => d.periode_tld_1 === dataOrderPengiriman.periode || d.periode_tld_2 === dataOrderPengiriman.periode);
+        const isTldSent = detailTld ? (detailTld.periode_tld_1 === dataOrderPengiriman.periode ? detailTld.status_tld_1 : detailTld.status_tld_2) == 2 : false;
+
+        let paramValidasi = {
+            is_zerocek : dataOrderPengiriman.is_zerocek,
+            is_have_tld : dataOrderPengiriman.is_have_tld,
+            is_periode_berjalan : dataOrderPengiriman.is_periode_berjalan,
+            is_send_tld : isTldSent
+        };
+
+        renderTldAdendum = validateTldAdendum(paramValidasi) ? true : false;
     }
     if ((!periodeAwal.includes(periodeTld) && dataOrderPengiriman.tipe_kontrak != 'adendum') || renderTldAdendum) {
         let checkStatusPengiriman = null;

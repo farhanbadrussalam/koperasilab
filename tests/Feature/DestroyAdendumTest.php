@@ -37,7 +37,7 @@ class DestroyAdendumTest extends TestCase
      */
     public function test_destroy_adendum_guest_unauthorized()
     {
-        $response = $this->deleteJson('/api/v1/permohonan/destroyAdendum/any-hash');
+        $response = $this->deleteJson('/api/v1/adendum/destroy/any-hash');
         $response->assertStatus(401);
     }
 
@@ -53,7 +53,7 @@ class DestroyAdendumTest extends TestCase
 
         Sanctum::actingAs($user);
 
-        $response = $this->deleteJson('/api/v1/permohonan/destroyAdendum/any-hash');
+        $response = $this->deleteJson('/api/v1/adendum/destroy/any-hash');
         $response->assertStatus(403)
                  ->assertJsonFragment(['msg' => 'Akses ditolak. Hanya Developer atau Super Admin yang diperbolehkan.']);
     }
@@ -79,7 +79,7 @@ class DestroyAdendumTest extends TestCase
 
         $hash = encryptor($permohonan->id_permohonan);
 
-        $response = $this->deleteJson('/api/v1/permohonan/destroyAdendum/' . $hash);
+        $response = $this->deleteJson('/api/v1/adendum/destroy/' . $hash);
         $response->assertStatus(400)
                  ->assertJsonFragment(['msg' => 'Data yang ingin dihapus bukan merupakan adendum']);
     }
@@ -105,7 +105,7 @@ class DestroyAdendumTest extends TestCase
 
         $hash = encryptor($permohonan->id_permohonan);
 
-        $response = $this->deleteJson('/api/v1/permohonan/destroyAdendum/' . $hash);
+        $response = $this->deleteJson('/api/v1/adendum/destroy/' . $hash);
         $response->assertStatus(200)
                  ->assertJsonFragment(['msg' => 'Adendum berhasil dihapus!']);
 
@@ -136,7 +136,7 @@ class DestroyAdendumTest extends TestCase
 
         $hash = encryptor($permohonan->id_permohonan);
 
-        $response = $this->deleteJson('/api/v1/permohonan/destroyAdendum/' . $hash);
+        $response = $this->deleteJson('/api/v1/adendum/destroy/' . $hash);
         $response->assertStatus(200)
                  ->assertJsonFragment(['msg' => 'Adendum berhasil dihapus!']);
 
@@ -186,7 +186,7 @@ class DestroyAdendumTest extends TestCase
 
         $hash = encryptor($permohonan->id_permohonan);
 
-        $response = $this->deleteJson('/api/v1/permohonan/destroyAdendum/' . $hash);
+        $response = $this->deleteJson('/api/v1/adendum/destroy/' . $hash);
         $response->assertStatus(200)
                  ->assertJsonFragment(['msg' => 'Adendum berhasil dihapus!']);
 

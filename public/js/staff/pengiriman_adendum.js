@@ -47,7 +47,7 @@ function loadData(page = 1) {
 
     showSkeleton();
 
-    ajaxGet(`api/v1/pengiriman/listAdendum`, params, result => {
+    ajaxGet(`api/v1/adendum/list`, params, result => {
         dataAdendum = result.data;
 
         // Update sidebar badge
@@ -69,6 +69,7 @@ function loadData(page = 1) {
                 </div>
             `;
         } else {
+            console.log(result.data);
             result.data.forEach((data, index) => {
                 let jmlPergantian = data.permohonan_detail?.filter(detail => detail.type === 'ganti').length ?? 0;
                 let jmlPenambahan = data.permohonan_detail?.filter(detail => detail.type === 'baru').length ?? 0;
@@ -79,12 +80,6 @@ function loadData(page = 1) {
 
                 // Cari pengiriman Invoice adendum (hanya jika ada penambahan)
                 let findInvoiceAdendum = (jmlPenambahan > 0 && data.invoice) ? data.invoice.pengiriman : null;
-
-                // Cari pengiriman TLD adendum (hanya jika ada penambahan dan periode adendum == periode aktif kontrak)
-                let findTldAdendum = null;
-                if (jmlPenambahan > 0 && data.is_periode_berjalan) {
-                    findTldAdendum = data.pengiriman_tld;
-                }
 
                 // Dokumen status info (Column 1 Dokumen List)
                 let htmlDocs = '';
@@ -99,7 +94,7 @@ function loadData(page = 1) {
                         textInvoiceDetails = `<div class="fs-7 text-secondary">${statusInv}</div>`;
                     }
                     htmlDocs += `
-                        <div class="col">
+                        <div class="col-4">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fw-medium text-dark small"><i class="bi bi-receipt-cutoff text-muted me-2"></i>Invoice</span>
@@ -116,11 +111,14 @@ function loadData(page = 1) {
                 if (data.lhu && data.lhu.status) {
                     textLhuDetails = `<div class="fs-7 text-secondary">${statusFormat('penyelia', data.lhu.status)}</div>`;
                 }
+
+                let textLhu = 'LHU';
+                data.is_zerocek && (textLhu += ' + Zero Check');
                 htmlDocs += `
-                    <div class="col">
+                    <div class="col-4">
                         <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU</span>
+                                <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>${textLhu}</span>
                                 <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
                             </div>
                             ${textLhuDetails}
@@ -129,10 +127,21 @@ function loadData(page = 1) {
                 `;
 
                 // 3. TLD Adendum
-                if (data.is_periode_berjalan) {
+                const detailTld = data.kontrak?.kontrak_detail?.find(d => d.periode_tld_1 === data.periode || d.periode_tld_2 === data.periode);
+                const isTldSent = detailTld ? (detailTld.periode_tld_1 === data.periode ? detailTld.status_tld_1 : detailTld.status_tld_2) == 2 : false;
+                
+                let paramValidasi = {
+                    is_zerocek: data.is_zerocek,
+                    is_have_tld: data.is_have_tld,
+                    is_periode_berjalan: data.is_periode_berjalan,
+                    is_send_tld: isTldSent
+                };
+
+                if(validateTldAdendum(paramValidasi)){
+                    const findTldAdendum = data.pengiriman_tld;
                     let statusTld = findTldAdendum ? findTldAdendum.status : 0;
                     htmlDocs += `
-                        <div class="col">
+                        <div class="col-4">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>

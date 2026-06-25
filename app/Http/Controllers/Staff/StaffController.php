@@ -327,15 +327,6 @@ class StaffController extends Controller
         return view('pages.staff.pengiriman.permohonan', $data);
     }
 
-    public function indexPengirimanAdendum()
-    {
-        $data = [
-            'title' => 'Pengiriman Adendum',
-            'module' => 'staff-pengiriman-adendum'
-        ];
-        return view('pages.staff.pengiriman.adendum', $data);
-    }
-
     public function verifikasiPermohonan(string $idPermohonan)
     {
         notifRead('Permohonan', $idPermohonan);
@@ -474,9 +465,9 @@ class StaffController extends Controller
                     'jenis_layanan_parent',
                     'pengiriman',
                     'pengiriman.detail',
-                    'kontrak_detail',
-                    'kontrak_detail.tld_1',
-                    'kontrak_detail.tld_2',
+                    'kontrak_detail:id,id_kontrak,id_pengguna_divisi,tld_1,status_tld_1,periode_tld_1,tld_2,status_tld_2,periode_tld_2,jenis',
+                    'kontrak_detail.tld_1:id_tld,no_seri_tld,jenis',
+                    'kontrak_detail.tld_2:id_tld,no_seri_tld,jenis',
                     'kontrak_detail.entitas' => function (MorphTo $morphTo) {
                         $morphTo->morphWith([
                             Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
@@ -525,8 +516,8 @@ class StaffController extends Controller
                             Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
                         ]);
                     },
-                    'tld_1',
-                    'tld_2',
+                    'tld_1:id_tld,no_seri_tld,jenis',
+                    'tld_2:id_tld,no_seri_tld,jenis',
                 ])
                     ->where('id_kontrak', $id)
                     ->where('periode', $data->periode[0]->periode)
@@ -540,6 +531,9 @@ class StaffController extends Controller
                     'jenis_layanan:id_jenisLayanan,name,parent',
                     'jenis_layanan_parent',
                     'kontrak',
+                    'kontrak.kontrak_detail:id,id_kontrak,id_pengguna_divisi,tld_1,status_tld_1,periode_tld_1,tld_2,status_tld_2,periode_tld_2,jenis',
+                    'kontrak.kontrak_detail.tld_1:id_tld,no_seri_tld,jenis',
+                    'kontrak.kontrak_detail.tld_2:id_tld,no_seri_tld,jenis',
                     'alamat',
                     'kontrak.periode',
                     'kontrak.pengiriman',

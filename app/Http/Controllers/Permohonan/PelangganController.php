@@ -135,57 +135,6 @@ class PelangganController extends Controller
         return $pengiriman ? $pengiriman->detail->where('jenis', 'tld')->first() : null;
     }
 
-    public function adendumKontrak($idKontrak)
-    {
-        $idKontrak = decryptor($idKontrak);
-
-        if ($idKontrak) {
-            $data = [
-                'title' => 'Adendum Kontrak',
-                'module' => 'permohonan-kontrak',
-            ];
-
-            $kontrak = Kontrak::with([
-                'pelanggan',
-                'pelanggan.perusahaan',
-                'layanan_jasa',
-                'jenis_layanan',
-                'jenis_layanan_parent',
-                'jenisTld',
-                'periode'
-            ])->where('id_kontrak', $idKontrak)->first();
-
-            if ($kontrak) {
-                $tldSentStatus = [];
-                foreach ($kontrak->periode as $p) {
-                    $tldSentStatus[$p->periode] = Pengiriman::where('id_kontrak', $idKontrak)
-                        ->where('periode', $p->periode)
-                        ->whereHas('detail', function ($q) {
-                            $q->where('jenis', 'tld');
-                        })
-                        ->whereIn('status', [1, 2, 3])
-                        ->exists();
-                }
-                $kontrak->tld_sent_status = $tldSentStatus;
-
-                $evaluasiCreated = [];
-                foreach ($kontrak->periode as $p) {
-                    $evaluasiCreated[$p->periode] = Permohonan::where('id_kontrak', $idKontrak)
-                        ->where('periode', $p->periode)
-                        ->whereNot('tipe_kontrak', 'adendum')
-                        ->exists();
-                }
-                $kontrak->evaluasi_created = $evaluasiCreated;
-            }
-
-            $data['kontrak'] = $kontrak;
-
-            return view('pages.permohonan.kontrak.adendum', $data);
-        } else {
-            abort(404);
-        }
-    }
-
     // FEATURE PENGAJUAN
     public function indexPengajuan()
     {

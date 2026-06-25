@@ -195,7 +195,7 @@ function simpanAdendum(obj) {
         confirmButtonText: 'Yes, proceed!'
     }).then((result) => {
         if (result.isConfirmed) {
-            ajaxPost('api/v1/permohonan/tambahAdendum', params, result => {
+            ajaxPost('api/v1/adendum/store', params, result => {
                 Swal.fire({
                     icon: 'success',
                     text: 'Adendum berhasil disimpan',

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Adendum\AdendumController;
 use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\dashboardSkeletonController;
 use App\Http\Controllers\DashboardWidgetController;
@@ -63,8 +64,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('/kontrak', 'indexKontrak')->middleware('permission:Kontrak')->name('permohonan.kontrak');
             Route::get('/kontrak/e/{idKontrak}/{idPeriode}', 'evaluasiKontrak')->name('permohonan.kontrak.evaluasi');
-            Route::get('/kontrak/a/{idKontrak}', 'adendumKontrak')->name('permohonan.kontrak.adendum');
         });
+
+        // Adendum → AdendumController
+        Route::get('/kontrak/a/{idKontrak}', [AdendumController::class, 'showForm'])->name('permohonan.kontrak.adendum');
     });
 
     Route::prefix('staff')->group(function () {
@@ -87,13 +90,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/pengiriman/permohonan/kirim/{idKontrak}/{periode}', 'buatOrderPengiriman')->name('staff.pengiriman.permohonan.kirim.kontrak');
             Route::get('/pengiriman/pengembalian/{idKontrak}', 'buatOrderPengembalian');
             Route::get('/pengiriman/tambah', 'buatCustomPengiriman')->name('staff.pengiriman.tambah');
-            Route::get('/pengiriman/adendum', 'indexPengirimanAdendum')->name('staff.pengiriman.adendum');
+
 
             Route::get('/perusahaan', 'indexPerusahaan')->middleware(['permission:Staff/perusahaan'])->name('staff.perusahaan');
             Route::get('/jenis/pembayaran', 'indexJenisPembayaran')->name('staff.jenis.pembayaran');
 
             Route::get('/pelanggan/approval', 'indexApproval')->name('staff.pelanggan.approval');
         });
+
+        // Adendum pengiriman → AdendumController
+        Route::get('/pengiriman/adendum', [AdendumController::class, 'indexPengiriman'])->name('staff.pengiriman.adendum');
 
         Route::get('/lhu/petugas/getData', [UserController::class, 'getData'])->name('staff.lhu.petugas.getData');
     });

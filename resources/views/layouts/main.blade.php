@@ -218,7 +218,7 @@
             // Inisialisasi counter badge adendum khusus Staff Pengiriman
             if (role.includes('Staff Pengiriman')) {
                 const loadAdendumBadge = () => {
-                    ajaxGet('api/v1/pengiriman/listAdendum', {
+                    ajaxGet('api/v1/adendum/list', {
                         limit: 1
                     }, result => {
                         let total = result.pagination?.total ?? 0;
