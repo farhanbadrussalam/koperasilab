@@ -151,6 +151,13 @@ class PengirimanAPI extends Controller
                         }
                     }
                 })
+                ->when($request->has('tab'), function ($q) use ($request) {
+                    if ($request->tab == 'progress') {
+                        $q->where('status', '!=', 2);
+                    } else if ($request->tab == 'selesai') {
+                        $q->where('status', 2);
+                    }
+                })
                 // ->when($status, function($q, $status) {
                 //     return $q->whereIn('status', $status);
                 // })
@@ -544,6 +551,54 @@ class PengirimanAPI extends Controller
                 }
             }
 
+            if ($query->permohonan && $query->permohonan->tipe_kontrak == 'adendum') {
+                // Cek kelengkapan dokumen pengiriman khusus adendum
+                $permohonan = $query->permohonan;
+                $hasPenambahan = $permohonan->permohonan_detail()->where('type', 'baru')->exists();
+
+                $requiredDocs = ['tld'];
+
+                // Jika ada penambahan pengguna baru (bukan hanya pergantian), maka butuh INVOICE
+                if ($hasPenambahan) {
+                    $requiredDocs[] = 'invoice';
+                }
+
+                // Jika is_zerocek 1, maka butuh LHU (TLD sudah pasti masuk default)
+                if ($permohonan->is_zerocek == 1) {
+                    $requiredDocs[] = 'lhu';
+                }
+
+                $allSent = true;
+                $pengirimans = Pengiriman::where('id_kontrak', $query->id_kontrak)
+                    ->where('periode', $query->periode)
+                    ->get();
+
+                foreach ($requiredDocs as $doc) {
+                    $docSent = false;
+                    foreach ($pengirimans as $pengiriman) {
+                        $cekDokumen = Pengiriman_detail::where('id_pengiriman', $pengiriman->id_pengiriman)
+                            ->where('jenis', $doc)
+                            ->where('periode', $query->periode)
+                            ->first();
+
+                        if ($cekDokumen && $pengiriman->status == 2) {
+                            $docSent = true;
+                            break;
+                        }
+                    }
+
+                    if (!$docSent) {
+                        $allSent = false;
+                        break;
+                    }
+                }
+
+                // Ubah status permohonan adendum menjadi 5 (selesai) jika semua dokumen sudah dikirim
+                if ($allSent) {
+                    $permohonan->update(['status' => 5]);
+                }
+            }
+
             // kondisi ketika semua periode complete, dan akan mengganti status di kontrak nya menjadi 2
             // Mengambil data kontrak
             $kontrak = Kontrak::with(['jenis_layanan', 'jenis_layanan_parent', 'tld_aktif'])->where('id_kontrak', $query->id_kontrak)->first();
@@ -789,7 +844,12 @@ class PengirimanAPI extends Controller
                     if ($kontrakTld->type == 'ganti') {
                         Kontrak_detail::where('id_kontrak', $idKontrak)
                             ->where('id_pengguna_divisi', $kontrakTld->pengguna_lama)
-                            ->update(['status' => 99]);
+                            ->delete();
+                            
+                        Kontrak_map::where('id_kontrak', $idKontrak)
+                            ->where('id_pengguna_divisi', $kontrakTld->pengguna_lama)
+                            ->where('periode', '>=', $periodeTld)
+                            ->delete();
                     }
 
                     $kontrakTld->update($updateData);
@@ -881,6 +941,30 @@ class PengirimanAPI extends Controller
             }
         } elseif ($value->jenis == 'tld') {
             Permohonan::where('id_permohonan', $id)->update(['id_pengiriman' => $idPengiriman]);
+
+            // ── Jika ada TLD adendum yang dikirim bersamaan, update juga permohonan adendum ──
+            // Cek apakah ada kontrak_detail dengan status=2 (adendum) yang id_tld-nya masuk dalam list pengiriman ini
+            if (!empty($value->listTld)) {
+                foreach ($value->listTld as $val) {
+                    $idKontrakDetail = (int) decryptor($val->id);
+                    $kDetail = Kontrak_detail::find($idKontrakDetail);
+
+                    // status=2 di kontrak_detail menandakan baris ini adalah TLD adendum
+                    if ($kDetail && $kDetail->status == 2) {
+                        // Cari permohonan adendum yang memiliki TLD ini di permohonan_detail
+                        $idTldAdendum = $kDetail->tld_1 ?? $kDetail->tld_2;
+                        if ($idTldAdendum) {
+                            \App\Models\Permohonan_detail::where('id_tld', $idTldAdendum)
+                                ->whereHas('permohonan', fn($q) => $q->where('tipe_kontrak', 'adendum')
+                                    ->where('id_kontrak', $kDetail->id_kontrak))
+                                ->each(function ($pd) use ($idPengiriman) {
+                                    \App\Models\Permohonan::where('id_permohonan', $pd->id_permohonan)
+                                        ->update(['id_pengiriman' => $idPengiriman]);
+                                });
+                        }
+                    }
+                }
+            }
         }
     }
 }

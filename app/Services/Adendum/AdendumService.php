@@ -10,6 +10,7 @@ use App\Models\Keuangan;
 use App\Models\Keuangan_diskon;
 use App\Models\Kontrak;
 use App\Models\Kontrak_detail;
+use App\Models\Kontrak_map;
 use App\Models\Kontrak_periode;
 use App\Models\Log_activity;
 use App\Models\Log_keuangan;
@@ -179,7 +180,7 @@ class AdendumService
 
                 Permohonan_detail::find($id)?->update([
                     'id_tld' => $idTld ?: null,
-                    'status' => $dataPermohonan->is_have_tld ? 1 : 5,
+                    'status' => $dataPermohonan->is_have_tld ? 3 : 5,
                 ]);
             }
 
@@ -433,7 +434,7 @@ class AdendumService
             'permohonan_detail',
         ])
             ->where('tipe_kontrak', 'adendum')
-            ->whereIn('status', [2, 3, 4, 5])
+            ->whereIn('status', [2, 3, 4])
             ->when($noKontrak, fn($q) => $q->whereHas('kontrak', fn($q2) => $q2->where('no_kontrak', $noKontrak)))
             ->when($filter, function ($q) use ($filter) {
                 foreach ($filter as $key => $value) {
@@ -538,7 +539,13 @@ class AdendumService
                     Master_pengguna::where('id_pengguna', $change->id_pengguna_divisi)
                         ->update(['status' => 1]);
 
-                    $change->update(['status' => 99]);
+                    // Soft delete map TLD pengguna lama dari periode aktif ini dan seterusnya
+                    Kontrak_map::where('id_kontrak', $idKontrak)
+                        ->where('id_pengguna_divisi', $change->id_pengguna_divisi)
+                        ->where('periode', '>=', $kontrak->periode_active->periode)
+                        ->delete();
+
+                    $change->delete();
                 }
             }
 
@@ -580,11 +587,12 @@ class AdendumService
                 $idTld = $kontrakPeriode?->count_tld == 1 ? $kontrakDetail?->tld_1 : $kontrakDetail?->tld_2;
             }
 
+            $permohonanForStatus = Permohonan::find($idPermohonan);
             Permohonan_detail::create([
                 'id_permohonan'      => $idPermohonan,
                 'id_pengguna_divisi' => $idPengguna,
                 'jenis'              => 'pengguna',
-                'status'             => 1,
+                'status'             => $this->resolveStatusDetail($permohonanForStatus, $value->status),
                 'type'               => $value->status,
                 'pengguna_lama'      => $idPenggunaLama,
                 'created_by'         => Auth::id(),
@@ -596,14 +604,18 @@ class AdendumService
         }
 
         // Simpan kontrol
+        $permohonanForStatus = $permohonanForStatus ?? Permohonan::find($idPermohonan);
         foreach ($tldKontrol as $value) {
             $idTld = isset($value->tld) ? (int) decryptor($value->tld) : null;
+
+            // Kontrol: status mengikuti apakah TLD dari Pelanggan atau LAB
+            $statusKontrol = $permohonanForStatus?->is_have_tld ? 3 : 5;
 
             Permohonan_detail::create([
                 'id_permohonan'      => $idPermohonan,
                 'id_pengguna_divisi' => null,
                 'jenis'              => 'kontrol',
-                'status'             => 1,
+                'status'             => $statusKontrol,
                 'type'               => 'baru',
                 'created_by'         => Auth::id(),
                 'id_tld'             => $idTld,
@@ -640,5 +652,29 @@ class AdendumService
         }
 
         return [null, $detail->id_tld, null, $detail->status, null, $periode];
+    }
+
+    /**
+     * Menentukan status awal permohonan_detail berdasarkan type adendum dan sumber TLD.
+     *
+     * Status:
+     *   3 = Siap (TLD sudah ada / dari pelanggan)
+     *   5 = Menunggu (TLD dari LAB/penyimpanan, belum dikirim)
+     *
+     * @param  Permohonan|null $permohonan
+     * @param  string          $type  'ganti' | 'baru'
+     * @return int
+     */
+    private function resolveStatusDetail(?Permohonan $permohonan, string $type): int
+    {
+        // Pergantian pengguna: TLD sudah ada di pelanggan dari periode sebelumnya
+        if ($type === 'ganti') {
+            return 3;
+        }
+
+        // Penambahan baru: bergantung pada sumber TLD
+        // is_have_tld = 1 → TLD dari Pelanggan (status 3)
+        // is_have_tld = 0 → TLD dari LAB/penyimpanan (status 5, perlu pengiriman)
+        return $permohonan?->is_have_tld ? 3 : 5;
     }
 }

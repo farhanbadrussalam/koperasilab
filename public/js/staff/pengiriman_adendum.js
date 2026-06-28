@@ -69,7 +69,6 @@ function loadData(page = 1) {
                 </div>
             `;
         } else {
-            console.log(result.data);
             result.data.forEach((data, index) => {
                 let jmlPergantian = data.permohonan_detail?.filter(detail => detail.type === 'ganti').length ?? 0;
                 let jmlPenambahan = data.permohonan_detail?.filter(detail => detail.type === 'baru').length ?? 0;
@@ -107,50 +106,65 @@ function loadData(page = 1) {
                 }
 
                 // 2. LHU Adendum
-                let textLhuDetails = '';
-                if (data.lhu && data.lhu.status) {
-                    textLhuDetails = `<div class="fs-7 text-secondary">${statusFormat('penyelia', data.lhu.status)}</div>`;
-                }
-
-                let textLhu = 'LHU';
-                data.is_zerocek && (textLhu += ' + Zero Check');
-                htmlDocs += `
-                    <div class="col-4">
-                        <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>${textLhu}</span>
-                                <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
-                            </div>
-                            ${textLhuDetails}
-                        </div>
-                    </div>
-                `;
-
-                // 3. TLD Adendum
-                const detailTld = data.kontrak?.kontrak_detail?.find(d => d.periode_tld_1 === data.periode || d.periode_tld_2 === data.periode);
-                const isTldSent = detailTld ? (detailTld.periode_tld_1 === data.periode ? detailTld.status_tld_1 : detailTld.status_tld_2) == 2 : false;
-                
-                let paramValidasi = {
-                    is_zerocek: data.is_zerocek,
-                    is_have_tld: data.is_have_tld,
-                    is_periode_berjalan: data.is_periode_berjalan,
-                    is_send_tld: isTldSent
-                };
-
-                if(validateTldAdendum(paramValidasi)){
-                    const findTldAdendum = data.pengiriman_tld;
-                    let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                if(data.is_zerocek == 1){
+                    let textLhuDetails = '';
+                    if (data.lhu && data.lhu.status) {
+                        textLhuDetails = `<div class="fs-7 text-secondary">${statusFormat('penyelia', data.lhu.status)}</div>`;
+                    }
+    
+                    let textLhu = 'LHU';
+                    data.is_zerocek && (textLhu += ' + Zero Check');
                     htmlDocs += `
                         <div class="col-4">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
-                                    <span class="small">${statusFormat('pengiriman', statusTld)}</span>
+                                    <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>${textLhu}</span>
+                                    <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
                                 </div>
+                                ${textLhuDetails}
                             </div>
                         </div>
                     `;
                 }
+
+                // 3. TLD Adendum
+                let isLabReady = true;
+                let currentLhu = data.lhu;
+                if (currentLhu) {
+                    isLabReady = false;
+                    if (currentLhu.status == 3 || currentLhu.status == 5) {
+                        isLabReady = true;
+                    } else if (currentLhu.penyelia_map && currentLhu.penyelia_map.length > 0) {
+                        let pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pelabelan TLD');
+                        if (!pelabelanJob) {
+                            pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pembuatan Label');
+                        }
+                        
+                        if (pelabelanJob && pelabelanJob.status == 2) {
+                            isLabReady = true;
+                        }
+                    }
+                } else {
+                    if (data.is_zerocek == 1 || jmlPenambahan > 0 || jmlPergantian > 0) {
+                        isLabReady = false;
+                    }
+                }
+
+                let tldWarning = !isLabReady ? `<div class="fs-7 text-danger mt-1"><i class="bi bi-info-circle"></i> Menunggu Lab (Labeling)</div>` : '';
+
+                const findTldAdendum = data.pengiriman_tld;
+                let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                htmlDocs += `
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
+                                <span class="small">${statusFormat('pengiriman', statusTld)}</span>
+                            </div>
+                            ${tldWarning}
+                        </div>
+                    </div>
+                `;
 
                 // Tombol aksi kirim (Column 3 Action)
                 let htmlBtn = `<a class="btn btn-primary rounded-pill px-3 shadow-xs btn-sm fw-bold w-100 text-center d-flex align-items-center justify-content-center gap-1" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan_hash}"><i class="bi bi-send-fill"></i> Kirim Dokumen</a>`;

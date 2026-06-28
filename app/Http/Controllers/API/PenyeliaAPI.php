@@ -19,6 +19,7 @@ use App\Models\Documents;
 use App\Models\Master_jobs;
 use App\Models\Master_tld;
 use App\Models\Master_pengguna;
+use App\Models\Permohonan_detail;
 
 use App\Models\Kontrak_tld;
 use App\Models\Kontrak_periode;
@@ -837,22 +838,21 @@ class PenyeliaAPI extends Controller
             }
         }
 
+        // ── Update status permohonan_detail ke 6 (siap dikirim) saat pelabelan adendum selesai ──
+        if (
+            $sProgress == 'done'
+            && $jobsNow->jobs->status == 20
+            && $penyelia->permohonan->tipe_kontrak == 'adendum'
+        ) {
+            Permohonan_detail::where('id_permohonan', $penyelia->id_permohonan)
+                ->whereIn('status', [3, 5])
+                ->update(['status' => 6]);
+        }
+
         if (!$jobsNext && !$jobsNow->point_jobs) {
             $permohonan = Permohonan::find($penyelia->id_permohonan);
-
             $penyelia->update(['status' => 3]);
-
-            if ($penyelia->permohonan->tipe_kontrak == 'adendum' && $penyelia->permohonan->is_zerocek == 0) {
-                $permohonan->update(['status' => 5]);
-
-                // Hanya aktifkan adendum jika tidak memiliki penambahan pengguna baru (type = baru)
-                $hasPenambahan = $permohonan->permohonan_detail()->where('type', 'baru')->exists();
-                if (!$hasPenambahan) {
-                    setKontrakAdendum($penyelia->permohonan->id_kontrak, $penyelia->permohonan->periode);
-                }
-            } else {
-                $permohonan->update(['status' => 4]);
-            }
+            $permohonan->update(['status' => 4]);
         }
     }
 
@@ -1017,6 +1017,26 @@ class PenyeliaAPI extends Controller
                 ->filterByCustomFilters($filter)
                 ->filterByUserId($userId)
                 ->filterBySatuanKerja(Auth::user()->satuankerja_id)
+                ->when($request->has('tab'), function ($q) use ($request, $menu) {
+                    if ($menu == 'surattugas') {
+                        if ($request->tab == 'surattugas') {
+                            $q->where('status', 1);
+                        } else if ($request->tab == 'progress') {
+                            $q->whereNotIn('status', [1, 3]);
+                        } else if ($request->tab == 'selesai') {
+                            $q->where('status', 3);
+                        }
+                    } else if ($menu == 'ttd-surat') {
+                        if ($request->tab == 'progress') {
+                            $q->where(function ($query) {
+                                $query->where('is_surat_tugas_signed', 0)
+                                      ->orWhereNull('is_surat_tugas_signed');
+                            });
+                        } else if ($request->tab == 'selesai') {
+                            $q->where('is_surat_tugas_signed', 1);
+                        }
+                    }
+                })
                 ->orderByRaw('FIELD(status, 1, 5, 2, 6, 10, 7, 3)')
                 ->orderByRaw('active_job_order IS NULL, active_job_order ASC')
                 ->orderBy('id_penyelia', 'DESC')

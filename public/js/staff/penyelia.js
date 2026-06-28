@@ -3,11 +3,12 @@ let dataPenyelia = false;
 let detail = false;
 let detailNote = false;
 let filterComp = false;
-let thisTab = 1;
+let thisTab = 'surattugas';
+let currentTab = 'surattugas';
 let modalDoc = false;
 $(function () {
     // mengambil params url
-    switchLoadTab(1);
+    switchLoadTab('surattugas');
 
     modalDoc = new ModalDocument({
         title: 'Penerbitan Persetujuan Pengujian',
@@ -44,21 +45,20 @@ $(function () {
     })
 
     // SETUP FILTER
-    filterComp.on('filter.change', () => switchLoadTab(thisTab));
+    filterComp.on('filter.change', () => switchLoadTab(currentTab));
 });
 
 function switchLoadTab(menu) {
-    thisTab = menu;
-    switch (menu) {
-        case 1:
-            menu = 'surattugas';
-            break;
-    }
+    currentTab = menu;
+    
+    // UI selection
+    $('.nav-link').removeClass('active');
+    $(`#${menu}-tab`).addClass('active');
 
-    loadData(1, menu);
+    loadData(1);
 }
 
-function loadData(page = 1, menu = 'penyelialhu') {
+function loadData(page = 1, menu = 'surattugas') {
     let date = new Date();
     let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
     let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -66,6 +66,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
         limit: 5,
         page: page,
         menu: menu,
+        tab: currentTab,
         filter: {
             // date_range: [dateFormat(firstDay, 3), dateFormat(lastDay, 3)],
         }
@@ -128,11 +129,19 @@ function loadData(page = 1, menu = 'penyelialhu') {
                     const isTugasSigned = penyelia.is_surat_tugas_signed;
                     const isPengajuanSigned = penyelia.is_pengajuan_signed;
                     const isSurpengSigned = penyelia.is_surpeng_signed;
-                    const isAdendum = penyelia.permohonan?.tipe_kontrak == 'adendum' && penyelia.permohonan.is_periode_berjalan == 1;
+                    let adendumTld = false;
+                    if(penyelia.permohonan.tipe_kontrak == 'adendum') {
+                        // let paramValidasi = {
+                        //     is_periode_berjalan: penyelia.permohonan.is_periode_berjalan,
+                        //     is_send_tld: penyelia.permohonan.kontrak.tld_in_pelanggan
+                        // };
+
+                        adendumTld = true;
+                    }
                     const hasTugas = penyelia.penyelia_map.length > 0;
                     const docPengujian = permohonan.dokumen.find(d => d.jenis === 'SuratPengujian');
                     const docTugas = permohonan.dokumen.find(d => d.jenis === 'surattugas');
-                    const docSurpeng = penyelia.dokumen_surpeng.find(d => isAdendum ? d.permohonan_hash == penyelia.permohonan.permohonan_hash : d.periode == penyelia.periode_used);
+                    const docSurpeng = penyelia.dokumen_surpeng.find(d => adendumTld ? d.permohonan_hash == penyelia.permohonan.permohonan_hash : d.periode == penyelia.periode_used);
 
                     let actionButtons = [];
 
@@ -281,7 +290,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
                         `);
                     }
 
-                    if (penyelia.periode_used || penyelia.kontrak.periode_next || isAdendum) {
+                    if (penyelia.periode_used || penyelia.kontrak.periode_next || adendumTld) {
                         // Konfigurasi Tombol Surat Pengantar
                         let surpengBtn = {
                             icon: 'bi-hourglass-split',
@@ -292,7 +301,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
 
                         if (docSurpeng) {
                             let url_laporan = '';
-                            if (isAdendum) {
+                            if (adendumTld) {
                                 url_laporan = `laporan/${docSurpeng.jenis}/${docSurpeng.permohonan_hash}/${docSurpeng.periode}?adendum=1`;
                             } else {
                                 url_laporan = `laporan/${docSurpeng.jenis}/${docSurpeng.kontrak_hash}/${penyelia.kontrak.periode_next ? 1 : docSurpeng.periode}`;
@@ -407,18 +416,7 @@ function loadData(page = 1, menu = 'penyelialhu') {
 $('#list-pagination').on('click', 'a', function (e) {
     e.preventDefault();
     const pageno = e.target.dataset.page;
-    let menu = '';
-    switch (thisTab) {
-        case 1:
-            menu = 'surattugas';
-            break;
-
-        case 2:
-            menu = 'penyelialhu';
-            break;
-    }
-
-    loadData(pageno, menu);
+    loadData(pageno);
 });
 
 function btnDelete(obj) {
@@ -480,12 +478,12 @@ function showDetail(obj) {
 }
 
 function reload() {
-    switchLoadTab(thisTab);
+    switchLoadTab(currentTab);
 }
 
 function clearFilter() {
     filterComp.clear();
-    switchLoadTab(thisTab);
+    switchLoadTab(currentTab);
 }
 function createPengujian(id, type = 'create') {
     let find = dataPenyelia.find(d => d.penyelia_hash == id);

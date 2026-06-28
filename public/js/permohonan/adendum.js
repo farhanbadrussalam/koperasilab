@@ -560,9 +560,19 @@ function pilihPeriode(obj) {
         })
         arrOption.pengguna = arrOption.pengguna.filter(d => d.status != 'baru');
         arrOption.kontrol = arrOption.kontrol.filter(d => d.status != 'baru');
+
+        if(dataKontrak.layanan == 'KontrakEvaluasi') {
+            $('#switch-tld').hide();
+            $('#isHaveTld').prop('checked', dataKontrak.is_have_tld == 1);
+        }
     } else {
         $('#btn-add-pengguna').removeClass('d-none').addClass('d-block');
         $('#btn-add-kontrol').removeClass('d-none').addClass('d-block');
+
+        if(dataKontrak.layanan == 'KontrakEvaluasi') {
+            $('#switch-tld').show();
+            $('#isHaveTld').prop('checked', dataKontrak.is_have_tld == 1);
+        }
     }
 
     loadHtmlKontrol();

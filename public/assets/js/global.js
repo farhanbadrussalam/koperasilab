@@ -1600,9 +1600,9 @@ function validateTldAdendum(data){
     const is_periode_berjalan = data.is_periode_berjalan;
     const isSendTld = data.is_send_tld;
     
-    // TLD di kirim terpisah
-    if (is_periode_berjalan && isSendTld) 
-        return true;
+    if (!is_periode_berjalan && !isSendTld)
+        return false;
 
-    return false;
+    // TLD di kirim terpisah
+    return true;
 }

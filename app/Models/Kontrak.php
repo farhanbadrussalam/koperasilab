@@ -210,6 +210,20 @@ class Kontrak extends Model
             $periode->permohonan_zerocek = $permohonan;
         }
 
+        if ($periode) {
+            $currentPeriode = $periode->periode;
+            $detailTld = $this->kontrak_detail->first(function ($detail) use ($currentPeriode) {
+                return $detail->periode_tld_1 === $currentPeriode || $detail->periode_tld_2 === $currentPeriode;
+            });
+
+            $isTldSent = false;
+            if ($detailTld) {
+                $isTldSent = ($detailTld->periode_tld_1 === $currentPeriode ? $detailTld->status_tld_1 : $detailTld->status_tld_2) == 2;
+            }
+
+            $periode->tld_in_pelanggan = $isTldSent;
+        }
+
         return $periode;
     }
 

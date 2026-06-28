@@ -26,6 +26,7 @@ class AdendumValidatorPipeline
      * @var class-string<AdendumValidatorContract>[]
      */
     protected array $validators = [
+        ActiveAdendumValidator::class,    // Cek tidak ada adendum aktif lain
         PeriodeValidator::class,          // Cek batas periode (-1, 0, +1)
         ZeroCekValidator::class,          // Cek kewajiban zero check
         PreviousPeriodeValidator::class,  // Cek larangan baru di P-1

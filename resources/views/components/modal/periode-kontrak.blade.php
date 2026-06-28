@@ -576,6 +576,7 @@
 
                     let htmlInvoice = '';
                     let htmlTld = '';
+                    let htmlLhu = '';
                     if (jmlPenambahan > 0) {
                         let statusInvoice = findInvoiceAdendum ? findInvoiceAdendum.status : 0;
                         let textStatusInvoice = statusFormat('pengiriman', statusInvoice);
@@ -588,7 +589,7 @@
                             }
                         }
                         htmlInvoice = `
-                            <div class="col">
+                            <div class="col-3">
                                 <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="fw-medium text-dark small"><i class="bi bi-receipt-cutoff text-muted me-2"></i>Invoice</span>
@@ -599,34 +600,36 @@
                             </div>
                         `;
 
-                        if (adendum.is_periode_berjalan) {
-                            let statusTld = findTldAdendum ? findTldAdendum.status : 0;
-                            let textStatusTld = statusFormat('pengiriman', statusTld);
-
-                            htmlTld = `
-                            <div class="col">
-                                <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
-                                        <span class="small">${textStatusTld}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            `;
-                        }
                     }
+                    if (adendum.is_periode_berjalan) {
+                        let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                        let textStatusTld = statusFormat('pengiriman', statusTld);
 
-                    let statusLhu = findLhuAdendum ? findLhuAdendum.status : 0;
-                    let htmlLhu = `
-                        <div class="col">
+                        htmlTld = `
+                        <div class="col-3">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU</span>
-                                    <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
+                                    <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
+                                    <span class="small">${textStatusTld}</span>
                                 </div>
                             </div>
                         </div>
-                    `;
+                        `;
+                    }
+
+                    if (adendum.is_zerocek == 1) {
+                        let statusLhu = findLhuAdendum ? findLhuAdendum.status : 0;
+                        htmlLhu = `
+                            <div class="col-3">
+                                <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU</span>
+                                        <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
 
                     let periodeNow = adendum.periodenow;
                     let bulan_mulai = adendum.bulan_mulai;

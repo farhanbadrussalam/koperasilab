@@ -462,7 +462,6 @@ class ReportController extends Controller
                 }
                 $vars["TGL_BUAT"] = convert_date($params["dokumen"]->created_at, 2);
 
-                $vars["JML_UNIT"] = $data->jumlah_pengguna + $data->jumlah_kontrol;
                 $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
                 $vars["ZEROCEK"] = $zerocek;
                 $vars["JENIS_TLD"] = $data->jenisTld->name;
@@ -470,8 +469,6 @@ class ReportController extends Controller
                 $vars["ALAMAT"] = $data->pelanggan->perusahaan->alamat[0]->alamat;
                 $vars["TELEPON"] = $data->pelanggan->profile->no_hp;
                 $vars["PETUGAS_DIVISI"] = $data->pelanggan->jabatan;
-                $vars["JML_P"] = $data->jumlah_pengguna;
-                $vars["JML_K"] = $data->jumlah_kontrol;
                 $vars["NO_KONTRAK"] = $data->no_kontrak;
                 $vars["PERUSAHAAN"] = $data->pelanggan->perusahaan->nama_perusahaan;
                 $vars = array_merge($vars, $this->contentSuratPengantar($data, $params));
@@ -1207,7 +1204,7 @@ class ReportController extends Controller
         $variables["TTD_BY"] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
 
         // generate pdf
-        $bytes = $this->generatePDF($data['title'], $template, $variables, ["RINCIAN", "TTD"]);
+        $bytes = $this->generatePDF($data['title'], $template, $variables, ["RINCIAN", "TTD", "JML_K"]);
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
 
@@ -1229,7 +1226,6 @@ class ReportController extends Controller
                 'entitas'
             ])
                 ->where('id_permohonan', $params['permohonan']->id_permohonan)
-                ->where('type', 'baru')
                 ->get();
         } else {
             $kontrakDetail = Kontrak_detail::with([
@@ -1266,6 +1262,7 @@ class ReportController extends Controller
             }
         }
 
+        $countPengguna = 0;
         foreach ($kontrakDetail as $value) {
             if ($value->jenis == 'pengguna') {
                 $htmlDesc = $value->type ?? '';
@@ -1282,6 +1279,7 @@ class ReportController extends Controller
                         <td style="padding-left: 5px">' . $htmlDesc . '</td>
                     </tr>
                 ';
+                $countPengguna++;
             } else {
                 $countKontrol++;
             }
@@ -1309,7 +1307,10 @@ class ReportController extends Controller
                     ' . $html . '
                     ' . $htmlKontrol . '
                 </table>
-            '
+            ',
+            'JML_UNIT' => $countPengguna + $countKontrol,
+            'JML_P' => $countPengguna,
+            'JML_K' => $countKontrol != 0 ? "beserta <b>$countKontrol buah TLD Kontrol</b>" : '',
         ];
     }
 
@@ -1492,7 +1493,6 @@ class ReportController extends Controller
                 }
             ])
                 ->where('id_permohonan', $query->id_permohonan)
-                ->where('type', 'baru')
                 ->get();
         } else {
             $listTld = Kontrak_detail::with([

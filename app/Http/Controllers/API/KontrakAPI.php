@@ -37,6 +37,7 @@ class KontrakAPI extends Controller
         $limit = $request->limit ?? 10;
         $page = $request->page ?? 1;
         $filter = $request->filter ?? [];
+        $tab = $request->tab ?? 'progress';
 
         // cek role
         $idPelanggan = false;
@@ -88,6 +89,13 @@ class KontrakAPI extends Controller
                 }
             ])
                 ->withCount('periode')
+                ->when($tab, function ($q, $tab) {
+                    if ($tab == 'progress') {
+                        return $q->where('status', 1);
+                    } elseif ($tab == 'selesai') {
+                        return $q->where('status', 2);
+                    }
+                })
                 ->when($idPelanggan, function ($q, $idPelanggan) {
                     // mengambil id dari history_pic
                     $id_pic = array();

@@ -54,7 +54,11 @@
                                     <div class="p-3 bg-light rounded-3 border h-100">
                                         <small class="text-muted d-block mb-1">Jenis</small>
                                         <span
-                                            class="badge bg-info-subtle text-info border border-info-subtle">{{ $informasi->jenis_layanan_parent->name }}-{{ $informasi->jenis_layanan->name }}</span>
+                                            class="badge bg-info-subtle text-dark border border-info-subtle">{{ $informasi->jenis_layanan_parent->name }}-{{ $informasi->jenis_layanan->name }}</span>
+                                        @if ($informasi->tipe_kontrak == 'adendum')
+                                            <span
+                                                class="badge bg-warning-subtle text-warning-emphasis border-warning-subtle border border-info-subtle fw-normal px-3">Adendum</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -102,6 +106,11 @@
                                         id="btnCetakSurat" onclick="btnShowDoc(this)" data-url=""
                                         data-title="Surat Pengantar">
                                         <i class="bi bi-printer me-2"></i>Cetak Surat Pengantar
+                                    </button>
+                                    <button class="btn btn-outline-info py-2 fw-bold rounded-3 d-none"
+                                        id="btnCetakSuratAdendum" onclick="btnShowDoc(this)" data-url=""
+                                        data-title="Surat Pengantar Adendum">
+                                        <i class="bi bi-printer me-2"></i>Cetak Surpeng Adendum
                                     </button>
                                 </div>
                             </div>

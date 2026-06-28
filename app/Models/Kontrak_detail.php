@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\Master_pengguna;
@@ -55,7 +56,7 @@ use App\Models\Master_divisi;
  */
 class Kontrak_detail extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected static function booted()
     {

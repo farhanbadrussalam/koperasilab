@@ -870,6 +870,13 @@ class PermohonanAPI extends Controller
 
                     return $q;
                 })
+                ->when($request->has('tab'), function ($q) use ($request) {
+                    if ($request->tab == 'progress') {
+                        $q->where('status', '!=', 5);
+                    } else if ($request->tab == 'selesai') {
+                        $q->where('status', 5);
+                    }
+                })
                 ->when($filter, function ($q, $filter) {
                     foreach ($filter as $key => $value) {
                         if ($key == 'id_perusahaan') {

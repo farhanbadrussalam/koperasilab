@@ -6,9 +6,19 @@
             <div class="container">
                 <ul class="nav nav-tabs" id="myTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="surattugas-tab" onclick="switchLoadTab(1)" data-bs-toggle="tab"
+                        <button class="nav-link active" id="surattugas-tab" onclick="switchLoadTab('surattugas')" data-bs-toggle="tab"
                             data-bs-target="#surattugas-tab-pane" type="button" role="tab"
                             aria-controls="surattugas-tab-pane" aria-selected="true">Penerbitan surat tugas</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="progress-tab" onclick="switchLoadTab('progress')" data-bs-toggle="tab"
+                            data-bs-target="#progress-tab-pane" type="button" role="tab"
+                            aria-controls="progress-tab-pane" aria-selected="false">Progres</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="selesai-tab" onclick="switchLoadTab('selesai')" data-bs-toggle="tab"
+                            data-bs-target="#selesai-tab-pane" type="button" role="tab"
+                            aria-controls="selesai-tab-pane" aria-selected="false">Selesai</button>
                     </li>
                 </ul>
                 <div class="card shadow-sm mt-2">

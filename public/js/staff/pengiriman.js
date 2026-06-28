@@ -5,6 +5,8 @@ let detail = false;
 let buktiPengiriman = false;
 let filterComp = false;
 let isUpdateMode = false;
+let currentTab = 'progress';
+
 $(function () {
     loadData(1);
     detail = new Detail({
@@ -40,6 +42,13 @@ $(function () {
     });
 });
 
+function changeTab(tab) {
+    currentTab = tab;
+    $('.nav-link').removeClass('active');
+    $(`#tab-${tab}`).addClass('active');
+    loadData(1);
+}
+
 /**
  * Loads data for the specified page and menu.
  * @param {number} [page=1] - The page number to load.
@@ -49,6 +58,7 @@ function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
+        tab: currentTab,
         filter: {}
     };
     let filterValue = filterComp && filterComp.getAllValue();
