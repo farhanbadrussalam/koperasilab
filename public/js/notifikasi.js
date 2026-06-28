@@ -29,7 +29,7 @@ class WidgetNotifikasi {
     _bindEventListeners() {
         $('#markAllAsRead').on('click', this.markAllAsRead.bind(this));
 
-        $("#list-notif-card").on('click', this.selectNotif.bind(this));
+        $("#body-notif").on('click', '.list-group-item', this.selectNotif.bind(this));
         $("#all-notif").on('click', this.loadNotifikasiList.bind(this));
         $("#unread-notif").on('click', this.loadNotifikasiList.bind(this));
 
@@ -56,11 +56,71 @@ class WidgetNotifikasi {
 
     showNotif(info) {
         toastr.info(info.pesan, 'Notifikasi');
-        // Reset pagination and reload from page 1
-        this.currentPage = 1;
-        this.hasMore = true;
-        this.isLoading = false;
-        this.loadNotifikasiList();
+        
+        let path = info.url || '';
+        if (path && !path.startsWith('/')) {
+            path = '/' + path;
+        }
+        let url = base_url + path;
+        let html = '';
+        let createdAt = new Date().toISOString();
+        let notifId = info.id || '';
+
+        if (info.event === 'Permohonan') {
+            let perusahaan = info.perusahaan_id?.split('|') || [];
+            let text = perusahaan.length > 1 ? `<div class="fw-bold text-dark">${perusahaan[1]}</div>` : '';
+            html = `
+                <li class="cursor-pointer list-group-item fs-8 list-group-item-action list-group-item-active" data-id="${notifId}">
+                    <a href="${url}" class="d-flex align-items-center justify-content-between">
+                        <div class="col-10">
+                            ${text}
+                            <div class="text-muted">${info.pesan}</div>
+                            <div class="text-muted fs-9">${diffToday(createdAt)}</div>
+                        </div>
+                        <div>
+                            <div class="rounded-circle bg-info " style="width: 10px; height: 10px;">&nbsp;</div>
+                        </div>
+                    </a>
+                </li>
+            `;
+        } else {
+            html = `
+                <li class="cursor-pointer list-group-item fs-8 list-group-item-action list-group-item-active" data-id="${notifId}">
+                    <a href="${url}" class="d-flex align-items-center justify-content-between">
+                        <div class="col-10">
+                            <div class="text-muted">${info.pesan}</div>
+                            <div class="text-muted fs-9">${diffToday(createdAt)}</div>
+                        </div>
+                        <div>
+                            <div class="rounded-circle bg-info " style="width: 10px; height: 10px;">&nbsp;</div>
+                        </div>
+                    </a>
+                </li>
+            `;
+        }
+
+        let bodyNotif = $('#body-notif');
+        if (bodyNotif.find('.list-group-item-action').length === 0) {
+            bodyNotif.html(html);
+        } else {
+            bodyNotif.prepend(html);
+        }
+
+        let countBadge = $('#count_lonceng');
+        let currentCount = parseInt(countBadge.text()) || 0;
+        currentCount++;
+        countBadge.addClass('d-block').removeClass('d-none').text(currentCount > 99 ? '99+' : currentCount);
+
+        // Update sidebar badges based on real-time event
+        if (info.event) {
+            $('.sidebar-notif-badge').each(function() {
+                let events = $(this).data('events');
+                if (events && Array.isArray(events) && events.includes(info.event)) {
+                    let badgeCount = parseInt($(this).text()) || 0;
+                    $(this).text(badgeCount + 1).removeClass('d-none');
+                }
+            });
+        }
     }
 
     loadHtml(){
@@ -160,7 +220,11 @@ class WidgetNotifikasi {
 
                 let html = '';
                 for (const notif of result.data.list) {
-                    let url = base_url + notif.data.url;
+                    let path = notif.data.url || '';
+                    if (path && !path.startsWith('/')) {
+                        path = '/' + path;
+                    }
+                    let url = base_url + path;
                     switch (notif.data.event) {
                         case 'Permohonan':
                             let perusahaan = notif.data.perusahaan_id?.split('|') || [];
@@ -239,7 +303,26 @@ class WidgetNotifikasi {
     }
 
     selectNotif(e){
-        console.log(e);
+        e.preventDefault();
+        let listItem = $(e.currentTarget);
+        let notifId = listItem.data('id');
+        let href = listItem.find('a').attr('href');
+
+        if (!notifId) {
+            if (href) window.location.href = href;
+            return;
+        }
+
+        if (!listItem.hasClass('list-group-item-active')) {
+            if (href) window.location.href = href;
+            return;
+        }
+
+        ajaxGet(`readNotif`, { id: notifId }, result => {
+            if (href) window.location.href = href;
+        }, error => {
+            if (href) window.location.href = href;
+        });
     }
 
     showSetting(){

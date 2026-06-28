@@ -232,56 +232,6 @@
                 loadAdendumBadge();
             }
         })
-
-        function loadNotifikasi() {
-            ajaxGet(`api/v1/getNotifikasi`, false, result => {
-                let html = '';
-                let countLonceng = 0;
-                for (const notif of result.data) {
-                    html += `
-                        <div class="card shadow text-muted mb-1 ${notif.status==1 && 'bg-info-subtle'}" data-id="${notif.id}" role="button" onclick="notifGoTo(this, '${notif.type}')">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-12">${notif.message}</div>
-                                    <div class="col-12 text-end">${dateFormat(notif.created_at)}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    notif.status == 1 && countLonceng++;
-                }
-                if (countLonceng > 0) {
-                    $('#count_lonceng').show();
-                    $('#count_lonceng').html(countLonceng);
-                }
-                if (result.data.length == 0) {
-                    html = `<div class="text-center">No data notifications</div>`;
-                }
-                $('#body-notif').html(html);
-            })
-        }
-
-        function notifGoTo(obj, type) {
-            let notifId = $(obj).data('id');
-            let url;
-            type = type.toLowerCase();
-            switch (type) {
-                case 'permohonan':
-                    url = "{{ route('staff.permohonan') }}";
-                    break;
-                default:
-                    break;
-            }
-
-            ajaxGet(`api/v1/getNotifikasi`, {
-                id: notifId,
-                status: 2
-            }, result => {
-                if (url) {
-                    window.location.href = url;
-                }
-            })
-        }
     </script>
 </body>
 

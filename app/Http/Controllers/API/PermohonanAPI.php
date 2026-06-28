@@ -1306,7 +1306,7 @@ class PermohonanAPI extends Controller
                         'pesan' => 'Permohonan anda pada tanggal ' . convert_date($dataPermohonan->created_at, 1) . ' telah ditolak. ' . $note,
                         'event' => 'Dikembalikan',
                         'event_id' => $dataPermohonan->permohonan_hash,
-                        'url' => 'permohonan/dikembalikan'
+                        'url' => '/permohonan/dikembalikan'
                     ];
                     Notifier::send([$dataPermohonan->created_by], $dataNotif);
                 }

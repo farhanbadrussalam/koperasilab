@@ -748,7 +748,7 @@ class PenyeliaAPI extends Controller
         } else if ($sProgress == 'done') {
             $dataNotif = array(
                 'pesan' => "Proses <b>{$jobsNow->jobs->name}</b> no kontrak <b>{$penyelia->permohonan->kontrak->no_kontrak}</b> telah selesai",
-                'url' => '',
+                'url' => '/staff/pengiriman',
                 'event' => 'PenyeliaLAB',
                 'event_id' => $penyelia->penyelia_hash
             );

@@ -7,7 +7,6 @@ use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\Validator;
 
 use App\Models\User;
-use App\Models\notifikasi;
 use App\Traits\RestApi;
 
 use DB;
@@ -16,14 +15,6 @@ use Auth;
 class NotifController extends Controller
 {
     use RestApi;
-    public function notif() {
-        $data = array(
-            'to_user' => 7,
-            'type' => 'jadwal'
-        );
-        return notifikasi($data, "Jadwal ditambahkan");
-    }
-
     public function read(Request $request){
         $id = $request->id ?? null;
         $event = $request->event ?? null;
@@ -80,7 +71,7 @@ class NotifController extends Controller
         DB::beginTransaction();
         try {
             $user = Auth::user();
-            $user->unreadNotifications->markAsRead();
+            $user->unreadNotifications()->update(['read_at' => now()]);
             DB::commit();
             return $this->output(array('msg' => 'Notifikasi berhasil dibaca'));
         } catch (\Exception $ex) {

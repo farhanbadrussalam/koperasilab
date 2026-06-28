@@ -3,7 +3,6 @@
 use App\Http\Controllers\Adendum\AdendumController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\KeuanganAPI;
-use App\Http\Controllers\API\NotifikasiController;
 use App\Http\Controllers\API\PermohonanAPI;
 use App\Http\Controllers\API\LayananjasaAPI;
 use App\Http\Controllers\API\PetugasLayananAPI;
@@ -51,9 +50,6 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::get('/getPegawai', [LayananjasaAPI::class, 'getPegawai']);
     Route::delete('/deletePegawai', [LayananjasaAPI::class, 'delete']);
-
-    Route::get('/getNotifikasi', [NotifikasiController::class, 'getNotifikasi']);
-    Route::get('/setNotifikasi', [NotifikasiController::class, 'setNotifikasi']);
 
     Route::prefix("layananjasa")->controller(LayananjasaAPI::class)->group(function() {
         Route::get('/list', 'listLayananjasa');
