@@ -507,6 +507,26 @@ class StaffController extends Controller
                     })
                     ->first();
                 $data->statusTld = $statusTld->status ?? false;
+                $currentPeriodeNum = $data->periode[0]->periode;
+                $lhuTwoPeriodsAgo = null;
+                if ($currentPeriodeNum > 2) {
+                    $lhuTwoPeriodsAgo = Penyelia::with(['penyelia_map', 'penyelia_map.jobs'])
+                        ->where('id_kontrak', $id)
+                        ->where('periode_used', $currentPeriodeNum)
+                        ->whereHas('permohonan', function ($q) {
+                            $q->where('tipe_kontrak', '!=', 'adendum');
+                        })
+                        ->first();
+                } elseif ($currentPeriodeNum == 2 && $data->is_zerocek == 1) {
+                    $lhuTwoPeriodsAgo = Penyelia::with(['penyelia_map', 'penyelia_map.jobs'])
+                        ->where('id_kontrak', $id)
+                        ->where('periode_used', 0)
+                        ->whereHas('permohonan', function ($q) {
+                            $q->where('tipe_kontrak', '!=', 'adendum');
+                        })
+                        ->first();
+                }
+                $data->lhu_two_periods_ago = $lhuTwoPeriodsAgo;
                 $data->sumber = 'kontrak';
 
                 // Pengecekan adendum di kontrak periode
@@ -559,6 +579,26 @@ class StaffController extends Controller
                     'pelanggan.perusahaan',
                     'pelanggan.perusahaan.alamat',
                 ])->find($id);
+                $currentPeriodeNum = $data->periode;
+                $lhuTwoPeriodsAgo = null;
+                if ($currentPeriodeNum > 2) {
+                    $lhuTwoPeriodsAgo = Penyelia::with(['penyelia_map', 'penyelia_map.jobs'])
+                        ->where('id_kontrak', $data->id_kontrak)
+                        ->where('periode_used', $currentPeriodeNum)
+                        ->whereHas('permohonan', function ($q) {
+                            $q->where('tipe_kontrak', '!=', 'adendum');
+                        })
+                        ->first();
+                } elseif ($currentPeriodeNum == 2 && $data->kontrak && $data->kontrak->is_zerocek == 1) {
+                    $lhuTwoPeriodsAgo = Penyelia::with(['penyelia_map', 'penyelia_map.jobs'])
+                        ->where('id_kontrak', $data->id_kontrak)
+                        ->where('periode_used', 0)
+                        ->whereHas('permohonan', function ($q) {
+                            $q->where('tipe_kontrak', '!=', 'adendum');
+                        })
+                        ->first();
+                }
+                $data->lhu_two_periods_ago = $lhuTwoPeriodsAgo;
                 $data->sumber = 'permohonan';
 
                 if ($data->pengiriman == null) {

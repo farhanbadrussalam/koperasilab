@@ -4,6 +4,7 @@ let inventoryTld = false;
 let mPeriode = false;
 const tmpArrTld = [];
 const modalDoc = new ModalDocument();
+let isLabReady = true;
 
 let dataOrderPengiriman = {};
 if (informasi.sumber == 'permohonan') {
@@ -24,6 +25,7 @@ if (informasi.sumber == 'permohonan') {
         created_at: informasi.created_at,
         invoice: informasi.invoice,
         lhu: informasi.lhu,
+        lhu_two_periods_ago: informasi.lhu_two_periods_ago,
         is_zerocek: informasi.is_zerocek,
         is_have_tld: informasi.is_have_tld,
         is_periode_berjalan: informasi.is_periode_berjalan,
@@ -55,6 +57,7 @@ if (informasi.sumber == 'permohonan') {
         created_at: informasi.created_at,
         invoice: false,
         lhu: false,
+        lhu_two_periods_ago: informasi.lhu_two_periods_ago,
         is_zerocek: informasi.is_zerocek,
         is_have_tld: informasi.is_have_tld,
         is_periode_berjalan: false,
@@ -195,31 +198,51 @@ function load_form(unusedKontrol = [], unusedPengguna = []) {
             }
         }
 
-        let isLabReady = true;
-        let currentLhu = dataOrderPengiriman.lhu;
-        if (dataOrderPengiriman.sumber === 'kontrak') {
-            currentLhu = dataOrderPengiriman.periode_now?.permohonan?.lhu;
-        }
-        
-        if (currentLhu) {
-            isLabReady = false;
-            if (currentLhu.status == 3 || currentLhu.status == 5) {
-                isLabReady = true;
-            } else if (currentLhu.penyelia_map && currentLhu.penyelia_map.length > 0) {
-                let pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pelabelan TLD');
-                if (!pelabelanJob) {
-                    pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pembuatan Label');
-                }
-                
-                if (pelabelanJob && pelabelanJob.status == 2) {
+        if (dataOrderPengiriman.tipe_kontrak !== 'adendum') {
+            let checkLhu = dataOrderPengiriman.lhu_two_periods_ago;
+            if (checkLhu) {
+                isLabReady = false;
+                if (checkLhu.status == 3 || checkLhu.status == 5) {
                     isLabReady = true;
+                } else if (checkLhu.penyelia_map && checkLhu.penyelia_map.length > 0) {
+                    let pelabelanJob = checkLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pelabelan TLD');
+                    if (!pelabelanJob) {
+                        pelabelanJob = checkLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pembuatan Label');
+                    }
+                    
+                    if (pelabelanJob && pelabelanJob.status == 2) {
+                        isLabReady = true;
+                    }
+                }
+            } else {
+                let currentPeriod = dataOrderPengiriman.periode_now?.periode || dataOrderPengiriman.periode;
+                if (currentPeriod >= 3 || (currentPeriod == 2 && dataOrderPengiriman.is_zerocek == 1)) {
+                    isLabReady = false;
                 }
             }
         } else {
-            if (dataOrderPengiriman.tipe_kontrak !== 'adendum') {
+            let currentLhu = dataOrderPengiriman.lhu;
+            if (dataOrderPengiriman.sumber === 'kontrak') {
+                currentLhu = dataOrderPengiriman.periode_now?.permohonan?.lhu;
+            }
+            if (currentLhu) {
                 isLabReady = false;
-            } else if (dataOrderPengiriman.is_zerocek == 1) {
-                isLabReady = false;
+                if (currentLhu.status == 3 || currentLhu.status == 5) {
+                    isLabReady = true;
+                } else if (currentLhu.penyelia_map && currentLhu.penyelia_map.length > 0) {
+                    let pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pelabelan TLD');
+                    if (!pelabelanJob) {
+                        pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pembuatan Label');
+                    }
+                    
+                    if (pelabelanJob && pelabelanJob.status == 2) {
+                        isLabReady = true;
+                    }
+                }
+            } else {
+                if (dataOrderPengiriman.is_zerocek == 1) {
+                    isLabReady = false;
+                }
             }
         }
 
@@ -335,7 +358,7 @@ function load_form(unusedKontrol = [], unusedPengguna = []) {
                                 <span class="badge bg-light text-muted border ms-2">${tldPengguna.length} Pengguna + ${tldKontrol.length} Kontrol</span>
                             </div>
                             <div>
-                                <small><i class="bi bi-calendar-fill"></i> ${dateFormat(dataOrderPengiriman.created_at, 4)}</small>
+                                <small><i class="bi bi-calendar-fill"></i> ${dataOrderPengiriman.periode_now && dataOrderPengiriman.periode_now.start_date ? `${dateFormat(dataOrderPengiriman.periode_now.start_date, 5)} - ${dateFormat(dataOrderPengiriman.periode_now.end_date, 5)}` : dateFormat(dataOrderPengiriman.created_at, 5)}</small>
                                 <small>${statusFormat('pengiriman', checkedTld == 'disabled' ? checkStatusPengiriman?.status : false)}</small>
                                 ${!isLabReady && !checkStatusPengiriman ? `<small class="text-danger d-block mt-1" style="font-size: 0.7rem;"><i class="bi bi-info-circle"></i> Menunggu TLD diproses di Lab (Labeling)</small>` : ''}
                                 ${isLabReady && !isSurpengReady && !checkStatusPengiriman ? `<small class="text-danger d-block mt-1" style="font-size: 0.7rem;"><i class="bi bi-info-circle"></i> Menunggu Surat Pengantar ditandatangani</small>` : ''}
@@ -597,33 +620,6 @@ function buatPengiriman(obj) {
 
     let hasTld = arrSelectDocument.find(d => d.jenis === 'tld');
     if (hasTld) {
-        let isLabReady = true;
-        let currentLhu = dataOrderPengiriman.lhu;
-        if (dataOrderPengiriman.sumber === 'kontrak') {
-            currentLhu = dataOrderPengiriman.periode_now?.permohonan?.lhu;
-        }
-        
-        if (currentLhu) {
-            isLabReady = false;
-            if (currentLhu.status == 3 || currentLhu.status == 5) {
-                isLabReady = true;
-            } else if (currentLhu.penyelia_map && currentLhu.penyelia_map.length > 0) {
-                let pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pelabelan TLD');
-                if (!pelabelanJob) {
-                    pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pembuatan Label');
-                }
-                
-                if (pelabelanJob && pelabelanJob.status == 2) {
-                    isLabReady = true;
-                }
-            }
-        } else {
-            if (dataOrderPengiriman.tipe_kontrak !== 'adendum') {
-                isLabReady = false;
-            } else if (dataOrderPengiriman.is_zerocek == 1) {
-                isLabReady = false;
-            }
-        }
 
         if (!isLabReady) {
             return Swal.fire({

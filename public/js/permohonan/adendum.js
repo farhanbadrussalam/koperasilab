@@ -247,6 +247,7 @@ function loadPeriode() {
 
     periode.forEach((data, index) => {
         if (data.periode == 0) return;
+        if (data.status == 2) return;
 
         let htmlAktif = '';
         let is_aktif = (activePeriodeNum !== null && data.periode === activePeriodeNum);

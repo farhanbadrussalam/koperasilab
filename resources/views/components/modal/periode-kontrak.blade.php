@@ -89,12 +89,12 @@
                         let permohonanZerocek = null;
                         if (kontrak.is_zerocek == 1) {
                             if (kontrak.is_have_tld == 1) {
-                                let periodOne = kontrak.periode.find(p => p.periode == 1);
+                                let periodOne = kontrak.periode.find(p => p && p.periode == 1);
                                 if (periodOne && periodOne.permohonan) {
                                     permohonanZerocek = periodOne.permohonan;
                                 }
                             } else {
-                                let periodZero = kontrak.periode.find(p => p.periode == 0);
+                                let periodZero = kontrak.periode.find(p => p && p.periode == 0);
                                 if (periodZero && periodZero.permohonan) {
                                     permohonanZerocek = periodZero.permohonan;
                                 }
@@ -102,6 +102,7 @@
                         }
 
                         kontrak.periode.forEach(data => {
+                            if (!data) return;
                             if (data.periode == 1 && kontrak.is_zerocek == 1) {
                                 data.permohonan_zerocek = permohonanZerocek;
                             }
@@ -170,7 +171,7 @@
                     `;
                 }
 
-                let periodeActive = kontrak.periode_active.periode;
+                let periodeActive = kontrak.periode_active?.periode;
 
                 if (isModal) {
                     // Tampilan ketika di dalam Info Modal
@@ -375,7 +376,7 @@
                 let periodeNext = kontrak.periode.find(d => d.periode == data.periode + 1);
                 let htmlBtnTld = ``;
                 if (periodeNext) {
-                    if (data.status == 1) { // Status 1 == Periodik
+                    if (data.status == 1 || data.status == 2) { // Status 1 == Periodik
                         htmlBtnTld =
                             `<a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" href="${base_url}/staff/pengiriman/permohonan/kirim/${kontrak.kontrak_hash}/${periodeNext.periode_hash}"><i class="bi bi-send-fill me-1"></i>Kirim TLD</a>`;
                     }
@@ -409,7 +410,7 @@
                         .periode);
                     htmlInformasi = `
                         <div class="d-flex flex-column text-start small">
-                            <span class="text-secondary small fw-medium mb-1">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
+                            <span class="text-secondary small fw-medium mb-1">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"} f</span>
                             <div>${statusFormat('pengiriman', findPengirimanTLD?.status)}</div>
                         </div>
                     `;
