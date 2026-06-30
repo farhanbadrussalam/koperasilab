@@ -82,8 +82,9 @@ class LoginController extends Controller
     }
 
     public function logout(Request $request){
-        if ($request->user()->tokens()->where('id', Session::get('token_id'))) {
-            $request->user()->tokens()->where('id', Session::get('token_id'))->delete();
+        $tokenId = Session::get('token_id');
+        if ($tokenId && $request->user()->tokens()->where('id', $tokenId)->exists()) {
+            $request->user()->tokens()->where('id', $tokenId)->delete();
         }
         Session::forget('token');
         Session::forget('token_id');

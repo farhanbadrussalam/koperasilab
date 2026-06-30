@@ -46,6 +46,10 @@ Auth::routes();
 Route::get('/', [HomeController::class, 'login']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('check-session', function () {
+        return response()->json(['authenticated' => true]);
+    })->name('check-session');
+
     Route::get('home', [HomeController::class, 'index'])->name('home');
 
     // NEW ROUTE

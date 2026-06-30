@@ -276,12 +276,28 @@
             </div>
             <script>
                 @if (session('error'))
+                    @if (str_contains(session('error'), 'Sesi') || str_contains(session('error'), 'sesi') || str_contains(session('error'), 'habis'))
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Sesi Berakhir',
+                            text: '{{ session('error') }}',
+                            showConfirmButton: true
+                        })
+                    @else
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal',
+                            text: '{{ session('error') }}',
+                            showConfirmButton: false,
+                            timer: 1500
+                        })
+                    @endif
+                @elseif (session('warning'))
                     Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal',
-                        text: '{{ session('error') }}',
-                        showConfirmButton: false,
-                        timer: 1500
+                        icon: 'warning',
+                        title: 'Sesi Berakhir',
+                        text: '{{ session('warning') }}',
+                        showConfirmButton: true
                     })
                 @endif
 

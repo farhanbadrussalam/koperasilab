@@ -180,26 +180,52 @@
             $('[data-bs-toggle="tooltip"]').tooltip()
 
 
-            // Mengecek session
+            // Auto Logout & Session Checker
             if (@json(Auth::check())) {
-                setInterval(() => {
-                    const authenticated = @json(Auth::check());
-                    if (!authenticated) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Session Expired',
-                            text: 'Silahkan login kembali',
-                            showConfirmButton: true
-                        }).then(() => {
-                            document.getElementById('logout-form').submit();
-                        })
-                    };
-                    // ajaxGet(`check-session`, false, result => {
-                    //     if (!result.authenticated) {
+                let idleTime = 0;
+                const sessionLifetime = @json(config('session.lifetime')) * 60; // Konversi menit ke detik
 
-                    //     }
-                    // });
-                }, 10000);
+                const resetIdleTimer = () => {
+                    idleTime = 0;
+                };
+
+                $(document).on('mousemove keypress click scroll', resetIdleTimer);
+
+                setInterval(() => {
+                    idleTime += 5; // Cek setiap 5 detik
+                    if (idleTime >= sessionLifetime) {
+                        // Sebelum logout, cek status session ke server (jika user aktif di tab lain)
+                        $.ajax({
+                            url: "{{ route('check-session') }}",
+                            method: 'GET',
+                            dataType: 'json',
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        }).done(function(response) {
+                            if (response.authenticated) {
+                                resetIdleTimer();
+                            } else {
+                                triggerLogout();
+                            }
+                        }).fail(function(xhr) {
+                            triggerLogout();
+                        });
+                    }
+                }, 5000);
+
+                function triggerLogout() {
+                    $(document).off('mousemove keypress click scroll', resetIdleTimer);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sesi Berakhir',
+                        text: 'Sesi Anda telah habis. Silakan login kembali.',
+                        confirmButtonText: 'OK',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        document.getElementById('logout-form').submit();
+                    });
+                }
             }
 
             // Menangkap semua event saat modal manapun mulai ditutup
