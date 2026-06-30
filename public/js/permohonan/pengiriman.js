@@ -2,6 +2,8 @@ let nowTab = 1;
 let buktiPenerima = false;
 let buktiPengiriman = false;
 let filterComp = false;
+let currentTab = 'progress';
+
 $(function () {
     loadData(1);
 
@@ -105,11 +107,19 @@ $(function () {
     });
 });
 
+function switchLoadTab(tab) {
+    currentTab = tab;
+    $('.nav-link').removeClass('active');
+    $(`#${tab}-tab`).addClass('active');
+    loadData(1);
+}
+
 function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
         idPelanggan: idPelanggan ? idPelanggan : false,
+        tab: currentTab,
         filter: {}
     };
 

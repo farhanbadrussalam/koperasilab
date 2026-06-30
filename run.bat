@@ -77,19 +77,31 @@ pause > nul
 goto MENU
 
 :START_ALL
-:: Opsi ini membuka dua jendela cmd baru secara otomatis
+echo.
+echo [+] Menghapus cache lama...
+call php artisan optimize:clear
+echo [+] Membuat ulang package discovery...
+call php artisan package:discover
 echo.
 echo [+] Membuka Koperasi DEV di tab baru...
 wt new-tab --title "Vite" --startingDirectory "%CD%" cmd /k "npm run dev -- --host"
-wt new-tab --title "Koperasi Dev" --startingDirectory "%CD%" cmd /k "php artisan optimize:clear & php artisan serve --host=0.0.0.0 --port=8000"
+wt new-tab --title "Koperasi Dev" --startingDirectory "%CD%" cmd /k "php artisan serve --host=0.0.0.0 --port=8000"
+wt new-tab --title "Queue Worker" --startingDirectory "%CD%" cmd /k "php artisan queue:listen"
 goto MENU
 
 :: Label ini diperbaiki dari START_ALL menjadi START_ALL_PROD
 :START_ALL_PROD
-:: Opsi ini membuka dua jendela cmd baru secara otomatis
+echo.
+echo [+] Menyiapkan build aset...
+call npm run build
+echo [+] Menghapus cache lama...
+call php artisan optimize:clear
+echo [+] Membuat ulang package discovery...
+call php artisan package:discover
 echo.
 echo [+] Membuka Koperasi PROD di tab baru...
-wt new-tab --title "Koperasi PROD" --startingDirectory "%CD%" cmd /k "npm run build & php artisan optimize:clear & php artisan serve --port=8000"
+wt new-tab --title "Koperasi PROD" --startingDirectory "%CD%" cmd /k "php artisan serve --port=8000"
+wt new-tab --title "Queue Worker PROD" --startingDirectory "%CD%" cmd /k "php artisan queue:listen"
 goto MENU
 
 :RUN_DUSK

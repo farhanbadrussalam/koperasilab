@@ -4,6 +4,7 @@ let modalDoc = false;
 let signaturePad = false;
 let modalAdendum = false;
 let modalPeriode = false;
+let currentTab = 'progress';
 $(function () {
     loadData();
     detail = new Detail({
@@ -33,7 +34,7 @@ $(function () {
     })
 
     // SETUP FILTER
-    filterComp.on('filter.change', () => loadData());
+    filterComp.on('filter.change', () => switchLoadTab(currentTab));
 
     $(`#list-pagination`).on('click', 'a', function (e) {
         e.preventDefault();
@@ -44,10 +45,18 @@ $(function () {
     modalPeriode = new ModalPeriodeKontrak();
 });
 
+function switchLoadTab(tab) {
+    currentTab = tab;
+    $('.nav-link').removeClass('active');
+    $(`#${tab}-tab`).addClass('active');
+    loadData(1);
+}
+
 function loadData(page = 1) {
     let params = {
         limit: 5,
         page: page,
+        tab: currentTab,
         filter: {}
     };
 

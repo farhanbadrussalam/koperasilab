@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Adendum\AdendumController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\KeuanganAPI;
-use App\Http\Controllers\API\NotifikasiController;
 use App\Http\Controllers\API\PermohonanAPI;
 use App\Http\Controllers\API\LayananjasaAPI;
 use App\Http\Controllers\API\PetugasLayananAPI;
@@ -51,9 +51,6 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::get('/getPegawai', [LayananjasaAPI::class, 'getPegawai']);
     Route::delete('/deletePegawai', [LayananjasaAPI::class, 'delete']);
 
-    Route::get('/getNotifikasi', [NotifikasiController::class, 'getNotifikasi']);
-    Route::get('/setNotifikasi', [NotifikasiController::class, 'setNotifikasi']);
-
     Route::prefix("layananjasa")->controller(LayananjasaAPI::class)->group(function() {
         Route::get('/list', 'listLayananjasa');
         Route::get('/getLayanan/{id}', 'getLayananjasa');
@@ -64,13 +61,11 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
 
     Route::prefix("permohonan")->controller(PermohonanAPI::class)->group(function () {
         Route::delete('/destroyPermohonan/{id}', 'destroyPermohonan');
-        Route::delete('/destroyAdendum/{id}', 'destroyAdendum');
         Route::get('/listPengajuan', 'listPengajuan');
         Route::get('/listPengguna', 'listPengguna');
         Route::get('/listKontrol', 'listKontrol');
         Route::get('/countList', 'countList');
         Route::post('/tambahPengajuan', 'tambahPengajuan');
-        Route::post('/tambahAdendum', 'tambahAdendum');
         Route::post('/tambahPengguna', 'tambahPengguna');
         Route::get('/createKontrak/{idPermohonan}/{noKontrak}', 'createKontrak');
         Route::post('/action_tld', 'action_tld');
@@ -80,7 +75,6 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getPrice', 'getPrice');
         Route::get('/getPengajuanById/{id}', 'getPengajuanById');
         Route::post('/verifikasi/cek', 'verifPermohonan');
-        Route::post('/verifikasi/adendum', 'verifAdendum');
         Route::post('/verifikasi/ping', 'pingLock');
         Route::post('/verifikasi/unlock', 'unlockLock');
         Route::post('/verifikasi/tambahTandaterima', 'tambahTandaterima');
@@ -88,6 +82,14 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/uploadLhuZeroCek', 'uploadLhuZeroCek');
         Route::delete('/destroyLhuZero/{idPermohonan}/{idMedia}', 'destroyLhuZero');
         Route::delete('/destroyKontrol/{idPermohonan}/{id}', 'destroyKontrol');
+    });
+
+    // ── Adendum (terpusat di AdendumController) ──────────────────────────────
+    Route::prefix('adendum')->controller(AdendumController::class)->group(function () {
+        Route::post('/store', 'store');            // Simpan adendum baru
+        Route::post('/verify', 'verify');          // Verifikasi adendum oleh staff
+        Route::delete('/destroy/{id}', 'destroy'); // Hapus adendum (Super Admin/Developer)
+        Route::get('/list', 'list');               // Daftar adendum untuk pengiriman
     });
 
     Route::prefix("keuangan")->controller(KeuanganAPI::class)->group(function () {
@@ -113,7 +115,6 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::post('/buatPengiriman', 'buatPengiriman');
         Route::get('/list', 'listPengiriman');
         Route::get('/listPermohonan', 'listPermohonan');
-        Route::get('/listAdendum', 'listAdendum');
         Route::get('/getById/{pengiriman_hash}', 'getPengirimanById');
         Route::get('/getPermohonan', 'getPermohonan');
         Route::delete('/destroy/{pengiriman_hash}', 'destroy');

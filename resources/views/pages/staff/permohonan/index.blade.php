@@ -19,6 +19,16 @@
                     </div>
                 </div>
             </div>
+            
+            <ul class="nav nav-tabs my-3" id="permohonan-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active cursor-pointer" id="tab-progress" onclick="changeTab('progress')">Progress</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link cursor-pointer" id="tab-selesai" onclick="changeTab('selesai')">Selesai</a>
+                </li>
+            </ul>
+
             <div id="list-filter"></div>
             <div class="my-3">
                 <div class="body-placeholder my-3" id="list-placeholder">

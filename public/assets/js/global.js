@@ -1091,7 +1091,6 @@ function getPeriodeAwal(data) {
 }
 
 function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFindDokumen) {
-    const periodeAwal = getPeriodeAwal(data_kontrak);
     // Pengecekan Invoice apakah sudah di bayar atau belum
     if (data_periode.permohonan?.invoice) {
         if (data_periode.permohonan.invoice.status != 5) return false;
@@ -1122,35 +1121,19 @@ function cekPeriodeComplete(data_periode, detail_pengiriman, data_kontrak, arrFi
         if (!findPeriode || findPeriode.status != 2) {
             return false;
         }
-        if (role.includes('Staff Pengiriman') && data_periode.periode != periodeAwal[0]) {
-            // if(periodeAwal.includes(data_periode.periode)) {
-            //     return true;
-            // }
-            // // cek tld sudah di kirim atau belum
-            // if(doc === 'tld'){
-            //     if(!findPeriode) {
-            //         return false;
-            //     } else if (findPeriode?.status != 2) {
-            //         return false;
-            //     }
-            // }
+    }
 
-            // if (data_kontrak.periode_all?.jml_periode && (data_kontrak.periode_all.jml_periode - data_periode.periode) < 2) {
-            //     if (doc === 'lhu') {
-            //         if (!findPeriode || findPeriode.status != 2) {
-            //             return false;
-            //         }
-            //     }
-            // }
-        } else {
-            // if (!findPeriode || findPeriode.status != 2) {
-            //     return false;
-            // }
-
-            // if(findPeriode?.tipe_kontrak == 'adendum')
-            //     continue;
+    // di periode pengembalian apakah periode next nya jika ada, sudah di kirim atau belum
+    if (data_periode.status == 2) {
+        let periodeNext = data_kontrak.periode.find(d => d.periode == data_periode.periode + 1);
+        if (periodeNext) {
+            let findNext = detail_pengiriman.find(cek => cek.periode == periodeNext.periode && cek.jenis == 'tld');
+            if (!findNext || findNext.status != 2) {
+                return false;
+            }
         }
     }
+    
     return true;
 }
 
@@ -1590,4 +1573,19 @@ function showSwal(title, text, icon = 'success') {
         reverseButtons: true,
         timer: 2000,
     });
+}
+
+// fungsi untuk validasi TLD adendum 
+// kontrak evaluasi tld dari lab dan menggunakan zerocek = kontrak sewa 
+function validateTldAdendum(data){
+    const is_zerocek = data.is_zerocek;
+    const is_have_tld = data.is_have_tld;
+    const is_periode_berjalan = data.is_periode_berjalan;
+    const isSendTld = data.is_send_tld;
+    
+    if (!is_periode_berjalan && !isSendTld)
+        return false;
+
+    // TLD di kirim terpisah
+    return true;
 }

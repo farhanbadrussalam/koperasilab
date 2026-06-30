@@ -570,7 +570,7 @@ function verif_kelengkapan(status, obj) {
 
                 spinner('show', obj);
                 if (dataPermohonan.tipe_kontrak == 'adendum') {
-                    ajaxPost(`api/v1/permohonan/verifikasi/adendum`, formData, result => {
+                    ajaxPost(`api/v1/adendum/verify`, formData, result => {
                         Swal.fire({
                             icon: 'success',
                             text: 'Permohonan terverifikasi',

@@ -2,6 +2,7 @@ let filterComp = false;
 let signaturePad = false;
 let signaturePad2 = false;
 let dataPenyelia = false;
+let currentTab = 'progress';
 let modalDoc = new ModalDocument();
 $(function () {
     loadData();
@@ -36,11 +37,22 @@ function loadEvent() {
     // TODO: Load event listeners if needed in the future
 }
 
+function switchLoadTab(tab) {
+    currentTab = tab;
+    
+    // UI selection
+    $('.nav-link').removeClass('active');
+    $(`#${tab}-tab`).addClass('active');
+
+    loadData(1);
+}
+
 function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
         menu: 'ttd-surat',
+        tab: currentTab,
         filter: {}
     };
 

@@ -22,11 +22,7 @@ class ManagerPengajuanController extends Controller
             'title' => 'Invoice',
             'module' => 'manager-pengajuan'
         ];
-        $cekNotifikasi = Auth::user()->unreadNotifications()->where('data->event', 'Keuangan')->first();
-
-        if ($cekNotifikasi) {
-            $cekNotifikasi->markAsRead();
-        }
+        Auth::user()->unreadNotifications()->where('data->event', 'Keuangan')->update(['read_at' => now()]);
         return view('pages.manager.pengajuan.index', $data);
     }
 
@@ -37,11 +33,7 @@ class ManagerPengajuanController extends Controller
             'module' => 'manager-suratTugas'
         ];
 
-        $cekNotifikasi = Auth::user()->unreadNotifications()->where('data->event', 'SuratTugas')->first();
-
-        if ($cekNotifikasi) {
-            $cekNotifikasi->markAsRead();
-        }
+        Auth::user()->unreadNotifications()->where('data->event', 'SuratTugas')->update(['read_at' => now()]);
 
         return view('pages.manager.suratTugas', $data);
     }
@@ -53,11 +45,7 @@ class ManagerPengajuanController extends Controller
             'module' => 'manager-surpeng'
         ];
 
-        $cekNotifikasi = Auth::user()->unreadNotifications()->where('data->event', 'Surpeng')->first();
-
-        if ($cekNotifikasi) {
-            $cekNotifikasi->markAsRead();
-        }
+        Auth::user()->unreadNotifications()->where('data->event', 'Surpeng')->update(['read_at' => now()]);
 
         return view('pages.manager.surpeng', $data);
     }

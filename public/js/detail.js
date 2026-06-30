@@ -72,7 +72,6 @@ class Detail {
             }
             
             if (!window.modalDocDetail) {
-                console.log('window.modalDocDetail');
                 window.modalDocDetail = new ModalDocument({ id: 'modalDocDetail' });
             }
             window.modalDocDetail.show(url, { title: title });

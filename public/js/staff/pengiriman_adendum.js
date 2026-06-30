@@ -47,7 +47,7 @@ function loadData(page = 1) {
 
     showSkeleton();
 
-    ajaxGet(`api/v1/pengiriman/listAdendum`, params, result => {
+    ajaxGet(`api/v1/adendum/list`, params, result => {
         dataAdendum = result.data;
 
         // Update sidebar badge
@@ -80,12 +80,6 @@ function loadData(page = 1) {
                 // Cari pengiriman Invoice adendum (hanya jika ada penambahan)
                 let findInvoiceAdendum = (jmlPenambahan > 0 && data.invoice) ? data.invoice.pengiriman : null;
 
-                // Cari pengiriman TLD adendum (hanya jika ada penambahan dan periode adendum == periode aktif kontrak)
-                let findTldAdendum = null;
-                if (jmlPenambahan > 0 && data.is_periode_berjalan) {
-                    findTldAdendum = data.pengiriman_tld;
-                }
-
                 // Dokumen status info (Column 1 Dokumen List)
                 let htmlDocs = '';
 
@@ -99,7 +93,7 @@ function loadData(page = 1) {
                         textInvoiceDetails = `<div class="fs-7 text-secondary">${statusInv}</div>`;
                     }
                     htmlDocs += `
-                        <div class="col">
+                        <div class="col-4">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="fw-medium text-dark small"><i class="bi bi-receipt-cutoff text-muted me-2"></i>Invoice</span>
@@ -112,36 +106,65 @@ function loadData(page = 1) {
                 }
 
                 // 2. LHU Adendum
-                let textLhuDetails = '';
-                if (data.lhu && data.lhu.status) {
-                    textLhuDetails = `<div class="fs-7 text-secondary">${statusFormat('penyelia', data.lhu.status)}</div>`;
-                }
-                htmlDocs += `
-                    <div class="col">
-                        <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU</span>
-                                <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
-                            </div>
-                            ${textLhuDetails}
-                        </div>
-                    </div>
-                `;
-
-                // 3. TLD Adendum
-                if (data.is_periode_berjalan) {
-                    let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                if(data.is_zerocek == 1){
+                    let textLhuDetails = '';
+                    if (data.lhu && data.lhu.status) {
+                        textLhuDetails = `<div class="fs-7 text-secondary">${statusFormat('penyelia', data.lhu.status)}</div>`;
+                    }
+    
+                    let textLhu = 'LHU';
+                    data.is_zerocek && (textLhu += ' + Zero Check');
                     htmlDocs += `
-                        <div class="col">
+                        <div class="col-4">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
-                                    <span class="small">${statusFormat('pengiriman', statusTld)}</span>
+                                    <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>${textLhu}</span>
+                                    <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
                                 </div>
+                                ${textLhuDetails}
                             </div>
                         </div>
                     `;
                 }
+
+                // 3. TLD Adendum
+                let isLabReady = true;
+                let currentLhu = data.lhu;
+                if (currentLhu) {
+                    isLabReady = false;
+                    if (currentLhu.status == 3 || currentLhu.status == 5) {
+                        isLabReady = true;
+                    } else if (currentLhu.penyelia_map && currentLhu.penyelia_map.length > 0) {
+                        let pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pelabelan TLD');
+                        if (!pelabelanJob) {
+                            pelabelanJob = currentLhu.penyelia_map.find(j => j.jobs && j.jobs.name === 'Pembuatan Label');
+                        }
+                        
+                        if (pelabelanJob && pelabelanJob.status == 2) {
+                            isLabReady = true;
+                        }
+                    }
+                } else {
+                    if (data.is_zerocek == 1 || jmlPenambahan > 0 || jmlPergantian > 0) {
+                        isLabReady = false;
+                    }
+                }
+
+                let tldWarning = !isLabReady ? `<div class="fs-7 text-danger mt-1"><i class="bi bi-info-circle"></i> Menunggu Lab (Labeling)</div>` : '';
+
+                const findTldAdendum = data.pengiriman_tld;
+                let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                htmlDocs += `
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
+                                <span class="small">${statusFormat('pengiriman', statusTld)}</span>
+                            </div>
+                            ${tldWarning}
+                        </div>
+                    </div>
+                `;
 
                 // Tombol aksi kirim (Column 3 Action)
                 let htmlBtn = `<a class="btn btn-primary rounded-pill px-3 shadow-xs btn-sm fw-bold w-100 text-center d-flex align-items-center justify-content-center gap-1" href="${base_url}/staff/pengiriman/permohonan/kirim/${data.permohonan_hash}"><i class="bi bi-send-fill"></i> Kirim Dokumen</a>`;

@@ -20,6 +20,19 @@
                 </div>
             </div>
             <div id="list-filter"></div>
+            
+            <ul class="nav nav-tabs mt-3" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="progress-tab" onclick="switchLoadTab('progress')" data-bs-toggle="tab"
+                        data-bs-target="#progress-tab-pane" type="button" role="tab"
+                        aria-controls="progress-tab-pane" aria-selected="true">Progres</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="selesai-tab" onclick="switchLoadTab('selesai')" data-bs-toggle="tab"
+                        data-bs-target="#selesai-tab-pane" type="button" role="tab"
+                        aria-controls="selesai-tab-pane" aria-selected="false">Selesai</button>
+                </li>
+            </ul>
             <div class="my-3">
                 <div class="body-placeholder my-3" id="list-placeholder">
                     @for ($i = 0; $i < 3; $i++)

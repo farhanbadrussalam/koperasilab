@@ -40,7 +40,7 @@ class Notifier
             $targets = collect($targets)->unique('id');
         }
 
-        Notification::send($targets, new NotifikasiBaru($pesan, $url, $event_id, $event));
+        Notification::send($targets, new NotifikasiBaru($pesan, $url, $event_id, $event, $user_id, $perusahaan_id));
     }
 
     public static function read($event = null, $id = null){
@@ -54,18 +54,16 @@ class Notifier
             return $query->where('data->id_event', $id);
         })->get();
 
-        if (empty($listUser)) {
+        if ($listUser->isEmpty()) {
             return;
         }
 
-        foreach ($listUser as $key => $value) {
-            $value->markAsRead();
-        }
+        $listUser->markAsRead();
     }
 
     protected static function sendQuery(Builder $query, string $pesan, ?string $url,?string $event_id, ?string $event, ?string $user_id, ?string $perusahaan_id)
     {
-        $query->select('id') // minimal kolom
+        $query->select('id', 'realtime_notifications') // minimal kolom
               ->chunkById(200, function($chunk) use ($pesan, $url, $event_id, $event, $user_id, $perusahaan_id) {
                   Notification::send($chunk, new NotifikasiBaru($pesan, $url, $event_id, $event, $user_id, $perusahaan_id));
               });

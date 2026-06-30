@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Session;
-use App\Events\NotifikasiEvent;
-use App\Models\notifikasi;
 use App\Models\User;
 use App\Models\Penyelia;
 use App\Models\Permohonan;
@@ -50,34 +48,6 @@ if (!function_exists('generateToken')) {
     }
 }
 
-if (!function_exists('notifikasi')) {
-    function notifikasi(array $data, string $message)
-    {
-        if (!isset($data['to_user']) || !isset($data['type'])) {
-            return response()->json([
-                'message' => "Object 'to_user' dan 'type' tidak boleh kosong"
-            ], 400);
-        }
-        $recipient = $data['to_user'];
-        $sender = Auth::user()->id;
-        $type = $data['type'];
-
-        $saveNotif = array(
-            'recipient' => $recipient,
-            'sender' => $sender,
-            'message' => $message,
-            'type' => $type,
-            'status' => 1
-        );
-        $result = notifikasi::create($saveNotif);
-
-        broadcast(new NotifikasiEvent($result, $message))->toOthers();
-
-        return response()->json([
-            'message' => "Notifikasi Terkirim"
-        ], 200);
-    }
-}
 
 if (!function_exists('unmask')) {
     function unmask(mixed $data)
@@ -1091,36 +1061,16 @@ if (!function_exists('range_date')) {
 }
 
 if (!function_exists('setKontrakAdendum')) {
-    function setKontrakAdendum(int $id_kontrak, int $periode)
+    /**
+     * Sinkronisasi kontrak adendum.
+     *
+     * @deprecated Logika telah dipindah ke AdendumService::syncKontrakAdendum().
+     *             Fungsi ini dipertahankan sebagai global helper untuk backward compatibility.
+     *             Harap gunakan AdendumService::syncKontrakAdendum() untuk kode baru.
+     */
+    function setKontrakAdendum(int $id_kontrak, int $periode): void
     {
-        $kontrak = Kontrak::find($id_kontrak);
-
-        if ($periode >= $kontrak->periode_active->periode) {
-            $result = Kontrak_detail::where('id_kontrak', $id_kontrak)
-                ->where('status', 2)
-                ->where('periode', '<=', $kontrak->periode_active->periode)
-                ->get();
-
-            foreach ($result as $key => $value) {
-                if ($value->pengguna_lama) {
-                    $change = Kontrak_detail::where('id_kontrak', $id_kontrak)
-                        ->where('status', 1)
-                        ->where('id_pengguna_divisi', $value->pengguna_lama)
-                        ->first();
-
-                    // update sync status tld
-                    $value->status_tld_1 = $change->status_tld_1;
-                    $value->status_tld_2 = $change->status_tld_2;
-
-                    // update master_pengguna yang diganti
-                    Master_pengguna::where('id_pengguna', $change->id_pengguna_divisi)->update(['status' => 1]);
-
-                    $change->update(['status' => 99]);
-                }
-                $value->status = 1;
-                $value->save();
-            }
-        }
+        (new \App\Services\Adendum\AdendumService())->syncKontrakAdendum($id_kontrak, $periode);
     }
 }
 

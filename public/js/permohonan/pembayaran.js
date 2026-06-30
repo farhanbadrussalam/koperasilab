@@ -1,5 +1,6 @@
 const invoice = new Invoice();
 let filterComp = false;
+let currentTab = 'progress';
 
 $(function () {
     loadData();
@@ -18,10 +19,19 @@ $(function () {
     // SETUP FILTER
     filterComp.on('filter.change', () => loadData());
 })
+
+function switchLoadTab(tab) {
+    currentTab = tab;
+    $('.nav-link').removeClass('active');
+    $(`#${tab}-tab`).addClass('active');
+    loadData(1);
+}
+
 function loadData(page = 1) {
     let params = {
         limit: 5,
         page: page,
+        tab: currentTab,
         filter: {}
     };
 

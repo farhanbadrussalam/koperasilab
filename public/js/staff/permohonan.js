@@ -1,5 +1,7 @@
 let detail = false;
 let filterComp = false;
+let currentTab = 'progress';
+
 $(function () {
     loadData();
     detail = new Detail({
@@ -34,11 +36,19 @@ $('#list-pagination').on('click', 'a', function (e) {
     loadData(pageno);
 });
 
+function changeTab(tab) {
+    currentTab = tab;
+    $('.nav-link').removeClass('active');
+    $(`#tab-${tab}`).addClass('active');
+    loadData(1);
+}
+
 function loadData(page = 1) {
     let filterValue = filterComp && filterComp.getAllValue();
     let params = {
         limit: 5,
         page: page,
+        tab: currentTab,
         filter: {}
     };
 

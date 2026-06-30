@@ -89,12 +89,12 @@
                         let permohonanZerocek = null;
                         if (kontrak.is_zerocek == 1) {
                             if (kontrak.is_have_tld == 1) {
-                                let periodOne = kontrak.periode.find(p => p.periode == 1);
+                                let periodOne = kontrak.periode.find(p => p && p.periode == 1);
                                 if (periodOne && periodOne.permohonan) {
                                     permohonanZerocek = periodOne.permohonan;
                                 }
                             } else {
-                                let periodZero = kontrak.periode.find(p => p.periode == 0);
+                                let periodZero = kontrak.periode.find(p => p && p.periode == 0);
                                 if (periodZero && periodZero.permohonan) {
                                     permohonanZerocek = periodZero.permohonan;
                                 }
@@ -102,6 +102,7 @@
                         }
 
                         kontrak.periode.forEach(data => {
+                            if (!data) return;
                             if (data.periode == 1 && kontrak.is_zerocek == 1) {
                                 data.permohonan_zerocek = permohonanZerocek;
                             }
@@ -170,7 +171,7 @@
                     `;
                 }
 
-                let periodeActive = kontrak.periode_active.periode;
+                let periodeActive = kontrak.periode_active?.periode;
 
                 if (isModal) {
                     // Tampilan ketika di dalam Info Modal
@@ -282,7 +283,8 @@
                                 `<small class="text-secondary small fw-medium ms-1">(${rangeDate.start} - ${rangeDate.end})</small>`;
                         }
                     } else {
-                        if (data.periode == 2 && kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
+                        // && kontrak.is_zerocek == 0 (saya hapus kondisi ini karna berpengaruh ketika di periode 2 dan TLD periode 3 sudah di kirim tapi tombol Send TLD nya tetap muncul)
+                        if (data.periode == 2 && kontrak.is_have_tld == 1) {
                             let findPeriodeNext = cekStatusPeriode.find(cek => cek.periode == data.periode + 1 && cek
                                 .jenis == 'tld' && cek.tipe_kontrak != 'adendum');
                             statusKirimTldNext = findPeriodeNext?.status;
@@ -375,7 +377,7 @@
                 let periodeNext = kontrak.periode.find(d => d.periode == data.periode + 1);
                 let htmlBtnTld = ``;
                 if (periodeNext) {
-                    if (data.status == 1) { // Status 1 == Periodik
+                    if (data.status == 1 || data.status == 2) { // Status 1 == Periodik
                         htmlBtnTld =
                             `<a class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-xs" href="${base_url}/staff/pengiriman/permohonan/kirim/${kontrak.kontrak_hash}/${periodeNext.periode_hash}"><i class="bi bi-send-fill me-1"></i>Kirim TLD</a>`;
                     }
@@ -418,6 +420,10 @@
                     if (kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1 && data.periode == 1) {
                         htmlInformasi = ``;
                         statusPengirimanTLD = false;
+                    }
+
+                    if (periodeNext.periode == 2 && kontrak.layanan == 'KontrakEvaluasi' && kontrak.is_have_tld == 1) {
+                        htmlInformasi = ``;
                     }
                 }
 
@@ -498,12 +504,23 @@
                         // if (data.periode == 2 && kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
                         if (data.periode == 2 && kontrak.layanan == 'KontrakEvaluasi') {
                             if (!statusKirimTldNext && periodeNext) {
-                                htmlAction = `
-                                    <div class="d-flex flex-column text-start gap-1">
-                                        <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
-                                        <div>${htmlBtnTld}</div>
-                                    </div>
-                                `;
+                                if (tldSelesai) {
+                                    htmlAction = `
+                                        <div class="d-flex flex-column text-start gap-1">
+                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
+                                            <div>${htmlBtnTld}</div>
+                                        </div>
+                                    `;
+                                } else {
+                                    if (periodeNext) {
+                                        htmlAction = `
+                                        <div class="d-flex flex-column text-start gap-1">
+                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
+                                            <div>${htmlStatusPenyelia}</div>
+                                        </div>
+                                    `;
+                                    }
+                                }
 
                                 htmlInformasi = '';
                             }
@@ -576,6 +593,7 @@
 
                     let htmlInvoice = '';
                     let htmlTld = '';
+                    let htmlLhu = '';
                     if (jmlPenambahan > 0) {
                         let statusInvoice = findInvoiceAdendum ? findInvoiceAdendum.status : 0;
                         let textStatusInvoice = statusFormat('pengiriman', statusInvoice);
@@ -588,7 +606,7 @@
                             }
                         }
                         htmlInvoice = `
-                            <div class="col">
+                            <div class="col-3">
                                 <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="fw-medium text-dark small"><i class="bi bi-receipt-cutoff text-muted me-2"></i>Invoice</span>
@@ -599,34 +617,36 @@
                             </div>
                         `;
 
-                        if (adendum.is_periode_berjalan) {
-                            let statusTld = findTldAdendum ? findTldAdendum.status : 0;
-                            let textStatusTld = statusFormat('pengiriman', statusTld);
-
-                            htmlTld = `
-                            <div class="col">
-                                <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
-                                        <span class="small">${textStatusTld}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            `;
-                        }
                     }
+                    if (adendum.is_periode_berjalan) {
+                        let statusTld = findTldAdendum ? findTldAdendum.status : 0;
+                        let textStatusTld = statusFormat('pengiriman', statusTld);
 
-                    let statusLhu = findLhuAdendum ? findLhuAdendum.status : 0;
-                    let htmlLhu = `
-                        <div class="col">
+                        htmlTld = `
+                        <div class="col-3">
                             <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU</span>
-                                    <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
+                                    <span class="fw-medium text-dark small"><i class="bi bi-cpu text-muted me-2"></i>TLD</span>
+                                    <span class="small">${textStatusTld}</span>
                                 </div>
                             </div>
                         </div>
-                    `;
+                        `;
+                    }
+
+                    if (adendum.is_zerocek == 1) {
+                        let statusLhu = findLhuAdendum ? findLhuAdendum.status : 0;
+                        htmlLhu = `
+                            <div class="col-3">
+                                <div class="p-2 bg-light rounded-2 border border-light-subtle h-100">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-medium text-dark small"><i class="bi bi-file-earmark-check text-muted me-2"></i>LHU</span>
+                                        <span class="small">${statusFormat('pengiriman', statusLhu)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
 
                     let periodeNow = adendum.periodenow;
                     let bulan_mulai = adendum.bulan_mulai;

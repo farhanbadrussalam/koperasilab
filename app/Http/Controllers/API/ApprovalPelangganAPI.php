@@ -88,7 +88,8 @@ class ApprovalPelangganAPI extends Controller
             $dataNotif = array(
                 'pesan' => 'Pengajuan pendaftaran pelanggan Anda disetujui',
                 'event_id' => (int) $id_request,
-                'event' => 'approval_pelanggan'
+                'event' => 'approval_pelanggan',
+                'url' => '/userProfile'
             );
             Notifier::send([$userRequest->id_user], $dataNotif);
 
@@ -134,7 +135,8 @@ class ApprovalPelangganAPI extends Controller
             $dataNotif = array(
                 'pesan' => 'Pengajuan pendaftaran pelanggan Anda ditolak. Alasan: ' . $request->catatan,
                 'event_id' => (int) $id_request,
-                'event' => 'approval_pelanggan'
+                'event' => 'approval_pelanggan',
+                'url' => '/userProfile'
             );
             Notifier::send([$userRequest->id_user], $dataNotif);
 

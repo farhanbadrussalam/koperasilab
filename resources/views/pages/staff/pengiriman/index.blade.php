@@ -23,6 +23,15 @@
                 </div>
             </div>
             <div id="list-filter"></div>
+            
+            <ul class="nav nav-tabs my-3" id="pengiriman-tabs">
+                <li class="nav-item">
+                    <a class="nav-link active cursor-pointer" id="tab-progress" onclick="changeTab('progress')">Progress</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link cursor-pointer" id="tab-selesai" onclick="changeTab('selesai')">Selesai</a>
+                </li>
+            </ul>
             <div class="my-3">
                 <div class="body-placeholder my-3" id="list-placeholder-pengiriman">
                     @for ($i = 0; $i < 5; $i++)

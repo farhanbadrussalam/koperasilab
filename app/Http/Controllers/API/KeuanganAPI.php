@@ -104,6 +104,13 @@ class KeuanganAPI extends Controller
                         $q->where('created_by', $createBy);
                     })->whereNotIn('status', [1, 2, 7, 91]);
                 })
+                ->when($request->has('tab'), function ($q) use ($request) {
+                    if ($request->tab == 'progress') {
+                        $q->where('status', '!=', 5);
+                    } else if ($request->tab == 'selesai') {
+                        $q->where('status', 5);
+                    }
+                })
                 ->when($filter, function ($q, $filter) {
                     return $q->whereHas('permohonan', function ($p) use ($filter, $q) {
                         foreach ($filter as $key => $value) {

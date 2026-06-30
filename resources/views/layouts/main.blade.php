@@ -180,26 +180,52 @@
             $('[data-bs-toggle="tooltip"]').tooltip()
 
 
-            // Mengecek session
+            // Auto Logout & Session Checker
             if (@json(Auth::check())) {
-                setInterval(() => {
-                    const authenticated = @json(Auth::check());
-                    if (!authenticated) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Session Expired',
-                            text: 'Silahkan login kembali',
-                            showConfirmButton: true
-                        }).then(() => {
-                            document.getElementById('logout-form').submit();
-                        })
-                    };
-                    // ajaxGet(`check-session`, false, result => {
-                    //     if (!result.authenticated) {
+                let idleTime = 0;
+                const sessionLifetime = @json(config('session.lifetime')) * 60; // Konversi menit ke detik
 
-                    //     }
-                    // });
-                }, 10000);
+                const resetIdleTimer = () => {
+                    idleTime = 0;
+                };
+
+                $(document).on('mousemove keypress click scroll', resetIdleTimer);
+
+                setInterval(() => {
+                    idleTime += 5; // Cek setiap 5 detik
+                    if (idleTime >= sessionLifetime) {
+                        // Sebelum logout, cek status session ke server (jika user aktif di tab lain)
+                        $.ajax({
+                            url: "{{ route('check-session') }}",
+                            method: 'GET',
+                            dataType: 'json',
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        }).done(function(response) {
+                            if (response.authenticated) {
+                                resetIdleTimer();
+                            } else {
+                                triggerLogout();
+                            }
+                        }).fail(function(xhr) {
+                            triggerLogout();
+                        });
+                    }
+                }, 5000);
+
+                function triggerLogout() {
+                    $(document).off('mousemove keypress click scroll', resetIdleTimer);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Sesi Berakhir',
+                        text: 'Sesi Anda telah habis. Silakan login kembali.',
+                        confirmButtonText: 'OK',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        document.getElementById('logout-form').submit();
+                    });
+                }
             }
 
             // Menangkap semua event saat modal manapun mulai ditutup
@@ -218,7 +244,7 @@
             // Inisialisasi counter badge adendum khusus Staff Pengiriman
             if (role.includes('Staff Pengiriman')) {
                 const loadAdendumBadge = () => {
-                    ajaxGet('api/v1/pengiriman/listAdendum', {
+                    ajaxGet('api/v1/adendum/list', {
                         limit: 1
                     }, result => {
                         let total = result.pagination?.total ?? 0;
@@ -232,56 +258,6 @@
                 loadAdendumBadge();
             }
         })
-
-        function loadNotifikasi() {
-            ajaxGet(`api/v1/getNotifikasi`, false, result => {
-                let html = '';
-                let countLonceng = 0;
-                for (const notif of result.data) {
-                    html += `
-                        <div class="card shadow text-muted mb-1 ${notif.status==1 && 'bg-info-subtle'}" data-id="${notif.id}" role="button" onclick="notifGoTo(this, '${notif.type}')">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-12">${notif.message}</div>
-                                    <div class="col-12 text-end">${dateFormat(notif.created_at)}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    notif.status == 1 && countLonceng++;
-                }
-                if (countLonceng > 0) {
-                    $('#count_lonceng').show();
-                    $('#count_lonceng').html(countLonceng);
-                }
-                if (result.data.length == 0) {
-                    html = `<div class="text-center">No data notifications</div>`;
-                }
-                $('#body-notif').html(html);
-            })
-        }
-
-        function notifGoTo(obj, type) {
-            let notifId = $(obj).data('id');
-            let url;
-            type = type.toLowerCase();
-            switch (type) {
-                case 'permohonan':
-                    url = "{{ route('staff.permohonan') }}";
-                    break;
-                default:
-                    break;
-            }
-
-            ajaxGet(`api/v1/getNotifikasi`, {
-                id: notifId,
-                status: 2
-            }, result => {
-                if (url) {
-                    window.location.href = url;
-                }
-            })
-        }
     </script>
 </body>
 

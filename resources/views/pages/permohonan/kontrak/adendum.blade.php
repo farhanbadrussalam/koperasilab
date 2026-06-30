@@ -53,7 +53,7 @@
 
                             <div class="mb-3 d-flex flex-column gap-1" id="form-zero-cek">
                                 @if ($kontrak->layanan == 'KontrakEvaluasi')
-                                    <div class="form-check form-switch">
+                                    <div class="form-check form-switch" id="switch-tld" style="display: none;">
                                         <input class="form-check-input" type="checkbox" role="switch" id="isHaveTld"
                                             @if ($kontrak->is_have_tld == 1) checked @endif>
                                         <label class="form-check-label" for="isHaveTld">TLD dari Pelanggan</label>
@@ -203,9 +203,9 @@
         }
 
         /* .form-control:focus, .form-select:focus {
-                                            background-color: #fff !important;
-                                            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
-                                        } */
+                                                    background-color: #fff !important;
+                                                    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+                                                } */
         /* Transisi halus saat hapus baris */
         .tld-row {
             transition: all 0.2s ease;

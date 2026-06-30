@@ -49,13 +49,14 @@ class DashboardWidgetController extends Controller
 
         switch ($jenisCard) {
             case 'permohonan':
-                $counts = Permohonan::query()
+                $countsQuery = Permohonan::query()
                     ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                         $q->whereHas('pelanggan', function ($q) use ($user) {
                             $q->where('id_perusahaan', $user->id_perusahaan);
                         });
-                    })
-                    ->whereIn('status', [1, 2, 3, 4, 5, 90])
+                    });
+                $applyFilter($countsQuery);
+                $counts = $countsQuery->whereIn('status', [1, 2, 3, 4, 5, 90])
                     ->selectRaw('status, count(*) as total')
                     ->groupBy('status')
                     ->pluck('total', 'status');
@@ -78,15 +79,16 @@ class DashboardWidgetController extends Controller
                 ])->render();
                 break;
             case 'pembayaran':
-                $counts = Keuangan::query() // Menghapus eager loading yang tidak perlu
+                $countsQuery = Keuangan::query() // Menghapus eager loading yang tidak perlu
                     ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                         $q->whereHas('permohonan', function ($q) use ($user) {
                             $q->whereHas('pelanggan', function ($q) use ($user) {
                                 $q->where('id_perusahaan', $user->id_perusahaan); // Menggunakan $user->id_perusahaan
                             });
                         });
-                    })
-                    ->whereIn('status', [3, 5, 90])
+                    });
+                $applyFilter($countsQuery);
+                $counts = $countsQuery->whereIn('status', [3, 5, 90])
                     ->selectRaw('status, count(*) as total')
                     ->groupBy('status')
                     ->pluck('total', 'status');
@@ -109,13 +111,14 @@ class DashboardWidgetController extends Controller
                 ])->render();
                 break;
             case 'kontrak':
-                $counts = Kontrak::query()
+                $countsQuery = Kontrak::query()
                     ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                         $q->whereHas('pelanggan', function ($q) use ($user) {
                             $q->where('id_perusahaan', $user->id_perusahaan);
                         });
-                    })
-                    ->selectRaw('status, count(*) as total')
+                    });
+                $applyFilter($countsQuery);
+                $counts = $countsQuery->selectRaw('status, count(*) as total')
                     ->groupBy('status')
                     ->pluck('total', 'status');
 
@@ -177,14 +180,15 @@ class DashboardWidgetController extends Controller
                 ])->render();
                 break;
             case 'penyelia':
-                $counts = Penyelia::query()
+                $countsQuery = Penyelia::query()
                     ->with('permohonan')
                     ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                         $q->whereHas('permohonan', function ($q) use ($user) {
                             $q->where('created_by', $user->id);
                         });
-                    })
-                    ->selectRaw('status, count(*) as total')
+                    });
+                $applyFilter($countsQuery);
+                $counts = $countsQuery->selectRaw('status, count(*) as total')
                     ->groupBy('status')
                     ->pluck('total', 'status');
 
@@ -308,9 +312,29 @@ class DashboardWidgetController extends Controller
         ]);
     }
 
-    public function expeditionStats()
+    public function expeditionStats(Request $request)
     {
-        $ekspedisi = Master_ekspedisi::withCount(['pengiriman'])->get()->pluck('pengiriman_count', 'name')->toArray();
+        $dateFilter = $request->input('date_filter', 'monthly');
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
+
+        $ekspedisi = Master_ekspedisi::withCount(['pengiriman' => function ($query) use ($applyFilter) {
+            $applyFilter($query);
+        }])->get()->pluck('pengiriman_count', 'name')->toArray();
 
         $category = array_keys($ekspedisi);
         $value = array_values($ekspedisi);
@@ -339,13 +363,34 @@ class DashboardWidgetController extends Controller
                 'charts' => $charts,
                 'isEmpty' => $isEmpty,
                 'title' => 'Statistik Ekspedisi',
-                'icon' => 'bar-chart-line-fill'
+                'icon' => 'bar-chart-line-fill',
+                'withFilter' => true,
+                'filterDefault' => $dateFilter,
+                'idWidget' => 'widget-expedisi-stats'
             ])->render()
         ]);
     }
     public function statisticsLayanan(Request $request)
     {
         $user = Auth::user();
+        $dateFilter = $request->input('date_filter', 'monthly');
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
+
         $layanan = Master_layanan_jasa::where('status', 1)->get();
         $layananNow = null;
 
@@ -364,13 +409,14 @@ class DashboardWidgetController extends Controller
         $value = [];
 
         if ($layananNow->nama_layanan === 'TLD') {
-            $statistik = Master_jenistld::withCount(['kontrak' => function ($query) use ($user, $layananNow) {
+            $statistik = Master_jenistld::withCount(['kontrak' => function ($query) use ($user, $layananNow, $applyFilter) {
                 $query->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                     $q->whereHas('pelanggan', function ($q) use ($user) {
                         $q->where('id_perusahaan', $user->id_perusahaan);
                     });
                 })
                     ->where('id_layanan', $layananNow->id_layanan);
+                $applyFilter($query);
             }])->get()
                 ->pluck('kontrak_count', 'name');
 
@@ -386,12 +432,13 @@ class DashboardWidgetController extends Controller
         // Chart 2
         $statistik_2 = Master_jenisLayanan::whereNull('parent')
             ->where('status', 1)
-            ->withCount(['kontrak' => function ($query) use ($user) {
+            ->withCount(['kontrak' => function ($query) use ($user, $applyFilter) {
                 $query->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                     $q->whereHas('pelanggan', function ($q) use ($user) {
                         $q->where('id_perusahaan', $user->id_perusahaan);
                     });
                 });
+                $applyFilter($query);
             }])->get()
             ->pluck('kontrak_count', 'name');
 
@@ -434,6 +481,9 @@ class DashboardWidgetController extends Controller
                 'isEmpty' => $isEmpty,
                 'title' => 'Statistik Layanan',
                 'icon' => 'pie-chart-fill',
+                'withFilter' => true,
+                'filterDefault' => $dateFilter,
+                'idWidget' => 'widget-statistics'
             ])->render()
         ]);
     }
@@ -441,8 +491,25 @@ class DashboardWidgetController extends Controller
     public function deliveryStats(Request $request)
     {
         $user = Auth::user();
+        $dateFilter = $request->input('date_filter', 'monthly');
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
 
-        $count = Pengiriman::query()
+        $countQuery = Pengiriman::query()
             ->with('permohonan')
             ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
                 $q->whereHas('permohonan', function ($q) use ($user) {
@@ -450,8 +517,10 @@ class DashboardWidgetController extends Controller
                         $q->where('id_perusahaan', $user->id_perusahaan);
                     });
                 });
-            })
-            ->selectRaw('status, count(*) as count')
+            });
+        $applyFilter($countQuery);
+
+        $count = $countQuery->selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
 
@@ -652,15 +721,35 @@ class DashboardWidgetController extends Controller
 
     public function jobsPenyelia(Request $request)
     {
+        $dateFilter = $request->input('date_filter', 'monthly');
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
 
-        $jobs = Penyelia::with([
+        $jobsQuery = Penyelia::with([
             'dokumenSuratTugas:id_dokumen,id_permohonan,nomer',
             'permohonan.pelanggan.perusahaan:id_perusahaan,nama_perusahaan',
             'permohonan.kontrak:id_kontrak,no_kontrak',
             'penyelia_map.jobs:id_jobs,name'
         ])
-            ->whereNot('status', 1)
-            ->latest() // Urutkan berdasarkan data terbaru
+            ->whereNot('status', 1);
+        
+        $applyFilter($jobsQuery);
+
+        $jobs = $jobsQuery->latest() // Urutkan berdasarkan data terbaru
             ->limit(5)
             ->get();
 
@@ -698,10 +787,29 @@ class DashboardWidgetController extends Controller
 
     public function monitorPenyeliaan(Request $request)
     {
+        $dateFilter = $request->input('date_filter', 'monthly');
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
+
         $jobs = Master_jobs::query()
             ->withCount([
-                'penyelia_map' => function ($q) {
+                'penyelia_map' => function ($q) use ($applyFilter) {
                     $q->where('status', 1);
+                    $applyFilter($q);
                 }
             ])->get();
 
@@ -738,7 +846,10 @@ class DashboardWidgetController extends Controller
             'charts' => $charts,
             'isEmpty' => $isEmpty,
             'title' => 'Monitor',
-            'icon' => 'list-check'
+            'icon' => 'list-check',
+            'withFilter' => true,
+            'filterDefault' => $dateFilter,
+            'idWidget' => 'widget-monitor-penyelia'
         ])->render();
         // $chartData['isEmpty'] = $isEmpty;
 
@@ -893,13 +1004,33 @@ class DashboardWidgetController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function financeInvActive()
+    public function financeInvActive(Request $request)
     {
         $user = Auth::user();
+        $dateFilter = $request->input('date_filter', 'monthly');
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
+
         // --- 3. DATA STATUS INVOICE (Funnel / Bar Horizontal) ---
-        $counts = Keuangan::query() // Menghapus eager loading yang tidak perlu
-            ->whereIn('status', [7, 4, 3, 5, 90])
-            ->selectRaw('status, count(*) as total')
+        $countsQuery = Keuangan::query() // Menghapus eager loading yang tidak perlu
+            ->whereIn('status', [7, 4, 3, 5, 90]);
+        $applyFilter($countsQuery);
+
+        $counts = $countsQuery->selectRaw('status, count(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
 
@@ -933,6 +1064,24 @@ class DashboardWidgetController extends Controller
     public function financeChartService(Request $request)
     {
         $user = Auth::user();
+        $dateFilter = $request->input('date_filter', 'monthly');
+        $applyFilter = function ($query, $column = 'created_at') use ($dateFilter) {
+            if ($dateFilter === 'today') {
+                $query->whereDate($column, \Carbon\Carbon::today());
+            } elseif ($dateFilter === 'weekly') {
+                $query->whereBetween($column, [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]);
+            } elseif ($dateFilter === 'monthly') {
+                $query->whereMonth($column, \Carbon\Carbon::now()->month)->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif ($dateFilter === 'yearly') {
+                $query->whereYear($column, \Carbon\Carbon::now()->year);
+            } elseif (str_contains($dateFilter, ' to ')) {
+                $dates = explode(' to ', $dateFilter);
+                if (count($dates) == 2) {
+                    $query->whereBetween($column, [$dates[0] . ' 00:00:00', $dates[1] . ' 23:59:59']);
+                }
+            }
+        };
+
         $layanan = Master_layanan_jasa::where('status', 1)->get();
         $layananNow = null;
 
@@ -947,9 +1096,10 @@ class DashboardWidgetController extends Controller
             $layananNow = $layanan->first();
         }
 
-        $statistik = Master_jenistld::withCount(['permohonan' => function ($query) use ($layananNow) {
+        $statistik = Master_jenistld::withCount(['permohonan' => function ($query) use ($layananNow, $applyFilter) {
             $query->where('id_layanan', $layananNow->id_layanan)
                 ->whereHas('invoice'); // Hanya hitung permohonan yang punya data di tabel keuangan
+            $applyFilter($query);
         }])->get()
             ->pluck('permohonan_count', 'name');
 

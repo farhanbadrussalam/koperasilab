@@ -36,10 +36,16 @@ class NotifikasiBaru extends Notification implements ShouldQueue
     {
         $channels = ['database'];
 
-        $id = is_object($notifiable) ? $notifiable->id : $notifiable;
-        $user = User::select('realtime_notifications', 'id', 'name')->where('id', $id)->first();
-        if(isset($user->realtime_notifications) && $user->realtime_notifications){
-            $channels[] = 'broadcast';
+        if ($notifiable instanceof User) {
+            if ($notifiable->realtime_notifications) {
+                $channels[] = 'broadcast';
+            }
+        } else {
+            $id = is_object($notifiable) ? $notifiable->id : $notifiable;
+            $user = User::select('realtime_notifications', 'id')->where('id', $id)->first();
+            if ($user && $user->realtime_notifications) {
+                $channels[] = 'broadcast';
+            }
         }
 
         return $channels;
@@ -59,10 +65,14 @@ class NotifikasiBaru extends Notification implements ShouldQueue
 
     public function toBroadcast(mixed $notifiable)
     {
-        $id = is_object($notifiable) ? $notifiable->id : $notifiable;
-        $user = User::select('realtime_notifications', 'id', 'name')->where('id', $id)->first();
-        if ($user) {
-            info("send broadcast to : {$user->name}");
+        if ($notifiable instanceof User) {
+            info("send broadcast to : {$notifiable->name}");
+        } else {
+            $id = is_object($notifiable) ? $notifiable->id : $notifiable;
+            $user = User::select('id', 'name')->where('id', $id)->first();
+            if ($user) {
+                info("send broadcast to : {$user->name}");
+            }
         }
         return new BroadcastMessage([
             'pesan' => $this->pesan,

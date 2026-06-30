@@ -180,7 +180,7 @@ function simpanAdendum(obj) {
     params.append('idPeriode', periode.periode_hash);
     params.append('id_kontrak', dataKontrak.kontrak_hash);
     params.append('sub_total', subTotal);
-    params.append('is_have_tld', isHaveTld ? 1 : 0);
+    params.append('is_havetld', isHaveTld ? 1 : 0);
     params.append('is_zerocek', zerocek ? 1 : 0);
     params.append('bulan_mulai', arrOption.bulan_mulai || 1);
 
@@ -195,7 +195,7 @@ function simpanAdendum(obj) {
         confirmButtonText: 'Yes, proceed!'
     }).then((result) => {
         if (result.isConfirmed) {
-            ajaxPost('api/v1/permohonan/tambahAdendum', params, result => {
+            ajaxPost('api/v1/adendum/store', params, result => {
                 Swal.fire({
                     icon: 'success',
                     text: 'Adendum berhasil disimpan',
@@ -247,6 +247,7 @@ function loadPeriode() {
 
     periode.forEach((data, index) => {
         if (data.periode == 0) return;
+        if (data.status == 2) return;
 
         let htmlAktif = '';
         let is_aktif = (activePeriodeNum !== null && data.periode === activePeriodeNum);
@@ -560,9 +561,19 @@ function pilihPeriode(obj) {
         })
         arrOption.pengguna = arrOption.pengguna.filter(d => d.status != 'baru');
         arrOption.kontrol = arrOption.kontrol.filter(d => d.status != 'baru');
+
+        if(dataKontrak.layanan == 'KontrakEvaluasi') {
+            $('#switch-tld').hide();
+            $('#isHaveTld').prop('checked', dataKontrak.is_have_tld == 1);
+        }
     } else {
         $('#btn-add-pengguna').removeClass('d-none').addClass('d-block');
         $('#btn-add-kontrol').removeClass('d-none').addClass('d-block');
+
+        if(dataKontrak.layanan == 'KontrakEvaluasi') {
+            $('#switch-tld').show();
+            $('#isHaveTld').prop('checked', dataKontrak.is_have_tld == 1);
+        }
     }
 
     loadHtmlKontrol();

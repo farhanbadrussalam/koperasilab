@@ -142,7 +142,7 @@
                                     <span><i class="bi bi-arrow-counterclockwise"></i></span>
                                     <span class="hide-menu">Dikembalikan</span>
                                     <span
-                                        class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('Dikembalikan')) d-none @endif">{{ notifUnreadCount('Dikembalikan') }}</span>
+                                        class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('Dikembalikan')) d-none @endif" data-events='["Dikembalikan"]'>{{ notifUnreadCount('Dikembalikan') }}</span>
                                 </a>
                             </li>
                             <li class="sidebar-item">
@@ -151,7 +151,7 @@
                                     <span><i class="bi bi-cash"></i></span>
                                     <span class="hide-menu">Pembayaran</span>
                                     <span
-                                        class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('Keuangan')) d-none @endif">{{ notifUnreadCount('Keuangan') }}</span>
+                                        class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('Keuangan')) d-none @endif" data-events='["Keuangan"]'>{{ notifUnreadCount('Keuangan') }}</span>
                                 </a>
                             </li>
                             <li class="sidebar-item">
@@ -160,7 +160,7 @@
                                     <span><i class="bi bi-send"></i></span>
                                     <span class="hide-menu">Pengiriman</span>
                                     <span
-                                        class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('pengiriman')) d-none @endif">{{ notifUnreadCount('pengiriman') }}</span>
+                                        class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('pengiriman')) d-none @endif" data-events='["pengiriman"]'>{{ notifUnreadCount('pengiriman') }}</span>
                                 </a>
                             </li>
                         @endcan
@@ -195,7 +195,7 @@
                             <span><i class="bi bi-file-earmark-text"></i></span>
                             <span class="hide-menu">Permohonan</span>
                             <span
-                                class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('Permohonan')) d-none @endif">{{ notifUnreadCount('Permohonan') }}</span>
+                                class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('Permohonan')) d-none @endif" data-events='["Permohonan"]'>{{ notifUnreadCount('Permohonan') }}</span>
                         </a>
                     </li>
                 @endcan
@@ -247,7 +247,7 @@
                             <span><i class="bi bi-eyedropper"></i></span>
                             <span class="hide-menu">Penyeliaan</span>
                             <span
-                                class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount(['Penyelia', 'PenyeliaLAB'])) d-none @endif">{{ notifUnreadCount(['Penyelia', 'PenyeliaLAB']) }}</span>
+                                class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount(['Penyelia', 'PenyeliaLAB'])) d-none @endif" data-events='["Penyelia", "PenyeliaLAB"]'>{{ notifUnreadCount(['Penyelia', 'PenyeliaLAB']) }}</span>
                         </a>
                     </li>
                 @endcan
@@ -259,7 +259,7 @@
                             <span><i class="bi bi-eyedropper"></i></span>
                             <span class="hide-menu">LHU</span>
                             <span
-                                class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('PenyeliaLAB')) d-none @endif">{{ notifUnreadCount('PenyeliaLAB') }}</span>
+                                class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('PenyeliaLAB')) d-none @endif" data-events='["PenyeliaLAB"]'>{{ notifUnreadCount('PenyeliaLAB') }}</span>
                         </a>
                     </li>
                     @if (Auth::user()->hasPenyimpananJob())
@@ -280,7 +280,7 @@
                             <i class="bi bi-wallet"></i>
                             <span class="hide-menu">Keuangan</span>
                             <span
-                                class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('Keuangan')) d-none @endif">{{ notifUnreadCount('Keuangan') }}</span>
+                                class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('Keuangan')) d-none @endif" data-events='["Keuangan"]'>{{ notifUnreadCount('Keuangan') }}</span>
                         </a>
                     </li>
                     <li class="sidebar-item">
@@ -308,7 +308,7 @@
                             <i class="bi bi-file-earmark-ruled"></i>
                             <span class="hide-menu">Verifikasi Keuangan</span>
                             <span
-                                class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('Keuangan')) d-none @endif">{{ notifUnreadCount('Keuangan') }}</span>
+                                class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('Keuangan')) d-none @endif" data-events='["Keuangan"]'>{{ notifUnreadCount('Keuangan') }}</span>
                         </a>
                     </li>
                 @endcan
@@ -320,7 +320,7 @@
                             <i class="bi bi-journal-text"></i>
                             <span class="hide-menu">Persetujuan Operasional</span>
                             <span
-                                class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('SuratTugas')) d-none @endif">{{ notifUnreadCount('SuratTugas') }}</span>
+                                class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('SuratTugas')) d-none @endif" data-events='["SuratTugas"]'>{{ notifUnreadCount('SuratTugas') }}</span>
                         </a>
                     </li>
                 @endcan
@@ -331,7 +331,7 @@
                             <i class="bi bi-envelope-paper"></i>
                             <span class="hide-menu">Surat Pengantar</span>
                             <span
-                                class="badge rounded-pill ms-auto bg-danger @if (!notifUnreadCount('Surpeng')) d-none @endif">{{ notifUnreadCount('Surpeng') }}</span>
+                                class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('Surpeng')) d-none @endif" data-events='["Surpeng"]'>{{ notifUnreadCount('Surpeng') }}</span>
                         </a>
                     </li>
                 @endcan

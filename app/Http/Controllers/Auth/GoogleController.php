@@ -80,6 +80,10 @@ class GoogleController extends Controller
             ]);
         }
 
+        if ($user->status == 99) {
+            return redirect()->route('login')->with('error', 'Akun Anda telah dinonaktifkan.');
+        }
+
         Auth::login($user);
 
         return redirect('/home');
