@@ -260,7 +260,7 @@ function load_form(unusedKontrol = [], unusedPengguna = []) {
             }
 
             // Fallback automatically to master_tld if not assigned
-            if (!tldActive && unusedKontrol && unusedKontrol.length > unusedKontrolIndex) {
+            if (!tldActive && unusedKontrol && unusedKontrol.length > unusedKontrolIndex && dataOrderPengiriman.is_have_tld != 1) {
                 tldActive = unusedKontrol[unusedKontrolIndex];
                 unusedKontrolIndex++;
             }
@@ -306,7 +306,7 @@ function load_form(unusedKontrol = [], unusedPengguna = []) {
             }
 
             // Fallback automatically to master_tld if not assigned
-            if (!tldActive && unusedPengguna && unusedPengguna.length > unusedPenggunaIndex) {
+            if (!tldActive && unusedPengguna && unusedPengguna.length > unusedPenggunaIndex && dataOrderPengiriman.is_have_tld != 1) {
                 tldActive = unusedPengguna[unusedPenggunaIndex];
                 unusedPenggunaIndex++;
             }

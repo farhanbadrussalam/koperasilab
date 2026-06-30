@@ -70,11 +70,11 @@ $(function () {
 function loadTld() {
     let tldPengguna = false;
     let tldKontrol = false;
-    if (dataKontrak.kontrak_map.length == 0) {
+    if (dataKontrak.kontrak_map.length == 0 || (dataKontrak.is_have_tld == 1)) {
         tldPengguna = dataKontrak.kontrak_detail.filter(tld => {
-            return tld.jenis == 'pengguna';
+            return tld.jenis == 'pengguna' && tld.status == 1;
         });
-        tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol');
+        tldKontrol = dataKontrak.kontrak_detail.filter(tld => tld.jenis == 'kontrol' && tld.status == 1);
         source = `detail`;
     } else {
         tldPengguna = dataKontrak.kontrak_map.filter(tld => tld.jenis == 'pengguna');

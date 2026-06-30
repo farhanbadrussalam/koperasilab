@@ -283,7 +283,8 @@
                                 `<small class="text-secondary small fw-medium ms-1">(${rangeDate.start} - ${rangeDate.end})</small>`;
                         }
                     } else {
-                        if (data.periode == 2 && kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
+                        // && kontrak.is_zerocek == 0 (saya hapus kondisi ini karna berpengaruh ketika di periode 2 dan TLD periode 3 sudah di kirim tapi tombol Send TLD nya tetap muncul)
+                        if (data.periode == 2 && kontrak.is_have_tld == 1) {
                             let findPeriodeNext = cekStatusPeriode.find(cek => cek.periode == data.periode + 1 && cek
                                 .jenis == 'tld' && cek.tipe_kontrak != 'adendum');
                             statusKirimTldNext = findPeriodeNext?.status;
@@ -410,7 +411,7 @@
                         .periode);
                     htmlInformasi = `
                         <div class="d-flex flex-column text-start small">
-                            <span class="text-secondary small fw-medium mb-1">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"} f</span>
+                            <span class="text-secondary small fw-medium mb-1">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
                             <div>${statusFormat('pengiriman', findPengirimanTLD?.status)}</div>
                         </div>
                     `;
@@ -419,6 +420,10 @@
                     if (kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1 && data.periode == 1) {
                         htmlInformasi = ``;
                         statusPengirimanTLD = false;
+                    }
+
+                    if (periodeNext.periode == 2 && kontrak.layanan == 'KontrakEvaluasi' && kontrak.is_have_tld == 1) {
+                        htmlInformasi = ``;
                     }
                 }
 
@@ -499,12 +504,23 @@
                         // if (data.periode == 2 && kontrak.is_zerocek == 0 && kontrak.is_have_tld == 1) {
                         if (data.periode == 2 && kontrak.layanan == 'KontrakEvaluasi') {
                             if (!statusKirimTldNext && periodeNext) {
-                                htmlAction = `
-                                    <div class="d-flex flex-column text-start gap-1">
-                                        <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
-                                        <div>${htmlBtnTld}</div>
-                                    </div>
-                                `;
+                                if (tldSelesai) {
+                                    htmlAction = `
+                                        <div class="d-flex flex-column text-start gap-1">
+                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
+                                            <div>${htmlBtnTld}</div>
+                                        </div>
+                                    `;
+                                } else {
+                                    if (periodeNext) {
+                                        htmlAction = `
+                                        <div class="d-flex flex-column text-start gap-1">
+                                            <span class="text-secondary small fw-medium" style="font-size: 0.75rem;">TLD Periode ${periodeNext.status == 1 ? periodeNext.periode : "Pengembalian"}</span>
+                                            <div>${htmlStatusPenyelia}</div>
+                                        </div>
+                                    `;
+                                    }
+                                }
 
                                 htmlInformasi = '';
                             }
