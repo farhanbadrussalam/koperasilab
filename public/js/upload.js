@@ -20,7 +20,7 @@ class UploadComponent {
             type: options.type ?? 'image',
             urlUpload: options.urlUpload ?? false,
             multiple: options.multiple ?? true,
-            maxSize: options.maxSize ?? 1, // default 10MB
+            maxSize: options.maxSize ?? (window.appSettings && window.appSettings.max_upload_size ? (parseFloat(window.appSettings.max_upload_size) / 1024) : 1),
             resolution: options.resolution ?? false,
             preview: {
                 width: options.preview?.width ?? 100,
@@ -189,9 +189,10 @@ class UploadComponent {
             // cek size file
             if (this.checkMaxSize(inputFile) === false) {
                 spinner('hide', $(`#btnTambahFile_${this.id}`));
+                let displaySize = this.options.maxSize ?? (window.appSettingsCache['max_upload_size'] ? (parseFloat(window.appSettingsCache['max_upload_size']) / 1024) : 1);
                 Swal.fire({
                     icon: 'warning',
-                    text: 'Ukuran file tidak boleh melebihi ' + this.options.maxSize + 'MB'
+                    text: 'Ukuran file tidak boleh melebihi ' + displaySize + 'MB'
                 })
                 return;
             }

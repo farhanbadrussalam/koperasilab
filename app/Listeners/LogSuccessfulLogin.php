@@ -27,6 +27,8 @@ class LogSuccessfulLogin
     {
         $user = $event->user;
 
+        session(['app_settings' => \App\Models\AppSettings::pluck('value', 'key')->toArray()]);
+
         Log_activity::create([
             'log_name'  => 'AUTH',
             'log_type'  => 'signin',

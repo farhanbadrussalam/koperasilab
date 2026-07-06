@@ -120,6 +120,14 @@ class AppSettingsSeeder extends Seeder
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
+            [
+                'key' => 'max_upload_size',
+                'value' => '2048',
+                'group' => 'technical',
+                'description' => 'Maksimal ukuran file upload (dalam KB)',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
         ];
 
         // Masukkan data ke database

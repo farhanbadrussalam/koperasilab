@@ -56,7 +56,25 @@
                                         @if($item->key === 'lab_lokasi' || $item->key === 'lab_address' || $item->description)
                                             <small class="d-block text-muted mb-2">{{ $item->description }}</small>
                                         @endif
-                                        <input type="text" class="form-control" id="setting_{{ $item->key }}" name="{{ $item->key }}" value="{{ $item->value }}">
+                                        @if($item->key === 'max_upload_size')
+                                            @php
+                                                $val = (int)$item->value;
+                                                $unit = 'KB';
+                                                if ($val >= 1024 && $val % 1024 === 0) {
+                                                    $val = $val / 1024;
+                                                    $unit = 'MB';
+                                                }
+                                            @endphp
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="setting_{{ $item->key }}" name="{{ $item->key }}" value="{{ $val }}" min="1">
+                                                <select class="form-select" name="max_upload_size_unit" style="max-width: 100px;">
+                                                    <option value="KB" {{ $unit === 'KB' ? 'selected' : '' }}>KB</option>
+                                                    <option value="MB" {{ $unit === 'MB' ? 'selected' : '' }}>MB</option>
+                                                </select>
+                                            </div>
+                                        @else
+                                            <input type="text" class="form-control" id="setting_{{ $item->key }}" name="{{ $item->key }}" value="{{ $item->value }}">
+                                        @endif
                                     </div>
                                 @endforeach
                             </div>
@@ -75,3 +93,33 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        $(function () {
+            const $input = $('#setting_max_upload_size');
+            const $unitSelect = $('select[name="max_upload_size_unit"]');
+            let previousUnit = $unitSelect.val();
+
+            $unitSelect.on('change', function () {
+                const currentUnit = $(this).val();
+                let val = parseFloat($input.val());
+
+                if (isNaN(val) || val <= 0) {
+                    previousUnit = currentUnit;
+                    return;
+                }
+
+                if (previousUnit === 'MB' && currentUnit === 'KB') {
+                    // MB -> KB
+                    $input.val(Math.round(val * 1024));
+                } else if (previousUnit === 'KB' && currentUnit === 'MB') {
+                    // KB -> MB
+                    $input.val(Math.round((val / 1024) * 100) / 100);
+                }
+
+                previousUnit = currentUnit;
+            });
+        });
+    </script>
+@endpush

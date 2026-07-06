@@ -10,7 +10,9 @@
     <meta name="realtime" content="{{ Auth::check() && Auth::user()->realtime_notifications ? '1' : '0' }}">
     <meta name="auth-id" content="{{ Auth::id() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}{{ Auth::check() && count(Auth::user()->getRoleNames()) != 0 ? ' | ' . Auth::user()->getRoleNames()[0] : '' }}</title>
+    <title>
+        {{ config('app.name', 'Laravel') }}{{ Auth::check() && count(Auth::user()->getRoleNames()) != 0 ? ' | ' . Auth::user()->getRoleNames()[0] : '' }}
+    </title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -29,7 +31,8 @@
     <link rel="stylesheet" href="{{ asset_versioned('assets/sweetalert2/sweetalert2.min.css') }}" />
     <link rel="stylesheet" href="{{ asset_versioned('assets/dropify/css/dropify.css') }}">
     <link rel="stylesheet" href="{{ asset_versioned('vendor/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset_versioned('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset_versioned('vendor/select2/css/theme-bootstrap-5/select2-bootstrap-5-theme.css') }}">
     <link rel="stylesheet" href="{{ asset_versioned('vendor/flatpickr/flatpickr.min.css') }}">
 
     <!-- Scripts -->
@@ -123,6 +126,8 @@
         const permissionInRole = @json(Auth::check() ? Auth::user()->getPermissionsViaRoles() : []);
         const envirotment = "{{ config('app.env') }}";
         const statusUser = @json(Auth::check() ? Auth::user()->status : null);
+
+        window.appSettings = @json(session('app_settings', []));
     </script>
     <script src="{{ asset_versioned('assets/js/global.js') }}"></script>
     @stack('scripts')
