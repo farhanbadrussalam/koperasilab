@@ -872,9 +872,11 @@ class PermohonanAPI extends Controller
                 })
                 ->when($request->has('tab'), function ($q) use ($request) {
                     if ($request->tab == 'progress') {
-                        $q->where('status', '!=', 5);
+                        $q->whereNotIn('status', [5, 90]);
                     } else if ($request->tab == 'selesai') {
                         $q->where('status', 5);
+                    } else if ($request->tab == 'dikembalikan') {
+                        $q->where('status', 90);
                     }
                 })
                 ->when($filter, function ($q, $filter) {
@@ -914,7 +916,7 @@ class PermohonanAPI extends Controller
     {
         DB::beginTransaction();
         try {
-            $arrStatus = [1, 2, 3, 4, 5, 11, 80];
+            $arrStatus = [1, 2, 3, 4, 5, 11, 80, 90];
             // jika role nya pelanggan, wherenya sesuai dengan id user
             $isPelanggan = Auth::user()->hasRole('Pelanggan');
             $_status = Permohonan::selectRaw('count(*) as total, status')
@@ -984,6 +986,9 @@ class PermohonanAPI extends Controller
                         break;
                     case 80:
                         $item['name'] = 'Draft';
+                        break;
+                    case 90:
+                        $item['name'] = 'Dikembalikan';
                         break;
                 }
                 return $item;

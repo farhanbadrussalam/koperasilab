@@ -224,6 +224,7 @@ class Invoice {
             $('#rincianInvoice-tab').click();
             this.showPaymentProof();
             $('#invoiceActions').append(this.btnPrinter());
+            $('#tanggalPembayaran').hide();
         } else if (mode === 'verifStaff') {
             if (this.dataKeuangan.ttd) {
                 this.signaturePad = new SignatureSelect('#signature-container', {
@@ -851,6 +852,7 @@ class Invoice {
         $('#signature-container').empty();
         $('#paymentPphProof').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
         $('#paymentProofImage').html(`<div class="text-center text-muted mt-3 w-100">Tidak ada file yang diupload</div>`);
+        $('#tanggalPembayaran').show();
 
         // reset parsley
         $('#methode-pembayaran-select').parsley().reset();

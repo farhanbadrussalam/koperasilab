@@ -36,8 +36,8 @@ $(function () {
         columns: [
             { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
             { data: 'no_seri_tld', name: 'no_seri_tld' },
-            { data: 'status', name: 'status', className: 'text-center' },
             { data: 'jenis', name: 'jenis' },
+            { data: 'status', name: 'status', className: 'text-center' },
             { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' },
         ]
     });

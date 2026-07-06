@@ -27,6 +27,9 @@
                 <li class="nav-item">
                     <a class="nav-link cursor-pointer" id="tab-selesai" onclick="changeTab('selesai')">Selesai</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link cursor-pointer" id="tab-dikembalikan" onclick="changeTab('dikembalikan')">Dikembalikan</a>
+                </li>
             </ul>
 
             <div id="list-filter"></div>

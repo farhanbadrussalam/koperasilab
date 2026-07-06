@@ -22,12 +22,26 @@
 
 @push('scripts')
     <script>
+        function showPeriode(id_kontrak) {
+            if (typeof modalPeriode !== 'undefined') {
+                modalPeriode.show(id_kontrak);
+            }
+        }
+
         class ModalPeriodeKontrak {
             constructor(options = {}) {
                 this.modalId = options.modalId ?? 'modalPeriode';
                 this.containerId = options.containerId ?? 'listPeriodeContainer';
                 this.isPelanggan = role.includes('Pelanggan');
                 this.isPengiriman = role.includes('Staff Pengiriman');
+            }
+
+            _cekPenyelia(penyelia, jobs_point) {
+                let search = penyelia?.penyelia_map.find(d => d.jobs && d.jobs.name == jobs_point);
+                if (search?.status == 2) {
+                    return true;
+                }
+                return false;
             }
 
             show(id_kontrak) {
@@ -450,7 +464,7 @@
                         penyelia2 = kontrak.periode.find(cek => cek.periode == periodeNext.periode - 2 && cek.periode !=
                             0);
                         if (penyelia2) {
-                            tldSelesai = cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
+                            tldSelesai = this._cekPenyelia(penyelia2?.penyelia, 'Pelabelan TLD');
                             if (penyelia2.penyelia && !tldSelesai) {
                                 htmlStatusPenyelia = `
                                     <div class="d-flex flex-column gap-1 align-items-start">

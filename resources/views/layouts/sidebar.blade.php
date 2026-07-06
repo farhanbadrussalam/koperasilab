@@ -137,15 +137,6 @@
                                 </a>
                             </li>
                             <li class="sidebar-item">
-                                <a class="sidebar-link {{ $module == 'permohonan-dikembalikan' ? 'active' : '' }}"
-                                    href="{{ route('permohonan.dikembalikan') }}" aria-expanded="false">
-                                    <span><i class="bi bi-arrow-counterclockwise"></i></span>
-                                    <span class="hide-menu">Dikembalikan</span>
-                                    <span
-                                        class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('Dikembalikan')) d-none @endif" data-events='["Dikembalikan"]'>{{ notifUnreadCount('Dikembalikan') }}</span>
-                                </a>
-                            </li>
-                            <li class="sidebar-item">
                                 <a class="sidebar-link {{ $module == 'permohonan-pembayaran' ? 'active' : '' }}"
                                     href="{{ route('permohonan.pembayaran') }}" aria-expanded="false">
                                     <span><i class="bi bi-cash"></i></span>
@@ -413,6 +404,17 @@
                                 <span class="hide-menu">Document</span>
                             </a>
                         </li>
+                        @role('Super Admin')
+                        <li class="sidebar-item">
+                            <a class="sidebar-link {{ $module == 'app_settings' ? 'active' : '' }}"
+                                href="{{ route('app-settings.index') }}" aria-expanded="false">
+                                <span>
+                                    <i class="bi bi-circle"></i>
+                                </span>
+                                <span class="hide-menu">App Settings</span>
+                            </a>
+                        </li>
+                        @endrole
                         {{-- <li class="sidebar-item">
                         <a class="sidebar-link {{ $module == 'lab' ? 'active' : '' }}"
                     href="{{ route('lab.index') }}" aria-expanded="false">

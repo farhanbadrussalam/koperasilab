@@ -290,7 +290,7 @@ class Detail {
                     jenisStatus: 'tld',
                     current_user: this.data.current_assignment?.entitas?.name ?? '-',
                     current_user_type: this.data.current_assignment?.jenis ?? null,
-                    current_contract: this.data.current_assignment?.permohonan?.kontrak?.no_kontrak ?? this.data.digunakan ?? '-',
+                    current_contract: this.data.current_assignment?.kontrak?.no_kontrak ?? this.data.digunakan ?? '-',
                     logs: this.data.combined_logs ?? []
                 };
                 break;

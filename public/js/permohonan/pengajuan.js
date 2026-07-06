@@ -62,6 +62,10 @@ function switchLoadTab(menu) {
         case 6:
             thisStatus = [80];
             break;
+
+        case 7:
+            thisStatus = [90];
+            break;
     }
     loadData(1, thisStatus);
 }
@@ -97,7 +101,7 @@ function loadData(page = 1, status) {
         let html = '';
         for (const [i, pengajuan] of result.data.entries()) {
             let btnEdit = '';
-            if (pengajuan.tipe_kontrak == 'kontrak baru' || pengajuan.status == 80) {
+            if (pengajuan.tipe_kontrak == 'kontrak baru' || pengajuan.status == 80 || pengajuan.status == 90) {
                 btnEdit = `
                     <li>
                         <a class="dropdown-item small cursor-pointer" title="Edit" href="${base_url}/permohonan/pengajuan/edit/${pengajuan.permohonan_hash}">
@@ -162,8 +166,8 @@ function loadData(page = 1, status) {
                             <i class="bi bi-info-circle me-2"></i> Detail
                         </a>
                     </li>
-                    ${[80, 1].includes(pengajuan.status) ? btnEdit : ''}
-                    ${pengajuan.status == 1 ? btnRemove : ''}
+                    ${[80, 1, 90].includes(pengajuan.status) ? btnEdit : ''}
+                    ${[1, 90].includes(pengajuan.status) ? btnRemove : ''}
                 `;
 
                 html += cardComponent(params, { btnMenuAction: btnAction });

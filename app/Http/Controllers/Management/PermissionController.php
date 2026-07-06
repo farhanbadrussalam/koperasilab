@@ -42,6 +42,7 @@ class PermissionController extends Controller
                 ->addIndexColumn()
                 ->addColumn('action', function($data){
                     return '
+                        <button class="btn btn-outline-info btn-sm m-1 rounded-pill" data-id="'.$data->id.'" onclick="btnDetail(this)"><i class="bi bi-info-circle-fill"></i></button>
                         <button class="btn btn-outline-warning btn-sm m-1 rounded-pill" data-id="'.$data->id.'" data-value="'.$data->name.'" onclick="btnEdit(this)"><i class="bi bi-pencil-square"></i></button>
                         <button class="btn btn-outline-danger btn-sm m-1 rounded-pill" data-id="'.$data->id.'" onclick="btnDelete(this)"><i class="bi bi-trash3-fill"></i></a>
                     ';
@@ -81,7 +82,13 @@ class PermissionController extends Controller
      */
     public function show(string $id)
     {
-        //
+        try {
+            $permission = Permission::with('roles')->findOrFail($id);
+            return $this->output(['permission' => $permission]);
+        } catch (\Exception $ex) {
+            info($ex);
+            return $this->output(array('msg' => $ex->getMessage()), 'Fail', 500);
+        }
     }
 
     /**

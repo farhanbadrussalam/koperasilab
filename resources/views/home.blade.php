@@ -32,7 +32,7 @@
         </div>
         <div class="row">
             <div class="col-lg-8">
-                @if(!$rolePelanggan)
+                @if (!$rolePelanggan)
                     {{-- Widget Pencarian Kontrak Cepat --}}
                     <div class="card border-0 shadow-sm rounded-4 mb-3">
                         <div class="card-body p-4">
@@ -41,7 +41,8 @@
                                 Pencarian & Pemantauan Status Kontrak
                             </h6>
                             <p class="text-muted small mb-3">
-                                Pencarian cepat berdasarkan nama perusahaan/instansi atau nomor kontrak untuk memantau status pembayaran, proses lab, dan pengiriman secara instan.
+                                Pencarian cepat berdasarkan nama perusahaan/instansi atau nomor kontrak untuk memantau
+                                status pembayaran, proses lab, dan pengiriman secara instan.
                             </p>
                             <div class="input-group">
                                 <span class="input-group-text bg-white">
@@ -50,7 +51,8 @@
                                 <select class="form-select" id="contract_select2" style="width: 1%;">
                                     <option></option>
                                 </select>
-                                <button class="btn btn-info text-white fw-bold px-4" type="button" onclick="triggerSearchFromSelect2()">Cari</button>
+                                <button class="btn btn-info text-white fw-bold px-4" type="button"
+                                    onclick="triggerSearchFromSelect2()">Cari</button>
                             </div>
                         </div>
                     </div>
@@ -559,10 +561,10 @@
         </div>
     @endif
 
-    @if(!$rolePelanggan)
+    @if (!$rolePelanggan)
         {{-- Modal Pencarian Kontrak --}}
         <div class="modal fade" id="modalContractSearch" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-dialog modal-dialog-centered modal-xl">
                 <div class="modal-content border-0 shadow-lg rounded-4">
                     <div class="modal-header border-bottom-0 pb-0">
                         <h5 class="modal-title fw-bold text-dark">
@@ -574,17 +576,20 @@
                         <!-- Results will be injected here -->
                     </div>
                     <div class="modal-footer border-top-0 pt-0">
-                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+                        <button type="button" class="btn btn-light rounded-pill px-4"
+                            data-bs-dismiss="modal">Tutup</button>
                     </div>
                 </div>
             </div>
         </div>
     @endif
+    <x-modal.periode-kontrak />
 @endsection
 @push('scripts')
     @if ($dashboardActive)
         <script>
             let currentGlobalFilter = 'monthly';
+            let modalPeriode;
 
             function applyFilter(button, filter, text) {
                 const styleType = button.getAttribute('data-type');
@@ -662,6 +667,7 @@
             }
 
             $(document).ready(function() {
+                modalPeriode = new ModalPeriodeKontrak();
                 cekSummaryCard();
                 loadAllWidgets();
                 initWidgetDatePicker(); // init global date picker
@@ -676,12 +682,12 @@
                             url: 'dashboard/widgets/contract-search-options',
                             dataType: 'json',
                             delay: 250,
-                            data: function (params) {
+                            data: function(params) {
                                 return {
                                     keyword: params.term
                                 };
                             },
-                            processResults: function (data) {
+                            processResults: function(data) {
                                 return {
                                     results: data.options
                                 };
@@ -691,7 +697,7 @@
                     });
 
                     // Trigger search automatically when selected
-                    contractSelect2.on('select2:select', function (e) {
+                    contractSelect2.on('select2:select', function(e) {
                         performContractSearch(e.params.data.id);
                     });
                 }
@@ -699,7 +705,7 @@
                 // Reset search Select2 option when modal is hidden
                 const modalSearch = $('#modalContractSearch');
                 if (modalSearch.length > 0) {
-                    modalSearch.on('hidden.bs.modal', function () {
+                    modalSearch.on('hidden.bs.modal', function() {
                         clearContractSearch();
                     });
                 }
@@ -732,7 +738,9 @@
                 `);
                 modal.modal('show');
 
-                ajaxGet(`dashboard/widgets/contract-search`, { id: contractId }, result => {
+                ajaxGet(`dashboard/widgets/contract-search`, {
+                    id: contractId
+                }, result => {
                     resultsDiv.html(result.html);
                 }, error => {
                     resultsDiv.html(`

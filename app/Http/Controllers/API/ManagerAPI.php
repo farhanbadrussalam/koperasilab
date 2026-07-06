@@ -22,6 +22,7 @@ class ManagerAPI extends Controller
         $limit = $request->has('limit') ? $request->limit : 10;
         $page = $request->has('page') ? $request->page : 1;
         $search = $request->has('search') ? $request->search : '';
+        $tab = $request->has('tab') ? $request->tab : 'progress';
 
         $filter = $request->has('filter') ? $request->filter : [];
 
@@ -49,7 +50,13 @@ class ManagerAPI extends Controller
                     }
                 });
             })
-            ->whereNotIn('status', [1,7])
+            ->when($tab, function($q, $tab) {
+                if ($tab == 'progress') {
+                    $q->whereNotIn('status', [1, 5, 7]);
+                } else if ($tab == 'selesai') {
+                    $q->where('status', 5);
+                }
+            })
             ->orderBy('created_at','DESC')
             ->offset(($page - 1) * $limit)
             ->limit($limit)

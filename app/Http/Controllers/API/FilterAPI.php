@@ -171,6 +171,15 @@ class FilterAPI extends Controller
                     ];
                 });
                 break;
+            case 'tugas':
+                $allData = Master_jobs::all();
+                $data = $allData->map(function ($item) {
+                    return [
+                        'id' => $item->jobs_hash,
+                        'name' => $item->name
+                    ];
+                });
+                break;
             default:
                 $data = [];
                 break;

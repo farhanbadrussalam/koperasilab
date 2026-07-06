@@ -23,7 +23,12 @@ $(function () {
             }
         },
         columns: [
-            { data: 'html', orderable: false },
+            { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false, className: 'text-center' },
+            { data: 'pengguna_info', name: 'name' },
+            { data: 'divisi_info', name: 'divisi.name' },
+            { data: 'radiasi_info', name: 'radiasi_info', orderable: false, searchable: false },
+            { data: 'status', name: 'status', className: 'text-center' },
+            { data: 'action', name: 'action', orderable: false, searchable: false, className: 'text-center' }
         ]
     });
 

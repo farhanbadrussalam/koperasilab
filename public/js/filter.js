@@ -37,6 +37,7 @@ class FilterComponent {
             let multiple = this.options.multiple.find(f => f == 'status');
             $('#filterStatus').select2({
                 theme: "bootstrap-5",
+                width: '100%',
                 placeholder: this.placeholder?.status ?? 'Semua Status',
                 allowClear: true
             }).on('select2:select', function (e) {
@@ -50,13 +51,14 @@ class FilterComponent {
             });
         }
 
-        const allFilter = ['selected_custom', 'satuan_kerja', 'roles'];
+        const allFilter = ['selected_custom', 'satuan_kerja', 'roles', 'tugas'];
         if (allFilter.includes(filterName)) {
             $(`#filter${filterName}`).select2({
                 theme: "bootstrap-5",
+                width: '100%',
                 placeholder: this.placeholder?.[filterName],
                 allowClear: true
-            }).on('select2:select', function (e) {
+            }).on('select2:select select2:unselect', function (e) {
                 document.dispatchEvent(self.eventChange);
             }).on('select2:clear', function (e) {
                 document.dispatchEvent(self.eventChange);
@@ -70,6 +72,7 @@ class FilterComponent {
         if (filterName == 'jenis_tld') {
             $('#filterJenisTld').select2({
                 theme: "bootstrap-5",
+                width: '100%',
                 placeholder: 'All Jenis TLD',
                 allowClear: true
             }).on('select2:select', function (e) {
@@ -86,6 +89,7 @@ class FilterComponent {
         if (filterName == 'jenis_layanan') {
             let jenisChild = $('#filterJenisLayananChild').select2({
                 theme: "bootstrap-5",
+                width: '100%',
                 placeholder: 'All',
                 allowClear: true
             }).on('select2:select', function (e) {
@@ -100,6 +104,7 @@ class FilterComponent {
 
             $('#filterJenisLayanan').select2({
                 theme: "bootstrap-5",
+                width: '100%',
                 placeholder: 'All Jenis Layanan',
                 allowClear: true,
             }).on('select2:select', function (e) {
@@ -128,6 +133,7 @@ class FilterComponent {
         if (filterName == 'no_kontrak') {
             $('#filterSearchKontrak').select2({
                 theme: "bootstrap-5",
+                width: '100%',
                 placeholder: this.placeholder?.no_kontrak ?? 'No Kontrak atau instansi',
                 allowClear: true,
                 ajax: {
@@ -163,6 +169,7 @@ class FilterComponent {
         if (filterName == 'perusahaan') {
             $('#filterPerusahaan').select2({
                 theme: "bootstrap-5",
+                width: '100%',
                 placeholder: 'All Perusahaan',
                 allowClear: true,
                 ajax: {
@@ -290,8 +297,8 @@ class FilterComponent {
             class: collapseClass
         });
 
-        // Container internal dengan flexbox untuk tata letak filter
-        const $innerContainer = $('<div class="d-flex flex-wrap gap-2"></div>');
+        // Container internal dengan row untuk tata letak filter yang rapi
+        const $innerContainer = $('<div class="row g-2 w-100 m-0"></div>');
         $collapse.append($innerContainer);
 
         // Masukkan collapse ke dalam selfElement
@@ -321,13 +328,14 @@ class FilterComponent {
         this.options.filter.selected_custom && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('selected_custom'), 'selected_custom');
         this.options.filter.satuan_kerja && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('satuan_kerja'), 'satuan_kerja');
         this.options.filter.roles && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('roles'), 'roles');
+        this.options.filter.tugas && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('tugas'), 'tugas');
     }
 
     createJenisTldContent(callback, index) {
         const self = this;
         ajaxGet(`api/v1/filter/getJenisTld`, false, result => {
             let html = `
-                <div class="col-3 order-${index + 1}">
+                <div class="col-12 col-sm-6 col-md-3 order-${index + 1}">
                     <select name="filterJenisTld" id="filterJenisTld" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                         ${result.data.map(item => `<option value="${item.jenis_tld_hash}">${item.name}</option>`).join('')}
@@ -340,11 +348,12 @@ class FilterComponent {
     }
     createSelectedCustom(callback, index, filter) {
         const self = this;
+        let isMultiple = this.options.multiple.includes(filter);
         ajaxGet(`api/v1/filter/getSelectCustom`, { jenis: filter }, result => {
             let html = `
-                <div class="col-3 order-${index + 1}">
-                    <select name="filter${filter}" id="filter${filter}" class="form-select form-select-sm">
-                        <option value="" selected>All</option>
+                <div class="col-12 col-sm-6 ${isMultiple ? 'col-md-4' : 'col-md-3'} order-${index + 1}">
+                    <select name="filter${filter}${isMultiple ? '[]' : ''}" id="filter${filter}" class="form-select form-select-sm" ${isMultiple ? 'multiple="multiple"' : ''}>
+                        ${isMultiple ? '' : '<option value="" selected>All</option>'}
                         ${result.data.map(item => `<option value="${item.id}">${item.name}</option>`).join('')}
                     </select>
                 </div>
@@ -360,7 +369,7 @@ class FilterComponent {
         };
         ajaxGet(`api/v1/filter/getStatus`, params, result => {
             let html = `
-                <div class="col-3 order-${index + 1}">
+                <div class="col-12 col-sm-6 col-md-3 order-${index + 1}">
                     <select name="filterStatus" id="filterStatus" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                         ${result.data.map(item => `<option value="${item.id}">${item.name}</option>`).join('')}
@@ -376,13 +385,13 @@ class FilterComponent {
         const self = this;
         ajaxGet(`api/v1/filter/getJenisLayanan`, false, result => {
             let html = `
-                <div class="col-3 order-${index + 1}">
+                <div class="col-12 col-sm-6 col-md-3 order-${index + 1}">
                     <select name="filterJenisLayanan" id="filterJenisLayanan" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                         ${result.data.map(item => `<option value="${item.jenis_layanan_hash}">${item.name}</option>`).join('')}
                     </select>
                 </div>
-                <div class="col-2 order-${index + 1}">
+                <div class="col-12 col-sm-6 col-md-2 order-${index + 1}">
                     <select name="filterJenisLayananChild" id="filterJenisLayananChild" class="form-select form-select-sm">
                         <option value="" selected>All</option>
                     </select>
@@ -396,7 +405,7 @@ class FilterComponent {
     createNoKontrakContent(callback, index) {
         const self = this;
         let html = `
-            <div class="col-3 order-${index + 1}">
+            <div class="col-12 col-sm-6 col-md-3 order-${index + 1}">
                 <select name="filterSearchKontrak" id="filterSearchKontrak" class="form-select form-select-sm">
                     <option value="" selected>All</option>
                 </select>
@@ -409,7 +418,7 @@ class FilterComponent {
     createPerusahaanContent(callback, index) {
         const self = this;
         let html = `
-            <div class="col-3 order-${index + 1}">
+            <div class="col-12 col-sm-6 col-md-3 order-${index + 1}">
                 <select name="filterPerusahaan" id="filterPerusahaan" class="form-select form-select-sm">
                     <option value="" selected>All</option>
                 </select>
@@ -437,7 +446,7 @@ class FilterComponent {
         const self = this;
         const placeholder = self.placeholder ? self.placeholder.search : 'Cari...';
         let html = `
-            <div class="col-3 order-${index + 1}">
+            <div class="col-12 col-sm-6 col-md-3 order-${index + 1}">
                 <div class="input-group">
                     <input type="text" id="filterSearch" class="form-control form-control-sm" placeholder="${placeholder}">
                     <span class="btn btn-outline-secondary btn-sm" id="btnSearch"><i class="bi bi-search"></i></span>
@@ -450,7 +459,7 @@ class FilterComponent {
     createPeriodeContent(callback, index) {
         const self = this;
         let html = `
-            <div class="col-3 order-${index + 1}">
+            <div class="col-12 col-sm-6 col-md-3 order-${index + 1}">
                 <div class="input-group">
                     <label class="input-group-text py-0">Periode</label>
                     <input type="text" id="filterPeriode" class="form-control form-control-sm maskNumber" placeholder="All Periode">
@@ -478,6 +487,7 @@ class FilterComponent {
         this.options.filter.selected_custom && (allValue.selected_custom = this.getValue('selected_custom'));
         this.options.filter.satuan_kerja && (allValue.satuan_kerja = this.getValue('satuan_kerja'));
         this.options.filter.roles && (allValue.roles = this.getValue('roles'));
+        this.options.filter.tugas && (allValue.tugas = this.getValue('tugas'));
 
         return allValue;
     }
@@ -502,6 +512,7 @@ class FilterComponent {
         if (filterName == 'selected_custom') return $('#filterselected_custom').val();
         if (filterName == 'satuan_kerja') return $('#filtersatuan_kerja').val();
         if (filterName == 'roles') return $('#filterroles').val();
+        if (filterName == 'tugas') return $('#filtertugas').val();
     }
 
     clear() {
@@ -514,6 +525,7 @@ class FilterComponent {
         this.options.filter.selected_custom && $('#filterselected_custom').val('').trigger('change');
         this.options.filter.satuan_kerja && $('#filtersatuan_kerja').val('').trigger('change');
         this.options.filter.roles && $('#filterroles').val('').trigger('change');
+        this.options.filter.tugas && $('#filtertugas').val('').trigger('change');
         this.options.filter.date_range && (this.fp.clear());
         this.options.filter.search && $('#filterSearch').val('');
         this.options.filter.periode && $('#filterPeriode').val('');

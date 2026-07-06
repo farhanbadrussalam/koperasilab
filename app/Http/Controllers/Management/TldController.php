@@ -179,20 +179,26 @@ class TldController extends Controller
                     ->get();
             }
 
-            // Fetch permohonan details (user assignments)
-            $assignments = Permohonan_detail::where('id_tld', $tldId)
+            // Fetch kontrak details (user assignments)
+            $assignments = \App\Models\Kontrak_detail::where(function($q) use ($tldId) {
+                    $q->where('tld_1', $tldId)
+                      ->orWhere('tld_2', $tldId);
+                })
                 ->with([
                     'entitas',
-                    'permohonan.kontrak',
-                    'creator'
+                    'kontrak',
+                    'penggunaLama'
                 ])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
             // Active assignment is the first/latest active assignment
-            $currentAssignment = $assignments->where('status', 1)->first();
-            if (!$currentAssignment) {
-                $currentAssignment = $assignments->first();
+            $currentAssignment = null;
+            if ($tld->status == 1 || !empty($tld->digunakan)) {
+                $currentAssignment = $assignments->where('status', 1)->first();
+                if (!$currentAssignment) {
+                    $currentAssignment = $assignments->first();
+                }
             }
 
             // Combine and format logs into a unified timeline
@@ -259,17 +265,20 @@ class TldController extends Controller
             foreach ($assignments as $assign) {
                 $userName = $assign->entitas?->name ?? 'Tidak diketahui';
                 $userType = $assign->jenis; // 'pengguna' / 'kontrol'
-                $contractNo = $assign->permohonan?->kontrak?->no_kontrak ?? $assign->permohonan?->no_kontrak ?? 'Tidak ada';
+                $contractNo = $assign->kontrak?->no_kontrak ?? 'Tidak ada';
                 $type = $assign->type ?? 'baru'; // baru / ganti
 
                 $roleText = $userType === 'kontrol' ? 'sebagai TLD Kontrol' : 'oleh pengguna';
 
                 $message = "TLD ditugaskan {$roleText} <strong>{$userName}</strong> (Kontrak: <strong>{$contractNo}</strong>)";
 
+                $creator = \App\Models\User::find($assign->created_by);
+                $creatorName = $creator ? $creator->name : 'System';
+
                 $combinedLogs[] = [
                     'message' => $message,
                     'created_at' => $assign->created_at->toIso8601String(),
-                    'user' => $assign->creator?->name ?? 'System',
+                    'user' => $creatorName,
                     'note' => $type === 'ganti' ? "Menggantikan: " . ($assign->penggunaLama?->name ?? 'Tidak ada') : null
                 ];
             }

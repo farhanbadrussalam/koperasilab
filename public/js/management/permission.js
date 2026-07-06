@@ -111,6 +111,28 @@ function btnEdit(obj) {
     $('#inputEditIdPermission').val(idPermission);
 }
 
+function btnDetail(obj) {
+    let id = $(obj).data('id');
+    
+    ajaxGet(`management/permission/${id}`, false, result => {
+        let permission = result.data.permission;
+        
+        $('#detailPermissionName').text(permission.name);
+        
+        let rolesHtml = '';
+        if (permission.roles && permission.roles.length > 0) {
+            permission.roles.forEach(role => {
+                rolesHtml += `<span class="badge bg-primary px-3 py-2 fs-6 rounded-pill">${role.name}</span>`;
+            });
+        } else {
+            rolesHtml = `<span class="text-muted fst-italic">Belum ada role yang menggunakan permission ini.</span>`;
+        }
+        
+        $('#detailRolesList').html(rolesHtml);
+        $('#detailPermissionModal').modal('show');
+    });
+}
+
 function resetForm () {
     $('#form-create')[0].reset();
     $('#form-edit')[0].reset();

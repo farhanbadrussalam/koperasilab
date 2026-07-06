@@ -25,6 +25,7 @@ use App\Http\Controllers\Management\TldController;
 use App\Http\Controllers\Management\RadiasiController;
 use App\Http\Controllers\Management\PenggunaController;
 use App\Http\Controllers\Management\DocumentController;
+use App\Http\Controllers\Management\AppSettingsController;
 
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
@@ -58,8 +59,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/pengajuan', 'indexPengajuan')->middleware(['permission:Permohonan/pengajuan'])->name('permohonan.pengajuan');
             Route::get('/pengajuan/tambah', 'tambahPengajuan')->name('permohonan.pengajuan.tambah');
             Route::get('/pengajuan/edit/{id_permohonan}', 'editPengajuan')->name('permohonan.pengajuan.edit');
-
-            Route::get('/dikembalikan', 'indexPengembalian')->name('permohonan.dikembalikan');
 
             Route::get('/pembayaran', 'indexPembayaran')->name('permohonan.pembayaran');
             Route::get('/pembayaran/bayar/{idKeuangan}', 'bayarInvoicePembayaran')->name('permohonan.pembayaran.bayar');
@@ -171,6 +170,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::resource('document', DocumentController::class);
         Route::post('document/{id}', [DocumentController::class, 'update']);
+
+        Route::resource('app-settings', AppSettingsController::class)->only(['index', 'store'])->middleware('role:Super Admin');
     });
 
     Route::prefix('logs')->group(function () {

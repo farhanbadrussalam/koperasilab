@@ -49,7 +49,23 @@ class UserController extends Controller
                         $q->whereJsonContains('satuankerja_id', (int) decryptor($value));
                         break;
                     case 'search':
-                        $q->where('name', 'like', "%$value%");
+                        $q->where(function($q2) use ($value) {
+                            $q2->where('name', 'like', "%$value%")
+                               ->orWhere('email', 'like', "%$value%");
+                        });
+                        break;
+                    case 'tugas':
+                        if (is_array($value)) {
+                            $q->where(function ($q2) use ($value) {
+                                foreach ($value as $val) {
+                                    if ($val) {
+                                        $q2->orWhereJsonContains('jobs', (int) decryptor($val));
+                                    }
+                                }
+                            });
+                        } else {
+                            $q->whereJsonContains('jobs', (int) decryptor($value));
+                        }
                         break;
                 }
             }

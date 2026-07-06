@@ -4,14 +4,23 @@
     <div class="card card-default color-palette-box shadow">
         <div class="d-flex justify-content-between pt-2 me-4">
             <div class="m-3">
-                <button class="btn btn-outline-secondary btn-sm" onclick="reload()"><i class="bi bi-arrow-clockwise"></i>
+                <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i
+                        class="bi bi-arrow-clockwise"></i>
                     Refresh data</button>
-            </div>
-            <div class="mt-3">
-                {{-- <a class="btn btn-primary" href="#"><i class="bi bi-plus"></i> Buat petugas</a> --}}
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-secondary btn-sm rounded-start-pill" data-bs-toggle="collapse"
+                        data-bs-target="#collapseFilter">
+                        <i class="bi bi-funnel"></i> Filter <span class="badge text-bg-secondary d-none"
+                            id="countFilter">4</span>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm rounded-end-pill" onclick="clearFilter()">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </div>
             </div>
         </div>
         <div class="card-body">
+            <div class="mb-3" id="list-filter"></div>
             <div class="table-responsive">
                 <table class="table table-hover w-100 align-middle" id="petugas-table">
                     <thead>

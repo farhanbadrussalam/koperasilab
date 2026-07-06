@@ -1,8 +1,17 @@
 @extends('layouts.main')
 
 @section('content')
-    <div class="card shadow-sm m-4">
-        <div class="card-body">
+    <div class="m-4">
+        <ul class="nav nav-tabs" id="pengajuanTabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab('progress')">Progress</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="false" onclick="switchLoadTab('selesai')">Selesai</button>
+            </li>
+        </ul>
+        <div class="card shadow-sm mt-2">
+            <div class="card-body">
             <div class="d-flex">
                 <div class="flex-grow-1">
                     <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="reload()"><i
@@ -56,6 +65,7 @@
             </div>
         </div>
     </div>
+</div>
 @endsection
 @push('scripts')
     <script src="{{ asset_versioned('js/manager/pengajuan.js') }}"></script>

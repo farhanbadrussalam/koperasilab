@@ -77,6 +77,7 @@
     </div>
     @include('pages.management.permission.create')
     @include('pages.management.permission.edit')
+    @include('pages.management.permission.detail')
 @endsection
 @push('scripts')
     <script src="{{ asset_versioned('js/management/permission.js') }}"></script>

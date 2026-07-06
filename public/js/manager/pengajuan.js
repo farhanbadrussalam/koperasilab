@@ -1,5 +1,6 @@
 const invoice = new Invoice();
 let filterComp = false;
+let thisTab = 'progress';
 $(function () {
     loadData();
     invoice.on('invoice.simpan', () => {
@@ -28,6 +29,7 @@ function loadData(page = 1) {
     let params = {
         limit: 10,
         page: page,
+        tab: thisTab,
         filter: {}
     };
 
@@ -135,4 +137,9 @@ function reload() {
 function clearFilter() {
     filterComp.clear();
     loadData();
+}
+
+function switchLoadTab(tab) {
+    thisTab = tab;
+    loadData(1);
 }

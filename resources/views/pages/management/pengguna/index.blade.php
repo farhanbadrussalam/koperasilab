@@ -15,10 +15,15 @@
                     </div>
                     <div class="mb-3" id="list-filter"></div>
                     <div class="row mt-2" style="min-height: 50vh">
-                        <table class="table table-borderless w-100 align-middle" id="pengguna-table">
-                            <thead class="d-none">
+                        <table class="table table-hover w-100 align-middle table-borderless border-bottom" id="pengguna-table">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>User Data</th>
+                                    <th width="8%" class="text-center py-3">No</th>
+                                    <th class="py-3">Informasi Pengguna</th>
+                                    <th class="py-3">Divisi</th>
+                                    <th class="py-3">Radiasi</th>
+                                    <th class="py-3 text-center" width="15%">Status</th>
+                                    <th class="py-3 text-center" width="15%">Action</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

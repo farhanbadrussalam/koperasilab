@@ -143,6 +143,7 @@ class PelangganController extends Controller
             'module' => 'permohonan-pengajuan',
             'type' => 'list'
         ];
+        notifRead(['Dikembalikan']);
         return view('pages.permohonan.pengajuan.index', $data);
     }
 
@@ -209,17 +210,6 @@ class PelangganController extends Controller
         ];
 
         return view('pages.permohonan.pengajuan.tambah', $data);
-    }
-
-    // FEATURE PENGEMBALIAN
-    public function indexPengembalian()
-    {
-        $data = [
-            'title' => 'Dikembalikan',
-            'module' => 'permohonan-dikembalikan'
-        ];
-        notifRead(['Dikembalikan']);
-        return view('pages.permohonan.dikembalikan.index', $data);
     }
 
     // FEATURE PEMBAYARAN

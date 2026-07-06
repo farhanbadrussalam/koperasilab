@@ -582,9 +582,15 @@ class DashboardWidgetController extends Controller
             'permohonan'
         )
             ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                $q->whereHas('permohonan', function ($q) use ($user) {
-                    $q->whereHas('pelanggan', function ($q) use ($user) {
-                        $q->where('id_perusahaan', Auth::user()->id_perusahaan);
+                $q->where(function ($subQ) use ($user) {
+                    $subQ->whereHas('permohonan', function ($q) use ($user) {
+                        $q->whereHas('pelanggan', function ($q) use ($user) {
+                            $q->where('id_perusahaan', $user->id_perusahaan);
+                        });
+                    })->orWhereHas('kontrak', function ($q) use ($user) {
+                        $q->whereHas('pelanggan', function ($q) use ($user) {
+                            $q->where('id_perusahaan', $user->id_perusahaan);
+                        });
                     });
                 });
             })->where('no_resi', $keyword)->first();
@@ -655,16 +661,35 @@ class DashboardWidgetController extends Controller
         }
 
         $query = Kontrak::with([
-            'pelanggan.perusahaan',
+            'pengguna',
+            'periode' => function ($q) {
+                $q->whereIn('status', [1, 2])->orderBy('periode', 'asc');
+            },
+            'periode.permohonan',
+            'periode.permohonan.jenis_layanan',
+            'periode.permohonan.jenis_layanan_parent',
+            'periode.permohonan.file_lhu',
+            'periode.permohonan.invoice',
+            'periode.permohonan.lhu',
+            'periode.permohonan.lhu.penyelia_map',
+            'periode.permohonan.lhu.penyelia_map.jobs',
+            'periode.penyelia',
+            'periode.penyelia.penyelia_map',
+            'periode.penyelia.penyelia_map.jobs',
+            'layanan_jasa',
+            'jenisTld',
             'jenis_layanan',
             'jenis_layanan_parent',
-            'layanan_jasa',
-            'periode' => function ($q) {
-                $q->orderBy('periode', 'asc');
-            },
-            'periode.permohonan.invoice',
-            'periode.permohonan.lhu.penyelia_map.jobs',
-            'periode.permohonan.pengiriman'
+            'pelanggan.perusahaan',
+            'pengiriman.detail',
+            'pengiriman.permohonan',
+            'tld_aktif',
+            'kontrak_detail',
+            'kontrak_detail.tld_1',
+            'kontrak_detail.tld_2',
+            'rincian_list_tld' => function ($q) {
+                $q->whereIn('status', [5, 6]);
+            }
         ]);
 
         if ($id) {
