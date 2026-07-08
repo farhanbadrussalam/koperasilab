@@ -456,7 +456,7 @@
                             htmlInformasi += htmlPermohonan;
                         }
                     }
-                } else {
+                } else if (this.isPengiriman) {
                     let htmlStatusPenyelia = '';
                     let tldSelesai = false;
                     let penyelia2 = false;
