@@ -1431,18 +1431,23 @@ class ReportController extends Controller
         $pdfKontrak = $this->generatePDF($data['title'], $template, $variables, ['TTD_1', 'TTD_2']);
 
         // generate pdf lampiran pekerja radiasi (landscape)
+        $lab_lokasi = AppSettings::where('key', 'lab_lokasi')->first()->value;
         $data['kontrak'] = $query;
+        $data['signature'] = $variables["TTD_2"];
+        $data['nama_signature'] = $variables["NAMA_MANAGER"];
+        $data['lokasi'] = $lab_lokasi;
+        $data['date'] = convert_date($dokumen->created_at, 2);
         $pdfLampiran = Pdf::loadView('report.dataPekerjaRadiasi', $data)->setPaper('A4', 'landscape');
 
         // Gabungkan PDF menggunakan FPDI
         $tempKontrak = tempnam(sys_get_temp_dir(), 'kontrak');
         $tempLampiran = tempnam(sys_get_temp_dir(), 'lampiran');
-        
+
         file_put_contents($tempKontrak, $pdfKontrak->output());
         file_put_contents($tempLampiran, $pdfLampiran->output());
 
         $pdf = new \setasign\Fpdi\Fpdi();
-        
+
         foreach ([$tempKontrak, $tempLampiran] as $file) {
             $pageCount = $pdf->setSourceFile($file);
             for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
@@ -1452,7 +1457,7 @@ class ReportController extends Controller
                 $pdf->useTemplate($templateId);
             }
         }
-        
+
         @unlink($tempKontrak);
         @unlink($tempLampiran);
 
@@ -1462,13 +1467,13 @@ class ReportController extends Controller
         if ($is_download) {
             return response($output, 200, [
                 'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"'
             ]);
         }
-        
+
         return response($output, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="'.$filename.'"'
+            'Content-Disposition' => 'inline; filename="' . $filename . '"'
         ]);
     }
 

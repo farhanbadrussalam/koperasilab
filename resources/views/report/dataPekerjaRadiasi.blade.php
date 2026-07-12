@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Data Pekerja Radiasi</title>
@@ -7,52 +8,79 @@
         @page {
             size: landscape;
         }
+
         body {
             font-family: Arial, sans-serif;
             font-size: 11px;
             margin: 0;
             padding: 0;
         }
+
         .text-center {
             text-align: center;
         }
+
         .font-bold {
             font-weight: bold;
         }
+
         .table-data {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
             margin-bottom: 15px;
         }
-        .table-data th, .table-data td {
+
+        .table-data th,
+        .table-data td {
             border: 1px solid black;
             padding: 5px;
         }
+
         .table-data th {
             text-align: center;
             vertical-align: middle;
         }
+
         .info-table {
             margin-top: 20px;
         }
+
         .info-table td {
             padding: 2px 5px;
             vertical-align: top;
         }
+
         .signature-table {
             width: 100%;
             margin-top: 20px;
             page-break-inside: avoid;
         }
+
         .signature-table td {
             vertical-align: top;
         }
+
         .keterangan {
             font-size: 10px;
         }
+
+        .img-stempel {
+            width: 100px;
+            height: 100px;
+            position: absolute;
+            z-index: 2;
+            /* Lapisan depan lebih tinggi */
+            margin-left: 3cm;
+        }
+
+        .img-fluid {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
+
 <body>
     <h3 class="text-center font-bold">DATA PEKERJA RADIASI</h3>
 
@@ -70,12 +98,12 @@
         <tr>
             <td class="font-bold"><br>Telepon, No HP</td>
             <td class="font-bold"><br>:</td>
-            <td><br>{{ $kontrak->pelanggan->no_hp ?? '-' }}</td>
+            <td><br>{{ $kontrak->pelanggan->profile->no_hp ?? '-' }}</td>
         </tr>
         <tr>
             <td class="font-bold">Kontak Person</td>
             <td class="font-bold">:</td>
-            <td>{{ $kontrak->pelanggan->nama_pelanggan ?? '-' }}</td>
+            <td>{{ $kontrak->pelanggan->name ?? '-' }}</td>
         </tr>
     </table>
 
@@ -97,17 +125,23 @@
             </tr>
         </thead>
         <tbody>
-            @php $no = 1; $hasData = false; @endphp
-            @if(isset($list_tld) && count($list_tld) > 0)
-                @foreach($list_tld as $tld)
-                    @if($tld->jenis == 'pengguna' && $tld->entitas)
-                        @php 
-                            $hasData = true; 
+            @php
+                $no = 1;
+                $hasData = false;
+            @endphp
+            @if (isset($list_tld) && count($list_tld) > 0)
+                @foreach ($list_tld as $tld)
+                    @if ($tld->jenis == 'pengguna' && $tld->entitas)
+                        @php
+                            $hasData = true;
                             $zatRad = [];
                             $xRay = [];
-                            if($tld->entitas->radiasi) {
-                                foreach($tld->entitas->radiasi as $rad) {
-                                    if(stripos($rad->nama_radiasi, 'x-ray') !== false || stripos($rad->nama_radiasi, 'xray') !== false) {
+                            if ($tld->entitas->radiasi) {
+                                foreach ($tld->entitas->radiasi as $rad) {
+                                    if (
+                                        stripos($rad->nama_radiasi, 'x-ray') !== false ||
+                                        stripos($rad->nama_radiasi, 'xray') !== false
+                                    ) {
                                         $xRay[] = $rad->nama_radiasi;
                                     } else {
                                         $zatRad[] = $rad->nama_radiasi;
@@ -121,7 +155,7 @@
                             <td class="text-center">{{ $tld->tld_awal->no_seri_tld ?? '-' }}</td>
                             <td class="text-center">{{ $tld->entitas->nik ?? '-' }}</td>
                             <td class="text-center">
-                                @if(strtolower($tld->entitas->jenis_kelamin) == 'laki-laki' || strtolower($tld->entitas->jenis_kelamin) == 'l')
+                                @if (strtolower($tld->entitas->jenis_kelamin) == 'laki-laki' || strtolower($tld->entitas->jenis_kelamin) == 'l')
                                     L
                                 @elseif(strtolower($tld->entitas->jenis_kelamin) == 'perempuan' || strtolower($tld->entitas->jenis_kelamin) == 'p')
                                     P
@@ -130,7 +164,7 @@
                                 @endif
                             </td>
                             <td>
-                                {{ $tld->entitas->tempat_lahir ?? '-' }}, 
+                                {{ $tld->entitas->tempat_lahir ?? '-' }},
                                 {{ $tld->entitas->tanggal_lahir ? \Carbon\Carbon::parse($tld->entitas->tanggal_lahir)->format('d-m-Y') : '-' }}
                             </td>
                             <td class="text-center">{{ $tld->entitas->divisi->nama_divisi ?? '-' }}</td>
@@ -141,19 +175,19 @@
                 @endforeach
             @endif
 
-            @if(!$hasData)
-                @for($i=1; $i<=3; $i++)
-                <tr>
-                    <td class="text-center">{{ $i }}.</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
+            @if (!$hasData)
+                @for ($i = 1; $i <= 3; $i++)
+                    <tr>
+                        <td class="text-center">{{ $i }}.</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
                 @endfor
             @endif
             <tr>
@@ -179,13 +213,13 @@
             </td>
             <td style="width: 35%; text-align: center;">
                 <br>
-                ..............., .................................... {{ date('Y') }}
+                {{ $lokasi }}, {{ $date }}
                 <br><br><br>
-                <div class="font-bold">ttd</div>
-                <br><br><br>
-                (......................................................)
+                {!! $signature !!}
+                ({{ $nama_signature }})
             </td>
         </tr>
     </table>
 </body>
+
 </html>
