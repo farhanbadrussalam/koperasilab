@@ -139,44 +139,59 @@ class DashboardWidgetController extends Controller
                 ])->render();
                 break;
             case 'tld':
-                $count = Master_tld::query()
-                    ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                        $q->where('kepemilikan', $user->id_perusahaan);
-                    }, function ($q) {
-                        $q->whereNull('kepemilikan');
+                $arrEvaluasi = config('customvariabel.arr_evaluasi', []);
+                $arrSewa     = config('customvariabel.arr_sewa', []);
+
+                // Ambil semua kontrak_detail aktif yang memiliki TLD
+                $details = \App\Models\Kontrak_detail::with([
+                    'kontrak.jenis_layanan_parent:id_jenisLayanan,name',
+                    'kontrak.jenis_layanan:id_jenisLayanan,name',
+                ])
+                    ->where('status', 1)
+                    ->where(function ($q) {
+                        $q->whereIn('status_tld_1', [1, 2, 3, 5, 6])
+                          ->orWhereIn('status_tld_2', [1, 2, 3, 5, 6]);
                     })
-                    ->selectRaw('status, count(*) as total')
-                    ->groupBy('status')
-                    ->pluck('total', 'status');
+                    ->whereHas('kontrak', fn($q) => $q->where('status', 1))
+                    ->get(['id', 'id_kontrak', 'status_tld_1', 'tld_1', 'status_tld_2', 'tld_2']);
 
-                $countTersedia = $count->get(0, 0);
-                $countTerpakai = $count->get(1, 0);
+                $countSewa     = 0;
+                $countEvaluasi = 0;
 
-                $countTld = Master_tld::query()
-                    ->when($user->hasRole('Pelanggan'), function ($q) use ($user) {
-                        $q->where('kepemilikan', $user->id_perusahaan);
-                    }, function ($q) {
-                        $q->whereNull('kepemilikan');
-                    })
-                    ->selectRaw('jenis, count(*) as total')
-                    ->groupBy('jenis')
-                    ->pluck('total', 'jenis');
+                foreach ($details as $detail) {
+                    if (!$detail->kontrak?->jenis_layanan_parent || !$detail->kontrak?->jenis_layanan) {
+                        continue;
+                    }
+                    $jl = jenislayanan($detail->kontrak->jenis_layanan_parent, $detail->kontrak->jenis_layanan);
 
-                $countTldPengguna = $countTld->get('pengguna', 0);
-                $countTldKontrol = $countTld->get('kontrol', 0);
+                    // Hitung slot TLD 1
+                    if (in_array($detail->status_tld_1, [1, 2, 3, 5, 6]) && $detail->tld_1) {
+                        if (in_array($jl, $arrSewa)) {
+                            $countSewa++;
+                        } elseif (in_array($jl, $arrEvaluasi)) {
+                            $countEvaluasi++;
+                        }
+                    }
+                    // Hitung slot TLD 2
+                    if (in_array($detail->status_tld_2, [1, 2, 3, 5, 6]) && $detail->tld_2) {
+                        if (in_array($jl, $arrSewa)) {
+                            $countSewa++;
+                        } elseif (in_array($jl, $arrEvaluasi)) {
+                            $countEvaluasi++;
+                        }
+                    }
+                }
 
                 $html = view('components.dashboard.summary-cards', [
-                    'icon' => 'bi-motherboard',
-                    'text' => 'TLD',
-                    'type' => 'list',
+                    'icon'  => 'bi-motherboard',
+                    'text'  => 'TLD',
+                    'type'  => 'list',
                     'count' => [
-                        array('text' => 'Tersedia', 'icon' => 'bi-check-circle-fill', 'count' => $countTersedia, 'color' => 'text-success'),
-                        array('text' => 'Terpakai', 'icon' => 'bi-x-circle', 'count' => $countTerpakai, 'color' => 'text-danger'),
-                        array('text' => 'Kontrol', 'icon' => 'bi-hourglass-split', 'count' => $countTldKontrol, 'color' => 'text-info'),
-                        array('text' => 'Pengguna', 'icon' => 'bi-people-fill', 'count' => $countTldPengguna, 'color' => 'text-warning-emphasis'),
+                        ['text' => 'Sewa',     'icon' => 'bi-house-lock',    'count' => $countSewa,     'color' => 'text-primary'],
+                        ['text' => 'Evaluasi', 'icon' => 'bi-clipboard-data','count' => $countEvaluasi, 'color' => 'text-warning-emphasis'],
                     ],
                     'color' => 'text-secondary',
-                    'url' => url('/management/tld')
+                    'url'   => url('/staff/penyimpanan')
                 ])->render();
                 break;
             case 'penyelia':
