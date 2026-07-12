@@ -1427,15 +1427,49 @@ class ReportController extends Controller
             </div>
         " : "<br><br><br>";
 
-        // generate pdf
-        $bytes = $this->generatePDF($data['title'], $template, $variables, ['TTD_1', 'TTD_2']);
+        // generate pdf kontrak (portrait)
+        $pdfKontrak = $this->generatePDF($data['title'], $template, $variables, ['TTD_1', 'TTD_2']);
+
+        // generate pdf lampiran pekerja radiasi (landscape)
+        $data['kontrak'] = $query;
+        $pdfLampiran = Pdf::loadView('report.dataPekerjaRadiasi', $data)->setPaper('A4', 'landscape');
+
+        // Gabungkan PDF menggunakan FPDI
+        $tempKontrak = tempnam(sys_get_temp_dir(), 'kontrak');
+        $tempLampiran = tempnam(sys_get_temp_dir(), 'lampiran');
+        
+        file_put_contents($tempKontrak, $pdfKontrak->output());
+        file_put_contents($tempLampiran, $pdfLampiran->output());
+
+        $pdf = new \setasign\Fpdi\Fpdi();
+        
+        foreach ([$tempKontrak, $tempLampiran] as $file) {
+            $pageCount = $pdf->setSourceFile($file);
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
+                $templateId = $pdf->importPage($pageNo);
+                $size = $pdf->getTemplateSize($templateId);
+                $pdf->AddPage($size['orientation'], $size);
+                $pdf->useTemplate($templateId);
+            }
+        }
+        
+        @unlink($tempKontrak);
+        @unlink($tempLampiran);
 
         $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
+        $output = $pdf->Output('S');
 
         if ($is_download) {
-            return $bytes->download($filename);
+            return response($output, 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$filename.'"'
+            ]);
         }
-        return $bytes->stream($filename);
+        
+        return response($output, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$filename.'"'
+        ]);
     }
 
     public function label(string $id, Request $request)
