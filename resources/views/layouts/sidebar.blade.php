@@ -337,6 +337,16 @@
                     </li>
                 @endcan
 
+                @can('Manager/produktivitas-keuangan')
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'manager-produktivitas-keuangan' ? 'active' : '' }}"
+                            href="{{ route('manager.produktivitas.keuangan') }}" aria-expanded="false">
+                            <i class="bi bi-receipt-cutoff"></i>
+                            <span class="hide-menu">Produktivitas Keuangan</span>
+                        </a>
+                    </li>
+                @endcan
+
                 @can('Management')
                     <!-- MANAGEMENT MENU -->
                     <li class="nav-small-cap cursoron" data-bs-toggle="collapse" data-bs-target="#collapseManagement"

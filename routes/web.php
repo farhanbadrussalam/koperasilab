@@ -114,6 +114,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/surpeng', 'indexSurpeng')->middleware(['permission:Manager/surpeng'])->name('manager.surpeng');
             Route::get('/produktivitas', 'indexProduktivitas')->middleware(['permission:Manager/produktivitas'])->name('manager.produktivitas');
             Route::get('/produktivitas/getData', 'getDataProduktivitas')->name('manager.produktivitas.getData');
+            Route::get('/produktivitas-keuangan', 'indexProduktivitasKeuangan')->middleware(['permission:Manager/produktivitas-keuangan'])->name('manager.produktivitas.keuangan');
+            Route::get('/produktivitas-keuangan/getData', 'getDataProduktivitasKeuangan')->name('manager.produktivitas.keuangan.getData');
         });
         Route::controller(StaffController::class)->group(function () {
             Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');

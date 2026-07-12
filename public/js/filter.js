@@ -51,7 +51,7 @@ class FilterComponent {
             });
         }
 
-        const allFilter = ['selected_custom', 'satuan_kerja', 'roles', 'tugas'];
+        const allFilter = ['selected_custom', 'satuan_kerja', 'roles', 'tugas', 'petugas_keuangan'];
         if (allFilter.includes(filterName)) {
             $(`#filter${filterName}`).select2({
                 theme: "bootstrap-5",
@@ -329,6 +329,7 @@ class FilterComponent {
         this.options.filter.satuan_kerja && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('satuan_kerja'), 'satuan_kerja');
         this.options.filter.roles && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('roles'), 'roles');
         this.options.filter.tugas && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('tugas'), 'tugas');
+        this.options.filter.petugas_keuangan && this.createSelectedCustom(html => callback(html), Object.keys(this.options.filter).indexOf('petugas_keuangan'), 'petugas_keuangan');
     }
 
     createJenisTldContent(callback, index) {

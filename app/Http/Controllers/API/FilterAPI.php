@@ -122,6 +122,12 @@ class FilterAPI extends Controller
                     ['id' => 'evaluasi', 'name' => 'Evaluasi'],
                     ['id' => 'sewa', 'name' => 'Sewa']
                 ],
+                'produktivitas-keuangan' => [
+                    ['id' => 1, 'name' => 'Draft'],
+                    ['id' => 3, 'name' => 'Menunggu Bayar'],
+                    ['id' => 5, 'name' => 'Lunas'],
+                    ['id' => 90, 'name' => 'Ditolak']
+                ],
                 default => [
                     ['id' => encryptor(1), 'name' => 'Pengajuan'],
                     ['id' => encryptor(2), 'name' => 'Terverifikasi'],
@@ -176,6 +182,18 @@ class FilterAPI extends Controller
                 $data = $allData->map(function ($item) {
                     return [
                         'id' => $item->jobs_hash,
+                        'name' => $item->name
+                    ];
+                });
+                break;
+            case 'petugas_keuangan':
+                $petugasKeuangan = \App\Models\User::whereIn('id', function ($q) {
+                    $q->select('created_by')->from('keuangan')->whereNotNull('created_by')->distinct();
+                })->orderBy('name')->get(['id', 'name']);
+                
+                $data = $petugasKeuangan->map(function ($item) {
+                    return [
+                        'id' => $item->id,
                         'name' => $item->name
                     ];
                 });

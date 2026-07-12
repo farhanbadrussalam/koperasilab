@@ -10,6 +10,10 @@ use App\Models\Master_jobs;
 use App\Models\Satuan_kerja;
 use App\Models\User;
 use App\Models\Penyelia_petugas;
+use App\Models\Keuangan;
+use App\Models\Pengiriman;
+use App\Models\Master_ekspedisi;
+use Carbon\Carbon;
 
 use Auth;
 
@@ -255,4 +259,213 @@ class ManagerPengajuanController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Menampilkan halaman Produktivitas Keuangan (Invoice & Pengiriman)
+     */
+    public function indexProduktivitasKeuangan()
+    {
+        $data = [
+            'title'           => 'Produktivitas Keuangan',
+            'module'          => 'manager-produktivitas-keuangan',
+            'dataUrl'         => route('manager.produktivitas.keuangan.getData'),
+        ];
+
+        return view('pages.manager.produktivitas-keuangan', $data);
+    }
+
+    /**
+     * AJAX endpoint untuk data Produktivitas Keuangan.
+     * Mengembalikan: summary cards, tren bulanan, breakdown status invoice,
+     * breakdown per ekspedisi, dan tabel invoice (dengan pagination).
+     */
+    public function getDataProduktivitasKeuangan(Request $request)
+    {
+        $draw       = $request->input('draw', 1);
+        $start      = (int) $request->input('start', 0);
+        $length     = (int) $request->input('length', 10);
+        $dateRange  = $request->input('date_range');        // [tgl_awal, tgl_akhir]
+        $petugasId  = $request->input('petugas_id');        // ID user petugas keuangan
+        $statusFilter = $request->input('status_invoice');  // filter status invoice
+
+        // ── Helper: terapkan filter tanggal ke query ──────────────────────────
+        $applyDateRange = function ($query, $col = 'created_at') use ($dateRange) {
+            if ($dateRange && is_array($dateRange) && count($dateRange) === 2) {
+                $query->whereBetween($col, [
+                    Carbon::parse($dateRange[0])->startOfDay(),
+                    Carbon::parse($dateRange[1])->endOfDay(),
+                ]);
+            }
+        };
+
+        // ── 1. Query Invoice ──────────────────────────────────────────────────
+        $invoiceQuery = Keuangan::query()
+            ->when($petugasId, fn($q) => $q->where('created_by', $petugasId))
+            ->when($statusFilter, fn($q) => $q->where('status', $statusFilter));
+        $applyDateRange($invoiceQuery);
+
+        // Summary invoice
+        $invoiceStats = (clone $invoiceQuery)
+            ->selectRaw('status, count(*) as total, coalesce(sum(total_harga),0) as nilai')
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
+        $totalInvoice   = $invoiceStats->sum('total');
+        $invoiceLunas   = (int) ($invoiceStats->get(5)?->total ?? 0);
+        $invoiceDraft   = (int) ($invoiceStats->get(1)?->total ?? 0);
+        $invoiceMenunggu = (int) ($invoiceStats->get(3)?->total ?? 0);
+        $invoiceDitolak = (int) ($invoiceStats->get(90)?->total ?? 0);
+        $nilaiTotal     = $invoiceStats->sum('nilai');
+        $nilaiLunas     = (int) ($invoiceStats->get(5)?->nilai ?? 0);
+
+        // ── 2. Query Pengiriman ───────────────────────────────────────────────
+        $pengirimanQuery = Pengiriman::query();
+        $applyDateRange($pengirimanQuery, 'send_at');
+
+        $pengirimanStats = (clone $pengirimanQuery)
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->get()
+            ->keyBy('status');
+
+        $totalPengiriman    = $pengirimanStats->sum('total');
+        $pengirimanDikirim  = (int) ($pengirimanStats->get(1)?->total ?? 0);
+        $pengirimanDiterima = (int) ($pengirimanStats->get(3)?->total ?? 0);
+
+        // ── 3. Tren 12 bulan — Invoice ────────────────────────────────────────
+        $tren12 = collect();
+        for ($i = 11; $i >= 0; $i--) {
+            $bulan = Carbon::now()->subMonths($i);
+            $tren12->push([
+                'label'      => $bulan->translatedFormat('M Y'),
+                'bulan'      => $bulan->month,
+                'tahun'      => $bulan->year,
+                'invoice'    => 0,
+                'pengiriman' => 0,
+            ]);
+        }
+
+        $invoiceTren = Keuangan::query()
+            ->when($petugasId, fn($q) => $q->where('created_by', $petugasId))
+            ->whereBetween('created_at', [Carbon::now()->subMonths(11)->startOfMonth(), Carbon::now()->endOfMonth()])
+            ->selectRaw('MONTH(created_at) as bulan, YEAR(created_at) as tahun, count(*) as total')
+            ->groupBy('bulan', 'tahun')
+            ->get()
+            ->keyBy(fn($r) => $r->tahun . '-' . $r->bulan);
+
+        $pengirimanTren = Pengiriman::query()
+            ->whereBetween('send_at', [Carbon::now()->subMonths(11)->startOfMonth(), Carbon::now()->endOfMonth()])
+            ->selectRaw('MONTH(send_at) as bulan, YEAR(send_at) as tahun, count(*) as total')
+            ->groupBy('bulan', 'tahun')
+            ->get()
+            ->keyBy(fn($r) => $r->tahun . '-' . $r->bulan);
+
+        $trenLabels      = [];
+        $trenInvoice     = [];
+        $trenPengiriman  = [];
+        foreach ($tren12 as $t) {
+            $key = $t['tahun'] . '-' . $t['bulan'];
+            $trenLabels[]     = $t['label'];
+            $trenInvoice[]    = (int) ($invoiceTren->get($key)?->total ?? 0);
+            $trenPengiriman[] = (int) ($pengirimanTren->get($key)?->total ?? 0);
+        }
+
+        // ── 4. Breakdown Pengiriman per Ekspedisi ─────────────────────────────
+        $ekspedisiQuery = Pengiriman::query()
+            ->with('ekspedisi')
+            ->selectRaw('id_ekspedisi, status, count(*) as total')
+            ->groupBy('id_ekspedisi', 'status');
+        $applyDateRange($ekspedisiQuery, 'send_at');
+
+        $ekspedisiBreakdown = $ekspedisiQuery->get()
+            ->groupBy('id_ekspedisi')
+            ->map(function ($rows) {
+                $ekspedisi = $rows->first()->ekspedisi;
+                return [
+                    'nama'      => $ekspedisi?->name ?? 'Tidak Diketahui',
+                    'total'     => $rows->sum('total'),
+                    'dikirim'   => (int) ($rows->firstWhere('status', 1)?->total ?? 0),
+                    'diterima'  => (int) ($rows->firstWhere('status', 3)?->total ?? 0),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
+
+        // ── 5. Tabel Invoice (DataTables server-side) ─────────────────────────
+        $tableQuery = Keuangan::query()
+            ->when($petugasId, fn($q) => $q->where('created_by', $petugasId))
+            ->when($statusFilter, fn($q) => $q->where('status', $statusFilter));
+        $applyDateRange($tableQuery);
+
+        $recordsTotal    = (clone $tableQuery)->count();
+        $recordsFiltered = $recordsTotal;
+
+        $invoiceRows = (clone $tableQuery)
+            ->with(['permohonan.layanan_jasa', 'permohonan.pelanggan', 'metode_pembayaran'])
+            ->latest('created_at')
+            ->skip($start)
+            ->take($length)
+            ->get();
+
+        $statusLabel = [
+            1  => ['label' => 'Draft',             'color' => 'secondary'],
+            2  => ['label' => 'Proses',             'color' => 'info'],
+            3  => ['label' => 'Menunggu Bayar',     'color' => 'warning'],
+            4  => ['label' => 'Verifikasi Bayar',   'color' => 'primary'],
+            5  => ['label' => 'Lunas',              'color' => 'success'],
+            90 => ['label' => 'Ditolak',            'color' => 'danger'],
+        ];
+
+        $tableData = $invoiceRows->map(function ($inv) use ($statusLabel) {
+            $status = (int) $inv->status;
+            $sl     = $statusLabel[$status] ?? ['label' => 'Unknown', 'color' => 'secondary'];
+            $permohonan = $inv->permohonan;
+
+            return [
+                'no_invoice'     => $inv->no_invoice ?? '-',
+                'pelanggan'      => $permohonan?->pelanggan?->name ?? '-',
+                'layanan'        => $permohonan?->layanan_jasa?->nama_layanan ?? '-',
+                'total_harga'    => $inv->total_harga ?? 0,
+                'status'         => $status,
+                'status_label'   => $sl['label'],
+                'status_color'   => $sl['color'],
+                'metode'         => $inv->metode_pembayaran?->name ?? '-',
+                'tanggal'        => $inv->created_at?->format('d/m/Y') ?? '-',
+                'paid_at'        => $inv->paid_at ? Carbon::parse($inv->paid_at)->format('d/m/Y') : '-',
+            ];
+        })->values()->toArray();
+
+        return response()->json([
+            'draw'            => (int) $draw,
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $tableData,
+            'summary' => [
+                'total_invoice'      => $totalInvoice,
+                'invoice_lunas'      => $invoiceLunas,
+                'invoice_draft'      => $invoiceDraft,
+                'invoice_menunggu'   => $invoiceMenunggu,
+                'invoice_ditolak'    => $invoiceDitolak,
+                'nilai_total'        => $nilaiTotal,
+                'nilai_lunas'        => $nilaiLunas,
+                'total_pengiriman'   => $totalPengiriman,
+                'pengiriman_dikirim' => $pengirimanDikirim,
+                'pengiriman_diterima'=> $pengirimanDiterima,
+            ],
+            'chart' => [
+                'labels'      => $trenLabels,
+                'invoice'     => $trenInvoice,
+                'pengiriman'  => $trenPengiriman,
+            ],
+            'ekspedisi_breakdown' => $ekspedisiBreakdown,
+            'invoice_breakdown' => [
+                ['label' => 'Draft',           'total' => $invoiceDraft,    'color' => '#6c757d'],
+                ['label' => 'Menunggu Bayar',  'total' => $invoiceMenunggu, 'color' => '#f6c23e'],
+                ['label' => 'Lunas',           'total' => $invoiceLunas,    'color' => '#1cc88a'],
+                ['label' => 'Ditolak',         'total' => $invoiceDitolak,  'color' => '#e74a3b'],
+            ],
+        ]);
+    }
 }
+
