@@ -139,8 +139,9 @@ class DashboardWidgetController extends Controller
                 ])->render();
                 break;
             case 'tld':
-                $arrEvaluasi = config('customvariabel.arr_evaluasi', []);
-                $arrSewa     = config('customvariabel.arr_sewa', []);
+                $arrEvaluasi   = config('customvariabel.arr_evaluasi', []);
+                $arrEvaluasi[] = 'EvaluasiTanpaKontrak'; // Masukkan juga Evaluasi Tanpa Kontrak
+                $arrSewa       = config('customvariabel.arr_sewa', []);
 
                 // Ambil semua kontrak_detail aktif yang memiliki TLD
                 $details = \App\Models\Kontrak_detail::with([
