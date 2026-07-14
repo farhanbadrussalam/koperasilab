@@ -308,14 +308,15 @@ function cardPenggunaComponent(data, options = {}) {
 
     if (options.is_have_tld) {
         htmlEval = `
-            <hr class="my-1">
+            <hr class="my-2 opacity-50">
             <div class="col-12">
-                <div class="input-group">
-                    <input type="text" class="form-control form-control-sm" id="tldNoSeri_${data.index}_pengguna" placeholder="Pilih No Seri" readonly="" value="${data.no_seri_tld ?? ''}">
+                <label class="form-label small fw-bold text-muted mb-1" style="font-size: 0.72rem;">No Seri TLD</label>
+                <div class="input-group shadow-xs rounded overflow-hidden">
+                    <input type="text" class="form-control form-control-sm bg-light border-end-0" id="tldNoSeri_${data.index}_pengguna" placeholder="Pilih No Seri" readonly="" value="${data.no_seri_tld ?? ''}">
                     <button type="button"
-                        class="input-group-text btn btn-sm btn-outline-secondary"
+                        class="btn btn-sm btn-outline-primary border-start-0 px-3 fw-bold rounded-end"
                         data-id="tldNoSeri_${data.index}_pengguna" title="Change" onclick="openInventory(this, 'pengguna')">
-                        <i class="bi bi-pencil"></i> Ganti
+                        <i class="bi bi-pencil me-1"></i> Ganti
                     </button>
                 </div>
             </div>
@@ -323,12 +324,13 @@ function cardPenggunaComponent(data, options = {}) {
     }
 
     const elementList = `
-        <div class="card border mb-2">
+        <div class="card border shadow-sm mb-2">
             <div class="card-body py-2 px-3">
-                <div class="row align-items-center">
-                    <div class="col-auto d-flex align-items-center mb-2 mb-md-0">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <!-- Sisi Kiri: Checkbox & Info Pengguna -->
+                    <div class="d-flex align-items-center">
                         ${data.isCheckedEvaluasi ? `
-                            <div class="p-2">
+                            <div class="me-2">
                                 <input class="form-check-input"
                                     name="checkTldPengguna" type="checkbox"
                                     value="${data.idHash}" aria-label=""
@@ -338,28 +340,28 @@ function cardPenggunaComponent(data, options = {}) {
                         <div class="d-flex align-items-center">
                             <div class="rounded-circle bg-light text-primary fw-bold d-none justify-content-center align-items-center me-2"
                                 style="width: 35px; height: 35px;">${inisial}</div>
-                            <div class="gap-2">
+                            <div>
                                 <h6 class="mb-0 fw-bold text-dark small d-flex gap-2 align-items-center">${data.name} ${htmlPergantian}</h6>
                                 <div>
-                                    <small class="text-muted">${data.divisi}</small>
+                                    <small class="text-muted" style="font-size: 0.75rem;">${data.divisi}</small>
                                 </div>
-
-                                <div class="d-flex flex-wrap gap-1">
+                                <div class="d-flex flex-wrap gap-1 mt-1">
                                     ${txtRadiasi}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="ms-auto col-auto text-md-end d-flex justify-content-between justify-content-md-end align-items-center gap-1">
+                    <!-- Sisi Kanan: Status & Actions -->
+                    <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
                         ${txtStatus}
                         ${options.label_tld ? `
-                            <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border me-2"
+                            <span class="font-monospace fw-bold text-dark bg-light px-2 py-1 rounded border"
                                 id="tldNoSeri_${data.index}_pengguna_view">${data.no_seri_tld ? data.no_seri_tld : 'Tidak Ada'}</span>
                         ` : ``}
 
                         <div class="dropdown">
-                            <button class="btn btn-sm btn-light border-0 rounded-circle" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}'>
+                            <button class="btn btn-sm btn-light border-0 rounded-circle shadow-sm" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-popper-config='{"strategy":"fixed"}'>
                                 <i class="bi bi-three-dots-vertical"></i>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0 overflow-hidden">
@@ -369,23 +371,24 @@ function cardPenggunaComponent(data, options = {}) {
                                             href="javascript:void(0)"
                                             data-id="tldNoSeri_${data.index}_pengguna"
                                             onclick="openInventory(this, 'pengguna')">
-                                            <i class="bi bi-pencil me-2"></i>Ganti TLD
+                                            <i class="bi bi-pencil me-2 text-primary"></i>Ganti TLD
                                         </a>
                                     </li>
                                 ` : ``}
                                 ${btnGantiPengguna}
                                 <li>
                                     <a class="dropdown-item small show-popup-image" href="${data.fileKtp}">
-                                        <i class="bi bi-person-badge me-2"></i>Lihat KTP
+                                        <i class="bi bi-person-badge me-2 text-info"></i>Lihat KTP
                                     </a>
                                 </li>
                                 ${btnRemove}
                             </ul>
                         </div>
                     </div>
-                    <div class="col-md-12">
-                        ${htmlEval}
-                    </div>
+                </div>
+                <!-- Sisi Bawah: Form TLD -->
+                <div class="w-100 mt-1">
+                    ${htmlEval}
                 </div>
             </div>
         </div>
@@ -419,7 +422,7 @@ function cardKontrolComponent(data, options = {}) {
                     <label class="form-label small fw-bold text-muted mb-1" style="font-size: 0.72rem;">TLD Seri #${i + 1}</label>
                     <div class="input-group shadow-xs rounded overflow-hidden">
                         <input type="text" class="form-control form-control-sm bg-light border-end-0" id="tldNoSeri_${data.index}_${i}_kontrol" value="${rincian.tld?.no_seri_tld ?? ''}" placeholder="Pilih No Seri" readonly>
-                        <button type="button" class="btn btn-sm btn-outline-primary border-start-0 px-3 fw-bold" data-id="tldNoSeri_${data.index}_${i}_kontrol" title="Ganti" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil me-1"></i> Ganti</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary border-start-0 px-3 fw-bold rounded-end" data-id="tldNoSeri_${data.index}_${i}_kontrol" title="Ganti" onclick="openInventory(this, 'kontrol')"><i class="bi bi-pencil me-1"></i> Ganti</button>
                     </div>
                 </div>
             `;
@@ -428,13 +431,13 @@ function cardKontrolComponent(data, options = {}) {
 
     if (options.add_kontrol) {
         htmlAddKontrol = `
-            <div class="d-inline-flex align-items-center bg-light border rounded-pill px-2 py-1 shadow-sm gap-2">
-                <span class="small fw-bold text-muted me-1" style="font-size: 0.72rem;">Jumlah:</span>
-                <button type="button" class="btn btn-xs btn-link p-0 text-danger lh-1" data-id="${data.tldHash}" onclick="changeCountKontrol('minus', ${data.rincian.length}, this)" style="font-size: 1.15rem;">
+            <div class="d-inline-flex align-items-center bg-light border rounded-pill px-2 py-0 shadow-sm gap-1">
+                <span class="small fw-bold text-muted me-1" style="font-size: 0.72rem;">Jml:</span>
+                <button type="button" class="btn btn-xs btn-link p-0 text-danger lh-1" data-id="${data.tldHash}" onclick="changeCountKontrol('minus', ${data.rincian.length}, this)" style="font-size: 1.05rem;">
                     <i class="bi bi-dash-circle-fill"></i>
                 </button>
-                <span class="fw-bold text-dark px-1" style="min-width: 15px; text-align: center;">${data.rincian.length}</span>
-                <button type="button" class="btn btn-xs btn-link p-0 text-primary lh-1" data-id="${data.tldHash}" onclick="changeCountKontrol('plus', ${data.rincian.length}, this)" style="font-size: 1.15rem;">
+                <span class="fw-bold text-dark px-1" style="min-width: 15px; text-align: center; font-size: 0.85rem;">${data.rincian.length}</span>
+                <button type="button" class="btn btn-xs btn-link p-0 text-primary lh-1" data-id="${data.tldHash}" onclick="changeCountKontrol('plus', ${data.rincian.length}, this)" style="font-size: 1.05rem;">
                     <i class="bi bi-plus-circle-fill"></i>
                 </button>
             </div>
@@ -487,13 +490,13 @@ function cardKontrolComponent(data, options = {}) {
     }
 
     const elementList = `
-    <div class="card border mb-2">
+    <div class="card border shadow-sm mb-2">
         <div class="card-body py-2 px-3">
-            <div class="row align-items-center">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                 <!-- Sisi Kiri: Checkbox & Nama Kontrol -->
-                <div class="col-auto d-flex align-items-center mb-2 mb-md-0">
+                <div class="d-flex align-items-center">
                     ${data.isCheckedEvaluasi ? `
-                        <div class="p-2">
+                        <div class="me-2">
                             <input class="form-check-input shadow-xs"
                                 name="checkTldKontrol" type="checkbox"
                                 value="${data.idHash}" aria-label=""
@@ -508,7 +511,7 @@ function cardKontrolComponent(data, options = {}) {
                 </div>
 
                 <!-- Sisi Kanan: Badges, Counter, Serial Number & Dropdown Aksi -->
-                <div class="ms-auto col-auto text-md-end d-flex justify-content-between justify-content-md-end align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
                     <input type="hidden" value="${data.no_seri_tld ?? ''}" id="tldNoSeri_${data.index}_kontrol">
                     
                     ${txtStatus}
@@ -522,11 +525,11 @@ function cardKontrolComponent(data, options = {}) {
 
                     ${htmlActionsDropdown}
                 </div>
+            </div>
 
-                <!-- Sisi Bawah: Form Evaluasi Multi-TLD Kontrol (jika ada) -->
-                <div class="col-md-12">
-                    ${htmlEvaluasi ?? ''}
-                </div>
+            <!-- Sisi Bawah: Form Evaluasi Multi-TLD Kontrol (jika ada) -->
+            <div class="w-100 mt-1">
+                ${htmlEvaluasi ?? ''}
             </div>
         </div>
     </div>

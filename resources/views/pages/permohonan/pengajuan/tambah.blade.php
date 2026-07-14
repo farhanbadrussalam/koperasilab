@@ -116,7 +116,8 @@
                                 class="form-control bg-secondary-subtle" readonly>
 
                             <div id="pengguna-list-container"
-                                class="border border-opacity-50 rounded p-1 bg-body-tertiary collapse show">
+                                class="border border-opacity-50 rounded p-1 bg-body-tertiary collapse show overflow-y-auto"
+                                style="max-height: 50vh;">
                             </div>
                             <div class="d-flex justify-content-end">
                                 <a class="text-decoration-none cursor-pointer text-primary-emphasis hover-text"
@@ -135,8 +136,8 @@
                                 class="form-control bg-secondary-subtle" oninput="calcPrice()" readonly>
                             <div id="divKontrolEvaluasi">
                                 <div id="kontrol-list-container"
-                                    class="border border-opacity-50 rounded p-1 bg-body-tertiary collapse show"
-                                    style="max-height: 40vh;">
+                                    class="border border-opacity-50 rounded p-1 bg-body-tertiary collapse show overflow-y-auto"
+                                    style="max-height: 50vh;">
 
                                 </div>
                                 <div class="d-flex justify-content-end">
