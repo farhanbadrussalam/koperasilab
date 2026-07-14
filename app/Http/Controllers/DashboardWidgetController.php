@@ -279,8 +279,9 @@ class DashboardWidgetController extends Controller
 
                 $priceSums = [3 => 0, 4 => 0, 5 => 0, 7 => 0, 90 => 0];
 
+                $calculator = resolve(\App\Services\Keuangan\FinancialCalculatorService::class);
                 foreach ($prices as $p) {
-                    $calc = calculateInvoice($p->total_harga, $p->diskon, $p->ppn, $p->pph);
+                    $calc = $calculator->calculateInvoice($p->total_harga, $p->diskon, $p->ppn, $p->pph);
                     $priceSums[$p->status] += $calc['subTotal'];
                 }
 

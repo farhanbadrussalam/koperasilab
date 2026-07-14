@@ -179,7 +179,6 @@ function simpanAdendum(obj) {
     params.append('kontrol', JSON.stringify(arrKontrol));
     params.append('idPeriode', periode.periode_hash);
     params.append('id_kontrak', dataKontrak.kontrak_hash);
-    params.append('sub_total', subTotal);
     params.append('is_havetld', isHaveTld ? 1 : 0);
     params.append('is_zerocek', zerocek ? 1 : 0);
     params.append('bulan_mulai', arrOption.bulan_mulai || 1);

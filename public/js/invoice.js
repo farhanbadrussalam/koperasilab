@@ -731,7 +731,6 @@ class Invoice {
 
                 formData.append('idPermohonan', this.dataKeuangan.permohonan_hash);
                 formData.append('diskon', JSON.stringify(this.arrDiskon));
-                formData.append('totalHarga', this.jumTotal);
                 this.ppn && formData.append('ppn', $('#inputPpn').val());
                 this.pph && formData.append('pph', $('#inputPph').val());
                 formData.append('status', 7);

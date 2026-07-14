@@ -32,6 +32,7 @@ use App\Models\Penyelia;
 use App\Models\Penyelia_map;
 use App\Models\Penyelia_petugas;
 use App\Services\Adendum\Validators\AdendumValidatorPipeline;
+use App\Services\Keuangan\FinancialCalculatorService;
 use Auth;
 use DB;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -44,6 +45,7 @@ class AdendumService
     protected KeuanganAPI $keuangan;
     protected PenyeliaAPI $penyelia;
     protected NotifController $notif;
+    protected FinancialCalculatorService $calculator;
 
     public function __construct()
     {
@@ -51,6 +53,7 @@ class AdendumService
         $this->keuangan = resolve(KeuanganAPI::class);
         $this->penyelia = resolve(PenyeliaAPI::class);
         $this->notif    = resolve(NotifController::class);
+        $this->calculator = resolve(FinancialCalculatorService::class);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -111,7 +114,12 @@ class AdendumService
                 'jenis_tld'         => $dataKontrak->jenis_tld,
                 'jumlah_pengguna'   => $context->jumPenggunaBaru,
                 'jumlah_kontrol'    => $context->jumKontrolBaru,
-                'total_harga'       => $payload['sub_total'] ?? 0,
+                'total_harga'       => $this->calculator->calculateAdendum(
+                                            $dataKontrak, 
+                                            $context->jumPenggunaBaru + $context->jumKontrolBaru, 
+                                            $payload['bulan_mulai'] ?? 1, 
+                                            $dataPeriode->periode
+                                        ),
                 'harga_layanan'     => $dataKontrak->harga_layanan,
                 'note'              => $payload['note'] ?? null,
                 'is_zerocek'        => $payload['is_zerocek'],

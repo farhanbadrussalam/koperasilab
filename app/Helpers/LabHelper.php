@@ -815,27 +815,8 @@ if (!function_exists('convertTableWidthsToPx')) {
 if (!function_exists('calculateInvoice')) {
     function calculateInvoice(mixed $total_harga, $diskon = [], $ppn = false, $pph = false)
     {
-        $subJumlah = 0;
-
-        foreach ($diskon as $item) {
-            $item->jumDiskon = $total_harga * ($item->diskon / 100);
-            $subJumlah += $item->jumDiskon;
-        }
-
-        $jumAfterDiskon = $total_harga - $subJumlah;
-
-        $jumPph = $pph ? $total_harga * ($pph / 100) : 0;
-        $jumAfterPph = $jumAfterDiskon - $jumPph;
-        $jumPpn = $ppn ? $total_harga * ($ppn / 100) : 0;
-        $subTotal = $jumAfterPph + $jumPpn;
-
-        return [
-            'diskon' => $diskon,
-            'jumAfterDiskon' => $jumAfterDiskon,
-            'jumPpn' => $jumPpn,
-            'jumPph' => $jumPph,
-            'subTotal' => $subTotal,
-        ];
+        $calculator = resolve(\App\Services\Keuangan\FinancialCalculatorService::class);
+        return $calculator->calculateInvoice($total_harga, $diskon, $ppn ?: 0, $pph ?: 0);
     }
 }
 

@@ -21,6 +21,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\NotifController;
 
 use App\Services\Notifier;
+use App\Services\Keuangan\FinancialCalculatorService;
 
 use Auth;
 use DB;
@@ -30,6 +31,7 @@ class KeuanganAPI extends Controller
     use RestApi;
     protected MediaController $media;
     protected NotifController $notif;
+    protected FinancialCalculatorService $calculator;
     protected mixed $log;
     protected mixed $pagination;
 
@@ -37,6 +39,7 @@ class KeuanganAPI extends Controller
     {
         $this->media = resolve(MediaController::class);
         $this->notif = resolve(NotifController::class);
+        $this->calculator = resolve(FinancialCalculatorService::class);
     }
 
     public function listKeuangan(Request $request)
@@ -304,7 +307,7 @@ class KeuanganAPI extends Controller
             $idPermohonan = $request->idPermohonan ? decryptor($request->idPermohonan) : false;
             $diskon = $request->diskon ? json_decode($request->diskon) : array();
             $status = $request->status ? $request->status : false;
-            $totalHarga = $request->totalHarga ?? false;
+            // We ignore totalHarga from frontend and calculate it securely in backend
             $ppn = $request->ppn ?? false;
             $pph = $request->pph ?? false;
             $ttd = $request->ttd ? decryptor($request->ttd) : false;
@@ -318,7 +321,20 @@ class KeuanganAPI extends Controller
             $result = array();
             $data = [];
 
-            $totalHarga && $data['total_harga'] = $totalHarga;
+            if ($idPermohonan) {
+                // Calculate securely using FinancialCalculatorService
+                $permohonanData = Permohonan::find($idPermohonan);
+                if ($permohonanData) {
+                    $calcResult = $this->calculator->calculateInvoice(
+                        $permohonanData->total_harga,
+                        $diskon,
+                        $ppn ?: 0,
+                        $pph ?: 0
+                    );
+                    $data['total_harga'] = $calcResult['grand_total'];
+                }
+            }
+            
             $ppn && $data['ppn'] = $ppn;
             $pph && $data['pph'] = $pph;
             $idPermohonan && $data['id_permohonan'] = $idPermohonan;

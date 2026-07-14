@@ -25,6 +25,7 @@ use App\Models\Master_tld;
 use App\Models\Documents;
 use App\Models\Kontrak_detail;
 use App\Models\Master_pengguna;
+use App\Services\Keuangan\FinancialCalculatorService;
 use Auth;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Log;
@@ -32,9 +33,12 @@ use Log;
 class ReportController extends Controller
 {
     protected array $global;
+    protected FinancialCalculatorService $calculator;
+
     public function __construct()
     {
         $this->global = config('customvariabel') ?? [];
+        $this->calculator = resolve(FinancialCalculatorService::class);
     }
 
     private function generatePDF(string $title, Documents $template, array $variables = [], array $htmlKeys = [], string $css = '')
@@ -232,7 +236,7 @@ class ReportController extends Controller
 
     public function contentInvoice(mixed $data, ?array $params)
     {
-        $dataKeuangan = calculateInvoice($data->permohonan->total_harga, $data->diskon, $data->ppn, $data->pph);
+        $dataKeuangan = $this->calculator->calculateInvoice($data->permohonan->total_harga, $data->diskon, $data->ppn, $data->pph);
 
         $htmlDiskon = '';
         foreach ($dataKeuangan['diskon'] as $item) {
@@ -703,7 +707,7 @@ class ReportController extends Controller
     private function contentKwitansi(Keuangan $data, ?array $params = null)
     {
         $tbl_rincian = "";
-        $dataKeuangan = calculateInvoice($data->permohonan->total_harga, $data->diskon, $data->ppn, $data->pph);
+        $dataKeuangan = $this->calculator->calculateInvoice($data->permohonan->total_harga, $data->diskon, $data->ppn, $data->pph);
 
         foreach ($dataKeuangan['diskon'] as $item) {
             $tbl_rincian .= '
@@ -1953,7 +1957,7 @@ class ReportController extends Controller
             $pph = $data->invoice->pph;
         }
 
-        $dataKeuangan = calculateInvoice($data->total_harga, $diskon, $ppn, $pph);
+        $dataKeuangan = $this->calculator->calculateInvoice($data->total_harga, $diskon, $ppn, $pph);
 
         // Mengambil personil
         // Mengambil LIST TLD yang digunakan
