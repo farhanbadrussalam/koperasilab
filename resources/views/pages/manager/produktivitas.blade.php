@@ -14,9 +14,14 @@
                 </h5>
                 <p class="text-muted small mb-0 mt-1">Pantau jumlah pekerjaan yang diselesaikan oleh setiap petugas</p>
             </div>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="reloadData()">
-                <i class="bi bi-arrow-clockwise me-1"></i> Refresh
-            </button>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-success rounded-pill" onclick="exportData()">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                </button>
+                <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="reloadData()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                </button>
+            </div>
         </div>
 
         {{-- ===== FILTER BAR ===== --}}
@@ -216,6 +221,26 @@
         const masterJobIds = @json($masterJobs->pluck('id_jobs')->toArray());
         const masterJobNames = @json($masterJobs->pluck('name')->toArray());
         const dataUrl = "{{ route('manager.produktivitas.getData') }}";
+
+        function exportData() {
+            let url = "{{ route('manager.produktivitas.petugas.export') }}?";
+            let filterValue = filterComp && filterComp.getAllValue();
+
+            let params = new URLSearchParams();
+
+            if (filterValue && filterValue.date_range && filterValue.date_range.length === 2) {
+                params.append("start_date", filterValue.date_range[0]);
+                params.append("end_date", filterValue.date_range[1]);
+            }
+            if (filterValue && filterValue.satuan_kerja) {
+                params.append("satuan_kerja", filterValue.satuan_kerja);
+            }
+            if (filterValue && filterValue.search) {
+                params.append("pencarian", filterValue.search);
+            }
+
+            window.location.href = url + params.toString();
+        }
     </script>
 @endsection
 
@@ -250,6 +275,12 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             border-color: #dee2e6 !important;
+        }
+
+        /* Fix: loading indicator harus di depan tabel */
+        .dataTables_processing {
+            z-index: 100 !important;
+            background: rgba(255, 255, 255, 0.9) !important;
         }
     </style>
 @endpush

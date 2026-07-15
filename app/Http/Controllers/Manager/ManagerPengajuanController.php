@@ -109,7 +109,7 @@ class ManagerPengajuanController extends Controller
             }
         })
             ->whereHas('penyelia_map', function ($q) use ($dateRange, $filterJobId) {
-                $q->whereIn('status', [1, 2]); // 1 = dikerjakan, 2 = selesai
+                $q->whereIn('status', [0, 1, 2]); // 0 = ditugaskan, 1 = dikerjakan, 2 = selesai
                 if ($dateRange) {
                     $q->whereBetween('created_at', [$dateRange[0], $dateRange[1]]);
                 }
@@ -149,6 +149,7 @@ class ManagerPengajuanController extends Controller
                     'user_id'          => $uid,
                     'nama_petugas'     => $user->name,
                     'jabatan'          => $user->jabatan ?? '-',
+                    'total_ditugaskan' => 0,
                     'total_dikerjakan' => 0,
                     'total_selesai'    => 0,
                     'total'            => 0,
@@ -157,6 +158,7 @@ class ManagerPengajuanController extends Controller
                 ];
                 foreach ($userJobs as $ujId) {
                     $pivoted[$uid]['jobs'][$ujId] = [
+                        'ditugaskan' => 0,
                         'dikerjakan' => 0,
                         'selesai'    => 0,
                     ];
@@ -175,7 +177,11 @@ class ManagerPengajuanController extends Controller
                 if ($tldCount <= 0) $tldCount = 1;
             }
 
-            if ($status === 1) {
+            if ($status === 0) {
+                $pivoted[$uid]['jobs'][$jobId]['ditugaskan'] += $tldCount;
+                $pivoted[$uid]['total_ditugaskan'] += $tldCount;
+                $pivoted[$uid]['total'] += $tldCount;
+            } elseif ($status === 1) {
                 $pivoted[$uid]['jobs'][$jobId]['dikerjakan'] += $tldCount;
                 $pivoted[$uid]['total_dikerjakan'] += $tldCount;
                 $pivoted[$uid]['total'] += $tldCount;
@@ -188,6 +194,12 @@ class ManagerPengajuanController extends Controller
             }
         }
 
+        $pivoted = array_values($pivoted);
+
+        // Abaikan petugas yang memiliki total == 0
+        $pivoted = array_filter($pivoted, function ($p) {
+            return $p['total'] > 0;
+        });
         $pivoted = array_values($pivoted);
 
         // Filter pencarian dari DataTables search box
@@ -211,6 +223,7 @@ class ManagerPengajuanController extends Controller
                 'avatar'           => renderUserAvatar($p['user_id'], false),
                 'nama_petugas'     => $p['nama_petugas'],
                 'jabatan'          => $p['jabatan'],
+                'total_ditugaskan' => $p['total_ditugaskan'],
                 'total_dikerjakan' => $p['total_dikerjakan'],
                 'total_selesai'    => $p['total_selesai'],
                 'total'            => $p['total'],
@@ -218,6 +231,7 @@ class ManagerPengajuanController extends Controller
             ];
             foreach ($userJobs as $job) {
                 $jobId = $job;
+                $row['job_' . $jobId . '_t'] = $p['jobs'][$jobId]['ditugaskan'] ?? 0;
                 $row['job_' . $jobId . '_s'] = $p['jobs'][$jobId]['selesai'] ?? 0;
                 $row['job_' . $jobId . '_d'] = $p['jobs'][$jobId]['dikerjakan'] ?? 0;
             }
@@ -451,7 +465,7 @@ class ManagerPengajuanController extends Controller
                 'nilai_lunas'        => $nilaiLunas,
                 'total_pengiriman'   => $totalPengiriman,
                 'pengiriman_dikirim' => $pengirimanDikirim,
-                'pengiriman_diterima'=> $pengirimanDiterima,
+                'pengiriman_diterima' => $pengirimanDiterima,
             ],
             'chart' => [
                 'labels'      => $trenLabels,
@@ -468,4 +482,3 @@ class ManagerPengajuanController extends Controller
         ]);
     }
 }
-

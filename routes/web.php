@@ -10,6 +10,7 @@ use App\Http\Controllers\HomeController;
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\userPerusahaanController;
+use App\Http\Controllers\ProduktivitasController;
 use App\Http\Controllers\NotifController;
 use App\Http\Controllers\LogController;
 
@@ -116,6 +117,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/produktivitas/getData', 'getDataProduktivitas')->name('manager.produktivitas.getData');
             Route::get('/produktivitas-keuangan', 'indexProduktivitasKeuangan')->middleware(['permission:Manager/produktivitas-keuangan'])->name('manager.produktivitas.keuangan');
             Route::get('/produktivitas-keuangan/getData', 'getDataProduktivitasKeuangan')->name('manager.produktivitas.keuangan.getData');
+        });
+        Route::controller(ProduktivitasController::class)->group(function () {
+            Route::get('/produktivitas/petugas/export', 'exportPetugas')->name('manager.produktivitas.petugas.export');
+            Route::get('/produktivitas/keuangan/export', 'exportKeuangan')->name('manager.produktivitas.keuangan.export');
         });
         Route::controller(StaffController::class)->group(function () {
             Route::get('/surat_tugas/v/{idPenyelia}', 'createSuratTugas')->name('manager.surat_tugas.verif');

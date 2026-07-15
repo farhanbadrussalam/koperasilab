@@ -15,6 +15,9 @@
                 <p class="text-muted small mb-0 mt-1">Pantau jumlah invoice dan pengiriman secara real-time</p>
             </div>
             <div class="d-flex align-items-center gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-success rounded-pill" onclick="exportData()">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                </button>
                 <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="reloadData()">
                     <i class="bi bi-arrow-clockwise me-1"></i> Refresh
                 </button>
@@ -249,6 +252,16 @@
     {{-- Data untuk JS --}}
     <script>
         const dataUrl = "{{ route('manager.produktivitas.keuangan.getData') }}";
+
+        function exportData() {
+            let url = "{{ route('manager.produktivitas.keuangan.export') }}?";
+            let filterValue = filterComp && filterComp.getAllValue();
+            
+            if (filterValue && filterValue.date_range && filterValue.date_range.length === 2) {
+                url += "start_date=" + encodeURIComponent(filterValue.date_range[0]) + "&end_date=" + encodeURIComponent(filterValue.date_range[1]);
+            }
+            window.location.href = url;
+        }
     </script>
 @endsection
 

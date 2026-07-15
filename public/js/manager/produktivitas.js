@@ -429,9 +429,8 @@ function showJobDetail(jobId, jobName) {
             title: 'Ditugaskan',
             className: 'text-center align-middle',
             render: function (data, type, row) {
-                const s = parseInt(row['job_' + jobId + '_s']) || 0;
-                const d = parseInt(row['job_' + jobId + '_d']) || 0;
-                return `<span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">${s + d}</span>`;
+                const t = parseInt(row['job_' + jobId + '_t']) || 0;
+                return `<span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2">${t}</span>`;
             }
         },
         {
@@ -457,9 +456,10 @@ function showJobDetail(jobId, jobName) {
             title: 'Total',
             className: 'text-center fw-bold align-middle',
             render: function (data, type, row) {
+                const t = parseInt(row['job_' + jobId + '_t']) || 0;
                 const s = parseInt(row['job_' + jobId + '_s']) || 0;
                 const d = parseInt(row['job_' + jobId + '_d']) || 0;
-                return `<span class="badge bg-secondary rounded-pill px-3">${s + d}</span>`;
+                return `<span class="badge bg-secondary rounded-pill px-3">${t + s + d}</span>`;
             }
         }
     ];
