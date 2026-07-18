@@ -59,6 +59,12 @@
                                 </div>
                             </div>
 
+                            @if(isset($task['sla_status']))
+                                <div class="mt-2">
+                                    {!! slaStatusBadge($task['sla_status']) !!}
+                                </div>
+                            @endif
+
                             @if($task['paralel'])
                                 <div class="mt-2 d-flex gap-2 flex-wrap">
                                     @foreach ($task['paralel'] as $value)

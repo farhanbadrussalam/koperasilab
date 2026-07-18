@@ -309,8 +309,13 @@ function loadData(page = 1) {
         }
 
         $(`#list-container`).html(html);
-
         $(`#list-pagination`).html(createPaginationHTML(result.pagination));
+
+        // Update tab counts
+        if (result.tab_counts) {
+            if ($('#count-progress').length) $('#count-progress').text(result.tab_counts.progress || 0);
+            if ($('#count-selesai').length) $('#count-selesai').text(result.tab_counts.selesai || 0);
+        }
 
         $(`#list-placeholder`).hide();
         $(`#list-container`).show();

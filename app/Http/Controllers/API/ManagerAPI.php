@@ -49,8 +49,15 @@ class ManagerAPI extends Controller
                         }
                     }
                 });
-            })
-            ->when($tab, function($q, $tab) {
+            });
+            // Hitung count tab
+            $baseQueryForCount = clone $query;
+            $this->tabCounts = [
+                'progress' => (clone $baseQueryForCount)->whereNotIn('status', [1, 5, 7])->count(),
+                'selesai' => (clone $baseQueryForCount)->where('status', 5)->count()
+            ];
+
+            $query = $query->when($tab, function($q, $tab) {
                 if ($tab == 'progress') {
                     $q->whereNotIn('status', [1, 5, 7]);
                 } else if ($tab == 'selesai') {

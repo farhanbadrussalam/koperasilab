@@ -1016,8 +1016,55 @@ class PenyeliaAPI extends Controller
                 ->filterByStatus($status, $typePencarian, $menu)
                 ->filterByCustomFilters($filter)
                 ->filterByUserId($userId)
-                ->filterBySatuanKerja(Auth::user()->satuankerja_id)
-                ->when($request->has('tab'), function ($q) use ($request, $menu) {
+                ->filterBySatuanKerja(Auth::user()->satuankerja_id);
+
+            // Hitung count untuk tab
+            $baseQueryForCount = clone $query;
+            $tabCounts = [];
+
+            if ($menu == 'surattugas') {
+                $tabCounts['surattugas'] = (clone $baseQueryForCount)->where('status', 1)->count();
+                $tabCounts['progress']   = (clone $baseQueryForCount)->whereNotIn('status', [1, 3])->count();
+                $tabCounts['selesai']    = (clone $baseQueryForCount)->where('status', 3)->count();
+            } else if ($menu == 'ttd-surat') {
+                $tabCounts['progress'] = (clone $baseQueryForCount)->where(function ($q) {
+                    $q->where('is_surat_tugas_signed', 0)
+                      ->orWhereNull('is_surat_tugas_signed');
+                })->count();
+                $tabCounts['selesai']  = (clone $baseQueryForCount)->where('is_surat_tugas_signed', 1)->count();
+            } else if ($menu == 'surpeng') {
+                $tabCounts['progress'] = (clone $baseQueryForCount)->where(function ($q) {
+                    $q->where('is_surpeng_signed', 0)
+                      ->orWhereNull('is_surpeng_signed');
+                })->count();
+                $tabCounts['selesai']  = (clone $baseQueryForCount)->where('is_surpeng_signed', 1)->count();
+            } else if ($menu == 'progress' || $menu == 'selesai') {
+                // Untuk menu LHU, query dasar sudah difilter oleh menu aktif, sehingga kita buat query count khusus dari nol
+                // (Atau karena scopeFilterByStatus memodifikasi $query, kita buat query terpisah untuk count)
+                $lhuBase = Penyelia::query()
+                    ->filterByCustomFilters($filter)
+                    ->filterBySatuanKerja(Auth::user()->satuankerja_id);
+
+                $tabCounts['progress'] = (clone $lhuBase)->whereHas('penyelia_map', function ($q) use ($status) {
+                    $q->whereIn('id_jobs', $status)
+                      ->where('status', 1)
+                      ->whereHas('petugas', function ($q2) {
+                          $q2->where('id_user', Auth::user()->id);
+                      });
+                })->count();
+
+                $tabCounts['selesai'] = (clone $lhuBase)->whereHas('penyelia_map', function ($q) use ($status) {
+                    $q->whereIn('id_jobs', $status)
+                      ->where('status', 2)
+                      ->whereHas('petugas', function ($q2) {
+                          $q2->where('id_user', Auth::user()->id);
+                      });
+                })->count();
+            }
+
+            $this->tabCounts = $tabCounts;
+
+            $query = $query->when($request->has('tab'), function ($q) use ($request, $menu) {
                     if ($menu == 'surattugas') {
                         if ($request->tab == 'surattugas') {
                             $q->where('status', 1);
@@ -1034,6 +1081,15 @@ class PenyeliaAPI extends Controller
                             });
                         } else if ($request->tab == 'selesai') {
                             $q->where('is_surat_tugas_signed', 1);
+                        }
+                    } else if ($menu == 'surpeng') {
+                        if ($request->tab == 'progress') {
+                            $q->where(function ($query) {
+                                $query->where('is_surpeng_signed', 0)
+                                      ->orWhereNull('is_surpeng_signed');
+                            });
+                        } else if ($request->tab == 'selesai') {
+                            $q->where('is_surpeng_signed', 1);
                         }
                     }
                 })

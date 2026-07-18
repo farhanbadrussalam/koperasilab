@@ -6,17 +6,17 @@
             <div class="container">
                 <ul class="nav nav-tabs" id="myTab">
                     <li class="nav-item"><button class="nav-link active" role="tab" data-bs-toggle="tab"
-                            onclick="switchLoadTab(1)">Pengajuan <span id="countPengajuan"></span></button></li>
+                            onclick="switchLoadTab(1)">Pengajuan <span class="badge bg-secondary ms-1" id="countPengajuan"></span></button></li>
                     <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                            onclick="switchLoadTab(6)">Faktur <span id="countFaktur"></span></button></li>
+                            onclick="switchLoadTab(6)">Faktur <span class="badge bg-secondary ms-1" id="countFaktur"></span></button></li>
                     <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                            onclick="switchLoadTab(2)">Pembayaran <span id="countPembayaran"></span></button></li>
+                            onclick="switchLoadTab(2)">Pembayaran <span class="badge bg-secondary ms-1" id="countPembayaran"></span></button></li>
                     <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                            onclick="switchLoadTab(3)">Verifikasi <span id="countVerifikasi"></span></button></li>
+                            onclick="switchLoadTab(3)">Verifikasi <span class="badge bg-secondary ms-1" id="countVerifikasi"></span></button></li>
                     <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                            onclick="switchLoadTab(4)">Diterima <span id="countDiterima"></span></button></li>
+                            onclick="switchLoadTab(4)">Diterima <span class="badge bg-secondary ms-1" id="countDiterima"></span></button></li>
                     <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                            onclick="switchLoadTab(5)">Ditolak <span id="countDitolak"></span></button></li>
+                            onclick="switchLoadTab(5)">Ditolak <span class="badge bg-secondary ms-1" id="countDitolak"></span></button></li>
                 </ul>
                 <div class="card shadow-sm mt-2">
                     <div class="card-body">

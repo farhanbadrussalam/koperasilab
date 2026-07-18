@@ -19,6 +19,9 @@ trait RestApi
     protected $isArray = false;
     // Set default pagination false
     protected $paginaton = false;
+    // Menyimpan aggregasi jumlah data tab
+    protected $tabCounts = false;
+
     /**
      * Generate output data
      * @param  array  $data
@@ -59,6 +62,9 @@ trait RestApi
 
             if (!empty($this->pagination))
                 $output['pagination'] = $this->pagination;
+
+            if ($this->tabCounts !== false)
+                $output['tab_counts'] = $this->tabCounts;
 
             return response()->json($output, $output['meta']['code']);
         }

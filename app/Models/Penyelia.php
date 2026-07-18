@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Auth;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -112,7 +113,8 @@ class Penyelia extends Model
         'status_hash',
         'media',
         'template_surat',
-        'ttd_image'
+        'ttd_image',
+        'sla_status'
     ];
 
     protected $casts = [
@@ -131,6 +133,98 @@ class Penyelia extends Model
         'is_surat_tugas_signed' => 'integer',
         'is_surpeng_signed' => 'integer'
     ];
+
+    /**
+     * Accessor SLA Status — Peringatan visual durasi pengerjaan lab.
+     *
+     * Logika:
+     * - Titik mulai adalah start_date (atau created_at sebagai fallback).
+     * - Titik akhir (target) adalah end_date. Jika end_date belum diset, maka target tidak bisa ditentukan.
+     * - Threshold warning_hari diambil dari tabel app_settings.
+     *
+     * @return array{label: string, color: string, hari_berjalan: int, sisa_hari: int, target_hari: int}
+     */
+    public function getSlaStatusAttribute(): array
+    {
+        // Ambil warning threshold dari database
+        $warningSetting = \App\Models\AppSettings::where('key', 'sla_warning_hari')->value('value');
+        $warningHari = $warningSetting !== null ? (int) $warningSetting : 2;
+
+        $tanggalMulai    = $this->start_date ?? $this->created_at;
+        $tanggalBerakhir = $this->end_date;
+
+        // Jika tanggal mulai belum ada, return default
+        if (!$tanggalMulai) {
+            return [
+                'label'         => 'Belum Dimulai',
+                'color'         => 'secondary',
+                'hari_berjalan' => 0,
+                'sisa_hari'     => 0,
+                'target_hari'   => 0,
+            ];
+        }
+
+        $hariBerjalan = (int) Carbon::parse($tanggalMulai)->startOfDay()->diffInDays(Carbon::now()->startOfDay());
+
+        // Jika tidak ada end_date (target belum ditentukan)
+        if (!$tanggalBerakhir) {
+            return [
+                'label'         => $this->status == 3 ? 'Selesai' : 'Belum Dimulai',
+                'color'         => 'secondary',
+                'hari_berjalan' => $hariBerjalan,
+                'sisa_hari'     => 0,
+                'target_hari'   => 0,
+            ];
+        }
+
+        $targetHari = (int) Carbon::parse($tanggalMulai)->startOfDay()->diffInDays(Carbon::parse($tanggalBerakhir)->startOfDay());
+
+        // Jika proses sudah selesai, kembalikan status netral
+        if ($this->status == 3) {
+            return [
+                'label'         => 'Selesai',
+                'color'         => 'secondary',
+                'hari_berjalan' => $hariBerjalan,
+                'sisa_hari'     => 0,
+                'target_hari'   => $targetHari,
+            ];
+        }
+
+        // Hitung sisa hari dari sekarang menuju batas waktu end_date.
+        // False membuat fungsi mereturn negatif jika end_date berada di masa lalu dibandingkan hari ini.
+        $sisaHari = (int) Carbon::now()->startOfDay()->diffInDays(Carbon::parse($tanggalBerakhir)->startOfDay(), false);
+
+        if ($sisaHari < 0) {
+            // Sudah melewati target (end_date)
+            return [
+                'label'         => 'Terlambat',
+                'color'         => 'danger',
+                'hari_berjalan' => $hariBerjalan,
+                'sisa_hari'     => $sisaHari,
+                'target_hari'   => $targetHari,
+            ];
+        }
+
+        if ($sisaHari <= $warningHari) {
+            // Mendekati target
+            return [
+                'label'         => 'Peringatan',
+                'color'         => 'warning',
+                'hari_berjalan' => $hariBerjalan,
+                'sisa_hari'     => $sisaHari,
+                'target_hari'   => $targetHari,
+            ];
+        }
+
+        // Masih aman
+        return [
+            'label'         => 'Aman',
+            'color'         => 'success',
+            'hari_berjalan' => $hariBerjalan,
+            'sisa_hari'     => $sisaHari,
+            'target_hari'   => $targetHari,
+        ];
+    }
 
     public function getPermohonanHashAttribute()
     {

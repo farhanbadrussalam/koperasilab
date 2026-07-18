@@ -121,6 +121,20 @@ class KontrakAPI extends Controller
                 $query = $query->where('status', '2');
             }
 
+            $baseQueryForCount = clone $query;
+            $this->tabCounts = [
+                'progress' => (clone $baseQueryForCount)->where('status', 2)->count(),
+                'selesai' => (clone $baseQueryForCount)->where('status', 3)->count()
+            ];
+
+            $query = $query->when($request->has('tab'), function ($q) use ($request) {
+                if ($request->tab == 'progress') {
+                    $q->where('status', 2);
+                } else if ($request->tab == 'selesai') {
+                    $q->where('status', 3);
+                }
+            });
+
             $query = $query->orderBy('status', 'asc')
                 ->orderBy('created_at', 'desc')
                 ->offset(($page - 1) * $limit)

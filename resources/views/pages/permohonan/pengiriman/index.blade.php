@@ -25,12 +25,12 @@
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="progress-tab" onclick="switchLoadTab('progress')" data-bs-toggle="tab"
                         data-bs-target="#progress-tab-pane" type="button" role="tab"
-                        aria-controls="progress-tab-pane" aria-selected="true">Progres</button>
+                        aria-controls="progress-tab-pane" aria-selected="true">Progres <span class="badge bg-secondary ms-1" id="count-progress"></span></button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="selesai-tab" onclick="switchLoadTab('selesai')" data-bs-toggle="tab"
                         data-bs-target="#selesai-tab-pane" type="button" role="tab"
-                        aria-controls="selesai-tab-pane" aria-selected="false">Selesai</button>
+                        aria-controls="selesai-tab-pane" aria-selected="false">Selesai <span class="badge bg-secondary ms-1" id="count-selesai"></span></button>
                 </li>
             </ul>
             <div class="my-3">

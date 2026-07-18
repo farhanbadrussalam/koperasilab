@@ -8,17 +8,17 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active" id="surattugas-tab" onclick="switchLoadTab('surattugas')" data-bs-toggle="tab"
                             data-bs-target="#surattugas-tab-pane" type="button" role="tab"
-                            aria-controls="surattugas-tab-pane" aria-selected="true">Penerbitan surat tugas</button>
+                            aria-controls="surattugas-tab-pane" aria-selected="true">Surat Tugas <span class="badge bg-secondary ms-1" id="count-surattugas"></span></button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="progress-tab" onclick="switchLoadTab('progress')" data-bs-toggle="tab"
                             data-bs-target="#progress-tab-pane" type="button" role="tab"
-                            aria-controls="progress-tab-pane" aria-selected="false">Progres</button>
+                            aria-controls="progress-tab-pane" aria-selected="false">Progres <span class="badge bg-secondary ms-1" id="count-progress"></span></button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="selesai-tab" onclick="switchLoadTab('selesai')" data-bs-toggle="tab"
                             data-bs-target="#selesai-tab-pane" type="button" role="tab"
-                            aria-controls="selesai-tab-pane" aria-selected="false">Selesai</button>
+                            aria-controls="selesai-tab-pane" aria-selected="false">Selesai <span class="badge bg-secondary ms-1" id="count-selesai"></span></button>
                     </li>
                 </ul>
                 <div class="card shadow-sm mt-2">

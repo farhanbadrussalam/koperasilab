@@ -332,10 +332,16 @@ function loadData(page = 1) {
         }
 
         $(`#list-container-lhu`).html(html);
-
         $(`#list-pagination-lhu`).html(createPaginationHTML(result.pagination));
+        
+        // Update tab counts
+        if (result.tab_counts) {
+            if ($('#count-progress').length) $('#count-progress').text(result.tab_counts.progress || 0);
+            if ($('#count-selesai').length) $('#count-selesai').text(result.tab_counts.selesai || 0);
+        }
 
         divTimelineTugas.map(d => d.render());
+        
         $(`#list-placeholder-lhu`).hide();
         $(`#list-container-lhu`).show();
 

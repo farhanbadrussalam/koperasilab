@@ -389,6 +389,7 @@ function loadData(page = 1, menu = 'surattugas') {
                         divTimelineTugas: timeLine,
                         status: penyelia.status,
                         perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan,
+                        htmlLeftTime: renderSlaBadge(penyelia.sla_status),
                     }
 
                     html += cardComponent(dataS, { btnMenuAction: btnAction, btnAction: btnAction2 });
@@ -407,6 +408,13 @@ function loadData(page = 1, menu = 'surattugas') {
         divTimelineTugas.map(d => d.render());
 
         $(`#list-pagination`).html(createPaginationHTML(result.pagination));
+
+        // Update tab counts
+        if (result.tab_counts) {
+            if ($('#count-surattugas').length) $('#count-surattugas').text(result.tab_counts.surattugas || 0);
+            if ($('#count-progress').length) $('#count-progress').text(result.tab_counts.progress || 0);
+            if ($('#count-selesai').length) $('#count-selesai').text(result.tab_counts.selesai || 0);
+        }
 
         $(`#list-placeholder`).hide();
         $(`#list-container`).show();
@@ -629,4 +637,45 @@ function btnShowDoc(obj) {
     modalDoc.show(url, {
         title: title
     });
+}
+
+/**
+ * Render badge SLA/Target Durasi dari data accessor sla_status.
+ *
+ * @param {object} slaStatus - Object dari API { label, color, hari_berjalan, sisa_hari, target_hari }
+ * @returns {string} HTML badge string
+ */
+function renderSlaBadge(slaStatus) {
+    if (!slaStatus) return '';
+
+    const { label, color, hari_berjalan, sisa_hari, target_hari } = slaStatus;
+
+    // Tentukan detail teks berdasarkan warna/status
+    let detail = '';
+    let icon = '';
+    switch (color) {
+        case 'danger':
+            detail = `+${Math.abs(sisa_hari)} hari dari target`;
+            icon = 'bi-exclamation-triangle-fill';
+            break;
+        case 'warning':
+            detail = `sisa ${sisa_hari} hari`;
+            icon = 'bi-clock-history';
+            break;
+        case 'success':
+            detail = `${hari_berjalan}/${target_hari} hari`;
+            icon = 'bi-check-circle-fill';
+            break;
+        default:
+            detail = `${hari_berjalan}/${target_hari} hari`;
+            icon = 'bi-hourglass';
+            break;
+    }
+
+    return `
+        <span class="badge bg-${color}-subtle text-${color}-emphasis border border-${color}-subtle rounded-pill px-2 py-1"
+              title="SLA: ${label} (${detail})">
+            <i class="bi ${icon} me-1"></i>${label} <small class="opacity-75">(${detail})</small>
+        </span>
+    `;
 }

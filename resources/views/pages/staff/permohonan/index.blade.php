@@ -22,13 +22,13 @@
             
             <ul class="nav nav-tabs my-3" id="permohonan-tabs">
                 <li class="nav-item">
-                    <a class="nav-link active cursor-pointer" id="tab-progress" onclick="changeTab('progress')">Progress</a>
+                    <a class="nav-link active cursor-pointer" id="tab-progress" onclick="changeTab('progress')">Progress <span class="badge bg-secondary ms-1" id="count-progress"></span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link cursor-pointer" id="tab-selesai" onclick="changeTab('selesai')">Selesai</a>
+                    <a class="nav-link cursor-pointer" id="tab-selesai" onclick="changeTab('selesai')">Selesai <span class="badge bg-secondary ms-1" id="count-selesai"></span></a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link cursor-pointer" id="tab-dikembalikan" onclick="changeTab('dikembalikan')">Dikembalikan</a>
+                    <a class="nav-link cursor-pointer" id="tab-dikembalikan" onclick="changeTab('dikembalikan')">Dikembalikan <span class="badge bg-secondary ms-1" id="count-dikembalikan"></span></a>
                 </li>
             </ul>
 

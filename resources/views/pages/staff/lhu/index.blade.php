@@ -35,9 +35,9 @@
             <div class="my-3">
                 <ul class="nav nav-tabs" id="myTab">
                     <li class="nav-item"><button class="nav-link active" role="tab" data-bs-toggle="tab"
-                            onclick="switchLoadTab('progress')">Progress <span id="countProgress"></span></button></li>
+                            onclick="switchLoadTab('progress')">Progress <span class="badge bg-secondary ms-1" id="count-progress"></span></button></li>
                     <li class="nav-item"><button class="nav-link" role="tab" data-bs-toggle="tab"
-                            onclick="switchLoadTab('selesai')">Selesai <span id="countSelesai"></span></button></li>
+                            onclick="switchLoadTab('selesai')">Selesai <span class="badge bg-secondary ms-1" id="count-selesai"></span></button></li>
                 </ul>
                 <div class="body-placeholder my-3" id="list-placeholder-lhu">
                     @for ($i = 0; $i < 3; $i++)

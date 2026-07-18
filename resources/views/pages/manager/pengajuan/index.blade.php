@@ -4,10 +4,10 @@
     <div class="m-4">
         <ul class="nav nav-tabs" id="pengajuanTabs" role="tablist">
             <li class="nav-item">
-                <button class="nav-link active" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab('progress')">Progress</button>
+                <button class="nav-link active" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab('progress')">Progress <span class="badge bg-secondary ms-1" id="count-progress"></span></button>
             </li>
             <li class="nav-item">
-                <button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="false" onclick="switchLoadTab('selesai')">Selesai</button>
+                <button class="nav-link" data-bs-toggle="tab" type="button" role="tab" aria-selected="false" onclick="switchLoadTab('selesai')">Selesai <span class="badge bg-secondary ms-1" id="count-selesai"></span></button>
             </li>
         </ul>
         <div class="card shadow-sm mt-2">

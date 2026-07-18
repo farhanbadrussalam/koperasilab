@@ -818,7 +818,8 @@ class DashboardWidgetController extends Controller
                 'current_step' => $stepNow?->order ?? 0,
                 'total_step' => $mainStep->count(),
                 'step_name' => $stepName,
-                'paralel' => $paralelStep
+                'paralel' => $paralelStep,
+                'sla_status' => $job->sla_status,
             ];
         });
 

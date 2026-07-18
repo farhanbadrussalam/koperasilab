@@ -1070,3 +1070,68 @@ if (!function_exists('asset_versioned')) {
     }
 }
 
+if (!function_exists('slaStatusBadge')) {
+    /**
+     * Render badge HTML peringatan visual SLA/Target Durasi pengerjaan lab.
+     *
+     * Menerima array dari accessor getSlaStatusAttribute() di Model Penyelia.
+     * Mengembalikan HTML badge dengan warna dan informasi durasi.
+     *
+     * @param array $slaStatus Array dengan keys: label, color, hari_berjalan, sisa_hari, target_hari
+     * @return string HTML badge
+     */
+    function slaStatusBadge(array $slaStatus): string
+    {
+        $label        = $slaStatus['label'] ?? '-';
+        $color        = $slaStatus['color'] ?? 'secondary';
+        $hariBerjalan = $slaStatus['hari_berjalan'] ?? 0;
+        $sisaHari     = $slaStatus['sisa_hari'] ?? 0;
+        $targetHari   = $slaStatus['target_hari'] ?? 0;
+
+        // Teks detail durasi
+        $detail = '';
+        switch ($color) {
+            case 'danger':
+                $lewat  = abs($sisaHari);
+                $detail = "+{$lewat} hari dari target";
+                break;
+            case 'warning':
+                $detail = "sisa {$sisaHari} hari";
+                break;
+            case 'success':
+                $detail = "{$hariBerjalan}/{$targetHari} hari";
+                break;
+            default:
+                $detail = "{$hariBerjalan}/{$targetHari} hari";
+                break;
+        }
+
+        // Icon per status
+        $icon = match ($color) {
+            'danger'  => 'bi-exclamation-triangle-fill',
+            'warning' => 'bi-clock-history',
+            'success' => 'bi-check-circle-fill',
+            default   => 'bi-hourglass',
+        };
+
+        return '
+            <span class="badge bg-' . $color . '-subtle text-' . $color . '-emphasis border border-' . $color . '-subtle rounded-pill px-2 py-1" title="SLA: ' . e($label) . ' (' . e($detail) . ')">
+                <i class="bi ' . $icon . ' me-1"></i>' . e($label) . ' <small class="opacity-75">(' . e($detail) . ')</small>
+            </span>
+        ';
+    }
+}
+
+if (!function_exists('slaStatusClass')) {
+    /**
+     * Mengembalikan class CSS Bootstrap berdasarkan status SLA.
+     *
+     * @param array $slaStatus Array dari accessor getSlaStatusAttribute()
+     * @return string Class CSS (e.g. 'bg-success', 'bg-warning', 'bg-danger')
+     */
+    function slaStatusClass(array $slaStatus): string
+    {
+        $color = $slaStatus['color'] ?? 'secondary';
+        return 'bg-' . $color;
+    }
+}

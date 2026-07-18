@@ -4,19 +4,19 @@
     <ul class="nav nav-tabs" id="pengajuanTabs" role="tablist">
         {{-- <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" type="button" role="tab" aria-selected="true" onclick="switchLoadTab(1)">Semua <span id="countSemua"></span></button></li> --}}
         <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" type="button" role="tab"
-                aria-selected="true" onclick="switchLoadTab(2)">Pengajuan <span id="countPengajuan"></span></button></li>
+                aria-selected="true" onclick="switchLoadTab(2)">Pengajuan <span class="badge bg-secondary ms-1" id="countPengajuan"></span></button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab"
-                aria-selected="true" onclick="switchLoadTab(3)">Terverifikasi <span id="countVerifikasi"></span></button>
+                aria-selected="true" onclick="switchLoadTab(3)">Terverifikasi <span class="badge bg-secondary ms-1" id="countVerifikasi"></span></button>
         </li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab"
-                aria-selected="false" onclick="switchLoadTab(7)">Dikembalikan <span id="countDikembalikan"></span></button>
+                aria-selected="false" onclick="switchLoadTab(7)">Dikembalikan <span class="badge bg-secondary ms-1" id="countDikembalikan"></span></button>
         </li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab"
-                aria-selected="true" onclick="switchLoadTab(4)">Proses LAB <span id="countLab"></span></button></li>
+                aria-selected="true" onclick="switchLoadTab(4)">Proses LAB <span class="badge bg-secondary ms-1" id="countLab"></span></button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab"
-                aria-selected="true" onclick="switchLoadTab(5)">Selesai <span id="countSelesai"></span></button></li>
+                aria-selected="true" onclick="switchLoadTab(5)">Selesai <span class="badge bg-secondary ms-1" id="countSelesai"></span></button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" type="button" role="tab"
-                aria-selected="false" onclick="switchLoadTab(6)">Draft <span id="countDraft"></span></button></li>
+                aria-selected="false" onclick="switchLoadTab(6)">Draft <span class="badge bg-secondary ms-1" id="countDraft"></span></button></li>
     </ul>
     <div class="card shadow-sm mt-2">
         <div class="card-body">

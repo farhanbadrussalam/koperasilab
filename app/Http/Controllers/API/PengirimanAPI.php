@@ -151,20 +151,24 @@ class PengirimanAPI extends Controller
                         }
                     }
                 })
-                ->when($request->has('tab'), function ($q) use ($request) {
+                ->when($idPelanggan, function ($q, $idPelanggan) {
+                    return $q->where('tujuan', $idPelanggan);
+                });
+
+            // Hitung count untuk tab
+            $baseQueryForCount = clone $query;
+            $this->tabCounts = [
+                'progress' => (clone $baseQueryForCount)->where('status', '!=', 2)->count(),
+                'selesai'  => (clone $baseQueryForCount)->where('status', 2)->count(),
+            ];
+
+            $query = $query->when($request->has('tab'), function ($q) use ($request) {
                     if ($request->tab == 'progress') {
                         $q->where('status', '!=', 2);
                     } else if ($request->tab == 'selesai') {
                         $q->where('status', 2);
                     }
                 })
-                // ->when($status, function($q, $status) {
-                //     return $q->whereIn('status', $status);
-                // })
-                ->when($idPelanggan, function ($q, $idPelanggan) {
-                    return $q->where('tujuan', $idPelanggan);
-                })
-                ->limit($limit)
                 ->paginate($limit);
 
             $arr = $query->toArray();
