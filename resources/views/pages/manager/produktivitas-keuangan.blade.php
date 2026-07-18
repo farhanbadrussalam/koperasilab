@@ -249,17 +249,29 @@
 
     </div>
 
-    {{-- Data untuk JS --}}
     <script>
         const dataUrl = "{{ route('manager.produktivitas.keuangan.getData') }}";
 
         function exportData() {
             let url = "{{ route('manager.produktivitas.keuangan.export') }}?";
-            let filterValue = filterComp && filterComp.getAllValue();
             
-            if (filterValue && filterValue.date_range && filterValue.date_range.length === 2) {
-                url += "start_date=" + encodeURIComponent(filterValue.date_range[0]) + "&end_date=" + encodeURIComponent(filterValue.date_range[1]);
+            if (typeof activeFilter !== 'undefined') {
+                if (activeFilter.date_range && activeFilter.date_range.length === 2) {
+                    url += "&start_date=" + encodeURIComponent(activeFilter.date_range[0]) + "&end_date=" + encodeURIComponent(activeFilter.date_range[1]);
+                }
+                if (activeFilter.petugas_id) {
+                    url += "&petugas_id=" + encodeURIComponent(activeFilter.petugas_id);
+                }
+                if (activeFilter.status_invoice) {
+                    url += "&status_invoice=" + encodeURIComponent(activeFilter.status_invoice);
+                }
+            } else {
+                let filterValue = filterComp && filterComp.getAllValue();
+                if (filterValue && filterValue.date_range && filterValue.date_range.length === 2) {
+                    url += "&start_date=" + encodeURIComponent(filterValue.date_range[0]) + "&end_date=" + encodeURIComponent(filterValue.date_range[1]);
+                }
             }
+            
             window.location.href = url;
         }
     </script>

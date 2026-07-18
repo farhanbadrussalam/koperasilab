@@ -14,23 +14,28 @@ use PhpOffice\PhpSpreadsheet\Style\Color;
 use Illuminate\Support\Collection;
 use Closure;
 
-class DynamicCollectionExport implements FromCollection, WithHeadings, WithTitle, WithStyles, ShouldAutoSize, WithMapping
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+
+class DynamicCollectionExport implements FromCollection, WithHeadings, WithTitle, WithStyles, ShouldAutoSize, WithMapping, WithColumnFormatting
 {
     private Collection $collection;
     private array $headings;
     private string $title;
     private ?Closure $mapRow;
+    private array $columnFormats;
 
     public function __construct(
         Collection $collection,
         array $headings,
         string $title = 'Sheet1',
-        ?Closure $mapRow = null
+        ?Closure $mapRow = null,
+        array $columnFormats = []
     ) {
         $this->collection = $collection;
         $this->headings = $headings;
         $this->title = $title;
         $this->mapRow = $mapRow;
+        $this->columnFormats = $columnFormats;
     }
 
     public function collection()
@@ -72,5 +77,10 @@ class DynamicCollectionExport implements FromCollection, WithHeadings, WithTitle
         }
 
         return (array) $row;
+    }
+
+    public function columnFormats(): array
+    {
+        return $this->columnFormats;
     }
 }

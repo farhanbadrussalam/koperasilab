@@ -20,6 +20,7 @@ class ExportService
      * @param string $title Nama sheet (default: 'Sheet1')
      * @param Closure|null $mapRow Custom mapper per baris
      * @param string $writerType Tipe file Excel
+     * @param array $columnFormats Format kolom excel (opsional)
      * @return BinaryFileResponse
      */
     public function download(
@@ -28,7 +29,8 @@ class ExportService
         array $headings,
         string $title = 'Sheet1',
         ?Closure $mapRow = null,
-        string $writerType = \Maatwebsite\Excel\Excel::XLSX
+        string $writerType = \Maatwebsite\Excel\Excel::XLSX,
+        array $columnFormats = []
     ): BinaryFileResponse {
         
         if ($queryOrCollection instanceof Collection) {
@@ -36,14 +38,16 @@ class ExportService
                 $queryOrCollection,
                 $headings,
                 $title,
-                $mapRow
+                $mapRow,
+                $columnFormats
             );
         } else {
             $export = new DynamicExport(
                 $queryOrCollection,
                 $headings,
                 $title,
-                $mapRow
+                $mapRow,
+                $columnFormats
             );
         }
 

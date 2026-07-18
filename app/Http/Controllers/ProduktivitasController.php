@@ -155,8 +155,20 @@ class ProduktivitasController extends Controller
             ];
         };
 
+        $fileName = 'Produktivitas_Petugas';
+        if ($startDate && $endDate) {
+            if ($startDate === $endDate) {
+                $fileName .= '_' . \Carbon\Carbon::parse($startDate)->format('d-m-Y');
+            } else {
+                $fileName .= '_' . \Carbon\Carbon::parse($startDate)->format('d-m-Y') . '_sd_' . \Carbon\Carbon::parse($endDate)->format('d-m-Y');
+            }
+        } else {
+            $fileName .= '_' . now()->format('d-m-Y');
+        }
+        $fileName .= '.xlsx';
+
         return $this->exportService->download(
-            'Produktivitas_Petugas.xlsx',
+            $fileName,
             $collection,
             $headings,
             'Data Petugas',
@@ -171,9 +183,17 @@ class ProduktivitasController extends Controller
     {
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
+        $petugasId = $request->input('petugas_id');
+        $statusFilter = $request->input('status_invoice');
 
         // Contoh: Mengambil data Keuangan dengan relasi
-        $query = Keuangan::with(['permohonan'])->orderBy('created_at', 'desc');
+        $query = Keuangan::with([
+            'permohonan.pelanggan.perusahaan',
+            'permohonan.jenisTld',
+            'permohonan.kontrak',
+            'usersig',
+            'diskon'
+        ])->orderBy('created_at', 'desc');
 
         if ($startDate && $endDate) {
             $query->whereBetween('created_at', [
@@ -182,37 +202,139 @@ class ProduktivitasController extends Controller
             ]);
         }
 
+        if ($petugasId) {
+            $query->where('created_by', $petugasId);
+        }
+
+        if ($statusFilter) {
+            $query->where('status', $statusFilter);
+        }
+
         $headings = [
             'No Invoice',
-            'ID Permohonan',
-            'PPN',
-            'PPH',
+            'No Kontrak',
+            'Tipe Pengajuan',
+            'Jenis Layanan',
+            'Jenis TLD',
+            'Jumlah TLD',
+            'Periode Pemakaian',
             'Total Harga',
+            'Diskon',
+            'Harga PPN',
+            'Harga PPH',
+            'Grand Total',
             'Status Pembayaran',
-            'Tanggal Bayar'
+            'Pelanggan',
+            'Perusahaan',
+            'TTD By',
+            'Tanggal Dibuat',
+            'Tanggal Diverifikasi',
+            'Tanggal Dibayar'
         ];
 
         // Memetakan struktur setiap baris
         $mapRow = function ($row) {
-            $status = $row->status == 1 ? 'Lunas' : 'Belum Lunas';
-            
+            $permohonan = $row->permohonan;
+            $pelanggan = $permohonan ? $permohonan->pelanggan : null;
+            $perusahaan = $pelanggan ? $pelanggan->perusahaan : null;
+
+            $jumlahTld = ($permohonan->jumlah_pengguna ?? 0) + ($permohonan->jumlah_kontrol ?? 0);
+
+            $periodePemakaian = '-';
+            if ($permohonan && is_array($permohonan->periode_pemakaian) && count($permohonan->periode_pemakaian) > 0) {
+                $periods = $permohonan->periode_pemakaian;
+                $firstPeriod = $periods[0];
+                $lastPeriod = end($periods);
+
+                $start = '';
+                if (is_array($firstPeriod) && isset($firstPeriod['start_date'])) {
+                    $start = convert_date($firstPeriod['start_date'], 2);
+                } elseif (is_string($firstPeriod)) {
+                    $start = $firstPeriod;
+                }
+
+                $end = '';
+                if (is_array($lastPeriod) && isset($lastPeriod['end_date'])) {
+                    $end = convert_date($lastPeriod['end_date'], 2);
+                } elseif (is_string($lastPeriod)) {
+                    $end = $lastPeriod;
+                } else {
+                    $end = convert_date($firstPeriod['end_date'], 2);
+                }
+
+                if ($start && $end) {
+                    $periodePemakaian = $start . ' sd ' . $end;
+                } elseif ($start) {
+                    $periodePemakaian = $start;
+                }
+            }
+
+            $calc = calculateInvoice($row->total_harga ?? 0, $row->diskon, $row->ppn ?? 0, $row->pph ?? 0);
+
+            $statusPembayaran = 'Belum Lunas';
+            if ($row->status == 5) {
+                $statusPembayaran = 'Lunas';
+            } elseif ($row->status == 4) {
+                $statusPembayaran = 'Proses';
+            } elseif ($row->status == 3) {
+                $statusPembayaran = 'Menunggu Bayar';
+            } elseif ($row->status == 1) {
+                $statusPembayaran = 'Draft';
+            } elseif ($row->status == 90) {
+                $statusPembayaran = 'Ditolak';
+            }
+
             return [
                 $row->no_invoice ?? '-',
-                $row->id_permohonan ?? '-',
-                $row->ppn ?? 0,
-                $row->pph ?? 0,
+                $permohonan->kontrak->no_kontrak ?? '-',
+                ($permohonan && stripos($permohonan->tipe_kontrak, 'adendum') !== false) ? 'Adendum' : '',
+                $permohonan->layanan ?? '-',
+                $permohonan && $permohonan->jenisTld ? $permohonan->jenisTld->name : '-',
+                $jumlahTld,
+                $periodePemakaian,
                 $row->total_harga ?? 0,
-                $status,
-                $row->paid_at ?? '-',
+                $calc['total_diskon'] ?? 0,
+                $calc['jumPpn'] ?? 0,
+                $calc['jumPph'] ?? 0,
+                $calc['grand_total'] ?? 0,
+                $statusPembayaran,
+                $pelanggan->name ?? '-',
+                $perusahaan->nama_perusahaan ?? '-',
+                $row->usersig->name ?? '-',
+                $row->created_at ? convert_date($row->created_at, 2) : '-',
+                $row->verif_at ? convert_date($row->verif_at, 2) : '-',
+                $row->paid_at ? convert_date($row->paid_at, 2) : '-'
             ];
         };
 
+        $fileName = 'Produktivitas_Keuangan';
+        if ($startDate && $endDate) {
+            if ($startDate === $endDate) {
+                $fileName .= '_' . convert_date($startDate, 5);
+            } else {
+                $fileName .= '_' . convert_date($startDate, 5) . '_sd_' . convert_date($endDate, 5);
+            }
+        } else {
+            $fileName .= '_' . now()->format('d-m-Y');
+        }
+        $fileName .= '.xlsx';
+
+        $columnFormats = [
+            'H' => '"Rp "* #,##0',
+            'I' => '"Rp "* #,##0',
+            'J' => '"Rp "* #,##0',
+            'K' => '"Rp "* #,##0',
+            'L' => '"Rp "* #,##0',
+        ];
+
         return $this->exportService->download(
-            'Produktivitas_Keuangan.xlsx',
+            $fileName,
             $query,
             $headings,
             'Data Keuangan',
-            $mapRow
+            $mapRow,
+            \Maatwebsite\Excel\Excel::XLSX,
+            $columnFormats
         );
     }
 }

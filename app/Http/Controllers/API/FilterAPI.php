@@ -125,6 +125,7 @@ class FilterAPI extends Controller
                 'produktivitas-keuangan' => [
                     ['id' => 1, 'name' => 'Draft'],
                     ['id' => 3, 'name' => 'Menunggu Bayar'],
+                    ['id' => 4, 'name' => 'Proses'],
                     ['id' => 5, 'name' => 'Lunas'],
                     ['id' => 90, 'name' => 'Ditolak']
                 ],

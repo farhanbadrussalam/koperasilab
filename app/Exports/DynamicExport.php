@@ -17,29 +17,35 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Closure;
 
-class DynamicExport implements FromQuery, FromCollection, WithHeadings, WithTitle, WithStyles, ShouldAutoSize, WithMapping
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+
+class DynamicExport implements FromQuery, FromCollection, WithHeadings, WithTitle, WithStyles, ShouldAutoSize, WithMapping, WithColumnFormatting
 {
     private $queryOrCollection;
     private array $headings;
     private string $title;
     private ?Closure $mapRow;
+    private array $columnFormats;
 
     /**
      * @param Builder|Collection $queryOrCollection Data source
      * @param array $headings Header untuk tiap kolom
      * @param string $title Nama Sheet
      * @param Closure|null $mapRow Custom mapping per baris (optional)
+     * @param array $columnFormats Format kolom excel (opsional)
      */
     public function __construct(
         $queryOrCollection,
         array $headings,
         string $title = 'Sheet1',
-        ?Closure $mapRow = null
+        ?Closure $mapRow = null,
+        array $columnFormats = []
     ) {
         $this->queryOrCollection = $queryOrCollection;
         $this->headings = $headings;
         $this->title = $title;
         $this->mapRow = $mapRow;
+        $this->columnFormats = $columnFormats;
     }
 
     /**
@@ -113,5 +119,13 @@ class DynamicExport implements FromQuery, FromCollection, WithHeadings, WithTitl
         }
 
         return (array) $row;
+    }
+
+    /**
+     * @return array
+     */
+    public function columnFormats(): array
+    {
+        return $this->columnFormats;
     }
 }
