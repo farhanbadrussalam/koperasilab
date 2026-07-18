@@ -89,13 +89,6 @@ class KontrakAPI extends Controller
                 }
             ])
                 ->withCount('periode')
-                ->when($tab, function ($q, $tab) {
-                    if ($tab == 'progress') {
-                        return $q->where('status', 1);
-                    } elseif ($tab == 'selesai') {
-                        return $q->where('status', 2);
-                    }
-                })
                 ->when($idPelanggan, function ($q, $idPelanggan) {
                     // mengambil id dari history_pic
                     $id_pic = array();
@@ -123,15 +116,15 @@ class KontrakAPI extends Controller
 
             $baseQueryForCount = clone $query;
             $this->tabCounts = [
-                'progress' => (clone $baseQueryForCount)->where('status', 2)->count(),
-                'selesai' => (clone $baseQueryForCount)->where('status', 3)->count()
+                'progress' => (clone $baseQueryForCount)->where('status', 1)->count(),
+                'selesai' => (clone $baseQueryForCount)->where('status', 2)->count()
             ];
 
             $query = $query->when($request->has('tab'), function ($q) use ($request) {
                 if ($request->tab == 'progress') {
-                    $q->where('status', 2);
+                    $q->where('status', 1);
                 } else if ($request->tab == 'selesai') {
-                    $q->where('status', 3);
+                    $q->where('status', 2);
                 }
             });
 

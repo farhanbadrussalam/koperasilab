@@ -133,9 +133,6 @@ class PengirimanAPI extends Controller
                 'alamat',
                 'permohonan'
             ])
-                ->orderBy('recived_at', 'ASC')
-                ->orderBy('created_at', 'DESC')
-                ->offset(($page - 1) * $limit)
                 ->when($filter, function ($q, $filter) {
                     foreach ($filter as $key => $value) {
                         if ($key == 'no_kontrak') {
@@ -169,6 +166,8 @@ class PengirimanAPI extends Controller
                         $q->where('status', 2);
                     }
                 })
+                ->orderBy('recived_at', 'ASC')
+                ->orderBy('created_at', 'DESC')
                 ->paginate($limit);
 
             $arr = $query->toArray();
