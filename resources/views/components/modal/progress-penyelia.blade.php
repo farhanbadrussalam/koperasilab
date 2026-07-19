@@ -179,7 +179,6 @@
                     dateFormat: "Y-m-d",
                     altFormat: "j F Y",
                     minDate: data.start_date,
-                    maxDate: data.end_date,
                     defaultDate: 'today'
                 });
             }

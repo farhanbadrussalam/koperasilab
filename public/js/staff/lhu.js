@@ -244,55 +244,7 @@ function loadData(page = 1) {
             }
             isPelabelan ? btnAction += btnLabel : '';
 
-            let htmlLeftTime = '';
-            if (thisTab == 'progress') {
-                let TldPeriodeDigunakan = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode + 1 && d.status == 1);
-                let time = '';
-                let title = '';
-
-                if (TldPeriodeDigunakan) {
-                    if (TldPeriodeDigunakan.periode != 1) {
-                        time = timeLeftUntilHMinusOneMonth(new Date(TldPeriodeDigunakan.start_date));
-                        title = `Sebelum Periode ${TldPeriodeDigunakan.periode}`;
-                    }
-                } else if (permohonan.kontrak.is_have_tld == 1 && permohonan.kontrak.jenis_layanan.name != 'Sewa') {
-                    TldPeriodeDigunakan = lhu.permohonan.kontrak.periode.find(d => d.periode == lhu.periode);
-                    if (TldPeriodeDigunakan) {
-                        // mengambil periode berikutnya
-                        let startDate = new Date(TldPeriodeDigunakan.end_date);
-                        // awal bulan setelah startDate
-                        startDate.setDate(1);
-                        startDate.setMonth(startDate.getMonth() + 4);
-
-                        time = timeLeftUntilHMinusOneMonth(startDate);
-                        title = `Sebelum Pengembalian`;
-                    }
-                }
-
-                if (time !== '') {
-                    let badgeClass = 'bg-primary-subtle text-primary border-primary-subtle';
-                    let icon = 'bi-clock-history';
-
-                    if (time.includes('Lewat')) {
-                        badgeClass = 'bg-danger-subtle text-danger border-danger-subtle';
-                        icon = 'bi-exclamation-triangle-fill';
-                    } else if (time === 'Hari ini' || time === 'Hari Ini') {
-                        badgeClass = 'bg-warning-subtle text-warning border-warning-subtle';
-                        icon = 'bi-exclamation-circle-fill';
-                    } else if (time.includes('Sisa') && !time.includes('bulan')) {
-                        // Kurang dari sebulan (hanya tersisa hari)
-                        badgeClass = 'bg-warning-subtle text-warning border-warning-subtle';
-                        icon = 'bi-hourglass-split';
-                    }
-
-                    htmlLeftTime = `
-                        <div class="mt-2 d-inline-flex align-items-center gap-1.5 fs-8 fw-semibold px-2 py-1 rounded-pill border ${badgeClass}" style="font-size: 0.75rem;">
-                            <i class="bi ${icon}"></i>
-                            <span>${time} (${title})</span>
-                        </div>
-                    `;
-                }
-            }
+            let htmlLeftTime = renderSlaBadge(lhu.sla_status);
 
             const params = {
                 index: i,
@@ -313,7 +265,7 @@ function loadData(page = 1) {
                 note: '',
                 pelanggan: permohonan.pelanggan.name,
                 divTimelineTugas: timeline,
-                // htmlLeftTime: htmlLeftTime,
+                htmlLeftTime: htmlLeftTime,
                 perusahaan: permohonan.pelanggan.perusahaan.nama_perusahaan
             }
 
@@ -416,4 +368,45 @@ function btnShowDoc(obj) {
     modalDoc.show(url, {
         title: title
     });
+}
+
+/**
+ * Render badge SLA/Target Durasi dari data accessor sla_status.
+ *
+ * @param {object} slaStatus - Object dari API { label, color, hari_berjalan, sisa_hari, target_hari }
+ * @returns {string} HTML badge string
+ */
+function renderSlaBadge(slaStatus) {
+    if (!slaStatus) return '';
+
+    const { label, color, hari_berjalan, sisa_hari, target_hari } = slaStatus;
+
+    // Tentukan detail teks berdasarkan warna/status
+    let detail = '';
+    let icon = '';
+    switch (color) {
+        case 'danger':
+            detail = `+${Math.abs(sisa_hari)} hari dari target`;
+            icon = 'bi-exclamation-triangle-fill';
+            break;
+        case 'warning':
+            detail = `sisa ${sisa_hari} hari`;
+            icon = 'bi-clock-history';
+            break;
+        case 'success':
+            detail = `${hari_berjalan}/${target_hari} hari`;
+            icon = 'bi-check-circle-fill';
+            break;
+        default:
+            detail = `${hari_berjalan}/${target_hari} hari`;
+            icon = 'bi-hourglass';
+            break;
+    }
+
+    return `
+        <span class="badge bg-${color}-subtle text-${color}-emphasis border border-${color}-subtle rounded-pill px-2 py-1"
+              title="SLA: ${label} (${detail})">
+            <i class="bi ${icon} me-1"></i>${label} <small class="opacity-75">(${detail})</small>
+        </span>
+    `;
 }
