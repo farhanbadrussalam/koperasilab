@@ -240,5 +240,22 @@ class User extends Authenticatable implements MustVerifyEmail
         }
         return false;
     }
+
+    /**
+     * Mengecek apakah user memiliki hak akses spesifik (baik secara langsung maupun sebagai PLT)
+     */
+    public function isActingAs($role)
+    {
+        // 1. Cek jika ia memang memiliki role tersebut aslinya (Spatie / Field bawaan)
+        if ($this->hasRole($role)) {
+            return true;
+        }
+
+        // 2. Cek di tabel plt_assignments apakah ia sedang aktif menjadi PLT untuk role tersebut
+        return \App\Models\PltAssignment::where('plt_user_id', $this->id)
+            ->where('role_name', $role)
+            ->active()
+            ->exists();
+    }
 }
 

@@ -302,6 +302,22 @@
                                 class="badge rounded-pill ms-auto bg-danger sidebar-notif-badge @if (!notifUnreadCount('Keuangan')) d-none @endif" data-events='["Keuangan"]'>{{ notifUnreadCount('Keuangan') }}</span>
                         </a>
                     </li>
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'manager-plt' ? 'active' : '' }}"
+                            href="{{ route('plt.assign.index') }}" aria-expanded="false">
+                            <i class="bi bi-person-badge"></i>
+                            <span class="hide-menu">Manajemen PLT</span>
+                        </a>
+                    </li>
+                @endcan
+                @can('view-plt-assignment')
+                    <li class="sidebar-item">
+                        <a class="sidebar-link {{ $module == 'plt-my' ? 'active' : '' }}"
+                            href="{{ route('plt.assign.my') }}" aria-expanded="false">
+                            <i class="bi bi-card-list"></i>
+                            <span class="hide-menu">Penugasan PLT Saya</span>
+                        </a>
+                    </li>
                 @endcan
 
                 @can('Manager/pengajuan')

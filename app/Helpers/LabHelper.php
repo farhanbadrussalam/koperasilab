@@ -1135,3 +1135,37 @@ if (!function_exists('slaStatusClass')) {
         return 'bg-' . $color;
     }
 }
+
+if (!function_exists('getTtdPltFormat')) {
+    /**
+     * Mendapatkan format teks TTD dengan memeriksa apakah yang bersangkutan adalah PLT
+     *
+     * @param int $approverId ID User
+     * @param string $roleName Role (mis. Manager Keuangan)
+     * @param string|null $approvedDate Tanggal disetujui (default now)
+     * @return array
+     */
+    function getTtdPltFormat($approverId, $roleName, $approvedDate = null)
+    {
+        $date = $approvedDate ? \Carbon\Carbon::parse($approvedDate) : now();
+
+        $plt = \App\Models\PltAssignment::where('plt_user_id', $approverId)
+            ->where('role_name', $roleName)
+            ->where('start_date', '<=', $date)
+            ->where('end_date', '>=', $date)
+            ->where('status', 1)
+            ->first();
+
+        if ($plt) {
+            return [
+                'is_plt' => true,
+                'title' => "a.n. {$roleName}<br>Pelaksana Tugas,"
+            ];
+        }
+
+        return [
+            'is_plt' => false,
+            'title' => $roleName
+        ];
+    }
+}

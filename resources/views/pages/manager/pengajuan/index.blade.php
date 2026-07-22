@@ -66,6 +66,7 @@
         </div>
     </div>
 </div>
+
 @endsection
 @push('scripts')
     <script src="{{ asset_versioned('js/manager/pengajuan.js') }}"></script>

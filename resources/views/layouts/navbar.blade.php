@@ -21,7 +21,21 @@
                 </div>
             </div>
 
-            <div id="container-notifikasi"></div>
+            <div id="container-notifikasi">
+    <ul class="list-group list-group-flush">
+        @foreach (Auth::user()->unreadNotifications as $notification)
+            <li class="list-group-item">
+                <a href="{{ $notification->data['url'] ?? '#' }}" class="text-decoration-none">
+                    {{ $notification->data['pesan'] ?? $notification->data['message'] ?? 'Notifikasi' }}
+                </a>
+                <small class="d-block text-muted">{{ $notification->created_at->diffForHumans() }}</small>
+            </li>
+        @endforeach
+        @if (Auth::user()->unreadNotifications->isEmpty())
+            <li class="list-group-item text-muted text-center">Tidak ada notifikasi baru</li>
+        @endif
+    </ul>
+</div>
 
             <div class="dropdown">
                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle p-1 rounded-pill border border-2 border-white shadow-sm transition-all"

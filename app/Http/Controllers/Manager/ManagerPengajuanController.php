@@ -24,7 +24,8 @@ class ManagerPengajuanController extends Controller
     {
         $data = [
             'title' => 'Invoice',
-            'module' => 'manager-pengajuan'
+            'module' => 'manager-pengajuan',
+            'users' => \App\Models\User::where('status', 1)->get()
         ];
         Auth::user()->unreadNotifications()->where('data->event', 'Keuangan')->update(['read_at' => now()]);
         return view('pages.manager.pengajuan.index', $data);

@@ -13,6 +13,7 @@ use App\Http\Controllers\userPerusahaanController;
 use App\Http\Controllers\ProduktivitasController;
 use App\Http\Controllers\NotifController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\PltAssignmentController;
 
 use App\Http\Controllers\Permohonan\PelangganController;
 use App\Http\Controllers\Staff\StaffController;
@@ -109,6 +110,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::prefix('manager')->group(function () {
+        Route::get('/plt', [PltAssignmentController::class, 'index'])->name('plt.assign.index');
+        Route::get('/plt/search-user', [PltAssignmentController::class, 'searchUser'])->name('plt.assign.search_user');
+        Route::post('/plt/assign', [PltAssignmentController::class, 'store'])->name('plt.assign.store');
+        Route::post('/plt/revoke/{id}', [PltAssignmentController::class, 'revoke'])->name('plt.assign.revoke');
+        // Route untuk user PLT melihat penugasan mereka
+        Route::get('/plt/my', [PltAssignmentController::class, 'myAssignments'])->name('plt.assign.my');
+
         Route::controller(ManagerPengajuanController::class)->group(function () {
             Route::get('/pengajuan', 'index')->middleware(['permission:Manager/keuangan'])->name('manager.pengajuan');
             Route::get('/surat_tugas', 'indexSuratTugas')->middleware(['permission:Manager/pengajuan'])->name('manager.surat_tugas');
