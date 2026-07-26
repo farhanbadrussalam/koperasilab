@@ -40,12 +40,25 @@ class PenggunaAPI extends Controller
             $tanggalLahir = $request->has('tanggal_lahir') ? $request->tanggal_lahir : false;
             $tempatLahir = $request->has('tempat_lahir') ? $request->tempat_lahir : false;
             $name = $request->has('name') ? $request->name : false;
-            $divisi = $request->has('divisi') ? $request->divisi : false;
             $radiasi = $request->has('radiasi') ? json_decode($request->radiasi) : false;
             $ktp = $request->has('ktp') ? $request->file('ktp') : false;
 
-            $isAktif = $request->has('is_aktif') ? $request->is_aktif : false;
-            $kodeLencana = $request->has('kode_lencana') ? $request->kode_lencana : false;
+            // Handle multi-divisi input
+            $rawDivisiList = $request->has('divisi_list') ? $request->divisi_list : false;
+            if (is_string($rawDivisiList)) {
+                $rawDivisiList = json_decode($rawDivisiList, true);
+            }
+
+            // Fallback jika dikirim via format single divisi lama
+            if (empty($rawDivisiList) && $request->has('divisi')) {
+                $rawDivisiList = [
+                    [
+                        'id_divisi' => $request->divisi,
+                        'kode_lencana' => $request->has('kode_lencana') ? $request->kode_lencana : '',
+                        'is_auto' => $request->has('is_aktif') ? (int) $request->is_aktif : 0
+                    ]
+                ];
+            }
 
             $file_ktp = false;
 
@@ -67,21 +80,96 @@ class PenggunaAPI extends Controller
                 }, $radiasi);
             }
 
-            if ($divisi) {
-                if (decryptor($divisi) == 0) {
-                    if($divisi == null){
-                        $divisi = false;
-                    } else {
-                        $dataDivisi = Master_divisi::create([
-                            'kode_lencana' => "C",
-                            'name' => $divisi,
-                            'status' => 1,
-                            'created_by' => Auth::user()->id
-                        ]);
-                        $divisi = $dataDivisi->id_divisi;
+            // Proteksi Hapus Divisi jika sedang digunakan pada Kontrak Aktif (saat edit)
+            if ($id) {
+                $existingPengguna = Master_pengguna::find($id);
+                if ($existingPengguna) {
+                    $oldDivisiList = $existingPengguna->divisi_list;
+                    $oldDivisiIds = [];
+                    if (is_array($oldDivisiList)) {
+                        foreach ($oldDivisiList as $oItem) {
+                            if (!empty($oItem['id_divisi'])) {
+                                $oldDivisiIds[] = (int) $oItem['id_divisi'];
+                            }
+                        }
+                    } elseif ($existingPengguna->id_divisi) {
+                        $oldDivisiIds[] = (int) $existingPengguna->id_divisi;
                     }
-                } else {
-                    $divisi = decryptor($divisi);
+
+                    $newDivisiIds = [];
+                    if (is_array($rawDivisiList)) {
+                        foreach ($rawDivisiList as $nItem) {
+                            $divVal = $nItem['id_divisi'] ?? null;
+                            if ($divVal) {
+                                $dec = decryptor($divVal);
+                                if ($dec != 0) {
+                                    $newDivisiIds[] = (int) $dec;
+                                } elseif (is_numeric($divVal)) {
+                                    $newDivisiIds[] = (int) $divVal;
+                                }
+                            }
+                        }
+                    }
+
+                    $removedDivisiIds = array_diff($oldDivisiIds, $newDivisiIds);
+                    foreach ($removedDivisiIds as $remDivId) {
+                        $isBound = \App\Models\Kontrak_detail::where('jenis', 'pengguna')
+                            ->where('id_pengguna_divisi', $id)
+                            ->where('status', 1)
+                            ->where(function ($q) use ($remDivId) {
+                                $q->where('id_divisi_selected', $remDivId)
+                                  ->orWhereNull('id_divisi_selected');
+                            })
+                            ->whereHas('kontrak', fn($q) => $q->where('status', 1))
+                            ->exists();
+
+                        if ($isBound) {
+                            $divModel = Master_divisi::withTrashed()->find($remDivId);
+                            $divName = $divModel ? $divModel->name : "ID #$remDivId";
+                            throw new \Exception("Divisi '$divName' tidak dapat dihapus karena masih terikat pada kontrak aktif.");
+                        }
+                    }
+                }
+            }
+
+            // Proses pembentukan final divisi_list & generate kode lencana jika diminta/otomatis
+            $finalDivisiList = [];
+            $idPerusahaan = Auth::user()->id_perusahaan;
+            $lastMaxKode = null;
+
+            if (is_array($rawDivisiList) && count($rawDivisiList) > 0) {
+                foreach ($rawDivisiList as $item) {
+                    $divVal = $item['id_divisi'] ?? null;
+                    $divId = null;
+
+                    if ($divVal) {
+                        $decrypted = decryptor($divVal);
+                        if ($decrypted == 0) {
+                            $dataDivisi = Master_divisi::create([
+                                'kode_lencana' => "C",
+                                'name' => $divVal,
+                                'status' => 1,
+                                'created_by' => Auth::user()->id
+                            ]);
+                            $divId = (int) $dataDivisi->id_divisi;
+                        } else {
+                            $divId = (int) $decrypted;
+                        }
+                    }
+
+                    $isAuto = isset($item['is_auto']) ? (int) $item['is_auto'] : 0;
+                    $kLencana = $item['kode_lencana'] ?? null;
+
+                    if ($isAuto == 1 || empty($kLencana)) {
+                        $kLencana = $this->generateKodeLencana($idPerusahaan, $lastMaxKode);
+                    } else {
+                        $kLencana = str_pad($kLencana, 3, '0', STR_PAD_LEFT);
+                    }
+
+                    $finalDivisiList[] = [
+                        'id_divisi' => $divId,
+                        'kode_lencana' => $kLencana
+                    ];
                 }
             }
 
@@ -91,7 +179,9 @@ class PenggunaAPI extends Controller
                 if($id){
                     info("hapus media lama ". $id);
                     $idMedia = Master_pengguna::select('ktp')->where('id_pengguna', $id)->first();
-                    $this->media->destroy($idMedia->ktp);
+                    if ($idMedia && $idMedia->ktp) {
+                        $this->media->destroy($idMedia->ktp);
+                    }
                 }
             }
 
@@ -99,21 +189,21 @@ class PenggunaAPI extends Controller
             $params = array();
 
             $name && $params['name'] = $name;
-            $divisi && $params['id_divisi'] = $divisi;
             $radiasi && $params['id_radiasi'] = $radiasi;
             $ktp && $params['ktp'] = $file_ktp->getIdMedia();
             $nik && $params['nik'] = unmask($nik);
-            $kodeLencana && $params['kode_lencana'] = str_pad($kodeLencana, 3, '0', STR_PAD_LEFT);
             $jenisKelamin && $params['jenis_kelamin'] = $jenisKelamin;
             $tanggalLahir && $params['tanggal_lahir'] = $tanggalLahir;
             $tempatLahir && $params['tempat_lahir'] = $tempatLahir;
 
+            if (!empty($finalDivisiList)) {
+                $params['divisi_list'] = $finalDivisiList;
+            }
+
             if(!$id){
-                // generate kode lencana
                 $params['created_by'] = Auth::user()->id;
                 $params['id_perusahaan'] = Auth::user()->id_perusahaan;
                 $params['status'] = 1;
-                $params['kode_lencana'] = $isAktif == 1 ? $this->generateKodeLencana() : str_pad($kodeLencana, 3, '0', STR_PAD_LEFT);
             }
 
             $pengguna = Master_pengguna::updateOrCreate(
@@ -124,7 +214,7 @@ class PenggunaAPI extends Controller
             $ktp && $file_ktp->store();
 
             DB::commit();
-            return $this->output(array('msg' => 'Pengguna Behasil ditambahkan', 'id' => encryptor($pengguna->id_pengguna)), 200);
+            return $this->output(array('msg' => 'Pengguna Berhasil disimpan', 'id' => encryptor($pengguna->id_pengguna)), 200);
 
         } catch (\Exception $ex ) {
             info($ex);
@@ -139,18 +229,24 @@ class PenggunaAPI extends Controller
             $id = decryptor($id);
             $data = Master_pengguna::with('media_ktp', 'perusahaan', 'divisi')->find($id);
 
+            if(!$data){
+                DB::rollBack();
+                return $this->output(array('msg' => 'Data not found'), 'Fail', 400);
+            }
+
             // mengambil radiasi dari master_radiasi
             $arr = array();
-            foreach ($data->id_radiasi as $key => $value) {
-                array_push($arr, Master_radiasi::find($value));
+            if (is_array($data->id_radiasi)) {
+                foreach ($data->id_radiasi as $key => $value) {
+                    $radModel = Master_radiasi::find($value);
+                    if ($radModel) {
+                        array_push($arr, $radModel);
+                    }
+                }
             }
             $data->radiasi = $arr;
 
-
             DB::commit();
-            if(!$data){
-                return $this->output(array('msg' => 'Data not found'), 'Fail', 400);
-            }
             return $this->output($data, 200);
         } catch (\Exception $ex ) {
             info($ex);
@@ -200,13 +296,29 @@ class PenggunaAPI extends Controller
     public function destroy($id) {
         DB::beginTransaction();
         try {
-            $data = Master_pengguna::findOrFail(decryptor($id));
+            $idPengguna = decryptor($id);
+            $data = Master_pengguna::findOrFail($idPengguna);
+
+            // Cek apakah pengguna terikat pada kontrak aktif
+            $isBound = \App\Models\Kontrak_detail::where('jenis', 'pengguna')
+                ->where('id_pengguna_divisi', $idPengguna)
+                ->where('status', 1)
+                ->whereHas('kontrak', fn($q) => $q->where('status', 1))
+                ->exists();
+
+            if ($isBound) {
+                DB::rollBack();
+                return $this->output(array('msg' => 'Pengguna tidak dapat dihapus karena masih terikat pada kontrak aktif.'), 'Fail', 400);
+            }
+
             $data->delete();
             DB::commit();
 
             if($data){
-                $this->media->destroy($data->ktp);
-                return $this->output(array('msg' => 'Pengguna Behasil dihapus'));
+                if ($data->ktp) {
+                    $this->media->destroy($data->ktp);
+                }
+                return $this->output(array('msg' => 'Pengguna Berhasil dihapus'));
             }
 
             return $this->output(array('msg' => 'Pengguna Gagal dihapus'), 'Fail', 400);
@@ -217,20 +329,30 @@ class PenggunaAPI extends Controller
         }
     }
 
-    private function generateKodeLencana() {
-        // Mengambil kode perusahaan
-        // $perusahaan = Auth::user()->id_perusahaan;
-        // $perusahaan = Perusahaan::find($perusahaan);
-        // $perusahaan = $perusahaan->kode_perusahaan;
-
-        // Mengambil kode lencana terakhir yang ada
-        $lencana = Master_pengguna::where('id_perusahaan', Auth::user()->id_perusahaan)->orderBy('kode_lencana', 'desc')->first();
-
-        if($lencana){
-            $lencana = (int) $lencana->kode_lencana;
-        } else {
-            $lencana = 0;
+    private function generateKodeLencana($idPerusahaan, &$lastMaxKode = null) {
+        if ($lastMaxKode !== null) {
+            $lastMaxKode++;
+            return str_pad($lastMaxKode, 3, '0', STR_PAD_LEFT);
         }
-        return str_pad($lencana + 1, 3, '0', STR_PAD_LEFT);
+
+        $allPengguna = Master_pengguna::where('id_perusahaan', $idPerusahaan)->get();
+        $maxVal = 0;
+
+        foreach ($allPengguna as $p) {
+            if (!empty($p->kode_lencana) && is_numeric($p->kode_lencana)) {
+                $maxVal = max($maxVal, (int) $p->kode_lencana);
+            }
+            $list = $p->divisi_list;
+            if (is_array($list)) {
+                foreach ($list as $item) {
+                    if (!empty($item['kode_lencana']) && is_numeric($item['kode_lencana'])) {
+                        $maxVal = max($maxVal, (int) $item['kode_lencana']);
+                    }
+                }
+            }
+        }
+
+        $lastMaxKode = $maxVal + 1;
+        return str_pad($lastMaxKode, 3, '0', STR_PAD_LEFT);
     }
 }

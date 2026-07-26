@@ -69,6 +69,7 @@ class Master_pengguna extends Model
         'nik',
         'name',
         'id_divisi',
+        'divisi_list',
         'jenis_kelamin',
         'tempat_lahir',
         'tanggal_lahir',
@@ -89,11 +90,13 @@ class Master_pengguna extends Model
 
     protected $appends = [
         'pengguna_hash',
-        'radiasi'
+        'radiasi',
+        'divisi_list_detail'
     ];
 
     protected $casts = [
         'id_radiasi' => 'array',
+        'divisi_list' => 'array',
         'status' => 'integer',
         'id_pengguna' => 'integer',
         'id_perusahaan' => 'integer',
@@ -113,6 +116,43 @@ class Master_pengguna extends Model
         $decodeArr = is_array($decodeArr) ? $decodeArr : [];
 
         return Master_radiasi::whereIn('id_radiasi', $decodeArr)->get();
+    }
+
+    public function getDivisiListDetailAttribute()
+    {
+        $list = $this->divisi_list;
+        if (!is_array($list) || empty($list)) {
+            // Backward compatibility jika divisi_list belum terisi tapi id_divisi atau kode_lencana ada
+            if ($this->id_divisi || $this->kode_lencana) {
+                $div = $this->id_divisi ? Master_divisi::withTrashed()->find($this->id_divisi) : null;
+                return [
+                    [
+                        'id_divisi' => $this->id_divisi ? (int) $this->id_divisi : null,
+                        'divisi_hash' => $this->id_divisi ? encryptor($this->id_divisi) : null,
+                        'name' => $div ? $div->name : '-',
+                        'kode_lencana' => $this->kode_lencana ?? '-'
+                    ]
+                ];
+            }
+            return [];
+        }
+
+        $divisiIds = array_filter(array_column($list, 'id_divisi'));
+        $divisiModels = !empty($divisiIds) ? Master_divisi::withTrashed()->whereIn('id_divisi', $divisiIds)->get()->keyBy('id_divisi') : collect();
+
+        $result = [];
+        foreach ($list as $item) {
+            $idDiv = $item['id_divisi'] ?? null;
+            $divModel = $idDiv ? $divisiModels->get($idDiv) : null;
+            $result[] = [
+                'id_divisi' => $idDiv ? (int) $idDiv : null,
+                'divisi_hash' => $idDiv ? encryptor($idDiv) : null,
+                'name' => $divModel ? $divModel->name : ($idDiv ? 'Divisi Terhapus' : 'Tanpa Divisi'),
+                'kode_lencana' => $item['kode_lencana'] ?? '-'
+            ];
+        }
+
+        return $result;
     }
 
     /**

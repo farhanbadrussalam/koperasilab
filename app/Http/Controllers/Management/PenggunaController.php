@@ -59,10 +59,26 @@ class PenggunaController extends Controller
         return DataTables::of($pengguna)
             ->addIndexColumn()
             ->addColumn('pengguna_info', function ($row) {
+                $divList = $row->divisi_list_detail;
+                $kodes = [];
+                if (!empty($divList)) {
+                    foreach ($divList as $dItem) {
+                        if (!empty($dItem['kode_lencana'])) {
+                            $kodes[] = $dItem['kode_lencana'];
+                        }
+                    }
+                }
+                $kodeStr = !empty($kodes) ? implode(', ', array_unique($kodes)) : ($row->kode_lencana ?? '-');
+
                 return '<div class="fw-bold text-dark">' . $row->name . '</div>
-                        <div class="text-muted small">KODE: ' . $row->kode_lencana . '</div>';
+                        <div class="text-muted small">KODE: ' . $kodeStr . '</div>';
             })
             ->addColumn('divisi_info', function ($row) {
+                $divList = $row->divisi_list_detail;
+                if (!empty($divList)) {
+                    $names = array_column($divList, 'name');
+                    return implode(', ', array_unique($names));
+                }
                 return $row->divisi ? $row->divisi->name : '-';
             })
             ->addColumn('radiasi_info', function ($row) {
@@ -109,7 +125,7 @@ class PenggunaController extends Controller
                 }
             })
             ->addColumn('action', function ($row) use ($type, $selected) {
-                $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
+                $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : asset('/images/not-found.png');
                 $btn = '<div class="btn-group">';
                 $btn .= '<a class="btn btn-sm btn-outline-secondary show-popup-image" href="' . $fileKtp. '"><i class="bi bi-file-person-fill"></i></a>';
 
@@ -117,7 +133,7 @@ class PenggunaController extends Controller
                     $btn .= '<button class="btn btn-sm btn-outline-primary" data-id="' . $row->pengguna_hash . '" onclick="btnPilih(this)"><i class="bi bi-check"></i> Pilih</button>' ;
                 } else {
                     if($row->status != 3){
-                        $btn .= '<button onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></button>';
+                        $btn .= '<button onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="btn btn-sm btn-outline-primary btn-edit-pengguna"><i class="bi bi-pencil-square"></i></button>';
                     }
 
                     if($row->status == 1){
@@ -129,9 +145,7 @@ class PenggunaController extends Controller
                 return $btn;
             })
             ->addColumn('html', function ($row) use ($type, $selected) {
-                $initial = isset($row->name) ? strtoupper(substr($row->name, 0, 1)) : '?';
-
-                $fileKtp = $row->media_ktp ? asset('/storage/' . $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
+                $fileKtp = $row->media_ktp ? asset('/storage/' . $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : asset('/images/not-found.png');
 
                 $btn2 = '';
                 $btn = '<div class="btn-group">';
@@ -225,16 +239,50 @@ class PenggunaController extends Controller
                     $htmlRadiasi .= '</div>';
                 }
 
+                // Render multi-divisi list dengan indikator kontrak aktif
+                $htmlDivisiKode = '<div class="d-flex flex-wrap align-items-center gap-2 mt-1">';
+                $divList = $row->divisi_list_detail;
+                if (!empty($divList)) {
+                    foreach ($divList as $dItem) {
+                        $divName = $dItem['name'] ?? '-';
+                        $kLencana = $dItem['kode_lencana'] ?? '-';
+                        
+                        $isKontrakAktif = false;
+                        if ($dItem['id_divisi']) {
+                            $isKontrakAktif = \App\Models\Kontrak_detail::where('jenis', 'pengguna')
+                                ->where('id_pengguna_divisi', $row->id_pengguna)
+                                ->where('status', 1)
+                                ->where(function ($q) use ($dItem) {
+                                    $q->where('id_divisi_selected', $dItem['id_divisi'])
+                                      ->orWhereNull('id_divisi_selected');
+                                })
+                                ->whereHas('kontrak', fn($q) => $q->where('status', 1))
+                                ->exists();
+                        }
+
+                        $activeBadge = $isKontrakAktif ? ' <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;" title="Divisi ini masih terikat pada kontrak aktif"><i class="bi bi-lock-fill me-1"></i>Kontrak Aktif</span>' : '';
+
+                        $htmlDivisiKode .= '
+                            <div class="border rounded px-2 py-1 bg-light d-inline-flex align-items-center gap-1">
+                                <span class="badge bg-secondary" style="font-size: 0.7rem;">KODE: ' . $kLencana . '</span>
+                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">' . $divName . '</span>
+                                ' . $activeBadge . '
+                            </div>
+                        ';
+                    }
+                } else {
+                    $htmlDivisiKode .= '
+                        <span class="badge bg-light text-secondary border">KODE: ' . ($row->kode_lencana ?? '-') . '</span>
+                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">' . ($row->divisi?->name ?? '-') . '</span>
+                    ';
+                }
+                $htmlDivisiKode .= '</div>';
+
                 return '
                     <div class="d-flex align-items-center w-100 p-2 rounded-3 hover-bg-light transition-all border-bottom">
                         <div class="me-3 flex-grow-1">
                             <h6 class="mb-0 fw-bold text-dark">' . $row->name . '</h6>
-                            <div class="d-flex align-items-center gap-2 mt-1">
-                                <span class="badge bg-light text-secondary border">KODE: ' . $row->kode_lencana . '</span>
-                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">
-                                    ' . ($row->divisi?->name ?? '-') . '
-                                </span>
-                            </div>
+                            ' . $htmlDivisiKode . '
                             ' . $htmlRadiasi . '
                         </div>
 

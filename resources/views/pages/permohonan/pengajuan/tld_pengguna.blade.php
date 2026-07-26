@@ -60,24 +60,13 @@
             <div class="modal-body g-2">
                 <div id="loading-tambah-pengguna" class="text-center"></div>
                 <form id="form-tambah-pengguna" class="row">
-                    <div class="col-4">
+                    <div class="col-6">
                         <label for="nik_pengguna" class="col-form-label">NIK <span
                                 class="text-danger ms-1">*</span></label>
                         <input type="text" name="nik_pengguna" id="nik_pengguna" class="form-control maskNIK"
                             data-parsley-required="true">
                     </div>
-                    <div class="col-4">
-                        <label for="kode_lencana" class="col-form-label">Kode Lencana <span
-                                class="text-danger ms-1">*</span></label>
-                        <div class="input-group">
-                            <input type="text" name="kode_lencana" id="kode_lencana" class="form-control maskNumber"
-                                data-parsley-required="true">
-                            <div class="input-group-text rounded-end">
-                                <input type="checkbox" name="is_aktif" id="is_aktif" class="form-check-input mt-0">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-4">
+                    <div class="col-6">
                         <label for="nama_pengguna" class="col-form-label">Nama Pengguna <span
                                 class="text-danger ms-1">*</span></label>
                         <input type="text" name="nama_pengguna" id="nama_pengguna" class="form-control"
@@ -101,11 +90,23 @@
                             <option value="perempuan">Perempuan</option>
                         </select>
                     </div>
-                    <div class="col-12">
-                        <label for="divisi_pengguna" class="col-form-label">Divisi Pengguna</label>
-                        <select name="divisi_pengguna" id="divisi_pengguna" class="form-select"></select>
+
+                    <!-- Multi-Divisi & Kode Lencana -->
+                    <div class="col-12 mt-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="col-form-label fw-bold">Divisi & Kode Lencana Pengguna <span
+                                    class="text-danger">*</span></label>
+                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill"
+                                id="btn-add-divisi-row">
+                                <i class="bi bi-plus-lg me-1"></i> Tambah Divisi
+                            </button>
+                        </div>
+                        <div id="container-divisi-rows" class="d-flex flex-column gap-2">
+                            <!-- Rows divisi dimasukkan secara dinamis via PenggunaForm.js -->
+                        </div>
                     </div>
-                    <div class="col-12">
+
+                    <div class="col-12 mt-2">
                         <label for="jenis_radiasi" class="col-form-label">Jenis/Energi Radiasi</label>
                         <select name="jenis_radiasi" id="jenis_radiasi" class="form-select"
                             multiple="multiple"></select>

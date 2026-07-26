@@ -39,15 +39,18 @@ $(function () {
 
     datatable_.on('draw.dt', function () {
         showPopupReload();
-        $('.btn-edit-pengguna').on('click', function () {
-            const id = $(this).data('id');
-            penggunaForm.showEdit(id);
-        })
     });
 })
 
 function tambahPengguna(){
     penggunaForm.showAdd();
+}
+
+function editPengguna(obj){
+    const id = $(obj).data('id');
+    if (penggunaForm) {
+        penggunaForm.showEdit(id);
+    }
 }
 
 

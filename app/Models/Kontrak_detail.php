@@ -79,6 +79,7 @@ class Kontrak_detail extends Model
 
     protected $casts = [
         'id_pengguna_divisi' => 'integer',
+        'id_divisi_selected' => 'integer',
         'tld_1' => 'integer',
         'tld_2' => 'integer',
         'id_kontrak' => 'integer',
@@ -103,6 +104,11 @@ class Kontrak_detail extends Model
     public function entitas()
     {
         return $this->morphTo(null, 'jenis', 'id_pengguna_divisi');
+    }
+
+    public function divisiSelected()
+    {
+        return $this->belongsTo(Master_divisi::class, 'id_divisi_selected', 'id_divisi')->withTrashed();
     }
 
     public function tld_1()
