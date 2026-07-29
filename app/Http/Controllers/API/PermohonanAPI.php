@@ -1066,6 +1066,7 @@ class PermohonanAPI extends Controller
                 'kontrak.layanan_jasa:id_layanan,nama_layanan',
                 'kontrak.jenisTld:id_jenisTld,name',
                 'permohonan_detail',
+                'permohonan_detail.divisiSelected',
                 'permohonan_detail.tld',
                 'permohonan_detail.penggunaLama',
                 'permohonan_detail.entitas' => function (MorphTo $morphTo) {
