@@ -90,8 +90,8 @@ $(function () {
     })
 
     document.addEventListener('pengguna.pilih', (event) => {
-        const obj = event.detail.html;
-        btnPilihPengguna(obj);
+        const detail = event.detail;
+        btnPilihPengguna(detail.html, detail.data);
     })
 
     document.addEventListener('pengguna.hide', (event) => {
@@ -138,6 +138,8 @@ function simpanAdendum(obj) {
         .map(value => ({
             pengguna: value.pengguna.pengguna_hash,
             pengguna_baru: value.pengguna_baru?.pengguna_hash,
+            id_divisi_selected: value.id_divisi_selected || null,
+            kode_lencana_selected: value.kode_lencana_selected || null,
             status: value.status,
             tld: value.tld ? value.tld.tld_hash : null
         }));
@@ -359,7 +361,8 @@ function loadHtmlPengguna() {
                 index: i,
                 idHash: pengguna.pengguna_hash,
                 name: pengguna.name,
-                divisi: pengguna.divisi?.name || '',
+                divisi: value.divisi_name ? value.divisi_name : (pengguna.divisi?.name || (value.id_divisi_selected ? `Divisi #${value.id_divisi_selected}` : '-')),
+                kode_lencana: value.kode_lencana_selected || pengguna.kode_lencana || '',
                 isCheckedEvaluasi: false,
                 radiasi: pengguna.radiasi?.map(d => d.nama_radiasi),
                 fileKtp: fileKtp,
@@ -458,8 +461,8 @@ function loadHtmlKontrol() {
     calcPrice();
 }
 
-function btnPilihPengguna(obj) {
-    let id = $(obj).data('id');
+function btnPilihPengguna(obj, extraData = null) {
+    let id = extraData && extraData.id ? extraData.id : $(obj).data('id');
 
     const data = arrOption.pengguna.find(v => v.pengguna.pengguna_hash == id)
 
@@ -490,6 +493,8 @@ function btnPilihPengguna(obj) {
                     status: 'ganti',
                     pengguna: pengguna_old,
                     pengguna_baru: result.data,
+                    id_divisi_selected: extraData ? extraData.id_divisi : null,
+                    kode_lencana_selected: extraData ? extraData.kode_lencana : null,
                     tld: false
                 }
             } else {
@@ -497,6 +502,8 @@ function btnPilihPengguna(obj) {
                     status: 'baru',
                     pengguna: result.data,
                     pengguna_baru: false,
+                    id_divisi_selected: extraData ? extraData.id_divisi : null,
+                    kode_lencana_selected: extraData ? extraData.kode_lencana : null,
                     tld: false
                 }
             }

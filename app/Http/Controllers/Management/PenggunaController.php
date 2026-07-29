@@ -63,12 +63,17 @@ class PenggunaController extends Controller
                 $kodes = [];
                 if (!empty($divList)) {
                     foreach ($divList as $dItem) {
-                        if (!empty($dItem['kode_lencana'])) {
-                            $kodes[] = $dItem['kode_lencana'];
+                        if (!empty($dItem['kode_lencana']) && $dItem['kode_lencana'] !== '-') {
+                            if (!in_array($dItem['kode_lencana'], $kodes)) {
+                                $kodes[] = $dItem['kode_lencana'];
+                            }
                         }
                     }
                 }
-                $kodeStr = !empty($kodes) ? implode(', ', array_unique($kodes)) : ($row->kode_lencana ?? '-');
+                if (empty($kodes) && $row->kode_lencana && $row->kode_lencana !== '-') {
+                    $kodes[] = $row->kode_lencana;
+                }
+                $kodeStr = !empty($kodes) ? implode(', ', $kodes) : ($row->kode_lencana ?? '-');
 
                 return '<div class="fw-bold text-dark">' . $row->name . '</div>
                         <div class="text-muted small">KODE: ' . $kodeStr . '</div>';
@@ -77,7 +82,7 @@ class PenggunaController extends Controller
                 $divList = $row->divisi_list_detail;
                 if (!empty($divList)) {
                     $names = array_column($divList, 'name');
-                    return implode(', ', array_unique($names));
+                    return implode(', ', array_unique(array_filter($names)));
                 }
                 return $row->divisi ? $row->divisi->name : '-';
             })
@@ -113,16 +118,33 @@ class PenggunaController extends Controller
                 return $htmlRadiasi;
             })
             ->editColumn('status', function ($row) {
-                switch ($row->status) {
-                    case 1:
-                        return '<span class="badge rounded text-bg-danger">Tidak Aktif</span>';
-                    case 2:
-                        return '<span class="badge rounded text-bg-secondary">Pengajuan</span>';
-                    case 3:
-                        return '<span class="badge rounded text-bg-success">Aktif</span>';
-                    default:
-                        return '';
+                // Ambil daftar kontrak aktif milik pengguna ini
+                $kontrakDetails = \App\Models\Kontrak_detail::with(['kontrak', 'kontrak.pelanggan.perusahaan', 'kontrak.jenisTld', 'divisiSelected'])
+                    ->where('jenis', 'pengguna')
+                    ->where('id_pengguna_divisi', $row->id_pengguna)
+                    ->where('status', 1)
+                    ->whereHas('kontrak', fn($q) => $q->where('status', 1))
+                    ->get();
+
+                $allContracts = [];
+                foreach ($kontrakDetails as $kd) {
+                    $allContracts[] = [
+                        'no_kontrak' => $kd->kontrak?->no_kontrak ?? '-',
+                        'perusahaan' => $kd->kontrak?->pelanggan?->perusahaan?->nama_perusahaan ?? '-',
+                        'layanan' => $kd->kontrak?->jenisTld?->name ?? ($kd->kontrak?->layanan ?? '-'),
+                        'periode' => $kd->periode ? "Periode {$kd->periode}" : '-',
+                        'kode_lencana' => $kd->kode_lencana_selected ?? '-',
+                        'divisi' => $kd->divisiSelected?->name ?? '-'
+                    ];
                 }
+
+                if (!empty($allContracts)) {
+                    $count = count($allContracts);
+                    $jsonContracts = htmlspecialchars(json_encode($allContracts), ENT_QUOTES, 'UTF-8');
+                    return '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill py-1 px-3 cursor-pointer btn-detail-keterikatan" data-contracts="' . $jsonContracts . '" title="Klik untuk melihat detail kontrak aktif"><i class="bi bi-info-circle-fill me-1"></i> ' . $count . ' Kontrak Aktif</span>';
+                }
+
+                return '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill py-1 px-3">Tersedia</span>';
             })
             ->addColumn('action', function ($row) use ($type, $selected) {
                 $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : asset('/images/not-found.png');
@@ -239,51 +261,104 @@ class PenggunaController extends Controller
                     $htmlRadiasi .= '</div>';
                 }
 
-                // Render multi-divisi list dengan indikator kontrak aktif
-                $htmlDivisiKode = '<div class="d-flex flex-wrap align-items-center gap-2 mt-1">';
+                // Render multi-divisi list dengan preview max 2 divisi + popover detail kontrak
+                $htmlDivisiKode = '<div class="d-flex flex-wrap align-items-center gap-1 mt-1">';
                 $divList = $row->divisi_list_detail;
+
+                $renderedCards = [];
+
                 if (!empty($divList)) {
                     foreach ($divList as $dItem) {
                         $divName = $dItem['name'] ?? '-';
                         $kLencana = $dItem['kode_lencana'] ?? '-';
-                        
-                        $isKontrakAktif = false;
-                        if ($dItem['id_divisi']) {
-                            $isKontrakAktif = \App\Models\Kontrak_detail::where('jenis', 'pengguna')
+
+                        $contracts = [];
+                        if ($dItem['id_divisi'] || $dItem['kode_lencana']) {
+                            $kontrakDetails = \App\Models\Kontrak_detail::with(['kontrak', 'kontrak.pelanggan.perusahaan', 'kontrak.jenisTld'])
+                                ->where('jenis', 'pengguna')
                                 ->where('id_pengguna_divisi', $row->id_pengguna)
                                 ->where('status', 1)
                                 ->where(function ($q) use ($dItem) {
-                                    $q->where('id_divisi_selected', $dItem['id_divisi'])
-                                      ->orWhereNull('id_divisi_selected');
+                                    if (!empty($dItem['id_divisi'])) {
+                                        $q->where('id_divisi_selected', $dItem['id_divisi']);
+                                    }
+                                    if (!empty($dItem['kode_lencana']) && $dItem['kode_lencana'] !== '-') {
+                                        $q->orWhere('kode_lencana_selected', $dItem['kode_lencana']);
+                                    }
                                 })
                                 ->whereHas('kontrak', fn($q) => $q->where('status', 1))
-                                ->exists();
+                                ->get();
+
+                            foreach ($kontrakDetails as $kd) {
+                                $noKontrak = $kd->kontrak?->no_kontrak ?? '-';
+                                $perusahaan = $kd->kontrak?->pelanggan?->perusahaan?->nama_perusahaan ?? '-';
+                                $layanan = $kd->kontrak?->jenisTld?->name ?? ($kd->kontrak?->jenisTld?->name ?? '-');
+                                $periode = $kd->periode ? "Periode {$kd->periode}" : '-';
+
+                                $contracts[] = [
+                                    'no_kontrak' => $noKontrak,
+                                    'perusahaan' => $perusahaan,
+                                    'layanan' => $layanan,
+                                    'periode' => $periode,
+                                    'divisi' => $divName,
+                                    'kode_lencana' => $kLencana
+                                ];
+                            }
                         }
 
-                        $activeBadge = $isKontrakAktif ? ' <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;" title="Divisi ini masih terikat pada kontrak aktif"><i class="bi bi-lock-fill me-1"></i>Kontrak Aktif</span>' : '';
+                        $infoBtn = '';
+                        if (!empty($contracts)) {
+                            $jsonContracts = htmlspecialchars(json_encode($contracts), ENT_QUOTES, 'UTF-8');
+                            $infoBtn = '<button type="button" class="btn btn-xs btn-outline-info rounded-circle p-0 d-inline-flex justify-content-center align-items-center btn-detail-keterikatan ms-1" style="width: 18px; height: 18px;" data-contracts="' . $jsonContracts . '" title="Lihat History Kontrak Aktif"><i class="bi bi-info-circle-fill" style="font-size: 0.65rem;"></i></button>';
+                        }
 
-                        $htmlDivisiKode .= '
-                            <div class="border rounded px-2 py-1 bg-light d-inline-flex align-items-center gap-1">
+                        $renderedCards[] = '
+                            <div class="border rounded px-2 py-1 bg-light d-inline-flex align-items-center gap-1 mb-1">
                                 <span class="badge bg-secondary" style="font-size: 0.7rem;">KODE: ' . $kLencana . '</span>
                                 <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">' . $divName . '</span>
-                                ' . $activeBadge . '
+                                ' . $infoBtn . '
                             </div>
                         ';
                     }
                 } else {
-                    $htmlDivisiKode .= '
-                        <span class="badge bg-light text-secondary border">KODE: ' . ($row->kode_lencana ?? '-') . '</span>
-                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">' . ($row->divisi?->name ?? '-') . '</span>
+                    $renderedCards[] = '
+                        <div class="border rounded px-2 py-1 bg-light d-inline-flex align-items-center gap-1 mb-1">
+                            <span class="badge bg-light text-secondary border">KODE: ' . ($row->kode_lencana ?? '-') . '</span>
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">' . ($row->divisi?->name ?? '-') . '</span>
+                        </div>
                     ';
                 }
+
+                if (count($renderedCards) > 2) {
+                    $htmlDivisiKode .= $renderedCards[0] . $renderedCards[1];
+                    $moreCount = count($renderedCards) - 2;
+
+                    $dropdownItems = '<ul class="dropdown-menu p-2 shadow border-0 overflow-hidden" style="max-width: 320px;">';
+                    for ($m = 2; $m < count($renderedCards); $m++) {
+                        $dropdownItems .= '<li class="mb-1">' . $renderedCards[$m] . '</li>';
+                    }
+                    $dropdownItems .= '</ul>';
+
+                    $htmlDivisiKode .= '
+                        <div class="dropup d-inline-block">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle cursor-pointer py-1 px-2 mb-1" data-bs-toggle="dropdown" aria-expanded="false">
+                                +' . $moreCount . ' Divisi Lainnya ▾
+                            </span>
+                            ' . $dropdownItems . '
+                        </div>
+                    ';
+                } else {
+                    $htmlDivisiKode .= implode('', $renderedCards);
+                }
+
                 $htmlDivisiKode .= '</div>';
 
                 return '
                     <div class="d-flex align-items-center w-100 p-2 rounded-3 hover-bg-light transition-all border-bottom">
                         <div class="me-3 flex-grow-1">
                             <h6 class="mb-0 fw-bold text-dark">' . $row->name . '</h6>
-                            ' . $htmlDivisiKode . '
                             ' . $htmlRadiasi . '
+                            ' . $htmlDivisiKode . '
                         </div>
 
                         <div class="me-3">

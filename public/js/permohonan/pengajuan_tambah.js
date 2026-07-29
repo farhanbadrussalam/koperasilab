@@ -176,8 +176,8 @@ class PengajuanTambahManager {
         });
 
         document.addEventListener('pengguna.pilih', (event) => {
-            const obj = event.detail.html;
-            this.btnPilihPengguna(obj);
+            const detail = event.detail;
+            this.btnPilihPengguna(detail.html, detail.data);
         });
     }
 
@@ -578,7 +578,8 @@ class PengajuanTambahManager {
                             index: i,
                             idHash: value.permohonan_detail_hash,
                             name: pengguna.name,
-                            divisi: pengguna.divisi?.name || '',
+                            divisi: value.divisi_selected?.name ? value.divisi_selected.name : (value.id_divisi_selected ? `Divisi #${value.id_divisi_selected}` : '-'),
+                            kode_lencana: value.kode_lencana_selected || '',
                             isCheckedEvaluasi: false,
                             radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
                             fileKtp: fileKtp,
@@ -819,12 +820,17 @@ class PengajuanTambahManager {
     /**
      * Select a user/pengguna and link them to permohonan
      */
-    btnPilihPengguna(obj) {
-        const id = $(obj).length > 0 ? $(obj).data('id') : obj;
+    btnPilihPengguna(obj, data = null) {
+        const id = data && data.id ? data.id : ($(obj).length > 0 ? $(obj).data('id') : obj);
 
         const params = new FormData();
         params.append('idPengguna', id);
         params.append('idPermohonan', this.idPermohonan);
+
+        if (data) {
+            if (data.id_divisi) params.append('idDivisi', data.id_divisi);
+            if (data.kode_lencana) params.append('kodeLencana', data.kode_lencana);
+        }
 
         spinner('show', $(obj));
         ajaxPost(`api/v1/permohonan/tambahPengguna`, params, () => {

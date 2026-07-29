@@ -343,7 +343,7 @@ function cardPenggunaComponent(data, options = {}) {
                             <div>
                                 <h6 class="mb-0 fw-bold text-dark small d-flex gap-2 align-items-center">${data.name} ${htmlPergantian}</h6>
                                 <div>
-                                    <small class="text-muted" style="font-size: 0.75rem;">${data.divisi}</small>
+                                    <small class="text-muted" style="font-size: 0.75rem;">Divisi: ${data.divisi && data.divisi !== '' ? data.divisi : '-'}${data.kode_lencana ? ` | Kode Lencana: ${data.kode_lencana}` : ''}</small>
                                 </div>
                                 <div class="d-flex flex-wrap gap-1 mt-1">
                                     ${txtRadiasi}

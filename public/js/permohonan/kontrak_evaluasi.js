@@ -230,12 +230,13 @@ function loadPengguna(tldPengguna, source) {
                 source
             });
 
-            const dataCard = {
+            let dataCard = {
                 index: i,
                 idHash: id,
                 tldHash: dataTld?.tld_hash,
                 name: pengguna.entitas.name,
-                divisi: pengguna.entitas.divisi?.name || '',
+                divisi: pengguna.divisi_selected?.name ? pengguna.divisi_selected.name : (pengguna.id_divisi_selected ? `Divisi #${pengguna.id_divisi_selected}` : (pengguna.entitas.divisi?.name || '-')),
+                kode_lencana: pengguna.kode_lencana_selected || pengguna.entitas.kode_lencana || '',
                 isCheckedEvaluasi: _isCheckedEvaluasi,
                 radiasi: pengguna.entitas.radiasi?.map(r => r.nama_radiasi),
                 fileKtp: fileKtp,

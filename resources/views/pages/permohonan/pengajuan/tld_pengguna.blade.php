@@ -126,5 +126,41 @@
     </div>
 </div>
 
+<!-- Modal Pilihan Divisi & Kode Lencana Pengguna -->
+<div class="modal fade" id="modal-select-divisi-user" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Pilih Divisi & Kode Lencana</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="text-muted small mb-3">Tentukan Divisi dan Kode Lencana pengguna yang akan digunakan.</p>
+                <form id="form-select-divisi-user">
+                    <input type="hidden" id="select_divisi_user_id">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Nama Pengguna</label>
+                        <input type="text" id="select_divisi_user_name" class="form-control bg-light" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Divisi <span class="text-danger">*</span></label>
+                        <select id="select_divisi_user_id_divisi" class="form-select"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Kode Lencana <span class="text-danger">*</span></label>
+                        <select id="select_divisi_user_kode_lencana" class="form-select"></select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary btn-sm rounded-pill px-4" id="btn-confirm-select-divisi-user">
+                    <i class="bi bi-check-lg me-1"></i> Gunakan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset_versioned('js/component/TldPenggunaSelector.js') }}"></script>
 <script src="{{ asset_versioned('js/component/PenggunaForm.js') }}"></script>

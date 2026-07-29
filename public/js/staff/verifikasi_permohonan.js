@@ -466,12 +466,16 @@ function loadPengguna() {
 
             let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
+            let divisiName = value.divisi_selected?.name ? value.divisi_selected.name : (value.id_divisi_selected ? `Divisi #${value.id_divisi_selected}` : (pengguna.divisi?.name || ''));
+            let kodeLencana = value.kode_lencana_selected || pengguna.kode_lencana || '';
+
             let data = {
                 index: i,
                 idHash: idHash,
                 isCheckedEvaluasi: isCheckedEvaluasi,
                 name: pengguna.name,
-                divisi: pengguna.divisi?.name || '',
+                divisi: divisiName,
+                kode_lencana: kodeLencana,
                 radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
                 no_seri_tld: no_seri_tld,
                 htmlDisabled: htmlDisabled,
