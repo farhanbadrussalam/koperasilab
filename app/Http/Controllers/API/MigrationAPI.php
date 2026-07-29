@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Master_pengguna;
 use App\Models\Permohonan_detail;
 use App\Models\Kontrak_detail;
+use App\Models\Penyelia;
 use App\Traits\RestApi;
 use Auth;
 use DB;
@@ -165,6 +166,53 @@ class MigrationAPI extends Controller
             DB::rollBack();
             info($ex);
             return $this->output(['msg' => 'Gagal melakukan migrasi detail: ' . $ex->getMessage()], 'Fail', 500);
+        }
+    }
+
+    /**
+     * Endpoint migrasi / sinkronisasi completed_at pada tabel penyelia.
+     * Mengambil MAX(done_at) dari tabel penyelia_map untuk penyelia dengan status = 3 atau yang memiliki pekerjaan selesai.
+     * 
+     * Khusus role Superadmin / Developer.
+     */
+    public function migratePenyeliaCompletedAt(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user || !($user->hasRole('Super Admin') || $user->hasRole('Developer'))) {
+            return $this->output(['msg' => 'Akses ditolak. API ini khusus Super Admin.'], 'Fail', 403);
+        }
+
+        DB::beginTransaction();
+        try {
+            $penyelias = Penyelia::with(['penyelia_map' => function ($q) {
+                $q->where('status', 2)->whereNull('point_jobs')->whereNotNull('done_at');
+            }])->get();
+
+            $migratedCount = 0;
+
+            foreach ($penyelias as $penyelia) {
+                $maxDoneAt = $penyelia->penyelia_map->max('done_at');
+                if ($maxDoneAt) {
+                    $penyelia->update([
+                        'completed_at' => $maxDoneAt
+                    ]);
+                    $migratedCount++;
+                }
+            }
+
+            DB::commit();
+
+            return $this->output([
+                'msg' => "Migrasi completed_at penyelia berhasil. Total $migratedCount data diperbarui.",
+                'total_migrated' => $migratedCount,
+                'total_penyelia' => $penyelias->count()
+            ], 200);
+
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            info($ex);
+            return $this->output(['msg' => 'Gagal melakukan migrasi completed_at: ' . $ex->getMessage()], 'Fail', 500);
         }
     }
 }

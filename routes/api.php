@@ -215,6 +215,7 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
     Route::prefix('migration')->controller(MigrationAPI::class)->group(function () {
         Route::post('/pengguna-divisi-list', 'migratePenggunaDivisiList');
         Route::post('/details', 'migrateDetails');
+        Route::post('/penyelia-completed-at', 'migratePenyeliaCompletedAt');
     });
 
     Route::prefix('document')->controller(DocumentController::class)->group(function () {

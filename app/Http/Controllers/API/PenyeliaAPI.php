@@ -851,7 +851,10 @@ class PenyeliaAPI extends Controller
 
         if (!$jobsNext && !$jobsNow->point_jobs) {
             $permohonan = Permohonan::find($penyelia->id_permohonan);
-            $penyelia->update(['status' => 3]);
+            $penyelia->update([
+                'status' => 3,
+                'completed_at' => Carbon::now()
+            ]);
             $permohonan->update(['status' => 4]);
         }
     }
