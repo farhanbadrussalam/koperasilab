@@ -272,51 +272,10 @@ class PenggunaController extends Controller
                         $divName = $dItem['name'] ?? '-';
                         $kLencana = $dItem['kode_lencana'] ?? '-';
 
-                        $contracts = [];
-                        if ($dItem['id_divisi'] || $dItem['kode_lencana']) {
-                            $kontrakDetails = \App\Models\Kontrak_detail::with(['kontrak', 'kontrak.pelanggan.perusahaan', 'kontrak.jenisTld'])
-                                ->where('jenis', 'pengguna')
-                                ->where('id_pengguna_divisi', $row->id_pengguna)
-                                ->where('status', 1)
-                                ->where(function ($q) use ($dItem) {
-                                    if (!empty($dItem['id_divisi'])) {
-                                        $q->where('id_divisi_selected', $dItem['id_divisi']);
-                                    }
-                                    if (!empty($dItem['kode_lencana']) && $dItem['kode_lencana'] !== '-') {
-                                        $q->orWhere('kode_lencana_selected', $dItem['kode_lencana']);
-                                    }
-                                })
-                                ->whereHas('kontrak', fn($q) => $q->where('status', 1))
-                                ->get();
-
-                            foreach ($kontrakDetails as $kd) {
-                                $noKontrak = $kd->kontrak?->no_kontrak ?? '-';
-                                $perusahaan = $kd->kontrak?->pelanggan?->perusahaan?->nama_perusahaan ?? '-';
-                                $layanan = $kd->kontrak?->jenisTld?->name ?? ($kd->kontrak?->jenisTld?->name ?? '-');
-                                $periode = $kd->periode ? "Periode {$kd->periode}" : '-';
-
-                                $contracts[] = [
-                                    'no_kontrak' => $noKontrak,
-                                    'perusahaan' => $perusahaan,
-                                    'layanan' => $layanan,
-                                    'periode' => $periode,
-                                    'divisi' => $divName,
-                                    'kode_lencana' => $kLencana
-                                ];
-                            }
-                        }
-
-                        $infoBtn = '';
-                        if (!empty($contracts)) {
-                            $jsonContracts = htmlspecialchars(json_encode($contracts), ENT_QUOTES, 'UTF-8');
-                            $infoBtn = '<button type="button" class="btn btn-xs btn-outline-info rounded-circle p-0 d-inline-flex justify-content-center align-items-center btn-detail-keterikatan ms-1" style="width: 18px; height: 18px;" data-contracts="' . $jsonContracts . '" title="Lihat History Kontrak Aktif"><i class="bi bi-info-circle-fill" style="font-size: 0.65rem;"></i></button>';
-                        }
-
                         $renderedCards[] = '
                             <div class="border rounded px-2 py-1 bg-light d-inline-flex align-items-center gap-1 mb-1">
                                 <span class="badge bg-secondary" style="font-size: 0.7rem;">KODE: ' . $kLencana . '</span>
                                 <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">' . $divName . '</span>
-                                ' . $infoBtn . '
                             </div>
                         ';
                     }

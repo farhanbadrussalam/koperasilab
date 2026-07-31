@@ -305,8 +305,16 @@ function loadPengguna() {
             status: 'lama',
             pengguna: value.entitas,
             pengguna_baru: false,
+            id_divisi_selected: value.id_divisi_selected || null,
+            kode_lencana_selected: value.kode_lencana_selected || null,
+            divisi_selected: value.divisi_selected || null,
             tld: false
         });
+        if (value.entitas?.pengguna_hash) {
+            if (!pengguna_selected.includes(value.entitas.pengguna_hash)) {
+                pengguna_selected.push(value.entitas.pengguna_hash);
+            }
+        }
     }
 
     loadHtmlPengguna();
@@ -357,11 +365,29 @@ function loadHtmlPengguna() {
 
         const findPergantian = arrOption.pengguna.find(d => d.status == 'ganti' && d.pengguna.pengguna_hash == pengguna.pengguna_hash);
         if (value.status != 'ganti') {
+            let resolvedDivisiName = '';
+            if (value.divisi_name && value.divisi_name !== '-' && value.divisi_name !== '') {
+                resolvedDivisiName = value.divisi_name;
+            } else if (value.divisi_selected?.name && value.divisi_selected.name !== '-' && value.divisi_selected.name !== '') {
+                resolvedDivisiName = value.divisi_selected.name;
+            } else if (value.id_divisi_selected && pengguna?.divisi_list_detail) {
+                let divFound = pengguna.divisi_list_detail.find(d => 
+                    (d.divisi_hash && d.divisi_hash == value.id_divisi_selected) || 
+                    (d.id_divisi && d.id_divisi == value.id_divisi_selected)
+                );
+                resolvedDivisiName = divFound?.name || (pengguna.divisi?.name || 'Tanpa Divisi');
+            } else if (value.kode_lencana_selected && pengguna?.divisi_list_detail) {
+                let divFound = pengguna.divisi_list_detail.find(d => d.kode_lencana == value.kode_lencana_selected);
+                resolvedDivisiName = divFound?.name || (pengguna.divisi?.name || 'Tanpa Divisi');
+            } else {
+                resolvedDivisiName = pengguna.divisi?.name || 'Tanpa Divisi';
+            }
+
             const data = {
                 index: i,
                 idHash: pengguna.pengguna_hash,
                 name: pengguna.name,
-                divisi: value.divisi_name ? value.divisi_name : (pengguna.divisi?.name || (value.id_divisi_selected ? `Divisi #${value.id_divisi_selected}` : '-')),
+                divisi: resolvedDivisiName,
                 kode_lencana: value.kode_lencana_selected || pengguna.kode_lencana || '',
                 isCheckedEvaluasi: false,
                 radiasi: pengguna.radiasi?.map(d => d.nama_radiasi),
@@ -495,6 +521,7 @@ function btnPilihPengguna(obj, extraData = null) {
                     pengguna_baru: result.data,
                     id_divisi_selected: extraData ? extraData.id_divisi : null,
                     kode_lencana_selected: extraData ? extraData.kode_lencana : null,
+                    divisi_name: extraData ? extraData.divisi_name : null,
                     tld: false
                 }
             } else {
@@ -504,6 +531,7 @@ function btnPilihPengguna(obj, extraData = null) {
                     pengguna_baru: false,
                     id_divisi_selected: extraData ? extraData.id_divisi : null,
                     kode_lencana_selected: extraData ? extraData.kode_lencana : null,
+                    divisi_name: extraData ? extraData.divisi_name : null,
                     tld: false
                 }
             }

@@ -574,11 +574,27 @@ class PengajuanTambahManager {
                         const pengguna = value.entitas;
                         const fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
+                        let resolvedDivisiName = '';
+                        if (value.divisi_selected?.name && value.divisi_selected.name !== '-' && value.divisi_selected.name !== '') {
+                            resolvedDivisiName = value.divisi_selected.name;
+                        } else if (value.id_divisi_selected && pengguna?.divisi_list_detail) {
+                            let divFound = pengguna.divisi_list_detail.find(d => 
+                                (d.divisi_hash && d.divisi_hash == value.id_divisi_selected) || 
+                                (d.id_divisi && d.id_divisi == value.id_divisi_selected)
+                            );
+                            resolvedDivisiName = divFound?.name || (pengguna.divisi?.name || 'Tanpa Divisi');
+                        } else if (value.kode_lencana_selected && pengguna?.divisi_list_detail) {
+                            let divFound = pengguna.divisi_list_detail.find(d => d.kode_lencana == value.kode_lencana_selected);
+                            resolvedDivisiName = divFound?.name || (pengguna.divisi?.name || 'Tanpa Divisi');
+                        } else {
+                            resolvedDivisiName = pengguna.divisi?.name || 'Tanpa Divisi';
+                        }
+
                         const dataCard = {
                             index: i,
                             idHash: value.permohonan_detail_hash,
                             name: pengguna.name,
-                            divisi: value.divisi_selected?.name ? value.divisi_selected.name : (value.id_divisi_selected ? `Divisi #${value.id_divisi_selected}` : '-'),
+                            divisi: resolvedDivisiName,
                             kode_lencana: value.kode_lencana_selected || '',
                             isCheckedEvaluasi: false,
                             radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
