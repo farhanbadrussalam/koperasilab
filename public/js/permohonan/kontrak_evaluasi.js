@@ -230,12 +230,28 @@ function loadPengguna(tldPengguna, source) {
                 source
             });
 
+            let resolvedDivisiName = '';
+            if (pengguna.divisi_selected?.name && pengguna.divisi_selected.name !== '-' && pengguna.divisi_selected.name !== '') {
+                resolvedDivisiName = pengguna.divisi_selected.name;
+            } else if (pengguna.id_divisi_selected && pengguna.entitas?.divisi_list_detail) {
+                let divFound = pengguna.entitas.divisi_list_detail.find(d => 
+                    (d.divisi_hash && d.divisi_hash == pengguna.id_divisi_selected) || 
+                    (d.id_divisi && d.id_divisi == pengguna.id_divisi_selected)
+                );
+                resolvedDivisiName = divFound?.name || (pengguna.entitas?.divisi?.name || 'Tanpa Divisi');
+            } else if (pengguna.kode_lencana_selected && pengguna.entitas?.divisi_list_detail) {
+                let divFound = pengguna.entitas.divisi_list_detail.find(d => d.kode_lencana == pengguna.kode_lencana_selected);
+                resolvedDivisiName = divFound?.name || (pengguna.entitas?.divisi?.name || 'Tanpa Divisi');
+            } else {
+                resolvedDivisiName = pengguna.entitas?.divisi?.name || 'Tanpa Divisi';
+            }
+
             let dataCard = {
                 index: i,
                 idHash: id,
                 tldHash: dataTld?.tld_hash,
                 name: pengguna.entitas.name,
-                divisi: pengguna.divisi_selected?.name ? pengguna.divisi_selected.name : (pengguna.id_divisi_selected ? `Divisi #${pengguna.id_divisi_selected}` : (pengguna.entitas.divisi?.name || '-')),
+                divisi: resolvedDivisiName,
                 kode_lencana: pengguna.kode_lencana_selected || pengguna.entitas.kode_lencana || '',
                 isCheckedEvaluasi: _isCheckedEvaluasi,
                 radiasi: pengguna.entitas.radiasi?.map(r => r.nama_radiasi),
