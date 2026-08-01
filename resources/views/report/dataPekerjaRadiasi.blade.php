@@ -151,7 +151,15 @@
                         @endphp
                         <tr>
                             <td class="text-center">{{ $no++ }}.</td>
-                            <td>{{ $tld->entitas->name ?? '-' }}</td>
+                            <td>
+                                {{ $tld->entitas->name ?? '-' }}
+                                @php
+                                    $kodeLencanaVal = $tld->kode_lencana_selected ?? ($tld->entitas->kode_lencana ?? '');
+                                @endphp
+                                @if($kodeLencanaVal && $kodeLencanaVal !== '-')
+                                    <br><small style="font-size: 7.5pt; color: #555;">(Kode: {{ $kodeLencanaVal }})</small>
+                                @endif
+                            </td>
                             <td class="text-center">{{ $tld->tld_awal->no_seri_tld ?? '-' }}</td>
                             <td class="text-center">{{ $tld->entitas->nik ?? '-' }}</td>
                             <td class="text-center">

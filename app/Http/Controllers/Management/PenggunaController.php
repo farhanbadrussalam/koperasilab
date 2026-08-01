@@ -190,11 +190,23 @@ class PenggunaController extends Controller
 
                 $status = '';
                 if ($type == 'selected') {
-                    $find = Arr::first($selected, function ($value, $key) use ($row) {
-                        return $value == $row->pengguna_hash;
-                    });
-                    if ($find) {
-                        $btn .= '<span class="text-success"><i class="bi bi-check"></i> Terpilih</span>';
+                    $usedCount = 0;
+                    if (!empty($selected) && is_array($selected)) {
+                        foreach ($selected as $sItem) {
+                            if (is_string($sItem)) {
+                                $parts = explode(':', $sItem);
+                                if ($parts[0] === $row->pengguna_hash) {
+                                    $usedCount++;
+                                }
+                            } elseif (is_array($sItem) && isset($sItem['pengguna_hash']) && $sItem['pengguna_hash'] === $row->pengguna_hash) {
+                                $usedCount++;
+                            }
+                        }
+                    }
+                    $divCount = !empty($row->divisi_list_detail) ? count($row->divisi_list_detail) : 1;
+
+                    if ($usedCount >= $divCount) {
+                        $btn .= '<span class="text-success small fw-bold"><i class="bi bi-check-lg me-1"></i> Terpilih</span>';
                     } else {
                         $btn .= '<button class="btn btn-sm btn-outline-primary align-self-center btn-pilih-user" data-id="' . $row->pengguna_hash . '"> Pilih</button>';
                     }

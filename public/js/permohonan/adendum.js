@@ -311,8 +311,9 @@ function loadPengguna() {
             tld: false
         });
         if (value.entitas?.pengguna_hash) {
-            if (!pengguna_selected.includes(value.entitas.pengguna_hash)) {
-                pengguna_selected.push(value.entitas.pengguna_hash);
+            let comboKey = `${value.entitas.pengguna_hash}:${value.id_divisi_selected || ''}:${value.kode_lencana_selected || ''}`;
+            if (!pengguna_selected.includes(comboKey)) {
+                pengguna_selected.push(comboKey);
             }
         }
     }
@@ -490,80 +491,99 @@ function loadHtmlKontrol() {
 function btnPilihPengguna(obj, extraData = null) {
     let id = extraData && extraData.id ? extraData.id : $(obj).data('id');
 
-    const data = arrOption.pengguna.find(v => v.pengguna.pengguna_hash == id)
+    // Cek apakah kombinasi Pengguna + Divisi & Kode Lencana ini sudah ada
+    const isSameCombo = arrOption.pengguna.find(v => {
+        let vHash = v.pengguna?.pengguna_hash || v.pengguna;
+        let sameUser = (vHash == id);
+        let sameDiv = extraData ? (v.id_divisi_selected == extraData.id_divisi) : true;
+        let sameKode = extraData ? (v.kode_lencana_selected == extraData.kode_lencana) : true;
+        return sameUser && sameDiv && sameKode;
+    });
 
-    if (!data) {
-        ajaxGet(`api/v1/pengguna/getDataById/${id}`, false, result => {
-            let params = {};
-
-            if (pengguna_old) {
-                // hapus pengguna baru yang double
-                arrOption.pengguna.findIndex((value, index) => {
-                    if (value) {
-                        if (value?.pengguna?.pengguna_hash == pengguna_old.pengguna_hash && value.status == 'ganti') {
-                            pengguna_selected.findIndex((value_2, index) => {
-                                if (value_2) {
-                                    if (value_2 == value.pengguna_baru.pengguna_hash) {
-                                        pengguna_selected.splice(index, 1);
-                                        return false;
-                                    }
-                                }
-                            })
-                            arrOption.pengguna.splice(index, 1);
-                            return false;
-                        }
-                    }
-                })
-
-                params = {
-                    status: 'ganti',
-                    pengguna: pengguna_old,
-                    pengguna_baru: result.data,
-                    id_divisi_selected: extraData ? extraData.id_divisi : null,
-                    kode_lencana_selected: extraData ? extraData.kode_lencana : null,
-                    divisi_name: extraData ? extraData.divisi_name : null,
-                    tld: false
-                }
-            } else {
-                params = {
-                    status: 'baru',
-                    pengguna: result.data,
-                    pengguna_baru: false,
-                    id_divisi_selected: extraData ? extraData.id_divisi : null,
-                    kode_lencana_selected: extraData ? extraData.kode_lencana : null,
-                    divisi_name: extraData ? extraData.divisi_name : null,
-                    tld: false
-                }
-            }
-
-            arrOption.pengguna.push(params);
-
-            $('#modal-add-tld-pengguna').modal('hide');
-
-            pengguna_selected.push(result.data.pengguna_hash);
-            loadHtmlPengguna();
-        })
-    } else {
+    if (isSameCombo) {
         $('#modal-add-tld-pengguna').modal('hide');
+        return Swal.fire({
+            icon: 'warning',
+            text: 'Pengguna ini dengan divisi & kode lencana tersebut sudah ditambahkan!'
+        });
     }
+
+    ajaxGet(`api/v1/pengguna/getDataById/${id}`, false, result => {
+        let params = {};
+
+        if (pengguna_old) {
+            // hapus pengguna baru yang double
+            arrOption.pengguna.findIndex((value, index) => {
+                if (value) {
+                    if (value?.pengguna?.pengguna_hash == pengguna_old.pengguna_hash && value.status == 'ganti') {
+                        let oldComboKey = `${value.pengguna_baru?.pengguna_hash}:${value.id_divisi_selected || ''}:${value.kode_lencana_selected || ''}`;
+                        let selIdx = pengguna_selected.indexOf(oldComboKey);
+                        if (selIdx !== -1) pengguna_selected.splice(selIdx, 1);
+                        arrOption.pengguna.splice(index, 1);
+                        return false;
+                    }
+                }
+            })
+
+            params = {
+                status: 'ganti',
+                pengguna: pengguna_old,
+                pengguna_baru: result.data,
+                id_divisi_selected: extraData ? extraData.id_divisi : null,
+                kode_lencana_selected: extraData ? extraData.kode_lencana : null,
+                divisi_name: extraData ? extraData.divisi_name : null,
+                tld: false
+            }
+        } else {
+            params = {
+                status: 'baru',
+                pengguna: result.data,
+                pengguna_baru: false,
+                id_divisi_selected: extraData ? extraData.id_divisi : null,
+                kode_lencana_selected: extraData ? extraData.kode_lencana : null,
+                divisi_name: extraData ? extraData.divisi_name : null,
+                tld: false
+            }
+        }
+
+        arrOption.pengguna.push(params);
+
+        $('#modal-add-tld-pengguna').modal('hide');
+
+        let comboKey = `${result.data.pengguna_hash}:${extraData?.id_divisi || ''}:${extraData?.kode_lencana || ''}`;
+        pengguna_selected.push(comboKey);
+        loadHtmlPengguna();
+    })
 }
 
 function removePengguna(obj) {
     let id = $(obj).data('id');
 
+    let removedItem = null;
     arrOption.pengguna.findIndex((value, index) => {
         if (value) {
             if (value.pengguna.pengguna_hash == id) {
+                removedItem = value;
                 arrOption.pengguna.splice(index, 1);
+                return true;
             }
         }
     })
 
-    pengguna_selected.findIndex((value, index) => {
-        if (value && value == id) {
-            pengguna_selected.splice(index, 1);
+    if (removedItem) {
+        let comboKey = `${removedItem.pengguna.pengguna_hash}:${removedItem.id_divisi_selected || ''}:${removedItem.kode_lencana_selected || ''}`;
+        let selIdx = pengguna_selected.indexOf(comboKey);
+        if (selIdx !== -1) {
+            pengguna_selected.splice(selIdx, 1);
+        } else {
+            pengguna_selected.findIndex((v, index) => {
+                if (v && v.startsWith(id)) {
+                    pengguna_selected.splice(index, 1);
+                    return true;
+                }
+            });
         }
-    })
+    }
     loadHtmlPengguna();
 }
 

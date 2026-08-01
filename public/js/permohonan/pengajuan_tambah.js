@@ -13,6 +13,7 @@ class PengajuanTambahManager {
         this.JL = '';
         this.tmpArrTldPengguna = [];
         this.tmpArrTldKontrol = [];
+        this.penggunaSelected = [];
 
         // Plugins
         this.inventoryTld = null;
@@ -131,7 +132,7 @@ class PengajuanTambahManager {
      */
     bindEvents() {
         // Form & input bindings
-        this.dom.btnAddPengguna.on('click', () => this.tldSelector.show());
+        this.dom.btnAddPengguna.on('click', () => this.tldSelector.show(this.penggunaSelected));
 
         $('#btn-add-kontrol').on('click', () => {
             $('#modal-add-kontrol').modal('show');
@@ -172,7 +173,7 @@ class PengajuanTambahManager {
 
         document.addEventListener('pengguna.saved', () => {
             this.tldSelector.reload();
-            this.tldSelector.show();
+            this.tldSelector.show(this.penggunaSelected);
         });
 
         document.addEventListener('pengguna.pilih', (event) => {
@@ -564,6 +565,7 @@ class PengajuanTambahManager {
     loadPengguna() {
         const params = { idPermohonan: this.idPermohonan };
         this.tmpArrTldPengguna = [];
+        this.penggunaSelected = [];
         const haveTld = this.dom.haveTld.is(':checked');
 
         ajaxGet(`api/v1/permohonan/listPengguna`, params, result => {
@@ -572,6 +574,12 @@ class PengajuanTambahManager {
                 if (result.data) {
                     for (const [i, value] of result.data.entries()) {
                         const pengguna = value.entitas;
+                        if (pengguna?.pengguna_hash) {
+                            let comboKey = `${pengguna.pengguna_hash}:${value.id_divisi_selected || ''}:${value.kode_lencana_selected || ''}`;
+                            if (!this.penggunaSelected.includes(comboKey)) {
+                                this.penggunaSelected.push(comboKey);
+                            }
+                        }
                         const fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
                         let resolvedDivisiName = '';

@@ -1227,22 +1227,37 @@ class ReportController extends Controller
 
         if ($isAdendum) {
             $kontrakDetail = \App\Models\Permohonan_detail::with([
-                'entitas'
+                'divisiSelected',
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['divisi']
+                    ]);
+                }
             ])
                 ->where('id_permohonan', $params['permohonan']->id_permohonan)
                 ->get();
         } else {
             $kontrakDetail = Kontrak_detail::with([
-                'entitas'
+                'divisiSelected',
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['divisi']
+                    ]);
+                }
             ])
                 ->where('id_kontrak', $data->id_kontrak)
                 ->where('status', 1)
                 ->get();
 
             // jika ada dendum yang baru akan di masukkan ke kontrak detail dengan jenis kontrol, jadi untuk menampilkan di surat pengantar hanya yang jenis pengguna saja, sedangkan yang jenis kontrol akan dihitung jumlahnya saja
-            $detailAdendum = kontrak_detail::with([
-                'entitas',
-                'penggunaLama'
+            $detailAdendum = Kontrak_detail::with([
+                'divisiSelected',
+                'penggunaLama',
+                'entitas' => function (MorphTo $morphTo) {
+                    $morphTo->morphWith([
+                        Master_pengguna::class => ['divisi']
+                    ]);
+                }
             ])
                 ->where('id_kontrak', $data->id_kontrak)
                 ->where('status', 2)
@@ -1276,10 +1291,22 @@ class ReportController extends Controller
                 if ($value->type == 'ganti') {
                     $htmlDesc = ' (Pengganti ' . $value->penggunaLama->name . ')';
                 }
+
+                $divStr = $value->divisiSelected?->name ?? ($value->entitas?->divisi?->name ?? '');
+                $kodeStr = $value->kode_lencana_selected ?? ($value->entitas?->kode_lencana ?? '');
+                $subInfo = [];
+                if ($divStr && $divStr !== '-') $subInfo[] = "Divisi: {$divStr}";
+                if ($kodeStr && $kodeStr !== '-') $subInfo[] = "Kode Lencana: {$kodeStr}";
+                $infoText = count($subInfo) > 0 ? implode(' | ', $subInfo) : '';
+                $infoHtml = $infoText ? '<div style="font-size: 7.5pt; color: #555; font-weight: normal;">' . $infoText . '</div>' : '';
+
                 $html .= '
                     <tr>
                         <td class="text-center">' . $no++ . '.</td>
-                        <td style="padding-left: 5px">' . $value->entitas->name . '</td>
+                        <td style="padding-left: 5px">
+                            <div>' . $value->entitas->name . '</div>
+                            ' . $infoHtml . '
+                        </td>
                         <td style="padding-left: 5px">' . $htmlDesc . '</td>
                     </tr>
                 ';
@@ -1343,6 +1370,7 @@ class ReportController extends Controller
         ])->find($id);
 
         $listTld = Kontrak_detail::with([
+            'divisiSelected',
             'entitas' => function (MorphTo $morphTo) {
                 $morphTo->morphWith([
                     Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
@@ -1982,8 +2010,15 @@ class ReportController extends Controller
             }
 
             if ($value->jenis == 'pengguna') {
+                $divStr = $value->divisiSelected?->name ?? ($value->entitas?->divisi?->name ?? '');
+                $kodeStr = $value->kode_lencana_selected ?? ($value->entitas?->kode_lencana ?? '');
+                $subInfo = [];
+                if ($divStr && $divStr !== '-') $subInfo[] = "Divisi: {$divStr}";
+                if ($kodeStr && $kodeStr !== '-') $subInfo[] = "Kode Lencana: {$kodeStr}";
+                $infoText = count($subInfo) > 0 ? ' <small style="color: #555;">(' . implode(' | ', $subInfo) . ')</small>' : '';
+
                 $htmlPengguna .= '
-                    <li>' . $value->entitas->name . '</li>
+                    <li>' . $value->entitas->name . $infoText . '</li>
                 ';
             }
         }
