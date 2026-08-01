@@ -215,6 +215,8 @@ class AdendumService
                 $dataDetail = [
                     'status'            => 2,
                     'id_pengguna_divisi' => $detail->id_pengguna_divisi,
+                    'id_divisi_selected' => $detail->id_divisi_selected,
+                    'kode_lencana_selected' => $detail->kode_lencana_selected,
                     'jenis'             => $detail->jenis,
                     'type'              => $detail->type,
                     'id_kontrak'        => $dataPermohonan->id_kontrak,
@@ -254,7 +256,6 @@ class AdendumService
                 }
 
                 Kontrak_detail::create($dataDetail);
-                Master_pengguna::find($detail->id_pengguna_divisi)?->update(['status' => 3]);
             }
 
             // ── 4. Update status permohonan & TTD ─────────────────────
@@ -595,10 +596,18 @@ class AdendumService
                 $idTld = $kontrakPeriode?->count_tld == 1 ? $kontrakDetail?->tld_1 : $kontrakDetail?->tld_2;
             }
 
+            $idDivisiSelected = isset($value->id_divisi_selected) && $value->id_divisi_selected ? decryptor($value->id_divisi_selected) : null;
+            if (!$idDivisiSelected && isset($value->id_divisi_selected) && is_numeric($value->id_divisi_selected)) {
+                $idDivisiSelected = (int) $value->id_divisi_selected;
+            }
+            $kodeLencanaSelected = $value->kode_lencana_selected ?? null;
+
             $permohonanForStatus = Permohonan::find($idPermohonan);
             Permohonan_detail::create([
                 'id_permohonan'      => $idPermohonan,
                 'id_pengguna_divisi' => $idPengguna,
+                'id_divisi_selected' => $idDivisiSelected,
+                'kode_lencana_selected' => $kodeLencanaSelected,
                 'jenis'              => 'pengguna',
                 'status'             => $this->resolveStatusDetail($permohonanForStatus, $value->status),
                 'type'               => $value->status,
@@ -607,7 +616,6 @@ class AdendumService
                 'id_tld'             => $idTld,
             ]);
 
-            Master_pengguna::find($idPengguna)?->update(['status' => 2]);
             Master_tld::find($idTld)?->update(['status' => 1]);
         }
 

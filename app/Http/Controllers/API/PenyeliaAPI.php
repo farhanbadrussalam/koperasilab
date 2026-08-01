@@ -851,7 +851,10 @@ class PenyeliaAPI extends Controller
 
         if (!$jobsNext && !$jobsNow->point_jobs) {
             $permohonan = Permohonan::find($penyelia->id_permohonan);
-            $penyelia->update(['status' => 3]);
+            $penyelia->update([
+                'status' => 3,
+                'completed_at' => Carbon::now()
+            ]);
             $permohonan->update(['status' => 4]);
         }
     }
@@ -1179,6 +1182,7 @@ class PenyeliaAPI extends Controller
                 'permohonan.invoice',
                 'permohonan.permohonan_pengguna',
                 'permohonan.permohonan_detail',
+                'permohonan.permohonan_detail.divisiSelected',
                 'permohonan.permohonan_detail.tld',
                 'permohonan.permohonan_detail.penggunaLama',
                 'permohonan.permohonan_detail.entitas' => function (MorphTo $morphTo) {

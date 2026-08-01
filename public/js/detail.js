@@ -1003,11 +1003,26 @@ class Detail {
                 const pengguna = item.entitas;
                 let fileKtp = pengguna.media_ktp ? `${base_url}/storage/${pengguna.media_ktp.file_path}/${pengguna.media_ktp.file_hash}` : '';
 
+                let divisiName = '';
+                if (item.divisi_selected?.name) {
+                    divisiName = item.divisi_selected.name;
+                } else if (item.id_divisi_selected && pengguna?.divisi_list_detail) {
+                    let divFound = pengguna.divisi_list_detail.find(d => d.id_divisi == item.id_divisi_selected);
+                    divisiName = divFound?.name || (pengguna.divisi?.name || 'Tanpa Divisi');
+                } else if (item.kode_lencana_selected && pengguna?.divisi_list_detail) {
+                    let divFound = pengguna.divisi_list_detail.find(d => d.kode_lencana == item.kode_lencana_selected);
+                    divisiName = divFound?.name || (pengguna.divisi?.name || 'Tanpa Divisi');
+                } else {
+                    divisiName = pengguna?.divisi?.name || 'Tanpa Divisi';
+                }
+                let kodeLencana = item.kode_lencana_selected || pengguna?.kode_lencana || '';
+
                 const dataCard = {
                     index: i,
                     idHash: item.permohonan_detail_hash,
                     name: pengguna.name,
-                    divisi: pengguna.divisi?.name || '',
+                    divisi: divisiName,
+                    kode_lencana: kodeLencana,
                     isCheckedEvaluasi: false,
                     radiasi: pengguna.radiasi?.map(r => r.nama_radiasi),
                     fileKtp: fileKtp,
@@ -1499,13 +1514,32 @@ class Detail {
 
             for (const pengguna of arrPengguna) {
                 if (pengguna.tld) {
+                    let kodeStr = pengguna.kode_lencana_selected || pengguna.entitas?.kode_lencana || '';
+                    let divStr = '';
+                    if (pengguna.divisi_selected?.name) {
+                        divStr = pengguna.divisi_selected.name;
+                    } else if (pengguna.id_divisi_selected && pengguna.entitas?.divisi_list_detail) {
+                        let divFound = pengguna.entitas.divisi_list_detail.find(d => d.id_divisi == pengguna.id_divisi_selected);
+                        divStr = divFound?.name || (pengguna.entitas?.divisi?.name || '');
+                    } else if (pengguna.kode_lencana_selected && pengguna.entitas?.divisi_list_detail) {
+                        let divFound = pengguna.entitas.divisi_list_detail.find(d => d.kode_lencana == pengguna.kode_lencana_selected);
+                        divStr = divFound?.name || (pengguna.entitas?.divisi?.name || '');
+                    } else {
+                        divStr = pengguna.entitas?.divisi?.name || '';
+                    }
+                    let subInfo = [];
+                    if (divStr) subInfo.push(`Divisi: ${divStr}`);
+                    if (kodeStr) subInfo.push(`Kode Lencana: ${kodeStr}`);
+                    let infoHtml = subInfo.length > 0 ? `<small class="text-muted d-block" style="font-size: 0.72rem;">${subInfo.join(' | ')}</small>` : '';
+
                     htmlPengguna += `
-                        <li class="list-group-item d-flex justify-content-between">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 <span>${i}. </span>
-                                <span>${pengguna.entitas.name}</span>
+                                <span class="fw-bold">${pengguna.entitas.name}</span>
+                                ${infoHtml}
                             </div>
-                            <span>${pengguna.tld.no_seri_tld}</span>
+                            <span class="badge bg-light text-dark border font-monospace">${pengguna.tld.no_seri_tld}</span>
                         </li>
                     `;
                     i++;

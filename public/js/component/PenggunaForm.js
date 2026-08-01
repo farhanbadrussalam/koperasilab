@@ -1,7 +1,3 @@
-/**
- * PenggunaForm
- * Class untuk menghandle Modal Tambah/Edit Pengguna
- */
 class PenggunaForm {
     constructor(options = {}) {
         // Default Config & Selectors
@@ -23,7 +19,6 @@ class PenggunaForm {
         this.formValidate = null;
         this.uploadComponent = null;
         this.select2Radiasi = null;
-        this.select2Divisi = null;
         this.selectedData = null; // Menyimpan data user yang sedang diedit
 
         // Init
@@ -32,7 +27,7 @@ class PenggunaForm {
     }
 
     _initPlugins() {
-        // 1. Form Validation (Asumsi library FormValidation tersedia global)
+        // 1. Form Validation
         if (typeof FormValidation !== 'undefined') {
             this.formValidate = new FormValidation(this.formId.replace('#', ''));
         }
@@ -63,15 +58,10 @@ class PenggunaForm {
             ajax: this._getSelect2AjaxConfig(this.api.radiasi, 'name_radiasi', 'nama_radiasi', 'radiasi_hash')
         });
 
-        // 5. Select2 - Divisi
-        this.select2Divisi = $('#divisi_pengguna').select2({
-            theme: "bootstrap-5",
-            tags: true,
-            placeholder: "Pilih Divisi",
-            dropdownParent: $(this.modalId),
-            createTag: (params) => ({ id: params.term, text: params.term, newTag: true }),
-            ajax: this._getSelect2AjaxConfig(this.api.divisi, 'name_divisi', 'name', 'divisi_hash')
-        });
+        // Inisialisasi minimal 1 row divisi jika container kosong
+        if ($('#container-divisi-rows').children().length === 0) {
+            this.addDivisiRow();
+        }
     }
 
     _getSelect2AjaxConfig(url, paramName, textField, idField) {
@@ -98,9 +88,30 @@ class PenggunaForm {
     _bindEvents() {
         const self = this;
 
-        // Toggle Checkbox Auto Generate Kode Lencana
-        $('#is_aktif').on('change', function() {
-            self._toggleKodeLencana($(this).is(':checked'));
+        // Tombol Tambah Row Divisi
+        $(document).off('click', '#btn-add-divisi-row').on('click', '#btn-add-divisi-row', function() {
+            self.addDivisiRow();
+        });
+
+        // Tombol Hapus Row Divisi
+        $(document).off('click', '.btn-remove-divisi-row').on('click', '.btn-remove-divisi-row', function() {
+            const container = $('#container-divisi-rows');
+            if (container.children().length > 1) {
+                $(this).closest('.divisi-row').remove();
+            } else {
+                Swal.fire({ icon: 'warning', text: 'Pengguna minimal harus memiliki 1 divisi.' });
+            }
+        });
+
+        // Event Toggle Auto Kode per Row
+        $(document).off('change', '.check-is-auto').on('change', '.check-is-auto', function() {
+            const row = $(this).closest('.divisi-row');
+            const input = row.find('.input-kode-lencana');
+            if ($(this).is(':checked')) {
+                input.val('').attr('readonly', true).attr('placeholder', 'Auto Generate').addClass('bg-secondary-subtle');
+            } else {
+                input.attr('readonly', false).attr('placeholder', 'Contoh: 004').removeClass('bg-secondary-subtle');
+            }
         });
 
         // Reset Form saat Modal Ditutup
@@ -109,62 +120,97 @@ class PenggunaForm {
         });
 
         // Tombol Simpan
-        $(this.btnSaveId).on('click', function() {
+        $(this.btnSaveId).off('click').on('click', function() {
             self.submit(this);
         });
     }
 
-    _toggleKodeLencana(isChecked) {
-        const input = $('#kode_lencana');
-        if (isChecked) {
-            input.val('').attr('readonly', true)
-                .attr('placeholder', 'Auto Generate')
-                .addClass('bg-secondary-subtle')
-                .attr('data-parsley-required', 'false');
-        } else {
-            input.attr('readonly', false)
-                .attr('placeholder', '')
-                .removeClass('bg-secondary-subtle')
-                .attr('data-parsley-required', 'true');
+    addDivisiRow(data = null) {
+        const container = $('#container-divisi-rows');
+        const rowId = 'divisi-row-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
+        const rowHtml = `
+            <div class="divisi-row border rounded-3 p-2 bg-light d-flex align-items-center gap-2" id="${rowId}">
+                <div class="flex-grow-1">
+                    <select class="form-select select2-divisi-item" data-placeholder="Pilih Divisi (Opsional)"></select>
+                </div>
+                <div style="width: 220px;">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control input-kode-lencana maskNumber bg-secondary-subtle" placeholder="Auto Generate" readonly>
+                        <div class="input-group-text rounded-end" title="Centang untuk Auto Generate Kode Lencana">
+                            <input type="checkbox" class="form-check-input check-is-auto mt-0" checked>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-danger btn-sm btn-remove-divisi-row" title="Hapus Divisi">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        container.append(rowHtml);
+        const row = $(`#${rowId}`);
+
+        // Inisialisasi Select2 pada row baru
+        const select2El = row.find('.select2-divisi-item').select2({
+            theme: "bootstrap-5",
+            tags: true,
+            placeholder: "Pilih / Ketik Divisi Baru",
+            allowClear: true,
+            dropdownParent: $(this.modalId),
+            createTag: (params) => ({ id: params.term, text: params.term, newTag: true }),
+            ajax: this._getSelect2AjaxConfig(this.api.divisi, 'name_divisi', 'name', 'divisi_hash')
+        });
+
+        // Jika ada initial data (saat edit)
+        if (data) {
+            if (data.id_divisi || data.name !== 'Tanpa Divisi') {
+                const divValue = data.divisi_hash || data.name || data.id_divisi;
+                if (divValue) {
+                    const optionName = data.name && data.name !== '-' ? data.name : (divValue || '-');
+                    const option = new Option(optionName, divValue, true, true);
+                    select2El.append(option).trigger('change');
+                }
+            }
+
+            const inputKode = row.find('.input-kode-lencana');
+            const checkAuto = row.find('.check-is-auto');
+
+            if (data.kode_lencana && data.kode_lencana !== '-') {
+                checkAuto.prop('checked', false);
+                inputKode.val(data.kode_lencana).attr('readonly', false).removeClass('bg-secondary-subtle');
+            } else {
+                checkAuto.prop('checked', true);
+                inputKode.val('').attr('readonly', true).addClass('bg-secondary-subtle');
+            }
         }
     }
 
-    /**
-     * Public Method: Tampilkan Modal Tambah (Kosong)
-     */
     showAdd() {
         this.selectedData = null;
         this.resetForm();
         $(this.modalId).modal('show');
     }
 
-    /**
-     * Public Method: Tampilkan Modal Edit dengan Data
-     * @param {string} id - Hash ID pengguna
-     */
     showEdit(id) {
-        this.selectedData = null; // Reset dulu
+        this.selectedData = null;
+        this.resetForm();
         $(this.modalId).modal('show');
 
-        // Hide form, show loading
         $(this.formId).hide();
         spinner('show', $(this.loadingId), { height: "100px", width: "100px" });
 
-        // Fetch Data
         ajaxGet(`${this.api.getData}${id}`, false, (result) => {
             this._populateForm(result.data);
 
             spinner('hide', $(this.loadingId));
             $(this.formId).fadeIn();
+        }, (error) => {
+            spinner('hide', $(this.loadingId));
+            $(this.formId).show();
         });
-    }
-
-    _dispatchSelectEvent(obj, data, type) {
-        // Cara Modern: Dispatch ke document
-        document.dispatchEvent(new CustomEvent(type, {
-            detail: obj,
-            data: data
-        }));
     }
 
     _populateForm(data) {
@@ -173,21 +219,31 @@ class PenggunaForm {
         $('#nik_pengguna').val(data.nik);
         $('#nama_pengguna').val(data.name);
         $('#jenis_kelamin').val(data.jenis_kelamin);
-        $('#tanggal_lahir').val(data.tanggal_lahir); // Flatpickr auto handles Y-m-d
+        $('#tanggal_lahir').val(data.tanggal_lahir);
         $('#tempat_lahir').val(data.tempat_lahir);
 
-        // Handle Kode Lencana & Checkbox
-        $('#kode_lencana').val(data.kode_lencana).attr('readonly', true);
-        $('#is_aktif').hide(); // Sembunyikan checkbox autogenerate saat edit
+        // Populate Multi-Divisi Rows
+        const container = $('#container-divisi-rows');
+        container.empty();
 
-        // Populate Select2 Divisi
-        if (data.divisi) {
-            const option = new Option(data.divisi.name, data.divisi.divisi_hash, true, true);
-            this.select2Divisi.append(option).trigger('change');
+        if (data.divisi_list_detail && Array.isArray(data.divisi_list_detail) && data.divisi_list_detail.length > 0) {
+            data.divisi_list_detail.forEach(d => {
+                this.addDivisiRow(d);
+            });
+        } else if (data.divisi) {
+            this.addDivisiRow({
+                id_divisi: data.divisi.id_divisi,
+                divisi_hash: data.divisi.divisi_hash,
+                name: data.divisi.name,
+                kode_lencana: data.kode_lencana
+            });
+        } else {
+            this.addDivisiRow();
         }
 
-        // Populate Select2 Radiasi (Multiple)
+        // Populate Radiasi
         if (data.radiasi && Array.isArray(data.radiasi)) {
+            $('#jenis_radiasi').empty();
             data.radiasi.forEach(r => {
                 const option = new Option(r.nama_radiasi, r.radiasi_hash, true, true);
                 this.select2Radiasi.append(option);
@@ -204,67 +260,72 @@ class PenggunaForm {
     resetForm() {
         if (this.formValidate) this.formValidate.reset();
 
-        // Reset basic fields
         $('#nik_pengguna, #nama_pengguna, #tanggal_lahir, #tempat_lahir, #jenis_kelamin').val('');
-
-        // Reset Select2
         $('#jenis_radiasi').empty().val(null).trigger('change');
-        $('#divisi_pengguna').empty().val(null).trigger('change');
 
-        // Reset Logic Checkbox
-        $('#is_aktif').show().prop('checked', true);
-        this._toggleKodeLencana(true);
-        $('#kode_lencana').val('');
+        $('#container-divisi-rows').empty();
+        this.addDivisiRow();
 
-        // Reset Upload
         if (this.uploadComponent) this.uploadComponent.addData([]);
     }
 
     submit(btnElement) {
         spinner('show', btnElement);
 
-        // 1. Validasi Form Standard
         if (this.formValidate && !this.formValidate.validate()) {
             return spinner('hide', btnElement);
         }
 
-        // 2. Validasi Custom (Gambar)
         const imageKtp = this.uploadComponent ? this.uploadComponent.getData() : [];
         if (imageKtp.length === 0) {
             Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Data KTP Pengguna wajib diupload.' });
             return spinner('hide', btnElement);
         }
 
-        // 3. Prepare Data
+        // Ambil data divisi dari setiap row
+        const divisiArray = [];
+
+        $('.divisi-row').each(function() {
+            let selectVal = $(this).find('.select2-divisi-item').val();
+            const inputKode = $(this).find('.input-kode-lencana').val();
+            const isAuto = $(this).find('.check-is-auto').is(':checked') ? 1 : 0;
+
+            if (!selectVal || selectVal === 'null') {
+                selectVal = null; // Menandakan 'Tanpa Divisi'
+            }
+
+            divisiArray.push({
+                id_divisi: selectVal,
+                kode_lencana: inputKode,
+                is_auto: isAuto
+            });
+        });
+
+        if (divisiArray.length === 0) {
+            Swal.fire({ icon: 'warning', title: 'Oops...', text: 'Pengguna wajib memiliki setidaknya 1 baris divisi (bisa dibiarkan kosong untuk Tanpa Divisi).' });
+            return spinner('hide', btnElement);
+        }
+
         const formData = new FormData();
         formData.append('nik', $('#nik_pengguna').val());
-        formData.append('kode_lencana', $('#kode_lencana').val());
-        formData.append('is_aktif', $('#is_aktif').is(':checked') ? 1 : 0);
         formData.append('jenis_kelamin', $('#jenis_kelamin').val());
         formData.append('tanggal_lahir', $('#tanggal_lahir').val());
         formData.append('tempat_lahir', $('#tempat_lahir').val());
         formData.append('name', $('#nama_pengguna').val());
         formData.append('ktp', imageKtp[0].file);
-
-        // Handle Select2 Values
-        const divisiVal = $('#divisi_pengguna').val();
-        if (divisiVal && divisiVal !== 'null') formData.append('divisi', divisiVal);
+        formData.append('divisi_list', JSON.stringify(divisiArray));
         formData.append('radiasi', JSON.stringify($('#jenis_radiasi').val()));
 
-        // Jika Edit Mode, append ID
         if (this.selectedData && this.selectedData.pengguna_hash) {
             formData.append('id', this.selectedData.pengguna_hash);
         }
 
-        // 4. AJAX Submit
         ajaxPost(this.api.action, formData, (result) => {
             if (result.meta.code == 200) {
                 Swal.fire({ icon: "success", text: result.data.msg });
 
-                // Trigger event global agar tabel di halaman lain bisa refresh
                 document.dispatchEvent(new CustomEvent("pengguna.saved", { detail: result.data }));
 
-                // Jika ada fungsi reload global
                 if (typeof reload === 'function') reload();
 
                 $(this.modalId).modal('hide');
@@ -277,3 +338,4 @@ class PenggunaForm {
         });
     }
 }
+

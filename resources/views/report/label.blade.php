@@ -26,8 +26,10 @@
 
             if ($item->jenis == 'pengguna') {
                 $tld['pengguna'] = $item->entitas;
+                $tld['detail'] = $item;
                 array_push($arrTmp, $tld);
             } else {
+                $tld['detail'] = $item;
                 array_unshift($arrTmp, $tld);
             }
         }
@@ -37,12 +39,15 @@
         @foreach ($chunks as $row)
             <div class="table-row">
                 @foreach ($row as $key => $item)
+                    @php
+                        $kodeLencanaVal = isset($item['detail']) && !empty($item['detail']->kode_lencana_selected) ? $item['detail']->kode_lencana_selected : ($item['pengguna'] ? $item['pengguna']->kode_lencana : '-');
+                    @endphp
                     @if ($penyelia->permohonan->kontrak->jenis_tld === 2)
                         <div class="border text-center table-cell"
                             style="padding: 1px; width: 2.4cm; height: 1.25cm; max-width: 2.4cm; overflow: hidden; position: relative; vertical-align: middle;">
                             <div style="line-height: 1.1; font-size: 6.5pt; width: 100%;">
                                 <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                    {{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $item['pengguna']->kode_lencana : ($key > 1 ? 'C' . $key : 'C') }}
+                                    {{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $kodeLencanaVal : ($key > 1 ? 'C' . $key : 'C') }}
                                 </div>
                                 <div style="overflow: hidden; text-overflow: ellipsis;">
                                     {{ $item['pengguna'] ? $item['pengguna']->name : 'Kontrol' }}
@@ -57,7 +62,7 @@
                             style="padding: 5px;height: 220px; width: 100px; position: relative;">
                             <div class="lh-16">
                                 <div class="fs-1" style="white-space: nowrap; overflow: hidden;">
-                                    {{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $item['pengguna']->kode_lencana : ($key > 1 ? 'C' . $key : 'C') }}
+                                    {{ $penyelia->permohonan->pelanggan->perusahaan->kode_perusahaan }}-{{ $item['pengguna'] ? $kodeLencanaVal : ($key > 1 ? 'C' . $key : 'C') }}
                                 </div>
                                 <div class="fs-1">{{ $item['pengguna'] ? $item['pengguna']->name : 'Kontrol' }}</div>
                                 <div class="fs-1" style="white-space: nowrap; overflow: hidden;">{{ $item['periode'] }}

@@ -394,7 +394,7 @@ function renderSlaBadge(slaStatus) {
             icon = 'bi-clock-history';
             break;
         case 'success':
-            detail = `${hari_berjalan}/${target_hari} hari`;
+            detail = target_hari > 0 ? `${hari_berjalan}/${target_hari} hari` : `${hari_berjalan} hari`;
             icon = 'bi-check-circle-fill';
             break;
         default:

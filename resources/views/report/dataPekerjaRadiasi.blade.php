@@ -167,7 +167,7 @@
                                 {{ $tld->entitas->tempat_lahir ?? '-' }},
                                 {{ $tld->entitas->tanggal_lahir ? \Carbon\Carbon::parse($tld->entitas->tanggal_lahir)->format('d-m-Y') : '-' }}
                             </td>
-                            <td class="text-center">{{ $tld->entitas->divisi->nama_divisi ?? '-' }}</td>
+                            <td class="text-center">{{ $tld->divisiSelected->name ?? ($tld->entitas->divisi->name ?? ($tld->entitas->divisi->nama_divisi ?? '-')) }}</td>
                             <td class="text-center">{{ count($zatRad) > 0 ? implode(', ', $zatRad) : '-' }}</td>
                             <td class="text-center">{{ count($xRay) > 0 ? implode(', ', $xRay) : '-' }}</td>
                         </tr>

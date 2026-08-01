@@ -39,15 +39,46 @@ $(function () {
 
     datatable_.on('draw.dt', function () {
         showPopupReload();
-        $('.btn-edit-pengguna').on('click', function () {
-            const id = $(this).data('id');
-            penggunaForm.showEdit(id);
-        })
+    });
+
+    $(document).on('click', '.btn-detail-keterikatan', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const btn = $(this);
+        const contractsData = btn.data('contracts');
+
+        const tbody = $('#body-detail-keterikatan-pengguna');
+        tbody.empty();
+
+        if (contractsData && Array.isArray(contractsData) && contractsData.length > 0) {
+            contractsData.forEach(c => {
+                const tr = `
+                    <tr>
+                        <td class="fw-bold text-primary">${c.no_kontrak || '-'}</td>
+                        <td><span class="badge bg-light text-dark border">${c.layanan || '-'}</span></td>
+                        <td><span class="badge bg-secondary">KODE: ${c.kode_lencana || '-'}</span> <span class="badge bg-info-subtle text-info-emphasis">${c.divisi || '-'}</span></td>
+                    </tr>
+                `;
+                tbody.append(tr);
+            });
+        } else {
+            tbody.html('<tr><td colspan="5" class="text-center text-muted">Tidak ada kontrak aktif yang terikat.</td></tr>');
+        }
+
+        $('#modal-detail-keterikatan-pengguna').modal('show');
     });
 })
 
 function tambahPengguna(){
     penggunaForm.showAdd();
+}
+
+function editPengguna(obj){
+    const id = $(obj).data('id');
+    if (penggunaForm) {
+        penggunaForm.showEdit(id);
+    }
 }
 
 

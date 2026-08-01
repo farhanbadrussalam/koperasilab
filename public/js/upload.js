@@ -101,9 +101,9 @@ class UploadComponent {
 
     setData(data) {
         if (this.options.multiple) {
-            this.listFile = data;
+            this.listFile = Array.isArray(data) ? data : [data];
         } else {
-            this.listFile.push(data);
+            this.listFile = data ? (Array.isArray(data) ? data : [data]) : [];
         }
         this.loadListFile();
     }
@@ -276,6 +276,9 @@ class UploadComponent {
 
         const preview = document.createElement('img');
         preview.src = src;
+        preview.onerror = () => {
+            preview.src = `${base_url}/images/not-found.png`;
+        };
         preview.className = 'img-thumbnail';
         if (this.options.preview.fullwidth) {
             preview.style.height = '100%';

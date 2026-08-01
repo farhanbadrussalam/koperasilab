@@ -96,6 +96,7 @@ class Penyelia extends Model
         'verify_surat_tugas_at',
         'verify_pengajuan_at',
         'verify_surpeng_at',
+        'completed_at',
         'is_pengajuan_signed',
         'is_surat_tugas_signed',
         'is_surpeng_signed'
@@ -164,13 +165,17 @@ class Penyelia extends Model
             ];
         }
 
-        $hariBerjalan = (int) Carbon::parse($tanggalMulai)->startOfDay()->diffInDays(Carbon::now()->startOfDay());
+        $isSelesai = $this->status == 3;
+        $tanggalSelesai = $isSelesai ? ($this->completed_at ?? $this->updated_at) : Carbon::now();
+
+        // Hitung hari berjalan (durasi pengerjaan hingga selesai atau hingga hari ini)
+        $hariBerjalan = (int) Carbon::parse($tanggalMulai)->startOfDay()->diffInDays(Carbon::parse($tanggalSelesai)->startOfDay());
 
         // Jika tidak ada end_date (target belum ditentukan)
         if (!$tanggalBerakhir) {
             return [
-                'label'         => $this->status == 3 ? 'Selesai' : 'Belum Dimulai',
-                'color'         => 'secondary',
+                'label'         => $isSelesai ? 'Selesai' : 'Belum Dimulai',
+                'color'         => $isSelesai ? 'success' : 'secondary',
                 'hari_berjalan' => $hariBerjalan,
                 'sisa_hari'     => 0,
                 'target_hari'   => 0,
@@ -179,13 +184,25 @@ class Penyelia extends Model
 
         $targetHari = (int) Carbon::parse($tanggalMulai)->startOfDay()->diffInDays(Carbon::parse($tanggalBerakhir)->startOfDay());
 
-        // Jika proses sudah selesai, kembalikan status netral
-        if ($this->status == 3) {
+        // Jika proses sudah selesai, kembalikan status berdasarkan ketepatan waktu penyelesaian
+        if ($isSelesai) {
+            $sisaHariSaatSelesai = (int) Carbon::parse($tanggalSelesai)->startOfDay()->diffInDays(Carbon::parse($tanggalBerakhir)->startOfDay(), false);
+
+            if ($sisaHariSaatSelesai < 0) {
+                return [
+                    'label'         => 'Selesai (Terlambat)',
+                    'color'         => 'danger',
+                    'hari_berjalan' => $hariBerjalan,
+                    'sisa_hari'     => $sisaHariSaatSelesai,
+                    'target_hari'   => $targetHari,
+                ];
+            }
+
             return [
                 'label'         => 'Selesai',
-                'color'         => 'secondary',
+                'color'         => 'success',
                 'hari_berjalan' => $hariBerjalan,
-                'sisa_hari'     => 0,
+                'sisa_hari'     => $sisaHariSaatSelesai,
                 'target_hari'   => $targetHari,
             ];
         }
