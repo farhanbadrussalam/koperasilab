@@ -223,7 +223,8 @@ class ReportController extends Controller
                 <img src='$ttd' alt='TTD_keuangan' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
-        $variables['TTD_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
+        $signerName = $dokumen->usersig ? $dokumen->usersig->name : ($query->usersig ? $query->usersig->name : '...........................................');
+        $variables['TTD_BY'] = ($query->plt ? 'a.n. ' : '') . $signerName;
 
         $bytes = $this->generatePDF("Invoice", $template, $variables, ['CATATAN_PEMBAYARAN', 'NOTICE', 'TTD_IMG', 'RINCIAN']);
         $filename = 'invoice-' . now()->format('Ymd-His') . '.pdf';
@@ -456,15 +457,16 @@ class ReportController extends Controller
                     }
                 }
 
-                $vars["NOMOR"] = $params["dokumen"]->nomer;
+                $vars["NOMOR"] = isset($params["dokumen"]) && $params["dokumen"] ? $params["dokumen"]->nomer : ($params["kontrak_periode"]->nomer_surpeng ?? '-');
                 $vars["PERIODE_AWAL"] = convert_date($start_date, 6);
                 $vars["PERIODE_SELESAI"] = convert_date($end_date, 6);
                 if ($data->periode_next) {
                     $vars['PERIODE_NOW'] = "periode berikutnya";
                 } else {
-                    $vars["PERIODE_NOW"] = $params['kontrak_periode']->status == 2 ? "periode pengembalian" : "periode {$params['kontrak_periode']->periode}";
+                    $vars["PERIODE_NOW"] = (isset($params['kontrak_periode']) && $params['kontrak_periode']->status == 2) ? "periode pengembalian" : "periode " . ($params['kontrak_periode']->periode ?? '');
                 }
-                $vars["TGL_BUAT"] = convert_date($params["dokumen"]->created_at, 2);
+                $tglBuat = isset($params["dokumen"]) && $params["dokumen"] ? $params["dokumen"]->created_at : (isset($params['kontrak_periode']) && $params['kontrak_periode']->created_surpeng_at ? $params['kontrak_periode']->created_surpeng_at : now());
+                $vars["TGL_BUAT"] = convert_date($tglBuat, 2);
 
                 $vars["LAYANAN_JASA"] = $data->layanan_jasa->nama_layanan;
                 $vars["ZEROCEK"] = $zerocek;
@@ -692,7 +694,8 @@ class ReportController extends Controller
                 <img src='$ttd' alt='TTD_PENERIMA' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
-        $variables['TTD_BY'] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
+        $signerName = $dokumen->usersig ? $dokumen->usersig->name : ($query->usersig ? $query->usersig->name : '...........................................');
+        $variables['TTD_BY'] = ($query->plt ? 'a.n. ' : '') . $signerName;
 
         $bytes = $this->generatePDF("Kwitansi", $template, $variables, ['RINCIAN', 'TTD']);
         $filename = 'kwitansi-' . now()->format('Ymd-His') . '.pdf';
@@ -1151,20 +1154,7 @@ class ReportController extends Controller
             $kontrakPeriode->created_surpeng_at = Carbon::now()->format('Y-m-d');
             $kontrakPeriode->save();
 
-            if (!$dokumen) {
-                // $textPeriode = $kontrakPeriode->status == 2 ? "Pengembalian" : "Periode $periode";
-                // $dokumen = Permohonan_dokumen::create(array(
-                //     'periode' => $periode_,
-                //     'id_kontrak' => $id,
-                //     'id_permohonan' => $id_permohonan ?? null,
-                //     'id_doc_template' => $template->id_doc,
-                //     'jenis' => "surpeng",
-                //     "nama" => "Surat Pengantar",
-                //     "nomer" => $noSurpeng,
-                //     "created_by" => Auth::user()->id,
-                //     "status" => 1
-                // ));
-            } else {
+            if ($dokumen) {
                 $dokumen->nomer = $noSurpeng;
                 $dokumen->save();
             }
@@ -1189,7 +1179,7 @@ class ReportController extends Controller
         }
 
         $ttd = null;
-        if ($dokumen->ttd_image) {
+        if ($dokumen && $dokumen->ttd_image) {
             $ttd = $dokumen->ttd_image;
         }
 
@@ -1205,12 +1195,13 @@ class ReportController extends Controller
                 <img src='$ttd' alt='TTD_keuangan' width='100px' height='100px'>
             </div>
         " : "<br><br><br>";
-        $variables["TTD_BY"] = $dokumen->usersig ? $dokumen->usersig->name : '...........................................';
+        $variables["TTD_BY"] = ($dokumen && $dokumen->usersig) ? $dokumen->usersig->name : '...........................................';
 
         // generate pdf
         $bytes = $this->generatePDF($data['title'], $template, $variables, ["RINCIAN", "TTD", "JML_K"]);
 
-        $filename = $dokumen->nama . '-' . now()->format('Ymd-His') . '.pdf';
+        $docName = $dokumen ? $dokumen->nama : 'SuratPengantar';
+        $filename = $docName . '-' . now()->format('Ymd-His') . '.pdf';
 
         if ($is_download) {
             return $bytes->download($filename);
