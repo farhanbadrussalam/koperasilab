@@ -59,10 +59,31 @@ class PenggunaController extends Controller
         return DataTables::of($pengguna)
             ->addIndexColumn()
             ->addColumn('pengguna_info', function ($row) {
+                $divList = $row->divisi_list_detail;
+                $kodes = [];
+                if (!empty($divList)) {
+                    foreach ($divList as $dItem) {
+                        if (!empty($dItem['kode_lencana']) && $dItem['kode_lencana'] !== '-') {
+                            if (!in_array($dItem['kode_lencana'], $kodes)) {
+                                $kodes[] = $dItem['kode_lencana'];
+                            }
+                        }
+                    }
+                }
+                if (empty($kodes) && $row->kode_lencana && $row->kode_lencana !== '-') {
+                    $kodes[] = $row->kode_lencana;
+                }
+                $kodeStr = !empty($kodes) ? implode(', ', $kodes) : ($row->kode_lencana ?? '-');
+
                 return '<div class="fw-bold text-dark">' . $row->name . '</div>
-                        <div class="text-muted small">KODE: ' . $row->kode_lencana . '</div>';
+                        <div class="text-muted small">KODE: ' . $kodeStr . '</div>';
             })
             ->addColumn('divisi_info', function ($row) {
+                $divList = $row->divisi_list_detail;
+                if (!empty($divList)) {
+                    $names = array_column($divList, 'name');
+                    return implode(', ', array_unique(array_filter($names)));
+                }
                 return $row->divisi ? $row->divisi->name : '-';
             })
             ->addColumn('radiasi_info', function ($row) {
@@ -97,19 +118,36 @@ class PenggunaController extends Controller
                 return $htmlRadiasi;
             })
             ->editColumn('status', function ($row) {
-                switch ($row->status) {
-                    case 1:
-                        return '<span class="badge rounded text-bg-danger">Tidak Aktif</span>';
-                    case 2:
-                        return '<span class="badge rounded text-bg-secondary">Pengajuan</span>';
-                    case 3:
-                        return '<span class="badge rounded text-bg-success">Aktif</span>';
-                    default:
-                        return '';
+                // Ambil daftar kontrak aktif milik pengguna ini
+                $kontrakDetails = \App\Models\Kontrak_detail::with(['kontrak', 'kontrak.pelanggan.perusahaan', 'kontrak.jenisTld', 'divisiSelected'])
+                    ->where('jenis', 'pengguna')
+                    ->where('id_pengguna_divisi', $row->id_pengguna)
+                    ->where('status', 1)
+                    ->whereHas('kontrak', fn($q) => $q->where('status', 1))
+                    ->get();
+
+                $allContracts = [];
+                foreach ($kontrakDetails as $kd) {
+                    $allContracts[] = [
+                        'no_kontrak' => $kd->kontrak?->no_kontrak ?? '-',
+                        'perusahaan' => $kd->kontrak?->pelanggan?->perusahaan?->nama_perusahaan ?? '-',
+                        'layanan' => $kd->kontrak?->jenisTld?->name ?? ($kd->kontrak?->layanan ?? '-'),
+                        'periode' => $kd->periode ? "Periode {$kd->periode}" : '-',
+                        'kode_lencana' => $kd->kode_lencana_selected ?? '-',
+                        'divisi' => $kd->divisiSelected?->name ?? '-'
+                    ];
                 }
+
+                if (!empty($allContracts)) {
+                    $count = count($allContracts);
+                    $jsonContracts = htmlspecialchars(json_encode($allContracts), ENT_QUOTES, 'UTF-8');
+                    return '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle rounded-pill py-1 px-3 cursor-pointer btn-detail-keterikatan" data-contracts="' . $jsonContracts . '" title="Klik untuk melihat detail kontrak aktif"><i class="bi bi-info-circle-fill me-1"></i> ' . $count . ' Kontrak Aktif</span>';
+                }
+
+                return '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle rounded-pill py-1 px-3">Tersedia</span>';
             })
             ->addColumn('action', function ($row) use ($type, $selected) {
-                $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
+                $fileKtp = $row->media_ktp ? asset('/storage/'. $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : asset('/images/not-found.png');
                 $btn = '<div class="btn-group">';
                 $btn .= '<a class="btn btn-sm btn-outline-secondary show-popup-image" href="' . $fileKtp. '"><i class="bi bi-file-person-fill"></i></a>';
 
@@ -117,7 +155,7 @@ class PenggunaController extends Controller
                     $btn .= '<button class="btn btn-sm btn-outline-primary" data-id="' . $row->pengguna_hash . '" onclick="btnPilih(this)"><i class="bi bi-check"></i> Pilih</button>' ;
                 } else {
                     if($row->status != 3){
-                        $btn .= '<button onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i></button>';
+                        $btn .= '<button onclick="editPengguna(this)" data-id="' . $row->pengguna_hash . '" class="btn btn-sm btn-outline-primary btn-edit-pengguna"><i class="bi bi-pencil-square"></i></button>';
                     }
 
                     if($row->status == 1){
@@ -129,9 +167,7 @@ class PenggunaController extends Controller
                 return $btn;
             })
             ->addColumn('html', function ($row) use ($type, $selected) {
-                $initial = isset($row->name) ? strtoupper(substr($row->name, 0, 1)) : '?';
-
-                $fileKtp = $row->media_ktp ? asset('/storage/' . $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : '';
+                $fileKtp = $row->media_ktp ? asset('/storage/' . $row->media_ktp->file_path . '/' . $row->media_ktp->file_hash) : asset('/images/not-found.png');
 
                 $btn2 = '';
                 $btn = '<div class="btn-group">';
@@ -154,11 +190,23 @@ class PenggunaController extends Controller
 
                 $status = '';
                 if ($type == 'selected') {
-                    $find = Arr::first($selected, function ($value, $key) use ($row) {
-                        return $value == $row->pengguna_hash;
-                    });
-                    if ($find) {
-                        $btn .= '<span class="text-success"><i class="bi bi-check"></i> Terpilih</span>';
+                    $usedCount = 0;
+                    if (!empty($selected) && is_array($selected)) {
+                        foreach ($selected as $sItem) {
+                            if (is_string($sItem)) {
+                                $parts = explode(':', $sItem);
+                                if ($parts[0] === $row->pengguna_hash) {
+                                    $usedCount++;
+                                }
+                            } elseif (is_array($sItem) && isset($sItem['pengguna_hash']) && $sItem['pengguna_hash'] === $row->pengguna_hash) {
+                                $usedCount++;
+                            }
+                        }
+                    }
+                    $divCount = !empty($row->divisi_list_detail) ? count($row->divisi_list_detail) : 1;
+
+                    if ($usedCount >= $divCount) {
+                        $btn .= '<span class="text-success small fw-bold"><i class="bi bi-check-lg me-1"></i> Terpilih</span>';
                     } else {
                         $btn .= '<button class="btn btn-sm btn-outline-primary align-self-center btn-pilih-user" data-id="' . $row->pengguna_hash . '"> Pilih</button>';
                     }
@@ -225,17 +273,63 @@ class PenggunaController extends Controller
                     $htmlRadiasi .= '</div>';
                 }
 
+                // Render multi-divisi list dengan preview max 2 divisi + popover detail kontrak
+                $htmlDivisiKode = '<div class="d-flex flex-wrap align-items-center gap-1 mt-1">';
+                $divList = $row->divisi_list_detail;
+
+                $renderedCards = [];
+
+                if (!empty($divList)) {
+                    foreach ($divList as $dItem) {
+                        $divName = $dItem['name'] ?? '-';
+                        $kLencana = $dItem['kode_lencana'] ?? '-';
+
+                        $renderedCards[] = '
+                            <div class="border rounded px-2 py-1 bg-light d-inline-flex align-items-center gap-1 mb-1">
+                                <span class="badge bg-secondary" style="font-size: 0.7rem;">KODE: ' . $kLencana . '</span>
+                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">' . $divName . '</span>
+                            </div>
+                        ';
+                    }
+                } else {
+                    $renderedCards[] = '
+                        <div class="border rounded px-2 py-1 bg-light d-inline-flex align-items-center gap-1 mb-1">
+                            <span class="badge bg-light text-secondary border">KODE: ' . ($row->kode_lencana ?? '-') . '</span>
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">' . ($row->divisi?->name ?? '-') . '</span>
+                        </div>
+                    ';
+                }
+
+                if (count($renderedCards) > 2) {
+                    $htmlDivisiKode .= $renderedCards[0] . $renderedCards[1];
+                    $moreCount = count($renderedCards) - 2;
+
+                    $dropdownItems = '<ul class="dropdown-menu p-2 shadow border-0 overflow-hidden" style="max-width: 320px;">';
+                    for ($m = 2; $m < count($renderedCards); $m++) {
+                        $dropdownItems .= '<li class="mb-1">' . $renderedCards[$m] . '</li>';
+                    }
+                    $dropdownItems .= '</ul>';
+
+                    $htmlDivisiKode .= '
+                        <div class="dropup d-inline-block">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle cursor-pointer py-1 px-2 mb-1" data-bs-toggle="dropdown" aria-expanded="false">
+                                +' . $moreCount . ' Divisi Lainnya ▾
+                            </span>
+                            ' . $dropdownItems . '
+                        </div>
+                    ';
+                } else {
+                    $htmlDivisiKode .= implode('', $renderedCards);
+                }
+
+                $htmlDivisiKode .= '</div>';
+
                 return '
                     <div class="d-flex align-items-center w-100 p-2 rounded-3 hover-bg-light transition-all border-bottom">
                         <div class="me-3 flex-grow-1">
                             <h6 class="mb-0 fw-bold text-dark">' . $row->name . '</h6>
-                            <div class="d-flex align-items-center gap-2 mt-1">
-                                <span class="badge bg-light text-secondary border">KODE: ' . $row->kode_lencana . '</span>
-                                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle" style="font-size: 0.7rem;">
-                                    ' . ($row->divisi?->name ?? '-') . '
-                                </span>
-                            </div>
                             ' . $htmlRadiasi . '
+                            ' . $htmlDivisiKode . '
                         </div>
 
                         <div class="me-3">

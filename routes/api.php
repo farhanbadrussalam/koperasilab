@@ -16,6 +16,7 @@ use App\Http\Controllers\API\TldAPI;
 use App\Http\Controllers\API\FilterAPI;
 use App\Http\Controllers\API\PenggunaAPI;
 use App\Http\Controllers\API\ApprovalPelangganAPI;
+use App\Http\Controllers\API\MigrationAPI;
 
 use App\Http\Controllers\Management\DocumentController;
 use Illuminate\Http\Request;
@@ -209,6 +210,12 @@ Route::middleware('auth:sanctum')->prefix('v1/')->group(function() {
         Route::get('/getDivisi', 'getDivisi');
         Route::get('/getRadiasi', 'getRadiasi');
         Route::delete('/destroy/{id}', 'destroy');
+    });
+
+    Route::prefix('migration')->controller(MigrationAPI::class)->group(function () {
+        Route::post('/pengguna-divisi-list', 'migratePenggunaDivisiList');
+        Route::post('/details', 'migrateDetails');
+        Route::post('/penyelia-completed-at', 'migratePenyeliaCompletedAt');
     });
 
     Route::prefix('document')->controller(DocumentController::class)->group(function () {

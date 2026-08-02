@@ -140,7 +140,7 @@
                     @endif
                     <img src="{{ $data->ttd ? $data->ttd : $ttd_default }}" alt="TTD_keuangan">
                 </div>
-                <div>{{ $data->usersig ? $data->usersig->name : '................................' }}</div>
+                <div>{{ $data->plt ? 'a.n. ' : '' }}{{ $data->usersig ? $data->usersig->name : '................................' }}</div>
             </td>
         </tr>
     </table>

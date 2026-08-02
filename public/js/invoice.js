@@ -57,6 +57,14 @@ class Invoice {
             dateFormat: "Y-m-d",
             altFormat: "j F Y",
         });
+
+        $(document).on('change', '#pltChecked', (e) => {
+            const isChecked = $(e.target).is(':checked');
+            const nameEl = $('#content-ttd-name-invoice-validation-manager');
+            if (nameEl.length && typeof userActive !== 'undefined' && userActive) {
+                nameEl.text(isChecked ? `A.N. ${userActive.name}` : userActive.name);
+            }
+        });
     }
 
     // Handle faktur document upload
@@ -201,10 +209,13 @@ class Invoice {
                 signerUser: userActive
             });
 
+            $('#pltChecked').prop('disabled', false);
             if (this.dataKeuangan.plt) {
-                $('#plt-div-manager input').prop('checked', true);
+                $('#pltChecked').prop('checked', true);
+                $('#content-ttd-name-invoice-validation-manager').text(`A.N. ${userActive?.name ?? ''}`);
             } else {
-                $('#plt-div-manager input').prop('checked', false);
+                $('#pltChecked').prop('checked', false);
+                $('#content-ttd-name-invoice-validation-manager').text(userActive?.name ?? '');
             }
             $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
             $('#plt-div-manager').addClass('d-block').removeClass('d-none');
@@ -220,6 +231,16 @@ class Invoice {
                 });
                 $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
             }
+            if (this.dataKeuangan.plt) {
+                $('#pltChecked').prop('checked', true).prop('disabled', true);
+                $('#plt-div-manager').addClass('d-block').removeClass('d-none');
+                if (this.dataKeuangan.usersig) {
+                    $('#content-ttd-name-invoice-validation-manager').text(`A.N. ${this.dataKeuangan.usersig.name}`);
+                }
+            } else {
+                $('#pltChecked').prop('checked', false).prop('disabled', true);
+                $('#plt-div-manager').addClass('d-none').removeClass('d-block');
+            }
 
             $('#rincianInvoice-tab').click();
             this.showPaymentProof();
@@ -233,6 +254,16 @@ class Invoice {
                     signedDate: this.dataKeuangan.verif_at
                 });
                 $('#ttd-div-manager').addClass('d-block').removeClass('d-none');
+            }
+            if (this.dataKeuangan.plt) {
+                $('#pltChecked').prop('checked', true).prop('disabled', true);
+                $('#plt-div-manager').addClass('d-block').removeClass('d-none');
+                if (this.dataKeuangan.usersig) {
+                    $('#content-ttd-name-invoice-validation-manager').text(`A.N. ${this.dataKeuangan.usersig.name}`);
+                }
+            } else {
+                $('#pltChecked').prop('checked', false).prop('disabled', true);
+                $('#plt-div-manager').addClass('d-none').removeClass('d-block');
             }
             this.flatpickrPaymentDate.setDate(this.dataKeuangan.paid_at);
 

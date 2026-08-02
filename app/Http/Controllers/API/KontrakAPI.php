@@ -77,6 +77,7 @@ class KontrakAPI extends Controller
                 'pengiriman.permohonan:id_permohonan,periode,tipe_kontrak',
                 'tld_aktif:id_tld,digunakan,no_seri_tld,status',
                 'kontrak_detail',
+                'kontrak_detail.divisiSelected',
                 'kontrak_detail.tld_1',
                 'kontrak_detail.tld_2',
                 'kontrak_detail.entitas' => function (MorphTo $morphTo) {
@@ -233,6 +234,7 @@ class KontrakAPI extends Controller
                 'pengiriman.permohonan:id_permohonan,periode,tipe_kontrak,id_kontrak',
                 'tld_aktif:id_tld,digunakan,no_seri_tld,status',
                 'kontrak_detail',
+                'kontrak_detail.divisiSelected',
                 'kontrak_detail.tld_1',
                 'kontrak_detail.tld_2',
                 'kontrak_detail.entitas' => function (MorphTo $morphTo) {

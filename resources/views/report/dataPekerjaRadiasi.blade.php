@@ -151,7 +151,15 @@
                         @endphp
                         <tr>
                             <td class="text-center">{{ $no++ }}.</td>
-                            <td>{{ $tld->entitas->name ?? '-' }}</td>
+                            <td>
+                                {{ $tld->entitas->name ?? '-' }}
+                                @php
+                                    $kodeLencanaVal = $tld->kode_lencana_selected ?? ($tld->entitas->kode_lencana ?? '');
+                                @endphp
+                                @if($kodeLencanaVal && $kodeLencanaVal !== '-')
+                                    <br><small style="font-size: 7.5pt; color: #555;">(Kode: {{ $kodeLencanaVal }})</small>
+                                @endif
+                            </td>
                             <td class="text-center">{{ $tld->tld_awal->no_seri_tld ?? '-' }}</td>
                             <td class="text-center">{{ $tld->entitas->nik ?? '-' }}</td>
                             <td class="text-center">
@@ -167,7 +175,7 @@
                                 {{ $tld->entitas->tempat_lahir ?? '-' }},
                                 {{ $tld->entitas->tanggal_lahir ? \Carbon\Carbon::parse($tld->entitas->tanggal_lahir)->format('d-m-Y') : '-' }}
                             </td>
-                            <td class="text-center">{{ $tld->entitas->divisi->nama_divisi ?? '-' }}</td>
+                            <td class="text-center">{{ $tld->divisiSelected->name ?? ($tld->entitas->divisi->name ?? ($tld->entitas->divisi->nama_divisi ?? '-')) }}</td>
                             <td class="text-center">{{ count($zatRad) > 0 ? implode(', ', $zatRad) : '-' }}</td>
                             <td class="text-center">{{ count($xRay) > 0 ? implode(', ', $xRay) : '-' }}</td>
                         </tr>

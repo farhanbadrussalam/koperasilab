@@ -95,9 +95,22 @@
         @endphp
         @foreach ($data->periode[0]->tld_in_periode as $value)
             @if($value->pengguna)
+                @php
+                    $divStr = $value->divisiSelected->name ?? ($value->pengguna->divisi->name ?? '');
+                    $kodeStr = $value->kode_lencana_selected ?? ($value->pengguna->kode_lencana ?? '');
+                    $subInfo = [];
+                    if ($divStr && $divStr !== '-') $subInfo[] = "Divisi: {$divStr}";
+                    if ($kodeStr && $kodeStr !== '-') $subInfo[] = "Kode Lencana: {$kodeStr}";
+                    $infoText = count($subInfo) > 0 ? implode(' | ', $subInfo) : '';
+                @endphp
                 <tr>
                     <td class="text-center">{{ $count++ }}.</td>
-                    <td style="padding-left: 5px">{{ $value->pengguna->name }}</td>
+                    <td style="padding-left: 5px">
+                        <div>{{ $value->pengguna->name }}</div>
+                        @if($infoText)
+                            <div style="font-size: 7.5pt; color: #555; font-weight: normal;">{{ $infoText }}</div>
+                        @endif
+                    </td>
                     <td style="padding-left: 5px" class="fw-bold">{{ $value->keterangan ?? '' }}</td>
                 </tr>
             @else

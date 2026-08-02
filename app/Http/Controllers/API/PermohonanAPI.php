@@ -284,20 +284,54 @@ class PermohonanAPI extends Controller
             $idPengguna = decryptor($request->idPengguna);
             $idTld = $request->has('idTld') ? decryptor($request->idTld) : null;
 
+            $idDivisiSelected = $request->has('idDivisi') && $request->idDivisi ? decryptor($request->idDivisi) : null;
+            if (!$idDivisiSelected && $request->has('idDivisi') && is_numeric($request->idDivisi)) {
+                $idDivisiSelected = (int) $request->idDivisi;
+            }
+            $kodeLencanaSelected = $request->has('kodeLencana') ? $request->kodeLencana : null;
+
+            // Validasi Aturan Bisnis: Cek apakah kombinasi Pengguna + Divisi & Kode Lencana sudah ada
+            $existing = Permohonan_detail::where('id_permohonan', $idPermohonan)
+                ->where('jenis', 'pengguna')
+                ->where('id_pengguna_divisi', $idPengguna)
+                ->where(function ($q) use ($idDivisiSelected, $kodeLencanaSelected) {
+                    if ($idDivisiSelected) {
+                        $q->where('id_divisi_selected', $idDivisiSelected);
+                    } else {
+                        $q->whereNull('id_divisi_selected');
+                    }
+                    if ($kodeLencanaSelected) {
+                        $q->where('kode_lencana_selected', $kodeLencanaSelected);
+                    }
+                })
+                ->exists();
+
+            if ($existing) {
+                DB::rollBack();
+                return $this->output(array('msg' => 'Pengguna ini dengan divisi & kode lencana tersebut sudah ditambahkan pada permohonan ini.'), 'Fail', 422);
+            }
+
             Permohonan_detail::create(array(
                 'id_permohonan' => $idPermohonan,
                 'jenis' => 'pengguna',
                 'type' => 'baru',
                 'id_pengguna_divisi' => $idPengguna,
+                'id_divisi_selected' => $idDivisiSelected,
+                'kode_lencana_selected' => $kodeLencanaSelected,
                 'status' => 1,
                 'created_by' => Auth::user()->id
             ));
 
-            // pengecekan divisi pengguna
-            $dataPengguna = Master_pengguna::where('id_pengguna', $idPengguna)->first();
+            // pengecekan divisi pengguna untuk kontrol
             $permohonanTld = Permohonan_detail::where('id_permohonan', $idPermohonan)
                 ->where('jenis', 'kontrol')
-                ->where('id_pengguna_divisi', $dataPengguna->id_divisi)
+                ->where(function ($q) use ($idDivisiSelected) {
+                    if ($idDivisiSelected) {
+                        $q->where('id_divisi_selected', $idDivisiSelected);
+                    } else {
+                        $q->whereNull('id_divisi_selected');
+                    }
+                })
                 ->first();
 
             if (!$permohonanTld) {
@@ -305,13 +339,13 @@ class PermohonanAPI extends Controller
                     'id_permohonan' => $idPermohonan,
                     'jenis' => 'kontrol',
                     'type' => 'baru',
-                    'id_pengguna_divisi' => $dataPengguna->id_divisi,
+                    'id_pengguna_divisi' => $idDivisiSelected,
+                    'id_divisi_selected' => $idDivisiSelected,
                     'status' => 1,
                     'created_by' => Auth::user()->id
                 ));
             }
 
-            Master_pengguna::find($idPengguna)?->update(['status' => 2]);
             Master_tld::find($idTld)?->update(['status' => 1]);
             DB::commit();
 
@@ -727,6 +761,7 @@ class PermohonanAPI extends Controller
                         Master_pengguna::class => ['media_ktp:id,file_hash,file_path', 'divisi']
                     ]);
                 },
+                'divisiSelected',
                 'tld',
                 'penggunaLama'
             ])
@@ -1031,6 +1066,7 @@ class PermohonanAPI extends Controller
                 'kontrak.layanan_jasa:id_layanan,nama_layanan',
                 'kontrak.jenisTld:id_jenisTld,name',
                 'permohonan_detail',
+                'permohonan_detail.divisiSelected',
                 'permohonan_detail.tld',
                 'permohonan_detail.penggunaLama',
                 'permohonan_detail.entitas' => function (MorphTo $morphTo) {
@@ -1519,13 +1555,11 @@ class PermohonanAPI extends Controller
 
         // menambahkan permohonan Detail
         foreach ($dataPermohonan->permohonan_detail as $key => $value) {
-            if ($value->jenis == 'pengguna') {
-                Master_pengguna::find($value->id_pengguna_divisi)?->update(array('status' => 3));
-            }
-
             $dataPermohonanDetail = array(
                 'id_kontrak' => $dataKontrak->id_kontrak,
                 'id_pengguna_divisi' => $value->id_pengguna_divisi,
+                'id_divisi_selected' => $value->id_divisi_selected,
+                'kode_lencana_selected' => $value->kode_lencana_selected,
                 'jenis' => $value->jenis,
                 'status' => 1,
                 'type' => $value->type,

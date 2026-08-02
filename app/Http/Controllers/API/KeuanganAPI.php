@@ -338,7 +338,9 @@ class KeuanganAPI extends Controller
             $ppn && $data['ppn'] = $ppn;
             $pph && $data['pph'] = $pph;
             $idPermohonan && $data['id_permohonan'] = $idPermohonan;
-            $plt && $data['plt'] = $plt;
+            if ($request->has('plt')) {
+                $data['plt'] = $request->plt ? 1 : 0;
+            }
             $metodePembayaran && $data['id_jenis_pembayaran'] = $metodePembayaran;
             $variabelPembayaran && $data['variabel_jenis_pembayaran'] = $variabelPembayaran;
             $paid_at && $data['paid_at'] = $paid_at;
