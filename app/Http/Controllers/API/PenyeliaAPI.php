@@ -28,6 +28,7 @@ use App\Services\Notifier;
 
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\NotifController;
 use App\Models\Kontrak;
 use App\Models\Kontrak_detail;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -39,6 +40,7 @@ class PenyeliaAPI extends Controller
     use RestApi;
     protected LogController $log;
     protected MediaController $media;
+    protected NotifController $notif;
     protected array $global;
     protected mixed $pagination;
 
@@ -46,6 +48,7 @@ class PenyeliaAPI extends Controller
     {
         $this->log = resolve(LogController::class);
         $this->media = resolve(MediaController::class);
+        $this->notif = resolve(NotifController::class);
         $this->global = config('customvariabel');
     }
 
@@ -236,6 +239,12 @@ class PenyeliaAPI extends Controller
                             'key' => 'surat_tugas',
                         )
                     ));
+
+                    // Bulk read notif SuratTugas untuk semua penerima
+                    $this->notif->read(new Request([
+                        'event'    => 'SuratTugas',
+                        'event_id' => $penyelia->penyelia_hash,
+                    ]));
 
                     DB::commit();
 

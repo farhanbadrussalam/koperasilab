@@ -26,7 +26,7 @@ class ManagerPengajuanController extends Controller
             'title' => 'Invoice',
             'module' => 'manager-pengajuan'
         ];
-        Auth::user()->unreadNotifications()->where('data->event', 'Keuangan')->update(['read_at' => now()]);
+        notifRead('Keuangan');
         return view('pages.manager.pengajuan.index', $data);
     }
 
@@ -37,7 +37,7 @@ class ManagerPengajuanController extends Controller
             'module' => 'manager-suratTugas'
         ];
 
-        Auth::user()->unreadNotifications()->where('data->event', 'SuratTugas')->update(['read_at' => now()]);
+        notifRead('SuratTugas');
 
         return view('pages.manager.suratTugas', $data);
     }
@@ -49,7 +49,7 @@ class ManagerPengajuanController extends Controller
             'module' => 'manager-surpeng'
         ];
 
-        Auth::user()->unreadNotifications()->where('data->event', 'Surpeng')->update(['read_at' => now()]);
+        notifRead('Surpeng');
 
         return view('pages.manager.surpeng', $data);
     }

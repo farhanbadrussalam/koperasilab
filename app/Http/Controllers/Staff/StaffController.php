@@ -151,9 +151,6 @@ class StaffController extends Controller
 
     public function createSuratTugas(string $idPenyelia)
     {
-        // cek notifikasi read
-        notifRead('SuratTugas', $idPenyelia);
-
         $idPenyelia = decryptor($idPenyelia);
 
         // Mendapatkan segmen terakhir dari URL
@@ -329,7 +326,6 @@ class StaffController extends Controller
 
     public function verifikasiPermohonan(string $idPermohonan)
     {
-        notifRead('Permohonan', $idPermohonan);
         $arrTandaTerima = [1, 4, 7];
         $id = decryptor($idPermohonan);
         $pertanyaan_tr = false;
